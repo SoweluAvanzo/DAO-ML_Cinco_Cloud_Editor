@@ -1,0 +1,76 @@
+<h4>Projects</h4>
+<p class="text-muted">Manage and access projects of the organization</p>
+<hr>
+
+<div *ngIf="user != null && organization != null">
+
+  <div class="btn-group btn-group-sm">
+    <button (click)="newProjectModal.open(user, organization)" *ngIf="canCreate" class="btn btn-primary" type="button">
+      Create
+    </button>
+  </div>
+
+  <hr>
+
+  <div *ngIf="organization.projects.length > 0" class="list-group">
+    <div *ngFor="let project of organization.projects" class="list-group-item pyro-list-entry">
+      <div class="list-group-item-heading d-flex flex-row">
+        <div (click)="openCurrentProject(project)" class="w-100" style="cursor: pointer">
+          <h5>{{project.name}}</h5>
+        </div>
+        <div class="flex-shrink-0">
+          <div class="btn-group btn-group-sm">
+            <button (click)="showEditProject(project)" *ngIf="canEdit" class="btn" type="button">
+              <i class="fas fa-fw fa-edit"></i>
+            </button>
+            <button (click)="removeProject(project)" *ngIf="canDelete" class="btn" type="button">
+              <i class="fas fa-fw fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="list-group-item-text">
+        <p *ngIf="project.description.trim() != ''">
+          {{project.description}}
+        </p>
+        <p class="mb-0 text-muted">
+          Owner:
+          <strong *ngIf="project.owner.id == user.id">You</strong>
+          <span *ngIf="project.owner.id != user.id">{{project.owner.username}}</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="organization.projects.length === 0" class="alert alert-info">
+    There are no projects in this organization yet.
+  </div>
+
+</div>
+
+<edit-project
+    (close)="showEditProjectModal=false"
+    (editedProject)="handleProjectEdited($event)"
+    *ngIf="showEditProjectModal"
+    [organization]="organization"
+    [project]="editProject"
+    [user]="user"
+>
+</edit-project>
+
+<delete-project
+    (close)="showDeleteProjectModal=false"
+    (delete)="handleProjectDeleted()"
+    *ngIf="showDeleteProjectModal"
+    [project]="deleteProject"
+    [user]="user"
+>
+</delete-project>
+
+<new-project
+    #newProjectModal
+    (dismiss)="newProjectModal.close()"
+    (newProject)="handleNewProject($event)"
+>
+</new-project>

@@ -1,0 +1,11 @@
+.badges .badge i {
+    visibility: hidden;
+}
+
+.badges .badge i:hover {
+    cursor: pointer;
+}
+
+.badges .badge:hover i {
+    visibility: visible;
+}

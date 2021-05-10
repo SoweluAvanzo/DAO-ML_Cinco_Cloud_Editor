@@ -1,0 +1,31 @@
+<div *ngIf="show" aria-labelledby="createProjectlabel" class="modal show d-block fade in" id="createProjectModal" role="dialog"
+     tabindex="-1">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="createProjectLabel">Create a new Project</h4>
+        <button (click)="dismissSC.add($event)" aria-label="Close" class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="createNewProject(projectName.value,projectDescription.value)">
+          <div class="form-group">
+            <label for="projectName">Project Name</label>
+            <input #projectName class="form-control" id="projectName" placeholder="Name" type="text">
+          </div>
+          <div class="form-group">
+            <label for="projectDescription">Project Description</label>
+            <textarea #projectDescription class="form-control" id="projectDescription"
+                      placeholder="Description"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button (click)="createNewProject(projectName.value,projectDescription.value)" class="btn btn-success"
+                type="button">Create Project
+        </button>
+        <button (click)="dismissSC.add($event)" class="btn" data-dismiss="modal" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

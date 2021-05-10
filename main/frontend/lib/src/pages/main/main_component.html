@@ -1,0 +1,29 @@
+<div class="main-class">
+  <div class="site-wrapper">
+    <div class="site-wrapper-inner">
+      <div class="cover-container">
+
+        <nav class="navbar navbar-expand-lg org-nav-bg-color">
+          <a class="navbar-brand" href="https://pyro.scce.info">
+            Cinco Cloud
+          </a>
+          <ul class="navbar-nav ml-auto masthead-nav">
+            <li class="nav-item">
+              <a [routerLink]="RoutePaths.welcome.toUrl()" class="nav-link org-nav-text-color">Home</a>
+            </li>
+            <li class="nav-item">
+              <a [routerLink]="RoutePaths.login.toUrl()" class="nav-link org-nav-text-color">Login</a>
+            </li>
+            <li class="nav-item">
+              <a [routerLink]="RoutePaths.registration.toUrl()" class="nav-link org-nav-text-color">Register</a>
+            </li>
+          </ul>
+        </nav>
+
+        <router-outlet [routes]="Routes.all"></router-outlet>
+
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,31 @@
+<div *ngIf="show" aria-labelledby="createOrganizationlabel" class="modal show d-block fade in" id="createProjectModal" role="dialog"
+     tabindex="-1">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="createOrganizationlabel">Create a new Organization</h4>
+        <button (click)="dismissSC.add($event)" aria-label="Close" class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="createNewOrganization(orgName.value, orgDescription.value)">
+          <div class="form-group">
+            <label for="orgName">Name</label>
+            <input #orgName class="form-control" id="orgName" placeholder="The name of the organization" type="text">
+          </div>
+          <div class="form-group">
+            <label for="orgDescription">Description</label>
+            <textarea #orgDescription class="form-control" id="orgDescription"
+                      placeholder="The description of the organization"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button (click)="createNewOrganization(orgName.value, orgDescription.value)" class="btn btn-success"
+                type="button">Create Organization
+        </button>
+        <button (click)="dismissSC.add($event)" class="btn" data-dismiss="modal" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

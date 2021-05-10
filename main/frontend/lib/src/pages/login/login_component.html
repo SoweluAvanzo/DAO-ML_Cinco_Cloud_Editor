@@ -1,0 +1,13 @@
+<form (ngSubmit)="login(email.value,pw.value,$event)" class="form-signin">
+  <h2 class="form-signin-heading">Please sign in</h2>
+  <div *ngIf="!correct" class="alert alert-danger">
+    Bad credentials
+  </div>
+  <label class="sr-only" for="inputEmail">Username</label>
+  <input #email autocomplete="name" autofocus class="form-control" id="inputEmail" placeholder="E-Mail" required
+         type="email">
+  <label class="sr-only" for="inputPassword">Password</label>
+  <input #pw class="form-control" current-password id="inputPassword" placeholder="Password" required type="password">
+  <button (click)="login(email.value,pw.value,$event)" class="btn btn-lg btn-primary btn-block" type="submit">Sign in
+  </button>
+</form>

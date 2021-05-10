@@ -1,0 +1,29 @@
+<!-- Show Users Modal -->
+<div aria-labelledby="showUsersLabel" class="modal d-block show fade in" id="showUsersModal" role="dialog"
+     tabindex="-1">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="showUsersLabel">Add User</h4>
+        <button (click)="closeSC.add($event)" aria-label="Close" class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="submitCreateUser(userName.value,$event)">
+          <div class="form-row d-flex" style="align-items: flex-end;">
+            <div class="form-group col-10">
+              <label for="userName">Username</label>
+              <input #userName class="form-control" id="userName" placeholder="Enter username" required type="text">
+            </div>
+            <div class="form-group col-2">
+              <button (click)="submitCreateUser(userName.value,$event)" class="btn mt-4 btn-block" type="submit">Add
+              </button>
+            </div>
+          </div>
+        </form>
+        <div *ngIf="result != null" class="alert alert-danger">Username already present</div>
+      </div>
+    </div>
+  </div>
+</div>

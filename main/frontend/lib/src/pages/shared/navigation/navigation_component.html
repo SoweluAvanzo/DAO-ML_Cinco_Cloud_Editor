@@ -1,0 +1,57 @@
+<header class="mb-3">
+  <nav class="navbar navbar-static-top navbar-expand-lg navbar-dark org-nav-bg-color">
+
+    <a *ngIf="style == null || style.logo == null" class="navbar-brand" style="color: white;">
+      <img alt="Brand" src="img/cinco-logo.png" style="height: 30px; margin-right: 1rem">
+      FlowGraphTool
+    </a>
+
+    <a *ngIf="style != null && style.logo != null" class="mr-2">
+      <img alt="Brand" src="{{style.logo.downloadPath}}" style="height: 30px; width: auto">
+    </a>
+
+    <button aria-controls="navbarToggler" aria-expanded="false" class="navbar-toggler" data-target="#navbarToggler"
+            data-toggle="collapse" type="button">
+      <i class="fas fa-fw fa-bars"></i>
+    </button>
+
+    <div *ngIf="currentUser != null" class="collapse navbar-collapse" id="navbarToggler">
+      <ul class="navbar-nav">
+        <li *ngIf="isAdmin" class="nav-item">
+          <a [routerLinkActive]="'active'" [routerLink]="top_routes.RoutePaths.admin.toUrl()"
+             class="nav-link org-nav-text-color">Admin</a>
+        </li>
+        <li class="nav-item">
+          <a [routerLinkActive]="'active'" [routerLink]="top_routes.RoutePaths.organizations.toUrl()"
+             class="nav-link org-nav-text-color">Organizations</a>
+        </li>
+      </ul>
+
+      <div class="w-100">
+        <ng-content></ng-content>
+      </div>
+
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown">
+          <a aria-expanded="false" aria-haspopup="true"
+             class="py-lg-0 nav-link org-nav-text-color dropdown-toggle d-flex flex-row align-items-center" data-toggle="dropdown" href="#" role="button">
+            <div class="d-none d-lg-block" style="height: 30px; width: 30px; overflow: hidden">
+              <profile-image [user]="currentUser"></profile-image>
+            </div>
+            <span class="d-inline d-lg-none">{{currentUser.username}}</span>
+            <span class="caret ml-2"></span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right">
+            <a [routerLink]="top_routes.RoutePaths.profile.toUrl()" class="dropdown-item">
+              <i class="fas fa-fw fa-user"></i> Profile
+            </a>
+            <div class="dropdown-divider" role="separator"></div>
+            <a [routerLink]="top_routes.RoutePaths.logout.toUrl()" class="dropdown-item">
+              <i class="fas fa-fw fa-sign-out-alt"></i> Logout
+            </a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>

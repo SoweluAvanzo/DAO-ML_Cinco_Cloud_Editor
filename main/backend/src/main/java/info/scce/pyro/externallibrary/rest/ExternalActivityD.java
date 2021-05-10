@@ -1,0 +1,229 @@
+package info.scce.pyro.externallibrary.rest;
+
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
+
+/**
+ * Author zweihoff
+ */
+
+@com.fasterxml.jackson.annotation.JsonTypeName("info.scce.pyro.externallibrary.rest.ExternalActivityD")
+public class ExternalActivityD implements info.scce.pyro.core.graphmodel.IdentifiableElement 
+{
+	private String __type;
+					
+    @com.fasterxml.jackson.annotation.JsonProperty("__type")
+    public String get__type() {
+        return this.__type;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("__type")
+    public void set__type(final String __type) {
+        this.__type = __type;
+    }
+    
+    @com.fasterxml.jackson.annotation.JsonProperty(info.scce.pyro.util.Constants.PYRO_ID)
+    private long id;
+    
+    @Override
+	public long getId() {
+		return this.id;
+	}
+	
+	@Override
+	public void setId(long id) {
+		this.id = id;
+	}
+	
+	private long ofD;
+							
+	@com.fasterxml.jackson.annotation.JsonProperty("ofD")
+	public long getofD() {
+	    return this.ofD;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("ofD")
+	public void setOfD(final long ofD) {
+	    this.ofD = ofD;
+	}
+	
+	private String name;
+							
+	@com.fasterxml.jackson.annotation.JsonProperty("name")
+	public String getname() {
+	    return this.name;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("name")
+	public void setName(final String name) {
+	    this.name = name;
+	}
+	
+	private long valueInteger;
+							
+	@com.fasterxml.jackson.annotation.JsonProperty("valueInteger")
+	public long getvalueInteger() {
+	    return this.valueInteger;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("valueInteger")
+	public void setValueInteger(final long valueInteger) {
+	    this.valueInteger = valueInteger;
+	}
+	
+	private long valueLong;
+							
+	@com.fasterxml.jackson.annotation.JsonProperty("valueLong")
+	public long getvalueLong() {
+	    return this.valueLong;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("valueLong")
+	public void setValueLong(final long valueLong) {
+	    this.valueLong = valueLong;
+	}
+	
+	private String valueString;
+							
+	@com.fasterxml.jackson.annotation.JsonProperty("valueString")
+	public String getvalueString() {
+	    return this.valueString;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("valueString")
+	public void setValueString(final String valueString) {
+	    this.valueString = valueString;
+	}
+	
+	private java.util.Collection<Long> valueIntegerList;
+							
+	@com.fasterxml.jackson.annotation.JsonProperty("valueIntegerList")
+	public java.util.Collection<Long> getvalueIntegerList() {
+	    return this.valueIntegerList;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("valueIntegerList")
+	public void setValueIntegerList(final java.util.Collection<Long> valueIntegerList) {
+	    this.valueIntegerList = valueIntegerList;
+	}
+	
+	private java.util.Collection<Long> valueLongList;
+							
+	@com.fasterxml.jackson.annotation.JsonProperty("valueLongList")
+	public java.util.Collection<Long> getvalueLongList() {
+	    return this.valueLongList;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("valueLongList")
+	public void setValueLongList(final java.util.Collection<Long> valueLongList) {
+	    this.valueLongList = valueLongList;
+	}
+	
+	private java.util.Collection<String> valueStringList;
+							
+	@com.fasterxml.jackson.annotation.JsonProperty("valueStringList")
+	public java.util.Collection<String> getvalueStringList() {
+	    return this.valueStringList;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("valueStringList")
+	public void setValueStringList(final java.util.Collection<String> valueStringList) {
+	    this.valueStringList = valueStringList;
+	}
+	
+	private info.scce.pyro.externallibrary.rest.ExternalActivityD referencedOfD;
+									
+	@com.fasterxml.jackson.annotation.JsonProperty("referencedOfD")
+	public info.scce.pyro.externallibrary.rest.ExternalActivityD getreferencedOfD() {
+	    return this.referencedOfD;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("referencedOfD")
+	public void setReferencedOfD(final info.scce.pyro.externallibrary.rest.ExternalActivityD referencedOfD) {
+	    this.referencedOfD = referencedOfD;
+	}
+	
+	private java.util.List<info.scce.pyro.externallibrary.rest.ExternalActivityD> recerencingAbstractList;
+									
+	@com.fasterxml.jackson.annotation.JsonProperty("recerencingAbstractList")
+	public java.util.List<info.scce.pyro.externallibrary.rest.ExternalActivityD> getrecerencingAbstractList() {
+	    return this.recerencingAbstractList;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("recerencingAbstractList")
+	public void setRecerencingAbstractList(final java.util.List<info.scce.pyro.externallibrary.rest.ExternalActivityD> recerencingAbstractList) {
+	    this.recerencingAbstractList = recerencingAbstractList;
+	}
+	
+	private java.util.List<info.scce.pyro.externallibrary.rest.ExternalAbstractActivityB> referencingList;
+									
+	@com.fasterxml.jackson.annotation.JsonProperty("referencingList")
+	public java.util.List<info.scce.pyro.externallibrary.rest.ExternalAbstractActivityB> getreferencingList() {
+	    return this.referencingList;
+	}
+	
+	@com.fasterxml.jackson.annotation.JsonProperty("referencingList")
+	public void setReferencingList(final java.util.List<info.scce.pyro.externallibrary.rest.ExternalAbstractActivityB> referencingList) {
+	    this.referencingList = referencingList;
+	}
+	
+	public static ExternalActivityD fromEntityProperties(final PanacheEntity dbEntity, info.scce.pyro.rest.ObjectCache o) {
+		info.scce.pyro.rest.ObjectCache objectCache = o;
+		if(objectCache == null)
+			objectCache = new info.scce.pyro.rest.ObjectCache();
+		
+		return fromEntity(dbEntity,objectCache);
+	}
+	
+	public static ExternalActivityD fromEntity(final PanacheEntity dbEntity, info.scce.pyro.rest.ObjectCache objectCache) {
+		if(dbEntity instanceof entity.externallibrary.ExternalActivityDDB) {
+			entity.externallibrary.ExternalActivityDDB entity = (entity.externallibrary.ExternalActivityDDB) dbEntity;
+			if(objectCache!=null && objectCache.containsRestTo(entity)){
+				return objectCache.getRestTo(entity);
+			}
+			final ExternalActivityD result;
+			result = new ExternalActivityD();
+			if(objectCache!=null) {
+				objectCache.putRestTo(entity, result);
+			}
+			result.setId(entity.id);
+			result.set__type("externallibrary.ExternalActivityD");
+			
+			result.setOfD(entity.ofd);
+			result.setName(entity.name);
+			result.setValueInteger(entity.valueinteger);
+			result.setValueLong(entity.valuelong);
+			result.setValueString(entity.valuestring);
+			result.setValueIntegerList(entity.valueintegerlist);
+			result.setValueLongList(entity.valuelonglist);
+			result.setValueStringList(entity.valuestringlist);
+			result.setReferencedOfD(
+				info.scce.pyro.externallibrary.rest.ExternalActivityD.fromEntity(
+					entity.getReferencedOfD(),
+					objectCache
+				)
+			);
+			result.setRecerencingAbstractList(
+				entity.getRecerencingAbstractList().stream().map((n)->
+					info.scce.pyro.externallibrary.rest.ExternalActivityD.fromEntity(
+						n,
+						objectCache
+					)
+				).collect(java.util.stream.Collectors.toList())
+			);
+			result.setReferencingList(
+				entity.getReferencingList().stream().map((n)->
+					info.scce.pyro.externallibrary.rest.ExternalAbstractActivityB.fromEntity(
+						n,
+						objectCache
+					)
+				).collect(java.util.stream.Collectors.toList())
+			);
+			return result;
+		}
+		// delegating to subTypes
+		else if(dbEntity instanceof entity.externallibrary.ExternalActivityADB) {
+			return info.scce.pyro.externallibrary.rest.ExternalActivityA.fromEntity(dbEntity, objectCache);
+		}
+		return null;
+	}
+}

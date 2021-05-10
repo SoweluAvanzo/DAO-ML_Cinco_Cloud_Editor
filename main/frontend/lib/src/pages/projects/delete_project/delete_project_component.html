@@ -1,0 +1,19 @@
+<div aria-labelledby="deleteProjectLabel" class="modal show d-block fade in" role="dialog" tabindex="-1">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="deleteProjectLabel">Delete Project {{project.name}}</h4>
+        <button (click)="closeModal($event)" aria-label="Close" class="close" data-dismiss="modal" type="button"><span
+            aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete the Project {{project.name}}?</p>
+      </div>
+      <div class="modal-footer">
+        <button (click)="deleteProject($event)" class="btn btn-danger" data-dismiss="modal" type="button">Delete
+        </button>
+        <button (click)="closeModal($event)" class="btn" data-dismiss="modal" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

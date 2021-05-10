@@ -1,0 +1,15 @@
+.pyro-panel-heading {
+    background-color: #8e8e8e;
+    color: white;
+    border-color: rgba(51, 51, 51, 0);
+}
+
+.pyro-panel-body {
+    background-color: rgb(82, 82, 82);
+    color: white;
+}
+
+.pyro-panel {
+    border-color: rgba(51, 51, 51, 0);
+    background-color: rgba(139, 69, 19, 0);
+}

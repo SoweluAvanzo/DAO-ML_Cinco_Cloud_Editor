@@ -1,0 +1,26 @@
+<h4>Settings</h4>
+<p class="text-muted">
+  System wide settings
+</p>
+<hr>
+
+<div>
+  <button (click)="save()" class="btn btn-primary btn-sm">Save</button>
+</div>
+
+<hr>
+
+<div *ngIf="settings != null" class="list-group">
+  <div class="list-group-item pyro-list-entry d-flex flex-row">
+    <div class="w-100 mr-3">
+      <strong>Globally create organizations</strong>
+      <p class="mb-0 text-muted">
+        When enabled, every user is allowed to create organizations without being an organization manager.
+      </p>
+    </div>
+    <div>
+      <toggle-button (changed)="handleChanged($event)" [enabled]="settings.globallyCreateOrganizations">
+      </toggle-button>
+    </div>
+  </div>
+</div>

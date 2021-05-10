@@ -1,0 +1,23 @@
+<div class="d-flex flex-row justify-content-end">
+  <div class="badges">
+		<span
+        *ngFor="let ar of accessRights.accessRights"
+        class="badge badge-secondary mr-1 mb-1"
+        style="padding: .6rem"
+    >
+			{{ar|normalizeEnumString}} <i (click)="removeAccessRight(ar)" class="fas fa-times ml-1"></i>
+		</span>
+  </div>
+  <div *ngIf="availableArs.length > 0">
+    <bs-dropdown>
+      <button class="btn btn-sm btn-dark dropdown-toggle no-caret" type="button">
+        <i class="fas fa-plus"></i>
+      </button>
+      <bs-dropdown-menu class="dropdown-menu-right">
+        <li *ngFor="let ar of availableArs">
+          <a (click)="addAccessRight($event, ar)" class="dropdown-item" href="#">{{ar|normalizeEnumString}}</a>
+        </li>
+      </bs-dropdown-menu>
+    </bs-dropdown>
+  </div>
+</div>

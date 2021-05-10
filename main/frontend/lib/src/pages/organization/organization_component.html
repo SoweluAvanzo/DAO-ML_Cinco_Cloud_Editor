@@ -1,0 +1,30 @@
+<navigation [user]="currentUser"></navigation>
+
+<div *ngIf="currentUser != null && organization != null" class="container">
+  <div class="row">
+    <div *ngIf="isOrgOwner" class="col-3">
+      <div class="sidebar">
+        <div class="sidebar-section">
+          <h4 class="sidebar-section-title">{{organization.name}}</h4>
+          <hr>
+          <a (click)="setMenuState($event, 'projects')" [ngClass]="{'active': isMenuState('projects')}"
+             class="sidebar-section-item" href="#">Projects</a>
+          <a (click)="setMenuState($event, 'members')" [ngClass]="{'active': isMenuState('members')}"
+             class="sidebar-section-item" href="#">Members</a>
+          <a (click)="setMenuState($event, 'accessRights')" [ngClass]="{'active': isMenuState('accessRights')}"
+             class="sidebar-section-item" href="#">Access Rights</a>
+          <a (click)="setMenuState($event, 'appearance')" [ngClass]="{'active': isMenuState('appearance')}" class="sidebar-section-item"
+             href="#">Appearance</a>
+        </div>
+      </div>
+    </div>
+    <div [ngClass]="isOrgOwner ? 'col-9' : 'col-12'">
+      <projects *ngIf="isMenuState('projects')" [organization]="organization"></projects>
+      <users (orgChanged)="orgChanged" *ngIf="isMenuState('members')" [organization]="organization"
+             [user]="currentUser"></users>
+      <access-rights *ngIf="isMenuState('accessRights')" [organization]="organization"
+                     [user]="currentUser"></access-rights>
+      <appearance *ngIf="isMenuState('appearance')" [organization]="organization" [user]="currentUser"></appearance>
+    </div>
+  </div>
+</div>
