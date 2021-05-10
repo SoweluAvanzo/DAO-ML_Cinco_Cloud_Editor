@@ -16,9 +16,6 @@ import javax.websocket.server.ServerEndpoint;
 import info.scce.cincocloud.db.PyroUserDB;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 
-/**
- * Author zweihoff
- */
 @ServerEndpoint(value = "/ws/user/{ticket}/private")
 @ApplicationScoped
 public class UserWebSocket {

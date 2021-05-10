@@ -123,7 +123,7 @@ public class UsersController {
             }
 
             // an admin should not remove his own admin rights
-            if (isAdmin(user) && user.id == subject.id) {
+            if (isAdmin(user) && user.id.equals(subject.id)) {
                 return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
             }
 
@@ -181,7 +181,7 @@ public class UsersController {
 
     public void deleteUser(PyroUserDB user) {
         java.util.List<PyroOrganizationDB> orgs = PyroOrganizationDB.listAll();
-        orgs.stream().forEach((org) -> {
+        orgs.forEach((org) -> {
             if (org.owners.contains(user) || org.members.contains(user)) {
                 this.organizationController.removeFromOrganization(user, org);
             }

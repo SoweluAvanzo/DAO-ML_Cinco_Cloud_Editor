@@ -63,7 +63,7 @@ public class FileReference {
 
         final FileReference that = (FileReference) obj;
         if (this.getId() == -1 && that.getId() == -1) {
-            return this == that;
+            return false;
         }
 
         return this.getId() == that.getId();

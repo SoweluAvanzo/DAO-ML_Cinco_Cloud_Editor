@@ -27,9 +27,6 @@ import info.scce.cincocloud.db.PyroUserDB;
 public class ProjectController {
 
     @Inject
-    GraphModelController graphModelController;
-
-    @Inject
     ProjectService projectService;
 
     @Inject
@@ -91,7 +88,7 @@ public class ProjectController {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         final PyroProjectDB pp = PyroProjectDB.findById(ownedProject.getId());
-        graphModelController.checkPermission(pp, securityContext);
+        projectService.checkPermission(pp, securityContext);
 
         if (canEditProject(subject, pp)) {
             pp.description = ownedProject.getdescription();
@@ -127,8 +124,8 @@ public class ProjectController {
     public javax.ws.rs.core.Response getProject(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("projectId") final long projectId) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
         final PyroProjectDB project = PyroProjectDB.findById(projectId);
+        projectService.checkPermission(project, securityContext);
 
-        graphModelController.checkPermission(project, securityContext);
         if (isInOrganization(subject, project.organization)) {
             return javax.ws.rs.core.Response.ok(PyroProject.fromEntity(project, objectCache)).build();
         }
@@ -143,8 +140,7 @@ public class ProjectController {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         final PyroProjectDB pp = PyroProjectDB.findById(id);
-
-        graphModelController.checkPermission(pp, securityContext);
+        projectService.checkPermission(pp, securityContext);
 
         if (isInOrganization(subject, pp.organization)) {
             return javax.ws.rs.core.Response.ok(PyroProjectStructure.fromEntity(pp, objectCache)).build();

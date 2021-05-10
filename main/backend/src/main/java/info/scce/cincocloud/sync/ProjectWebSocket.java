@@ -21,9 +21,6 @@ import info.scce.cincocloud.db.PyroUserDB;
 import info.scce.cincocloud.sync.helper.WorkerThreadHelper;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 
-/**
- * Author zweihoff
- */
 @ServerEndpoint(value = "/ws/project/{projectId}/{ticket}/private")
 @ApplicationScoped
 public class ProjectWebSocket {

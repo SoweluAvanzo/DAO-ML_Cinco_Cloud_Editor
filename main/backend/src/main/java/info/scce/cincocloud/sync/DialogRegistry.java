@@ -5,9 +5,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.enterprise.context.ApplicationScoped;
 
-/**
- * Author zweihoff
- */
 @ApplicationScoped
 public class DialogRegistry extends WebSocketRegistry {
     /**

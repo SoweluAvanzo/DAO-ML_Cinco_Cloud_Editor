@@ -1,9 +1,5 @@
 package info.scce.cincocloud.core.rest.types;
 
-/**
- * Author zweihoff
- */
-
 public class PyroFile extends info.scce.cincocloud.rest.RESTBaseImpl implements IPyroFile {
 
     private String filename;

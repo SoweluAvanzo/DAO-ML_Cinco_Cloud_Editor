@@ -366,7 +366,8 @@ public class OrganizationController {
 
     private void deleteAccessRightVector(
             PyroUserDB user,
-            PyroOrganizationDB org) {
+            PyroOrganizationDB org
+    ) {
         final PyroOrganizationAccessRightVectorDB arv = findAccessRightVector(user, org);
         arv.delete();
     }

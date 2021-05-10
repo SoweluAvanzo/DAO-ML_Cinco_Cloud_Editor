@@ -1,9 +1,5 @@
 package info.scce.cincocloud.core.rest.types;
 
-/**
- * Author zweihoff
- */
-
 public class CreatePyroFolder {
 
     private long parentId;

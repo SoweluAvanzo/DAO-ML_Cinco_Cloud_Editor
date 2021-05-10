@@ -4,10 +4,6 @@ import info.scce.cincocloud.db.PyroProjectDB;
 import info.scce.cincocloud.db.PyroSystemRoleDB;
 import info.scce.cincocloud.db.PyroUserDB;
 
-/**
- * Author zweihoff
- */
-
 public class PyroUser extends info.scce.cincocloud.rest.RESTBaseImpl {
 
     private java.util.List<PyroProject> ownedProjects = new java.util.LinkedList<>();

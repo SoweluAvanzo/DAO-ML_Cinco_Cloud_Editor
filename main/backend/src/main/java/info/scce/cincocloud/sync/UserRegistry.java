@@ -1,14 +1,10 @@
 package info.scce.cincocloud.sync;
 
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.Session;
 
-/**
- * Author zweihoff
- */
 @ApplicationScoped
 public class UserRegistry extends WebSocketRegistry {
     /**

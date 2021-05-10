@@ -1,9 +1,5 @@
 package info.scce.cincocloud.sync;
 
-/**
- * Author zweihoff
- */
-
 @com.fasterxml.jackson.annotation.JsonFilter("PYRO_Selective_Filter")
 public class WebSocketMessage {
 

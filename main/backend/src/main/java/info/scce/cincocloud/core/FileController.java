@@ -70,7 +70,7 @@ public class FileController {
             newFile.createNewFile();
             out = new FileOutputStream(newFile);
 
-            int read = 0;
+            int read;
             final byte[] bytes = new byte[1024];
 
             while ((read = filecontent.read(bytes)) != -1) {

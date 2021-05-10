@@ -3,9 +3,6 @@ package info.scce.cincocloud.sync;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Author zweihoff
- */
 public class DisplayMessages {
     private List<DisplayMessage> messages = new LinkedList<>();
 

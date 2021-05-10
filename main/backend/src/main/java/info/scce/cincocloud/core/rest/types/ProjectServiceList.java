@@ -5,10 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.voodoodyne.jackson.jsog.JSOGGenerator;
 import java.util.List;
 
-/**
- * Author zweihoff
- */
-
 @JsonIdentityInfo(generator = JSOGGenerator.class)
 public class ProjectServiceList {
     private List<String> active = new java.util.LinkedList<>();

@@ -2,10 +2,6 @@ package info.scce.cincocloud.core.rest.types;
 
 import info.scce.cincocloud.db.PyroTextualFileDB;
 
-/**
- * Author zweihoff
- */
-
 public class PyroTextualFile extends PyroFile {
 
     private String content;

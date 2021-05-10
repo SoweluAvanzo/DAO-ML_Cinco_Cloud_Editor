@@ -2,10 +2,6 @@ package info.scce.cincocloud.core.rest.types;
 
 import info.scce.cincocloud.db.PyroURLFileDB;
 
-/**
- * Author zweihoff
- */
-
 public class PyroURLFile extends PyroFile {
 
     private String url;

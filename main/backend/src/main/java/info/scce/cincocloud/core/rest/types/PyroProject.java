@@ -2,10 +2,6 @@ package info.scce.cincocloud.core.rest.types;
 
 import info.scce.cincocloud.db.PyroProjectDB;
 
-/**
- * Author zweihoff
- */
-
 public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
 
     private PyroUser owner;

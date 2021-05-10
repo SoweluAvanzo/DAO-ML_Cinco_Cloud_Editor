@@ -1,8 +1,5 @@
 package info.scce.cincocloud.sync;
 
-/**
- * Author zweihoff
- */
 public class DisplayMessage {
     private String messageType;
     private String content;

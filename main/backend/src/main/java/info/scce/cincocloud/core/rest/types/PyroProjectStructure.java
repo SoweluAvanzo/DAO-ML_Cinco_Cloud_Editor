@@ -1,14 +1,6 @@
 package info.scce.cincocloud.core.rest.types;
 
-import info.scce.cincocloud.db.PyroBinaryFileDB;
-import info.scce.cincocloud.db.PyroFolderDB;
 import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.db.PyroTextualFileDB;
-import info.scce.cincocloud.db.PyroURLFileDB;
-
-/**
- * Author zweihoff
- */
 
 public class PyroProjectStructure extends PyroProject {
 
@@ -33,20 +25,6 @@ public class PyroProjectStructure extends PyroProject {
         objectCache.putRestTo(entity, result);
 
         result.setowner(PyroUser.fromEntity(entity.owner, objectCache));
-
-        for (PyroFolderDB p : entity.innerFolders) {
-            result.getinnerFolders().add(PyroFolder.fromEntity(p, objectCache));
-        }
-
-        for (PyroBinaryFileDB p : entity.binaryFiles) {
-            result.getfiles().add(PyroBinaryFile.fromEntity(p, objectCache));
-        }
-        for (PyroURLFileDB p : entity.urlFiles) {
-            result.getfiles().add(PyroURLFile.fromEntity(p, objectCache));
-        }
-        for (PyroTextualFileDB p : entity.textualFiles) {
-            result.getfiles().add(PyroTextualFile.fromEntity(p, objectCache));
-        }
 
         if (entity.organization != null) {
             result.setorganization(PyroOrganization.fromEntity(entity.organization, objectCache));

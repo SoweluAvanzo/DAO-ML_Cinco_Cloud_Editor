@@ -6,9 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.Session;
 
-/**
- * Author zweihoff
- */
 @ApplicationScoped
 public class ProjectRegistry extends WebSocketRegistry {
     /**
@@ -27,7 +24,7 @@ public class ProjectRegistry extends WebSocketRegistry {
 
     public void send(long projectId, WebSocketMessage message) {
         if (currentOpenSockets.containsKey(projectId)) {
-            currentOpenSockets.get(projectId).entrySet().forEach(n -> super.send(n.getValue(), message));
+            currentOpenSockets.get(projectId).forEach((key, value) -> super.send(value, message));
         }
     }
 }

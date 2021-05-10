@@ -11,9 +11,6 @@ import javax.websocket.CloseReason;
 import javax.websocket.Session;
 import info.scce.cincocloud.rest.PyroSelectiveRestFilter;
 
-/**
- * Author zweihoff
- */
 public class WebSocketRegistry {
 
     public void send(Session session, WebSocketMessage message) {
@@ -37,7 +34,6 @@ public class WebSocketRegistry {
         try {
             session.getBasicRemote().sendText(response);
         } catch (IOException e) {
-            //e.printStackTrace();
             try {
                 session.close();
             } catch (IOException e1) {

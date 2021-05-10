@@ -2,6 +2,7 @@ package info.scce.cincocloud.sync.ticket;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import info.scce.cincocloud.db.PyroUserDB;
@@ -20,10 +21,6 @@ import info.scce.cincocloud.db.PyroUserDB;
 public class TicketRegistrationHandler {
     static HashMap<String, Ticket> registeredTickets = new HashMap<>();
 
-    /**
-     * @param user
-     * @return
-     */
     public static TicketMessage createTicket(PyroUserDB user) {
         cleanUp();
         synchronized (registeredTickets) {
@@ -49,11 +46,9 @@ public class TicketRegistrationHandler {
         }
         synchronized (registeredTickets) {
             // collect all tickets associated with the user
-            List<HashMap.Entry<String, Ticket>> toBeRemoved = registeredTickets.entrySet().stream().filter((e) -> {
-                return e.getValue() != null
-                        && e.getValue().getUser() != null
-                        && user.id.equals(e.getValue().getUser().id);
-            }).collect(Collectors.toList());
+            List<HashMap.Entry<String, Ticket>> toBeRemoved = registeredTickets.entrySet().stream().filter((e) -> e.getValue() != null
+                    && e.getValue().getUser() != null
+                    && user.id.equals(e.getValue().getUser().id)).collect(Collectors.toList());
             // remove those tickets
             for (HashMap.Entry<String, Ticket> e : toBeRemoved) {
                 registeredTickets.remove(e.getKey());
@@ -100,7 +95,7 @@ public class TicketRegistrationHandler {
         synchronized (registeredTickets) {
             List<String> toRemove = registeredTickets.entrySet().stream()
                     .filter(e -> !e.getValue().isValid())
-                    .map((e) -> e.getKey()).collect(Collectors.toList());
+                    .map(Map.Entry::getKey).collect(Collectors.toList());
             for (String k : toRemove) {
                 registeredTickets.remove(k);
             }

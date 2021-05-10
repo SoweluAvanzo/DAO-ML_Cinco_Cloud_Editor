@@ -2,10 +2,6 @@ package info.scce.cincocloud.core.rest.types;
 
 import info.scce.cincocloud.db.PyroBinaryFileDB;
 
-/**
- * Author zweihoff
- */
-
 public class PyroBinaryFile extends PyroFile {
 
     private FileReference file;

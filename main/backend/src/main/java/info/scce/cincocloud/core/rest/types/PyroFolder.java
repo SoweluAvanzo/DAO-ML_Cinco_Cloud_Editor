@@ -5,10 +5,6 @@ import info.scce.cincocloud.db.PyroFolderDB;
 import info.scce.cincocloud.db.PyroTextualFileDB;
 import info.scce.cincocloud.db.PyroURLFileDB;
 
-/**
- * Author zweihoff
- */
-
 public class PyroFolder extends info.scce.cincocloud.rest.RESTBaseImpl {
     private String name;
     private java.util.List<PyroFolder> innerFolders = new java.util.LinkedList<>();
