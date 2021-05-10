@@ -4,28 +4,37 @@ import entity.core.*;
 import info.scce.pyro.core.rest.types.PyroProject;
 import info.scce.pyro.core.rest.types.PyroProjectStructure;
 
+import javax.annotation.security.RolesAllowed;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-@javax.transaction.Transactional
-@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-@javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-@javax.ws.rs.Path("/project")
-@javax.enterprise.context.RequestScoped
+@Transactional
+@Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
+@Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
+@Path("/project")
+@RequestScoped
 public class ProjectController {
 
-    @javax.inject.Inject
-    private GraphModelController graphModelController;
+    @Inject
+	GraphModelController graphModelController;
 
-    @javax.inject.Inject
-	private ProjectService projectService;
+    @Inject
+	ProjectService projectService;
     
-	@javax.inject.Inject
-	private info.scce.pyro.rest.ObjectCache objectCache;
+	@Inject
+	info.scce.pyro.rest.ObjectCache objectCache;
 		
-	@javax.ws.rs.POST
-	@javax.ws.rs.Path("/create/private")
-	@javax.annotation.security.RolesAllowed("user")
+	@POST
+	@Path("/create/private")
+	@RolesAllowed("user")
 	public javax.ws.rs.core.Response createProject(@javax.ws.rs.core.Context SecurityContext securityContext,PyroProject newProject) {
 
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
@@ -64,21 +73,17 @@ public class ProjectController {
         pp.organization = org;
 		subject.ownedProjects.add(pp);
         org.projects.add(pp);
-        
-        projectService.createDefaultGraphModelPermissionVectors(pp);
-        projectService.createDefaultEditorGrid(pp);
 
         pp.persist();
         subject.persist();
         org.persist();
-        
-		
+
 		return pp;
 	}
 	
-    @javax.ws.rs.POST
-	@javax.ws.rs.Path("/update/private")
-	@javax.annotation.security.RolesAllowed("user")
+    @POST
+	@Path("/update/private")
+	@RolesAllowed("user")
 	public javax.ws.rs.core.Response updateProject(@javax.ws.rs.core.Context SecurityContext securityContext,PyroProject ownedProject) {
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 		
@@ -109,9 +114,9 @@ public class ProjectController {
 		return javax.ws.rs.core.Response.status(Response.Status.FORBIDDEN).build(); 
 	}
     
-    @javax.ws.rs.GET
-	@javax.ws.rs.Path("/{projectId}")
-	@javax.annotation.security.RolesAllowed("user")
+    @GET
+	@Path("/{projectId}")
+	@RolesAllowed("user")
 	public javax.ws.rs.core.Response getProject(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("projectId") final long projectId) {
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 		final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(projectId);
@@ -123,9 +128,9 @@ public class ProjectController {
 		return javax.ws.rs.core.Response.status(Response.Status.FORBIDDEN).build();
 	}
 
-    @javax.ws.rs.GET
-	@javax.ws.rs.Path("/structure/{id}/private")
-	@javax.annotation.security.RolesAllowed("user")
+    @GET
+	@Path("/structure/{id}/private")
+	@RolesAllowed("user")
 	public javax.ws.rs.core.Response loadProjectStructure(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id) {
 	
 	    final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
@@ -141,9 +146,9 @@ public class ProjectController {
 	    return javax.ws.rs.core.Response.status(Response.Status.FORBIDDEN).build();
 	}
 	
-    @javax.ws.rs.GET
-	@javax.ws.rs.Path("/remove/{id}/private")
-	@javax.annotation.security.RolesAllowed("user")
+    @GET
+	@Path("/remove/{id}/private")
+	@RolesAllowed("user")
 	public javax.ws.rs.core.Response removeProject(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id) {
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 		final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(id);

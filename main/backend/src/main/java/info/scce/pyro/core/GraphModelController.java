@@ -13,12 +13,6 @@ import javax.ws.rs.core.Response;
 import java.util.Optional;
 import javax.ws.rs.core.SecurityContext;
 import entity.core.PyroFileContainerDB;
-import info.scce.pyro.core.EmptyController;
-import info.scce.pyro.core.PrimeRefsController;
-import info.scce.pyro.core.HierarchyController;
-import info.scce.pyro.core.HooksAndActionsController;
-import info.scce.pyro.core.FlowGraphController;
-
 
 @javax.transaction.Transactional
 @javax.ws.rs.Path("/graph")
@@ -37,18 +31,12 @@ public class GraphModelController {
 	
 	@javax.inject.Inject
 	EmptyController emptyController;
-	
-	@javax.inject.Inject
-	PrimeRefsController primerefsController;
-	
+
 	@javax.inject.Inject
 	HierarchyController hierarchyController;
 	
 	@javax.inject.Inject
 	HooksAndActionsController hooksandactionsController;
-	
-	@javax.inject.Inject
-	FlowGraphController flowgraphController;
 	
 	@javax.ws.rs.POST
     @javax.ws.rs.Path("create/folder/private")
@@ -787,14 +775,10 @@ public class GraphModelController {
 			T file = iter.next();
 			if(file instanceof entity.empty.EmptyDB) {
 				emptyController.removeGraphModel(subject, project, pf, (entity.empty.EmptyDB) file);
-			} else if(file instanceof entity.primerefs.PrimeRefsDB) {
-				primerefsController.removeGraphModel(subject, project, pf, (entity.primerefs.PrimeRefsDB) file);
 			} else if(file instanceof entity.hierarchy.HierarchyDB) {
 				hierarchyController.removeGraphModel(subject, project, pf, (entity.hierarchy.HierarchyDB) file);
 			} else if(file instanceof entity.hooksandactions.HooksAndActionsDB) {
 				hooksandactionsController.removeGraphModel(subject, project, pf, (entity.hooksandactions.HooksAndActionsDB) file);
-			} else if(file instanceof entity.flowgraph.FlowGraphDB) {
-				flowgraphController.removeGraphModel(subject, project, pf, (entity.flowgraph.FlowGraphDB) file);
 			}
 			entities.remove(file);
 			iter =  entities.iterator();

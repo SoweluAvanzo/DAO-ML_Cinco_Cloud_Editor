@@ -71,32 +71,7 @@ public class OrganizationController {
 		
         return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
 	}
-	
-	@javax.ws.rs.GET
-	@javax.ws.rs.Path("/{orgId}/graphModelPermissions/my")
-	@javax.annotation.security.RolesAllowed("user")
-	public javax.ws.rs.core.Response getGraphModelPermissions(@javax.ws.rs.core.Context SecurityContext securityContext,@javax.ws.rs.PathParam("orgId") final long orgId) {
-		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
-				
-		if (subject != null) {
-			final entity.core.PyroOrganizationDB org = entity.core.PyroOrganizationDB.findById(orgId);
-			if (org == null) return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
-			
-			if (isMemberOf(subject, org) || isOwnerOf(subject, org)) {
-				final java.util.List<entity.core.PyroGraphModelPermissionVectorDB> result = entity.core.PyroGraphModelPermissionVectorDB.list("user", subject);
-				final java.util.List<PyroGraphModelPermissionVector> permissions = new ArrayList<>();
-				for (final entity.core.PyroGraphModelPermissionVectorDB p: result) {
-					if (p.project.organization.equals(org)) {
-						permissions.add(PyroGraphModelPermissionVector.fromEntity(p, objectCache));
-					}
-				}
-				return javax.ws.rs.core.Response.ok(permissions).build();
-			}
-		}
-		
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
-	}
-	
+
 	@javax.ws.rs.POST
 	@javax.ws.rs.Path("/{orgId}/leave")
 	@javax.annotation.security.RolesAllowed("user")
@@ -140,8 +115,6 @@ public class OrganizationController {
 			
 			if (!accessRightVectorExists(member, org)) {
 				createDefaultAccessRightVector(member, org);
-				projectService.createDefaultEditorGrid(member, org);
-				projectService.createDefaultGraphModelPermissionVectors(member, org);
 			}
 			
 			org.members.add(member);
@@ -174,8 +147,6 @@ public class OrganizationController {
 			
 			if (!accessRightVectorExists(owner, org)) {
 				createDefaultAccessRightVector(owner, org);
-				projectService.createDefaultEditorGrid(owner, org);
-				projectService.createDefaultGraphModelPermissionVectors(owner, org);
 			}
 			
 			org.owners.add(owner);
@@ -185,23 +156,7 @@ public class OrganizationController {
 		
         return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
 	}
-	
-	public void addOrganizationOwner(entity.core.PyroUserDB user, entity.core.PyroOrganizationDB org) {
-		if (!accessRightVectorExists(user, org)) {
-			final entity.core.PyroOrganizationAccessRightVectorDB arv = createDefaultAccessRightVector(user, org);
-			arv.accessRights.add(entity.core.PyroOrganizationAccessRightDB.CREATE_PROJECTS);
-			arv.accessRights.add(entity.core.PyroOrganizationAccessRightDB.EDIT_PROJECTS);
-			arv.accessRights.add(entity.core.PyroOrganizationAccessRightDB.DELETE_PROJECTS);
-			arv.persist();
-			
-			projectService.createDefaultEditorGrid(user, org);
-			projectService.createDefaultGraphModelPermissionVectors(user, org);
-		}
-		
-		org.owners.add(user);
-		org.persist();
-	}
-	
+
 	@javax.ws.rs.POST
 	@javax.ws.rs.Path("/{orgId}/removeUser")
 	@javax.annotation.security.RolesAllowed("user")
