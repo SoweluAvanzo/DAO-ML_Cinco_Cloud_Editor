@@ -1,11 +1,10 @@
 package info.scce.pyro.core;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
 import info.scce.pyro.sync.ticket.TicketMessage;
 import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.Response.Status;
 
 @javax.transaction.Transactional
 @javax.ws.rs.Path("/ticket")

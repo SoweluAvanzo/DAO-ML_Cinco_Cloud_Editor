@@ -1,34 +1,31 @@
 package info.scce.pyro.core;
 
-import info.scce.pyro.core.rest.types.*;
-import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-
-import entity.core.PyroProjectDB;
-import entity.core.PyroFolderDB;
-import entity.core.PyroBinaryFileDB;
-import entity.core.PyroURLFileDB;
-import entity.core.PyroTextualFileDB;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Response.Status;
-
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
+import javax.ws.rs.core.UriInfo;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
-import javax.ws.rs.core.CacheControl;
+import entity.core.PyroBinaryFileDB;
+import entity.core.PyroFolderDB;
+import entity.core.PyroProjectDB;
+import entity.core.PyroTextualFileDB;
+import entity.core.PyroURLFileDB;
+import info.scce.pyro.core.rest.types.CreatePyroBinaryFile;
+import info.scce.pyro.core.rest.types.CreatePyroBlobFile;
+import info.scce.pyro.core.rest.types.CreatePyroTextualFile;
+import info.scce.pyro.core.rest.types.CreatePyroURLFile;
+import info.scce.pyro.core.rest.types.UpdatePyroFile;
 
 @javax.transaction.Transactional
 @javax.ws.rs.Path("/pyrofile")
@@ -145,161 +142,6 @@ public class PyroFileController {
 			return Response.ok(info.scce.pyro.core.rest.types.PyroURLFile.fromEntity(file,objectCache)).build();
 	}
 	
-	@javax.ws.rs.GET
-	@javax.ws.rs.Path("export/empty/{id}/{path:.+}")
-	@javax.annotation.security.RolesAllowed("user")
-	public Response exportEmpty(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id,@javax.ws.rs.PathParam("path") final String path) {
-		final entity.empty.EmptyDB graph = entity.empty.EmptyDB.findById(id);
-		if (graph == null) {
-		    return Response.status(Response.Status.NOT_FOUND).build();
-		}
-		checkPermission(id, securityContext);
-		
-		info.scce.pyro.core.export.EmptyExporter exporter = new info.scce.pyro.core.export.EmptyExporter();
-		
-		InputStream input = new ByteArrayInputStream(exporter.getContent(graph).getBytes(StandardCharsets.UTF_8));
-		final byte[] result;
-		try {
-		    result = org.apache.commons.io.IOUtils.toByteArray(input);
-		} catch (IOException e) {
-		    throw new WebApplicationException(e);
-		}
-		
-		CacheControl cc = new CacheControl();
-		        cc.setMustRevalidate(true);
-		        cc.setNoStore(true);
-		        cc.setNoCache(true);
-		return Response
-		        .ok(result,"text/plain")
-		        .cacheControl(cc)
-		        .header("Content-Disposition", "attachment; filename=" + path)
-		        .build();
-	}
-	
-	@javax.ws.rs.GET
-	@javax.ws.rs.Path("export/pr/{id}/{path:.+}")
-	@javax.annotation.security.RolesAllowed("user")
-	public Response exportPrimeRefs(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id,@javax.ws.rs.PathParam("path") final String path) {
-		final entity.primerefs.PrimeRefsDB graph = entity.primerefs.PrimeRefsDB.findById(id);
-		if (graph == null) {
-		    return Response.status(Response.Status.NOT_FOUND).build();
-		}
-		checkPermission(id, securityContext);
-		
-		info.scce.pyro.core.export.PrimeRefsExporter exporter = new info.scce.pyro.core.export.PrimeRefsExporter();
-		
-		InputStream input = new ByteArrayInputStream(exporter.getContent(graph).getBytes(StandardCharsets.UTF_8));
-		final byte[] result;
-		try {
-		    result = org.apache.commons.io.IOUtils.toByteArray(input);
-		} catch (IOException e) {
-		    throw new WebApplicationException(e);
-		}
-		
-		CacheControl cc = new CacheControl();
-		        cc.setMustRevalidate(true);
-		        cc.setNoStore(true);
-		        cc.setNoCache(true);
-		return Response
-		        .ok(result,"text/plain")
-		        .cacheControl(cc)
-		        .header("Content-Disposition", "attachment; filename=" + path)
-		        .build();
-	}
-	
-	@javax.ws.rs.GET
-	@javax.ws.rs.Path("export/hierarchy/{id}/{path:.+}")
-	@javax.annotation.security.RolesAllowed("user")
-	public Response exportHierarchy(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id,@javax.ws.rs.PathParam("path") final String path) {
-		final entity.hierarchy.HierarchyDB graph = entity.hierarchy.HierarchyDB.findById(id);
-		if (graph == null) {
-		    return Response.status(Response.Status.NOT_FOUND).build();
-		}
-		checkPermission(id, securityContext);
-		
-		info.scce.pyro.core.export.HierarchyExporter exporter = new info.scce.pyro.core.export.HierarchyExporter();
-		
-		InputStream input = new ByteArrayInputStream(exporter.getContent(graph).getBytes(StandardCharsets.UTF_8));
-		final byte[] result;
-		try {
-		    result = org.apache.commons.io.IOUtils.toByteArray(input);
-		} catch (IOException e) {
-		    throw new WebApplicationException(e);
-		}
-		
-		CacheControl cc = new CacheControl();
-		        cc.setMustRevalidate(true);
-		        cc.setNoStore(true);
-		        cc.setNoCache(true);
-		return Response
-		        .ok(result,"text/plain")
-		        .cacheControl(cc)
-		        .header("Content-Disposition", "attachment; filename=" + path)
-		        .build();
-	}
-	
-	@javax.ws.rs.GET
-	@javax.ws.rs.Path("export/ha/{id}/{path:.+}")
-	@javax.annotation.security.RolesAllowed("user")
-	public Response exportHooksAndActions(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id,@javax.ws.rs.PathParam("path") final String path) {
-		final entity.hooksandactions.HooksAndActionsDB graph = entity.hooksandactions.HooksAndActionsDB.findById(id);
-		if (graph == null) {
-		    return Response.status(Response.Status.NOT_FOUND).build();
-		}
-		checkPermission(id, securityContext);
-		
-		info.scce.pyro.core.export.HooksAndActionsExporter exporter = new info.scce.pyro.core.export.HooksAndActionsExporter();
-		
-		InputStream input = new ByteArrayInputStream(exporter.getContent(graph).getBytes(StandardCharsets.UTF_8));
-		final byte[] result;
-		try {
-		    result = org.apache.commons.io.IOUtils.toByteArray(input);
-		} catch (IOException e) {
-		    throw new WebApplicationException(e);
-		}
-		
-		CacheControl cc = new CacheControl();
-		        cc.setMustRevalidate(true);
-		        cc.setNoStore(true);
-		        cc.setNoCache(true);
-		return Response
-		        .ok(result,"text/plain")
-		        .cacheControl(cc)
-		        .header("Content-Disposition", "attachment; filename=" + path)
-		        .build();
-	}
-	
-	@javax.ws.rs.GET
-	@javax.ws.rs.Path("export/flowgraph/{id}/{path:.+}")
-	@javax.annotation.security.RolesAllowed("user")
-	public Response exportFlowGraph(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id,@javax.ws.rs.PathParam("path") final String path) {
-		final entity.flowgraph.FlowGraphDB graph = entity.flowgraph.FlowGraphDB.findById(id);
-		if (graph == null) {
-		    return Response.status(Response.Status.NOT_FOUND).build();
-		}
-		checkPermission(id, securityContext);
-		
-		info.scce.pyro.core.export.FlowGraphExporter exporter = new info.scce.pyro.core.export.FlowGraphExporter();
-		
-		InputStream input = new ByteArrayInputStream(exporter.getContent(graph).getBytes(StandardCharsets.UTF_8));
-		final byte[] result;
-		try {
-		    result = org.apache.commons.io.IOUtils.toByteArray(input);
-		} catch (IOException e) {
-		    throw new WebApplicationException(e);
-		}
-		
-		CacheControl cc = new CacheControl();
-		        cc.setMustRevalidate(true);
-		        cc.setNoStore(true);
-		        cc.setNoCache(true);
-		return Response
-		        .ok(result,"text/plain")
-		        .cacheControl(cc)
-		        .header("Content-Disposition", "attachment; filename=" + path)
-		        .build();
-	}
-	
 	@javax.ws.rs.POST
 	@javax.ws.rs.Path("update/file/private")
 	@javax.annotation.security.RolesAllowed("user")
@@ -329,67 +171,13 @@ public class PyroFileController {
 	        update = f;
 	        pf = graphModelController.getParent(f);
 	    }
-	    {
-	    	final Optional<entity.empty.EmptyDB> optG = entity.empty.EmptyDB.findByIdOptional(file.getId());
-	    	if(optG.isPresent()) {
-	    		entity.empty.EmptyDB f = optG.get();
-	    		f.filename = file.getfilename();
-	    		update = f;
-	    		pf = graphModelController.getParent(f);
-	    	}
-	    }
-	    {
-	    	final Optional<entity.primerefs.PrimeRefsDB> optG = entity.primerefs.PrimeRefsDB.findByIdOptional(file.getId());
-	    	if(optG.isPresent()) {
-	    		entity.primerefs.PrimeRefsDB f = optG.get();
-	    		f.filename = file.getfilename();
-	    		update = f;
-	    		pf = graphModelController.getParent(f);
-	    	}
-	    }
-	    {
-	    	final Optional<entity.hierarchy.HierarchyDB> optG = entity.hierarchy.HierarchyDB.findByIdOptional(file.getId());
-	    	if(optG.isPresent()) {
-	    		entity.hierarchy.HierarchyDB f = optG.get();
-	    		f.filename = file.getfilename();
-	    		update = f;
-	    		pf = graphModelController.getParent(f);
-	    	}
-	    }
-	    {
-	    	final Optional<entity.hooksandactions.HooksAndActionsDB> optG = entity.hooksandactions.HooksAndActionsDB.findByIdOptional(file.getId());
-	    	if(optG.isPresent()) {
-	    		entity.hooksandactions.HooksAndActionsDB f = optG.get();
-	    		f.filename = file.getfilename();
-	    		update = f;
-	    		pf = graphModelController.getParent(f);
-	    	}
-	    }
-	    {
-	    	final Optional<entity.flowgraph.FlowGraphDB> optG = entity.flowgraph.FlowGraphDB.findByIdOptional(file.getId());
-	    	if(optG.isPresent()) {
-	    		entity.flowgraph.FlowGraphDB f = optG.get();
-	    		f.filename = file.getfilename();
-	    		update = f;
-	    		pf = graphModelController.getParent(f);
-	    	}
-	    }
-	    {
-	    	final Optional<entity.externallibrary.ExternalLibraryDB> optG = entity.externallibrary.ExternalLibraryDB.findByIdOptional(file.getId());
-	    	if(optG.isPresent()) {
-	    		entity.externallibrary.ExternalLibraryDB f = optG.get();
-	    		f.filename = file.getfilename();
-	    		update = f;
-	    		pf = graphModelController.getParent(f);
-	    	}
-	    }
 	
 	    if(pf instanceof entity.core.PyroFolderDB) {
-	        graphModelController.checkPermission((entity.core.PyroFolderDB)pf,securityContext);
+	        graphModelController.checkPermission(pf,securityContext);
 	        update.persist();
 	        graphModelController.sendProjectUpdate((entity.core.PyroFolderDB)pf,securityContext);
 	    } else if(pf instanceof entity.core.PyroProjectDB) {
-	        graphModelController.checkPermission((entity.core.PyroProjectDB)pf,securityContext);
+	        graphModelController.checkPermission(pf,securityContext);
 	        update.persist();
 	        graphModelController.sendProjectUpdate((entity.core.PyroProjectDB)pf,securityContext);
 	    }
@@ -399,8 +187,9 @@ public class PyroFileController {
 
     @javax.ws.rs.GET
 	@javax.ws.rs.Path("read/projectresource/{id}/{path:.+}")
-	// TODO: needs security... @javax.annotation.security.RolesAllowed("user")
-	public Response readFile(@javax.ws.rs.core.Context SecurityContext securityContext, @Context UriInfo ui, @javax.ws.rs.PathParam("id") final long id, @javax.ws.rs.PathParam("path") final String path, @javax.ws.rs.PathParam("ticket") final String ticket) {
+	@javax.annotation.security.RolesAllowed("user")
+	public Response readFile(@javax.ws.rs.core.Context SecurityContext securityContext, @Context UriInfo ui, @javax.ws.rs.PathParam("id") final long id, @javax.ws.rs.PathParam("path") final String path,
+							 @javax.ws.rs.PathParam("ticket") final String ticket) {
 		//find parent
 		final entity.core.PyroProjectDB pf = entity.core.PyroProjectDB.findById(id);
 		if(pf==null) {
@@ -578,192 +367,7 @@ public class PyroFileController {
 				return Response.ok().build();
 			}
 		}
-		{
-		    final entity.empty.EmptyDB file = entity.empty.EmptyDB.findById(id);
-		    if(file != null) {
-		        final PanacheEntity source = graphModelController.getParent(file);
-		        if(source instanceof entity.core.PyroFolderDB) {
-		            ((entity.core.PyroFolderDB)source).files_Empty.remove(file);
-		        } else if(source instanceof entity.core.PyroProjectDB) {
-		            ((entity.core.PyroProjectDB)source).files_Empty.remove(file);
-		        }
-		        if(target instanceof entity.core.PyroFolderDB) {
-		            if( ((entity.core.PyroFolderDB)target).files_Empty.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroFolderDB)target).files_Empty.add(file);
-		            file.parent = target;
-		        } else if(target instanceof entity.core.PyroProjectDB) {
-		            if( ((entity.core.PyroProjectDB)target).files_Empty.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroProjectDB)target).files_Empty.add(file);
-		            file.parent = target;
-		        }
-		        source.persist();
-		        target.persist();
-		        file.persist();
-		        graphModelController.sendProjectUpdate(target,securityContext);
-		        graphModelController.sendProjectUpdate(source,securityContext);
-		        
-		        return Response.ok().build();
-		    }
-		}
-		{
-		    final entity.primerefs.PrimeRefsDB file = entity.primerefs.PrimeRefsDB.findById(id);
-		    if(file != null) {
-		        final PanacheEntity source = graphModelController.getParent(file);
-		        if(source instanceof entity.core.PyroFolderDB) {
-		            ((entity.core.PyroFolderDB)source).files_PrimeRefs.remove(file);
-		        } else if(source instanceof entity.core.PyroProjectDB) {
-		            ((entity.core.PyroProjectDB)source).files_PrimeRefs.remove(file);
-		        }
-		        if(target instanceof entity.core.PyroFolderDB) {
-		            if( ((entity.core.PyroFolderDB)target).files_PrimeRefs.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroFolderDB)target).files_PrimeRefs.add(file);
-		            file.parent = target;
-		        } else if(target instanceof entity.core.PyroProjectDB) {
-		            if( ((entity.core.PyroProjectDB)target).files_PrimeRefs.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroProjectDB)target).files_PrimeRefs.add(file);
-		            file.parent = target;
-		        }
-		        source.persist();
-		        target.persist();
-		        file.persist();
-		        graphModelController.sendProjectUpdate(target,securityContext);
-		        graphModelController.sendProjectUpdate(source,securityContext);
-		        
-		        return Response.ok().build();
-		    }
-		}
-		{
-		    final entity.hierarchy.HierarchyDB file = entity.hierarchy.HierarchyDB.findById(id);
-		    if(file != null) {
-		        final PanacheEntity source = graphModelController.getParent(file);
-		        if(source instanceof entity.core.PyroFolderDB) {
-		            ((entity.core.PyroFolderDB)source).files_Hierarchy.remove(file);
-		        } else if(source instanceof entity.core.PyroProjectDB) {
-		            ((entity.core.PyroProjectDB)source).files_Hierarchy.remove(file);
-		        }
-		        if(target instanceof entity.core.PyroFolderDB) {
-		            if( ((entity.core.PyroFolderDB)target).files_Hierarchy.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroFolderDB)target).files_Hierarchy.add(file);
-		            file.parent = target;
-		        } else if(target instanceof entity.core.PyroProjectDB) {
-		            if( ((entity.core.PyroProjectDB)target).files_Hierarchy.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroProjectDB)target).files_Hierarchy.add(file);
-		            file.parent = target;
-		        }
-		        source.persist();
-		        target.persist();
-		        file.persist();
-		        graphModelController.sendProjectUpdate(target,securityContext);
-		        graphModelController.sendProjectUpdate(source,securityContext);
-		        
-		        return Response.ok().build();
-		    }
-		}
-		{
-		    final entity.hooksandactions.HooksAndActionsDB file = entity.hooksandactions.HooksAndActionsDB.findById(id);
-		    if(file != null) {
-		        final PanacheEntity source = graphModelController.getParent(file);
-		        if(source instanceof entity.core.PyroFolderDB) {
-		            ((entity.core.PyroFolderDB)source).files_HooksAndActions.remove(file);
-		        } else if(source instanceof entity.core.PyroProjectDB) {
-		            ((entity.core.PyroProjectDB)source).files_HooksAndActions.remove(file);
-		        }
-		        if(target instanceof entity.core.PyroFolderDB) {
-		            if( ((entity.core.PyroFolderDB)target).files_HooksAndActions.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroFolderDB)target).files_HooksAndActions.add(file);
-		            file.parent = target;
-		        } else if(target instanceof entity.core.PyroProjectDB) {
-		            if( ((entity.core.PyroProjectDB)target).files_HooksAndActions.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroProjectDB)target).files_HooksAndActions.add(file);
-		            file.parent = target;
-		        }
-		        source.persist();
-		        target.persist();
-		        file.persist();
-		        graphModelController.sendProjectUpdate(target,securityContext);
-		        graphModelController.sendProjectUpdate(source,securityContext);
-		        
-		        return Response.ok().build();
-		    }
-		}
-		{
-		    final entity.flowgraph.FlowGraphDB file = entity.flowgraph.FlowGraphDB.findById(id);
-		    if(file != null) {
-		        final PanacheEntity source = graphModelController.getParent(file);
-		        if(source instanceof entity.core.PyroFolderDB) {
-		            ((entity.core.PyroFolderDB)source).files_FlowGraph.remove(file);
-		        } else if(source instanceof entity.core.PyroProjectDB) {
-		            ((entity.core.PyroProjectDB)source).files_FlowGraph.remove(file);
-		        }
-		        if(target instanceof entity.core.PyroFolderDB) {
-		            if( ((entity.core.PyroFolderDB)target).files_FlowGraph.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroFolderDB)target).files_FlowGraph.add(file);
-		            file.parent = target;
-		        } else if(target instanceof entity.core.PyroProjectDB) {
-		            if( ((entity.core.PyroProjectDB)target).files_FlowGraph.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroProjectDB)target).files_FlowGraph.add(file);
-		            file.parent = target;
-		        }
-		        source.persist();
-		        target.persist();
-		        file.persist();
-		        graphModelController.sendProjectUpdate(target,securityContext);
-		        graphModelController.sendProjectUpdate(source,securityContext);
-		        
-		        return Response.ok().build();
-		    }
-		}
-		{
-		    final entity.externallibrary.ExternalLibraryDB file = entity.externallibrary.ExternalLibraryDB.findById(id);
-		    if(file != null) {
-		        final PanacheEntity source = graphModelController.getParent(file);
-		        if(source instanceof entity.core.PyroFolderDB) {
-		            ((entity.core.PyroFolderDB)source).files_ExternalLibrary.remove(file);
-		        } else if(source instanceof entity.core.PyroProjectDB) {
-		            ((entity.core.PyroProjectDB)source).files_ExternalLibrary.remove(file);
-		        }
-		        if(target instanceof entity.core.PyroFolderDB) {
-		            if( ((entity.core.PyroFolderDB)target).files_ExternalLibrary.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroFolderDB)target).files_ExternalLibrary.add(file);
-		            file.parent = target;
-		        } else if(target instanceof entity.core.PyroProjectDB) {
-		            if( ((entity.core.PyroProjectDB)target).files_ExternalLibrary.stream().filter(n->n.filename.equals(file.filename)).findAny().isPresent()) {
-		                return Response.status(Response.Status.BAD_REQUEST).entity("Name already exists").build();
-		            }
-		            ((entity.core.PyroProjectDB)target).files_ExternalLibrary.add(file);
-		            file.parent = target;
-		        }
-		        source.persist();
-		        target.persist();
-		        file.persist();
-		        graphModelController.sendProjectUpdate(target,securityContext);
-		        graphModelController.sendProjectUpdate(source,securityContext);
-		        
-		        return Response.ok().build();
-		    }
-		}
+
         return Response.status(Response.Status.NOT_ACCEPTABLE).build();
     }
     
@@ -802,12 +406,8 @@ public class PyroFileController {
 			file = entity.core.PyroURLFileDB.findById(id);
 			if(file == null) {
 				file = entity.core.PyroTextualFileDB.findById(id);
-				
-				if(file == null) {
-					file = entity.externallibrary.ExternalLibraryDB.findById(id);
 				if(file == null) { // file couldn't be found
 				    return Response.status(Response.Status.BAD_REQUEST).entity("File not found").build();
-				}
 				}
 		    }
 		}

@@ -1,17 +1,19 @@
 package info.scce.pyro.sync;
 
-import javax.enterprise.context.ApplicationScoped;
-
-import javax.inject.Inject;
-import javax.websocket.*;
-import javax.websocket.server.PathParam;
-import javax.websocket.server.ServerEndpoint;
-
-import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
-
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.websocket.EndpointConfig;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
+import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
 
 /**
  * Author zweihoff

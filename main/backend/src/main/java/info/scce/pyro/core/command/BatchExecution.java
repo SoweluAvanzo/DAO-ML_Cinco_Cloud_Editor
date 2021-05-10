@@ -1,11 +1,10 @@
 package info.scce.pyro.core.command;
 
-import graphmodel.GraphModel;
-import entity.core.PyroUserDB;
-import info.scce.pyro.core.command.types.Command;
-
 import java.util.LinkedList;
 import java.util.List;
+import entity.core.PyroUserDB;
+import graphmodel.GraphModel;
+import info.scce.pyro.core.command.types.Command;
 
 /**
  * Author zweihoff

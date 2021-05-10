@@ -1,8 +1,8 @@
 package info.scce.pyro.core;
 
+import javax.ws.rs.core.SecurityContext;
 import info.scce.pyro.core.rest.types.PyroUser;
 import info.scce.pyro.core.rest.types.PyroUserSearch;
-import javax.ws.rs.core.SecurityContext;
 
 
 @javax.ws.rs.Path("/users")

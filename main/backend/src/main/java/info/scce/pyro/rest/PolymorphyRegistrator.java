@@ -1,8 +1,8 @@
 package info.scce.pyro.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Set;
 import org.reflections.Reflections;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import info.scce.pyro.core.graphmodel.IdentifiableElement;
 
 public class PolymorphyRegistrator {

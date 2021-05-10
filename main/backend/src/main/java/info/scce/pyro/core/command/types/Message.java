@@ -9,7 +9,6 @@ package info.scce.pyro.core.command.types;
 @com.fasterxml.jackson.annotation.JsonTypeInfo(use = com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME, include=com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY, property = info.scce.pyro.util.Constants.PYRO_RUNTIME_TYPE)
 @com.fasterxml.jackson.annotation.JsonSubTypes({
     @com.fasterxml.jackson.annotation.JsonSubTypes.Type(name = "info.scce.pyro.core.command.types.GraphMessage", value = GraphMessage.class),
-    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(name = "info.scce.pyro.core.command.types.GraphPropertyMessage", value = GraphPropertyMessage.class),
     @com.fasterxml.jackson.annotation.JsonSubTypes.Type(name = "info.scce.pyro.core.command.types.ProjectMessage", value = ProjectMessage.class)
 })
 public abstract class Message {

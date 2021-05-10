@@ -1,8 +1,8 @@
 package info.scce.pyro.core;
 
 
-import info.scce.pyro.core.rest.types.*;
 import javax.ws.rs.core.SecurityContext;
+import info.scce.pyro.core.rest.types.PyroOrganizationAccessRightVector;
 	
 @javax.transaction.Transactional
 @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)

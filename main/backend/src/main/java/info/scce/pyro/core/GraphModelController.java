@@ -1,18 +1,17 @@
 package info.scce.pyro.core;
 
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import java.util.Optional;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import entity.core.PyroFileContainerDB;
 import info.scce.pyro.core.rest.types.CreatePyroFolder;
-import info.scce.pyro.core.rest.types.GraphModelProperty;
 import info.scce.pyro.core.rest.types.PyroProjectStructure;
 import info.scce.pyro.core.rest.types.UpdatePyroFolder;
 import info.scce.pyro.sync.GraphModelWebSocket;
 import info.scce.pyro.sync.ProjectWebSocket;
 import info.scce.pyro.sync.WebSocketMessage;
-import io.quarkus.hibernate.orm.panache.PanacheEntity;	
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import java.util.Optional;
-import javax.ws.rs.core.SecurityContext;
-import entity.core.PyroFileContainerDB;
 
 @javax.transaction.Transactional
 @javax.ws.rs.Path("/graph")
@@ -28,15 +27,6 @@ public class GraphModelController {
 
     @javax.inject.Inject
     GraphModelWebSocket graphModelWebSocket;
-	
-	@javax.inject.Inject
-	EmptyController emptyController;
-
-	@javax.inject.Inject
-	HierarchyController hierarchyController;
-	
-	@javax.inject.Inject
-	HooksAndActionsController hooksandactionsController;
 	
 	@javax.ws.rs.POST
     @javax.ws.rs.Path("create/folder/private")
@@ -210,25 +200,7 @@ public class GraphModelController {
     public void checkPermission(PanacheEntity peb,SecurityContext securityContext) {
         final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
 		entity.core.PyroProjectDB project = null;
-		if(peb instanceof entity.empty.EmptyDB) {
-			 project = getProject((entity.empty.EmptyDB)peb);
-		}else
-		if(peb instanceof entity.primerefs.PrimeRefsDB) {
-			 project = getProject((entity.primerefs.PrimeRefsDB)peb);
-		}else
-		if(peb instanceof entity.hierarchy.HierarchyDB) {
-			 project = getProject((entity.hierarchy.HierarchyDB)peb);
-		}else
-		if(peb instanceof entity.hooksandactions.HooksAndActionsDB) {
-			 project = getProject((entity.hooksandactions.HooksAndActionsDB)peb);
-		}else
-		if(peb instanceof entity.flowgraph.FlowGraphDB) {
-			 project = getProject((entity.flowgraph.FlowGraphDB)peb);
-		}else
-		if(peb instanceof entity.externallibrary.ExternalLibraryDB) {
-			 project = getProject((entity.externallibrary.ExternalLibraryDB)peb);
-		}
-		else if(peb instanceof entity.core.PyroFolderDB) {
+		if(peb instanceof entity.core.PyroFolderDB) {
 	        project = getProject((entity.core.PyroFolderDB)peb);
 		}
 		else if(peb instanceof entity.core.PyroProjectDB) {
@@ -241,107 +213,6 @@ public class GraphModelController {
             return;
         }
         throw new WebApplicationException(Response.Status.FORBIDDEN);
-    }
-
-	// added for security ticket-system
-    public void checkPermission(PanacheEntity peb,entity.core.PyroUserDB user) {
-		entity.core.PyroProjectDB project = null;
-		if(peb instanceof entity.empty.EmptyDB) {
-			 project = getProject((entity.empty.EmptyDB)peb);
-		}else
-		if(peb instanceof entity.primerefs.PrimeRefsDB) {
-			 project = getProject((entity.primerefs.PrimeRefsDB)peb);
-		}else
-		if(peb instanceof entity.hierarchy.HierarchyDB) {
-			 project = getProject((entity.hierarchy.HierarchyDB)peb);
-		}else
-		if(peb instanceof entity.hooksandactions.HooksAndActionsDB) {
-			 project = getProject((entity.hooksandactions.HooksAndActionsDB)peb);
-		}else
-		if(peb instanceof entity.flowgraph.FlowGraphDB) {
-			 project = getProject((entity.flowgraph.FlowGraphDB)peb);
-		}else
-		if(peb instanceof entity.externallibrary.ExternalLibraryDB) {
-			 project = getProject((entity.externallibrary.ExternalLibraryDB)peb);
-		}
-		else if(peb instanceof entity.core.PyroFolderDB) {
-	        project = getProject((entity.core.PyroFolderDB)peb);
-		}
-		else if(peb instanceof entity.core.PyroProjectDB) {
-	        project = (entity.core.PyroProjectDB)peb;
-	        
-		}
-		if(project != null && project.organization.owners.contains(user) 
-        		|| project.organization.members.contains(user)){
-            return;
-        }
-        throw new WebApplicationException(Response.Status.FORBIDDEN);
-    }
-    
-    public entity.core.PyroProjectDB getProject(entity.empty.EmptyDB graph){
-    	entity.core.PyroFileContainerDB parent = graph.parent;
-    	if(parent instanceof entity.core.PyroFolderDB) {
-    		return (entity.core.PyroProjectDB) this.getProject((entity.core.PyroFolderDB) parent);
-    	} else if (parent instanceof entity.core.PyroProjectDB) {
-    		return (entity.core.PyroProjectDB) parent;
-    	}
-        throw new WebApplicationException(Response.Status.EXPECTATION_FAILED);
-        
-    }
-    
-    public entity.core.PyroProjectDB getProject(entity.primerefs.PrimeRefsDB graph){
-    	entity.core.PyroFileContainerDB parent = graph.parent;
-    	if(parent instanceof entity.core.PyroFolderDB) {
-    		return (entity.core.PyroProjectDB) this.getProject((entity.core.PyroFolderDB) parent);
-    	} else if (parent instanceof entity.core.PyroProjectDB) {
-    		return (entity.core.PyroProjectDB) parent;
-    	}
-        throw new WebApplicationException(Response.Status.EXPECTATION_FAILED);
-        
-    }
-    
-    public entity.core.PyroProjectDB getProject(entity.hierarchy.HierarchyDB graph){
-    	entity.core.PyroFileContainerDB parent = graph.parent;
-    	if(parent instanceof entity.core.PyroFolderDB) {
-    		return (entity.core.PyroProjectDB) this.getProject((entity.core.PyroFolderDB) parent);
-    	} else if (parent instanceof entity.core.PyroProjectDB) {
-    		return (entity.core.PyroProjectDB) parent;
-    	}
-        throw new WebApplicationException(Response.Status.EXPECTATION_FAILED);
-        
-    }
-    
-    public entity.core.PyroProjectDB getProject(entity.hooksandactions.HooksAndActionsDB graph){
-    	entity.core.PyroFileContainerDB parent = graph.parent;
-    	if(parent instanceof entity.core.PyroFolderDB) {
-    		return (entity.core.PyroProjectDB) this.getProject((entity.core.PyroFolderDB) parent);
-    	} else if (parent instanceof entity.core.PyroProjectDB) {
-    		return (entity.core.PyroProjectDB) parent;
-    	}
-        throw new WebApplicationException(Response.Status.EXPECTATION_FAILED);
-        
-    }
-    
-    public entity.core.PyroProjectDB getProject(entity.flowgraph.FlowGraphDB graph){
-    	entity.core.PyroFileContainerDB parent = graph.parent;
-    	if(parent instanceof entity.core.PyroFolderDB) {
-    		return (entity.core.PyroProjectDB) this.getProject((entity.core.PyroFolderDB) parent);
-    	} else if (parent instanceof entity.core.PyroProjectDB) {
-    		return (entity.core.PyroProjectDB) parent;
-    	}
-        throw new WebApplicationException(Response.Status.EXPECTATION_FAILED);
-        
-    }
-    
-    public entity.core.PyroProjectDB getProject(entity.externallibrary.ExternalLibraryDB graph){
-    	entity.core.PyroFileContainerDB parent = graph.parent;
-    	if(parent instanceof entity.core.PyroFolderDB) {
-    		return (entity.core.PyroProjectDB) this.getProject((entity.core.PyroFolderDB) parent);
-    	} else if (parent instanceof entity.core.PyroProjectDB) {
-    		return (entity.core.PyroProjectDB) parent;
-    	}
-        throw new WebApplicationException(Response.Status.EXPECTATION_FAILED);
-        
     }
 
     public entity.core.PyroProjectDB getProject(entity.core.PyroFolderDB folder){
@@ -379,30 +250,6 @@ public class GraphModelController {
     public PanacheEntity getParent(entity.core.PyroTextualFileDB f){
         return f.parent;
     }
-	
-	public PanacheEntity getParent(entity.empty.EmptyDB f){
-	     return f.parent;
-	}
-	
-	public PanacheEntity getParent(entity.primerefs.PrimeRefsDB f){
-	     return f.parent;
-	}
-	
-	public PanacheEntity getParent(entity.hierarchy.HierarchyDB f){
-	     return f.parent;
-	}
-	
-	public PanacheEntity getParent(entity.hooksandactions.HooksAndActionsDB f){
-	     return f.parent;
-	}
-	
-	public PanacheEntity getParent(entity.flowgraph.FlowGraphDB f){
-	     return f.parent;
-	}
-	
-	public PanacheEntity getParent(entity.externallibrary.ExternalLibraryDB f){
-	     return f.parent;
-	}
 
     @javax.ws.rs.POST
     @javax.ws.rs.Path("update/folder/private")
@@ -429,258 +276,6 @@ public class GraphModelController {
         }
         return Response.status(Response.Status.NOT_FOUND).build();
     }
-
-    @javax.ws.rs.POST
-    @javax.ws.rs.Path("update/graphmodel/private")
-    @javax.annotation.security.RolesAllowed("user")
-    public Response updateGraphModel(@javax.ws.rs.core.Context SecurityContext securityContext, info.scce.pyro.core.graphmodel.GraphModel graphModel) {
-        final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
-        //find graphmodel
-        {
-            final Optional<entity.empty.EmptyDB> opt = entity.empty.EmptyDB.findByIdOptional(graphModel.getId());
-            if(opt.isPresent()) {
-                entity.empty.EmptyDB g = opt.get();
-                checkPermission(g,securityContext);
-                
-                // update
-                g.filename = graphModel.getfilename();
-                if(graphModel.getscale()!=null){
-                    g.scale = graphModel.getscale();
-                }
-                if(graphModel.getheight()!=null){
-                    g.height = graphModel.getheight();
-                }
-                if(graphModel.getwidth()!=null){
-                    g.width = graphModel.getwidth();
-                }
-                if(graphModel.getconnector()!=null){
-                    g.connector = graphModel.getconnector();
-                }
-                if(graphModel.getrouter()!=null){
-                	g.router = graphModel.getrouter();
-                }
-                g.persist();
-                
-                graphModelWebSocket.send(g.id,WebSocketMessage.fromEntity(subject.id, GraphModelProperty.fromEntity(g)));
-                
-                return Response.ok(GraphModelProperty.fromEntity(g)).build();
-            }
-        }
-        {
-            final Optional<entity.primerefs.PrimeRefsDB> opt = entity.primerefs.PrimeRefsDB.findByIdOptional(graphModel.getId());
-            if(opt.isPresent()) {
-                entity.primerefs.PrimeRefsDB g = opt.get();
-                checkPermission(g,securityContext);
-                
-                // update
-                g.filename = graphModel.getfilename();
-                if(graphModel.getscale()!=null){
-                    g.scale = graphModel.getscale();
-                }
-                if(graphModel.getheight()!=null){
-                    g.height = graphModel.getheight();
-                }
-                if(graphModel.getwidth()!=null){
-                    g.width = graphModel.getwidth();
-                }
-                if(graphModel.getconnector()!=null){
-                    g.connector = graphModel.getconnector();
-                }
-                if(graphModel.getrouter()!=null){
-                	g.router = graphModel.getrouter();
-                }
-                g.persist();
-                
-                graphModelWebSocket.send(g.id,WebSocketMessage.fromEntity(subject.id, GraphModelProperty.fromEntity(g)));
-                
-                return Response.ok(GraphModelProperty.fromEntity(g)).build();
-            }
-        }
-        {
-            final Optional<entity.hierarchy.HierarchyDB> opt = entity.hierarchy.HierarchyDB.findByIdOptional(graphModel.getId());
-            if(opt.isPresent()) {
-                entity.hierarchy.HierarchyDB g = opt.get();
-                checkPermission(g,securityContext);
-                
-                // update
-                g.filename = graphModel.getfilename();
-                if(graphModel.getscale()!=null){
-                    g.scale = graphModel.getscale();
-                }
-                if(graphModel.getheight()!=null){
-                    g.height = graphModel.getheight();
-                }
-                if(graphModel.getwidth()!=null){
-                    g.width = graphModel.getwidth();
-                }
-                if(graphModel.getconnector()!=null){
-                    g.connector = graphModel.getconnector();
-                }
-                if(graphModel.getrouter()!=null){
-                	g.router = graphModel.getrouter();
-                }
-                g.persist();
-                
-                graphModelWebSocket.send(g.id,WebSocketMessage.fromEntity(subject.id, GraphModelProperty.fromEntity(g)));
-                
-                return Response.ok(GraphModelProperty.fromEntity(g)).build();
-            }
-        }
-        {
-            final Optional<entity.hooksandactions.HooksAndActionsDB> opt = entity.hooksandactions.HooksAndActionsDB.findByIdOptional(graphModel.getId());
-            if(opt.isPresent()) {
-                entity.hooksandactions.HooksAndActionsDB g = opt.get();
-                checkPermission(g,securityContext);
-                
-                // update
-                g.filename = graphModel.getfilename();
-                if(graphModel.getscale()!=null){
-                    g.scale = graphModel.getscale();
-                }
-                if(graphModel.getheight()!=null){
-                    g.height = graphModel.getheight();
-                }
-                if(graphModel.getwidth()!=null){
-                    g.width = graphModel.getwidth();
-                }
-                if(graphModel.getconnector()!=null){
-                    g.connector = graphModel.getconnector();
-                }
-                if(graphModel.getrouter()!=null){
-                	g.router = graphModel.getrouter();
-                }
-                g.persist();
-                
-                graphModelWebSocket.send(g.id,WebSocketMessage.fromEntity(subject.id, GraphModelProperty.fromEntity(g)));
-                
-                return Response.ok(GraphModelProperty.fromEntity(g)).build();
-            }
-        }
-        {
-            final Optional<entity.flowgraph.FlowGraphDB> opt = entity.flowgraph.FlowGraphDB.findByIdOptional(graphModel.getId());
-            if(opt.isPresent()) {
-                entity.flowgraph.FlowGraphDB g = opt.get();
-                checkPermission(g,securityContext);
-                
-                // update
-                g.filename = graphModel.getfilename();
-                if(graphModel.getscale()!=null){
-                    g.scale = graphModel.getscale();
-                }
-                if(graphModel.getheight()!=null){
-                    g.height = graphModel.getheight();
-                }
-                if(graphModel.getwidth()!=null){
-                    g.width = graphModel.getwidth();
-                }
-                if(graphModel.getconnector()!=null){
-                    g.connector = graphModel.getconnector();
-                }
-                if(graphModel.getrouter()!=null){
-                	g.router = graphModel.getrouter();
-                }
-                g.persist();
-                
-                graphModelWebSocket.send(g.id,WebSocketMessage.fromEntity(subject.id, GraphModelProperty.fromEntity(g)));
-                
-                return Response.ok(GraphModelProperty.fromEntity(g)).build();
-            }
-        }
-        return Response.status(Response.Status.NOT_FOUND).build();
-    }
-	
-	@javax.ws.rs.POST
-	@javax.ws.rs.Path("update/graphmodel/shared/private")
-	@javax.annotation.security.RolesAllowed("user")
-	public Response updateGraphModelSharing(@javax.ws.rs.core.Context SecurityContext securityContext, info.scce.pyro.core.rest.types.GraphModelShared graphModel) {
-		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
-		{
-		    final Optional<entity.empty.EmptyDB> opt = entity.empty.EmptyDB.findByIdOptional(graphModel.getId());
-		    if(opt.isPresent()) {
-		        entity.empty.EmptyDB g = opt.get();
-		        checkPermission(g,securityContext);
-		        
-		        // update
-		        g.isPublic = graphModel.getisPublic();
-		        g.persist();
-		        
-		        graphModelWebSocket.send(g.id,WebSocketMessage.fromEntity(subject.id, GraphModelProperty.fromEntity(g)));
-		        entity.core.PyroProjectDB project = getProject(g);
-		        projectWebSocket.send(project.id, WebSocketMessage.fromEntity(subject.id,PyroProjectStructure.fromEntity(project,objectCache)));
-		        
-		        return Response.ok(graphModel).build();
-		    }
-		}
-		{
-		    final Optional<entity.primerefs.PrimeRefsDB> opt = entity.primerefs.PrimeRefsDB.findByIdOptional(graphModel.getId());
-		    if(opt.isPresent()) {
-		        entity.primerefs.PrimeRefsDB g = opt.get();
-		        checkPermission(g,securityContext);
-		        
-		        // update
-		        g.isPublic = graphModel.getisPublic();
-		        g.persist();
-		        
-		        graphModelWebSocket.send(g.id,WebSocketMessage.fromEntity(subject.id, GraphModelProperty.fromEntity(g)));
-		        entity.core.PyroProjectDB project = getProject(g);
-		        projectWebSocket.send(project.id, WebSocketMessage.fromEntity(subject.id,PyroProjectStructure.fromEntity(project,objectCache)));
-		        
-		        return Response.ok(graphModel).build();
-		    }
-		}
-		{
-		    final Optional<entity.hierarchy.HierarchyDB> opt = entity.hierarchy.HierarchyDB.findByIdOptional(graphModel.getId());
-		    if(opt.isPresent()) {
-		        entity.hierarchy.HierarchyDB g = opt.get();
-		        checkPermission(g,securityContext);
-		        
-		        // update
-		        g.isPublic = graphModel.getisPublic();
-		        g.persist();
-		        
-		        graphModelWebSocket.send(g.id,WebSocketMessage.fromEntity(subject.id, GraphModelProperty.fromEntity(g)));
-		        entity.core.PyroProjectDB project = getProject(g);
-		        projectWebSocket.send(project.id, WebSocketMessage.fromEntity(subject.id,PyroProjectStructure.fromEntity(project,objectCache)));
-		        
-		        return Response.ok(graphModel).build();
-		    }
-		}
-		{
-		    final Optional<entity.hooksandactions.HooksAndActionsDB> opt = entity.hooksandactions.HooksAndActionsDB.findByIdOptional(graphModel.getId());
-		    if(opt.isPresent()) {
-		        entity.hooksandactions.HooksAndActionsDB g = opt.get();
-		        checkPermission(g,securityContext);
-		        
-		        // update
-		        g.isPublic = graphModel.getisPublic();
-		        g.persist();
-		        
-		        graphModelWebSocket.send(g.id,WebSocketMessage.fromEntity(subject.id, GraphModelProperty.fromEntity(g)));
-		        entity.core.PyroProjectDB project = getProject(g);
-		        projectWebSocket.send(project.id, WebSocketMessage.fromEntity(subject.id,PyroProjectStructure.fromEntity(project,objectCache)));
-		        
-		        return Response.ok(graphModel).build();
-		    }
-		}
-		{
-		    final Optional<entity.flowgraph.FlowGraphDB> opt = entity.flowgraph.FlowGraphDB.findByIdOptional(graphModel.getId());
-		    if(opt.isPresent()) {
-		        entity.flowgraph.FlowGraphDB g = opt.get();
-		        checkPermission(g,securityContext);
-		        
-		        // update
-		        g.isPublic = graphModel.getisPublic();
-		        g.persist();
-		        
-		        graphModelWebSocket.send(g.id,WebSocketMessage.fromEntity(subject.id, GraphModelProperty.fromEntity(g)));
-		        entity.core.PyroProjectDB project = getProject(g);
-		        projectWebSocket.send(project.id, WebSocketMessage.fromEntity(subject.id,PyroProjectStructure.fromEntity(project,objectCache)));
-		        
-		        return Response.ok(graphModel).build();
-		    }
-		}
-	    return Response.status(Response.Status.NOT_FOUND).build();
-	}
 
 	@javax.ws.rs.GET
 	@javax.ws.rs.Path("remove/folder/{id}/{parentId}/private")
@@ -736,12 +331,6 @@ public class GraphModelController {
 		removeFiles(pf, pf.binaryFiles);
 		removeFiles(pf, pf.textualFiles);
 		removeFiles(pf, pf.urlFiles);
-		removeFiles(pf, pf.files_ExternalLibrary);
-		removeGraphModels(subject, project, pf, pf.files_Empty);
-		removeGraphModels(subject, project, pf, pf.files_PrimeRefs);
-		removeGraphModels(subject, project, pf, pf.files_Hierarchy);
-		removeGraphModels(subject, project, pf, pf.files_HooksAndActions);
-		removeGraphModels(subject, project, pf, pf.files_FlowGraph);
 		pf.persist();
 	}
 	
@@ -773,13 +362,6 @@ public class GraphModelController {
 		java.util.Iterator<T> iter =  entities.iterator();
 		while(iter.hasNext()) {
 			T file = iter.next();
-			if(file instanceof entity.empty.EmptyDB) {
-				emptyController.removeGraphModel(subject, project, pf, (entity.empty.EmptyDB) file);
-			} else if(file instanceof entity.hierarchy.HierarchyDB) {
-				hierarchyController.removeGraphModel(subject, project, pf, (entity.hierarchy.HierarchyDB) file);
-			} else if(file instanceof entity.hooksandactions.HooksAndActionsDB) {
-				hooksandactionsController.removeGraphModel(subject, project, pf, (entity.hooksandactions.HooksAndActionsDB) file);
-			}
 			entities.remove(file);
 			iter =  entities.iterator();
 		}

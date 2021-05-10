@@ -6,8 +6,6 @@ package info.scce.pyro.core.rest.types;
 
 public class PyroFolder extends info.scce.pyro.rest.RESTBaseImpl
 {
-
-
     private String name;
 
     @com.fasterxml.jackson.annotation.JsonProperty("name")
@@ -67,24 +65,6 @@ public class PyroFolder extends info.scce.pyro.rest.RESTBaseImpl
         }
         for(entity.core.PyroTextualFileDB p:entity.textualFiles){
             result.getfiles().add(PyroTextualFile.fromEntity(p,objectCache));  
-        }
-        for(entity.empty.EmptyDB p:entity.files_Empty){
-            result.getfiles().add(PyroModelFile.fromEntity(p,objectCache));  
-        }
-        for(entity.primerefs.PrimeRefsDB p:entity.files_PrimeRefs){
-            result.getfiles().add(PyroModelFile.fromEntity(p,objectCache));  
-        }
-        for(entity.hierarchy.HierarchyDB p:entity.files_Hierarchy){
-            result.getfiles().add(PyroModelFile.fromEntity(p,objectCache));  
-        }
-        for(entity.hooksandactions.HooksAndActionsDB p:entity.files_HooksAndActions){
-            result.getfiles().add(PyroModelFile.fromEntity(p,objectCache));  
-        }
-        for(entity.flowgraph.FlowGraphDB p:entity.files_FlowGraph){
-            result.getfiles().add(PyroModelFile.fromEntity(p,objectCache));  
-        }
-        for(entity.externallibrary.ExternalLibraryDB p:entity.files_ExternalLibrary){
-           result.getfiles().add(PyroModelFile.fromEntity(p,objectCache));  
         }
         	
         objectCache.putRestTo(entity, result);

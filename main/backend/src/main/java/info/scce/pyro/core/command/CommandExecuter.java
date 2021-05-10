@@ -1,15 +1,30 @@
 package info.scce.pyro.core.command;
-import entity.core.*;
 
-import style.Appearance;
-import style.BooleanEnum;
-import style.LineStyle;
-import graphmodel.*;
-import info.scce.pyro.sync.GraphModelWebSocket;
-import info.scce.pyro.core.command.types.HighlightCommand;
-import info.scce.pyro.core.command.types.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import entity.core.BendingPointDB;
+import entity.core.PyroProjectDB;
+import graphmodel.Edge;
+import graphmodel.GraphModel;
+import graphmodel.IdentifiableElement;
+import graphmodel.ModelElement;
+import graphmodel.ModelElementContainer;
+import graphmodel.Node;
+import info.scce.pyro.core.command.types.CreateEdgeCommand;
+import info.scce.pyro.core.command.types.CreateNodeCommand;
+import info.scce.pyro.core.command.types.HighlightCommand;
+import info.scce.pyro.core.command.types.MoveNodeCommand;
+import info.scce.pyro.core.command.types.OpenFileCommand;
+import info.scce.pyro.core.command.types.ReconnectEdgeCommand;
+import info.scce.pyro.core.command.types.RemoveEdgeCommand;
+import info.scce.pyro.core.command.types.RemoveNodeCommand;
+import info.scce.pyro.core.command.types.ResizeNodeCommand;
+import info.scce.pyro.core.command.types.UpdateBendPointCommand;
+import info.scce.pyro.core.command.types.UpdateCommand;
+import info.scce.pyro.sync.GraphModelWebSocket;
 
 /**
  * Author zweihoff
@@ -243,56 +258,6 @@ abstract public class CommandExecuter {
         batch.add(cmd);
     }
 
-    protected Appearance mergeAppearance(Appearance defaultAppearance, Appearance calculated){
-        if(calculated.getForeground()!=null){
-            defaultAppearance.setForeground(calculated.getForeground());
-        }
-        if(calculated.getBackground()!=null){
-            defaultAppearance.setBackground(calculated.getBackground());
-        }
-        if(calculated.getLineStyle()!= LineStyle.UNSPECIFIED) {
-            defaultAppearance.setLineStyle(calculated.getLineStyle());
-        }
-        if(calculated.getLineWidth()!= -1) {
-            defaultAppearance.setLineWidth(calculated.getLineWidth());
-        }
-        if(calculated.getLineInVisible()!= null) {
-            defaultAppearance.setLineInVisible(calculated.getLineInVisible());
-        }
-        if(calculated.getTransparency()!= -1.0) {
-            defaultAppearance.setTransparency(calculated.getTransparency());
-        }
-        if(calculated.getAngle()!= -1.0F) {
-            defaultAppearance.setAngle(calculated.getAngle());
-        }
-        if(calculated.getFont()!= null) {
-            if(calculated.getFont().getFontName()!=null) {
-                defaultAppearance.getFont().setFontName(calculated.getFont().getFontName());
-            }
-            if(calculated.getFont().getSize()>0) {
-                defaultAppearance.getFont().setSize(calculated.getFont().getSize());
-            }
-            defaultAppearance.getFont().setIsBold(calculated.getFont().isIsBold());
-            defaultAppearance.getFont().setIsItalic(calculated.getFont().isIsItalic());
-        }
-        if(calculated.getFilled()!= BooleanEnum.UNDEF) {
-            defaultAppearance.setFilled(calculated.getFilled());
-        }
-        if(calculated.getImagePath()!= null) {
-            defaultAppearance.setImagePath(calculated.getImagePath());
-        }
-        return defaultAppearance;
-        
-    }
-
-    protected void updateAppearance(String type, graphmodel.IdentifiableElement element, Appearance appearance){
-        final AppearanceCommand result = new AppearanceCommand();
-        result.setType(type);
-        result.setDelegateId(element.getDelegateId());
-        result.setAppearance(info.scce.pyro.core.graphmodel.Appearance.fromAppearance(appearance));
-        batch.add(result);
-    }
-
     public BatchExecution getBatch(){
         return batch;
     }
@@ -308,8 +273,6 @@ abstract public class CommandExecuter {
         return result;
     }
 
-    public void updateAppearance() {}
-    
     public java.io.InputStream loadFile(final entity.core.BaseFileDB identifier) {
     	return fileController.loadFile(identifier);
     }

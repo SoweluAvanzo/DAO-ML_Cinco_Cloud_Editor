@@ -1,11 +1,8 @@
 package info.scce.pyro.core.rest;
 
-import info.scce.pyro.core.rest.types.PyroUserRegistration;
 import javax.ws.rs.core.SecurityContext;
 import info.scce.pyro.auth.PBKDF2Encoder;
-import info.scce.pyro.core.rest.types.FindPyroUser;
-import info.scce.pyro.core.OrganizationController;
-import info.scce.pyro.core.rest.types.PyroUser;
+import info.scce.pyro.core.rest.types.PyroUserRegistration;
 
 @javax.transaction.Transactional
 @javax.ws.rs.Path("/register/")

@@ -1,9 +1,5 @@
 package info.scce.pyro.core;
 
-import entity.core.*;
-import info.scce.pyro.core.rest.types.PyroProject;
-import info.scce.pyro.core.rest.types.PyroProjectStructure;
-
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -15,6 +11,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import entity.core.PyroOrganizationAccessRightDB;
+import info.scce.pyro.core.rest.types.PyroProject;
+import info.scce.pyro.core.rest.types.PyroProjectStructure;
 
 @Transactional
 @Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)

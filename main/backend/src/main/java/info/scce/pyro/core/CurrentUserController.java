@@ -1,14 +1,13 @@
 package info.scce.pyro.core;
 
-import info.scce.pyro.core.rest.types.PyroUser;
-import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
-
 import javax.servlet.ServletException;
 import javax.ws.rs.core.SecurityContext;
-import info.scce.pyro.core.rest.types.Login;
 import info.scce.pyro.auth.PBKDF2Encoder;
 import info.scce.pyro.auth.TokenUtils;
 import info.scce.pyro.core.rest.types.AuthResponse;
+import info.scce.pyro.core.rest.types.Login;
+import info.scce.pyro.core.rest.types.PyroUser;
+import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
 
 @javax.transaction.Transactional
 @javax.ws.rs.Path("/user/current")

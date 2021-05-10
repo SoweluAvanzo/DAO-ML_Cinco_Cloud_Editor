@@ -1,13 +1,10 @@
 package info.scce.pyro.core;
 
-
-import info.scce.pyro.core.rest.types.*;
+import javax.ws.rs.core.SecurityContext;
+import info.scce.pyro.core.rest.types.PyroOrganization;
+import info.scce.pyro.core.rest.types.PyroUser;
 import info.scce.pyro.util.DefaultColors;
 
-import javax.ws.rs.core.SecurityContext;
-
-import java.util.*;
-	
 @javax.transaction.Transactional
 @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 @javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
@@ -357,8 +354,6 @@ public class OrganizationController {
 	
 	private void deleteOrganizationDependencies(entity.core.PyroUserDB user, entity.core.PyroOrganizationDB org) {
 		deleteAccessRightVector(user, org);
-		deleteGraphModelPermissionVectors(user, org);
-		deleteEditorGrids(user, org);
 	}
 	
 	private void deleteAccessRightVector(
@@ -378,23 +373,7 @@ public class OrganizationController {
 			e.delete();
 		}
 	}
-	
-	private static void deleteGraphModelPermissionVectors(
-			entity.core.PyroUserDB user,
-			entity.core.PyroOrganizationDB org) {
-		for (final entity.core.PyroProjectDB project: org.projects) {
-			entity.core.PyroGraphModelPermissionVectorDB.delete("user = ?1 and project = ?2", user,project);
-		}
-	}
-	
-	private static void deleteEditorGrids(
-			entity.core.PyroUserDB user,
-			entity.core.PyroOrganizationDB org) {
-		for (final entity.core.PyroProjectDB project: org.projects) {
-			entity.core.PyroEditorGridDB.delete("user = ?1 and project = ?2",user,project);
-		}
-	}
-	
+
 	private boolean isOrgManager(entity.core.PyroUserDB user) {
 		return user.systemRoles.contains(entity.core.PyroSystemRoleDB.ORGANIZATION_MANAGER);
 	}

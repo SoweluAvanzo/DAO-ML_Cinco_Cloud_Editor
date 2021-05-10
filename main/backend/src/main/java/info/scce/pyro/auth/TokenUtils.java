@@ -1,25 +1,14 @@
 package info.scce.pyro.auth;
 
-import java.io.InputStream;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.eclipse.microprofile.jwt.Claims;
-
 import io.smallrye.jwt.build.Jwt;
 import io.smallrye.jwt.build.JwtClaimsBuilder;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
+import java.util.Collections;
 /**
  * Utilities for generating a JWT for testing
  */
@@ -46,7 +35,7 @@ public class TokenUtils {
 		try (InputStream contentIS = TokenUtils.class.getResourceAsStream(pemResName)) {
 			byte[] tmp = new byte[4096];
 			int length = contentIS.read(tmp);
-			return decodePrivateKey(new String(tmp, 0, length, "UTF-8"));
+			return decodePrivateKey(new String(tmp, 0, length, StandardCharsets.UTF_8));
 		}
 	}
 

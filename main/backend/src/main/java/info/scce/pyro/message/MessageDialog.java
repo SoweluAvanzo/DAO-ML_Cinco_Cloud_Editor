@@ -1,14 +1,13 @@
 package info.scce.pyro.message;
 
-import info.scce.pyro.core.command.CommandExecuter;
-import info.scce.pyro.sync.DialogAnswer;
-import info.scce.pyro.sync.GraphModelWebSocket;
-import info.scce.pyro.sync.WebSocketMessage;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import info.scce.pyro.core.command.CommandExecuter;
+import info.scce.pyro.sync.DialogAnswer;
+import info.scce.pyro.sync.GraphModelWebSocket;
+import info.scce.pyro.sync.WebSocketMessage;
 
 /**
  * Author zweihoff

@@ -1,8 +1,8 @@
 package entity.core;
 
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import java.util.Random;
 import javax.persistence.Entity;
-import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
 @Entity()
 public class PyroUserDB extends PanacheEntity {

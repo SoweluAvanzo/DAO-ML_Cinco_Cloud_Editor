@@ -1,11 +1,9 @@
 package info.scce.pyro.core;
 
-import info.scce.pyro.util.DefaultColors;
+import io.quarkus.runtime.StartupEvent;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
-import io.quarkus.runtime.StartupEvent;
 import info.scce.pyro.auth.PBKDF2Encoder;
-import entity.core.PyroSystemRoleDB;
 @ApplicationScoped
 @javax.transaction.Transactional
 public class InitializeSettingsBean {

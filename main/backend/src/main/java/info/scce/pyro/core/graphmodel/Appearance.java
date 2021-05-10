@@ -222,42 +222,4 @@ public class Appearance {
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
-    
-    public static Appearance fromAppearance(style.Appearance appearance) {
-        final Appearance result = new Appearance();
-        result.setName(appearance.getName());
-        result.setId(appearance.getId());
-
-        result.setAngle(appearance.getAngle());
-        result.setImagePath(appearance.getImagePath());
-        result.setLineInVisible(appearance.getLineInVisible());
-        result.setLineStyle(appearance.getLineStyle().getLiteral().toUpperCase());
-        result.setLineWidth(appearance.getLineWidth());
-        result.setFilled(appearance.getFilled().getLiteral().toUpperCase());
-        if(appearance.getParent()!=null){
-            result.setParent(appearance.getParent().getId());
-        }
-        result.setTransparency(appearance.getTransparency());
-
-        if(appearance.getFont() != null) {
-            result.setFontSize(appearance.getFont().getSize());
-            result.setFontName(appearance.getFont().getFontName());
-            result.setFontIsBold(appearance.getFont().isIsBold());
-            result.setFontIsItalic(appearance.getFont().isIsBold());
-        }
-
-        if(appearance.getBackground() != null) {
-            result.setBackgroundR(appearance.getBackground().getR());
-            result.setBackgroundG(appearance.getBackground().getG());
-            result.setBackgroundB(appearance.getBackground().getB());
-        }
-
-        if(appearance.getForeground() != null) {
-            result.setForegroundR(appearance.getForeground().getR());
-            result.setForegroundG(appearance.getForeground().getG());
-            result.setForegroundB(appearance.getForeground().getB());
-        }
-
-        return result;
-    }
 }

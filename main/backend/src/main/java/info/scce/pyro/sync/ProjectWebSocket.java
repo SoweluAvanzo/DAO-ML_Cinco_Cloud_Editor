@@ -1,12 +1,5 @@
 package info.scce.pyro.sync;
 
-import info.scce.pyro.core.rest.types.PyroUser;
-import info.scce.pyro.sync.helper.WorkerThreadHelper;
-import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.websocket.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -14,8 +7,18 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import info.scce.pyro.core.rest.types.PyroUser;
+import info.scce.pyro.sync.helper.WorkerThreadHelper;
+import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
 
 /**
  * Author zweihoff

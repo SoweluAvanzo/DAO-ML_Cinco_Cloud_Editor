@@ -5,9 +5,6 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import info.scce.pyro.rest.PyroSelectiveRestFilter;
-import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -15,16 +12,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.Session;
+import info.scce.pyro.rest.PyroSelectiveRestFilter;
+import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
 
 /**
  * Author zweihoff

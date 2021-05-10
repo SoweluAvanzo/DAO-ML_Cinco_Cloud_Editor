@@ -1,10 +1,9 @@
 package info.scce.pyro.core.command.types;
 
-import info.scce.pyro.core.graphmodel.BendingPoint;
-import info.scce.pyro.core.graphmodel.IdentifiableElement;
-
 import java.util.LinkedList;
 import java.util.List;
+import info.scce.pyro.core.graphmodel.BendingPoint;
+import info.scce.pyro.core.graphmodel.IdentifiableElement;
 
 /**
  * Author zweihoff

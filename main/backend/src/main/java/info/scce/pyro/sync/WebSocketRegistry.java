@@ -6,11 +6,10 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import info.scce.pyro.rest.PyroSelectiveRestFilter;
-
+import java.io.IOException;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
-import java.io.IOException;
+import info.scce.pyro.rest.PyroSelectiveRestFilter;
 
 /**
  * Author zweihoff
