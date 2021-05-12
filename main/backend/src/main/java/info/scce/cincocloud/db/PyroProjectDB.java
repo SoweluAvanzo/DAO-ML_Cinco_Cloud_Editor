@@ -1,6 +1,9 @@
 package info.scce.cincocloud.db;
 
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 @Entity(name = "entity_core_pyroproject")
 public class PyroProjectDB extends PyroFileContainerDB {
@@ -9,11 +12,14 @@ public class PyroProjectDB extends PyroFileContainerDB {
 
     public String description;
 
-    @javax.persistence.ManyToOne
-    @javax.persistence.JoinColumn(name = "owner_PyroUserDB_id")
+    @OneToOne
+    public PyroWorkspaceImageDB image;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_PyroUserDB_id")
     public PyroUserDB owner;
 
-    @javax.persistence.ManyToOne
-    @javax.persistence.JoinColumn(name = "organization_PyroOrganizationDB_id")
+    @ManyToOne
+    @JoinColumn(name = "organization_PyroOrganizationDB_id")
     public PyroOrganizationDB organization;
 }

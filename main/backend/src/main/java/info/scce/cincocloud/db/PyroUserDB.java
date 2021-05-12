@@ -1,8 +1,14 @@
 package info.scce.cincocloud.db;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import java.util.Random;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 @Entity()
 public class PyroUserDB extends PanacheEntity {
@@ -13,20 +19,23 @@ public class PyroUserDB extends PanacheEntity {
     public String activationKey;
     public boolean isActivated;
 
-    @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL)
+    @OneToOne(cascade = javax.persistence.CascadeType.ALL)
     public BaseFileDB profilePicture;
 
-    @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
-    @javax.persistence.ElementCollection
+    @Enumerated(javax.persistence.EnumType.STRING)
+    @ElementCollection
     public java.util.Collection<PyroSystemRoleDB> systemRoles = new java.util.ArrayList<>();
 
-    @javax.persistence.OneToMany(mappedBy = "owner")
+    @OneToMany(mappedBy = "owner")
     public java.util.Collection<PyroProjectDB> ownedProjects = new java.util.ArrayList<>();
 
-    @javax.persistence.ManyToMany(mappedBy = "owners")
+    @OneToMany(mappedBy = "user")
+    public java.util.Collection<PyroWorkspaceImageDB> images = new java.util.ArrayList<>();
+
+    @ManyToMany(mappedBy = "owners")
     public java.util.Collection<PyroOrganizationDB> ownedOrganizations = new java.util.ArrayList<>();
 
-    @javax.persistence.ManyToMany(mappedBy = "members")
+    @ManyToMany(mappedBy = "members")
     public java.util.Collection<PyroOrganizationDB> memberedOrganizations = new java.util.ArrayList<>();
 
     public static PyroUserDB add(String email, String username, String password) {

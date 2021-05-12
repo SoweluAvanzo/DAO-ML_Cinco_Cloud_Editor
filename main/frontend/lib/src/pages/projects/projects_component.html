@@ -15,8 +15,9 @@
   <div *ngIf="organization.projects.length > 0" class="list-group">
     <div *ngFor="let project of organization.projects" class="list-group-item pyro-list-entry">
       <div class="list-group-item-heading d-flex flex-row">
-        <div (click)="openCurrentProject(project)" class="w-100" style="cursor: pointer">
-          <h5>{{project.name}}</h5>
+        <div (click)="openCurrentProject(project)" class="w-100 d-flex flex-row align-items-center" style="cursor: pointer">
+          <h5 class="m-0 mr-2">{{project.name}}</h5>
+          <workspace-image-badge [image]="project.image" *ngIf="project.image != null"></workspace-image-badge>
         </div>
         <div class="flex-shrink-0">
           <div class="btn-group btn-group-sm">
@@ -32,7 +33,7 @@
 
       <div class="list-group-item-text">
         <p *ngIf="project.description.trim() != ''">
-          {{project.description}}
+          <em>{{project.description}}</em>
         </p>
         <p class="mb-0 text-muted">
           Owner:

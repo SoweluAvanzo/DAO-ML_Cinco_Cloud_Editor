@@ -1,6 +1,4 @@
 import 'package:angular/angular.dart';
-import 'dart:async';
-import 'package:angular_forms/angular_forms.dart';
 import 'dart:html';
 import 'dart:convert';
 import 'package:angular_router/angular_router.dart';
@@ -9,6 +7,7 @@ import '../../model/core.dart';
 import 'new_project/new_project_component.dart';
 import 'edit_project/edit_project_component.dart';
 import 'delete_project/delete_project_component.dart';
+import '../../components/workspace_image_badge/workspace_image_badge_component.dart';
 
 import '../../routes.dart' as top_routes;
 import '../../service/base_service.dart';
@@ -29,7 +28,8 @@ import '../main/route_paths.dart';
       routerDirectives,
       NewProjectComponent,
       EditProjectComponent,
-      DeleteProjectComponent
+      DeleteProjectComponent,
+      WorkspaceImageBadgeComponent
     ],
     styleUrls: const [
       'projects_component.css'

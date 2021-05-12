@@ -6,8 +6,9 @@ public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
 
     private PyroUser owner;
     private PyroOrganization organization;
-    private java.lang.String name;
-    private java.lang.String description;
+    private PyroWorkspaceImage image;
+    private String name;
+    private String description;
 
     public static PyroProject fromEntity(final PyroProjectDB entity, info.scce.cincocloud.rest.ObjectCache objectCache) {
 
@@ -23,6 +24,9 @@ public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
 
         objectCache.putRestTo(entity, result);
 
+        if (entity.image != null) {
+            result.setimage(PyroWorkspaceImage.fromEntity(entity.image, objectCache));
+        }
 
         if (entity.organization != null) {
             result.setorganization(PyroOrganization.fromEntity(entity.organization, objectCache));
@@ -52,6 +56,16 @@ public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
     @com.fasterxml.jackson.annotation.JsonProperty("organization")
     public void setorganization(final PyroOrganization organization) {
         this.organization = organization;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("image")
+    public PyroWorkspaceImage getimage() {
+        return this.image;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("image")
+    public void setimage(final PyroWorkspaceImage image) {
+        this.image = image;
     }
 
     @com.fasterxml.jackson.annotation.JsonProperty("name")

@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core;
 
+import java.util.Optional;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -18,6 +19,7 @@ import info.scce.cincocloud.db.PyroOrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.PyroOrganizationDB;
 import info.scce.cincocloud.db.PyroProjectDB;
 import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.db.PyroWorkspaceImageDB;
 
 @Transactional
 @Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
@@ -48,12 +50,16 @@ public class ProjectController {
             return javax.ws.rs.core.Response.status(Response.Status.NOT_FOUND).build();
         }
 
+        final Optional<PyroWorkspaceImageDB> image = Optional.ofNullable(newProject.getimage())
+                .map(i -> PyroWorkspaceImageDB.findById(i.getId()));
+
         if (canCreateProject(subject, org)) {
             final PyroProjectDB pp = createProject(
                     newProject.getname(),
                     newProject.getdescription(),
                     subject,
-                    org
+                    org,
+                    image
             );
             return javax.ws.rs.core.Response.ok(PyroProject.fromEntity(pp, objectCache)).build();
         }
@@ -64,7 +70,8 @@ public class ProjectController {
             String name,
             String description,
             PyroUserDB subject,
-            PyroOrganizationDB org
+            PyroOrganizationDB org,
+            Optional<PyroWorkspaceImageDB> image
     ) {
         final PyroProjectDB pp = new PyroProjectDB();
         pp.owner = subject;
@@ -73,6 +80,7 @@ public class ProjectController {
         pp.organization = org;
         subject.ownedProjects.add(pp);
         org.projects.add(pp);
+        image.ifPresent(i -> pp.image = i);
 
         pp.persist();
         subject.persist();

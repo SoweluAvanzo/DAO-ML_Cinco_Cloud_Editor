@@ -564,7 +564,59 @@ class PyroSettings {
   }
 }
 
+class PyroWorkspaceImage {
+  int id;
+  String name;
+  String imageName;
+  String imageVersion;
+  bool published;
+  PyroUser user;
 
+  PyroWorkspaceImage({Map cache, dynamic jsog}) {
+    if (jsog != null) {
+      cache[jsog["@id"]]=this;
+
+      id = jsog["id"];
+      name = jsog["name"];
+      imageName = jsog["imageName"];
+      imageVersion = jsog["imageVersion"];
+      published = jsog["published"];
+
+      if (jsog.containsKey("user")) {
+        user = new PyroUser(cache: cache, jsog: jsog["user"]);
+      }
+    } else {
+      id = -1;
+      user = new PyroUser();
+    }
+  }
+
+  static PyroWorkspaceImage fromJSON(String s) {
+    return PyroWorkspaceImage.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
+  }
+
+  static PyroWorkspaceImage fromJSOG({Map cache, dynamic jsog}) {
+    return new PyroWorkspaceImage(cache: cache, jsog: jsog);
+  }
+
+  Map toJSOG(Map cache) {
+    Map jsog = new Map();
+    if(cache.containsKey("core.PyroWorkspaceImage:${id}")){
+      jsog["@ref"]=cache["core.PyroWorkspaceImage:${id}"];
+    } else {
+      cache["core.PyroWorkspaceImage:${id}"]=(cache.length+1).toString();
+      jsog['@id']=cache["core.PyroWorkspaceImage:${id}"];
+      jsog['id']=id;
+      jsog['name']=name;
+      jsog['imageName']=imageName;
+      jsog['imageVersion']=imageVersion;
+      jsog['published']=published;
+      jsog['user']=user.toJSOG(cache);
+      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroWorkspaceImage";
+    }
+    return jsog;
+  }
+}
 
 class PyroOrganization {
   int id;
@@ -585,9 +637,7 @@ class PyroOrganization {
   	  id = jsog["id"];
   	  name = jsog["name"];
   	  description = jsog["description"];
-  	    	  
-  	  
-  	  
+
   	  if (jsog.containsKey("members")) {
   	  	for(var value in jsog["members"]){
   	  		if(value.containsKey("@ref")){
@@ -677,12 +727,13 @@ class PyroOrganization {
   List<PyroUser> get users => new List.from(owners)..addAll(members);
 }
 
-class PyroProject extends PyroFolder{
+class PyroProject extends PyroFolder {
   int id;
   PyroUser owner;
   String name;
   String description;
   PyroOrganization organization;
+  PyroWorkspaceImage image;
   List<PyroFolder> innerFolders;
   List<PyroFile> files;
 
@@ -702,6 +753,14 @@ class PyroProject extends PyroFolder{
   	   } else {
   	   	organization = new PyroOrganization(cache:cache,jsog:jsog["organization"]);
   	   }
+
+  	  if (jsog["image"] != null) {
+        if(jsog["image"].containsKey("@ref")){
+          image = cache[jsog["image"]["@ref"]];
+        } else {
+          image = new PyroWorkspaceImage(cache:cache,jsog:jsog["image"]);
+        }
+      }
   	  
   	  if(jsog["owner"].containsKey("@ref")){
   	   	owner = cache[jsog["owner"]["@ref"]];
@@ -768,6 +827,9 @@ class PyroProject extends PyroFolder{
 			if(organization!=null) {
 				jsog['organization']=organization.toJSOG(cache);
 			}
+      if(image!=null) {
+        jsog['image']=image.toJSOG(cache);
+      }
 			jsog['description']=description;
 			jsog['innerFolders']=innerFolders.map((n)=>n.toJSOG(cache)).toList();
 			jsog['files']=files.map((n)=>n.toJSOG(cache)).toList();

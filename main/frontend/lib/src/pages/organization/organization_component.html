@@ -2,7 +2,7 @@
 
 <div *ngIf="currentUser != null && organization != null" class="container">
   <div class="row">
-    <div *ngIf="isOrgOwner" class="col-3">
+    <div *ngIf="isOrgOwner" class="col-12 col-sm-3">
       <div class="sidebar">
         <div class="sidebar-section">
           <h4 class="sidebar-section-title">{{organization.name}}</h4>
@@ -17,8 +17,9 @@
              href="#">Appearance</a>
         </div>
       </div>
+      <hr class="d-block d-sm-none">
     </div>
-    <div [ngClass]="isOrgOwner ? 'col-9' : 'col-12'">
+    <div [ngClass]="isOrgOwner ? 'col-12 col-sm-9' : 'col-12'">
       <projects *ngIf="isMenuState('projects')" [organization]="organization"></projects>
       <users (orgChanged)="orgChanged" *ngIf="isMenuState('members')" [organization]="organization"
              [user]="currentUser"></users>
