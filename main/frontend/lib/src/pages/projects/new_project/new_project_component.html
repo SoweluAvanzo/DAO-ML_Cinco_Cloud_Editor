@@ -48,10 +48,33 @@
             ></textarea>
           </div>
         </form>
+
+        <div class="form-group" *ngIf="isTemplateProjectType">
+          <label>Template</label>
+
+          <div class="list-group" *ngIf="selectedImage != null">
+            <div class="list-group-item p-2 d-flex flex-row align-items-center">
+              <div class="w-100">
+                <workspace-image-badge [image]="selectedImage"></workspace-image-badge>
+              </div>
+              <div>
+                <i class="fa fa-fw fa-times cursor-pointer" (click)="selectedImage = null"></i>
+              </div>
+            </div>
+          </div>
+
+          <workspace-image-search
+              *ngIf="selectedImage == null"
+              (selectImage)="selectWorkspaceImage($event)"
+          >
+          </workspace-image-search>
+        </div>
+
       </div>
       <div class="modal-footer">
         <button
             (click)="createNewProject(projectName.value,projectDescription.value)"
+            [disabled]="!canCreateProject"
             class="btn btn-primary"
             type="button"
         >

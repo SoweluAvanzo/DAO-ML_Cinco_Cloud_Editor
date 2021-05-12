@@ -16,12 +16,13 @@ class ProjectService extends BaseService {
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroProject> create(String name, String description, PyroOrganization org, PyroUser user) async {
+  Future<PyroProject> create(String name, String description, PyroOrganization org, PyroWorkspaceImage image, PyroUser user) async {
     PyroProject pp = new PyroProject();
     pp.name = name;
     pp.description = description;
     pp.owner = user;
     pp.organization = org;
+    pp.image = image;
     return HttpRequest.request("${getBaseUrl()}/project/create/private",sendData:jsonEncode(pp.toJSOG(new Map())),method: "POST",requestHeaders: requestHeaders, withCredentials: true).then((response){
       var newProject = PyroProject.fromJSON(response.responseText);
       newProject.owner=user;

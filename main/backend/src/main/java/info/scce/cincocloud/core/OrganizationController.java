@@ -12,6 +12,7 @@ import info.scce.cincocloud.db.PyroSettingsDB;
 import info.scce.cincocloud.db.PyroStyleDB;
 import info.scce.cincocloud.db.PyroSystemRoleDB;
 import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.util.DefaultColors;
 
 @javax.transaction.Transactional
@@ -25,10 +26,7 @@ public class OrganizationController {
     ProjectService projectService;
 
     @javax.inject.Inject
-    info.scce.cincocloud.rest.ObjectCache objectCache;
-
-    @javax.inject.Inject
-    info.scce.cincocloud.core.ProjectController projectController;
+    ObjectCache objectCache;
 
     @javax.ws.rs.GET
     @javax.ws.rs.Path("/")

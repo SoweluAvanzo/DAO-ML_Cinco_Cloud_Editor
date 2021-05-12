@@ -14,7 +14,6 @@ import info.scce.cincocloud.db.PyroUserDB;
 @javax.enterprise.context.RequestScoped
 public class OrganizationAccessRightVectorController {
 
-
     @javax.inject.Inject
     info.scce.cincocloud.rest.ObjectCache objectCache;
 

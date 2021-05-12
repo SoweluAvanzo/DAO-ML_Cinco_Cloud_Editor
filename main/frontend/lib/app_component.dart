@@ -6,6 +6,7 @@ import 'src/service/style_service.dart';
 import 'src/service/notification_service.dart';
 import 'src/service/settings_service.dart';
 import 'src/service/organization_service.dart';
+import 'src/service/workspace_image_service.dart';
 import 'src/components/notification/notification_component.dart';
 
 @Component(
@@ -19,6 +20,7 @@ import 'src/components/notification/notification_component.dart';
     ClassProvider(NotificationService),
     ClassProvider(SettingsService),
     ClassProvider(OrganizationService),
+    ClassProvider(WorkspaceImageService),
   ]
 )
 class AppComponent {
