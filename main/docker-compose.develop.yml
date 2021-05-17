@@ -14,7 +14,7 @@ services:
     depends_on:
       - backend
       - frontend
-    image: nginx:1.18
+    image: docker.io/library/nginx:1.18
     volumes:
       - "./nginx.conf:/etc/nginx/nginx.conf:ro"
     networks:
@@ -23,7 +23,7 @@ services:
       - "8080:80"
 
   frontend:
-    image: google/dart:2.4.1
+    image: docker.io/google/dart:2.4.1
     networks:
       - nginx
     volumes:
@@ -42,7 +42,7 @@ services:
     networks:
       - postgres
       - nginx
-    image: openjdk:15-jdk-alpine3.11
+    image: docker.io/library/openjdk:15-jdk-alpine3.11
     volumes:
       - "maven_cache:/root/.m2"
       - "./backend/src:/usr/src/server/src:ro"
@@ -59,6 +59,6 @@ services:
       POSTGRES_DB: quarkus_test
       POSTGRES_PASSWORD: quarkus_test
       POSTGRES_USER: quarkus_test
-    image: postgres:11.2
+    image: docker.io/library/postgres:11.2
     networks:
       - postgres
