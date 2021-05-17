@@ -1,0 +1,50 @@
+stages:
+  - build
+  - push
+
+.docker-job:
+  image: docker:20.10.6
+  services:
+    - docker:20.10.6-dind
+  variables:
+    DOCKER_DRIVER: overlay
+
+.docker-build:
+  extends: .docker-job
+  stage: build
+  script:
+    - cd "$IMAGE"
+    - mkdir "$VERSION"
+    - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" .
+    - docker save "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" | gzip > "$VERSION/image.tar.gz"
+  artifacts:
+    expire_in: 1 days
+    paths:
+      - $IMAGE/$VERSION/image.tar.gz
+
+.docker-push:
+  extends: .docker-job
+  stage: push
+  before_script:
+    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker load < $IMAGE/$VERSION/image.tar.gz
+    - docker tag $CI_REGISTRY_IMAGE/$IMAGE:$VERSION $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
+
+build-main:
+  extends: .docker-build
+  variables:
+    IMAGE: main
+    VERSION: latest
+  only:
+    - master
+
+push-main:
+  extends: .docker-push
+  variables:
+    IMAGE: main
+    VERSION: latest
+  only:
+    - master
