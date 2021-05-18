@@ -4,7 +4,8 @@
 FROM docker.io/library/openjdk:15-jdk-alpine3.11 as builder-backend
 WORKDIR /app/backend
 COPY ./app /app/backend
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw verify
+RUN ./mvnw package -DskipTests
 
 #
 # Build the fat pyro quarkus jar.

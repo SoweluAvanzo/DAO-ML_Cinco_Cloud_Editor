@@ -1,6 +1,5 @@
 package info.scce.cincocloud.core;
 
-
 import javax.ws.rs.core.SecurityContext;
 import info.scce.cincocloud.core.rest.types.PyroOrganizationAccessRightVector;
 import info.scce.cincocloud.db.PyroOrganizationAccessRightVectorDB;

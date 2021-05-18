@@ -7,7 +7,6 @@ import info.scce.cincocloud.db.PyroOrganizationDB;
 import info.scce.cincocloud.db.PyroSystemRoleDB;
 import info.scce.cincocloud.db.PyroUserDB;
 
-
 @javax.ws.rs.Path("/users")
 @javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)

@@ -17,11 +17,14 @@ RUN pub global activate webdev \
 #
 FROM docker.io/library/openjdk:15-jdk-alpine3.11 as builder-backend
 WORKDIR /app/backend
-COPY ./backend /app/backend
+COPY ./backend/.mvn /app/backend/.mvn
+COPY ./backend/mvnw /app/backend/
+COPY ./backend/pom.xml /app/backend/
+RUN ./mvnw verify
+COPY ./backend/src /app/backend/src
 COPY --from=builder-frontend /app/frontend/build/web/ /app/backend/src/main/resources/META-INF/resources/
-# docker does not resolve simlink, need to be resolved manually
 COPY --from=builder-frontend /app/frontend/build/packages/ /app/backend/src/main/resources/META-INF/resources/packages/
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw package -DskipTests
 
 #
 # Build the fat pyro quarkus jar.

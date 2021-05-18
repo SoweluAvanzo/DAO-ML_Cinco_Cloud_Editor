@@ -19,6 +19,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <org.eclipse.xtend.vesrsion>2.22.0</org.eclipse.xtend.vesrsion>
+        <kubernetes-client.version>5.3.1</kubernetes-client.version>
     </properties>
 
     <dependencyManagement>
@@ -72,6 +73,11 @@
             <groupId>com.voodoodyne.jackson.jsog</groupId>
             <artifactId>jackson-jsog</artifactId>
             <version>${jackson-jsog.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+            <version>${kubernetes-client.version}</version>
         </dependency>
 
         <!-- Testing: -->
