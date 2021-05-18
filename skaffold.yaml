@@ -1,0 +1,21 @@
+apiVersion: skaffold/v2beta16
+kind: Config
+metadata:
+  name: cinco-cloud
+deploy:
+  kubectl:
+    manifests:
+      - .infrastructure/ingress.yaml
+      - .infrastructure/main-config.yaml
+      - .infrastructure/main-deployment.yaml
+      - .infrastructure/main-service.yaml
+      - .infrastructure/postgres-config.yaml
+      - .infrastructure/postgres-deployment.yaml
+      - .infrastructure/postgres-service.yaml
+      - .infrastructure/postgres-storage.yaml
+build:
+  artifacts:
+    - image: registry.gitlab.com/scce/cinco-cloud/main
+      context: ./main
+      docker:
+        dockerfile: Dockerfile

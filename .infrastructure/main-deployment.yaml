@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-deployment
+  namespace: default
+  labels:
+    app: main
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: main
+  template:
+    metadata:
+      labels:
+        app: main
+    spec:
+      containers:
+        - name: main
+          image: registry.gitlab.com/scce/cinco-cloud/main
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: main-config
