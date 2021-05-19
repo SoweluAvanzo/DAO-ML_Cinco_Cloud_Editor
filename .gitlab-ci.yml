@@ -48,3 +48,19 @@ push-main:
     VERSION: latest
   only:
     - master
+
+build-registry:
+  extends: .docker-build
+  variables:
+    IMAGE: registry
+    VERSION: latest
+  only:
+    - master
+
+push-registry:
+  extends: .docker-push
+  variables:
+    IMAGE: registry
+    VERSION: latest
+  only:
+    - master

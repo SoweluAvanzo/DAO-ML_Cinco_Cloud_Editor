@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: registry-statefulset
+  namespace: default
+  labels:
+    app: registry
+spec:
+  serviceName: registry
+  replicas: 1
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    metadata:
+      labels:
+        app: registry
+    spec:
+      containers:
+        - name: registry
+          image: registry.gitlab.com/scce/cinco-cloud/registry
+          ports:
+            - containerPort: 5000
+              name: registry
+          volumeMounts:
+            - name: pv-data
+              mountPath: /var/lib/registry
+          securityContext:
+            privileged: true
+      volumes:
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: registry-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry-service
+  namespace: default
+  labels:
+    app: registry
+spec:
+  ports:
+    - port: 5000
+      name: registry
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: registry
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: registry-pv-volume
+  namespace: default
+  labels:
+    type: local
+    app: registry
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data/registry"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: registry-pv-claim
+  namespace: default
+  labels:
+    app: registry
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi

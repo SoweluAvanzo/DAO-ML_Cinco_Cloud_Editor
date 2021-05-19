@@ -9,9 +9,14 @@ deploy:
       - .infrastructure/ampq.yaml
       - .infrastructure/main.yaml
       - .infrastructure/postgres.yaml
+      - .infrastructure/registry.yaml
 build:
   artifacts:
     - image: registry.gitlab.com/scce/cinco-cloud/main
       context: ./main
+      docker:
+        dockerfile: Dockerfile
+    - image: registry.gitlab.com/scce/cinco-cloud/registry
+      context: ./registry
       docker:
         dockerfile: Dockerfile
