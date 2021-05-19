@@ -6,13 +6,9 @@ deploy:
   kubectl:
     manifests:
       - .infrastructure/ingress.yaml
-      - .infrastructure/main-config.yaml
-      - .infrastructure/main-deployment.yaml
-      - .infrastructure/main-service.yaml
-      - .infrastructure/postgres-config.yaml
-      - .infrastructure/postgres-deployment.yaml
-      - .infrastructure/postgres-service.yaml
-      - .infrastructure/postgres-storage.yaml
+      - .infrastructure/ampq.yaml
+      - .infrastructure/main.yaml
+      - .infrastructure/postgres.yaml
 build:
   artifacts:
     - image: registry.gitlab.com/scce/cinco-cloud/main

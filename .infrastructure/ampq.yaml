@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ampq-config
+  namespace: default
+  labels:
+    app: ampq
+data:
+  ARTEMIS_USERNAME: cc
+  ARTEMIS_PASSWORD: cc
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ampq-statefulset
+  namespace: default
+  labels:
+    app: ampq
+spec:
+  serviceName: ampq
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ampq
+  template:
+    metadata:
+      labels:
+        app: ampq
+    spec:
+      containers:
+        - name: ampq
+          image: vromero/activemq-artemis:2.16.0-alpine
+          envFrom:
+            - configMapRef:
+                name: ampq-config
+          ports:
+            - containerPort: 5672
+              name: ampq
+            - containerPort: 61616
+              name: ampq-core
+            - containerPort: 8161
+              name: ampq-server
+      volumes:
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: ampq-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ampq-service
+  namespace: default
+  labels:
+    app: ampq
+spec:
+  ports:
+    - port: 5672
+      name: ampq
+      protocol: TCP
+    - port: 61616
+      name: ampq-core
+      protocol: TCP
+    - port: 8161
+      name: ampq-server
+  type: NodePort
+  selector:
+    app: ampq
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ampq-pv-volume
+  namespace: default
+  labels:
+    type: local
+    app: ampq
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data/ampq"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ampq-pv-claim
+  namespace: default
+  labels:
+    app: ampq
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi

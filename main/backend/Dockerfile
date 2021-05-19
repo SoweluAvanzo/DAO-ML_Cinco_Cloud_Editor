@@ -21,4 +21,8 @@ CMD java \
     -Dquarkus.datasource.username="${DATABASE_USER}" \
     -Dquarkus.datasource.password="${DATABASE_PASSWORD}" \
     -Dquarkus.http.port=8000 \
+    -Damqp-host="${AMPQ_HOST}" \
+    -Damqp-port="${AMPQ_PORT}" \
+    -Damqp-username="${AMPQ_USERNAME}" \
+    -Damqp-password="${AMPQ_PASSWORD}" \
     -jar app.jar
