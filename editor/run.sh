@@ -70,7 +70,8 @@ if [ "$clean" == "true" ]; then
 	rm -rf web/browser-app/src-gen && \
 	rm -rf web/browser-app/gen-webpack.config.js && \
 	rm -rf web/browser-app/webpack.config.js && \
-	rm -rf backend/releng/de.jabc.cinco.meta.core.parent/workspace-emf-tmp
+	rm -rf backend/releng/de.jabc.cinco.meta.core.parent/workspace-emf-tmp && \
+  rm -rf backend/releng/de.jabc.cinco.meta.core.parent/language-server
 fi
 
 if [ "$buildBackend" == "true" ]; then
@@ -78,6 +79,7 @@ if [ "$buildBackend" == "true" ]; then
   cd backend/releng/de.jabc.cinco.meta.core.parent/
   mvn clean install
   cd ../../../
+  cp -r backend/releng/de.jabc.cinco.meta.core.parent/language-server cinco-extension
 fi
 
 if [ "$forceFrontend" == "true" ]; then
@@ -90,6 +92,8 @@ if [ "$buildFrontend" == "true" ]; then
   cd cinco-extension/
   yarn
   cd ..
+  mkdir web/browser-app/plugins && \
+  cp cinco-extension/cinco-extension-0.0.1.vsix web/browser-app/plugins/cinco-extension-0.0.1.vsix
   cd web/
   yarn
   cd ..
