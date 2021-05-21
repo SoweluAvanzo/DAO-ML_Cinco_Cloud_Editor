@@ -13,11 +13,41 @@
   </parent>
   <artifactId>de.jabc.cinco.meta.core.utils</artifactId>
   <name>de.jabc.cinco.meta.core.utils</name>
+  <packaging>jar</packaging>
   <build>
   	<plugins>
 		<plugin>
 			<groupId>org.eclipse.xtend</groupId>
 			<artifactId>xtend-maven-plugin</artifactId>
+		</plugin>
+		<plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>build-helper-maven-plugin</artifactId>
+			<version>3.0.0</version>
+			<executions>
+				<execution>
+					<id>add-source</id>
+					<phase>initialize</phase>
+					<goals>
+						<goal>add-source</goal>
+						<goal>add-resource</goal>
+					</goals>
+					<configuration>
+						<sources>
+							<source>xtend</source>
+						</sources>
+						<resources>
+							<resource>
+								<directory>xtend</directory>
+								<excludes>
+									<exclude>**/*.java</exclude>
+									<exclude>**/*.g</exclude>
+								</excludes>
+							</resource>
+						</resources>
+					</configuration>
+				</execution>
+			</executions>
 		</plugin>
  	 </plugins>
   </build>

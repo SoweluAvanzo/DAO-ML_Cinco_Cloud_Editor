@@ -14,25 +14,16 @@
 			<plugin>
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>xtend-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>3.0.0</version>
 				<executions>
 					<execution>
-						<id>add-src</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>add-source</goal>
-						</goals>
-						<configuration>
-							<sources>
-								<source>${project.basedir}/xtend-gen</source>
-							</sources>
-						</configuration>
+					<goals>
+						<goal>compile</goal>
+					</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<outputDirectory>xtend-gen</outputDirectory>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
