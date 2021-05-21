@@ -101,7 +101,7 @@ fi
 
 if [ "$runFrontend" == "true" ]; then
   workspace=$(pwd)
-  (sleep 5 && x-www-browser http://127.1:3000/#/${workspace:1}/backend/examples/Example)&
+  (sleep 5 && x-www-browser http://127.1:3000/#/${workspace:1}/web/examples/Example)&
   cd web/browser-app
   yarn start --hostname 0.0.0.0
 fi

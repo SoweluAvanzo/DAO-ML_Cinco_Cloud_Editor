@@ -82,10 +82,8 @@
         "compile": "tsc -p ./",
         "package": "vsce package",
         "prepare": "yarn run installExtensionYarn",
-        "installExtensionNPM": "npm run package && npm run installIntoTheiaNPM",
-        "installIntoTheiaNPM": "copyfiles cinco-extension-0.0.1.vsix ../web/browser-app/plugins && npm run deleteTmp",
-        "installExtensionYarn": "yarn run package && yarn run installIntoTheiaYarn",
-        "installIntoTheiaYarn": "copyfiles cinco-extension-0.0.1.vsix ../web/browser-app/plugins && yarn run deleteTmp",
+        "installExtensionNPM": "npm run package",
+        "installExtensionYarn": "yarn run package",
         "deleteTmp": "rimraf cinco-extension-0.0.1.vsix"
     },
     "devDependencies": {

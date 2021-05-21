@@ -55,7 +55,7 @@
 							<goal>assemble</goal>
 						</goals>
 						<configuration>
-							<assembleDirectory>${project.build.directory}/../../../../../cinco-extension/language-server/</assembleDirectory>
+							<assembleDirectory>${project.build.directory}/language-server/</assembleDirectory>
 							<repositoryLayout>flat</repositoryLayout>
 							<useWildcardClassPath>true</useWildcardClassPath>
 							<!-- uncomment to enable remote debugging 

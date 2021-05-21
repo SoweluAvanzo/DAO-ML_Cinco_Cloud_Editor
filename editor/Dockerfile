@@ -1,41 +1,39 @@
-FROM node:10-buster
+# build the language server
+# --------------------------------
+FROM docker.io/library/maven:3-adoptopenjdk-11 as backend-builder
+WORKDIR /backend
+COPY ./backend /backend
+# outputs language server to releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.core.ide/target/language-server
+RUN cd releng/de.jabc.cinco.meta.core.parent && \
+    mvn clean install -DskipTests
+RUN mv releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.core.ide/target/language-server /backend/language-server
 
-# Install Java and update
-RUN apt-get update && \
-    apt-get install -y default-jdk libsecret-1-dev xvfb libx11-dev libxkbfile-dev maven libxml2-utils && \
-    apt-get upgrade -y
+# build the extension
+# --------------------------------
+FROM docker.io/library/node:10-buster-slim as extension-builder
+WORKDIR /extension
+COPY ./cinco-extension /extension
+COPY --from=backend-builder /backend/language-server/ /extension/language-server/
+# outputs extension to /extension/cinco-extension-0.0.1.vsix
+RUN yarn
 
-# Make readable for root only
-RUN chmod -R 750 /var/run/
-
-WORKDIR /cinco-cloud
-
-RUN useradd -ms /bin/bash theia
-
-COPY --chown=theia:theia . /cinco-cloud
-
-# Set location to place global npm dependencies
+# build the theia editor
+# --------------------------------
+FROM docker.io/library/node:10-buster
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
-
-# Expose port
+# make readable for root only
+RUN chmod -R 750 /var/run/
+WORKDIR /editor
+RUN useradd -ms /bin/bash theia
+COPY --chown=theia:theia web /editor
+RUN apt update && apt install -y default-jdk
+RUN yarn
+# copy extension after the build
+# otherwise the build will fail because the /plugins directory already exists
+COPY --from=extension-builder /extension/cinco-extension-0.0.1.vsix /editor/browser-app/plugins
+# integrate favicon
+RUN cp /editor/favicon.ico /editor/browser-app/lib && \
+	sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
 EXPOSE 3000
-
-USER theia
-
-# Build backend
-RUN cd backend/releng/de.jabc.cinco.meta.core.parent && \
-    mvn clean install -DskipTests && \
-    cd ../../../
-
-# Build frontend
-RUN cd cinco-extension/ && \
-    yarn && \
-    cd ../web/ && \
-    yarn && \
-    cd ..
-
-# Integrate favicon
-RUN cp /cinco-cloud/web/favicon.ico /cinco-cloud/web/browser-app/lib && \
-	sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /cinco-cloud/web/browser-app/lib/index.html
-
-CMD cd /cinco-cloud/web/browser-app && yarn start --hostname 0.0.0.0
+CMD cd /editor/browser-app && \
+    yarn run theia start --port=3000 --root-dir=../examples/Example --plugins=local-dir:./plugins --hostname 0.0.0.0
