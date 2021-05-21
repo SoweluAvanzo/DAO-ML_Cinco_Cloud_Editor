@@ -71,7 +71,7 @@ if [ "$clean" == "true" ]; then
 	rm -rf web/browser-app/gen-webpack.config.js && \
 	rm -rf web/browser-app/webpack.config.js && \
 	rm -rf backend/releng/de.jabc.cinco.meta.core.parent/workspace-emf-tmp && \
-  rm -rf backend/releng/de.jabc.cinco.meta.core.parent/language-server
+  rm -rf backend/releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.core.ide/target/language-server
 fi
 
 if [ "$buildBackend" == "true" ]; then
@@ -79,7 +79,7 @@ if [ "$buildBackend" == "true" ]; then
   cd backend/releng/de.jabc.cinco.meta.core.parent/
   mvn clean install
   cd ../../../
-  cp -r backend/releng/de.jabc.cinco.meta.core.parent/language-server cinco-extension
+  cp -r backend/releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.core.ide/target/language-server cinco-extension
 fi
 
 if [ "$forceFrontend" == "true" ]; then
