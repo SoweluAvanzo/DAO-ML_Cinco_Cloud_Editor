@@ -1,0 +1,110 @@
+{
+    "name": "cinco-extension",
+    "displayName": "CINCO Extension",
+    "description": "Language support for the CINCO Languages (CPD, MGL and MSL)",
+    "version": "0.0.1",
+    "publisher": "ls5",
+    "repository": "https://gitlab.com/pg636-sos-workbench",
+    "license": "MIT",
+    "engines": {
+        "vscode": "^1.50.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "activationEvents": [
+        "onLanguage:cpd",
+        "onLanguage:mgl",
+        "onLanguage:style",
+        "onCommand:cinco.command.generate"
+    ],
+    "main": "./out/src/extension",
+    "contributes": {
+        "commands": [
+            {
+                "command": "cinco.command.generate",
+                "title": "Generate Pyro Product",
+                "category": "CINCO",
+                "icon": "./resources/icon.png"
+            }
+        ],
+        "menus": {
+            "editor/title": [
+                {
+                    "when": "resourceLangId == cpd",
+                    "command": "cinco.command.generate",
+                    "group": "navigation"
+                }
+            ]
+        },
+        "languages": [
+            {
+                "id": "cpd",
+                "aliases": [
+                    "cpd"
+                ],
+                "extensions": [
+                    ".cpd"
+                ],
+                "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "mgl",
+                "aliases": [
+                    "mgl"
+                ],
+                "extensions": [
+                    ".mgl"
+                ],
+                "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "style",
+                "aliases": [
+                    "style"
+                ],
+                "extensions": [
+                    ".style"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "mgl",
+                "scopeName": "source.mgl",
+                "path": "./syntaxes/mgl.tmLanguage.json"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "tsc -p ./",
+        "compile": "tsc -p ./",
+        "package": "vsce package",
+        "prepare": "yarn run installExtensionYarn",
+        "installExtensionNPM": "npm run package && npm run installIntoTheiaNPM",
+        "installIntoTheiaNPM": "copyfiles cinco-extension-0.0.1.vsix ../web/browser-app/plugins && npm run deleteTmp",
+        "installExtensionYarn": "yarn run package && yarn run installIntoTheiaYarn",
+        "installIntoTheiaYarn": "copyfiles cinco-extension-0.0.1.vsix ../web/browser-app/plugins && yarn run deleteTmp",
+        "deleteTmp": "rimraf cinco-extension-0.0.1.vsix"
+    },
+    "devDependencies": {
+        "typescript": "^4.2.2",
+        "@types/vscode": "1.50",
+        "@types/node": "14.14.16",
+        "vsce": "1.88.0"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^5.2.1",
+        "vscode-languageserver-protocol": "3.16.0",
+        "vscode-jsonrpc": "6.0.0",
+        "request": "2.88.2",
+        "request-progress": "3.0.0",
+        "original-fs": "1.1.0",
+        "rimraf": "3.0.2",
+        "which": "2.0.2",
+        "copyfiles": "2.3.0",
+        "graphviz": "0.0.9",
+        "dos2unix-cli": "1.0.1"
+    }
+}

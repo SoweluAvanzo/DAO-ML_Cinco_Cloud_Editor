@@ -1,0 +1,87 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "mgl",
+    "scopeName": "source.mgl",
+    "patterns": [
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#information"
+        },
+        {
+            "include": "#properties"
+        },
+        {
+            "include": "#propertiesSet"
+        },
+        {
+            "include": "#xtext"
+        },
+        {
+            "include": "#comment"
+        },
+        {
+            "include": "#commentBlock"
+        }
+    ],
+    "repository": {
+        "keywords":{
+            "patterns":
+            [{
+                "name": "keyword.control.mgl",
+                "match": "\\b(\\s)*(abstract|node|edge|container|graphModel|enum)(\\s)*\\b"
+            }]
+        },
+        "information":{
+            "patterns":
+            [{
+                "name": "punctuation.definition.annotation.mgl",
+                "match": "\\b(\\s)*(DataFlowInformation|ModelCheckInformation)(\\s)*\\b"
+            }]
+        },
+        "properties":{
+            "patterns":
+            [{
+                "name": "support.function.mgl",
+                "match": "\\b(\\s)*(as|attr|extends|external|final|this|type|unique|prime|primeattr|primeparam|stealth|diagramExtension|stylePath|style|iconPath|id|import|override)(\\s)*\\b"
+            }]
+        },
+        "propertiesSet":{
+            "patterns":
+            [{
+                "name": "support.function.mgl",
+                "match": "\\b(\\s)*(containableElements|outgoingEdges|incomingEdges)(\\s)*\\b"
+            }]
+        },
+        "xtext":{
+            "patterns":
+            [{
+                "name": "storage.type.mgl",
+                "match": "\\b(\\s)*(EBigDecimal|EBigInteger|EBoolean|EByte|EChar|EDate|EDouble|EFloat|EInt|ELong|EShort|EString)(\\s)*\\b"
+            }]
+        },
+        "commentBlock": {
+            "begin": "\\/\\*",
+            "end": "\\*\\/",
+            "beginCaptures": {
+                "0": { "name": "comment.block" }
+            },
+            "endCaptures": {
+                "0": { "name": "comment.block" }
+            },
+            "patterns":
+            [{ 
+                "name": "comment.block",
+                "match": "."
+            }]
+        },
+        "comment": {
+            "patterns":
+            [{ 
+                "name": "comment.block",
+                "match": "\\/\\/(.)*"
+            }]
+        }
+    }
+}

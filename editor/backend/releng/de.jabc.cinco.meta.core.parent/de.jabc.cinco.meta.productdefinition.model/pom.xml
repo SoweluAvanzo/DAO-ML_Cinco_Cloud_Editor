@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<!-- 
+		TODO:SAMI:
+		- this file has changed
+			- packaging to jar
+			- changed parent-version
+			- changed tycho phase of executions to clean
+			- maven-clean-plugin, version removed
+			- added dependencies
+		- Manifest.MF: org.eclipse.emf.transaction;resolution:=optional
+	-->
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<relativePath>../pom.xml</relativePath>
+		<groupId>de.jabc.cinco</groupId>
+		<artifactId>de.jabc.cinco.meta.parent</artifactId>
+		<version>3.0.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>de.jabc.cinco.meta.productdefinition.model</artifactId>
+	<packaging>jar</packaging>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho.extras</groupId>
+				<artifactId>tycho-eclipserun-plugin</artifactId>
+				<version>${tycho.version}</version>
+				<configuration>
+					<!-- linebreaks not permitted in this arg line -->
+					<appArgLine>-data ${project.basedir}/../workspace-emf-tmp -application org.eclipse.emf.codegen.ecore.Generator -projects ${project.basedir} -model ${project.basedir}/model/ProductDefinition.genmodel ${project.basedir}/</appArgLine>
+					<dependencies>
+						<dependency>
+							<artifactId>org.eclipse.emf.codegen.ecore</artifactId>
+							<type>eclipse-plugin</type>
+						</dependency>
+					</dependencies>
+					<repositories>
+						<repository>
+							<id>photon</id>
+							<layout>p2</layout>
+							<url>${photon-repo.url}</url>
+						</repository>
+					</repositories>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>eclipse-run</goal>
+						</goals>
+						<phase>clean</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>${build-helper.version}</version>
+				<executions>
+					<execution>
+						<id>add-src</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.basedir}/src-gen</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<configuration>
+					<filesets combine.children="append">
+						<fileset>
+							<directory>${project.basedir}/src-gen/</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+						<fileset>
+							<directory>${project.basedir}/xtend-gen/</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies><!-- TODO:SAMI: added -->
+      <dependency>
+        <groupId>org.eclipse.emf</groupId>
+        <artifactId>org.eclipse.emf.ecore</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.emf</groupId>
+        <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+      </dependency>
+	</dependencies>
+</project> 

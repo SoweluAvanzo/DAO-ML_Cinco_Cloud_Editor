@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<relativePath>../pom.xml</relativePath>
+		<groupId>de.jabc.cinco</groupId>
+		<artifactId>de.jabc.cinco.meta.parent</artifactId>
+		<version>3.0.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>de.jabc.cinco.meta.core.event</artifactId>
+	<packaging>jar</packaging>
+</project> 

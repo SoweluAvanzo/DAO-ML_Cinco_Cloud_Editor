@@ -1,0 +1,54 @@
+{
+  "private": true,
+  "name": "browser-app",
+  "version": "0.8.0",
+  "dependencies": {
+    "@theia/callhierarchy": "latest",
+    "@theia/console": "latest",
+    "@theia/core": "latest",
+    "@theia/debug": "latest",
+    "@theia/editor": "latest",
+    "@theia/file-search": "latest",
+    "@theia/filesystem": "latest",
+    "@theia/keymaps": "latest",
+    "@theia/markers": "latest",
+    "@theia/messages": "latest",
+    "@theia/metrics": "latest",
+    "@theia/mini-browser": "latest",
+    "@theia/monaco": "latest",
+    "@theia/navigator": "latest",
+    "@theia/outline-view": "latest",
+    "@theia/output": "latest",
+    "@theia/plugin-dev": "latest",
+    "@theia/plugin-ext": "latest",
+    "@theia/plugin-ext-vscode": "latest",
+    "@theia/plugin-metrics": "latest",
+    "@theia/preferences": "latest",
+    "@theia/process": "latest",
+    "@theia/property-view": "latest",
+    "@theia/search-in-workspace": "latest",
+    "@theia/task": "latest",
+    "@theia/terminal": "latest",
+    "@theia/typehierarchy": "latest",
+    "@theia/userstorage": "latest",
+    "@theia/variable-resolver": "latest",
+    "@theia/vsx-registry": "latest",
+    "@theia/workspace": "latest"
+  },
+  "devDependencies": {
+    "@theia/cli": "latest"
+  },
+  "scripts": {
+    "prepare": "yarn run download:plugins && theia build --mode development",
+    "start": "theia start --port=3000 --root-dir=../../backend/examples/Example --plugins=local-dir:./plugins",
+    "debug": "theia start --port=3000 --root-dir=../../backend/examples/Example --loglevel=debug --plugins=local-dir:./plugins",
+    "watch": "theia build --watch --mode development",
+    "download:plugins": "theia download:plugins"
+  },
+  "theia": {
+    "target": "browser"
+  },
+  "theiaPluginsDir": "plugins",
+  "theiaPlugins": {
+  }
+}

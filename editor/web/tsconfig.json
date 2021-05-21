@@ -1,0 +1,11 @@
+{
+  "extends": "./configs/base.tsconfig",
+  "compilerOptions": {
+    "baseUrl": "."
+  },
+  "include": [
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

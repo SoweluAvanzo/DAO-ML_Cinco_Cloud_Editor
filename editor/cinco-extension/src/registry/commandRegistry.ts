@@ -1,0 +1,1 @@
+export const generationCommandId: string = 'cinco.command.generate';

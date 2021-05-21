@@ -64,3 +64,19 @@ push-registry:
     VERSION: latest
   only:
     - master
+
+build-editor:
+  extends: .docker-build
+  variables:
+    IMAGE: editor
+    VERSION: latest
+  only:
+    - master
+
+push-editor:
+  extends: .docker-push
+  variables:
+    IMAGE: editor
+    VERSION: latest
+  only:
+    - master
