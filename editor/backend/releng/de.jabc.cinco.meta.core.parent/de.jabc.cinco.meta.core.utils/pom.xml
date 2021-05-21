@@ -4,9 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <!-- 
   	TEMPORARY REMOVED FILES:
-  	- PluginXMLEditor.xtend
-  	- GeneratorHelper.xtend
-  	- EclipseFileUtils.xtend
+  	- many files
    -->
   <parent>
     <groupId>de.jabc.cinco</groupId>
@@ -38,7 +36,8 @@
 		<groupId>org.eclipse.xtext</groupId>
 		<artifactId>org.eclipse.xtext.ide</artifactId>
 		<version>${xtextVersion}</version>
-	</dependency><dependency>
+	</dependency>
+	<dependency>
 	    <groupId>org.eclipse.emf</groupId>
 	    <artifactId>org.eclipse.emf.codegen.ecore</artifactId>
 	    <version>${xtextVersion}</version>
