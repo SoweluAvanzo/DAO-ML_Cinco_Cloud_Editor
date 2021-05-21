@@ -85,14 +85,10 @@ put them into `backend/example/Example`.
 
 Build the docker-image:
 
-    docker build -t cinco-cloud .
+    docker build -t editor .
 
 Run the docker-image:
 
-    docker run -p 0.0.0.0:3000:3000 --rm cinco-cloud
+    docker run -p 0.0.0.0:3000:3000 --rm editor
 
 Open http://localhost:3000 in the browser.
-
-## Kubernetes
-
-(untested)
