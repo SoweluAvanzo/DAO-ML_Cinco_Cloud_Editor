@@ -19,14 +19,23 @@ RUN yarn
 
 # build the theia editor
 # --------------------------------
-FROM docker.io/library/node:10-buster
+FROM docker.io/library/openjdk:11.0.11-slim-buster
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 # make readable for root only
 RUN chmod -R 750 /var/run/
 WORKDIR /editor
 RUN useradd -ms /bin/bash theia
 COPY --chown=theia:theia web /editor
-RUN apt update && apt install -y default-jdk
+# install node and yarn
+RUN apt update && \
+    apt install -y gnupg gnupg2 curl && \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+    apt update && \
+    apt install -y nodejs npm yarn && \
+    apt remove -y gnupg gnupg2 curl && \
+    apt autoremove -y
+# install theia
 RUN yarn
 # copy extension after the build
 # otherwise the build will fail because the /plugins directory already exists
