@@ -23,6 +23,4 @@ public class DisplayMessage {
     public void setContent(final String content) {
         this.content = content;
     }
-
-
 }

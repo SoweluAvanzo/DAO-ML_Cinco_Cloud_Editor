@@ -1,7 +1,23 @@
 package info.scce.cincocloud.core;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import info.scce.cincocloud.auth.PBKDF2Encoder;
 import info.scce.cincocloud.auth.TokenUtils;
 import info.scce.cincocloud.core.rest.types.AuthResponse;
@@ -9,66 +25,67 @@ import info.scce.cincocloud.core.rest.types.Login;
 import info.scce.cincocloud.core.rest.types.PyroUser;
 import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 
-@javax.transaction.Transactional
-@javax.ws.rs.Path("/user/current")
-@javax.enterprise.context.RequestScoped
+@Transactional
+@Path("/user/current")
+@RequestScoped
 public class CurrentUserController {
 
-    @org.eclipse.microprofile.config.inject.ConfigProperty(name = "info.scce.pyro.jwt.duration")
-    public Long duration;
+    @ConfigProperty(name = "info.scce.pyro.jwt.duration")
+    Long duration;
 
-    @org.eclipse.microprofile.config.inject.ConfigProperty(name = "mp.jwt.verify.issuer")
-    public String issuer;
+    @ConfigProperty(name = "mp.jwt.verify.issuer")
+    String issuer;
 
-    @javax.inject.Inject
-    info.scce.cincocloud.rest.ObjectCache objectCache;
+    @Inject
+    ObjectCache objectCache;
 
-    @javax.inject.Inject
+    @Inject
     PBKDF2Encoder passwordEncoder;
 
-    @javax.ws.rs.POST
-    @javax.ws.rs.Path("login")
-    @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-    @javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-    @javax.annotation.security.PermitAll
-    public javax.ws.rs.core.Response getCurrentUser(Login login) {
+    @POST
+    @Path("login")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @PermitAll
+    public Response getCurrentUser(Login login) {
         final PyroUserDB subject = PyroUserDB.find("email", login.email).firstResult();
         if (subject != null && subject.password.equals(passwordEncoder.encode(login.password))) {
             AuthResponse auth = getAuthResponse(subject);
             if (auth != null) {
-                return javax.ws.rs.core.Response.ok(auth).build();
+                return Response.ok(auth).build();
             }
         }
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.UNAUTHORIZED).build();
+        return Response.status(Response.Status.UNAUTHORIZED).build();
     }
 
-    @javax.ws.rs.GET
-    @javax.ws.rs.Path("logout")
-    @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response logout(
-            @javax.ws.rs.core.Context javax.servlet.http.HttpServletRequest request,
-            @javax.ws.rs.core.Context SecurityContext securityContext) {
+    @GET
+    @Path("logout")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("user")
+    public Response logout(
+            @Context HttpServletRequest request,
+            @Context SecurityContext securityContext) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
         try {
             // remove associated tickets
             TicketRegistrationHandler.removeTicketsOf(subject);
             // remove association between e.g. UserPrincipal and the SessionContext
             request.logout();
-            return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.OK).build();
+            return Response.status(Response.Status.OK).build();
         } catch (ServletException e) {
             e.printStackTrace();
         }
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
+        return Response.status(Response.Status.BAD_REQUEST).build();
     }
 
-    @javax.ws.rs.GET
-    @javax.ws.rs.Path("private")
-    @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response getCurrentUser(@javax.ws.rs.core.Context SecurityContext securityContext) {
+    @GET
+    @Path("private")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("user")
+    public Response getCurrentUser(@Context SecurityContext securityContext) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         if (subject != null) {
@@ -76,21 +93,21 @@ public class CurrentUserController {
             if (result == null) {
                 result = PyroUser.fromEntity(subject, objectCache);
             }
-            return javax.ws.rs.core.Response.ok(result).build();
+            return Response.ok(result).build();
         }
 
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    @javax.ws.rs.PUT
-    @javax.ws.rs.Path("update/private")
-    @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response update(@javax.ws.rs.core.Context SecurityContext securityContext, final PyroUser user) {
+    @PUT
+    @Path("update/private")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("user")
+    public Response update(@Context SecurityContext securityContext, final PyroUser user) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
         if (subject != null) {
             if (user.getemail() == null || user.getemail().trim().equals("")) {
-                return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST)
+                return Response.status(Response.Status.BAD_REQUEST)
                         .entity("email may not be empty")
                         .build();
             }
@@ -106,11 +123,11 @@ public class CurrentUserController {
                 subject.profilePicture = null;
             }
             subject.persist();
-            // get new autentication since credentials could be changed
+            // get new authentication since credentials could be changed
             AuthResponse auth = getAuthResponse(subject);
-            return javax.ws.rs.core.Response.ok(auth).build();
+            return Response.ok(auth).build();
         }
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     public AuthResponse getAuthResponse(PyroUserDB subject) {

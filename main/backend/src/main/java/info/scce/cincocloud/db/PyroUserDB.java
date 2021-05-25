@@ -1,6 +1,5 @@
 package info.scce.cincocloud.db;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import java.util.Random;
 import javax.persistence.ElementCollection;

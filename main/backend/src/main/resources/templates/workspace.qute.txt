@@ -1,0 +1,99 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    nginx.ingress.kubernetes.io/add-base-url: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /workspaces/{name}
+spec:
+  rules:
+    - host: cinco-cloud
+      http:
+        paths:
+          - path: /workspaces/{name}
+            pathType: Prefix
+            backend:
+              service:
+                name: {name}
+                port:
+                  name: {name}-port
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {name}-statefulset
+  namespace: default
+  labels:
+    app: {name}
+spec:
+  serviceName: {name}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {name}
+  template:
+    metadata:
+      labels:
+        app: {name}
+    spec:
+      containers:
+        - name: {name}
+          image: registry.gitlab.com/scce/cinco-cloud/editor
+          ports:
+            - containerPort: 3000
+              name: {name}-port
+          volumeMounts:
+            - name: pv-data
+              mountPath: /var/lib/{name}
+      volumes:
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: {name}-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {name}-service
+  namespace: default
+  labels:
+    app: {name}
+spec:
+  ports:
+    - port: 3000
+      name: {name}-port
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: {name}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {name}-pv-volume
+  namespace: default
+  labels:
+    type: local
+    app: {name}
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data/{name}"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {name}-pv-claim
+  namespace: default
+  labels:
+    app: {name}
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi

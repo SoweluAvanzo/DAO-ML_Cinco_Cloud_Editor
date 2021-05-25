@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -16,7 +17,7 @@ import info.scce.cincocloud.sync.ProjectWebSocket;
 @Transactional
 public class ProjectService {
 
-    @javax.inject.Inject
+    @Inject
     ProjectWebSocket projectWebSocket;
 
     public void deleteById(PyroUserDB user, final long id, SecurityContext securityContext) {
