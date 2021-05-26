@@ -2,44 +2,61 @@ package info.scce.cincocloud.core;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.quarkus.qute.Template;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.k8s.ProjectK8SDeployment;
+import info.scce.cincocloud.k8s.ProjectK8SIngress;
+import info.scce.cincocloud.k8s.ProjectK8SPersistentVolume;
+import info.scce.cincocloud.k8s.ProjectK8SPersistentVolumeClaim;
+import info.scce.cincocloud.k8s.ProjectK8SService;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 
 @ApplicationScoped
 @Transactional
 public class ProjectDeploymentService {
 
-    private static final String DEFAULT_NAMESPACE = "default";
-
-    @Inject
-    Template workspace;
-
     @Inject
     ProjectWebSocket projectWebSocket;
 
-    private KubernetesClient kubernetesClient;
+    private final KubernetesClient client;
 
     public ProjectDeploymentService() {
-        this.kubernetesClient = new DefaultKubernetesClient();
+        this.client = new DefaultKubernetesClient();
     }
 
     public void deploy(PyroProjectDB project) {
-        final String resource = getWorkspaceResource(project);
-        System.out.println(resource);
-//        kubernetesClient.resource(resource).inNamespace(DEFAULT_NAMESPACE).createOrReplace();
+        final var persistentVolumeClaim = new ProjectK8SPersistentVolumeClaim(client, project);
+        final var persistentVolume = new ProjectK8SPersistentVolume(client, project);
+        final var service = new ProjectK8SService(client, project);
+        final var deployment = new ProjectK8SDeployment(client, persistentVolumeClaim, service, project);
+        final var ingress = new ProjectK8SIngress(client, service, project);
+
+        if (client.persistentVolumeClaims().list().getItems().stream()
+                .noneMatch(pvc -> pvc.getMetadata().getName().equals(persistentVolumeClaim.getResource().getMetadata().getName()))) {
+            client.persistentVolumeClaims().create(persistentVolumeClaim.getResource());
+        }
+
+        if (client.persistentVolumes().list().getItems().stream()
+                .noneMatch(pv -> pv.getMetadata().getName().equals(persistentVolume.getResource().getMetadata().getName()))) {
+            client.persistentVolumes().create(persistentVolume.getResource());
+        }
+
+        client.services().createOrReplace(service.getResource());
+        client.apps().statefulSets().createOrReplace(deployment.getResource());
+
+        client.network().ingress().createOrReplace(ingress.getResource());
     }
 
     public void stop(PyroProjectDB project) {
-        final String resource = getWorkspaceResource(project);
-        System.out.println(resource);
-//        kubernetesClient.resource(resource).inNamespace(DEFAULT_NAMESPACE).delete();
-    }
+        final var persistentVolumeClaim = new ProjectK8SPersistentVolumeClaim(client, project);
+        final var service = new ProjectK8SService(client, project);
+        final var deployment = new ProjectK8SDeployment(client, persistentVolumeClaim, service, project);
+        final var ingress = new ProjectK8SIngress(client, service, project);
 
-    private String getWorkspaceResource(PyroProjectDB project) {
-        return workspace.data("name", "project-" + project.id).render();
+        client.services().delete(service.getResource());
+        client.apps().statefulSets().delete(deployment.getResource());
+        client.network().ingress().delete(ingress.getResource());
     }
 }

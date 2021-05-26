@@ -1,0 +1,58 @@
+package info.scce.cincocloud.k8s;
+
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServicePortBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.Map;
+import info.scce.cincocloud.db.PyroProjectDB;
+
+public class ProjectK8SService extends ProjectK8SResource<Service> {
+
+    public ProjectK8SService(KubernetesClient client, PyroProjectDB project) {
+        super(client, project);
+        this.resource = build();
+    }
+
+    /**
+     * Equivalent to:
+     *
+     * apiVersion: v1
+     * kind: Service
+     * metadata:
+     *   name: {name}-service
+     *   namespace: default
+     *   labels:
+     *     app: {name}
+     * spec:
+     *   ports:
+     *     - port: 3000
+     *       name: {name}-port
+     *       protocol: TCP
+     *   type: NodePort
+     *   selector:
+     *     app: {name}
+     *
+     * @return the service
+     */
+    @Override
+    protected Service build() {
+        return new ServiceBuilder()
+                .withNewMetadata()
+                    .withName(getProjectName() + "-service")
+                    .withNamespace(DEFAULT_NAMESPACE)
+                    .withLabels(Map.of("app", getProjectName()))
+                .endMetadata()
+                .withSpec(new ServiceSpecBuilder()
+                    .withPorts(new ServicePortBuilder()
+                        .withPort(3000)
+                        .withName(getProjectName() + "-port")
+                        .withProtocol("TCP")
+                        .build())
+                    .withType("NodePort")
+                    .withSelector(Map.of("app", getProjectName()))
+                    .build())
+                .build();
+    }
+}

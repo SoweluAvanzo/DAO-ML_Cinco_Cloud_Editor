@@ -29,6 +29,7 @@ spec:
       labels:
         app: main
     spec:
+      serviceAccountName: main-sa
       containers:
         - name: main
           image: registry.gitlab.com/scce/cinco-cloud/main
@@ -55,3 +56,41 @@ spec:
   type: NodePort
   selector:
     app: main
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  namespace: default
+  name: main-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "endpoints", "ingresses", "ingress", "deployments", "services", "configmaps", "statefulsets", "persistentvolumes", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "ingress"]
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: main
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    namespace: default
+    name: main-sa
+roleRef:
+  kind: ClusterRole
+  name: main-role
+  apiGroup: "rbac.authorization.k8s.io"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: main-sa

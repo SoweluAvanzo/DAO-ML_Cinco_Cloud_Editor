@@ -20,9 +20,10 @@ import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 @ApplicationScoped
 public class UserWebSocket {
 
-    static final String userIdKey = "user_id";
-    private static final Logger LOGGER =
-            Logger.getLogger(UserWebSocket.class.getName());
+    private static final String userIdKey = "user_id";
+
+    private static final Logger LOGGER = Logger.getLogger(UserWebSocket.class.getName());
+
     @Inject
     UserRegistry userRegistry;
 

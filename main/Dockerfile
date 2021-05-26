@@ -34,12 +34,15 @@ RUN ./mvnw package -DskipTests
 #
 FROM docker.io/library/openjdk:15-jdk-alpine3.11
 WORKDIR /app
-COPY --from=builder-backend /app/backend/target/*-runner.jar /app/app.jar
-COPY --from=builder-backend /app/backend/target/lib /app/lib
+COPY --from=builder-backend /app/backend/target/quarkus-app/ /app
 EXPOSE 8000
 CMD java \
     -Dquarkus.datasource.jdbc.url="jdbc:postgresql://${DATABASE_URL}" \
     -Dquarkus.datasource.username="${DATABASE_USER}" \
     -Dquarkus.datasource.password="${DATABASE_PASSWORD}" \
+    -Damqp-host="${AMPQ_HOST}" \
+    -Damqp-port="${AMPQ_PORT}" \
+    -Damqp-username="${AMPQ_USERNAME}" \
+    -Damqp-password="${AMPQ_PASSWORD}" \
     -Dquarkus.http.port=8000 \
-    -jar app.jar
+    -jar quarkus-run.jar
