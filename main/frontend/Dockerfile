@@ -1,9 +1,12 @@
 FROM docker.io/google/dart:2.4.1
 WORKDIR /app
-COPY . .
-RUN pub global activate webdev \
- && pub get \
- && /root/.pub-cache/bin/webdev build
+RUN pub global activate webdev
+COPY ./pubspec.yaml /app
+COPY ./build.yaml /app
+RUN pub get
+COPY ./web /app/web
+COPY ./lib /app/lib
+RUN pub run build_runner build -o build
 
 FROM docker.io/library/nginx:1.17.2
 COPY default.conf /etc/nginx/conf.d/default.conf

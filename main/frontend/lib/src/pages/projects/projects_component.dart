@@ -157,6 +157,7 @@ class ProjectsComponent implements OnDestroy, OnInit {
   void openCurrentProject(PyroProject project) {
     var orgId = organization.id;
     var projectId = project.id;
+    _router.navigate(top_routes.RoutePaths.project.toUrl(parameters: {"projectId": projectId.toString()}));
   }
 
   void handleNewProject(PyroProject project) {

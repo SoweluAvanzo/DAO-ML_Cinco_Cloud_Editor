@@ -37,6 +37,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: main-config
+          securityContext:
+            privileged: true
 ---
 apiVersion: v1
 kind: Service

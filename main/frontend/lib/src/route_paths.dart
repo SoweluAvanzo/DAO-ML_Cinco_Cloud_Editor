@@ -4,6 +4,7 @@ class RoutePaths {
   static final home = RoutePath(path: 'home');
   static final organizations = RoutePath(path: 'organizations');
   static final organization = RoutePath(path: 'organizations/:orgId');
+  static final project = RoutePath(path: 'projects/:projectId');
   static final admin = RoutePath(path: 'admin');
   static final logout = RoutePath(path: 'logout');
   static final profile = RoutePath(path: 'profile');

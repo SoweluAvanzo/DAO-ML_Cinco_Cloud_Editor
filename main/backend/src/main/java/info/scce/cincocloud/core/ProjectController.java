@@ -6,10 +6,14 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import info.scce.cincocloud.core.rest.types.PyroProject;
@@ -20,10 +24,11 @@ import info.scce.cincocloud.db.PyroOrganizationDB;
 import info.scce.cincocloud.db.PyroProjectDB;
 import info.scce.cincocloud.db.PyroUserDB;
 import info.scce.cincocloud.db.PyroWorkspaceImageDB;
+import info.scce.cincocloud.rest.ObjectCache;
 
 @Transactional
-@Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-@Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Path("/project")
 @RequestScoped
 public class ProjectController {
@@ -32,22 +37,25 @@ public class ProjectController {
     ProjectService projectService;
 
     @Inject
-    info.scce.cincocloud.rest.ObjectCache objectCache;
+    ProjectDeploymentService projectDeploymentService;
 
+    @Inject
+    ObjectCache objectCache;
+    
     @POST
     @Path("/create/private")
     @RolesAllowed("user")
-    public javax.ws.rs.core.Response createProject(@javax.ws.rs.core.Context SecurityContext securityContext, PyroProject newProject) {
+    public Response createProject(@Context SecurityContext securityContext, PyroProject newProject) {
 
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         if (newProject.getorganization() == null) {
-            return javax.ws.rs.core.Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
         final PyroOrganizationDB org = PyroOrganizationDB.findById(newProject.getorganization().getId());
         if (org == null) {
-            return javax.ws.rs.core.Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         final Optional<PyroWorkspaceImageDB> image = Optional.ofNullable(newProject.getimage())
@@ -61,9 +69,9 @@ public class ProjectController {
                     org,
                     image
             );
-            return javax.ws.rs.core.Response.ok(PyroProject.fromEntity(pp, objectCache)).build();
+            return Response.ok(PyroProject.fromEntity(pp, objectCache)).build();
         }
-        return javax.ws.rs.core.Response.status(Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     public PyroProjectDB createProject(
@@ -92,7 +100,7 @@ public class ProjectController {
     @POST
     @Path("/update/private")
     @RolesAllowed("user")
-    public javax.ws.rs.core.Response updateProject(@javax.ws.rs.core.Context SecurityContext securityContext, PyroProject ownedProject) {
+    public Response updateProject(@Context SecurityContext securityContext, PyroProject ownedProject) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         final PyroProjectDB pp = PyroProjectDB.findById(ownedProject.getId());
@@ -109,10 +117,10 @@ public class ProjectController {
             ) {
                 final PyroUserDB newOwner = PyroUserDB.findById(ownedProject.getowner().getId());
                 if (newOwner == null) {
-                    return javax.ws.rs.core.Response.status(Response.Status.NOT_FOUND).build();
+                    return Response.status(Response.Status.NOT_FOUND).build();
                 }
                 if (!isInOrganization(newOwner, pp.organization)) {
-                    return javax.ws.rs.core.Response.status(Response.Status.BAD_REQUEST).build();
+                    return Response.status(Response.Status.BAD_REQUEST).build();
                 }
                 pp.owner.ownedProjects.remove(pp);
                 pp.owner = newOwner;
@@ -121,29 +129,49 @@ public class ProjectController {
                 newOwner.persist();
             }
             pp.persist();
-            return javax.ws.rs.core.Response.ok(PyroProject.fromEntity(pp, objectCache)).build();
+            return Response.ok(PyroProject.fromEntity(pp, objectCache)).build();
         }
-        return javax.ws.rs.core.Response.status(Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     @GET
     @Path("/{projectId}")
     @RolesAllowed("user")
-    public javax.ws.rs.core.Response getProject(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("projectId") final long projectId) {
+    public Response getProject(@Context SecurityContext securityContext, @PathParam("projectId") final long projectId) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
         final PyroProjectDB project = PyroProjectDB.findById(projectId);
         projectService.checkPermission(project, securityContext);
 
         if (isInOrganization(subject, project.organization)) {
-            return javax.ws.rs.core.Response.ok(PyroProject.fromEntity(project, objectCache)).build();
+            return Response.ok(PyroProject.fromEntity(project, objectCache)).build();
         }
-        return javax.ws.rs.core.Response.status(Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
+    @POST
+    @Path("/{projectId}/deployments/private")
+    @RolesAllowed("user")
+    public Response deployProject(@Context SecurityContext securityContext, @PathParam("projectId") final long projectId) {
+        final PyroProjectDB project = PyroProjectDB.findById(projectId);
+        projectService.checkPermission(project, securityContext);
+        projectDeploymentService.deploy(project);
+        return Response.status(Response.Status.OK).build();
+    }
+
+    @DELETE
+    @Path("/{projectId}/deployments/private")
+    @RolesAllowed("user")
+    public Response stopDeployedProject(@Context SecurityContext securityContext, @PathParam("projectId") final long projectId) {
+        final PyroProjectDB project = PyroProjectDB.findById(projectId);
+        projectService.checkPermission(project, securityContext);
+        projectDeploymentService.stop(project);
+        return Response.status(Response.Status.OK).build();
     }
 
     @GET
     @Path("/structure/{id}/private")
     @RolesAllowed("user")
-    public javax.ws.rs.core.Response loadProjectStructure(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id) {
+    public Response loadProjectStructure(@Context SecurityContext securityContext, @PathParam("id") final long id) {
 
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
@@ -151,23 +179,23 @@ public class ProjectController {
         projectService.checkPermission(pp, securityContext);
 
         if (isInOrganization(subject, pp.organization)) {
-            return javax.ws.rs.core.Response.ok(PyroProjectStructure.fromEntity(pp, objectCache)).build();
+            return Response.ok(PyroProjectStructure.fromEntity(pp, objectCache)).build();
         }
 
-        return javax.ws.rs.core.Response.status(Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     @GET
     @Path("/remove/{id}/private")
     @RolesAllowed("user")
-    public javax.ws.rs.core.Response removeProject(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id) {
+    public Response removeProject(@Context SecurityContext securityContext, @PathParam("id") final long id) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
         final PyroProjectDB project = PyroProjectDB.findById(id);
         if (canDeleteProject(subject, project)) {
             projectService.deleteById(subject, id, securityContext);
-            return javax.ws.rs.core.Response.ok("Removed").build();
+            return Response.ok("Removed").build();
         }
-        return javax.ws.rs.core.Response.status(Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     private boolean isInOrganization(

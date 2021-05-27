@@ -6,10 +6,13 @@
 #
 FROM docker.io/google/dart:2.4.1 as builder-frontend
 WORKDIR /app/frontend
-COPY ./frontend /app/frontend
-RUN pub global activate webdev \
-    && pub get \
-    && pub run build_runner build -o build
+RUN pub global activate webdev
+COPY ./frontend/pubspec.yaml /app/frontend
+COPY ./frontend/build.yaml /app/frontend
+RUN pub get
+COPY ./frontend/web /app/frontend/web
+COPY ./frontend/lib /app/frontend/lib
+RUN pub run build_runner build -o build
 
 #
 # Build the pyro quarkus backend. Move static frontend files to the quarkus resource
