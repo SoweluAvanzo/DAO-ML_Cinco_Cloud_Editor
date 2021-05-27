@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: editor-statefulset
+  namespace: default
+  labels:
+    app: editor
+spec:
+  serviceName: editor
+  replicas: 1
+  selector:
+    matchLabels:
+      app: editor
+  template:
+    metadata:
+      labels:
+        app: editor
+    spec:
+      containers:
+        - name: editor
+          image: registry.gitlab.com/scce/cinco-cloud/editor
+          ports:
+            - containerPort: 3000
+              name: editor-port
+          volumeMounts:
+              - name: pv-data
+                mountPath: /var/lib/editor
+      volumes:
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: editor-pv-claim
+      imagePullSecrets:
+          - name: gitlab-registry-secret
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: editor-pv-volume
+  namespace: default
+  labels:
+    app: editor
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data/editor"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: editor-pv-claim
+  namespace: default
+  labels:
+    app: editor
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: editor-service
+  namespace: default
+  labels:
+    app: editor
+spec:
+  ports:
+    - port: 3000
+      name: editor-port
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: editor
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: editor-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/add-base-url: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - host: cinco-cloud
+      http:
+        paths:
+          - path: /workspaces/editor(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: editor-service
+                port:
+                  name: editor-port

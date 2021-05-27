@@ -1,2 +1,3 @@
 .idea
 .glci
+.infrastructure/secret.yml

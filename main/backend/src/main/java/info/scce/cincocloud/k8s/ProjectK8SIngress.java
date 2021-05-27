@@ -28,10 +28,10 @@ public class ProjectK8SIngress extends ProjectK8SResource<Ingress> {
      * apiVersion: networking.k8s.io/v1
      * kind: Ingress
      * metadata:
-     *   name: ingress
+     *   name: {name}-ingress
      *   annotations:
      *     nginx.ingress.kubernetes.io/add-base-url: "true"
-     *     nginx.ingress.kubernetes.io/rewrite-target: /workspaces/{name}
+     *     nginx.ingress.kubernetes.io/rewrite-target: /$2
      * spec:
      *   rules:
      *     - host: cinco-cloud
@@ -41,7 +41,7 @@ public class ProjectK8SIngress extends ProjectK8SResource<Ingress> {
      *             pathType: Prefix
      *             backend:
      *               service:
-     *                 name: {name}
+     *                 name: {name}-service
      *                 port:
      *                   name: {name}-port
      *
@@ -54,7 +54,7 @@ public class ProjectK8SIngress extends ProjectK8SResource<Ingress> {
                     .withName(getProjectName() + "-ingress")
                     .withAnnotations(Map.of(
                             "nginx.ingress.kubernetes.io/add-base-url", "true",
-                            "nginx.ingress.kubernetes.io/rewrite-target", "/workspaces/" + getProjectName()))
+                            "nginx.ingress.kubernetes.io/rewrite-target", "/$2"))
                 .endMetadata()
                 .withSpec(new IngressSpecBuilder()
                         .withRules(new IngressRuleBuilder()

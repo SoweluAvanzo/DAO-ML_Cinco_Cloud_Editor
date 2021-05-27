@@ -43,10 +43,11 @@ public class ProjectDeploymentService {
             client.persistentVolumes().create(persistentVolume.getResource());
         }
 
-        client.services().createOrReplace(service.getResource());
-        client.apps().statefulSets().createOrReplace(deployment.getResource());
+        stop(project);
 
-        client.network().ingress().createOrReplace(ingress.getResource());
+        client.services().create(service.getResource());
+        client.apps().statefulSets().create(deployment.getResource());
+        client.network().ingress().create(ingress.getResource());
     }
 
     public void stop(PyroProjectDB project) {

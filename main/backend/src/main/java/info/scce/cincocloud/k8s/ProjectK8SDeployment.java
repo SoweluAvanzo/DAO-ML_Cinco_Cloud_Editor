@@ -3,6 +3,7 @@ package info.scce.cincocloud.k8s;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
+import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
@@ -66,6 +67,8 @@ public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
      *         - name: pv-data
      *           persistentVolumeClaim:
      *             claimName: {name}-pv-claim
+     *       imagePullSecrets:
+     *          - name: gitlab-registry-secret
      *
      * @return the deployment.
      */
@@ -105,6 +108,9 @@ public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
                                             .withPersistentVolumeClaim(new PersistentVolumeClaimVolumeSourceBuilder()
                                                     .withClaimName(persistentVolumeClaim.getResource().getMetadata().getName())
                                                     .build())
+                                            .build())
+                                    .withImagePullSecrets(new LocalObjectReferenceBuilder()
+                                            .withName("gitlab-registry-secret")
                                             .build())
                                     .build())
                             .build())
