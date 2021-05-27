@@ -7,23 +7,23 @@ graphModel FlowGraphDiagram2 {
 	iconPath "icons/FlowGraph.png"
 	diagramExtension "flowgraph"
 	
-	containableElements(Start, End, Activity, Swimlane, SubFlowGraph)
+	containableElements(Start2, End2, Activity2, Swimlane2, SubFlowGraph2)
 	
 	attr EString as modelName
 }
 
 @icon("icons/Start.png")
 @palette("Round Elements")
-node Start {
+node Start2 {
 	style greenCircle
 	
 	// allow exactly one outgoing Transition
-	outgoingEdges (Transition[1,1])
+	outgoingEdges (Transition2[1,1])
 }	
 
 @icon("icons/End.png")
 @palette("Round Elements")
-node End{
+node End2 {
 	style redCircle
 	
 	/*
@@ -34,43 +34,43 @@ node End{
 	  incomingEdges (*[1,*])
 	
 	*/
-	incomingEdges ({Transition,LabeledTransition}[1,*])
+	incomingEdges ({Transition2,LabeledTransition2}[1,*])
 }
 
 @icon("icons/Activity.png")
 @palette("Rectangular Elements")
-node Activity {
+node Activity2 {
 	// use the "blueTextRectangle" as this node's style and pass the attribute "name" as a parameter
 	style blueTextRectangle("${name}")
 	
 	attr EString as name
 	attr EString as description
 	incomingEdges (*[1,*])
-	outgoingEdges (LabeledTransition[1,*])
+	outgoingEdges (LabeledTransition2[1,*])
 }
 
-node SubFlowGraph {
+node SubFlowGraph2 {
 	style greenTextRectangle("${subFlowGraph.modelName}")
 	
 	prime this::FlowGraphDiagram2 as subFlowGraph
 	incomingEdges (*[1,*])
-	outgoingEdges (LabeledTransition[1,*])
+	outgoingEdges (LabeledTransition2[1,*])
 }
 
 @icon("icons/Swimlane.png")
 @palette("Rectangular Elements")
-container Swimlane {
+container Swimlane2 {
 	style swimlane("${actor}")
 	
 	attr EString as actor
-	containableElements (Start[1,1], Activity, End, SubFlowGraph)
+	containableElements (Start2[1,1], Activity2, End2, SubFlowGraph2)
 }
 
-edge Transition {
+edge Transition2 {
 	style simpleArrow
 }
 
-edge LabeledTransition {
+edge LabeledTransition2 {
 	style labeledArrow("${label}")
 	
 	attr EString as label
