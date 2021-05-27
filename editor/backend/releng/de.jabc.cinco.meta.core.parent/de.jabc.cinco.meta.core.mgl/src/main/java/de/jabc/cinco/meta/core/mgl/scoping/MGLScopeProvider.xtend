@@ -3,8 +3,8 @@
  */
 package de.jabc.cinco.meta.core.mgl.scoping
 
-// import de.jabc.cinco.meta.core.utils.CincoUtil
-// import de.jabc.cinco.meta.core.utils.MGLUtil
+import de.jabc.cinco.meta.core.utils.CincoUtil
+import de.jabc.cinco.meta.core.utils.MGLUtil
 import java.net.URL
 import java.util.ArrayList
 import mgl.ComplexAttribute
@@ -12,11 +12,9 @@ import mgl.ContainingElement
 import mgl.GraphModel
 import mgl.GraphicalElementContainment
 import mgl.Import
-import mgl.IncomingEdgeElementConnection
 import mgl.MGLModel
 import mgl.MglPackage
 import mgl.ModelElement
-import mgl.OutgoingEdgeElementConnection
 import mgl.ReferencedAttribute
 import mgl.ReferencedEClass
 import mgl.ReferencedModelElement
@@ -33,6 +31,9 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
+import com.google.inject.Inject
+import org.eclipse.xtext.workspace.IProjectConfigProvider
+import de.jabc.cinco.meta.core.utils.WorkspaceContext
 
 /**
  * This class contains custom scoping description.
@@ -43,7 +44,9 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
  */
 class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 	
-	/*
+	@Inject(optional = true)
+	IProjectConfigProvider projectConfigProvider;
+	
 	override IScope getScope(EObject eobj, EReference ref){
 		if(eobj instanceof ReferencedAttribute<?> && (ref==MglPackage.eINSTANCE.referencedEClass_Type || ref==MglPackage.eINSTANCE.referencedModelElement_Type)){
 			return scope_ReferencedAttribute_feature((eobj as ReferencedAttribute<?>),ref)
@@ -60,7 +63,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			return scope	
 		}
 	}
-	*/
 	
 	def IScope scope_ReferencedAttribute_feature(ReferencedAttribute<?> attr, EReference ref){
 		var scope = IScope.NULLSCOPE
@@ -78,12 +80,12 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		
 	}
 	
-	/*
 	def IScope scope_ReferencedEClass_type(ReferencedEClass refType,EReference ref){
 		var scope = IScope.NULLSCOPE
 			var res = null as Resource
 				try{
-					res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource)
+					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, refType.eResource);
+					res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource, workspaceContext)
 				}catch(Exception e){
 					return null;
 				}
@@ -98,9 +100,7 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		}
 		
 	}
-	*/
 	
-	/*
 	def IScope scope_ReferencedModelElement_type(ReferencedModelElement refType,EReference ref){
  		var scope = IScope.NULLSCOPE
 			if(refType.local){
@@ -114,7 +114,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource)
+					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, refType);
+					res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource, workspaceContext)
 				}catch(Exception e){
 					return scope
 				}
@@ -144,7 +145,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					res = CincoUtil::getResource(graphModel.imprt.importURI, graphModel.eResource)
+					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, graphModel);
+					res = CincoUtil::getResource(graphModel.imprt.importURI, graphModel.eResource, workspaceContext)
 				}catch(Exception e){
 					return null;
 				}
@@ -174,7 +176,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					res = CincoUtil::getResource(node.imprt.importURI, node.eResource)
+					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, node);
+					res = CincoUtil::getResource(node.imprt.importURI, node.eResource, workspaceContext)
 				}catch(Exception e){
 					return null;
 				}
@@ -202,7 +205,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					res = CincoUtil::getResource(nodeContainer.imprt.importURI, nodeContainer.eResource)
+					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, nodeContainer);
+					res = CincoUtil::getResource(nodeContainer.imprt.importURI, nodeContainer.eResource, workspaceContext)
 				}catch(Exception e){
 					return null;
 				}
@@ -229,7 +233,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					res = CincoUtil::getResource(edge.imprt.importURI, edge.eResource)
+					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, edge);
+					res = CincoUtil::getResource(edge.imprt.importURI, edge.eResource, workspaceContext)
 				}catch(Exception e){
 					return null;
 				}
@@ -244,7 +249,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			return scope	
 		}
 	}
-	*/
 	
 	def IScope scope_ModelElement_imprt(ModelElement modelElement,EReference ref){
 		var mglModel = modelElement.eContainer as MGLModel
@@ -254,7 +258,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		return Scopes.scopeFor(imports) ?: IScope.NULLSCOPE
 	}
 	
-	/*
 	def IScope scope_GraphicalElementContainment_types(GraphicalElementContainment graphicalElementContainment, EReference ref) {
 		val mglModel = graphicalElementContainment.MGLModel
 		val referencedImport = graphicalElementContainment.referencedImport
@@ -263,7 +266,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		} else {
 			var res = null as Resource
 			try {
-				res = CincoUtil::getResource(referencedImport.importURI, referencedImport.eResource)
+				val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, referencedImport);
+				res = CincoUtil::getResource(referencedImport.importURI, referencedImport.eResource, workspaceContext)
 			} catch(Exception e) {
 				return null;
 			}
@@ -274,7 +278,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		}
 		return IScope.NULLSCOPE
 	}
-	*/
 	
 	def MGLModel getMGLModel(GraphicalElementContainment graphicalElementContainment) {
 		return graphicalElementContainment.eContainer.eContainer as MGLModel
@@ -294,7 +297,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		}
 	}
 	
-	/*
 	def IScope scope_ReferencedType_type(ReferencedType refType,EReference ref){
 		var scope = IScope.NULLSCOPE
 		if(refType instanceof ReferencedModelElement && ref==MglPackage.eINSTANCE.referencedModelElement_Type){
@@ -325,7 +327,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		} else {
 			var res = null as Resource
 			try {
-				res = CincoUtil::getResource(referencedImport.importURI, referencedImport.eResource)
+				val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, referencedImport);
+				res = CincoUtil::getResource(referencedImport.importURI, referencedImport.eResource, workspaceContext)
 			} catch(Exception e) {
 				return null;
 			}
@@ -336,14 +339,13 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		}
 		return IScope.NULLSCOPE
 	}
-	*/
 	
 	def loadResource(String uri){
 		try{
 			var url = new URL(uri);
 			return url.openConnection.inputStream
 		
-		}catch(Exception e){
+		} catch(Exception e){
 			throw new RuntimeException(e);
 		}
 	}

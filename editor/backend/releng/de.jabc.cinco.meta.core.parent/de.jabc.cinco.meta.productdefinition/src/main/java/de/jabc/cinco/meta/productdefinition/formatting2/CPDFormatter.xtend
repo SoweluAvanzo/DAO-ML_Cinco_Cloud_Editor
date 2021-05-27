@@ -30,6 +30,4 @@ class CPDFormatter extends AbstractFormatter2 {
 		// TODO: format HiddenRegions around keywords, attributes, cross references, etc. 
 		splashScreen.textColor.format
 	}
-	
-	// TODO: implement for 
 }

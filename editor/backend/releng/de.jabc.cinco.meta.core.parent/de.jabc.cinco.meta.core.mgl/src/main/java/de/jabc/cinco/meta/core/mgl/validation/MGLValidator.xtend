@@ -1,14 +1,11 @@
 package de.jabc.cinco.meta.core.mgl.validation
 
-/*
 import de.jabc.cinco.meta.core.utils.CincoUtil
 import de.jabc.cinco.meta.core.utils.InheritanceUtil
 import de.jabc.cinco.meta.core.utils.MGLUtil
 import de.jabc.cinco.meta.core.utils.PathValidator
-*/
 import java.io.File
 import java.util.List
-import java.util.jar.Manifest
 import mgl.Annotation
 import mgl.Attribute
 import mgl.BoundedConstraint
@@ -29,21 +26,22 @@ import mgl.ReferencedEClass
 import mgl.ReferencedType
 import mgl.Type
 import mgl.UserDefinedType
-//import org.eclipse.core.resources.IProject
-//import org.eclipse.core.resources.ResourcesPlugin
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EObject
-import org.eclipse.jdt.core.IJavaProject
-import org.eclipse.jdt.core.IType
-import org.eclipse.jdt.core.JavaCore
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
-
-//import de.jabc.cinco.meta.core.utils.generator.GeneratorUtils
-//import de.jabc.cinco.meta.core.utils.generator.ReservedJavaLangClassNames
+import de.jabc.cinco.meta.core.utils.generator.GeneratorUtils
+// import de.jabc.cinco.meta.core.utils.generator.ReservedJavaLangClassNames
+import de.jabc.cinco.meta.core.utils.WorkspaceContext
+import com.google.inject.Inject
+import org.eclipse.xtext.workspace.IProjectConfigProvider
 
 class MGLValidator extends AbstractMGLValidator {
-	// extension InheritanceUtil = new InheritanceUtil
+	
+	@Inject(optional = true)
+	IProjectConfigProvider projectConfigProvider;
+	extension InheritanceUtil = new InheritanceUtil
+	// TODO:SAMI: this is not supported until java-classes are registratable
 	// extension ReservedJavaLangClassNames = new ReservedJavaLangClassNames
 	public static val String NOT_EXPORTED = "package is not exported"
 	
@@ -158,23 +156,22 @@ class MGLValidator extends AbstractMGLValidator {
 			}
 		}
 		
-		/* TODO:SAMI: dependent of de.jabc.cinco.meta.core.utils
-		 * 
 		var element = attr.modelElement		
 			
 		var superType = element.extends
-		while (superType !== null && element.checkMGLInheritance.nullOrEmpty) {
-			for (a : superType.attributes) {
-				if(a.name.equalsIgnoreCase(attr.name)) {
-					if(!(attr instanceof ComplexAttribute) || !(attr as ComplexAttribute).override) {
-						error("Attribute Names must be unique", MglPackage.Literals::ATTRIBUTE__NAME)
+		val circlePath = element.checkMGLInheritance
+		if(circlePath.nullOrEmpty) {
+			while (superType !== null) {
+				for (a : superType.attributes) {
+					if(a.name.equalsIgnoreCase(attr.name)) {
+						if(!(attr instanceof ComplexAttribute) || !(attr as ComplexAttribute).override) {
+							error("Attribute Names must be unique", MglPackage.Literals::ATTRIBUTE__NAME)
+						}
 					}
 				}
+				superType = superType.extends
 			}
-			superType = superType.extends
 		}
-		*
-		*/
 	}
 	
 	@Check
@@ -239,21 +236,19 @@ class MGLValidator extends AbstractMGLValidator {
 		}
 	}
 	
-	/* TODO:SAMI: dependent of de.jabc.cinco.meta.core.utils
-		 * 
 	@Check
 	def checkNodeInheritsFromNonAbstractPrimeReferenceNode(Node node) {
 		var currentNode = node
 		val noCircles = node.checkMGLInheritance.nullOrEmpty
-		while (currentNode.extends !== null && noCircles){
-			currentNode = currentNode.extends
-			if (!currentNode.isIsAbstract && currentNode instanceof ReferencedType) {
-				error("Node " + node.name + " inherits from non abstract prime node " + currentNode.name, MglPackage.Literals::NODE__EXTENDS)
+		if(noCircles) {
+			while (currentNode.extends !== null){
+				currentNode = currentNode.extends
+				if (!currentNode.isIsAbstract && currentNode instanceof ReferencedType) {
+					error("Node " + node.name + " inherits from non abstract prime node " + currentNode.name, MglPackage.Literals::NODE__EXTENDS)
+				}
 			}
 		}
 	}
-	*
-	*/
 	
 	@Check
 	def checkGraphicalModelElementUsesStyleAttribute(GraphicalModelElement graphicalModelElement) {
@@ -321,13 +316,13 @@ class MGLValidator extends AbstractMGLValidator {
 		}
 	}
 	
-	/*
 	@Check
 	def checkGraphModelIconPath(GraphModel gm) {
 		if (!gm.iconPath.nullOrEmpty) {
-			val retVal = PathValidator.checkPath(gm, gm.iconPath) as String
- 			if (!retVal.empty) {
- 				error(retVal, MglPackage.Literals.GRAPH_MODEL__ICON_PATH, "The specified path: \"" + gm.iconPath +"\" does not exist")
+			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, gm)
+			val exists = PathValidator.checkPath(gm, gm.iconPath, workspaceContext)
+ 			if (!exists) {
+ 				error("Path does not exists!", MglPackage.Literals.GRAPH_MODEL__ICON_PATH, "The specified path: \"" + gm.iconPath +"\" does not exist")
 			}
  		}
 	}
@@ -335,9 +330,10 @@ class MGLValidator extends AbstractMGLValidator {
 	@Check
 	def checkImportUris(Import imp) {
 		try{
-			val retVal = PathValidator.checkPath(imp, imp.importURI)
-		if (!retVal.nullOrEmpty)
-			error(retVal, MglPackage.Literals.IMPORT__IMPORT_URI, "Could not load resource")
+			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, imp)
+			val exists = PathValidator.checkPath(imp, imp.importURI, workspaceContext)
+		if (!exists)
+			error("Path does not exists!", MglPackage.Literals.IMPORT__IMPORT_URI, "Could not load resource")
 		}catch(Exception e){
 			error("Could not load resource", MglPackage.Literals.IMPORT__IMPORT_URI, "Could not load resource")
 		}
@@ -347,38 +343,33 @@ class MGLValidator extends AbstractMGLValidator {
 	@Check
 	def checkExternalMGLIsStealth(Import imp){
 		if(!PathValidator.isRelativePath(imp.importURI)){
-			if(!PathValidator.checkSameProjects(imp,imp.importURI)&& imp.importURI.mglImport && !imp.isStealth && !imp.isExternal){
+			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, imp)
+			if(!PathValidator.checkSameProjects(imp.importURI, workspaceContext) && imp.importURI.mglImport && !imp.isStealth && !imp.isExternal){
 				error("MGLs imported from foreign Projects must be imported stealthy or be marked as an external import",MglPackage.Literals.IMPORT__IMPORT_URI);
 			}
 		} 
 			
 	}
-	*/
 	
 	def isMglImport(String importURI){
 		importURI.endsWith(".mgl")
 	}
 	
-	/* TODO:SAMI: dependent of de.jabc.cinco.meta.core.utils
-		 * 
 	@Check
 	def checkMGLInheritanceCircles(ModelElement me) {
-			var retvalList = me.checkMGLInheritance
-			if (!retvalList.nullOrEmpty) {
-				if (me instanceof Node) {
-					error("Circle in inheritance caused by: " + retvalList, MglPackage.Literals.NODE__EXTENDS)
-				}
-				
-				if (me instanceof Edge) {
-					error("Circle in inheritance caused by: " + retvalList, MglPackage.Literals.EDGE__EXTENDS)
-				}
-				
-				if (me instanceof UserDefinedType) {
-					error("Circle in inheritance caused by: " + retvalList, MglPackage.Literals.USER_DEFINED_TYPE__EXTENDS)
-				}
+		var retvalList = me.checkMGLInheritance
+		if (!retvalList.nullOrEmpty) {
+			if (me instanceof Node) {
+				error("Circle in inheritance caused by: " + retvalList, MglPackage.Literals.NODE__EXTENDS)
+			} else if (me instanceof GraphModel) {
+				error("Circle in inheritance caused by: " + retvalList, MglPackage.Literals.GRAPH_MODEL__EXTENDS)
+			} else if (me instanceof Edge) {
+				error("Circle in inheritance caused by: " + retvalList, MglPackage.Literals.EDGE__EXTENDS)
+			} else if (me instanceof UserDefinedType) {
+				error("Circle in inheritance caused by: " + retvalList, MglPackage.Literals.USER_DEFINED_TYPE__EXTENDS)
 			}
+		}
 	}
-	*/
 	
 	@Check
 	def checkNodeInheritsFromNode(Node node) {
@@ -418,7 +409,6 @@ class MGLValidator extends AbstractMGLValidator {
 		}
 	}
 	
-	/*
 	@Check
 	def checkReferencedNodeHasNameAttribute(ComplexAttribute attribute) {
 		val modelElement = attribute.modelElement as ModelElement
@@ -433,7 +423,6 @@ class MGLValidator extends AbstractMGLValidator {
 			}
 		}
 	}
-	*/
 	
 	private def edgesContainsName(Iterable<Edge> edges) {
 		val parentEdges = <Edge> newArrayList()
@@ -465,6 +454,8 @@ class MGLValidator extends AbstractMGLValidator {
 	
 	@Check 
 	def checkContainableElementIsIndependent(GraphicalElementContainment e) {
+		if(e.containingElement.hasInheritanceCircle)
+			return;
 		var superType = getContainingSuperType(e.containingElement)
 		while (superType!==null && (superType instanceof ContainingElement)) {
 			if (superType.containableElements.exists[y | y.types.exists[x | e.types.contains(x)]]) {
@@ -485,6 +476,14 @@ class MGLValidator extends AbstractMGLValidator {
 		return null
 	}
 	
+	private def hasInheritanceCircle(EObject element) {
+		if(element instanceof ModelElement) {
+			var retvalList = element.checkMGLInheritance
+			!retvalList.nullOrEmpty	
+		} else
+			false;
+	}
+	
 	@Check
 	def checkMultipleAnnotation(Annotation annot) {
 		val elementAnnotations = annot.parent.annotations
@@ -496,7 +495,6 @@ class MGLValidator extends AbstractMGLValidator {
 		#["mcam_checkmodule", "contextMenuAction", "postDelete", "postCreate"].contains(annotation.name)
 	}
 	
-	/*
 	@Check
 	def checkCustomActionAnnotation(Annotation annotation){
 		if (isCustomAction(annotation.name)) {
@@ -507,7 +505,9 @@ class MGLValidator extends AbstractMGLValidator {
 				if (parameter.empty) {
 					error("Java Class cannot be an empty String", MglPackage.Literals.ANNOTATION__VALUE)
 				} else {
+					/* TODO:SAMI: this is not supported until java-classes are registratable
 					checkIfJavaClassExistsAndIsAccessible(parameter)
+					*/
 				}
 			}
 		}
@@ -534,6 +534,8 @@ class MGLValidator extends AbstractMGLValidator {
 		}
 	}
 	
+	/* TODO:SAMI: this is not supported until java-classes are registratable
+	 * 
 	private def checkIfJavaClassExistsAndIsAccessible(String fqClassName) {
 		val correctFile = findClass(fqClassName)
 		if (correctFile === null || !correctFile.exists) {
@@ -760,17 +762,20 @@ class MGLValidator extends AbstractMGLValidator {
 		
 	}
 	
-	/*
+	
 	@Check
 	def checkImportCycleExists(Import imprt) {
 		if(!imprt.isStealth) {
 			val originalMGLModel = imprt.eContainer as MGLModel
-			val importedMGLModel = CincoUtil.getImportedMGLModel(imprt)
+			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, originalMGLModel)
+			val importedMGLModel = CincoUtil.getImportedMGLModel(imprt, workspaceContext)
+			
 			if(importedMGLModel !== null) {
 				val importsToCheck = importedMGLModel.imports.filter[!isStealth].toList
 				val alreadyVisitedMGLModel = newLinkedList(originalMGLModel, importedMGLModel)
+				
 				for(var i = 0; i < importsToCheck.size; i++) {
-					val currentImportedMGL = CincoUtil.getImportedMGLModel(importsToCheck.get(i))
+					val currentImportedMGL = CincoUtil.getImportedMGLModel(importsToCheck.get(i), workspaceContext)
 					if(currentImportedMGL !== null) {
 						if(alreadyVisitedMGLModel.exists[MGLUtil.equalMGLModels(it, currentImportedMGL)]) {
 							error("Cyclic imports detected at " + GeneratorUtils.instance.getFileName(currentImportedMGL) + ".mgl", MglPackage.Literals.IMPORT__IMPORT_URI)
@@ -786,7 +791,8 @@ class MGLValidator extends AbstractMGLValidator {
 		// No cycle found
 		return
 	}
-	*/
+	
+	
 	@Check
 	def checkExternalImportsPointToMGLs(Import imprt) {
 		if(imprt.isExternal && !imprt.importURI.endsWith(".mgl")) {
@@ -794,17 +800,21 @@ class MGLValidator extends AbstractMGLValidator {
 		}
 	}
 	
-	/*
+	
 	@Check
 	def checkModelElementNameForNameClashes(ModelElement me) {
 		val mgl = MGLUtil.getMglModel(me)
 		val imports = mgl.imports.filter[!isStealth]
 		imports.forEach[imp |
-			MGLUtil.modelElements(CincoUtil.getImportedMGLModel(imp), true).forEach[
-				if(!MGLUtil.equalModelElement(it, me) && it.name == me.name) {
-					error("This name already exists in the imported MGL \"" + imp.name + "\"", MglPackage.Literals.TYPE__NAME);
-				}
-			]
+			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, me)
+			val imp_mgl = CincoUtil.getImportedMGLModel(imp, workspaceContext);
+			if(imp_mgl !== null) {
+				MGLUtil.modelElements(imp_mgl, true).forEach[
+					if(!MGLUtil.equalModelElement(it, me) && it.name == me.name) {
+						error("This name already exists in the imported MGL \"" + imp.name + "\"", MglPackage.Literals.TYPE__NAME);
+					}
+				]
+			}
 		]
 	}
 	
@@ -813,10 +823,11 @@ class MGLValidator extends AbstractMGLValidator {
 		if(!imprt.isStealth) {
 			val mgl = imprt.eContainer as MGLModel
 			val imports = mgl.imports.filter[!isStealth]
-			val importedMGL = CincoUtil.getImportedMGLModel(imprt)
+			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, mgl)
+			val importedMGL = CincoUtil.getImportedMGLModel(imprt, workspaceContext)
 			imports.forEach[imp |
 				if(imprt !== imp) {
-					MGLUtil.modelElements(CincoUtil.getImportedMGLModel(imp), true).forEach[importedMe |
+					MGLUtil.modelElements(CincoUtil.getImportedMGLModel(imp, workspaceContext), true).forEach[importedMe |
 						MGLUtil.modelElements(importedMGL).forEach[
 							if(it.name == importedMe.name) {
 								error("The model element name \"" + it.name + "\" leads to a name clash, as " +
@@ -829,5 +840,4 @@ class MGLValidator extends AbstractMGLValidator {
 			]
 		}
 	}
-	*/
 }
