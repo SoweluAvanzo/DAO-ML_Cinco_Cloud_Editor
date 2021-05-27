@@ -696,9 +696,10 @@ public class CincoUtil {
 	public static GenModel getImportedGenmodel(Import imprt, IWorkspaceContext workspaceContext) {
 		String importURI = imprt.getImportURI();
 		if(importURI.endsWith(".ecore")) {
-			URI uri = URI.createURI(FilenameUtils.removeExtension(imprt.getImportURI()).concat(".genmodel"));
-			File file = workspaceContext.getFile(uri);
-			return workspaceContext.getContent(file, GenModel.class);
+			String uriString = imprt.getImportURI();
+			URI uri = URI.createURI(FilenameUtils.removeExtension(uriString).concat(".genmodel"));
+			uri = workspaceContext.getFileURI(uri);
+			return workspaceContext.getContent(uri, GenModel.class);
 		} else {
 			return null;
 		}
@@ -714,9 +715,9 @@ public class CincoUtil {
 	 * 			if no {@link MGLModel} is referenced
 	 */
 	public static MGLModel getImportedMGLModel(Import imprt, IWorkspaceContext workspaceContext) {
-		URI uri = URI.createURI(imprt.getImportURI(), true);
-		File file = workspaceContext.getFile(uri);
-		return workspaceContext.getContent(file, MGLModel.class);
+		String uriString = imprt.getImportURI();
+		URI uri = workspaceContext.getFileURI(uriString);
+		return workspaceContext.getContent(uri, MGLModel.class);
 	}
 
 	/**
@@ -727,9 +728,9 @@ public class CincoUtil {
 	 * @return	the first {@link GraphModel} that is defined in the {@link MGLModel} <code>imprt</code> references 
 	 */
 	public static GraphModel getImportedGraphModel(Import imprt, IWorkspaceContext workspaceContext) {
-		URI uri = URI.createURI(imprt.getImportURI(), true);
-		File file = workspaceContext.getFile(uri);
-		return workspaceContext.getContent(file, GraphModel.class);
+		String uriString = imprt.getImportURI();
+		URI uri = workspaceContext.getFileURI(uriString);
+		return workspaceContext.getContent(uri, GraphModel.class);
 	}
 	
 	/**
@@ -744,10 +745,10 @@ public class CincoUtil {
 	 * 			or <code>imprt</code> points not at an {@link MGLModel}
 	 */
 	public static List<GraphModel> getImportedGraphModels(Import imprt, IWorkspaceContext workspaceContext) {
-		URI uri = URI.createURI(imprt.getImportURI(), true);
-		File file = workspaceContext.getFile(uri);
+		String uriString = imprt.getImportURI();
+		URI uri = workspaceContext.getFileURI(uriString);
 		ArrayList<GraphModel> resultList = new ArrayList<GraphModel>();
-		resultList.addAll(workspaceContext.getContent(file, MGLModel.class).getGraphModels());
+		resultList.addAll(workspaceContext.getContent(uri, MGLModel.class).getGraphModels());
 		return resultList;
 	}
 	

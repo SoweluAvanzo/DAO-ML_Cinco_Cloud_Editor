@@ -1,13 +1,10 @@
 package de.jabc.cinco.meta.core.ge.style.validation
 
-// import de.jabc.cinco.meta.core.utils.PathValidator
+import de.jabc.cinco.meta.core.utils.PathValidator
 import java.util.ArrayList
 import java.util.jar.Manifest
 import org.eclipse.core.resources.IProject
 import org.eclipse.core.resources.ResourcesPlugin
-// import org.eclipse.jdt.core.IJavaProject
-// import org.eclipse.jdt.core.IType
-// import org.eclipse.jdt.core.JavaCore
 import org.eclipse.xtext.validation.Check
 import style.AbstractShape
 import style.Alignment
@@ -17,8 +14,9 @@ import style.Image
 import style.NodeStyle
 import style.Style
 import style.StylePackage
-// import de.jabc.cinco.meta.core.utils.CincoUtil
+import de.jabc.cinco.meta.core.utils.CincoUtil
 import style.ContainerShape
+import de.jabc.cinco.meta.core.utils.WorkspaceContext
 
 /**
  * Custom validation rules. 
@@ -55,17 +53,16 @@ class StyleValidator extends JStyleValidator {
 			warning("The location should be in [0,1]", StylePackage.Literals.CONNECTION_DECORATOR__LOCATION)
 	}
 	
-	/*
 	@Check
- 	def checkImagePath (Image image) {
+ 	def checkImagePath(Image image) {
  		if (image.path.nullOrEmpty)
  			warning('No Path specified', StylePackage.Literals.IMAGE__PATH, NO_PATH)
  		
- 		val retVal = PathValidator.checkPath(image, image.path) as String
- 		if (!retVal.empty)
- 			error(retVal, StylePackage.Literals.IMAGE__PATH, INVALID_PATH)
+		val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, image)
+ 		val exists = PathValidator.checkPath(image, image.path, workspaceContext)
+ 		if (!exists)
+ 			error("Path does not exists!", StylePackage.Literals.IMAGE__PATH, INVALID_PATH)
  	}
- 	*/
 	
 	@Check
 	def checkAppearanceInheritance(Appearance app) {
@@ -95,7 +92,9 @@ class StyleValidator extends JStyleValidator {
 	
 	@Check
 	def checkColorForeground(Appearance app){
-	if (app.foreground.b > 255 || app.foreground.r > 255 || app.foreground.g > 255)
+		if(app.foreground == null)
+			return;
+		if (app.foreground.b > 255 || app.foreground.r > 255 || app.foreground.g > 255)
 			error("Number(s) too large", StylePackage.Literals.APPEARANCE__FOREGROUND)
 		if (app.foreground.b < 0 || app.foreground.r < 0 || app.foreground.g < 0)
 			error("Number(s) has to be positiv", StylePackage.Literals.APPEARANCE__FOREGROUND)
@@ -150,7 +149,7 @@ class StyleValidator extends JStyleValidator {
 		return anchorShapeOccurances;
 	}
 	
-	/*
+	/* TODO:SAMI: this is not supported until java-classes are registratable
 	@Check
 	def checkAppearanceProviderAnnotation(Style style){
 	if(style.appearanceProvider !== null){
@@ -198,9 +197,7 @@ class StyleValidator extends JStyleValidator {
 			}	
 		}
 	}
-	*/
 	
-	/*
 	def findPackage(String parameter) { 
 		var IType javaClass = null
 		val root = ResourcesPlugin.workspace.root
@@ -258,7 +255,6 @@ class StyleValidator extends JStyleValidator {
 		
 		}
 		return javaClass
-	
 	}
 	*/
 }

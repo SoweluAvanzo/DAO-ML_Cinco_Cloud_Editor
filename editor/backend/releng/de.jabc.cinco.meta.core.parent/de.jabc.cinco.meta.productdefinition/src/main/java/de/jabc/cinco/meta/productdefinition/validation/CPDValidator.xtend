@@ -5,7 +5,6 @@ import productDefinition.CincoProduct
 import productDefinition.Color
 import productDefinition.SplashScreen
 import productDefinition.ProductDefinitionPackage
-// import de.jabc.cinco.meta.core.utils.projects.ProjectCreator
 import java.io.File
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.validation.Check
@@ -20,7 +19,6 @@ import de.jabc.cinco.meta.core.utils.WorkspaceContext
  * see http://www.eclipse.org/Xtext/documentation.html#validation
  */
  
- // TODO:SAMI: test
 class CPDValidator extends AbstractCPDValidator {
 	
 	@Inject(optional = true)
@@ -117,7 +115,7 @@ class CPDValidator extends AbstractCPDValidator {
 	}
 	
 	def getFile(EObject reference, String path) {
-		val workspaceContext = new WorkspaceContext(projectConfigProvider, reference.eResource);
+		val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, reference);
 		workspaceContext.getFile(path)
 	}
 }

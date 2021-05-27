@@ -7,6 +7,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+
 import com.google.common.collect.Lists;
 
 import mgl.Attribute;
@@ -30,6 +34,9 @@ public class InheritanceUtil {
 	 * 			relationship which has its origin in <code>modelElement</code> or <code>null</code> otherwise
 	 */
 	public List<String> checkMGLInheritance(ModelElement modelElement) {
+		if (modelElement instanceof GraphModel) {
+			return checkGraphModelInheritance((GraphModel) modelElement);
+		}
 		if (modelElement instanceof Node) {
 			return checkNodeInheritance((Node) modelElement);
 		}
@@ -57,6 +64,24 @@ public class InheritanceUtil {
 		return null;
 	}
 
+	private List<String> checkGraphModelInheritance(GraphModel g) {
+		GraphModel curr = g;
+		List<String> ancestors = new ArrayList<>();
+		while (curr != null) {
+			if (ancestors.contains(getFqn(curr))) {
+				return ancestors;
+			}
+			ancestors.add(getFqn(curr));
+			curr = curr.getExtends();
+			if(curr.eIsProxy()) {
+				URI proxyURI = ((InternalEObject)curr).eProxyURI();
+				curr = (GraphModel) g.eResource().getResourceSet().getEObject(proxyURI, true);
+			}
+		}
+		
+		return null;
+	}
+	
 	private List<String> checkNodeInheritance(Node node) {
 		Node curr = node;
 		List<String> ancestors = new ArrayList<>();

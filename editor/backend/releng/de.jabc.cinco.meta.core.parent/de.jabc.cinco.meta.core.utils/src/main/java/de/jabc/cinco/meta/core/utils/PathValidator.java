@@ -102,6 +102,11 @@ public class PathValidator {
 		throw new RuntimeException("The uri: \"" + uri +"\" could not be recognized");
 	}
 	
+	public static boolean checkSameProjects(String relativePath, IWorkspaceContext workspaceContext) {
+		URI uri = workspaceContext.getFileURI(relativePath);
+		return workspaceContext.isContainedInRoot(uri);
+	}
+	
 	@Deprecated
 	private static String checkPlatformResourceURI(URI uri, IWorkspaceContext workspaceContext) {
 		throw new RuntimeException("Plattform resource is not supported.");

@@ -1,9 +1,8 @@
-id info.scce.cinco.product.flowgraph2
-stylePath "model/FlowGraph.style"
+id info.scce.cinco.product.flowgraph
+stylePath "FlowGraph.style"
 
 @primeviewer
-@postCreate("info.scce.cinco.product.flowgraph.hooks.InitializeFlowGraphModel")
-graphModel FlowGraphDiagram4 {
+graphModel FlowGraphDiagram {
 	iconPath "icons/FlowGraph.png"
 	diagramExtension "flowgraph"
 	
@@ -52,7 +51,7 @@ node Activity {
 node SubFlowGraph {
 	style greenTextRectangle("${subFlowGraph.modelName}")
 	
-	prime this::FlowGraphDiagram4 as subFlowGraph
+	prime this::FlowGraphDiagram as subFlowGraph
 	incomingEdges (*[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }

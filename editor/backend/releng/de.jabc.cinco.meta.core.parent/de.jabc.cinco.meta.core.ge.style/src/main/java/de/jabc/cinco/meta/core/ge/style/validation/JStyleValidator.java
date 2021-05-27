@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.eclipse.xtext.validation.Check;
+import org.eclipse.xtext.workspace.IProjectConfigProvider;
+
+import com.google.inject.Inject;
 
 import style.AbstractShape;
 import style.ConnectionDecorator;
@@ -17,25 +20,27 @@ import style.Style;
 import style.StylePackage;
 import style.Styles;
 import style.Text;
-// import de.jabc.cinco.meta.core.utils.PathValidator;
+import de.jabc.cinco.meta.core.utils.IWorkspaceContext;
+import de.jabc.cinco.meta.core.utils.PathValidator;
+import de.jabc.cinco.meta.core.utils.WorkspaceContext;
 
 public class JStyleValidator extends AbstractStyleValidator{
 
+	@Inject(optional = true)
+	IProjectConfigProvider projectConfigProvider;
 	public static String NO_PATH = "noPathSpecified";
 	public static String INVALID_PATH = "invalidPath";
 	
-	/*
 	@Check
 	public void imagePath(Image image) {
 		if (image.getPath() == null || image.getPath().isEmpty())
  			warning("No Path specified", StylePackage.Literals.IMAGE__PATH, NO_PATH);
- 		
-		
- 		String retVal = PathValidator.checkPath(image, image.getPath());
- 		if (!retVal.isEmpty())
- 			error(retVal, StylePackage.Literals.IMAGE__PATH, INVALID_PATH);
+
+		IWorkspaceContext workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, image);
+ 		boolean exists = PathValidator.checkPath(image, image.getPath(), workspaceContext);
+ 		if (!exists)
+ 			error("Path does not exists!", StylePackage.Literals.IMAGE__PATH, INVALID_PATH);
 	}
-	*/
 	
 	@Check
 	public void checkUniqueStyleNames(NodeStyle ns) {		
@@ -133,6 +138,4 @@ public class JStyleValidator extends AbstractStyleValidator{
 			i = (AbstractShape) i.eContainer();
 		return i;
 	}
-	
-
 }
