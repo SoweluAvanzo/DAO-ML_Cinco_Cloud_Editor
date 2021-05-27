@@ -37,7 +37,7 @@ public class ProjectK8SIngress extends ProjectK8SResource<Ingress> {
      *     - host: cinco-cloud
      *       http:
      *         paths:
-     *           - path: /workspaces/{name}
+     *           - path: /workspaces/{name}(/|$)(.*)
      *             pathType: Prefix
      *             backend:
      *               service:
@@ -49,6 +49,8 @@ public class ProjectK8SIngress extends ProjectK8SResource<Ingress> {
      */
     @Override
     protected Ingress build() {
+        final var path = getPath().substring(0, getPath().length() - 1) + "(/|$)(.*)";
+
         return new IngressBuilder()
                 .withNewMetadata()
                     .withName(getProjectName() + "-ingress")
@@ -61,7 +63,7 @@ public class ProjectK8SIngress extends ProjectK8SResource<Ingress> {
                                 .withHost("cinco-cloud")
                                 .withHttp(new HTTPIngressRuleValueBuilder()
                                         .withPaths(new HTTPIngressPathBuilder()
-                                                .withPath("/workspaces/" + getProjectName())
+                                                .withPath(path)
                                                 .withPathType("Prefix")
                                                 .withBackend(new IngressBackendBuilder()
                                                         .withServiceName(service.getResource().getMetadata().getName())
@@ -74,5 +76,9 @@ public class ProjectK8SIngress extends ProjectK8SResource<Ingress> {
                                 .build())
                         .build())
                 .build();
+    }
+
+    public String getPath() {
+        return "/workspaces/" + getProjectName() + "/" ;
     }
 }

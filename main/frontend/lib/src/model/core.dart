@@ -356,6 +356,26 @@ class PyroOrganizationAccessRightVector {
 }
 
 
+class PyroProjectDeployment {
+  String url;
+
+  PyroProjectDeployment({Map cache, dynamic jsog}) {
+    if (jsog!=null) {
+      url = jsog["url"];
+    } else {
+      url = '';
+    }
+  }
+
+  static PyroProjectDeployment fromJSON(String s) {
+    return fromJSOG(new Map(), jsonDecode(s));
+  }
+
+  static PyroProjectDeployment fromJSOG(Map cache, dynamic jsog) {
+    return new PyroProjectDeployment(cache: cache, jsog: jsog);
+  }
+}
+
 
 class PyroSystemRole { 
 	static final String ADMIN = "ADMIN"; 

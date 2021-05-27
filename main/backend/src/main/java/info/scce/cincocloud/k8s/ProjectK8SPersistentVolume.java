@@ -33,7 +33,7 @@ public class ProjectK8SPersistentVolume extends ProjectK8SResource<PersistentVol
      *   accessModes:
      *     - ReadWriteMany
      *   hostPath:
-     *     path: "/mnt/data/{name}"
+     *     path: "/mnt/data/workspaces/{name}"
      *
      * @return the volume
      */
@@ -46,11 +46,11 @@ public class ProjectK8SPersistentVolume extends ProjectK8SResource<PersistentVol
                     .withLabels(Map.of("app", getProjectName()))
                 .endMetadata()
                 .withSpec(new PersistentVolumeSpecBuilder()
-                    .withStorageClassName("")
+                    .withStorageClassName("manual")
                     .withCapacity(Map.of("storage", Quantity.parse("2Gi")))
                     .withAccessModes("ReadWriteMany")
                     .withHostPath(new HostPathVolumeSourceBuilder()
-                        .withPath("/mnt/data/projects/" + getProjectName())
+                        .withPath("/mnt/data/workspaces/" + getProjectName())
                         .build())
                     .build())
                 .build();

@@ -32,13 +32,13 @@ class ProjectService extends BaseService {
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<String> deploy(PyroProject project) async {
+  Future<PyroProjectDeployment> deploy(PyroProject project) async {
     return HttpRequest.request("${getBaseUrl()}/project/${project.id}/deployments/private",
         method: "POST",
         requestHeaders: requestHeaders,
         withCredentials: true
     ).then((response) {
-      return response.responseText;
+      return PyroProjectDeployment.fromJSON(response.responseText);
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 

@@ -4,7 +4,7 @@
   </div>
   <div class="overflow-auto flex-grow-1">
 
-    <div class="text-center my-4">
+    <div class="text-center my-4" *ngIf="deploying">
       <div>
         <span class="fa-stack fa-3x">
           <i class="fa fa-cloud fa-stack-2x"></i>
@@ -13,6 +13,14 @@
       </div>
       <div>
         <strong>Creating workspace</strong>
+      </div>
+    </div>
+
+    <iframe [src]="editorUrl" *ngIf="!deploying && deploySuccess" class="border-0 h-100 w-100"></iframe>
+
+    <div class="container mt-3" *ngIf="!deploying && !deploySuccess">
+      <div class="alert alert-danger">
+        Failed to deploy editor.
       </div>
     </div>
 

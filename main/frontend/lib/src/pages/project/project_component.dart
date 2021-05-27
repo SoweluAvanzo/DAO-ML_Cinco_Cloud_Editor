@@ -1,4 +1,5 @@
 import 'package:angular/angular.dart';
+import 'package:angular/security.dart';
 import 'dart:html';
 import 'package:angular_router/angular_router.dart';
 
@@ -28,13 +29,18 @@ class ProjectComponent implements OnActivate {
 
   PyroUser user;
   PyroProject project;
+  bool deploying = true;
+  bool deploySuccess = false;
+  PyroProjectDeployment deployment;
 
   final ProjectService _projectService;
   final UserService _userService;
+  final DomSanitizationService _domSanitizationService;
 
   ProjectComponent(
       this._projectService,
-      this._userService) {
+      this._userService,
+      this._domSanitizationService) {
   }
 
   @override
@@ -46,9 +52,14 @@ class ProjectComponent implements OnActivate {
       _projectService.getById(projectId).then((p) {
         project = p;
 
-        _projectService.deploy(project).then((_) {
+        _projectService.deploy(project).then((d) {
+          deployment = d;
           window.console.log("deploy project");
+          window.console.log(deployment);
+          deploying = false;
+          deploySuccess = true;
         }).catchError((err) {
+          deploying = false;
           window.console.log(err);
         });
 
@@ -60,4 +71,6 @@ class ProjectComponent implements OnActivate {
       window.console.log(err);
     });
   }
+
+  SafeResourceUrl get editorUrl => _domSanitizationService.bypassSecurityTrustResourceUrl(deployment.url);
 }

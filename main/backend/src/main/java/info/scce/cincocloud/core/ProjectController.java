@@ -154,8 +154,8 @@ public class ProjectController {
     public Response deployProject(@Context SecurityContext securityContext, @PathParam("projectId") final long projectId) {
         final PyroProjectDB project = PyroProjectDB.findById(projectId);
         projectService.checkPermission(project, securityContext);
-        projectDeploymentService.deploy(project);
-        return Response.status(Response.Status.OK).build();
+        final var result = projectDeploymentService.deploy(project);
+        return Response.ok(result).build();
     }
 
     @DELETE
@@ -193,6 +193,7 @@ public class ProjectController {
         final PyroProjectDB project = PyroProjectDB.findById(id);
         if (canDeleteProject(subject, project)) {
             projectService.deleteById(subject, id, securityContext);
+            projectDeploymentService.delete(project);
             return Response.ok("Removed").build();
         }
         return Response.status(Response.Status.FORBIDDEN).build();

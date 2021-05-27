@@ -57,6 +57,7 @@ public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
      *       containers:
      *         - name: {name}
      *           image: registry.gitlab.com/scce/cinco-cloud/editor
+     *           imagePullPolicy: IfNotPresent
      *           ports:
      *             - containerPort: 3000
      *               name: {name}-port
@@ -81,7 +82,7 @@ public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
                     .withLabels(Map.of("app", getProjectName()))
                 .endMetadata()
                 .withSpec(new StatefulSetSpecBuilder()
-                    .withServiceName(service.getResource().getMetadata().getName())
+                    .withServiceName(getProjectName())
                     .withReplicas(1)
                     .withSelector(new LabelSelectorBuilder()
                             .withMatchLabels(Map.of("app", getProjectName()))
@@ -94,6 +95,7 @@ public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
                                     .withContainers(new ContainerBuilder()
                                             .withName(getProjectName())
                                             .withImage("registry.gitlab.com/scce/cinco-cloud/editor")
+                                            .withImagePullPolicy("IfNotPresent")
                                             .withPorts(new ContainerPortBuilder()
                                                     .withContainerPort(3000)
                                                     .withName(getProjectName() + "-port")
