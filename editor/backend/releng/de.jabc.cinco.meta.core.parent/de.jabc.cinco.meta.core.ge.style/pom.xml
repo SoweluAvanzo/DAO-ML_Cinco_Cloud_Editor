@@ -241,5 +241,10 @@
 			<artifactId>de.jabc.cinco.meta.core.ge.style.model</artifactId>	
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>de.jabc.cinco</groupId>
+			<artifactId>de.jabc.cinco.meta.core.utils</artifactId>	
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 </project>

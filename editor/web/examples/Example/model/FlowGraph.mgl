@@ -1,9 +1,9 @@
-import "model/FlowGraph2.mgl" as other
+import "FlowGraph4.mgl" as other
 id info.scce.cinco.product.flowgraph
 stylePath "FlowGraph.style"
 
 @primeviewer
-graphModel FlowGraphDiagram extends other::FlowGraphDiagram2 {
+graphModel FlowGraphDiagram extends other::FlowGraphDiagram4 {
 	iconPath "icons/FlowGraph.png"
 	diagramExtension "flowgraph"
 	
@@ -52,7 +52,7 @@ node Activity {
 node SubFlowGraph {
 	style greenTextRectangle("${subFlowGraph.modelName}")
 	
-	prime other::FlowGraphDiagram2 as subFlowGraph
+	prime other::FlowGraphDiagram4 as subFlowGraph
 	incomingEdges (*[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }

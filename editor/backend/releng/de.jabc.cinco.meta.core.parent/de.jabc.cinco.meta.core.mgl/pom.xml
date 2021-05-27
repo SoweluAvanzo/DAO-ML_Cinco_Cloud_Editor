@@ -112,7 +112,7 @@
 								<resource>
 									<directory>src/test/xtext-gen</directory>
 									<excludes>
-										<exclude>**/*.java</exclude>
+										<exclude>**/*.xtend</exclude>
 									</excludes>
 								</resource>
 							</resources>
