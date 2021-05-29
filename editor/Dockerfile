@@ -13,7 +13,6 @@ RUN mv releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.core.ide/target/
 FROM docker.io/library/node:10-buster-slim as extension-builder
 WORKDIR /extension
 COPY ./cinco-extension /extension
-COPY --from=backend-builder /backend/language-server/ /extension/language-server/
 # outputs extension to /extension/cinco-extension-0.0.1.vsix
 RUN yarn
 
@@ -35,6 +34,8 @@ RUN apt update && \
     apt install -y nodejs npm yarn && \
     apt remove -y gnupg gnupg2 curl && \
     apt autoremove -y
+# copy language-server to singleton cinco-language-server-extension
+COPY --from=backend-builder /backend/language-server/ /editor/cinco-language-server-extension/language-server/
 # install theia
 RUN yarn
 # copy extension after the build

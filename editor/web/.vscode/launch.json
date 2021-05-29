@@ -13,9 +13,6 @@
         "--loglevel=debug",
         "--port=3000",
         "--no-cluster",
-        "--WORKFLOW_NOTATION_LSP=5008",
-        "--WF_LSP=5017",
-        "--WF_ANALYZER=5083",
         "--app-project-path=${workspaceRoot}/browser-app",
         "--plugins=local-dir:${workspaceRoot}/browser-app/plugins"
       ],
@@ -26,11 +23,13 @@
       "outFiles": [
         "${workspaceRoot}/node_modules/@theia/*/lib/**/*.js",
         "${workspaceRoot}/browser-app/lib/**/*.js",
-        "${workspaceRoot}/browser-app/src-gen/backend/*.js"
+        "${workspaceRoot}/browser-app/src-gen/backend/*.js",
+        "${workspaceRoot}/cinco-language-server-extension/lib/**/*.js"
       ],
       "smartStep": true,
       "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std"
+      "outputCapture": "std",
+      "preLaunchTask": "checkNode"
     },
     {
       "name": "Launch Browser Frontend",

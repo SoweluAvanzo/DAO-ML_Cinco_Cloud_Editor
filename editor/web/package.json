@@ -10,6 +10,7 @@
     "lerna": "^3.13.0"
   },
   "workspaces": [
+    "cinco-language-server-extension",
     "browser-app"
   ],
   "resolutions": {

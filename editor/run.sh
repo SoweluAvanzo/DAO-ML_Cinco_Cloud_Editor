@@ -79,7 +79,7 @@ if [ "$buildBackend" == "true" ]; then
   cd backend/releng/de.jabc.cinco.meta.core.parent/
   mvn clean install
   cd ../../../
-  cp -r backend/releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.core.ide/target/language-server cinco-extension
+  cp -r backend/releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.core.ide/target/language-server web/cinco-language-server-extension
 fi
 
 if [ "$forceFrontend" == "true" ]; then

@@ -58,20 +58,20 @@
 							<assembleDirectory>${project.build.directory}/language-server/</assembleDirectory>
 							<repositoryLayout>flat</repositoryLayout>
 							<useWildcardClassPath>true</useWildcardClassPath>
-							<!-- uncomment to enable remote debugging -->
-							<extraJvmArguments>-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:server=y,transport=dt_socket,address=8000,suspend=n,quiet=y</extraJvmArguments>
-							
+							<!-- uncomment to enable remote debugging 
+							<extraJvmArguments>-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:server=y,transport=dt_socket,address=8004,suspend=n,quiet=y</extraJvmArguments>
+							-->
 							<programs>
 								<program>
 									<id>cinco-language-server</id>
-									<mainClass>org.eclipse.xtext.ide.server.ServerLauncher</mainClass>
-									<!-- uncomment to enable options
+									<mainClass>de.jabc.cinco.meta.core.ide.Application</mainClass>
 									<commandLineArguments>
+										<!-- uncomment to enable options	
 										<commandLineArgument>-trace</commandLineArgument>
 										<commandLineArgument>-log</commandLineArgument>
 										<commandLineArgument>-noValidate</commandLineArgument>
+										-->
 									</commandLineArguments>
-									-->
 								</program>
 							</programs>
 						</configuration>
@@ -93,7 +93,6 @@
 			<artifactId>org.eclipse.xtext.xbase.ide</artifactId>
 			<version>${xtextVersion}</version>
 		</dependency>
-		
 		<!-- PUT HERE ALL XTEXT-LANGUAGE-PROJECTS SUPPORTED BY THE LANGUAGE-SERVER -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>

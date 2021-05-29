@@ -4,6 +4,12 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "setNode",
+      "type": "shell",
+      "command": "node --version",
+      "problemMatcher": []
+    },
+    {
       "label": "CINCO-Cloud: Build all packages",
       "type": "shell",
       "group": {

@@ -4,6 +4,7 @@
     "baseUrl": "."
   },
   "include": [
+	"cinco-language-server-extension/src"
   ],
   "exclude": [
     "node_modules"
