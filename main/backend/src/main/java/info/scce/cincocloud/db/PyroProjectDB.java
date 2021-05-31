@@ -1,12 +1,13 @@
 package info.scce.cincocloud.db;
 
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 @Entity(name = "entity_core_pyroproject")
-public class PyroProjectDB extends PyroFileContainerDB {
+public class PyroProjectDB extends PanacheEntity {
 
     public String name;
 

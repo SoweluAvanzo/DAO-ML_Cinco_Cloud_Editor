@@ -1,49 +1,55 @@
 package info.scce.cincocloud.core.rest.types;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 public class PyroUserRegistration {
 
+    @NotEmpty(message = "The username may not be empty.")
     private String username;
+
+    @NotNull
+    @Email
     private String email;
+
+    @NotEmpty(message = "The name may not be empty.")
     private String name;
+
+    @NotEmpty(message = "The password may not be empty.")
+    @Size(min = 5, message = "The password has to be at least five characters long.")
     private String password;
 
-    @com.fasterxml.jackson.annotation.JsonProperty("username")
-    public String getusername() {
-        return this.username;
+    public String getUsername() {
+        return username;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("username")
-    public void setusername(final String username) {
+    public void setUsername(String username) {
         this.username = username;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("email")
-    public String getemail() {
-        return this.email;
+    public String getEmail() {
+        return email;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("email")
-    public void setemail(final String email) {
+    public void setEmail(String email) {
         this.email = email;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("name")
-    public String getname() {
-        return this.name;
+    public String getName() {
+        return name;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("name")
-    public void setname(final String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("password")
-    public String getpassword() {
-        return this.password;
+    public String getPassword() {
+        return password;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("password")
-    public void setpassword(final String password) {
+    public void setPassword(String password) {
         this.password = password;
     }
 }

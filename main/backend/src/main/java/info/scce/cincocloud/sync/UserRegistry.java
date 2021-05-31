@@ -7,6 +7,7 @@ import javax.websocket.Session;
 
 @ApplicationScoped
 public class UserRegistry extends WebSocketRegistry {
+
     /**
      * Map<UserId,Map<Websocket>>
      */
@@ -18,10 +19,6 @@ public class UserRegistry extends WebSocketRegistry {
 
     public Map<Long, Session> getCurrentOpenSockets() {
         return currentOpenSockets;
-    }
-
-    public void setCurrentOpenSockets(Map<Long, Session> currentOpenSockets) {
-        this.currentOpenSockets = currentOpenSockets;
     }
 
     public void send(long userId, WebSocketMessage message) {

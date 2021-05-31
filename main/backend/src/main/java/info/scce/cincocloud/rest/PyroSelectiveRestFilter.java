@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import java.lang.reflect.Method;
 
-
 public class PyroSelectiveRestFilter extends SimpleBeanPropertyFilter {
 
     @Override

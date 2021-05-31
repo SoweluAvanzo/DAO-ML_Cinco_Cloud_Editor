@@ -1,5 +1,18 @@
 package info.scce.cincocloud.core;
 
+import java.util.List;
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import info.scce.cincocloud.core.rest.types.PyroSettings;
@@ -8,32 +21,32 @@ import info.scce.cincocloud.db.PyroSettingsDB;
 import info.scce.cincocloud.db.PyroStyleDB;
 import info.scce.cincocloud.db.PyroSystemRoleDB;
 import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.rest.ObjectCache;
 
-@javax.ws.rs.Path("/settings")
-@javax.transaction.Transactional
-@javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-@javax.enterprise.context.RequestScoped
+@Path("/settings")
+@Transactional
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@RequestScoped
 public class SettingsController {
 
 
-    @javax.inject.Inject
-    info.scce.cincocloud.rest.ObjectCache objectCache;
+    @Inject
+    ObjectCache objectCache;
 
-    @javax.ws.rs.GET
-    @javax.ws.rs.Path("/public")
-    @javax.annotation.security.PermitAll()
-    public javax.ws.rs.core.Response get() {
-        final java.util.List<PyroSettingsDB> result = PyroSettingsDB.findAll().list();
-        return javax.ws.rs.core.Response.ok(PyroSettings.fromEntity(result.get(0), objectCache)).build();
+    @GET
+    @Path("/public")
+    @PermitAll()
+    public Response get() {
+        final List<PyroSettingsDB> result = PyroSettingsDB.findAll().list();
+        return Response.ok(PyroSettings.fromEntity(result.get(0), objectCache)).build();
     }
 
-    @javax.ws.rs.PUT
-    @javax.ws.rs.Path("/")
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response update(@javax.ws.rs.core.Context SecurityContext securityContext, final PyroSettings settings) {
+    @PUT
+    @Path("/")
+    @RolesAllowed("user")
+    public Response update(@Context SecurityContext securityContext, final PyroSettings settings) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
-
         final PyroSettingsDB settingsInDb = PyroSettingsDB.findById(settings.getId());
 
         if (subject != null && isAdmin(subject) && settingsInDb != null) {
@@ -52,10 +65,10 @@ public class SettingsController {
             }
 
             settingsInDb.globallyCreateOrganizations = settings.getgloballyCreateOrganizations();
-            return javax.ws.rs.core.Response.ok(PyroSettings.fromEntity(settingsInDb, objectCache)).build();
+            return Response.ok(PyroSettings.fromEntity(settingsInDb, objectCache)).build();
         }
 
-        return javax.ws.rs.core.Response.status(Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     private boolean isAdmin(PyroUserDB user) {

@@ -92,11 +92,10 @@ class ProjectsComponent implements OnDestroy, OnInit {
 
   @override
   void ngOnDestroy() {
-    if (this.webSocketCurrentUser != null &&
-        this.webSocketCurrentUser.readyState == WebSocket.OPEN) {
+    if (this.webSocketCurrentUser != null
+        && this.webSocketCurrentUser.readyState == WebSocket.OPEN) {
       window.console.debug("Closing Websocket webSocketCurrentUser");
       this.webSocketCurrentUser.close();
-      this.webSocketCurrentUser = null;
     }
   }
 
@@ -104,33 +103,24 @@ class ProjectsComponent implements OnDestroy, OnInit {
     BaseService.getTicket().then((ticket) {
       if (this.user != null && this.webSocketCurrentUser == null) {
         this.webSocketCurrentUser = new WebSocket(
-            '${userService.getBaseUrl(protocol: 'ws:')}/ws/user/${ticket}/private');
+            '${userService.getBaseUrl(protocol: 'ws:')}/ws/user/${ticket}/private'
+        );
 
-        // Callbacks for currentUser
         this.webSocketCurrentUser.onOpen.listen((e) {
           window.console.debug("[PYRO] onOpen User Websocket");
         });
+
         this.webSocketCurrentUser.onMessage.listen((MessageEvent e) {
           window.console.debug("[PYRO] onMessage User Websocket");
-          if (e.data != null) {
-            var jsog = jsonDecode(e.data);
-            if (jsog['senderId'] != user.id) {
-              this.user = PyroUser.fromJSOG(new Map(), jsog['content']);
-              notificationService.displayMessage(
-                  "Update Received", NotificationType.INFO);
-            }
-
-          }
         });
+
         this.webSocketCurrentUser.onClose.listen((CloseEvent e) {
-          // notificationService.displayMessage("Synchronisation Terminated", NotificationType.WARNING);
           window.console.debug("[PYRO] onClose User Websocket");
         });
+
         this.webSocketCurrentUser.onError.listen((e) {
-          notificationService.displayMessage(
-              "Synchronisation Error", NotificationType.DANGER);
-          window.console.debug(
-              "[PYRO] Error on Websocket webSocketCurrentUser: ${e.toString()}");
+          notificationService.displayMessage("Failed to connect with websocket.", NotificationType.DANGER);
+          window.console.debug("[PYRO] Error on Websocket webSocketCurrentUser: ${e.toString()}");
         });
       }
     });
@@ -150,12 +140,10 @@ class ProjectsComponent implements OnDestroy, OnInit {
     showDeleteProjectModal = false;
     organization.projects.removeWhere((p) => p.id == deleteProject.id);
     deleteProject = null;
-    notificationService.displayMessage(
-        "The project has been deleted.", NotificationType.SUCCESS);
+    notificationService.displayMessage("The project has been deleted.", NotificationType.SUCCESS);
   }
 
   void openCurrentProject(PyroProject project) {
-    var orgId = organization.id;
     var projectId = project.id;
     _router.navigate(top_routes.RoutePaths.project.toUrl(parameters: {"projectId": projectId.toString()}));
   }
@@ -173,9 +161,11 @@ class ProjectsComponent implements OnDestroy, OnInit {
   bool get canCreate =>
       orgArv != null &&
       orgArv.accessRights.contains(PyroOrganizationAccessRight.CREATE_PROJECTS);
+
   bool get canEdit =>
       orgArv != null &&
       orgArv.accessRights.contains(PyroOrganizationAccessRight.EDIT_PROJECTS);
+
   bool get canDelete =>
       orgArv != null &&
       orgArv.accessRights.contains(PyroOrganizationAccessRight.DELETE_PROJECTS);

@@ -3,21 +3,13 @@ package info.scce.cincocloud.core;
 import io.quarkus.runtime.StartupEvent;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
-import javax.inject.Inject;
 import javax.transaction.Transactional;
-import info.scce.cincocloud.auth.PBKDF2Encoder;
 import info.scce.cincocloud.db.PyroSettingsDB;
 import info.scce.cincocloud.db.PyroStyleDB;
 
 @ApplicationScoped
 @Transactional
 public class InitializeSettingsBean {
-
-    @Inject
-    PBKDF2Encoder passwordEncoder;
-
-    @Inject
-    OrganizationController organizationController;
 
     void onStart(@Observes StartupEvent ev) {
         try {

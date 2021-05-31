@@ -1,19 +1,12 @@
 package info.scce.cincocloud.core;
 
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import info.scce.cincocloud.core.rest.types.PyroProjectDeployment;
 import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.k8s.K8SException;
-import info.scce.cincocloud.k8s.K8SResource;
 import info.scce.cincocloud.k8s.ProjectK8SDeployment;
 import info.scce.cincocloud.k8s.ProjectK8SIngress;
 import info.scce.cincocloud.k8s.ProjectK8SPersistentVolume;

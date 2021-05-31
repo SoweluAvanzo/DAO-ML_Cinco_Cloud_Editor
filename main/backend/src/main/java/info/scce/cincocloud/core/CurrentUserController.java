@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core;
 
+import java.util.Optional;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
@@ -7,6 +8,7 @@ import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -33,7 +35,7 @@ import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 @RequestScoped
 public class CurrentUserController {
 
-    @ConfigProperty(name = "info.scce.pyro.jwt.duration")
+    @ConfigProperty(name = "info.scce.cincocloud.jwt.duration")
     Long duration;
 
     @ConfigProperty(name = "mp.jwt.verify.issuer")
@@ -50,12 +52,12 @@ public class CurrentUserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @PermitAll
-    public Response getCurrentUser(Login login) {
+    public Response getCurrentUser(@Valid Login login) {
         final PyroUserDB subject = PyroUserDB.find("email", login.email).firstResult();
         if (subject != null && subject.password.equals(passwordEncoder.encode(login.password))) {
-            AuthResponse auth = getAuthResponse(subject);
-            if (auth != null) {
-                return Response.ok(auth).build();
+            final var auth = getAuthResponse(subject);
+            if (auth.isPresent()) {
+                return Response.ok(auth.get()).build();
             }
         }
         return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -67,7 +69,8 @@ public class CurrentUserController {
     @RolesAllowed("user")
     public Response logout(
             @Context HttpServletRequest request,
-            @Context SecurityContext securityContext) {
+            @Context SecurityContext securityContext
+    ) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
         try {
             // remove associated tickets
@@ -124,18 +127,22 @@ public class CurrentUserController {
             }
             subject.persist();
             // get new authentication since credentials could be changed
-            AuthResponse auth = getAuthResponse(subject);
-            return Response.ok(auth).build();
+            final var auth = getAuthResponse(subject);
+            if (auth.isPresent()) {
+                return Response.ok(auth.get()).build();
+            }
         }
+
         return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    public AuthResponse getAuthResponse(PyroUserDB subject) {
+    private Optional<AuthResponse> getAuthResponse(PyroUserDB subject) {
         try {
-            return new AuthResponse(TokenUtils.generateToken(subject.email, "user", duration, issuer));
+            final var auth = new AuthResponse(TokenUtils.generateToken(subject.email, "user", duration, issuer));
+            return Optional.of(auth);
         } catch (Exception e) {
             e.printStackTrace();
+            return Optional.empty();
         }
-        return null;
     }
 }

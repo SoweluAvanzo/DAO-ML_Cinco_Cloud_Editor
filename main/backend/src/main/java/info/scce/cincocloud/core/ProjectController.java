@@ -17,7 +17,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import info.scce.cincocloud.core.rest.types.PyroProject;
-import info.scce.cincocloud.core.rest.types.PyroProjectStructure;
 import info.scce.cincocloud.db.PyroOrganizationAccessRightDB;
 import info.scce.cincocloud.db.PyroOrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.PyroOrganizationDB;
@@ -166,23 +165,6 @@ public class ProjectController {
         projectService.checkPermission(project, securityContext);
         projectDeploymentService.stop(project);
         return Response.status(Response.Status.OK).build();
-    }
-
-    @GET
-    @Path("/structure/{id}/private")
-    @RolesAllowed("user")
-    public Response loadProjectStructure(@Context SecurityContext securityContext, @PathParam("id") final long id) {
-
-        final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
-
-        final PyroProjectDB pp = PyroProjectDB.findById(id);
-        projectService.checkPermission(pp, securityContext);
-
-        if (isInOrganization(subject, pp.organization)) {
-            return Response.ok(PyroProjectStructure.fromEntity(pp, objectCache)).build();
-        }
-
-        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     @GET

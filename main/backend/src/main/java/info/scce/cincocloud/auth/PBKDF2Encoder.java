@@ -11,11 +11,13 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @RequestScoped
 public class PBKDF2Encoder {
 
-    @ConfigProperty(name = "info.scce.pyro.password.secret")
+    @ConfigProperty(name = "info.scce.cincocloud.password.secret")
     String secret;
-    @ConfigProperty(name = "info.scce.pyro.password.iteration")
+
+    @ConfigProperty(name = "info.scce.cincocloud.password.iteration")
     Integer iteration;
-    @ConfigProperty(name = "info.scce.pyro.password.keylength")
+
+    @ConfigProperty(name = "info.scce.cincocloud.password.keylength")
     Integer keylength;
 
     /**

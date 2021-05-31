@@ -16,7 +16,7 @@ import javax.websocket.server.ServerEndpoint;
 import info.scce.cincocloud.db.PyroUserDB;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 
-@ServerEndpoint(value = "/ws/user/{ticket}/private")
+@ServerEndpoint(value = "/api/ws/user/{ticket}/private")
 @ApplicationScoped
 public class UserWebSocket {
 
@@ -37,8 +37,15 @@ public class UserWebSocket {
             session.close();
             return;
         }
+
         session.getUserProperties().put(userIdKey, user.id);
         userRegistry.getCurrentOpenSockets().put(user.id, session);
+
+        final var ms = new WebSocketMessage();
+        ms.setSenderId(user.id);
+        ms.setEvent("");
+
+        send(user.id, ms);
     }
 
     /**
@@ -55,19 +62,18 @@ public class UserWebSocket {
 
     @OnMessage
     public void onMessage(String message, Session session) {
-        LOGGER.log(Level.INFO, "New message from Client [{0}]: {1}",
-                new Object[]{session.getId(), message});
+        LOGGER.log(Level.INFO, "New message from Client [{0}]: {1}", new Object[]{session.getId(), message});
     }
 
     @OnClose
     public void onClose(Session session) {
         this.userRegistry.getCurrentOpenSockets().values().remove(session);
-        LOGGER.log(Level.INFO, "Close connection for client: {0}",
-                session.getId());
+        LOGGER.log(Level.INFO, "Close connection for client: {0}", session.getId());
     }
 
     @OnError
     public void onError(Throwable exception, Session session) {
+        exception.printStackTrace();
         LOGGER.log(Level.INFO, "Error for client: {0}", session.getId());
     }
 }
