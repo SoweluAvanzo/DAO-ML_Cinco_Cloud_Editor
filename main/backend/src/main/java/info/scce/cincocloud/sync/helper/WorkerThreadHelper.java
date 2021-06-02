@@ -18,4 +18,15 @@ public class WorkerThreadHelper {
                 .build();
         executor.runAsync(threadContext.contextualRunnable(work));
     }
+
+    public static void runAsync(Runnable work) {
+        ManagedExecutor executor = ManagedExecutor.builder()
+                .cleared(ThreadContext.ALL_REMAINING)
+                .maxAsync(5)
+                .build();
+        ThreadContext threadContext = ThreadContext.builder()
+                .cleared(ThreadContext.ALL_REMAINING)
+                .build();
+        executor.runAsync(threadContext.contextualRunnable(work));
+    }
 }

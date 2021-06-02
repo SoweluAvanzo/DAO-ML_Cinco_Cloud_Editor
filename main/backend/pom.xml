@@ -18,8 +18,7 @@
         <compiler-plugin.version>3.8.0</compiler-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <org.eclipse.xtend.vesrsion>2.22.0</org.eclipse.xtend.vesrsion>
-        <kubernetes-client.version>5.4.0</kubernetes-client.version>
+        <kubernetes-client.version>5.4.1</kubernetes-client.version>
     </properties>
 
     <dependencyManagement>
@@ -64,11 +63,6 @@
             <artifactId>quarkus-quartz</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.xtend</groupId>
-            <artifactId>org.eclipse.xtend.lib</artifactId>
-            <version>${org.eclipse.xtend.vesrsion}</version>
-        </dependency>
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons.io.version}</version>
@@ -91,16 +85,6 @@
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-client</artifactId>
-            <version>${kubernetes-client.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>knative-client</artifactId>
-            <version>${kubernetes-client.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>volumesnapshot-client</artifactId>
             <version>${kubernetes-client.version}</version>
         </dependency>
 

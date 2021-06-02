@@ -4,7 +4,7 @@
   </div>
   <div class="overflow-auto flex-grow-1">
 
-    <div class="text-center my-4" *ngIf="deploying">
+    <div class="text-center my-4" *ngIf="deployment == null || deployment.status == 'DEPLOYING'">
       <div>
         <span class="fa-stack fa-3x">
           <i class="fa fa-cloud fa-stack-2x"></i>
@@ -16,9 +16,9 @@
       </div>
     </div>
 
-    <iframe [src]="editorUrl" *ngIf="!deploying && deploySuccess" class="border-0 h-100 w-100"></iframe>
+    <iframe [src]="editorUrl" *ngIf="deployment != null && deployment.status == 'READY'" class="border-0 h-100 w-100"></iframe>
 
-    <div class="container mt-3" *ngIf="!deploying && !deploySuccess">
+    <div class="container mt-3" *ngIf="deployment != null && deployment.status == 'FAILED'">
       <div class="alert alert-danger">
         Failed to deploy editor.
       </div>

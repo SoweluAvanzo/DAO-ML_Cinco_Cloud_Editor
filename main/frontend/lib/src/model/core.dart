@@ -358,10 +358,12 @@ class PyroOrganizationAccessRightVector {
 
 class PyroProjectDeployment {
   String url;
+  String status;
 
   PyroProjectDeployment({Map cache, dynamic jsog}) {
     if (jsog!=null) {
       url = jsog["url"];
+      status = jsog["status"];
     } else {
       url = '';
     }
