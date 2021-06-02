@@ -44,6 +44,8 @@ COPY --from=extension-builder /extension/cinco-extension-0.0.1.vsix /editor/brow
 # integrate favicon
 RUN cp /editor/favicon.ico /editor/browser-app/lib && \
 	sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
+RUN mkdir /editor/workspace
+VOLUME /editor/workspace
 EXPOSE 3000
 CMD cd /editor/browser-app && \
-    yarn run theia start --port=3000 --root-dir=../examples/Example --plugins=local-dir:./plugins --hostname 0.0.0.0
+    yarn run theia start --port=3000 --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
