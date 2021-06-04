@@ -45,7 +45,7 @@ public class ProjectDeploymentService {
         final var persistentVolumeClaim = new ProjectK8SPersistentVolumeClaim(client, project);
         final var persistentVolume = new ProjectK8SPersistentVolume(client, project);
         final var service = new ProjectK8SService(client, project);
-        final var deployment = new ProjectK8SDeployment(client, persistentVolumeClaim, service, project);
+        final var deployment = new ProjectK8SDeployment(client, persistentVolumeClaim, project);
         final var ingress = new ProjectK8SIngress(client, service, project);
 
         final var deployedDeploymentOptional = client.apps().statefulSets().list().getItems().stream()
@@ -55,11 +55,14 @@ public class ProjectDeploymentService {
 
         // do not redeploy pods if they are still active
         // if any pod removal is scheduled, that task is removed
-        if (deployedDeploymentOptional.isPresent() && deployedDeploymentOptional.get().getStatus().getReadyReplicas() == 1) {
-            removeScheduledTasks(project);
-            final var result = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.READY);
-            projectWebSocket.send(project.id, WebSocketMessage.fromEntity(-1, "project:podDeploymentStatus", result));
-            return result;
+        if (deployedDeploymentOptional.isPresent()) {
+            final var d = deployedDeploymentOptional.get();
+            if (d.getStatus() != null && d.getStatus().getReadyReplicas() != null && d.getStatus().getReadyReplicas() == 1) {
+                removeScheduledTasks(project);
+                final var result = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.READY);
+                projectWebSocket.send(project.id, WebSocketMessage.fromEntity(-1, "project:podDeploymentStatus", result));
+                return result;
+            }
         }
 
         if (getPersistentVolumeClaimByName(persistentVolumeClaim.getResource().getMetadata().getName()).isEmpty()) {
@@ -81,6 +84,7 @@ public class ProjectDeploymentService {
                 vertx,
                 () -> isReady(editorPod),
                 () -> {
+                    // TODO wait until editor answers with status 200 instead of 503
                     final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.READY);
                     CDIUtils.getBean(ProjectWebSocket.class).send(project.id, WebSocketMessage.fromEntity(-1, "project:podDeploymentStatus", s2));
                 },
@@ -88,7 +92,7 @@ public class ProjectDeploymentService {
                     final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.FAILED);
                     CDIUtils.getBean(ProjectWebSocket.class).send(project.id, WebSocketMessage.fromEntity(-1, "project:podDeploymentStatus", s2));
                 },
-                Duration.ofSeconds(30),
+                Duration.ofMinutes(1),
                 Duration.ofSeconds(1)
         );
 
@@ -110,7 +114,7 @@ public class ProjectDeploymentService {
     public void stop(PyroProjectDB project) {
         final var persistentVolumeClaim = new ProjectK8SPersistentVolumeClaim(client, project);
         final var service = new ProjectK8SService(client, project);
-        final var deployment = new ProjectK8SDeployment(client, persistentVolumeClaim, service, project);
+        final var deployment = new ProjectK8SDeployment(client, persistentVolumeClaim, project);
         final var ingress = new ProjectK8SIngress(client, service, project);
 
         client.services().delete(service.getResource());

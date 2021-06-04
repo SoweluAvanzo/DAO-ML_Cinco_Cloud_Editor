@@ -19,17 +19,14 @@ import info.scce.cincocloud.db.PyroProjectDB;
 public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
 
     private final ProjectK8SPersistentVolumeClaim persistentVolumeClaim;
-    private final ProjectK8SService service;
 
     public ProjectK8SDeployment(
             KubernetesClient client,
             ProjectK8SPersistentVolumeClaim persistentVolumeClaim,
-            ProjectK8SService service,
             PyroProjectDB project
     ) {
         super(client, project);
         this.persistentVolumeClaim = persistentVolumeClaim;
-        this.service = service;
         this.resource = build();
     }
 
@@ -60,7 +57,6 @@ public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
      *           imagePullPolicy: IfNotPresent
      *           ports:
      *             - containerPort: 3000
-     *               name: {name}-port
      *           volumeMounts:
      *             - name: pv-data
      *               mountPath: /var/lib/{name}
@@ -98,7 +94,6 @@ public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
                                             .withImagePullPolicy("IfNotPresent")
                                             .withPorts(new ContainerPortBuilder()
                                                     .withContainerPort(3000)
-                                                    .withName(getProjectName() + "-port")
                                                     .build())
                                             .withVolumeMounts(new VolumeMountBuilder()
                                                     .withName("pv-data")

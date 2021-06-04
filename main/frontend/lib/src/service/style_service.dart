@@ -165,7 +165,7 @@ class StyleService {
 	// change favicon
 	var faviconNode = window.document.querySelector("link[rel='icon']");
 	if (faviconNode != null) {
-	  faviconNode.attributes["href"] = _style.logo != null ? _style.logo.downloadPath : "img/pyro.png";
+	  faviconNode.attributes["href"] = _style.logo != null ? _style.logo.downloadPath : "img/cinco-logo.png";
 	}
 	
 	_css = css;

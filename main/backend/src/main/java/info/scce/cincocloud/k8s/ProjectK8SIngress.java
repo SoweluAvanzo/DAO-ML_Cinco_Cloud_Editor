@@ -68,7 +68,7 @@ public class ProjectK8SIngress extends ProjectK8SResource<Ingress> {
                                                 .withBackend(new IngressBackendBuilder()
                                                         .withServiceName(service.getResource().getMetadata().getName())
                                                         .withServicePort(new IntOrStringBuilder()
-                                                                .withStrVal(service.getResource().getSpec().getPorts().get(0).getName())
+                                                                .withIntVal(service.getResource().getSpec().getPorts().get(0).getPort())
                                                                 .build())
                                                         .build())
                                                 .build())
