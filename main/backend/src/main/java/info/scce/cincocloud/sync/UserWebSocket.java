@@ -40,12 +40,6 @@ public class UserWebSocket {
 
         session.getUserProperties().put(userIdKey, user.id);
         userRegistry.getCurrentOpenSockets().put(user.id, session);
-
-        final var ms = new WebSocketMessage();
-        ms.setSenderId(user.id);
-        ms.setEvent("");
-
-        send(user.id, ms);
     }
 
     /**

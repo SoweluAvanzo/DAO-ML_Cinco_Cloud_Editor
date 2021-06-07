@@ -4,12 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.transaction.TransactionManager;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -19,6 +18,7 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import info.scce.cincocloud.core.rest.types.PyroUser;
 import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.db.StopProjectPodsTask;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.sync.helper.WorkerThreadHelper;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
@@ -35,6 +35,9 @@ public class ProjectWebSocket {
 
     @Inject
     ObjectCache objectCache;
+
+    @Inject
+    TransactionManager transactionManager;
 
     @OnOpen // NOTE: rewritten with ticket-system, since Session.getUserPrincipal does only work with cookies
     public void open(final Session session, @PathParam("projectId") long clientId, @PathParam("ticket") String ticket) throws IOException {
@@ -55,8 +58,10 @@ public class ProjectWebSocket {
         WorkerThreadHelper.runWorkerThread(() -> {
             projectRegistry.getCurrentOpenSockets().get(clientId).forEach((key, value) -> {
                 try {
+                    transactionManager.begin();
                     final PyroUserDB u = PyroUserDB.findById(key);
                     users.add(PyroUser.fromEntity(u, objectCache));
+                    transactionManager.commit();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -81,6 +86,11 @@ public class ProjectWebSocket {
             if (sessionMap.containsKey(userId)) {
                 projectRegistry.send(projectId, WebSocketMessage.fromEntity(userId, "project:removeUser", userId));
                 sessionMap.remove(userId);
+
+                // no user is active on project -> schedule pods for removal
+                if (sessionMap.keySet().isEmpty()) {
+                    WorkerThreadHelper.runWorkerThread(() -> createStopProjectPodsTask(projectId));
+                }
             }
         });
 
@@ -114,6 +124,18 @@ public class ProjectWebSocket {
                         }
                         this.projectRegistry.getCurrentOpenSockets().get(projectId).remove(w.getKey());
                     });
+        }
+    }
+
+    private void createStopProjectPodsTask(long projectId) {
+        try {
+            transactionManager.begin();
+            final var task = new StopProjectPodsTask();
+            task.setProjectId(projectId);
+            StopProjectPodsTask.persist(task);
+            transactionManager.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

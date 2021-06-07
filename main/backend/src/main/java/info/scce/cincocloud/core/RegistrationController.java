@@ -33,7 +33,7 @@ public class RegistrationController {
             @Context SecurityContext securityContext,
             @Valid PyroUserRegistration pyroUserRegistration
     ) {
-        final var emailExists = PyroUserDB.list("email", pyroUserRegistration.getEmail()).isEmpty();
+        final var emailExists = !PyroUserDB.list("email", pyroUserRegistration.getEmail()).isEmpty();
 
         if (!emailExists) {
             final var user = PyroUserDB.add(
@@ -42,7 +42,7 @@ public class RegistrationController {
                     passwordEncoder.encode(pyroUserRegistration.getPassword())
             );
 
-            if (PyroUserDB.count() <= 0) {
+            if (PyroUserDB.count() == 1) {
                 user.systemRoles.add(PyroSystemRoleDB.ADMIN);
                 user.systemRoles.add(PyroSystemRoleDB.ORGANIZATION_MANAGER);
             }

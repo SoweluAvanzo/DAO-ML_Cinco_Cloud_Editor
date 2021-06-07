@@ -22,3 +22,7 @@ build:
       context: ./registry
       docker:
         dockerfile: Dockerfile
+#    - image: registry.gitlab.com/scce/cinco-cloud/editor
+#      context: ./editor
+#      docker:
+#        dockerfile: Dockerfile

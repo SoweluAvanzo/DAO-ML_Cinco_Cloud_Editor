@@ -1,6 +1,9 @@
 package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Random;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -23,35 +26,34 @@ public class PyroUserDB extends PanacheEntity {
 
     @Enumerated(javax.persistence.EnumType.STRING)
     @ElementCollection
-    public java.util.Collection<PyroSystemRoleDB> systemRoles = new java.util.ArrayList<>();
+    public Collection<PyroSystemRoleDB> systemRoles = new ArrayList<>();
 
     @OneToMany(mappedBy = "owner")
-    public java.util.Collection<PyroProjectDB> ownedProjects = new java.util.ArrayList<>();
+    public Collection<PyroProjectDB> ownedProjects = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    public java.util.Collection<PyroWorkspaceImageDB> images = new java.util.ArrayList<>();
+    public Collection<PyroWorkspaceImageDB> images = new ArrayList<>();
 
     @ManyToMany(mappedBy = "owners")
-    public java.util.Collection<PyroOrganizationDB> ownedOrganizations = new java.util.ArrayList<>();
+    public Collection<PyroOrganizationDB> ownedOrganizations = new ArrayList<>();
 
     @ManyToMany(mappedBy = "members")
-    public java.util.Collection<PyroOrganizationDB> memberedOrganizations = new java.util.ArrayList<>();
+    public Collection<PyroOrganizationDB> memberedOrganizations = new ArrayList<>();
 
     public static PyroUserDB add(String email, String username, String password) {
-        return add(email, username, password, new java.util.LinkedList<>());
+        return add(email, username, password, new LinkedList<>());
     }
 
-    public static PyroUserDB add(String email, String username, String password, java.util.Collection<PyroSystemRoleDB> roles) {
+    public static PyroUserDB add(String email, String username, String password, Collection<PyroSystemRoleDB> roles) {
         PyroUserDB user = new PyroUserDB();
         user.email = email;
         user.username = username;
         user.password = password;
         Random random = new Random();
-        String generatedString = random.ints(97, 122 + 1)
+        user.activationKey = random.ints(97, 122 + 1)
                 .limit(15)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
-        user.activationKey = generatedString;
         user.systemRoles = roles;
         user.isActivated = false;
         user.persist();

@@ -1,18 +1,25 @@
 package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.ManyToOne;
 
 @Entity()
 public class PyroOrganizationAccessRightVectorDB extends PanacheEntity {
 
-    @javax.persistence.ManyToOne(cascade = javax.persistence.CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     public PyroUserDB user;
 
-    @javax.persistence.ManyToOne
+    @ManyToOne
     public PyroOrganizationDB organization;
 
-    @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
-    @javax.persistence.ElementCollection
-    public java.util.Collection<PyroOrganizationAccessRightDB> accessRights = new java.util.ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @ElementCollection
+    public List<PyroOrganizationAccessRightDB> accessRights = new ArrayList<>();
 }

@@ -1,19 +1,34 @@
 package info.scce.cincocloud.core.rest.types;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.rest.RESTBaseImpl;
 
 public class PyroProjectDeployment extends RESTBaseImpl {
 
     private String url;
 
-    @JsonProperty("url")
+    private PyroProjectDeploymentStatus status;
+
+    public PyroProjectDeployment() {
+    }
+
+    public PyroProjectDeployment(String url, PyroProjectDeploymentStatus status) {
+        this.url = url;
+        this.status = status;
+    }
+
     public String getUrl() {
         return url;
     }
 
-    @JsonProperty("url")
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public PyroProjectDeploymentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PyroProjectDeploymentStatus status) {
+        this.status = status;
     }
 }

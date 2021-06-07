@@ -28,7 +28,6 @@ public class ProjectK8SService extends ProjectK8SResource<Service> {
      * spec:
      *   ports:
      *     - port: 3000
-     *       name: {name}-port
      *       protocol: TCP
      *   type: NodePort
      *   selector:
@@ -47,7 +46,6 @@ public class ProjectK8SService extends ProjectK8SResource<Service> {
                 .withSpec(new ServiceSpecBuilder()
                     .withPorts(new ServicePortBuilder()
                         .withPort(3000)
-                        .withName(getProjectName() + "-port")
                         .withProtocol("TCP")
                         .build())
                     .withType("NodePort")

@@ -2,7 +2,7 @@ package info.scce.cincocloud.sync;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 
-@JsonFilter("PYRO_Selective_Filter")
+@JsonFilter("CincoCloud_Selective_Filter")
 public class WebSocketMessage {
 
     private long senderId;

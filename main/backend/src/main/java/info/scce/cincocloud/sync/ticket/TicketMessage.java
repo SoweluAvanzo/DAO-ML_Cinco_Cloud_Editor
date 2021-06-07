@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 /**
  * Author mitwalli
  */
-@JsonFilter("PYRO_Selective_Filter")
+@JsonFilter("CincoCloud_Selective_Filter")
 public class TicketMessage {
 
     private String ticket;

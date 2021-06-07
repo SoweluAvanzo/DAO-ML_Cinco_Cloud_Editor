@@ -29,6 +29,6 @@ public class RegisterCustomModuleCustomizer implements ObjectMapperCustomizer {
                 .build();
         mapper.activateDefaultTypingAsProperty(ptv, ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT, Constants.PYRO_RUNTIME_TYPE);
 
-        mapper.setFilterProvider(new SimpleFilterProvider().addFilter("PYRO_Selective_Filter", new PyroSelectiveRestFilter()));
+        mapper.setFilterProvider(new SimpleFilterProvider().addFilter("CincoCloud_Selective_Filter", new CincoCloudSelectiveRestFilter()));
     }
 }

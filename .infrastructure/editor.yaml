@@ -24,7 +24,7 @@ spec:
               name: editor-port
           volumeMounts:
               - name: pv-data
-                mountPath: /var/lib/editor
+                mountPath: /editor/workspace
       volumes:
         - name: pv-data
           persistentVolumeClaim:
