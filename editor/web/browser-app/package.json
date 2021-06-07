@@ -3,9 +3,10 @@
   "name": "browser-app",
   "version": "1.0.0",
   "dependencies": {
+    "@theia/core": "latest",
+    "cinco-authenticator": "1.0.0",
     "@theia/callhierarchy": "latest",
     "@theia/console": "latest",
-    "@theia/core": "latest",
     "@theia/debug": "latest",
     "@theia/editor": "latest",
     "@theia/file-search": "latest",

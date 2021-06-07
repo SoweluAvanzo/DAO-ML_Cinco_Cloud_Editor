@@ -24,7 +24,8 @@
         "${workspaceRoot}/node_modules/@theia/*/lib/**/*.js",
         "${workspaceRoot}/browser-app/lib/**/*.js",
         "${workspaceRoot}/browser-app/src-gen/backend/*.js",
-        "${workspaceRoot}/cinco-language-server-extension/lib/**/*.js"
+        "${workspaceRoot}/cinco-language-server-extension/lib/**/*.js",
+        "${workspaceRoot}/cinco-authenticator/lib/**/*.js"
       ],
       "smartStep": true,
       "internalConsoleOptions": "openOnSessionStart",
