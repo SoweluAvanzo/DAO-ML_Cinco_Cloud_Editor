@@ -19,6 +19,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <kubernetes-client.version>5.4.1</kubernetes-client.version>
+        <smallrye-web-client>2.6.0</smallrye-web-client>
     </properties>
 
     <dependencyManagement>
@@ -79,6 +80,11 @@
             <groupId>com.voodoodyne.jackson.jsog</groupId>
             <artifactId>jackson-jsog</artifactId>
             <version>${jackson-jsog.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.smallrye.reactive</groupId>
+            <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
+            <version>${smallrye-web-client}</version>
         </dependency>
 
         <!-- kubernetes -->

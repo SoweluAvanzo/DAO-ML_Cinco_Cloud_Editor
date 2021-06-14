@@ -2,10 +2,12 @@ package info.scce.cincocloud.core;
 
 import io.fabric8.kubernetes.api.model.PersistentVolume;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.vertx.mutiny.core.Vertx;
+import io.vertx.mutiny.ext.web.client.WebClient;
 import java.time.Duration;
 import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
@@ -21,7 +23,6 @@ import info.scce.cincocloud.k8s.ProjectK8SPersistentVolume;
 import info.scce.cincocloud.k8s.ProjectK8SPersistentVolumeClaim;
 import info.scce.cincocloud.k8s.ProjectK8SService;
 import info.scce.cincocloud.sync.ProjectWebSocket;
-import info.scce.cincocloud.sync.WebSocketMessage;
 import info.scce.cincocloud.util.CDIUtils;
 import info.scce.cincocloud.util.WaitUtils;
 
@@ -59,9 +60,9 @@ public class ProjectDeploymentService {
             final var d = deployedDeploymentOptional.get();
             if (d.getStatus() != null && d.getStatus().getReadyReplicas() != null && d.getStatus().getReadyReplicas() == 1) {
                 removeScheduledTasks(project);
-                final var result = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.READY);
-                projectWebSocket.send(project.id, WebSocketMessage.fromEntity(-1, "project:podDeploymentStatus", result));
-                return result;
+                final var status = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.READY);
+                projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
+                return status;
             }
         }
 
@@ -73,42 +74,62 @@ public class ProjectDeploymentService {
             client.persistentVolumes().create(persistentVolume.getResource());
         }
 
-        client.services().create(service.getResource());
+        final var editorService = client.services().create(service.getResource());
         final var editorPod = client.apps().statefulSets().create(deployment.getResource());
         client.network().ingress().create(ingress.getResource());
 
         final var status = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.DEPLOYING);
-        projectWebSocket.send(project.id, WebSocketMessage.fromEntity(-1, "project:podDeploymentStatus", status));
+        projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
 
-        WaitUtils.asyncWaitUntil(
-                vertx,
-                () -> isReady(editorPod),
-                () -> {
-                    // TODO wait until editor answers with status 200 instead of 503
-                    final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.READY);
-                    CDIUtils.getBean(ProjectWebSocket.class).send(project.id, WebSocketMessage.fromEntity(-1, "project:podDeploymentStatus", s2));
-                },
-                () -> {
-                    final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.FAILED);
-                    CDIUtils.getBean(ProjectWebSocket.class).send(project.id, WebSocketMessage.fromEntity(-1, "project:podDeploymentStatus", s2));
-                },
-                Duration.ofMinutes(1),
-                Duration.ofSeconds(1)
-        );
+        waitUntilEditorPodIsReady(project, editorPod, editorService, ingress);
 
         return status;
     }
 
-    private boolean isReady(StatefulSet statefulSet) {
-        final var s = client.apps().statefulSets().list().getItems().stream()
-                .filter(s2 -> s2.getMetadata().getName().equals(statefulSet.getMetadata().getName()))
-                .findFirst();
+    private void waitUntilEditorPodIsReady(PyroProjectDB project, StatefulSet editorPod, Service editorService, ProjectK8SIngress ingress) {
+        WaitUtils.asyncWaitUntil(
+                vertx,
+                () -> {
+                    final var s = client.apps().statefulSets().list().getItems().stream()
+                            .filter(s2 -> s2.getMetadata().getName().equals(editorPod.getMetadata().getName()))
+                            .findFirst();
 
-        if (s.isEmpty() || s.get().getStatus() == null || s.get().getStatus().getReadyReplicas() == null) {
-            return false;
-        } else {
-            return s.get().getStatus().getReadyReplicas() == 1;
-        }
+                    if (s.isEmpty() || s.get().getStatus() == null || s.get().getStatus().getReadyReplicas() == null) {
+                        return false;
+                    } else {
+                        return s.get().getStatus().getReadyReplicas() == 1;
+                    }
+                },
+                () -> {
+                    final var webClient = WebClient.create(vertx);
+                    waitUntilEditorIsReady(webClient, project, editorService, ingress);
+                },
+                () -> {
+                    final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.FAILED);
+                    CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+                },
+                Duration.ofMinutes(1),
+                Duration.ofSeconds(1)
+        );
+    }
+
+    private void waitUntilEditorIsReady(WebClient webClient, PyroProjectDB project, Service service, ProjectK8SIngress ingress) {
+        WaitUtils.asyncWaitUntil(
+                vertx,
+                webClient.get(service.getSpec().getPorts().get(0).getPort(), service.getSpec().getClusterIP(), "")
+                        .send()
+                        .map(res -> res.statusCode() == 200),
+                () -> {
+                    final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.READY);
+                    CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+                },
+                () -> {
+                    final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.FAILED);
+                    CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+                },
+                Duration.ofMinutes(1),
+                Duration.ofSeconds(1)
+        );
     }
 
     public void stop(PyroProjectDB project) {

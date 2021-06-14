@@ -16,6 +16,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import info.scce.cincocloud.core.rest.types.PyroProjectDeployment;
 import info.scce.cincocloud.core.rest.types.PyroUser;
 import info.scce.cincocloud.db.PyroUserDB;
 import info.scce.cincocloud.db.StopProjectPodsTask;
@@ -29,6 +30,21 @@ public class ProjectWebSocket {
 
     static final String userIdKey = "user_id";
     private static final Logger LOGGER = Logger.getLogger(ProjectWebSocket.class.getName());
+
+    public static class Messages {
+
+        public static WebSocketMessage updateUserList(Long senderId, List<PyroUser> users) {
+            return WebSocketMessage.fromEntity(senderId, "project:updateUserList", users);
+        }
+
+        public static WebSocketMessage removeUser(Long senderId, Long idOfUserToRemove) {
+            return WebSocketMessage.fromEntity(senderId, "project:removeUser", idOfUserToRemove);
+        }
+
+        public static WebSocketMessage podDeploymentStatus(PyroProjectDeployment deployment) {
+            return WebSocketMessage.fromEntity(-1, "project:podDeploymentStatus", deployment);
+        }
+    }
 
     @Inject
     ProjectRegistry projectRegistry;
@@ -66,7 +82,7 @@ public class ProjectWebSocket {
                     e.printStackTrace();
                 }
             });
-            projectRegistry.send(clientId, WebSocketMessage.fromEntity(user.id, "project:updateUserList", users));
+            projectRegistry.send(clientId, Messages.updateUserList(user.id, users));
         });
     }
 
@@ -84,7 +100,7 @@ public class ProjectWebSocket {
         long userId = (long) session.getUserProperties().get(userIdKey);
         this.projectRegistry.getCurrentOpenSockets().forEach((projectId, sessionMap) -> {
             if (sessionMap.containsKey(userId)) {
-                projectRegistry.send(projectId, WebSocketMessage.fromEntity(userId, "project:removeUser", userId));
+                projectRegistry.send(projectId, Messages.removeUser(userId, userId));
                 sessionMap.remove(userId);
 
                 // no user is active on project -> schedule pods for removal
