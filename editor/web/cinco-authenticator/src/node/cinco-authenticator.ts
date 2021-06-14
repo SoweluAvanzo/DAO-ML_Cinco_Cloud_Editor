@@ -124,7 +124,7 @@ function block(res: any): void {
 
 function getCincoCloudHost(): string {
     const cincocloudHost = process.env.CINCO_CLOUD_HOST;
-    return cincocloudHost ? cincocloudHost : 'google';
+    return cincocloudHost ? cincocloudHost : 'cinco-cloud';
 }
 
 function getCincoCloudPort(): string {
