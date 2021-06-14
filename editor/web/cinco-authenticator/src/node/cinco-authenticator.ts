@@ -129,7 +129,7 @@ function getCincoCloudHost(): string {
 
 function getCincoCloudPort(): string {
     const cincocloudPort = process.env.CINCO_CLOUD_PORT;
-    return cincocloudPort ? cincocloudPort : '8080';
+    return cincocloudPort ? cincocloudPort : '8000';
 }
 
 function getCincoCloudPath(): string {

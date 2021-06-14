@@ -2,6 +2,7 @@ package info.scce.cincocloud.k8s;
 
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSourceBuilder;
@@ -99,6 +100,16 @@ public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
                                                     .withName("pv-data")
                                                     .withMountPath("/editor/workspace")
                                                     .build())
+                                            .withEnv(
+                                                    new EnvVarBuilder()
+                                                            .withName("CINCO_CLOUD_HOST")
+                                                            .withValue("main-service")
+                                                            .build(),
+                                                    new EnvVarBuilder()
+                                                            .withName("CINCO_CLOUD_PORT")
+                                                            .withValue("8000")
+                                                            .build()
+                                            )
                                             .build())
                                     .withVolumes(new VolumeBuilder()
                                             .withName("pv-data")

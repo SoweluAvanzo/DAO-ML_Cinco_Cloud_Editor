@@ -2,7 +2,6 @@ import 'package:angular/angular.dart';
 import 'package:angular/security.dart';
 import 'dart:html';
 import 'dart:convert';
-import 'dart:html';
 import 'package:angular_router/angular_router.dart';
 
 import '../../routes.dart' as top_routes;
@@ -64,7 +63,6 @@ class ProjectComponent implements OnActivate, OnDeactivate {
           _projectService.deploy(project).then((d) {
             deployment = d;
             window.console.log("deploy project");
-            window.console.log(deployment);
           }).catchError((err) {
             window.console.log(err);
           });
@@ -99,7 +97,6 @@ class ProjectComponent implements OnActivate, OnDeactivate {
 
         projectWebSocket.onMessage.listen((MessageEvent e) {
           window.console.debug("[PYRO] onMessage Project Websocket");
-          window.console.log(e.data);
 
           var message = jsonDecode(e.data);
           switch(message['event']) {
@@ -122,5 +119,5 @@ class ProjectComponent implements OnActivate, OnDeactivate {
     });
   }
 
-  SafeResourceUrl get editorUrl => _domSanitizationService.bypassSecurityTrustResourceUrl(deployment.url);
+  SafeResourceUrl get editorUrl => _domSanitizationService.bypassSecurityTrustResourceUrl(deployment.url + '?jwt=' + window.localStorage['pyro_token']);
 }

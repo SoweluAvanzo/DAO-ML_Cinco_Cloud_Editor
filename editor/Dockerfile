@@ -20,6 +20,8 @@ RUN yarn
 # --------------------------------
 FROM docker.io/library/openjdk:11.0.11-slim-buster
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
+ENV CINCO_CLOUD_HOST=cinco-cloud
+ENV CINCO_CLOUD_PORT=80
 # make readable for root only
 RUN chmod -R 750 /var/run/
 WORKDIR /editor
@@ -48,4 +50,4 @@ RUN mkdir /editor/workspace
 VOLUME /editor/workspace
 EXPOSE 3000
 CMD cd /editor/browser-app && \
-    yarn run theia start --port=3000 --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
+    CINCO_CLOUD_HOST="${CINCO_CLOUD_HOST}" CINCO_CLOUD_PORT="${CINCO_CLOUD_PORT}" yarn run theia start --port=3000 --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
