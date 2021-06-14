@@ -4,7 +4,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "setNode",
+      "label": "checkNode",
       "type": "shell",
       "command": "node --version",
       "problemMatcher": []

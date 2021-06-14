@@ -1,5 +1,5 @@
 /* eslint-disable header/header */
-import { ILogger, MaybePromise } from '@theia/core';
+import { ILogger, logger, MaybePromise } from '@theia/core';
 import { BackendApplicationContribution } from '@theia/core/lib/node';
 import { ApplicationPackage } from '@theia/application-package';
 import { inject, injectable } from 'inversify';
@@ -47,28 +47,91 @@ export class CincoAuthenticator implements BackendApplicationContribution {
     }
 }
 
-function authenticationFilter(req: any, res: any, next: any): void {
-    const query = req.query;
-    const jwt = query.jwt;
+async function authenticationFilter(req: any, res: any, next: any): Promise<void> {
+    if (await authenticateJWT(req, res)) {
+        next();
+    }
+}
 
+async function authenticateJWT(req: any, res: any): Promise<boolean> {
+    const query = req.query;
+    let jwt = query.jwt;
+
+    // fallback to referer
     if (!query || !jwt) {
         const headers = req.headers;
         const referer = new URI(headers.referer);
         const fallbackQuery = referer?.query;
         const fallbackToken = querystring.parse(fallbackQuery);
-
-        if (!referer || !fallbackToken || !fallbackToken.jwt) {
-            block(res);
-        }
+        jwt = fallbackToken?.jwt;
     }
-    authenticateJWT(res);
-    next();
+    if (!jwt || !await validateJWT(jwt, res)) {
+        block(res);
+        return false;
+    }
+    return true;
+}
+
+async function validateJWT(jwt: any, res: any): Promise<boolean> {
+    // logger.info(LOG_NAME + 'jwt = ' + jwt);
+    return new Promise<boolean>((resolve, reject) => {
+
+        // connect to master app and check jwt-token:
+        // http://cinco-cloud/api/user/current/private
+        const options = { // TODO: parameterize
+            hostname: getCincoCloudHost(),
+            port: getCincoCloudPort(),
+            path: getCincoCloudPath(),
+            method: 'GET',
+            'headers': {
+                'Authorization': 'Bearer ' + jwt,
+                'Content-Type': 'application/json'
+            }
+        };
+        const request = http.get(options, (response: http.IncomingMessage) => {
+            if (response.statusCode === 200) {
+                return resolve(true);
+            }
+            return resolve(false);
+        });
+        request.addListener('error', (e: any) => {
+            // if request lead to an error
+            logger.error(LOG_NAME + `: ${e}`);
+            if (isDebugging()) {
+                return resolve(true);
+            }
+            return resolve(false);
+        });
+    });
+}
+
+/**
+ * If this is executed as a child of the vscode terminal process,
+ * it ignores authentification-failures, for easier development.
+ */
+function isDebugging(): boolean {
+    const env = process.env.TERM_PROGRAM;
+    if (env === 'vscode') {
+        logger.info(LOG_NAME + ': debugging mode on - allow access without authentification');
+        return true;
+    }
+    return false;
 }
 
 function block(res: any): void {
-    // res.send(403);
+    res.send(403);
 }
 
-function authenticateJWT(res: any): void {
-    // res.send(200);
+function getCincoCloudHost(): string {
+    const cincocloudHost = process.env.CINCO_CLOUD_HOST;
+    return cincocloudHost ? cincocloudHost : 'google';
+}
+
+function getCincoCloudPort(): string {
+    const cincocloudPort = process.env.CINCO_CLOUD_PORT;
+    return cincocloudPort ? cincocloudPort : '8080';
+}
+
+function getCincoCloudPath(): string {
+    return '/api/user/current/private';
 }
