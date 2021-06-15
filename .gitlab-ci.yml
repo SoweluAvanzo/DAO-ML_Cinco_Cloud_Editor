@@ -39,9 +39,11 @@ build-main:
     IMAGE: main
     VERSION: latest
     MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+    PUB_CACHE: "./.pub-cache/"
   cache:
     paths:
       - ./.m2/repository/
+      - ./.pub-cache/
   only:
     - master
 
