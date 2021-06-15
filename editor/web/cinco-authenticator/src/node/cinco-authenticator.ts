@@ -56,23 +56,25 @@ async function authenticationFilter(req: any, res: any, next: any): Promise<void
 async function authenticateJWT(req: any, res: any): Promise<boolean> {
     const query = req.query;
     let jwt = query.jwt;
+    let projectId = query.projectId;
 
     // fallback to referer
-    if (!query || !jwt) {
+    if (!query || !jwt || !projectId) {
         const headers = req.headers;
         const referer = new URI(headers.referer);
         const fallbackQuery = referer?.query;
         const fallbackToken = querystring.parse(fallbackQuery);
         jwt = fallbackToken?.jwt;
+        projectId = fallbackToken?.projectId;
     }
-    if (!jwt || !await validateJWT(jwt, res)) {
+    if (!jwt || !projectId || !await validateJWT(jwt, projectId, res)) {
         block(res);
         return false;
     }
     return true;
 }
 
-async function validateJWT(jwt: any, res: any): Promise<boolean> {
+async function validateJWT(jwt: any, projectId: any, res: any): Promise<boolean> {
     // logger.info(LOG_NAME + 'jwt = ' + jwt);
     return new Promise<boolean>((resolve, reject) => {
 
@@ -81,7 +83,7 @@ async function validateJWT(jwt: any, res: any): Promise<boolean> {
         const options = { // TODO: parameterize
             hostname: getCincoCloudHost(),
             port: getCincoCloudPort(),
-            path: getCincoCloudPath(),
+            path: getCincoCloudPath(projectId),
             method: 'GET',
             'headers': {
                 'Authorization': 'Bearer ' + jwt,
@@ -124,7 +126,7 @@ function block(res: any): void {
 
 function getCincoCloudHost(): string {
     const cincocloudHost = process.env.CINCO_CLOUD_HOST;
-    return cincocloudHost ? cincocloudHost : 'cinco-cloud';
+    return cincocloudHost ? cincocloudHost : 'main-service';
 }
 
 function getCincoCloudPort(): string {
@@ -132,6 +134,6 @@ function getCincoCloudPort(): string {
     return cincocloudPort ? cincocloudPort : '8000';
 }
 
-function getCincoCloudPath(): string {
-    return '/api/user/current/private';
+function getCincoCloudPath(projectId: any): string {
+    return '/api/project/' + projectId;
 }
