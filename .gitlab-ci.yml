@@ -38,12 +38,6 @@ build-main:
   variables:
     IMAGE: main
     VERSION: latest
-    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
-    PUB_CACHE: "./.pub-cache/"
-  cache:
-    paths:
-      - ./.m2/repository/
-      - ./.pub-cache/
   only:
     - master
 
@@ -76,10 +70,10 @@ build-editor:
   variables:
     IMAGE: editor
     VERSION: latest
-    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
   cache:
     paths:
-      - ./.m2/repository/
+      - /editor/node_modules/
+      - /editor/browser-app/node_modules/
   only:
     - master
 

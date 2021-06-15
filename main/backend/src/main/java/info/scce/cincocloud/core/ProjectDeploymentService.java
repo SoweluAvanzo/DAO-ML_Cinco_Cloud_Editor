@@ -118,7 +118,7 @@ public class ProjectDeploymentService {
                 vertx,
                 webClient.get(service.getSpec().getPorts().get(0).getPort(), service.getSpec().getClusterIP(), "")
                         .send()
-                        .map(res -> res.statusCode() == 200),
+                        .map(res -> res.statusCode() == 200 || res.statusCode() == 403),
                 () -> {
                     final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.READY);
                     CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
