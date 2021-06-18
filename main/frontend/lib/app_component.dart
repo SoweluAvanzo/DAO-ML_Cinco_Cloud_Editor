@@ -33,14 +33,3 @@ class AppComponent {
 		});
 	}
 }
-
-@Component(
-    selector: 'not-found',
-    template: '''
-		<h1 class="form-signin-heading" style="margin:50px;" >:(</h1>
-		<div class="alert alert-danger" style="margin:50px;">
-		    Sry, there is nothing to see here.
-		</div>
-    '''
-)
-class NotFoundComponent {}

@@ -40,8 +40,7 @@ class LoginComponent implements OnInit{
 			requestHeaders: _userService.requestHeaders,
 			sendData: jsonEncode(body)
 		).then((response) {
-			window.localStorage['pyro_token'] =
-			jsonDecode(response.responseText)['token'];
+			window.localStorage['pyro_token'] = jsonDecode(response.responseText)['token'];
 			correct = true;
 			fetchUser();
 		}).catchError((e) {
@@ -52,14 +51,13 @@ class LoginComponent implements OnInit{
 	fetchUser() {
 		return _userService.fetchUser()
 			.then((u){
-		    	if(window.localStorage.containsKey('pyro_redirect') && window.localStorage['pyro_redirect'] != null) {
-		    		var url = window.localStorage['pyro_redirect'];
-		    		window.localStorage.remove('pyro_redirect');
-		    		
-		    		window.location.href = url;
-		    	} else {
-		    		_router.navigate(Routes.organizations.toUrl());    	
-		    	}
-		    }).catchError((_) {correct = !tried;});
+				var redirectUrl = window.localStorage['pyro_redirect'];
+				if (redirectUrl != null && redirectUrl.trim() != "" && !redirectUrl.endsWith("/home/login")) {
+					window.localStorage.remove('pyro_redirect');
+					window.location.href = redirectUrl;
+				} else {
+					_router.navigate(Routes.organizations.toUrl());
+				}
+			}).catchError((_) {correct = !tried;});
 		}
 	}

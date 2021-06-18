@@ -1,4 +1,4 @@
-name: FlowGraphTool
+name: CincoCloud
 description: The frontend for the Cinco Cloud main app
 version: 0.0.1
 environment:
@@ -8,7 +8,6 @@ dependencies:
   angular_forms: ^2.1.0
   angular_router: ^2.0.0-alpha+20
   ng_bootstrap: ^1.1.1
-  dnd: ^1.4.2
 dev_dependencies:
   protobuf: 0.13.15
   build_runner: 1.6.9
