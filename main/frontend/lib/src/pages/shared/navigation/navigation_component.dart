@@ -25,11 +25,16 @@ class NavigationComponent {
   
   @Input("user")
   PyroUser currentUser;
+
+  @Input("organization")
+  PyroOrganization currentOrganization;
   
   NavigationComponent(this._router, this._styleService) {
   }
   
   bool get isAdmin => currentUser != null && currentUser.systemRoles.contains(PyroSystemRole.ADMIN);
+
+  String get organizationUrl => top_routes.RoutePaths.organization.toUrl(parameters: {'orgId': currentOrganization.id.toString()});
   
   PyroStyle get style => _styleService.style;
 }

@@ -24,6 +24,10 @@
           <a [routerLinkActive]="'active'" [routerLink]="top_routes.RoutePaths.organizations.toUrl()"
              class="nav-link org-nav-text-color">Organizations</a>
         </li>
+        <li class="nav-item" *ngIf="currentOrganization != null">
+          <a [routerLinkActive]="'active'" [routerLink]="organizationUrl"
+             class="nav-link org-nav-text-color">Projects</a>
+        </li>
       </ul>
 
       <div class="w-100">

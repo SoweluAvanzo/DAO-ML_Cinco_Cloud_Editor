@@ -119,5 +119,7 @@ class ProjectComponent implements OnActivate, OnDeactivate {
     });
   }
 
+  PyroOrganization get organization => project == null ? null : project.organization;
+
   SafeResourceUrl get editorUrl => _domSanitizationService.bypassSecurityTrustResourceUrl(deployment.url + '?jwt=' + window.localStorage['pyro_token'] + "&projectId=" + project.id.toString());
 }
