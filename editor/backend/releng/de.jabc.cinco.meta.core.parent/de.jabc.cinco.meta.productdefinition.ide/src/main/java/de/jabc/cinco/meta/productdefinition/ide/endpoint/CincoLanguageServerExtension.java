@@ -1,18 +1,29 @@
 package de.jabc.cinco.meta.productdefinition.ide.endpoint;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.lsp4j.WorkspaceFolder;
 import org.eclipse.xtext.ide.server.ILanguageServerAccess;
 import org.eclipse.xtext.ide.server.ILanguageServerExtension;
+import org.eclipse.xtext.workspace.IProjectConfigProvider;
+
+import com.google.inject.Inject;
 
 import de.jabc.cinco.meta.productdefinition.ide.endpoint.messages.GenerateRequest;
 import de.jabc.cinco.meta.productdefinition.ide.endpoint.messages.GenerateResponse;
 import de.jabc.cinco.meta.productdefinition.ide.endpoint.parser.ParserHelper;
+import mgl.MGLModel;
+import productDefinition.CincoProduct;
+import de.jabc.cinco.meta.core.utils.IWorkspaceContext;
+import de.jabc.cinco.meta.core.utils.WorkspaceContext;
+import de.jabc.cinco.meta.plugin.pyro.CreatePyroPlugin;
 import de.jabc.cinco.meta.productdefinition.ide.communication.LogHelper;
 import de.jabc.cinco.meta.productdefinition.ide.communication.StaticMessages;
 
@@ -26,6 +37,9 @@ import de.jabc.cinco.meta.productdefinition.ide.communication.StaticMessages;
 public class CincoLanguageServerExtension implements ILanguageServerExtension, GenerationEndpoint {
 
 	ILanguageServerAccess access;
+	
+	@Inject(optional = true)
+	IProjectConfigProvider projectConfigProvider;
 	
 	@Override
 	public void initialize(ILanguageServerAccess access) {
@@ -45,17 +59,38 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 		
 		// parse
 		LogHelper.log(access, "parsing resources...");
-		String cpdPath = request.getSourceURI();
+		String cpdPath = request.getSourceURI(); // TODO: use this
+		
 		Map<String, EObject> parsedResources = ParserHelper.getAllResources(this.access);
 		
 		List<WorkspaceFolder> workspaceFolders = this.getWorkspaceFolders(this.access);
 		WorkspaceFolder targetFolder = workspaceFolders.get(0); // TODO: set targetFolder
+
+		// prepare
+		List<CincoProduct> cpds = parsedResources.values().stream()
+				.filter((EObject e) -> e instanceof CincoProduct)
+				.map((m) -> (CincoProduct) m)
+				.collect(Collectors.toList()); 
+		Set<MGLModel> mgls = parsedResources.values().stream()
+				.filter((EObject e) -> e instanceof MGLModel)
+				.map((m) -> (MGLModel) m)
+				.collect(Collectors.toSet()); 
+		String projectLocation = org.eclipse.emf.common.util.URI.createURI(
+					targetFolder.getUri()
+				).toFileString();
+		CincoProduct cpd = cpds.get(0);
+		IWorkspaceContext.setLocalInstance(new WorkspaceContext(projectLocation, cpd.eResource().getResourceSet()));
+				
+		// execute generation
+		LogHelper.log(access, "starting pyro-generator...");
+		CreatePyroPlugin pyro = new CreatePyroPlugin();
+		try {
+			pyro.execute(mgls, projectLocation, cpd);
+		} catch (Exception e) {
+			e.printStackTrace();
+			LogHelper.logError(access, "An error occured during generation!");
+		}
 		
-		// TODO prepare resources + validation check
-		
-		// IF VALID
-		// TODO: execute generation
-		// LogHelper.log(access, "generating cinco-product...");
 		// TODO: deploy
 		// LogHelper.log(access, "deploying cinco-product...");
 		

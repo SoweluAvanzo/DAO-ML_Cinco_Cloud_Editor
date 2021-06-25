@@ -16,6 +16,14 @@ public class LogHelper {
 		log(access.getLanguageClient(), message, MessageType.Info);
 	}
 	
+	public static void log(ILanguageServerAccess access, String message, MessageType type) {
+		log(access.getLanguageClient(), message, type);
+	}
+	
+	public static void logError(ILanguageServerAccess access, String message) {
+		log(access.getLanguageClient(), message, MessageType.Error);
+	}
+	
 	public static void log(LanguageClient client, String message, MessageType type) {
 		var messageParams = new MessageParams();
 		messageParams.setMessage(prefixIdentifier + message);
