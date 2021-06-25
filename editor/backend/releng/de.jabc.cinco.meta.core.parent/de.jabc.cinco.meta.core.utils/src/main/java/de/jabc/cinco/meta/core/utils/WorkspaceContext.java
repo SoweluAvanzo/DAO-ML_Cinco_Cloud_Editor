@@ -12,7 +12,6 @@ import org.eclipse.xtext.workspace.IProjectConfig;
 import org.eclipse.xtext.workspace.IProjectConfigProvider;
 
 public class WorkspaceContext implements IWorkspaceContext {
-
     private ResourceSet resourceSet;
 	final URI rootURI;
 	

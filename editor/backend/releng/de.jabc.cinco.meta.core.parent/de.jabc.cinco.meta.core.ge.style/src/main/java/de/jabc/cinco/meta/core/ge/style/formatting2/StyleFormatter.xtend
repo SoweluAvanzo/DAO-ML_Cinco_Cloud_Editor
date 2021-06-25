@@ -3,8 +3,8 @@
  */
 package de.jabc.cinco.meta.core.ge.style.formatting2
 
-import com.google.inject.Inject
-import de.jabc.cinco.meta.core.ge.style.services.StyleGrammarAccess
+//import com.google.inject.Inject
+//import de.jabc.cinco.meta.core.ge.style.services.StyleGrammarAccess
 import org.eclipse.xtext.formatting2.AbstractFormatter2
 import org.eclipse.xtext.formatting2.IFormattableDocument
 import style.NodeStyle
@@ -12,7 +12,7 @@ import style.Styles
 
 class StyleFormatter extends AbstractFormatter2 {
 	
-	@Inject extension StyleGrammarAccess
+	// @Inject extension StyleGrammarAccess
 
 	def dispatch void format(Styles styles, extension IFormattableDocument document) {
 		// TODO: format HiddenRegions around keywords, attributes, cross references, etc. 

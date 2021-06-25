@@ -4,9 +4,7 @@ import java.util.LinkedHashSet;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.xtext.scoping.impl.ImportUriGlobalScopeProvider;
-import org.eclipse.xtext.workspace.IProjectConfig;
 import org.eclipse.xtext.workspace.IProjectConfigProvider;
 
 import com.google.inject.Inject;
@@ -24,14 +22,15 @@ public class MGLImportUriGlobalScopeProvider extends ImportUriGlobalScopeProvide
 	
 	@Override
 	protected LinkedHashSet<URI> getImportedUris(Resource resource) {
-		IWorkspaceContext workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, resource);
+		IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, resource));
+		IWorkspaceContext workspaceContext = IWorkspaceContext.getLocalInstance();
 		LinkedHashSet<URI> uris = super.getImportedUris(resource);
 		for (EObject o : resource.getContents()) {
 			if (o instanceof MGLModel) {
 				MGLModel gm = (MGLModel) o;
 				for (Import i : gm.getImports()) {
 					try {
-						boolean exists = PathValidator.checkPath(gm, i.getImportURI(), workspaceContext);
+						boolean exists = PathValidator.checkPath(gm, i.getImportURI());
 						if (!exists)
 							continue;
 						URI uri = workspaceContext.getFileURI(i.getImportURI());

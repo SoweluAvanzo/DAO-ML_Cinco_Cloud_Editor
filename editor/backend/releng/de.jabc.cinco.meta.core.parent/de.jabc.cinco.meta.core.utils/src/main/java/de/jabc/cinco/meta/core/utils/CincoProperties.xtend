@@ -68,9 +68,9 @@ class CincoProperties extends Properties {
 	/**
 	 * Load properties from properties file in the specified project.
 	 */
-	def load(IWorkspaceContext workspaceContext, String rootPath) {
+	def load(String rootPath) {
 		println("Loading Cinco Properties...")
-		val file = workspaceContext.getFile(PROPERTIES_FILE_NAME)
+		val file = IWorkspaceContext.getLocalInstance().getFile(PROPERTIES_FILE_NAME)
 		if (file.exists) { 
 			super.load(new FileInputStream(file))
 		}

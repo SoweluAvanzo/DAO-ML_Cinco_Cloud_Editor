@@ -34,6 +34,7 @@ import org.eclipse.xtext.scoping.impl.AbstractDeclarativeScopeProvider
 import com.google.inject.Inject
 import org.eclipse.xtext.workspace.IProjectConfigProvider
 import de.jabc.cinco.meta.core.utils.WorkspaceContext
+import de.jabc.cinco.meta.core.utils.IWorkspaceContext
 
 /**
  * This class contains custom scoping description.
@@ -84,8 +85,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		var scope = IScope.NULLSCOPE
 			var res = null as Resource
 				try{
-					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, refType.eResource);
-					res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource, workspaceContext)
+					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, refType.eResource));
+					res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource)
 				}catch(Exception e){
 					return null;
 				}
@@ -114,8 +115,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, refType);
-					res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource, workspaceContext)
+					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, refType));
+					res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource)
 				}catch(Exception e){
 					return scope
 				}
@@ -145,8 +146,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, graphModel);
-					res = CincoUtil::getResource(graphModel.imprt.importURI, graphModel.eResource, workspaceContext)
+					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, graphModel));
+					res = CincoUtil::getResource(graphModel.imprt.importURI, graphModel.eResource)
 				}catch(Exception e){
 					return null;
 				}
@@ -176,8 +177,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, node);
-					res = CincoUtil::getResource(node.imprt.importURI, node.eResource, workspaceContext)
+					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, node));
+					res = CincoUtil::getResource(node.imprt.importURI, node.eResource)
 				}catch(Exception e){
 					return null;
 				}
@@ -205,8 +206,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, nodeContainer);
-					res = CincoUtil::getResource(nodeContainer.imprt.importURI, nodeContainer.eResource, workspaceContext)
+					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, nodeContainer));
+					res = CincoUtil::getResource(nodeContainer.imprt.importURI, nodeContainer.eResource)
 				}catch(Exception e){
 					return null;
 				}
@@ -233,8 +234,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, edge);
-					res = CincoUtil::getResource(edge.imprt.importURI, edge.eResource, workspaceContext)
+					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, edge));
+					res = CincoUtil::getResource(edge.imprt.importURI, edge.eResource)
 				}catch(Exception e){
 					return null;
 				}
@@ -266,8 +267,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		} else {
 			var res = null as Resource
 			try {
-				val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, referencedImport);
-				res = CincoUtil::getResource(referencedImport.importURI, referencedImport.eResource, workspaceContext)
+				IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, referencedImport));
+				res = CincoUtil::getResource(referencedImport.importURI, referencedImport.eResource)
 			} catch(Exception e) {
 				return null;
 			}
@@ -327,8 +328,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		} else {
 			var res = null as Resource
 			try {
-				val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, referencedImport);
-				res = CincoUtil::getResource(referencedImport.importURI, referencedImport.eResource, workspaceContext)
+			IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, referencedImport));
+				res = CincoUtil::getResource(referencedImport.importURI, referencedImport.eResource)
 			} catch(Exception e) {
 				return null;
 			}

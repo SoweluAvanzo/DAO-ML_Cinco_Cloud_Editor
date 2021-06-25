@@ -620,11 +620,11 @@ class MGLUtil {
 	 * This methods retrieves all images used in the MGL and Style specification.
 	 * 
 	 * @param gm the {@link GraphModel} which should be searched for images
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return a {@link HashMap} containing the defined path in the meta description as a {@link String} and the {@link URL} of the 
 	 * actual image file.
 	 */
-	def static HashMap<String, URI> getAllImages(GraphModel gm, IWorkspaceContext workspaceContext) {
+	def static HashMap<String, URI> getAllImages(GraphModel gm) {
+		val workspaceContext = IWorkspaceContext.getLocalInstance();
 		var HashMap<String, URI> paths = new HashMap()
 		var URI uri = null
 		for (var TreeIterator<EObject> it = gm.eResource().getAllContents(); it.hasNext();) {
@@ -649,7 +649,7 @@ class MGLUtil {
 				}
 			}
 		}
-		var Styles styles = CincoUtil::getStyles(gm.eContainer as MGLModel, workspaceContext)
+		var Styles styles = CincoUtil::getStyles(gm.eContainer as MGLModel)
 		for (var TreeIterator<EObject> it = styles.eResource().getAllContents(); it.hasNext();) {
 			var EObject o = it.next()
 			if (o instanceof Image) {
@@ -1395,12 +1395,8 @@ class MGLUtil {
 		}
 	}
 	
-	dispatch def static MGLModel mglModel(Import imprt, IWorkspaceContext workspaceContext) {
-		CincoUtil.getImportedMGLModel(imprt, workspaceContext)
-	}
-	
-	dispatch def static MGLModel mglModel(EObject object, IWorkspaceContext workspaceContext) {
-		object.mglModel
+	dispatch def static MGLModel mglModel(Import imprt) {
+		CincoUtil.getImportedMGLModel(imprt)
 	}
 	
 	dispatch def static MGLModel mglModel(MGLModel mglModel){

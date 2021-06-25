@@ -4,6 +4,7 @@ import java.io.File;
 import org.eclipse.emf.common.util.URI;
 
 public interface IWorkspaceContext {
+	static ThreadLocal<IWorkspaceContext> threadLocal_workspaceContext = new ThreadLocal<>();
 
 	public URI getFileURI(String relativePath);
 	public URI getFileURI(URI relativePath);
@@ -21,4 +22,20 @@ public interface IWorkspaceContext {
 	public boolean isContainedInRoot(String absolutePath);
 	public boolean isContainedInRoot(URI uri);
 	public boolean isContainedInRoot(File file);
+	
+	/**
+	 * This will be called by the util-methods
+	 * @return workspaceContext
+	 */
+	public static IWorkspaceContext getLocalInstance() {
+		return threadLocal_workspaceContext.get();
+	}
+	
+	/**
+	 * This needs to be setup for utils to work
+	 * @param workspaceContext
+	 */
+	public static void setLocalInstance(IWorkspaceContext workspaceContext) {
+		threadLocal_workspaceContext.set(workspaceContext);
+	}
 }

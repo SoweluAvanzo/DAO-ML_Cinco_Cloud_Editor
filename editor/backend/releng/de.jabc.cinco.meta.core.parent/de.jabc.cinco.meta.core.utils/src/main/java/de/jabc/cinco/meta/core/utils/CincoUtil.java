@@ -1,13 +1,7 @@
 package de.jabc.cinco.meta.core.utils;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,18 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
-/*
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
-*/
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.codegen.ecore.genmodel.GenPackage;
 import org.eclipse.emf.common.util.EList;
@@ -37,15 +19,6 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.xtext.util.StringInputStream;
-import org.eclipse.xtext.workspace.IProjectConfigProvider;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-/*
-import de.jabc.cinco.meta.runtime.xapi.ResourceExtension;
-import de.jabc.cinco.meta.util.xapi.FileExtension;
-import de.jabc.cinco.meta.util.xapi.WorkspaceExtension;
-*/
 import mgl.Annotatable;
 import mgl.Annotation;
 import mgl.Attribute;
@@ -379,19 +352,18 @@ public class CincoUtil {
 	 * Returns the {@link Resource} representing the style file reachable under the provided <code>pathToStyles</code>.
 	 * If no file can be found <code>null</code> is returned.
 	 * 
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @param pathToStyles	a {@link String} that states the path to the desired style file
 	 * @return	the {@link Resource} which represent the style file at the provided <code>pathToStyles</code>.
 	 * 			Returns <code>null</code> if no such Resource is available
 	 */
-	public static Resource getStylesResource(IWorkspaceContext workspaceContext, String pathToStyles) {
+	public static Resource getStylesResource(String pathToStyles) {
 		Resource res = null;
 		URI uri = URI.createURI(pathToStyles, true);
 		try {
 			if (uri.isPlatformResource())
 				res = new ResourceSetImpl().getResource(uri, true);
 			else {
-				File file = workspaceContext.getFile(pathToStyles);
+				File file = IWorkspaceContext.getLocalInstance().getFile(pathToStyles);
 				URI fileURI = URI.createPlatformResourceURI(file.getAbsolutePath(), true);
 				res = new ResourceSetImpl().getResource(fileURI, true);
 			}
@@ -407,15 +379,14 @@ public class CincoUtil {
 	 * If no {@link Styles} object can be found <code>null</code> is returned instead.
 	 * 
 	 * @param model the {@link MGLModel} or the {@link GraphModel} the {@link Styles} object should be returned
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return	a {@link Styles} object that is used in <code>graphModel</code>'s {@link MGLModel} to define appearances
 	 * @see	#getStyles(MGLModel)
 	 */
-	public static Styles getStyles(EObject model, IWorkspaceContext workspaceContext) {
+	public static Styles getStyles(EObject model) {
 		if(model instanceof MGLModel) {
-			return getStyles((MGLModel) model, workspaceContext);
+			return getStyles((MGLModel) model);
 		} else if(model instanceof GraphModel) {
-			return getStyles((MGLModel) model.eContainer(), workspaceContext);
+			return getStyles((MGLModel) model.eContainer());
 		}
 		throw new RuntimeException("model is neither an MGLModel nor a GraphModel.");
 	}
@@ -425,20 +396,19 @@ public class CincoUtil {
 	 * If no {@link Styles} object can be found <code>null</code> is returned instead.
 	 * 
 	 * @param mgl the {@link MGLModel} for which the used {@link Styles} object should be returned
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return	a {@link Styles} object that is used in the provided <code>mgl</code>. <code>null</code> if no {@link Styles} is in use
 	 */
-	public static Styles getStyles(MGLModel mgl, IWorkspaceContext workspaceContext) {
+	public static Styles getStyles(MGLModel mgl) {
 		String path = mgl.getStylePath();
 		if (path.length() > 0) {
-			URI uri = workspaceContext.getFileURI(path);
+			URI uri = IWorkspaceContext.getLocalInstance().getFileURI(path);
 			try {
 				Resource res = null;
 				if (uri.isPlatformResource()) {
 					res = new ResourceSetImpl().getResource(uri, true);
 				}
 				else {
-					File file = workspaceContext.getFile(mgl.eResource().getURI());
+					File file = IWorkspaceContext.getLocalInstance().getFile(mgl.eResource().getURI());
 					if (file.exists()) {
 						URI fileURI = URI.createPlatformResourceURI(file.getAbsolutePath(), true);
 						res = new ResourceSetImpl().getResource(fileURI, true);
@@ -464,15 +434,14 @@ public class CincoUtil {
 	 * Returns whether the provided <code>modelElement</code> uses a style which contains a reference to an apperance provider.
 	 * If no style is in use at the provided <code>modelElement</code> <code>false</code> is returned.
 	 * 
-	 * @param modelElement	the {@link ModelElement} for which its used {@link Style} should be checked for usages of appearance providers 
-	 * @param workspaceContext is the workspaceContext containing project-specific information
+	 * @param modelElement	the {@link ModelElement} for which its used {@link Style} should be checked for usages of appearance providers
 	 * @return	returns <code>true</code> if the <code>modelElement</code>'s {@link Style} in use contains an appearance provider.
 	 * 			Returns <code>false</code> if not or if the <code>modelElement</code> has no style in use
 	 * @see #getAppearanceProvider(ModelElement)
 	 * @see #getStyleForModelElement(ModelElement, Styles)
 	 */
-	public static boolean hasAppearanceProvider(ModelElement modelElement, IWorkspaceContext workspaceContext) {
-		Style style = getStyleForModelElement(modelElement, getStyles(MGLUtil.mglModel(modelElement), workspaceContext));
+	public static boolean hasAppearanceProvider(ModelElement modelElement) {
+		Style style = getStyleForModelElement(modelElement, getStyles(MGLUtil.mglModel(modelElement)));
 		return style != null ? style.getAppearanceProvider() != null && !style.getAppearanceProvider().isEmpty() : false;
 	}
 	
@@ -481,14 +450,13 @@ public class CincoUtil {
 	 * If no style is in use at the provided <code>modelElement</code> or no appearance provider is used an empty string is returned.
 	 * 
 	 * @param modelElement	the {@link ModelElement} for which its used {@link Style}'s appearance provider fully qualified name should be returned
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return	a {@link String} that represents the fully qualified name of the <code>modelElement</code>'s style appearance provider if available.
 	 * 			If not an empty {@link String} is returned
 	 * @see #hasAppearanceProvider(ModelElement)
 	 * @see #getStyleForModelElement(ModelElement, Styles)
 	 */
-	public static String getAppearanceProvider(ModelElement modelElement, IWorkspaceContext workspaceContext) {
-		Style style = getStyleForModelElement(modelElement, getStyles(MGLUtil.mglModel(modelElement), workspaceContext));
+	public static String getAppearanceProvider(ModelElement modelElement) {
+		Style style = getStyleForModelElement(modelElement, getStyles(MGLUtil.mglModel(modelElement)));
 		return style != null ? style.getAppearanceProvider().replaceAll("\\\"", "") : "";
 	}
 	
@@ -661,22 +629,21 @@ public class CincoUtil {
 	 * If no imports are used or no import uses any file extension an empty {@link List} is returned instead.
 	 * 
 	 * @param graphModel	the {@link GraphModel} for which's {@link MGLModel} all imported file extensions should be returned
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return	a {@link List} that contains all file extensions as {@link String Strings} that are either used in any 
 	 * 			{@link GraphModel} present in an imported {@link MGLModel} or in any imported ecore model. The {@link List}
 	 * 			is empty if no import exists or no imports possesses any file extension
 	 */
-	public static List<String> getUsedExtensions(GraphModel graphModel, IWorkspaceContext workspaceContext) {
+	public static List<String> getUsedExtensions(GraphModel graphModel) {
 		List<String> extensions = new ArrayList<>();
 		for (Import i : MGLUtil.mglModel(graphModel).getImports()) {
 			if (i.getImportURI().endsWith(".mgl")) {
-				List<GraphModel> gm = getImportedGraphModels(i, workspaceContext);
+				List<GraphModel> gm = getImportedGraphModels(i);
 				for (GraphModel n : gm) {
 					extensions.add(n.getFileExtension());
 				}
 			}
 			if (i.getImportURI().endsWith(".ecore")) {
-				GenModel gm = getImportedGenmodel(i, workspaceContext);
+				GenModel gm = getImportedGenmodel(i);
 				extensions.add(getFileExtension(gm));
 			}
 		}
@@ -690,16 +657,15 @@ public class CincoUtil {
 	 * If <code>imprt</code> imports a {@link MGLModel} instead, <code>null</code> is returned. 
 	 * 
 	 * @param imprt	the {@link Import} for which the matching {@link GenModel} should be returned
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return	the {@link GenModel} that matches the ecore model <code>imprt</code> imports
 	 */
-	public static GenModel getImportedGenmodel(Import imprt, IWorkspaceContext workspaceContext) {
+	public static GenModel getImportedGenmodel(Import imprt) {
 		String importURI = imprt.getImportURI();
 		if(importURI.endsWith(".ecore")) {
 			String uriString = imprt.getImportURI();
 			URI uri = URI.createURI(FilenameUtils.removeExtension(uriString).concat(".genmodel"));
-			uri = workspaceContext.getFileURI(uri);
-			return workspaceContext.getContent(uri, GenModel.class);
+			uri = IWorkspaceContext.getLocalInstance().getFileURI(uri);
+			return IWorkspaceContext.getLocalInstance().getContent(uri, GenModel.class);
 		} else {
 			return null;
 		}
@@ -710,27 +676,25 @@ public class CincoUtil {
 	 * Returns <code>null</code> if the import doesn't reference a MGL model.
 	 * 
 	 * @param imprt	the {@link Import} from which the referenced {@link MGLModel} should be returned
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return	the {@link MGLModel} referenced in the provided <code>imprt</code>, <code>null</code>
 	 * 			if no {@link MGLModel} is referenced
 	 */
-	public static MGLModel getImportedMGLModel(Import imprt, IWorkspaceContext workspaceContext) {
+	public static MGLModel getImportedMGLModel(Import imprt) {
 		String uriString = imprt.getImportURI();
-		URI uri = workspaceContext.getFileURI(uriString);
-		return workspaceContext.getContent(uri, MGLModel.class);
+		URI uri = IWorkspaceContext.getLocalInstance().getFileURI(uriString);
+		return IWorkspaceContext.getLocalInstance().getContent(uri, MGLModel.class);
 	}
 
 	/**
 	 * Returns <strong>only the first</strong> {@link GraphModel} defined in the {@link MGLModel} referenced by the provided <code>imprt</code>.
 	 * 
 	 * @param imprt	the {@link Import} that references the {@link MGLModel} of which the first defined {@link GraphModel} should be returned form
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return	the first {@link GraphModel} that is defined in the {@link MGLModel} <code>imprt</code> references 
 	 */
-	public static GraphModel getImportedGraphModel(Import imprt, IWorkspaceContext workspaceContext) {
+	public static GraphModel getImportedGraphModel(Import imprt) {
 		String uriString = imprt.getImportURI();
-		URI uri = workspaceContext.getFileURI(uriString);
-		return workspaceContext.getContent(uri, GraphModel.class);
+		URI uri = IWorkspaceContext.getLocalInstance().getFileURI(uriString);
+		return IWorkspaceContext.getLocalInstance().getContent(uri, GraphModel.class);
 	}
 	
 	/**
@@ -739,16 +703,15 @@ public class CincoUtil {
 	 * in it, an empty list is returned instead.
 	 * 
 	 * @param imprt	the {@link Import} to retrieve the {@link GraphModel GraphModels} from
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return	a {@link List} that contains every {@link GraphModel} that has been defined in the {@link MGLModel}
 	 * 			the provided <code>imprt</code> points at. The {@link List} is empty if no {@link GraphModel} is contained
 	 * 			or <code>imprt</code> points not at an {@link MGLModel}
 	 */
-	public static List<GraphModel> getImportedGraphModels(Import imprt, IWorkspaceContext workspaceContext) {
+	public static List<GraphModel> getImportedGraphModels(Import imprt) {
 		String uriString = imprt.getImportURI();
-		URI uri = workspaceContext.getFileURI(uriString);
+		URI uri = IWorkspaceContext.getLocalInstance().getFileURI(uriString);
 		ArrayList<GraphModel> resultList = new ArrayList<GraphModel>();
-		resultList.addAll(workspaceContext.getContent(uri, MGLModel.class).getGraphModels());
+		resultList.addAll(IWorkspaceContext.getLocalInstance().getContent(uri, MGLModel.class).getGraphModels());
 		return resultList;
 	}
 	
@@ -782,10 +745,10 @@ public class CincoUtil {
 	 * @param path The path describing the resource location
 	 * @param res A helper variable: If the path is given as project relative path, this parameter is used to compute the current {@link IProject}
 	 */
-	public static Resource getResource(String path, Resource res, IWorkspaceContext workspaceContext) {
+	public static Resource getResource(String path, Resource res) {
         if (path == null || path.isEmpty())
         	return null;
-    	URI uri = workspaceContext.getFileURI(path);
+    	URI uri = IWorkspaceContext.getLocalInstance().getFileURI(path);
     	return res.getResourceSet().getResource(uri,true);
 	}
 	

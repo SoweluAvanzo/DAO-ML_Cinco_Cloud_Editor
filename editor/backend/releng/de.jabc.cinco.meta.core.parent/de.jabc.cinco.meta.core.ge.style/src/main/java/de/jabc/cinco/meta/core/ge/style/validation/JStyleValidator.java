@@ -36,8 +36,8 @@ public class JStyleValidator extends AbstractStyleValidator{
 		if (image.getPath() == null || image.getPath().isEmpty())
  			warning("No Path specified", StylePackage.Literals.IMAGE__PATH, NO_PATH);
 
-		IWorkspaceContext workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, image);
- 		boolean exists = PathValidator.checkPath(image, image.getPath(), workspaceContext);
+		IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, image));
+ 		boolean exists = PathValidator.checkPath(image, image.getPath());
  		if (!exists)
  			error("Path does not exists!", StylePackage.Literals.IMAGE__PATH, INVALID_PATH);
 	}
