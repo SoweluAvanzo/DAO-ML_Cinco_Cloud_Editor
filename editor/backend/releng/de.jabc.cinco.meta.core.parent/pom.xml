@@ -35,15 +35,15 @@
 		<module>de.jabc.cinco.meta.core.ge.style.model</module>
 		<module>de.jabc.cinco.meta.core.mgl.model</module>
 		<module>de.jabc.cinco.meta.productdefinition.model</module>
-    	<!-- utils -->
-    	<module>de.jabc.cinco.meta.core.event</module>
-    	<module>de.jabc.cinco.meta.plugin.event.api</module>
-    	<module>de.jabc.cinco.meta.core.utils</module>
-    	<!-- languages -->
+		<!-- utils -->
+		<module>de.jabc.cinco.meta.core.event</module>
+		<module>de.jabc.cinco.meta.plugin.event.api</module>
+		<module>de.jabc.cinco.meta.core.utils</module>
+		<!-- languages -->
 		<module>de.jabc.cinco.meta.core.ge.style</module>
-    	<module>de.jabc.cinco.meta.core.mgl</module>
-    	<module>de.jabc.cinco.meta.productdefinition</module>
-    	<!-- meta-plugin -->
+		<module>de.jabc.cinco.meta.core.mgl</module>
+		<module>de.jabc.cinco.meta.productdefinition</module>
+		<!-- meta-plugin -->
 		<module>de.jabc.cinco.meta.plugin.pyro</module>
 		<!-- language-server -->
 		<module>de.jabc.cinco.meta.core.ge.style.ide</module>
