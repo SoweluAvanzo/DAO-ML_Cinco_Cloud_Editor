@@ -1,0 +1,26 @@
+<navigation [user]="currentUser"></navigation>
+
+<div class="container">
+	<div class="row">
+		<div class="col-3">
+			<div class="sidebar">
+				<div class="sidebar-section">
+					<h5 class="sidebar-section-title">User Management</h5>
+					<hr>
+					<a class="sidebar-section-item" [routerLink]="admin_routes.RoutePaths.umAdmins.toUrl()" [routerLinkActive]="'active'">Admins</a>
+					<a class="sidebar-section-item" [routerLink]="admin_routes.RoutePaths.umOrganizationManagers.toUrl()" [routerLinkActive]="'active'">Org. Managers</a>
+					<a class="sidebar-section-item" [routerLink]="admin_routes.RoutePaths.umUsers.toUrl()" [routerLinkActive]="'active'">Users</a>
+				</div>
+				<div class="sidebar-section">
+					<h5 class="sidebar-section-title">System</h5>
+					<hr>
+					<a class="sidebar-section-item" [routerLink]="admin_routes.RoutePaths.sysSettings.toUrl()" [routerLinkActive]="'active'">Global Settings</a>
+					<a class="sidebar-section-item" [routerLink]="admin_routes.RoutePaths.sysAppearance.toUrl()" [routerLinkActive]="'active'">Appearance</a>
+				</div>
+			</div>
+		</div>
+		<div class="col-9">
+			<router-outlet [routes]="admin_routes.Routes.all"></router-outlet>
+		</div>
+	</div>
+</div>

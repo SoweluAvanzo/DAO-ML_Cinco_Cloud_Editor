@@ -1,0 +1,102 @@
+<form (submit)="save($event)">
+
+	<div class="form-group">
+		<label>
+			Logo 
+			<span class="text-muted cursor-pointer" *ngIf="logo != null" (click)="removeLogo()">(Remove)</span>
+		</label>
+	
+		<div *ngIf="logo != null">
+			<figure role="group">
+			  <img src="{{logo.downloadPath}}" class="d-block my-2" style="max-width: 100%; height: auto; max-height: 80px">
+			</figure>
+		</div>
+	
+		<input class="form-control-file" ng2-file-select [uploader]="uploader" [disabled]="uploader.isUploading" type="file" *ngIf="logo == null">
+	</div>		
+	<hr>
+	<div class="form-group">
+		<label>Navigation background color</label>
+		
+		<div class="d-flex flex-row mb-2">
+			<div class="input-group w-100">
+		        <div class="input-group-prepend">
+		          <div class="input-group-text">#</div>
+		        </div>
+		        <input [(ngModel)]="navBgColor" type="text" class="form-control" (keyup)="update()" placeholder="000000">
+		    </div>
+		    <input #navBgColorCp (input)="updateNavBgColor(navBgColorCp.value)" value="#{{navBgColor}}" type="color" class="form-control ml-2" style="width: 100px">
+		</div>
+		
+	</div>
+	<div class="form-group">
+		<label>Navigation text color</label>
+		
+		<div class="d-flex flex-row mb-2">
+			<div class="input-group w-100">
+		        <div class="input-group-prepend">
+		          <div class="input-group-text">#</div>
+		        </div>
+		        <input [(ngModel)]="navTextColor" type="text" class="form-control" (keyup)="update()" placeholder="ffffff">
+		    </div>
+		    <input #navTextColorCp (input)="updateNavTextColor(navTextColorCp.value)" value="#{{navTextColor}}" type="color" class="form-control ml-2" style="width: 100px">
+		</div>
+		
+	</div>
+	<div class="form-group">
+		<label>Body background color</label>
+		
+		<div class="d-flex flex-row mb-2">
+			<div class="input-group w-100">
+		        <div class="input-group-prepend">
+		          <div class="input-group-text">#</div>
+		        </div>
+		        <input [(ngModel)]="bodyBgColor" type="text" class="form-control" (keyup)="update()" placeholder="555555">
+		    </div>
+		    <input #bodyBgColorCp (input)="updateBodyBgColor(bodyBgColorCp.value)" value="#{{bodyBgColor}}" type="color" class="form-control ml-2" style="width: 100px">
+		</div>
+		
+	</div>
+	<div class="form-group">
+		<label>Body text color</label>
+		
+		<div class="d-flex flex-row mb-2">
+			<div class="input-group w-100">
+		        <div class="input-group-prepend">
+		          <div class="input-group-text">#</div>
+		        </div>
+		        <input [(ngModel)]="bodyTextColor" type="text" class="form-control" (keyup)="update()" placeholder="ffffff">
+		    </div>
+		    <input #bodyTextColorCp (input)="updateBodyTextColor(bodyTextColorCp.value)" value="#{{bodyTextColor}}" type="color" class="form-control ml-2" style="width: 100px">
+		</div>
+		
+	</div>
+	<div class="form-group">
+		<label>Primary background color</label>
+		
+		<div class="d-flex flex-row mb-2">
+			<div class="input-group w-100">
+		        <div class="input-group-prepend">
+		          <div class="input-group-text">#</div>
+		        </div>
+		        <input [(ngModel)]="primaryBgColor" type="text" class="form-control" (keyup)="update()" placeholder="ffffff">
+		    </div>
+		    <input #primaryBgColorCp (input)="updatePrimaryBgColor(primaryBgColorCp.value)" value="#{{primaryBgColor}}" type="color" class="form-control ml-2" style="width: 100px">
+		</div>
+		
+	</div>
+	<div class="form-group">
+		<label>Primary text color</label>
+		
+		<div class="d-flex flex-row mb-2">
+			<div class="input-group w-100">
+		        <div class="input-group-prepend">
+		          <div class="input-group-text">#</div>
+		        </div>
+		        <input [(ngModel)]="primaryTextColor" type="text" class="form-control" (keyup)="update()" placeholder="ffffff">
+		    </div>
+		    <input #primaryTextColorCp (input)="updatePrimaryTextColor(primaryTextColorCp.value)" value="#{{primaryTextColor}}" type="color" class="form-control ml-2" style="width: 100px">
+		</div>
+		
+	</div>
+</form>

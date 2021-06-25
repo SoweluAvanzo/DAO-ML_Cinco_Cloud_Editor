@@ -1,0 +1,7 @@
+<div *ngFor="let vector of permissionVectors">
+	<graph-model-permission 
+		[permissionVector]="vector"
+		(changed)="handleChanged($event)"
+	>
+	</graph-model-permission>
+</div>

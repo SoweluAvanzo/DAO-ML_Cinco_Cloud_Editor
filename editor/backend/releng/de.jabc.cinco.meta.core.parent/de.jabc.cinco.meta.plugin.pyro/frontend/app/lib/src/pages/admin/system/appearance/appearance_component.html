@@ -1,0 +1,15 @@
+<h4>Appearance</h4>
+<p class="text-muted">
+	System wide theme
+</p>
+<hr>
+
+<button class="btn btn-primary btn-sm" (click)="save()">
+	Save
+</button>
+<button class="btn btn-sm" (click)="reset()">
+	Reset
+</button>
+<hr>
+
+<style-form [style]="style" (updated)="handleStyleUpdated($event)" *ngIf="style != null"></style-form>

@@ -1,0 +1,59 @@
+.joint-type-dime text {
+    font-weight: 800;
+    font-family: "Source Sans Pro", sans-serif;
+}
+
+
+
+
+.joint-type-dime .port-body {
+    stroke: #c9c9c9;
+    stroke-width: 3px;
+    fill: #f5f5f5;
+}
+
+.available-magnet {
+    stroke: #6572c9;
+}
+
+.joint-type-dime .port-body:hover {
+    opacity: 1;
+    fill: #3795d6;
+}
+
+.joint-type-dime .port-label {
+    fill: #7c68fc;
+    text-decoration: none;
+}
+
+
+
+/* links */
+
+.joint-link .connection {
+    stroke: #4B4F6A;
+    stroke-width: 4px;
+}
+
+.joint-link .marker-arrowheads .marker-arrowhead,
+.joint-link .marker-vertex-group .marker-vertex,
+.joint-link .marker-vertex-group .marker-vertex:hover {
+    fill: #337ab7;
+}
+
+.joint-link .marker-arrowheads .marker-arrowhead:hover {
+    fill: #3d9de4;
+}
+
+.joint-link .link-tools .link-tool .tool-remove circle {
+    fill: #f30015;
+}
+
+/* highlighting */
+
+
+.joint-type-dime .joint-highlight-stroke {
+    stroke: #717171;
+    stroke-width: 6px;
+    pointer-events: none;
+}

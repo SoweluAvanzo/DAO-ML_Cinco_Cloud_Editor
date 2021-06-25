@@ -1,0 +1,9 @@
+<div id="context-menu" class="org-body-bg-color" *ngIf="menu != null" #menuEl [style.top.px]="menu.y" [style.left.px]="menu.x">
+	<div *ngFor="let entry of menu.entries">
+	  <context-menu-item [item]="entry" *ngIf="isItem(entry)"></context-menu-item>
+	  <div class="context-menu-separator" *ngIf="isSeparator(entry)"></div>
+	  <div class="context-menu-group" *ngIf="isGroup(entry)">
+	    <small>{{asGroup(entry).title}}</small>
+	  </div>
+	</div>
+</div>

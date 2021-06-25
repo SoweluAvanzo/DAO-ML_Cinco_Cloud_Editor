@@ -1,0 +1,15 @@
+<div class="card pyro-panel" style="overflow: auto;">
+    <div class="card-body pyro-panel-body" style="width: max-content;
+    overflow: auto;">
+        <tree-node
+            *ngIf="currentTree!=null"
+            [currentNode]="currentTree.root"
+            [isModal]="isModal"
+            (hasNew)="hasNew($event)"
+            (hasDeleted)="hasDeleted($event)"
+            (hasSelected)="hasSelectedSC.add($event)"
+        >
+        </tree-node>
+    </div>
+</div>
+
