@@ -7,13 +7,7 @@
 	<packaging>pom</packaging>
 
 	<!-- TODO:SAMI:
-		- porting additional language support-features (wip)
 		- textmate for msl and cpd
-	
-		BURNED:
-		- WorkspaceHelper usage leads to Nullpointer
-		- Path-References currently not correct
-		- custom endpoint for generator
 	 -->
 
 	<properties>
@@ -54,6 +48,8 @@
     	<!-- cpd-language -->
 		<module>de.jabc.cinco.meta.productdefinition</module>
 		<module>de.jabc.cinco.meta.productdefinition.ide</module>
+    	<!-- meta-plugin -->
+		<module>de.jabc.cinco.meta.plugin.pyro</module>
     	<!-- language-server -->
 		<module>de.jabc.cinco.meta.core.ide</module>
   	</modules>
