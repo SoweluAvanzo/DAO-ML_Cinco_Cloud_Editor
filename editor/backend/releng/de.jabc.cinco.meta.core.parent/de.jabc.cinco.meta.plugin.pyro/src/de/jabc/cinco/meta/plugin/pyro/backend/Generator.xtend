@@ -683,6 +683,7 @@ class Generator extends FileGenerator {
 				}]
 			}]
 		}
+		
 		//generate app pom
 		{
 			//app
