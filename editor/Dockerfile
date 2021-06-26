@@ -5,7 +5,7 @@ WORKDIR /backend
 COPY ./backend /backend
 # outputs language server to releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.core.ide/target/language-server
 RUN cd releng/de.jabc.cinco.meta.core.parent && \
-    mvn clean install -DskipTests
+    mvn clean package -DskipTests
 RUN mv releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.core.ide/target/language-server /backend/language-server
 
 # build the extension

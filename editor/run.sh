@@ -77,7 +77,7 @@ fi
 if [ "$buildBackend" == "true" ]; then
   echo "$(date +"[%T.%3N]") Build backend products"
   cd backend/releng/de.jabc.cinco.meta.core.parent/
-  mvn clean install
+  mvn clean package
   cd ../../../
   cp -r backend/releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.core.ide/target/language-server web/cinco-language-server-extension
 fi
