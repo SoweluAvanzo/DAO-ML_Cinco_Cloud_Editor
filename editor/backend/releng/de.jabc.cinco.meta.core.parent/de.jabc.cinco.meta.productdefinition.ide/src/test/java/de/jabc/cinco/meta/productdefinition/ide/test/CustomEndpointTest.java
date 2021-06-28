@@ -24,7 +24,7 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 		base = base.trimSegments(1).appendSegment("resources");
 		String baseString = base.toString();
 		
-		WorkspaceContext workspaceContext = new WorkspaceContext(baseString, null);
+		WorkspaceContext workspaceContext = new WorkspaceContext(base, null);
 		String result = workspaceContext.getRootURI().toString();
 		String expected = base.toString();
 		Assertions.assertTrue(result.equals(expected));

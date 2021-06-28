@@ -207,10 +207,10 @@ class Generator {
 			// generate front end
 			// val path = base.append("/dywa-app/app-presentation/target/generated-sources/app")
 			val path = base + "/webapp"
+			copyResources("frontend/app/build.yaml",path)
 			copyResources("frontend/app/lib", path)
 			copyResources("frontend/app/web", path)
 			copyResources("frontend/app/.vscode",path) // uncomment this line, only for development
-			copyResources("frontend/app/build.yaml",path)
 			copyResources("frontend/app/Dockerfile",path)
 			copyResources("frontend/app/basic_auth",path)
 			copyResources("frontend/app/default.conf",path)
@@ -232,32 +232,33 @@ class Generator {
 				}
 			}
 		}
-		throw new RuntimeException("backend and frontend successful");
 	}
 
-
-/**
- * Copies all files recursively from a given bundle to a given target path.
- * @param bundleId
- * @param target
- */
-static def copyResources(String source, String target) {	
-		val CodeSource src = Generator.getProtectionDomain().getCodeSource();
-		try {
-			
-			val URL jar = src.getLocation();
-			val URI jarURI = jar.toURI;
-			var String newPath = jarURI + "/" + source
-			val URI resolvedURI = jarURI.resolve(newPath).normalize
-			val File directory = new File(resolvedURI);
-			if (directory.isDirectory) {
-				FileUtils.copyDirectoryToDirectory(directory, new File(target));
-			} else {
-				FileUtils.copyFileToDirectory(directory, new File(target));
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
+	/**
+	 * Copies all files recursively from a given bundle to a given target path.
+	 * @param bundleId
+	 * @param target
+	 */
+	def copyResources(String source, String target) {
+		copyResourceFiles(source, target, this.class)
+	}
+	
+	/**
+	 * Copies all files recursively from a given bundle to a given target path.
+	 * @param bundleId
+	 * @param target
+	 */
+	static def copyResourceFiles(String source, String target, Class<?> mainClass) {	
+		val baseUri = org.eclipse.emf.common.util.URI.createURI(source);
+		var files = getResourcePathsOfFiles(source, Integer.MAX_VALUE, mainClass)
+		val base = baseUri.segment(baseUri.segmentCount - 1)
+		for(f:files) {
+			val from = f.toString.empty? source : source + File.separator + f
+			val to = target + File.separator + (
+				f.toString.empty? base : 
+				base + File.separator + f
+			)
+			copyResource(from, to, mainClass)
 		}
 	}
 
@@ -283,7 +284,7 @@ static def copyResources(String source, String target) {
 
 	}
 
-private def Resource findImportModels(Import import1, MGLModel masterModel) {
+	private def Resource findImportModels(Import import1, MGLModel masterModel) {
 		val path = import1.getImportURI();
 		val uri = org.eclipse.emf.common.util.URI.createURI(path, true);
 		try {
@@ -291,7 +292,7 @@ private def Resource findImportModels(Import import1, MGLModel masterModel) {
 			if (uri.isPlatformResource()) {
 				res = new ResourceSetImpl().getResource(uri, true);
 			} else {
-				val projectURI = org.eclipse.emf.common.util.URI.createURI(projectLocation)
+				val projectURI = org.eclipse.emf.common.util.URI.createFileURI(projectLocation)
 				val absoluteURI = uri.resolve(projectURI)
 				val File file = new File(absoluteURI.toFileString).getAbsoluteFile();
 				if (file.exists()) {
@@ -309,8 +310,8 @@ private def Resource findImportModels(Import import1, MGLModel masterModel) {
 		}
 	}
 
-static def boolean createFolder(String folderPath) throws IOException {
-		var file = new File(folderPath)
+	static def boolean createFolder(String folderPath) throws IOException {
+		var file = new File(folderPath + File.separator)
 		if (file.exists) {
 			return false;
 		}
@@ -318,7 +319,7 @@ static def boolean createFolder(String folderPath) throws IOException {
 		return true;
 	}
 
-static def List<Path> getResourcePathsOfFiles(String folderPath, int depth, Class<?> mainClass) {
+	static def List<Path> getResourcePathsOfFiles(String folderPath, int depth, Class<?> mainClass) {
 		var clsLoader = mainClass.getClassLoader
 		var resource = clsLoader.getResource(folderPath);
 		var uri = resource.toURI()
@@ -344,7 +345,7 @@ static def List<Path> getResourcePathsOfFiles(String folderPath, int depth, Clas
 		return pathList
 	}
 
-static def copyResource(String res, String dest, Class<?> mainClass) throws IOException {
+	static def copyResource(String res, String dest, Class<?> mainClass) throws IOException {
 		var clsLoader = mainClass.getClassLoader
 		var resource = res;
 
@@ -361,13 +362,13 @@ static def copyResource(String res, String dest, Class<?> mainClass) throws IOEx
 		if (lastIndex > 0) {
 			lastIndex = 0;
 		}
-		val folderPath = Paths.get(File.separator + destPath.subpath(0, lastIndex))
-		createFolder(folderPath.toString)
+		//val folderPath = Paths.get(File.separator + destPath.subpath(0, lastIndex))
+		createFolder(destPath.toString)
 		// create/copy file not directory
 		Files.copy(src, destPath, StandardCopyOption.REPLACE_EXISTING)
 	}
 
-static def copySources(String sourceName, String target, String projectLocation) {
+	static def copySources(String sourceName, String target, String projectLocation) {
 	
 	    
 		var String[] splitedName = sourceName.split("/")	

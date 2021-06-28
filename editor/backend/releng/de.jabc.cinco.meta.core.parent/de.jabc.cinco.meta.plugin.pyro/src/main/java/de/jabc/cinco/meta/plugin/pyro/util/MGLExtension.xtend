@@ -364,7 +364,7 @@ class MGLExtension {
 		if (platformString !== null) {
 			uriString = platformString
 		} else {
-			uriString = modelResourceURI.toFileString()
+			uriString = modelResourceURI.toString()
 		}
 		val matcher = pattern.matcher(uriString)
 		if (matcher.find()) {

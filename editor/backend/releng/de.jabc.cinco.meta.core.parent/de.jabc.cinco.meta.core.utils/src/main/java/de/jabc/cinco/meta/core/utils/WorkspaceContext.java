@@ -26,17 +26,6 @@ public class WorkspaceContext implements IWorkspaceContext {
 		}
 	}
 
-	public WorkspaceContext(String rootURI, ResourceSet resourceSet) {
-		this.resourceSet = resourceSet;
-		if(rootURI != null) {
-			this.rootURI = URI.createURI(rootURI);
-		} else {
-			// fallback to the folder where the resource is located
-			URIConverter conv = resourceSet.getURIConverter();
-			this.rootURI = conv.normalize(URI.createURI(""));
-		}
-	}
-
 	@Override
 	public URI getFileURI(String relativePath) {
         URI relativeURI = URI.createURI(relativePath);

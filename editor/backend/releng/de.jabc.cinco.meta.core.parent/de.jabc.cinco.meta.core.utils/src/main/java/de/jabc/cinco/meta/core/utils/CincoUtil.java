@@ -408,10 +408,10 @@ public class CincoUtil {
 					res = new ResourceSetImpl().getResource(uri, true);
 				}
 				else {
-					File file = IWorkspaceContext.getLocalInstance().getFile(mgl.eResource().getURI());
+					File file = IWorkspaceContext.getLocalInstance().getFile(uri);
 					if (file.exists()) {
-						URI fileURI = URI.createPlatformResourceURI(file.getAbsolutePath(), true);
-						res = new ResourceSetImpl().getResource(fileURI, true);
+						// URI fileURI = URI.createPlatformResourceURI(file.getAbsolutePath(), true);
+						res = mgl.eResource().getResourceSet().getResource(uri, true);
 					}
 					else {
 						return null;

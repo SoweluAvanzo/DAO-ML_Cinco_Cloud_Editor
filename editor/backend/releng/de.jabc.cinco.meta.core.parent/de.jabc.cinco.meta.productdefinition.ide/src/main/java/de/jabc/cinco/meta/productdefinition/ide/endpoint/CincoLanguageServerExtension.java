@@ -71,15 +71,16 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 				.filter((EObject e) -> e instanceof CincoProduct)
 				.map((m) -> (CincoProduct) m)
 				.collect(Collectors.toList()); 
+		CincoProduct cpd = cpds.get(0); // TODO: only the one from the request
 		Set<MGLModel> mgls = parsedResources.values().stream()
 				.filter((EObject e) -> e instanceof MGLModel)
-				.map((m) -> (MGLModel) m)
-				.collect(Collectors.toSet()); 
-		String projectLocation = org.eclipse.emf.common.util.URI.createURI(
-					targetFolder.getUri()
-				).toFileString();
-		CincoProduct cpd = cpds.get(0);
-		IWorkspaceContext.setLocalInstance(new WorkspaceContext(projectLocation, cpd.eResource().getResourceSet()));
+				.map((m) -> (MGLModel) m) // TODO: online cpd referenced
+				.collect(Collectors.toSet());
+		org.eclipse.emf.common.util.URI projectURI = org.eclipse.emf.common.util.URI.createURI(
+				targetFolder.getUri() + "/"
+			);
+		String projectLocation = projectURI.toFileString();
+		IWorkspaceContext.setLocalInstance(new WorkspaceContext(projectURI, cpd.eResource().getResourceSet()));
 				
 		// execute generation
 		LogHelper.log(access, "starting pyro-generator...");
