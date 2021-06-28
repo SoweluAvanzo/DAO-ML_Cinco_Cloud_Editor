@@ -72,8 +72,6 @@ nodeStyle swimlane(1) {
 }
 
 edgeStyle simpleArrow {
-	appearanceProvider ( "info.scce.cinco.product.flowgraph.appearance.SimpleArrowAppearance" )
-
 	decorator {
 		location (1.0) // at the end of the edge
 		ARROW
