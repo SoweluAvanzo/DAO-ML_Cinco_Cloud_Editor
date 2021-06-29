@@ -1,16 +1,22 @@
-id info.scce.cinco.product.flowgraph
-stylePath "FlowGraph.style"
+// import "model/ExternalLibrary.ecore" as externalLibrary
 
-@primeviewer
+id info.scce.cinco.product.flowgraph
+stylePath "model/FlowGraph.style"
+
+//@primeviewer
+//@generatable("info.scce.cinco.product.flowgraph.codegen.Generate","/src-gen/")
+//@postCreate("info.scce.cinco.product.flowgraph.hooks.InitializeFlowGraphModel")
 graphModel FlowGraphDiagram {
 	iconPath "icons/FlowGraph.png"
 	diagramExtension "flowgraph"
 	
-	containableElements(Start, End, Activity, Swimlane, SubFlowGraph)
+	containableElements(Start, End, Activity, Swimlane, /*ExternalActivity,*/ SubFlowGraph)
 	
 	attr EString as modelName
 }
 
+//@contextMenuAction("info.scce.cinco.product.flowgraph.action.ShortestPathToEnd")
+//@doubleClickAction("info.scce.cinco.product.flowgraph.action.ShortestPathToEnd")
 @icon("icons/Start.png")
 @palette("Round Elements")
 node Start {
@@ -38,6 +44,7 @@ node End{
 
 @icon("icons/Activity.png")
 @palette("Rectangular Elements")
+//@postCreate("info.scce.cinco.product.flowgraph.hooks.RandomActivityName")
 node Activity {
 	// use the "blueTextRectangle" as this node's style and pass the attribute "name" as a parameter
 	style blueTextRectangle("${name}")
@@ -47,6 +54,18 @@ node Activity {
 	incomingEdges (*[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }
+
+/*
+node ExternalActivity {
+	style greenTextRectangle("${activity.name}")
+	
+	@pvLabel(name)
+	@pvFileExtension("elib")
+	prime externalLibrary.ExternalActivity as activity
+	incomingEdges (*[1,*])
+	outgoingEdges (LabeledTransition[1,*])
+}
+*/
 
 node SubFlowGraph {
 	style greenTextRectangle("${subFlowGraph.modelName}")
@@ -62,7 +81,7 @@ container Swimlane {
 	style swimlane("${actor}")
 	
 	attr EString as actor
-	containableElements (Start[1,1], Activity, End, SubFlowGraph)
+	containableElements (Start[1,1], Activity, End, /*ExternalActivity,*/ SubFlowGraph)
 }
 
 edge Transition {

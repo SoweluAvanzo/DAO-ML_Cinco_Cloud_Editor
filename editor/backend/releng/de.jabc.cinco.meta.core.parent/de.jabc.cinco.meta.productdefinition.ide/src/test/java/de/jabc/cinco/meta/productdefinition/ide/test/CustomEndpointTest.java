@@ -1,13 +1,19 @@
 package de.jabc.cinco.meta.productdefinition.ide.test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.xtext.testing.AbstractLanguageServerTest;
+import org.eclipse.xtext.util.Files;
+import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import com.google.inject.Inject;
 import de.jabc.cinco.meta.core.utils.WorkspaceContext;
 import de.jabc.cinco.meta.productdefinition.ide.endpoint.CincoLanguageServerExtension;
+import de.jabc.cinco.meta.productdefinition.ide.endpoint.messages.GenerateRequest;
 
 class CustomEndpointTest extends AbstractLanguageServerTest {
 	
@@ -21,7 +27,6 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 	@Test
 	void testWorkspaceContext() {
 		URI base = URI.createURI(this.root.toURI().toString());
-		base = base.trimSegments(1).appendSegment("resources");
 		String baseString = base.toString();
 		
 		WorkspaceContext workspaceContext = new WorkspaceContext(base, null);
@@ -36,13 +41,13 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 		File baseFile2 = workspaceContext.getFile(workspaceContext.getRootURI());
 		Assertions.assertTrue(baseFile.getPath().equals(baseFile2.getPath()));
 		
-		String testFileName = "FlowGraph.mgl";
-		URI testFileURI = base.appendSegment(testFileName);
+		String testFileName = "FlowGraphTool.cpd";
+		URI testFileURI = base.appendSegment("model").appendSegment(testFileName);
 		File testFile = workspaceContext.getFile(testFileURI);
 		File folder = workspaceContext.getFolder(testFile);
 		boolean exists = workspaceContext.fileExists(base);
 		boolean testFileExists = workspaceContext.fileExists(testFileURI);
-		Assertions.assertTrue(folder.getPath().equals(baseFile.getPath()));
+		Assertions.assertTrue(!folder.getPath().equals(baseFile.getPath()));
 
 		Assertions.assertTrue(exists);
 		Assertions.assertTrue(testFileExists);
@@ -50,6 +55,24 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 		Assertions.assertTrue(workspaceContext.containsOrIsSame(folder, testFile));
 		
 		String name = workspaceContext.getRootFolderName();
-		Assertions.assertTrue(name.equals("resources"));
+		Assertions.assertTrue(name.equals("test-project"));
+		
+		this.initialize();
+		this.languageServer.request("cinco/generate", new GenerateRequest("", ""));
+	}
+	
+	@After @AfterEach
+	@Override
+	public void cleanup() {
+		URI base = URI.createURI(this.root.toURI().toString()).appendSegment("pyro");
+		WorkspaceContext workspaceContext = new WorkspaceContext(base, null);
+		File baseFile = workspaceContext.getRootFile();
+		if (baseFile.exists()) {
+			try {
+				Files.cleanFolder(baseFile, null, true, true);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
