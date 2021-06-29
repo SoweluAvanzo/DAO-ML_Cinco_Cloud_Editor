@@ -2,7 +2,9 @@ package de.jabc.cinco.meta.productdefinition.ide.test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.xtext.testing.AbstractLanguageServerTest;
 import org.eclipse.xtext.util.Files;
@@ -64,12 +66,36 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 	@After @AfterEach
 	@Override
 	public void cleanup() {
-		URI base = URI.createURI(this.root.toURI().toString()).appendSegment("pyro");
-		WorkspaceContext workspaceContext = new WorkspaceContext(base, null);
-		File baseFile = workspaceContext.getRootFile();
-		if (baseFile.exists()) {
+		URI pyro = URI.createURI(this.root.toURI().toString()).appendSegment("pyro");
+		URI pyroBackup = URI.createURI(this.root.toURI().toString()).trimSegments(1).appendSegment("pyro");
+		WorkspaceContext workspaceContextPyro = new WorkspaceContext(pyro, null);
+		WorkspaceContext workspaceContextPyroBackup = new WorkspaceContext(pyroBackup, null);
+		File pyroFolder = workspaceContextPyro.getRootFile();
+		File pyroBackupFolder = workspaceContextPyroBackup.getRootFile();
+		
+		// cleanup backup
+		if(pyroBackupFolder.exists()) {
 			try {
-				Files.cleanFolder(baseFile, null, true, true);
+				Files.cleanFolder(pyroBackupFolder, null, true, true);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// copy
+		if(pyroFolder.exists()) {
+			try {
+				FileUtils.copyDirectory(pyroFolder, pyroBackupFolder);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		
+		// cleanup
+		if (pyroFolder.exists()) {
+			try {
+				Files.cleanFolder(pyroFolder, null, true, true);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
