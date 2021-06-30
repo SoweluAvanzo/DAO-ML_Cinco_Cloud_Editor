@@ -49,6 +49,9 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 	IProjectConfigProvider projectConfigProvider;
 	
 	override IScope getScope(EObject eobj, EReference ref){
+		IWorkspaceContext.setLocalInstance(
+			WorkspaceContext.createInstance(projectConfigProvider, eobj)
+		);
 		if(eobj instanceof ReferencedAttribute<?> && (ref==MglPackage.eINSTANCE.referencedEClass_Type || ref==MglPackage.eINSTANCE.referencedModelElement_Type)){
 			return scope_ReferencedAttribute_feature((eobj as ReferencedAttribute<?>),ref)
 		} else if(eobj instanceof ReferencedType){
@@ -83,16 +86,15 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 	
 	def IScope scope_ReferencedEClass_type(ReferencedEClass refType,EReference ref){
 		var scope = IScope.NULLSCOPE
-			var res = null as Resource
-				try{
-					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, refType.eResource));
-					res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource)
-				}catch(Exception e){
-					return null;
-				}
-			if(res!==null){
-				scope = Scopes.scopeFor(res.allContents.toList.filter[d| d instanceof EClass])
-			}
+		var res = null as Resource
+		try{
+			res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource)
+		}catch(Exception e){
+			return null;
+		}
+		if(res!==null){
+			scope = Scopes.scopeFor(res.allContents.toList.filter[d| d instanceof EClass])
+		}
 		
 		if(scope === null){
 			return IScope.NULLSCOPE	
@@ -115,7 +117,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, refType));
 					res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource)
 				}catch(Exception e){
 					return scope
@@ -146,7 +147,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, graphModel));
 					res = CincoUtil::getResource(graphModel.imprt.importURI, graphModel.eResource)
 				}catch(Exception e){
 					return null;
@@ -177,7 +177,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, node));
 					res = CincoUtil::getResource(node.imprt.importURI, node.eResource)
 				}catch(Exception e){
 					return null;
@@ -206,7 +205,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, nodeContainer));
 					res = CincoUtil::getResource(nodeContainer.imprt.importURI, nodeContainer.eResource)
 				}catch(Exception e){
 					return null;
@@ -234,7 +232,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 			}else{
 				var res = null as Resource
 				try{
-					IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, edge));
 					res = CincoUtil::getResource(edge.imprt.importURI, edge.eResource)
 				}catch(Exception e){
 					return null;
@@ -267,7 +264,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		} else {
 			var res = null as Resource
 			try {
-				IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, referencedImport));
 				res = CincoUtil::getResource(referencedImport.importURI, referencedImport.eResource)
 			} catch(Exception e) {
 				return null;
@@ -302,7 +298,7 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		var scope = IScope.NULLSCOPE
 		if(refType instanceof ReferencedModelElement && ref==MglPackage.eINSTANCE.referencedModelElement_Type){
 			scope =  scope_ReferencedModelElement_type(refType as ReferencedModelElement,ref)
-			}else if(refType instanceof ReferencedEClass && ref == MglPackage.eINSTANCE.referencedEClass_Type){
+		}else if(refType instanceof ReferencedEClass && ref == MglPackage.eINSTANCE.referencedEClass_Type){
 			scope =  scope_ReferencedEClass_type(refType as ReferencedEClass,ref)
 		}else{
 			scope = super.getScope(refType,ref)
@@ -328,7 +324,6 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		} else {
 			var res = null as Resource
 			try {
-			IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, referencedImport));
 				res = CincoUtil::getResource(referencedImport.importURI, referencedImport.eResource)
 			} catch(Exception e) {
 				return null;
