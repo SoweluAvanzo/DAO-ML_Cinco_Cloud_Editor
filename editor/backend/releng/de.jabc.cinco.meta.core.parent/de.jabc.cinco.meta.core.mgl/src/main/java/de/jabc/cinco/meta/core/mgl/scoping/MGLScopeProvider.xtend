@@ -35,6 +35,7 @@ import com.google.inject.Inject
 import org.eclipse.xtext.workspace.IProjectConfigProvider
 import de.jabc.cinco.meta.core.utils.WorkspaceContext
 import de.jabc.cinco.meta.core.utils.IWorkspaceContext
+import org.eclipse.emf.ecore.EPackage
 
 /**
  * This class contains custom scoping description.
@@ -88,7 +89,8 @@ class MGLScopeProvider extends AbstractDeclarativeScopeProvider {
 		var scope = IScope.NULLSCOPE
 		var res = null as Resource
 		try{
-			res = CincoUtil::getResource(refType.imprt.importURI, refType.eResource)
+			val uri = IWorkspaceContext.localInstance.getFileURI(refType.imprt.importURI)
+			res = IWorkspaceContext.localInstance.getContent(uri, EPackage).eResource;
 		}catch(Exception e){
 			return null;
 		}

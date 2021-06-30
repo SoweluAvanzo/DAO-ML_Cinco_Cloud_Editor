@@ -9,6 +9,8 @@ import org.eclipse.emf.ecore.plugin.EcorePlugin;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryRegistryImpl;
 import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
+import org.eclipse.xtext.resource.XtextResourceFactory;
+import org.eclipse.xtext.resource.generic.GenericResourceServiceProvider;
 
 import com.google.inject.Injector;
 
@@ -37,7 +39,7 @@ public class MGLStandaloneSetup extends MGLStandaloneSetupGenerated {
 			EPackage.Registry.INSTANCE.put(MglPackage.eNS_URI, mgl.MglPackage.eINSTANCE);
 		}
 		
-		org.eclipse.xtext.resource.IResourceFactory resourceFactory = injector.getInstance(org.eclipse.xtext.resource.IResourceFactory.class);
+		EcoreResourceFactoryImpl resourceFactory = injector.getInstance(EcoreResourceFactoryImpl.class);
 	    org.eclipse.xtext.resource.IResourceServiceProvider serviceProvider = injector.getInstance(org.eclipse.xtext.resource.IResourceServiceProvider.class);
 	    Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, resourceFactory);
 	    org.eclipse.xtext.resource.IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, serviceProvider);
