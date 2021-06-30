@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package info.scce.cincocloud.proto;
+
+option java_multiple_files = false;
+option java_generic_services = true;
+option java_outer_classname = "CincoCloudProtos";
+
+message CreateImageRequest {
+    uint64 projectId = 1;
+    bytes archive = 2;
+}
+
+message CreateImageReply {
+    uint64 projectId = 1;
+    bool success = 2;
+    string message = 3;
+}
+
+service MainService {
+    rpc CreateImageFromArchive (CreateImageRequest) returns (CreateImageReply) {
+    }
+}

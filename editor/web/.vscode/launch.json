@@ -25,7 +25,8 @@
         "${workspaceRoot}/browser-app/lib/**/*.js",
         "${workspaceRoot}/browser-app/src-gen/backend/*.js",
         "${workspaceRoot}/cinco-language-server-extension/lib/**/*.js",
-        "${workspaceRoot}/cinco-authenticator/lib/**/*.js"
+        "${workspaceRoot}/cinco-authenticator/lib/**/*.js",
+        "${workspaceRoot}/cinco-cloud-grpc/lib/**/*.js"
       ],
       "smartStep": true,
       "internalConsoleOptions": "openOnSessionStart",

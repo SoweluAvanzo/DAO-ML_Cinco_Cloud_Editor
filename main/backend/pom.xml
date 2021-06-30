@@ -8,17 +8,19 @@
     <version>0.1.0-SNAPSHOT</version>
 
     <properties>
-        <jackson-jsog.version>1.1.1</jackson-jsog.version>
         <commons.io.version>2.8.0</commons.io.version>
-        <quarkus-plugin.version>1.13.4.Final</quarkus-plugin.version>
+        <compiler-plugin.version>3.8.0</compiler-plugin.version>
+        <jackson-jsog.version>1.1.1</jackson-jsog.version>
+        <kubernetes-client.version>5.4.1</kubernetes-client.version>
+        <os-maven-plugin.version>1.6.1</os-maven-plugin.version>
+        <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+        <quarkus-plugin.version>1.13.4.Final</quarkus-plugin.version>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>1.13.4.Final</quarkus.platform.version>
         <surefire-plugin.version>2.22.1</surefire-plugin.version>
-        <compiler-plugin.version>3.8.0</compiler-plugin.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <kubernetes-client.version>5.4.1</kubernetes-client.version>
         <smallrye-web-client>2.6.0</smallrye-web-client>
     </properties>
 
@@ -35,6 +37,7 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- quarkus -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-reactive-messaging-amqp</artifactId>
@@ -62,6 +65,10 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-quartz</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-grpc</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -94,7 +101,7 @@
             <version>${kubernetes-client.version}</version>
         </dependency>
 
-        <!-- Testing: -->
+        <!-- testing -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>
@@ -128,6 +135,15 @@
     </dependencies>
 
     <build>
+        <extensions>
+            <!-- needed for generation of grpc files -->
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>${os-maven-plugin.version}</version>
+            </extension>
+        </extensions>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -141,7 +157,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <!-- you need this specific version to integrate with the other build helpers -->
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
                 <configuration>
@@ -152,7 +167,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <!-- This is what injects the magic Quarkus bytecode -->
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
                 <version>${quarkus-plugin.version}</version>
@@ -160,6 +174,28 @@
                     <execution>
                         <goals>
                             <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- generate java files from proto definitions for grpc -->
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>${protobuf-maven-plugin.version}</version>
+                <configuration>
+                    <protocArtifact> com.google.protobuf:protoc:3.14.0:exe:${os.detected.classifier} </protocArtifact>
+                    <pluginId>grpc-java</pluginId>
+                    <pluginArtifact> io.grpc:protoc-gen-grpc-java:1.35.0:exe:${os.detected.classifier} </pluginArtifact>
+                    <protoSourceRoot>${basedir}/src/main/resources/proto</protoSourceRoot>
+                    <clearOutputDirectory>true</clearOutputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>compile-custom</goal>
                         </goals>
                     </execution>
                 </executions>

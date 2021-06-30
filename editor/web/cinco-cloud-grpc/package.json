@@ -1,0 +1,42 @@
+{
+  "name": "cinco-cloud-grpc",
+  "keywords": [
+    "theia-extension"
+  ],
+  "version": "1.0.0",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "dependencies": {
+    "@theia/core": "latest",
+    "@theia/process": "latest",
+    "glob": "7.1.4"
+  },
+  "devDependencies": {
+    "protoc": "^1.0.4",
+    "ts-proto": "^1.82.0",
+    "rimraf": "latest",
+    "typescript": "latest",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-header": "^3.0.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-no-null": "^1.0.2",
+    "eslint-plugin-react": "^7.20.3"
+  },
+  "scripts": {
+    "prepare": "yarn run clean && yarn run build",
+    "clean": "rimraf lib",
+    "generate": "../node_modules/protoc/protoc/bin/protoc --plugin=../node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=env=node --ts_proto_out=./src/node --proto_path=./proto/ cinco-cloud.proto",
+    "lint": "eslint -c ../.eslintrc.js --ext .ts,.tsx ./src",
+    "build": "yarn run generate && tsc",
+    "watch": "tsc -w"
+  },
+  "theiaExtensions": [
+    {
+      "backend": "lib/node/backend-extension"
+    }
+  ]
+}
