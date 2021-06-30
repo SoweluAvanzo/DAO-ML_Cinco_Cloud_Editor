@@ -1,0 +1,104 @@
+<div class="mt-4 mx-auto" style="max-width:330px;">
+    <h2 class="form-signin-heading">Create an Account</h2>
+    <div class="alert alert-danger" *ngIf="registrationInvalid">
+        <strong>The email or username is already in use!</strong>
+    </div>
+    <div class="alert alert-danger" *ngIf="notFilled">
+        <strong>Every field is required!</strong>
+    </div>
+    <div class="alert alert-success" *ngIf="registrationConfirmed">
+        <strong>Your account has been created.</strong><br />
+        <a [routerLink]="RoutePaths.login.toUrl()" >Login now!</a>
+    </div>
+    <form *ngIf="!registrationConfirmed" (ngSubmit)="register(nameField.value,emailField.value,usernameField.value,pw1Field.value,pw2Field.value,$event)">
+            <div class="form-group">
+                <label for="name" class="cols-sm-2 control-label">Your Name</label>
+                <div class="cols-sm-10">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+				          <div class="input-group-text">
+				          	<i class="fas fa-user"></i>
+				          </div>
+				        </div>
+                        <input
+                                #nameField
+                                [disabled]="pending" type="text" class="form-control" name="name" id="name"  placeholder="Enter your Name" required/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="cols-sm-2 control-label">Your Email</label>
+                <div class="cols-sm-10">
+                    <div class="input-group">
+                    	<div class="input-group-prepend">
+				          <div class="input-group-text">
+				          	<i class="fas fa-envelope"></i>
+				          </div>
+				        </div>
+                        <input #emailField [disabled]="pending" type="text" class="form-control" name="email" id="email"  placeholder="Enter your Email" required/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="username" class="cols-sm-2 control-label">Username</label>
+                <div class="cols-sm-10">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+				          <div class="input-group-text">
+				          	<i class="fas fa-user"></i>
+				          </div>
+				        </div>
+                        <input
+                                #usernameField
+                                [disabled]="pending" type="text" class="form-control" name="username" id="username"  placeholder="Enter your Username" required/>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-danger" *ngIf="pwNotEqual">
+                <strong>The given passwords are not equal</strong>
+            </div>
+            <div class="alert alert-danger" *ngIf="passwordToShort">
+                <strong>The password has to be longer than 5 characters</strong>
+            </div>
+            <div class="form-group">
+                <label for="password" class="cols-sm-2 control-label">Password</label>
+                <div class="cols-sm-10">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+				          <div class="input-group-text">
+				          	<i class="fas fa-lock"></i>
+				          </div>
+				        </div>
+                        <input
+                                #pw1Field
+                                [disabled]="pending" type="password" class="form-control" name="password" id="password"  placeholder="Enter your Password" required/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm" class="cols-sm-2 control-label">Confirm Password</label>
+                <div class="cols-sm-10">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+				          <div class="input-group-text">
+				          	<i class="fas fa-lock"></i>
+				          </div>
+				        </div>
+                        <input
+                                #pw2Field
+                                [disabled]="pending" type="password" class="form-control" name="confirm" id="confirm"  placeholder="Confirm your Password" required/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group ">
+                <button
+                        (click)="register(nameField.value,emailField.value,usernameField.value,pw1Field.value,pw2Field.value,$event)"
+                        [disabled]="pending" type="submit" class="btn btn-primary btn-lg btn-block login-button">Register</button>
+            </div>
+
+        </form>
+</div>

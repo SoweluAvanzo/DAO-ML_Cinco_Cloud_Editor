@@ -1,0 +1,25 @@
+<div class="modal d-block show fade in" *ngIf="show" tabindex="-1" role="dialog" aria-labelledby="createEntryLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            	<h4 class="modal-title" id="createEntryLabel">Create a new Folder</h4>
+                <button (click)="close()" type="button" class="close" aria-label="Close">
+                	<span aria-hidden="true">&times;</span>
+            	</button>
+            </div>
+            <div class="modal-body">
+                <form (ngSubmit)="create(foldername.value,null)">
+                    <div class="form-group">
+                        <div *ngIf="showError" class="alert alert-danger">The folder name already exists</div>
+                        <label for="projectName">Foldername</label>
+                        <input #foldername type="text" class="form-control" id="projectName" placeholder="Name">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button (click)="create(foldername.value,$event)" type="button" class="btn btn-success">Create {{foldername.value}}</button>
+                <button type="button" class="btn" (click)="close()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

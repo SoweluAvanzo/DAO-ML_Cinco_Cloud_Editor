@@ -112,8 +112,8 @@ async function validateJWT(jwt: any, projectId: any, res: any): Promise<boolean>
  * it ignores authentification-failures, for easier development.
  */
 function isDebugging(): boolean {
-    const env = process.env.TERM_PROGRAM;
-    if (env === 'vscode') {
+    const debugging = process.env.CINCO_CLOUD_DEBUG;
+    if (debugging === 'true') {
         logger.info(LOG_NAME + ': debugging mode on - allow access without authentification');
         return true;
     }

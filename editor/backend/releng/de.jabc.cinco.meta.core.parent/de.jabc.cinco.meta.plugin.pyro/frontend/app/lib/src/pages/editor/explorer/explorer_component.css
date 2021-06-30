@@ -1,0 +1,10 @@
+.draggable.dragging {
+  opacity: .4;
+}
+
+.dropzone.over {
+  border: 1px dashed #fff;
+  margin-left: -1px;
+  margin-top: -1px;
+  padding-right: 3px;
+}

@@ -151,5 +151,10 @@
 			<artifactId>de.jabc.cinco.meta.core.mgl.ide</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>de.jabc.cinco</groupId>
+			<artifactId>de.jabc.cinco.meta.plugin.pyro</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 </project>

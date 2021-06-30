@@ -4,8 +4,18 @@
 package de.jabc.cinco.meta.core.mgl;
 
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.plugin.EcorePlugin;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.impl.ResourceFactoryRegistryImpl;
+import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
+import org.eclipse.xtext.resource.XtextResourceFactory;
+import org.eclipse.xtext.resource.generic.GenericResourceServiceProvider;
 
 import com.google.inject.Injector;
+
+import graphmodel.GraphmodelPackage;
+import mgl.MglPackage;
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
@@ -19,12 +29,21 @@ public class MGLStandaloneSetup extends MGLStandaloneSetupGenerated {
 	@Override
 	public void register(Injector injector) {
 		// Registering EPackages
-		if (!EPackage.Registry.INSTANCE.containsKey("http://www.jabc.de/cinco/meta/core/mgl#//GraphModel")) {
-			EPackage.Registry.INSTANCE.put("http://www.jabc.de/cinco/meta/core/mgl#//GraphModel", graphmodel.GraphmodelPackage.eINSTANCE);
+		if (!EPackage.Registry.INSTANCE.containsKey(EcorePackage.eNS_URI)) {
+			EPackage.Registry.INSTANCE.put(EcorePackage.eNS_URI, EcorePackage.eINSTANCE);
 		}
-		if (!EPackage.Registry.INSTANCE.containsKey("http://www.jabc.de/cinco/meta/core/mgl#//MGL")) {
-			EPackage.Registry.INSTANCE.put("http://www.jabc.de/cinco/meta/core/mgl#//MGL", mgl.MglPackage.eINSTANCE);
+		if (!EPackage.Registry.INSTANCE.containsKey(GraphmodelPackage.eNS_URI)) {
+			EPackage.Registry.INSTANCE.put(GraphmodelPackage.eNS_URI, GraphmodelPackage.eINSTANCE);
 		}
+		if (!EPackage.Registry.INSTANCE.containsKey(MglPackage.eNS_URI)) {
+			EPackage.Registry.INSTANCE.put(MglPackage.eNS_URI, mgl.MglPackage.eINSTANCE);
+		}
+		
+		EcoreResourceFactoryImpl resourceFactory = injector.getInstance(EcoreResourceFactoryImpl.class);
+	    org.eclipse.xtext.resource.IResourceServiceProvider serviceProvider = injector.getInstance(org.eclipse.xtext.resource.IResourceServiceProvider.class);
+	    Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, resourceFactory);
+	    org.eclipse.xtext.resource.IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, serviceProvider);
+		
 		super.register(injector);
 	}
 }

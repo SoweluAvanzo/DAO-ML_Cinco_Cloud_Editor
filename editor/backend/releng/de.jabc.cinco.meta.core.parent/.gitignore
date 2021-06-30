@@ -1,7 +1,6 @@
 src-gen/
 target/
 xtend-gen/
-xtext-gen/
 .settings/
 workspace-emf-tmp/
 .project

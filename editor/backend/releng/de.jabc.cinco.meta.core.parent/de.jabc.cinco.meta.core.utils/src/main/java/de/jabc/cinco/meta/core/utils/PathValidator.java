@@ -34,15 +34,14 @@ public class PathValidator {
 	 * 					referenced by <code>path</code> should be found in
 	 * @param path		a {@link String} to check whether it points to a valid resource, file,
 	 * 					or folder
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return a {@link Boolean} that is true if the <code>path</code> is valid, a false if
 	 * 			<code>path</code> is invalid
 	 */
-	public static boolean checkPath(EObject object, String path, IWorkspaceContext workspaceContext) {
-		File file = workspaceContext.getFile(path);
+	public static boolean checkPath(EObject object, String path) {
+		File file = IWorkspaceContext.getLocalInstance().getFile(path);
 		if(!file.exists()) {
 			//check for folder
-			File folder = getFolder(file.getAbsolutePath(), workspaceContext);
+			File folder = getFolder(file.getAbsolutePath());
 			if(!folder.exists()) {
 				return false;
 			}
@@ -61,17 +60,16 @@ public class PathValidator {
 	 * 
 	 * @param path	a {@link String} that points to a file, resource or folder for which an 
 	 * 				{@link URI} should be returned
-	 * @param workspaceContext is the workspaceContext containing project-specific information
 	 * @return the {@link URI} of the file, resource or folder present at the provided
 	 * 			<code>path</code>, returns <code>null</code> if the <code>path</code> is invalid or
 	 * 			if no file, resource or folder is present under the provided <code>path</code>
 	 * @see #getURLForString(EObject, String)
 	 */
-	public static URI getURIForString(String path, IWorkspaceContext workspaceContext) {
-		File resource = workspaceContext.getFile(path);
+	public static URI getURIForString(EObject object, String path) {
+		File resource = IWorkspaceContext.getLocalInstance().getFile(path);
 		if(!resource.exists()) {
 			//try folder
-			resource = getFolder(resource.getAbsolutePath(), workspaceContext);
+			resource = getFolder(resource.getAbsolutePath());
 		}
 		return URI.createFileURI(resource.getAbsolutePath());
 	}
@@ -102,18 +100,18 @@ public class PathValidator {
 		throw new RuntimeException("The uri: \"" + uri +"\" could not be recognized");
 	}
 	
-	public static boolean checkSameProjects(String relativePath, IWorkspaceContext workspaceContext) {
-		URI uri = workspaceContext.getFileURI(relativePath);
-		return workspaceContext.isContainedInRoot(uri);
+	public static boolean checkSameProjects(String relativePath) {
+		URI uri = IWorkspaceContext.getLocalInstance().getFileURI(relativePath);
+		return IWorkspaceContext.getLocalInstance().isContainedInRoot(uri);
 	}
 	
 	@Deprecated
-	private static String checkPlatformResourceURI(URI uri, IWorkspaceContext workspaceContext) {
+	private static String checkPlatformResourceURI(URI uri) {
 		throw new RuntimeException("Plattform resource is not supported.");
 	}
 	
-	private static boolean checkRelativePath(String relativePath, IWorkspaceContext workspaceContext) {
-        File file = workspaceContext.getFile(relativePath);
+	private static boolean checkRelativePath(String relativePath) {
+        File file = IWorkspaceContext.getLocalInstance().getFile(relativePath);
         return file.exists();
 	}
 	
@@ -125,7 +123,7 @@ public class PathValidator {
 		return folder.exists();
 	}
 	
-	private static File getFolder(String absolutePath, IWorkspaceContext workspaceContext) {
-        return workspaceContext.getFolder(absolutePath);
+	private static File getFolder(String absolutePath) {
+        return IWorkspaceContext.getLocalInstance().getFolder(absolutePath);
 	}
 }

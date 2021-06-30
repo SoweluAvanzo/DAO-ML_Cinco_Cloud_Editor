@@ -2,9 +2,6 @@ package de.jabc.cinco.meta.core.ge.style.validation
 
 import de.jabc.cinco.meta.core.utils.PathValidator
 import java.util.ArrayList
-import java.util.jar.Manifest
-import org.eclipse.core.resources.IProject
-import org.eclipse.core.resources.ResourcesPlugin
 import org.eclipse.xtext.validation.Check
 import style.AbstractShape
 import style.Alignment
@@ -12,11 +9,10 @@ import style.Appearance
 import style.ConnectionDecorator
 import style.Image
 import style.NodeStyle
-import style.Style
 import style.StylePackage
-import de.jabc.cinco.meta.core.utils.CincoUtil
 import style.ContainerShape
 import de.jabc.cinco.meta.core.utils.WorkspaceContext
+import de.jabc.cinco.meta.core.utils.IWorkspaceContext
 
 /**
  * Custom validation rules. 
@@ -58,8 +54,8 @@ class StyleValidator extends JStyleValidator {
  		if (image.path.nullOrEmpty)
  			warning('No Path specified', StylePackage.Literals.IMAGE__PATH, NO_PATH)
  		
-		val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, image)
- 		val exists = PathValidator.checkPath(image, image.path, workspaceContext)
+		IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, image));
+ 		val exists = PathValidator.checkPath(image, image.path)
  		if (!exists)
  			error("Path does not exists!", StylePackage.Literals.IMAGE__PATH, INVALID_PATH)
  	}
@@ -92,7 +88,7 @@ class StyleValidator extends JStyleValidator {
 	
 	@Check
 	def checkColorForeground(Appearance app){
-		if(app.foreground == null)
+		if(app.foreground === null)
 			return;
 		if (app.foreground.b > 255 || app.foreground.r > 255 || app.foreground.g > 255)
 			error("Number(s) too large", StylePackage.Literals.APPEARANCE__FOREGROUND)

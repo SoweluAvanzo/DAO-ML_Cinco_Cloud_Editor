@@ -7,13 +7,7 @@
 	<packaging>pom</packaging>
 
 	<!-- TODO:SAMI:
-		- porting additional language support-features (wip)
 		- textmate for msl and cpd
-	
-		BURNED:
-		- WorkspaceHelper usage leads to Nullpointer
-		- Path-References currently not correct
-		- custom endpoint for generator
 	 -->
 
 	<properties>
@@ -41,20 +35,20 @@
 		<module>de.jabc.cinco.meta.core.ge.style.model</module>
 		<module>de.jabc.cinco.meta.core.mgl.model</module>
 		<module>de.jabc.cinco.meta.productdefinition.model</module>
-    	<!-- utils -->
-    	<module>de.jabc.cinco.meta.core.event</module>
-    	<module>de.jabc.cinco.meta.plugin.event.api</module>
-    	<module>de.jabc.cinco.meta.core.utils</module>
-    	<!-- style-language -->
+		<!-- utils -->
+		<module>de.jabc.cinco.meta.core.event</module>
+		<module>de.jabc.cinco.meta.plugin.event.api</module>
+		<module>de.jabc.cinco.meta.core.utils</module>
+		<!-- languages -->
 		<module>de.jabc.cinco.meta.core.ge.style</module>
-		<module>de.jabc.cinco.meta.core.ge.style.ide</module>
-    	<!-- mgl-language -->
 		<module>de.jabc.cinco.meta.core.mgl</module>
-		<module>de.jabc.cinco.meta.core.mgl.ide</module>
-    	<!-- cpd-language -->
 		<module>de.jabc.cinco.meta.productdefinition</module>
+		<!-- meta-plugin -->
+		<module>de.jabc.cinco.meta.plugin.pyro</module>
+		<!-- language-server -->
+		<module>de.jabc.cinco.meta.core.ge.style.ide</module>
+		<module>de.jabc.cinco.meta.core.mgl.ide</module>
 		<module>de.jabc.cinco.meta.productdefinition.ide</module>
-    	<!-- language-server -->
 		<module>de.jabc.cinco.meta.core.ide</module>
   	</modules>
 	

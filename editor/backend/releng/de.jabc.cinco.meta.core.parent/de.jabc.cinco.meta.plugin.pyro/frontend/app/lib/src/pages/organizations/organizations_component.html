@@ -1,0 +1,56 @@
+<navigation [user]="currentUser"></navigation>
+
+<div class="container">	
+
+	<h4>Organizations</h4>
+	<p class="text-muted">All organizations you are a member of</p>
+	<hr>
+
+	<div *ngIf="canCreateOrganization">
+		<button class="btn btn-primary btn-sm" (click)="newOrganizationModal.open()">Create Organization</button>
+		<hr>
+	</div>
+	
+	<div class="alert alert-info" *ngIf="organizations.length === 0">
+		There aren't any organizations yet.
+	</div>
+	
+	<div class="list-group" *ngIf="organizations.length > 0">
+		<div class="list-group-item pyro-list-entry d-flex flex-row" *ngFor="let org of organizations; let i = $index">
+			<div class="mr-3">
+				<img src="{{org.style.logo.downloadPath}}" *ngIf="org.style.logo != null" style="width: 60px; height: auto;">
+				<div *ngIf="org.style.logo == null" style="height: 40px; width: 60px; background: rgba(0,0,0,.1)"></div>
+			</div>
+			<div class="w-100">
+				<a class="org-body-text-color" [routerLink]="getProjectsUrl(org)">
+					<h5>{{org.name}}</h5> 
+				</a>
+				<p class="mb-0">
+					<em class="text-muted" *ngIf="org.description != null && org.description.trim() === ''">No description provided</em>
+					<span *ngIf="org.description != null && org.description.trim() !== ''">{{org.description}}</span>
+				</p>
+			</div>
+			<div class="flex-shrink-0">
+				<div class="btn-group btn-group-sm" *ngIf="isOrgManager">
+					<button class="btn" (click)="editOrganizationModal.open(org)"><i class="fas fa-edit"></i></button>
+					<button class="btn" (click)="deleteOrganization(org)"><i class="fas fa-trash"></i></button>
+					<button class="btn" (click)="leaveOrganization(org)"><i class="fas fa-sign-out-alt"></i></button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<new-organization 
+	#newOrganizationModal 
+	(dismiss)="newOrganizationModal.close()" 
+	(created)="addOrganization($event)"
+>
+</new-organization>
+
+<edit-organization 
+	#editOrganizationModal 
+	(dismiss)="editOrganizationModal.close()" 
+	(updated)="updateOrganization($event)"
+>
+</edit-organization>

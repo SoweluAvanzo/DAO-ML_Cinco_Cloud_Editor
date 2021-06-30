@@ -10,27 +10,17 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.URIConverter;
 import org.eclipse.xtext.workspace.IProjectConfig;
 import org.eclipse.xtext.workspace.IProjectConfigProvider;
+import org.eclipse.xtext.workspace.ProjectConfigProvider;
 
 public class WorkspaceContext implements IWorkspaceContext {
-
     private ResourceSet resourceSet;
 	final URI rootURI;
+	static URI FALLBACK_URI;
 	
 	public WorkspaceContext(URI rootURI, ResourceSet resourceSet) {
 		this.resourceSet = resourceSet;
 		if(rootURI != null) {
 			this.rootURI = rootURI;
-		} else {
-			// fallback to the folder where the resource is located
-			URIConverter conv = resourceSet.getURIConverter();
-			this.rootURI = conv.normalize(URI.createURI(""));
-		}
-	}
-
-	public WorkspaceContext(String rootURI, ResourceSet resourceSet) {
-		this.resourceSet = resourceSet;
-		if(rootURI != null) {
-			this.rootURI = URI.createURI(rootURI);
 		} else {
 			// fallback to the folder where the resource is located
 			URIConverter conv = resourceSet.getURIConverter();
@@ -101,7 +91,11 @@ public class WorkspaceContext implements IWorkspaceContext {
 		if(list.isEmpty())
 			return null;
 		EObject eObject = list.get(0);
-		return clazz.cast(eObject);
+		try {
+			return clazz.cast(eObject);
+		} catch(Exception e) {
+			return null;
+		}
 	}
 
 	@Override
@@ -188,12 +182,12 @@ public class WorkspaceContext implements IWorkspaceContext {
 	}
 	
 	public static IWorkspaceContext createInstance(IProjectConfigProvider projectConfigProvider, EObject eObject) {
-		if(eObject == null || projectConfigProvider == null)
-			throw new IllegalArgumentException("IProjectConfigProvider and/or EObject must not be null!");
+		if(eObject == null)
+			throw new IllegalArgumentException("EObject must not be null!");
 		Resource res = eObject.eResource();
 		return WorkspaceContext.createInstance(projectConfigProvider, res);
 	}
-	
+
 	public static IWorkspaceContext createInstance(IProjectConfigProvider projectConfigProvider, Resource res) {
 		ResourceSet set = null;
 		if(res != null)
@@ -201,14 +195,39 @@ public class WorkspaceContext implements IWorkspaceContext {
 		if(set == null) {
 			throw new IllegalArgumentException("given Resource is not associated with any ResourceSet!");
 		}
-		
-		IProjectConfig projectConfig = projectConfigProvider.getProjectConfig(set);
-		URI root = projectConfig.getPath();
-		if(projectConfigProvider != null) {
-			
+		return createInstance(projectConfigProvider, set);
+	}
+	public static IWorkspaceContext createInstance(IProjectConfigProvider projectConfigProvider, ResourceSet set) {
+		if(set == null) {
+			throw new IllegalArgumentException("Associated ResourceSet must not be null!");
 		}
+		if(projectConfigProvider == null)
+			projectConfigProvider = new ProjectConfigProvider();
+		IProjectConfig projectConfig = projectConfigProvider.getProjectConfig(set);
+		
+		URI root;
+		if(projectConfig == null)
+			root = FALLBACK_URI;
+		else
+			root = projectConfig.getPath();
 		
 		IWorkspaceContext workspaceContext = new WorkspaceContext(root, set);
 		return workspaceContext;
+	}
+	
+	/**
+	 * This should only be used in non-production cases, like tests
+	 * @param fallbackUri
+	 */
+	public static void setFallbackURI(URI fallbackUri) {
+		FALLBACK_URI = fallbackUri;
+	}
+	
+	/**
+	 * This should only be used in non-production cases, like tests
+	 * @param fallbackUri
+	 */
+	public static void setFallbackURI(String fallbackUri) {
+		setFallbackURI(URI.createURI(fallbackUri));
 	}
 }

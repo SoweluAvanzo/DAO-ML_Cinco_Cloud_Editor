@@ -44,8 +44,8 @@ class GraphModelExtension {
 	//================================================================================
     // GraphModel Extensions
     //================================================================================
-	def String getProjectName(IWorkspaceContext workspaceContext) {
-		workspaceContext.rootFolderName
+	def String getProjectName() {
+		IWorkspaceContext.getLocalInstance().rootFolderName
 	}
 	
 	def String getProjectSymbolicName(MGLModel model) {
@@ -53,16 +53,16 @@ class GraphModelExtension {
 		throw new RuntimeException("Not implemented");
 	}
 	
-	def Iterable<GenModel> getImportedGenModels(MGLModel model, IWorkspaceContext workspaceContext) {
+	def Iterable<GenModel> getImportedGenModels(MGLModel model) {
 		model.mglModel.imports
 			.filter[importURI.endsWith(".ecore")]
-			.map[getGenModel(workspaceContext)]
+			.map[getGenModel]
 	}
 
-	def Iterable<GraphModel> getImportedGraphModels(MGLModel model, IWorkspaceContext workspaceContext) {
+	def Iterable<GraphModel> getImportedGraphModels(MGLModel model) {
 		model.mglModel.imports
 			.filter[importURI.endsWith(".mgl")]
-			.map[getImportedGraphModelsOfImport(workspaceContext)]
+			.map[getImportedGraphModelsOfImport]
 			.flatten
 	}
 	
@@ -363,19 +363,22 @@ class GraphModelExtension {
 	//================================================================================
     // Import Extensions
     //================================================================================
-	def getImportedModel(Import imprt, IWorkspaceContext workspaceContext) {
+	def getImportedModel(Import imprt) {
+		val workspaceContext = IWorkspaceContext.getLocalInstance();
 		val path = imprt.importURI;
 		val uri = workspaceContext.getFileURI(path)
 		workspaceContext.getContent(uri, EObject)
 	}
 	
-	def GenModel getGenModel(Import imprt, IWorkspaceContext workspaceContext) {
+	def GenModel getGenModel(Import imprt) {
+		val workspaceContext = IWorkspaceContext.getLocalInstance();
 		val path = removeExtension(imprt.importURI).concat(".genmodel")
 		val uri = workspaceContext.getFileURI(path)
 		workspaceContext.getContent(uri, GenModel)
 	}
 	
-	def Set<GraphModel> getImportedGraphModelsOfImport(Import imprt, IWorkspaceContext workspaceContext) {
+	def Set<GraphModel> getImportedGraphModelsOfImport(Import imprt) {
+		val workspaceContext = IWorkspaceContext.getLocalInstance();
 		var uri = workspaceContext.getFileURI(imprt.importURI)
 		if(uri === null)
 			throw new RuntimeException("import \""+imprt.importURI+"\" could not resolve to a file")
@@ -455,12 +458,12 @@ class GraphModelExtension {
 		}
 	}
 	
-	def getFqBeanName(ReferencedType primeRef, IWorkspaceContext workspaceContext) {
+	def getFqBeanName(ReferencedType primeRef) {
 		switch primeRef {
 			ReferencedModelElement: primeRef.type.fqBeanName
 			ReferencedEClass: {
 				val primeEPackage = primeRef.type.EPackage
-				val genPkg = primeRef.getGenModel(workspaceContext).genPackages.findFirst[name == primeEPackage.name]
+				val genPkg = primeRef.getGenModel.genPackages.findFirst[name == primeEPackage.name]
 				primeRef.getFqBeanName(genPkg)
 			}
 		}
@@ -476,12 +479,12 @@ class GraphModelExtension {
 		return pkg + primeRef.typeName
 	}
 	
-	def getImportedModel(ReferencedEClass primeRef, IWorkspaceContext workspaceContext) {
-		getImportedModel(primeRef.imprt, workspaceContext)
+	def getImportedModel(ReferencedEClass primeRef) {
+		getImportedModel(primeRef.imprt)
 	}
 	
-	def getGenModel(ReferencedEClass primeRef, IWorkspaceContext workspaceContext) {
-		getGenModel(primeRef.imprt, workspaceContext)
+	def getGenModel(ReferencedEClass primeRef) {
+		getGenModel(primeRef.imprt)
 	}
 	
 	def getName(GenPackage genPkg) {

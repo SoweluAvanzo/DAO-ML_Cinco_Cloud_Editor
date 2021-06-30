@@ -1,0 +1,79 @@
+<h4>Projects</h4>
+<p class="text-muted">Manage and access projects of the organization</p>
+<hr>
+
+<div *ngIf="user != null && organization != null">	
+	
+	<div class="btn-group btn-group-sm">
+		<button class="btn btn-primary" type="button" (click)="newProjectModal.open(user, organization)" *ngIf="canCreate">
+        	Create
+    	</button>   
+	</div>
+	
+	<hr>
+
+    <div class="list-group" *ngIf="organization.projects.length > 0">
+        <div *ngFor="let project of organization.projects" class="list-group-item pyro-list-entry" >
+            <div class="list-group-item-heading d-flex flex-row">
+                <div class="w-100" (click)="openCurrentProject(project)" style="cursor: pointer">
+                	<h5>{{project.name}}</h5>
+                </div>
+                <div class="flex-shrink-0">
+                	<div class="btn-group btn-group-sm">
+                        <button (click)="showEditProject(project)" type="button" class="btn" *ngIf="canEdit">
+                        	<i class="fas fa-fw fa-edit"></i>
+                    	</button>
+                    	<button class="btn" (click)="openProjectPermissions(project)" *ngIf="GraphModelPermissionUtils.canChangePermissions(user, project)">
+                    		<i class="fas fa-fw fa-key"></i>
+                    	</button>
+                        <button (click)="removeProject(project)" type="button" class="btn" *ngIf="canDelete">
+                        	<i class="fas fa-fw fa-trash"></i>
+                    	</button>
+                	</div>
+                </div>
+            </div>
+
+            <div class="list-group-item-text" >
+            	<p *ngIf="project.description.trim() != ''">
+                	{{project.description}}
+                </p>
+                <p class="mb-0 text-muted">
+            		Owner: 
+            		<strong *ngIf="project.owner.id == user.id">You</strong>
+            		<span *ngIf="project.owner.id != user.id">{{project.owner.username}}</span>
+            	</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="alert alert-info" *ngIf="organization.projects.length === 0">
+    	There are no projects in this organization yet.
+    </div>
+	 	    
+</div>
+
+<edit-project
+	*ngIf="showEditProjectModal"
+    [user]="user"
+    [organization]="organization"
+    [project]="editProject"
+    (editedProject)="handleProjectEdited($event)"
+    (close)="showEditProjectModal=false"
+>
+</edit-project>
+
+<delete-project
+    *ngIf="showDeleteProjectModal"
+    [user]="user"
+    [project]="deleteProject"
+    (delete)="handleProjectDeleted()"
+    (close)="showDeleteProjectModal=false"
+>
+</delete-project>
+
+<new-project
+    #newProjectModal
+    (newProject)="handleNewProject($event)"
+    (dismiss)="newProjectModal.close()"
+>
+</new-project>

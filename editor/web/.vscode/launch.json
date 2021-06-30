@@ -9,6 +9,7 @@
       "request": "launch",
       "name": "Launch Browser Backend",
       "program": "${workspaceRoot}/browser-app/src-gen/backend/main.js",
+      "envFile": "${workspaceFolder}/.env",
       "args": [
         "--loglevel=debug",
         "--port=3000",
@@ -35,6 +36,9 @@
     },
     {
       "name": "Launch Browser Frontend",
+      "env": {
+        "CINCO_CLOUD_DEBUG": true
+      },
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3000/?jwt=test&projectId=1",

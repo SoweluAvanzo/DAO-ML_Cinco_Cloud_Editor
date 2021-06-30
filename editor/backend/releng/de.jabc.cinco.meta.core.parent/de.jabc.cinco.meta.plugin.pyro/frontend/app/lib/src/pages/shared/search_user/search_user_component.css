@@ -1,0 +1,7 @@
+.result-list .list-group-item:hover {
+    cursor: pointer;
+}
+
+.result-list .list-group-item.active {
+    color: #fff;
+}

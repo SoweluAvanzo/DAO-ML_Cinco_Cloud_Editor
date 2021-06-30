@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutionException;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.xtext.ide.server.ILanguageServerAccess;
 import org.eclipse.xtext.ide.server.ILanguageServerAccess.Context;
 import org.eclipse.xtext.resource.IResourceDescription;
@@ -54,7 +55,9 @@ public class ParserHelper {
 	 * language-server, else null.
 	 */
 	public static EObject getRootElement(ILanguageServerAccess languageServerAccess, String uri) {
-		return getResource(languageServerAccess, uri).getContents().get(0);
+		Resource res = getResource(languageServerAccess, uri);
+		EcoreUtil.resolveAll(res);
+		return res.getContents().get(0);
 	}
 
 

@@ -1,0 +1,35 @@
+<div class="d-flex flex-row mb-2" *ngIf="vector != null">
+  <div class="flex-shrink-0" style="min-width: 120px; max-width: 120px;">
+  	{{vector.graphModelType | normalizeEnumString}}
+  </div>
+  <div class="w-100 px-2">
+    <span class="badge badge-primary p-2 mr-1" *ngFor="let permission of vector.permissions">
+      {{permission | normalizeEnumString}} <i class="fas fa-times ml-2" (click)="removePermission(permission)"></i>
+    </span>
+  </div>
+  <div *ngIf="getAvailablePermissions().length > 0">  	
+  	<bs-dropdown>
+	  <button type="button" class="btn btn-sm btn-dark dropdown-toggle no-caret">
+	    <i class="fas fa-plus"></i>
+	  </button>
+	  <bs-dropdown-menu class="dropdown-menu-right">
+	    <a 
+	      class="dropdown-item" 
+	      href="#" 
+	      *ngFor="let perm of getAvailablePermissions()" 
+	      (click)="addPermission($event, perm)"
+	    >
+	      {{perm|normalizeEnumString}}
+	    </a>
+    	<div class="dropdown-divider"></div>
+    	<a 
+    	  class="dropdown-item"
+    	  href="#"
+    	  (click)="addAllPermissions($event)"
+    	>
+    	  Add All
+    	</a>
+	  </bs-dropdown-menu>
+	</bs-dropdown>
+  </div>
+</div>

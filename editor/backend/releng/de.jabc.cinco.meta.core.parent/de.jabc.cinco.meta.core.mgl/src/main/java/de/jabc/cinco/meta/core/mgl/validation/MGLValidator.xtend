@@ -35,6 +35,7 @@ import de.jabc.cinco.meta.core.utils.generator.GeneratorUtils
 import de.jabc.cinco.meta.core.utils.WorkspaceContext
 import com.google.inject.Inject
 import org.eclipse.xtext.workspace.IProjectConfigProvider
+import de.jabc.cinco.meta.core.utils.IWorkspaceContext
 
 class MGLValidator extends AbstractMGLValidator {
 	
@@ -319,8 +320,8 @@ class MGLValidator extends AbstractMGLValidator {
 	@Check
 	def checkGraphModelIconPath(GraphModel gm) {
 		if (!gm.iconPath.nullOrEmpty) {
-			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, gm)
-			val exists = PathValidator.checkPath(gm, gm.iconPath, workspaceContext)
+			IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, gm));
+			val exists = PathValidator.checkPath(gm, gm.iconPath)
  			if (!exists) {
  				error("Path does not exists!", MglPackage.Literals.GRAPH_MODEL__ICON_PATH, "The specified path: \"" + gm.iconPath +"\" does not exist")
 			}
@@ -330,8 +331,8 @@ class MGLValidator extends AbstractMGLValidator {
 	@Check
 	def checkImportUris(Import imp) {
 		try{
-			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, imp)
-			val exists = PathValidator.checkPath(imp, imp.importURI, workspaceContext)
+			IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, imp));
+			val exists = PathValidator.checkPath(imp, imp.importURI)
 		if (!exists)
 			error("Path does not exists!", MglPackage.Literals.IMPORT__IMPORT_URI, "Could not load resource")
 		}catch(Exception e){
@@ -343,8 +344,8 @@ class MGLValidator extends AbstractMGLValidator {
 	@Check
 	def checkExternalMGLIsStealth(Import imp){
 		if(!PathValidator.isRelativePath(imp.importURI)){
-			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, imp)
-			if(!PathValidator.checkSameProjects(imp.importURI, workspaceContext) && imp.importURI.mglImport && !imp.isStealth && !imp.isExternal){
+			IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, imp));
+			if(!PathValidator.checkSameProjects(imp.importURI) && imp.importURI.mglImport && !imp.isStealth && !imp.isExternal){
 				error("MGLs imported from foreign Projects must be imported stealthy or be marked as an external import",MglPackage.Literals.IMPORT__IMPORT_URI);
 			}
 		} 
@@ -767,15 +768,15 @@ class MGLValidator extends AbstractMGLValidator {
 	def checkImportCycleExists(Import imprt) {
 		if(!imprt.isStealth) {
 			val originalMGLModel = imprt.eContainer as MGLModel
-			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, originalMGLModel)
-			val importedMGLModel = CincoUtil.getImportedMGLModel(imprt, workspaceContext)
+			IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, originalMGLModel));
+			val importedMGLModel = CincoUtil.getImportedMGLModel(imprt)
 			
 			if(importedMGLModel !== null) {
 				val importsToCheck = importedMGLModel.imports.filter[!isStealth].toList
 				val alreadyVisitedMGLModel = newLinkedList(originalMGLModel, importedMGLModel)
 				
 				for(var i = 0; i < importsToCheck.size; i++) {
-					val currentImportedMGL = CincoUtil.getImportedMGLModel(importsToCheck.get(i), workspaceContext)
+					val currentImportedMGL = CincoUtil.getImportedMGLModel(importsToCheck.get(i))
 					if(currentImportedMGL !== null) {
 						if(alreadyVisitedMGLModel.exists[MGLUtil.equalMGLModels(it, currentImportedMGL)]) {
 							error("Cyclic imports detected at " + GeneratorUtils.instance.getFileName(currentImportedMGL) + ".mgl", MglPackage.Literals.IMPORT__IMPORT_URI)
@@ -806,8 +807,8 @@ class MGLValidator extends AbstractMGLValidator {
 		val mgl = MGLUtil.getMglModel(me)
 		val imports = mgl.imports.filter[!isStealth]
 		imports.forEach[imp |
-			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, me)
-			val imp_mgl = CincoUtil.getImportedMGLModel(imp, workspaceContext);
+			IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, me));
+			val imp_mgl = CincoUtil.getImportedMGLModel(imp);
 			if(imp_mgl !== null) {
 				MGLUtil.modelElements(imp_mgl, true).forEach[
 					if(!MGLUtil.equalModelElement(it, me) && it.name == me.name) {
@@ -823,11 +824,11 @@ class MGLValidator extends AbstractMGLValidator {
 		if(!imprt.isStealth) {
 			val mgl = imprt.eContainer as MGLModel
 			val imports = mgl.imports.filter[!isStealth]
-			val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, mgl)
-			val importedMGL = CincoUtil.getImportedMGLModel(imprt, workspaceContext)
+			IWorkspaceContext.setLocalInstance(WorkspaceContext.createInstance(projectConfigProvider, mgl));
+			val importedMGL = CincoUtil.getImportedMGLModel(imprt)
 			imports.forEach[imp |
 				if(imprt !== imp) {
-					MGLUtil.modelElements(CincoUtil.getImportedMGLModel(imp, workspaceContext), true).forEach[importedMe |
+					MGLUtil.modelElements(CincoUtil.getImportedMGLModel(imp), true).forEach[importedMe |
 						MGLUtil.modelElements(importedMGL).forEach[
 							if(it.name == importedMe.name) {
 								error("The model element name \"" + it.name + "\" leads to a name clash, as " +
