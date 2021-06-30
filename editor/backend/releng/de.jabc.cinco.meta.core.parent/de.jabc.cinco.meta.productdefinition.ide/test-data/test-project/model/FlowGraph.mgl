@@ -1,4 +1,4 @@
-// import "model/ExternalLibrary.ecore" as externalLibrary
+import "model/ExternalLibrary.ecore" as externalLibrary
 
 id info.scce.cinco.product.flowgraph
 stylePath "model/FlowGraph.style"
@@ -55,7 +55,6 @@ node Activity {
 	outgoingEdges (LabeledTransition[1,*])
 }
 
-/*
 node ExternalActivity {
 	style greenTextRectangle("${activity.name}")
 	
@@ -65,7 +64,6 @@ node ExternalActivity {
 	incomingEdges (*[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }
-*/
 
 node SubFlowGraph {
 	style greenTextRectangle("${subFlowGraph.modelName}")
