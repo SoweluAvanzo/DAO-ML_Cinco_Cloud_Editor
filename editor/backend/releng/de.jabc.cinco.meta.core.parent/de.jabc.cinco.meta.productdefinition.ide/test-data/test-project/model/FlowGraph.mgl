@@ -54,7 +54,7 @@ node Activity {
 	incomingEdges (*[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }
-
+/*
 node ExternalActivity {
 	style greenTextRectangle("${activity.name}")
 	
@@ -64,7 +64,7 @@ node ExternalActivity {
 	incomingEdges (*[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }
-
+/*
 node SubFlowGraph {
 	style greenTextRectangle("${subFlowGraph.modelName}")
 	
