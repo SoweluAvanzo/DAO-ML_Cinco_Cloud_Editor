@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.^extension.ExtendWith
 import de.jabc.cinco.meta.core.mgl.tests.MGLInjectorProvider;
+import org.eclipse.emf.ecore.util.EcoreUtil
+import de.jabc.cinco.meta.core.utils.WorkspaceContext
 
 @ExtendWith(InjectionExtension)
 @InjectWith(MGLInjectorProvider)
@@ -22,16 +24,34 @@ class MGLParsingTest {
 	@Test
 	def void loadModel() {
 		val testFile = getExample();
+		WorkspaceContext.fallbackURI = folder
+		
 		val result = parseHelper.parse(testFile)
 		Assertions.assertNotNull(result)
+		EcoreUtil.resolveAll(result);
+		for(n:result.nodes) {
+			if(n.name.equals("ExternalActivity")) {
+				Assertions.assertNotNull(n.primeReference)
+				val imprt = n.primeReference.imprt
+				Assertions.assertNotNull(imprt)
+				Assertions.assertNotNull(imprt.importURI)
+			}
+		}
+		
 		val errors = result.eResource.errors
 		Assertions.assertTrue(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
 	}
 	
 	def String getExample() {
 		val classLoader = getClass().getClassLoader
-		val file = classLoader.getResource("FlowGraph.mgl").toURI
+		val file = classLoader.getResource("model/FlowGraph.mgl").toURI
 		val p = java.nio.file.Paths.get(file);
 		return java.nio.file.Files.readString(p);
+	}
+	def String getFolder() {
+		val classLoader = getClass().getClassLoader
+		val folder = classLoader.getResource("").toURI
+		val p = java.nio.file.Paths.get(folder);
+		return p.toUri.toString;
 	}
 }
