@@ -36,6 +36,12 @@ public class MGLStandaloneSetup extends MGLStandaloneSetupGenerated {
 		if (!EPackage.Registry.INSTANCE.containsKey(MglPackage.eNS_URI)) {
 			EPackage.Registry.INSTANCE.put(MglPackage.eNS_URI, mgl.MglPackage.eINSTANCE);
 		}
+		
+		org.eclipse.xtext.resource.IResourceFactory resourceFactory = injector.getInstance(org.eclipse.xtext.resource.IResourceFactory.class);
+	    org.eclipse.xtext.resource.IResourceServiceProvider serviceProvider = injector.getInstance(org.eclipse.xtext.resource.IResourceServiceProvider.class);
+	    Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, resourceFactory);
+	    org.eclipse.xtext.resource.IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, serviceProvider);
+		
 		super.register(injector);
 	}
 }
