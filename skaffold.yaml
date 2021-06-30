@@ -5,13 +5,13 @@ metadata:
 deploy:
   kubectl:
     manifests:
-      - .infrastructure/ingress.yaml
-      - .infrastructure/ampq.yaml
-      - .infrastructure/main.yaml
-      - .infrastructure/postgres.yaml
-      - .infrastructure/registry.yaml
-      - .infrastructure/secret.yaml
-#      - .infrastructure/editor.yaml
+      - infrastructure/ingress.yaml
+      - infrastructure/ampq.yaml
+      - infrastructure/main.yaml
+      - infrastructure/postgres.yaml
+      - infrastructure/registry.yaml
+      - infrastructure/secret.yaml
+#      - infrastructure/editor.yaml
 build:
   artifacts:
     - image: registry.gitlab.com/scce/cinco-cloud/main
