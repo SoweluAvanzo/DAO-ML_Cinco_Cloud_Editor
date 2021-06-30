@@ -1831,7 +1831,7 @@ class MGLExtension {
 		if (node.outgoingEdgeConnections.exists[connectingEdges.empty]) {
 			return this.edges(node.modelPackage as MGLModel).toSet
 		}
-		val subTypesOfDirectOutgoing = directOutgoing.map[n|n.name.subTypes(n.modelPackage)].flatten.filter(Edge)
+		val subTypesOfDirectOutgoing = directOutgoing.map[n|n.name.subTypes(node.modelPackage as MGLModel)].flatten.filter(Edge)
 		if (node.extends !== null) {
 			return (directOutgoing + subTypesOfDirectOutgoing + node.extends.possibleOutgoing ).toSet
 		}
