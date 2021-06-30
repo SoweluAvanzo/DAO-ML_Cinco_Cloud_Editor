@@ -8,8 +8,8 @@ grammar de.jabc.cinco.meta.core.mgl.MGL hidden(WS, ML_COMMENT, SL_COMMENT)
  * 3. Made Terminal-ID return ecore::EString
  */
 
-import "platform:/resource/de.jabc.cinco.meta.core.mgl.model/model/MGL.ecore" // TODO: change to url
-import "platform:/resource/org.eclipse.emf.ecore/model/Ecore.ecore" as ecore
+import "http://www.jabc.de/cinco/meta/core/mgl" // TODO: change to url
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 MGLModel returns MGLModel:
 	(imports+=Import)*
