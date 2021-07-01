@@ -35,8 +35,7 @@
     "@theia/variable-resolver": "latest",
     "@theia/vsx-registry": "latest",
     "@theia/workspace": "latest",
-    "cinco-language-server-extension": "1.0.0",
-    "cinco-cloud-grpc": "1.0.0"
+    "cinco-language-server-extension": "1.0.0"
   },
   "devDependencies": {
     "@theia/cli": "latest"

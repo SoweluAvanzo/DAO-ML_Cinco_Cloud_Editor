@@ -12,7 +12,6 @@
   "workspaces": [
     "cinco-language-server-extension",
     "cinco-authenticator",
-    "cinco-cloud-grpc",
     "browser-app"
   ],
   "resolutions": {
