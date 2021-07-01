@@ -18,7 +18,7 @@ RUN pub run build_runner build -o build
 # Build the pyro quarkus backend. Move static frontend files to the quarkus resource
 # folder so that we can build a fat jar that includes the frontend.
 #
-FROM docker.io/library/openjdk:15-jdk-alpine3.11 as builder-backend
+FROM docker.io/library/openjdk:15-jdk-slim as builder-backend
 WORKDIR /app/backend
 COPY ./backend/.mvn /app/backend/.mvn
 COPY ./backend/mvnw /app/backend/
@@ -32,7 +32,7 @@ RUN ./mvnw package -DskipTests
 #
 # Build the fat pyro quarkus jar.
 #
-FROM docker.io/library/openjdk:15-jdk-alpine3.11
+FROM docker.io/library/openjdk:15-jdk-slim
 WORKDIR /app
 COPY --from=builder-backend /app/backend/target/quarkus-app/ /app
 EXPOSE 8000
