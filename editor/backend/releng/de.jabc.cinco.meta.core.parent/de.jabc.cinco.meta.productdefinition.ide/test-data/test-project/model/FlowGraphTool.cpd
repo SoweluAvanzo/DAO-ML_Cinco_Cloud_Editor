@@ -27,6 +27,4 @@ cincoProduct FlowGraphTool {
 
 // TODO: 
 // - src-files
-// - ecore
 // - style-src
-// - changes not updated in lsp
