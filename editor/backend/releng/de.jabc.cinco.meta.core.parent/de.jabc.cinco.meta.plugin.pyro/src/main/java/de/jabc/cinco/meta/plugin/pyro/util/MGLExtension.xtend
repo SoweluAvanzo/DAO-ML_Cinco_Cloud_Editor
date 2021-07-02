@@ -402,6 +402,11 @@ class MGLExtension {
 		return mglModel
 	}
 	
+	def dispatch EObject getModelPackage(EObject eObject) {
+		val modelPackage = eObject.getPackageContainer as EObject
+		return modelPackage
+	}
+	
 	def dispatch EPackage getModelPackage(ENamedElement eObject) {
 		val modelPackage = eObject.getPackageContainer as EPackage
 		return modelPackage
