@@ -8,6 +8,8 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.URIConverter;
+import org.eclipse.emf.ecore.resource.impl.URIHandlerImpl;
+import org.eclipse.xtext.resource.XtextPlatformResourceURIHandler;
 import org.eclipse.xtext.workspace.IProjectConfig;
 import org.eclipse.xtext.workspace.IProjectConfigProvider;
 import org.eclipse.xtext.workspace.ProjectConfigProvider;
@@ -205,14 +207,25 @@ public class WorkspaceContext implements IWorkspaceContext {
 			projectConfigProvider = new ProjectConfigProvider();
 		IProjectConfig projectConfig = projectConfigProvider.getProjectConfig(set);
 		
-		URI root;
-		if(projectConfig == null)
-			root = FALLBACK_URI;
-		else
-			root = projectConfig.getPath();
+		URI root = resolveRootURI(projectConfig, set);
 		
 		IWorkspaceContext workspaceContext = new WorkspaceContext(root, set);
 		return workspaceContext;
+	}
+	
+	public static URI resolveRootURI(IProjectConfig projectConfig, ResourceSet set) {
+		if(projectConfig == null || projectConfig.getPath() == null) {
+			try {
+				XtextPlatformResourceURIHandler handler = (XtextPlatformResourceURIHandler) set.getLoadOptions().get("URI_HANDLER");
+				if(handler != null) {
+					return handler.getBaseURI();
+				}
+			} catch(Exception e) {
+				System.out.println("No root URI resolvable, falling back to: "+FALLBACK_URI.devicePath());
+				return FALLBACK_URI;
+			}
+		}
+		return projectConfig.getPath();
 	}
 	
 	/**
