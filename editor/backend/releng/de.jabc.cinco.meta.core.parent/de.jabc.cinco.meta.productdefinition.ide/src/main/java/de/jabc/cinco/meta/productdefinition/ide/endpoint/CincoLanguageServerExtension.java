@@ -1,7 +1,5 @@
 package de.jabc.cinco.meta.productdefinition.ide.endpoint;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,18 +7,24 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.lsp4j.WorkspaceFolder;
 import org.eclipse.xtext.ide.server.ILanguageServerAccess;
 import org.eclipse.xtext.ide.server.ILanguageServerExtension;
+import org.eclipse.xtext.resource.XtextResourceSet;
 import org.eclipse.xtext.workspace.IProjectConfigProvider;
 
+import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
 
 import de.jabc.cinco.meta.productdefinition.ide.endpoint.messages.GenerateRequest;
 import de.jabc.cinco.meta.productdefinition.ide.endpoint.messages.GenerateResponse;
 import de.jabc.cinco.meta.productdefinition.ide.endpoint.parser.ParserHelper;
 import mgl.MGLModel;
 import productDefinition.CincoProduct;
+import de.jabc.cinco.meta.core.mgl.MGLRuntimeModule;
 import de.jabc.cinco.meta.core.utils.IWorkspaceContext;
 import de.jabc.cinco.meta.core.utils.WorkspaceContext;
 import de.jabc.cinco.meta.plugin.pyro.CreatePyroPlugin;
@@ -38,12 +42,19 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 
 	ILanguageServerAccess access;
 	
+	@Inject
+	protected Provider<XtextResourceSet> resourceSetProvider;
+	
 	@Inject(optional = true)
 	IProjectConfigProvider projectConfigProvider;
 	
 	@Override
 	public void initialize(ILanguageServerAccess access) {
 		this.access = access;
+	}
+	
+	public Injector createInjector() {
+		return Guice.createInjector(new MGLRuntimeModule());
 	}
 	
 	/**
@@ -57,29 +68,34 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 		// notify ide that generation-process starts
 		access.getLanguageClient().showMessage(StaticMessages.getGenerateMessage());
 		
-		// parse
-		LogHelper.log(access, "parsing resources...");
-		String cpdPath = request.getSourceURI(); // TODO: use this
-		
-		Map<String, EObject> parsedResources = ParserHelper.getAllResources(this.access);
-		
+		// resolve project URI
 		List<WorkspaceFolder> workspaceFolders = this.getWorkspaceFolders(this.access);
-		WorkspaceFolder targetFolder = workspaceFolders.get(0); // TODO: set targetFolder
-
-		// prepare
+		WorkspaceFolder targetFolder = workspaceFolders.get(0); // TODO: resolve targetFolder from request
+		org.eclipse.emf.common.util.URI projectURI = org.eclipse.emf.common.util.URI.createURI(
+				targetFolder.getUri() + "/"
+			);	
+		String projectLocation = projectURI.toFileString();
+		
+		// parse resources
+		LogHelper.log(access, "parsing resources...");
+		XtextResourceSet resourceSet = resourceSetProvider.get();
+		Map<String, Resource> parsedResources = ParserHelper.getAllResources(this.access, resourceSet, projectURI);	
+		
+		// prepare generator input
+		// cpd:
+		String cpdPath = request.getSourceURI(); // TODO: use only cpd related to this path
 		List<CincoProduct> cpds = parsedResources.values().stream()
+				.map((Resource r) -> r.getContents().get(0)) 
 				.filter((EObject e) -> e instanceof CincoProduct)
 				.map((m) -> (CincoProduct) m)
 				.collect(Collectors.toList()); 
 		CincoProduct cpd = cpds.get(0); // TODO: only the one from the request
+		// mgls:
 		Set<MGLModel> mgls = parsedResources.values().stream()
+				.map((Resource r) -> r.getContents().get(0)) 
 				.filter((EObject e) -> e instanceof MGLModel)
 				.map((m) -> (MGLModel) m) // TODO: online cpd referenced
 				.collect(Collectors.toSet());
-		org.eclipse.emf.common.util.URI projectURI = org.eclipse.emf.common.util.URI.createURI(
-				targetFolder.getUri() + "/"
-			);
-		String projectLocation = projectURI.toFileString();
 		IWorkspaceContext.setLocalInstance(new WorkspaceContext(projectURI, cpd.eResource().getResourceSet()));
 				
 		// execute generation
@@ -91,9 +107,6 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 			e.printStackTrace();
 			LogHelper.logError(access, "An error occured during generation!");
 		}
-		
-		// TODO: deploy
-		// LogHelper.log(access, "deploying cinco-product...");
 		
 		// respond information after generation
 		GenerateResponse generateResponse = new GenerateResponse();
