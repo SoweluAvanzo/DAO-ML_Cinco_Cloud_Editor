@@ -5,12 +5,8 @@ package de.jabc.cinco.meta.core.mgl;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
-import org.eclipse.emf.ecore.plugin.EcorePlugin;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.impl.ResourceFactoryRegistryImpl;
 import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
-import org.eclipse.xtext.resource.XtextResourceFactory;
-import org.eclipse.xtext.resource.generic.GenericResourceServiceProvider;
 
 import com.google.inject.Injector;
 
@@ -41,8 +37,10 @@ public class MGLStandaloneSetup extends MGLStandaloneSetupGenerated {
 		
 		EcoreResourceFactoryImpl resourceFactory = injector.getInstance(EcoreResourceFactoryImpl.class);
 	    org.eclipse.xtext.resource.IResourceServiceProvider serviceProvider = injector.getInstance(org.eclipse.xtext.resource.IResourceServiceProvider.class);
-	    Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, resourceFactory);
-	    org.eclipse.xtext.resource.IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, serviceProvider);
+	    if(!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(EcorePackage.eNAME))
+	    	Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, resourceFactory);
+	    if(!org.eclipse.xtext.resource.IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(EcorePackage.eNAME))
+		    org.eclipse.xtext.resource.IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, serviceProvider);
 		
 		super.register(injector);
 	}

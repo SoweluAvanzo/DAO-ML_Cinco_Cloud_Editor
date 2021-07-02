@@ -4,8 +4,13 @@
 package de.jabc.cinco.meta.productdefinition;
 
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 
 import com.google.inject.Injector;
+
+import productDefinition.ProductDefinitionPackage;
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
@@ -18,9 +23,21 @@ public class CPDStandaloneSetup extends CPDStandaloneSetupGenerated {
 	
 	@Override
 	public void register(Injector injector) {
-		if (!EPackage.Registry.INSTANCE.containsKey("http://www.jabc.de/cinco/meta/productdefinition#//CPD")) {
-			EPackage.Registry.INSTANCE.put("http://www.jabc.de/cinco/meta/productdefinition#//CPD", productDefinition.ProductDefinitionPackage .eINSTANCE);
+		// Registering EPackages
+		if (!EPackage.Registry.INSTANCE.containsKey(EcorePackage.eNS_URI)) {
+			EPackage.Registry.INSTANCE.put(EcorePackage.eNS_URI, EcorePackage.eINSTANCE);
 		}
+		if (!EPackage.Registry.INSTANCE.containsKey(ProductDefinitionPackage.eNS_URI)) {
+			EPackage.Registry.INSTANCE.put(ProductDefinitionPackage.eNS_URI, ProductDefinitionPackage .eINSTANCE);
+		}
+		
+		EcoreResourceFactoryImpl resourceFactory = injector.getInstance(EcoreResourceFactoryImpl.class);
+	    org.eclipse.xtext.resource.IResourceServiceProvider serviceProvider = injector.getInstance(org.eclipse.xtext.resource.IResourceServiceProvider.class);
+	    if(!Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(EcorePackage.eNAME))
+	    	Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, resourceFactory);
+	    if(!org.eclipse.xtext.resource.IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().containsKey(EcorePackage.eNAME))
+		    org.eclipse.xtext.resource.IResourceServiceProvider.Registry.INSTANCE.getExtensionToFactoryMap().put(EcorePackage.eNAME, serviceProvider);
+		
 		super.register(injector);
 	}
 }
