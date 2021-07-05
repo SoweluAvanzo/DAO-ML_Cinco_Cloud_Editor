@@ -12,11 +12,14 @@ stages:
 
 .maven-job:
   image: maven:3.8.1-openjdk-11-slim
+  services:
+    - docker:20.10.6-dind
   cache:
     paths:
       - .m2/repository
   variables:
     MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+    DOCKER_DRIVER: overlay
 
 .docker-build:
   extends: .docker-job
@@ -50,9 +53,7 @@ build-main:
     - master
 
 test-main:
-  extends:
-    - .docker-job
-    - .maven-job
+  extends: .maven-job
   stage: test
   only:
     - master
