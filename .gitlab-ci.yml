@@ -62,6 +62,8 @@ test-main:
   variables:
     KUBECTL: v1.17.0
     KIND: v0.8.1
+  before_script:
+    - docker info
   script: |
     apt-get update && apt-get -y install wget
     wget -O /usr/local/bin/kind https://github.com/kubernetes-sigs/kind/releases/download/${KIND}/kind-linux-amd64
