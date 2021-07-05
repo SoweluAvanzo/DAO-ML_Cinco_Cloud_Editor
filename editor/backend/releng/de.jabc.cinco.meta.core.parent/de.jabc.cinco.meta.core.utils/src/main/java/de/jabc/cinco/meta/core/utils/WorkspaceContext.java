@@ -218,6 +218,8 @@ public class WorkspaceContext implements IWorkspaceContext {
 			try {
 				XtextPlatformResourceURIHandler handler = (XtextPlatformResourceURIHandler) set.getLoadOptions().get("URI_HANDLER");
 				if(handler != null) {
+					if(handler.getBaseURI() == null)
+						throw new RuntimeException("ResourceSets URIHandler has not baseURI!");
 					return handler.getBaseURI();
 				}
 			} catch(Exception e) {
