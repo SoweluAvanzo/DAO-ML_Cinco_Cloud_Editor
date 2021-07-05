@@ -53,6 +53,7 @@ test-main:
   extends:
     - .docker-build
     - .maven-job
+  stage: test
   only:
     - master
   script: |
