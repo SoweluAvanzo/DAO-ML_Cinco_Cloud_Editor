@@ -44,14 +44,14 @@ stages:
 
 build-main:
   extends:
-    - .docker-job
+    - .docker-build
     - .maven-job
   only:
     - master
 
 test-main:
   extends:
-    - .docker-build
+    - .docker-job
     - .maven-job
   stage: test
   only:
