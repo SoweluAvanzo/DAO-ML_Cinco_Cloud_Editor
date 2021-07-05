@@ -13,8 +13,6 @@ message CreateImageRequest {
 
 message CreateImageReply {
     uint64 projectId = 1;
-    bool success = 2;
-    string message = 3;
 }
 
 service MainService {

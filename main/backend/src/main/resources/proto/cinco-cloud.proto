@@ -13,11 +13,21 @@ message CreateImageRequest {
 
 message CreateImageReply {
     uint64 projectId = 1;
-    bool success = 2;
-    string message = 3;
+}
+
+message GetGeneratedAppArchiveRequest {
+    uint64 projectId = 1;
+}
+
+message GetGeneratedAppArchiveReply {
+    uint64 projectId = 1;
+    bytes archive = 2;
 }
 
 service MainService {
     rpc CreateImageFromArchive (CreateImageRequest) returns (CreateImageReply) {
+    }
+
+    rpc GetGeneratedAppArchive (GetGeneratedAppArchiveRequest) returns (GetGeneratedAppArchiveReply) {
     }
 }
