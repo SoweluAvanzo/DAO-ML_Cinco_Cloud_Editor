@@ -11,9 +11,9 @@ stages:
     DOCKER_DRIVER: overlay
 
 .maven-job:
-  image: maven:3.8.1-openjdk-11-slim
+  image: docker:20.10.6
   services:
-    - docker:dind
+    - docker:20.10.6-dind
   cache:
     paths:
       - .m2/repository
