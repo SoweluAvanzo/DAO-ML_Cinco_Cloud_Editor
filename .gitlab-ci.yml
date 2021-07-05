@@ -47,13 +47,6 @@ stages:
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
 
-build-main:
-  extends:
-    - .docker-build
-    - .maven-job
-  only:
-    - master
-
 test-main:
   extends: .maven-job
   stage: test
@@ -77,6 +70,14 @@ test-main:
   script: |
     cd ./main/backend
     ./mvnw clean test
+
+build-main:
+  extends: .docker-build
+  variables:
+    IMAGE: main
+    VERSION: latest
+  only:
+    - master
 
 push-main:
   extends: .docker-push
