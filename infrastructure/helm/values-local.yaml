@@ -1,0 +1,5 @@
+ingress:
+  host: cinco-cloud
+serverTier: local
+imageConfig:
+  pullPolicy: Never

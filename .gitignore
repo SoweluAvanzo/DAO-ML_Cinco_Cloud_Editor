@@ -1,4 +1,6 @@
 .idea
 .glci
-infrastructure/secret.yaml
-infrastructure/secret.yml
+infrastructure/helm/secret.yaml
+infrastructure/helm/secret.yml
+infrastructure/helm/values-temp.yaml
+infrastructure/helm/values-temp.yml

@@ -4,13 +4,16 @@
 
 ### Requirements
 
+Install
+
 - [Docker][docker]
+- [Helm][helm]
 - [Skaffold][skaffold]
 - [Minikube][minikube]
 
 ### Install
 
-1. Create a `secret.yaml` file in `.infrastructure` with the following contents
+1. Create a `secret.yaml` file in `.infrastructure/helm` with the following contents
 
     ```yaml
     apiVersion: v1
@@ -29,9 +32,10 @@
 2. Enable addons: `minikube enable default-storageclass ingress storage-provisioner` *(once)*
 3. Deploy kubernetes files locally: `skaffold dev`
 4. Execute `kubectl get ingress` and wait until `ADDRESS` and `HOSTS` are visible
-5. Add the entry `<ADDRESS> <HOST>` to the `/etc/hosts` file *(once)*
-6. Open `http://ADDRESS` in a Web browser
+5. Add the entry `<ADDRESS> cinco-cloud` to the `/etc/hosts` file *(once)*
+6. Open `http://cinco-cloud` in a Web browser
 
+[helm]: https://helm.sh/
 [docker]: https://docs.docker.com/get-docker/
 [skaffold]: https://skaffold.dev/
 [minikube]: https://minikube.sigs.k8s.io/

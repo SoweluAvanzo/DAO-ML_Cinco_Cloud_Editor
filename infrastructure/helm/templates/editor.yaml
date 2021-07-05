@@ -18,7 +18,8 @@ spec:
     spec:
       containers:
         - name: editor
-          image: registry.gitlab.com/scce/cinco-cloud/editor
+          image: {{ .Values.editorImage }}
+          imagePullPolicy: {{ .Values.imageConfig.pullPolicy }}
           ports:
             - containerPort: 3000
               name: editor-port

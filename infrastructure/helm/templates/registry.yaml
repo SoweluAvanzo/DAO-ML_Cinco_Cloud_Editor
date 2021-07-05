@@ -18,7 +18,8 @@ spec:
     spec:
       containers:
         - name: registry
-          image: registry.gitlab.com/scce/cinco-cloud/registry
+          image: {{ .Values.registryImage }}
+          imagePullPolicy: {{ .Values.imageConfig.pullPolicy }}
           ports:
             - containerPort: 5000
               name: registry

@@ -32,7 +32,8 @@ spec:
       serviceAccountName: main-sa
       containers:
         - name: main
-          image: registry.gitlab.com/scce/cinco-cloud/main
+          image: {{ .Values.mainImage }}
+          imagePullPolicy: {{ .Values.imageConfig.pullPolicy }}
           ports:
             - containerPort: 8000
           envFrom:
