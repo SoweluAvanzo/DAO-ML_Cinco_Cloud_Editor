@@ -44,7 +44,7 @@ stages:
 
 build-main:
   extends:
-    - .docker-build
+    - .docker-job
     - .maven-job
   only:
     - master
