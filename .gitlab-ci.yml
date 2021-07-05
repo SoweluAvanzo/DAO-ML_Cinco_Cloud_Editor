@@ -11,7 +11,7 @@ stages:
     DOCKER_DRIVER: overlay
 
 .maven-job:
-  image: 3.8.1-openjdk-11-slim
+  image: maven:3.8.1-openjdk-11-slim
   cache:
     paths:
       - .m2/repository
