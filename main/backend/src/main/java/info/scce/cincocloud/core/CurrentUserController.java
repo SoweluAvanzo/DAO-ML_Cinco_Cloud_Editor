@@ -52,7 +52,7 @@ public class CurrentUserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @PermitAll
-    public Response getCurrentUser(@Valid Login login) {
+    public Response login(@Valid Login login) {
         final PyroUserDB subject = PyroUserDB.find("email", login.email).firstResult();
         if (subject != null && subject.password.equals(passwordEncoder.encode(login.password))) {
             final var auth = getAuthResponse(subject);

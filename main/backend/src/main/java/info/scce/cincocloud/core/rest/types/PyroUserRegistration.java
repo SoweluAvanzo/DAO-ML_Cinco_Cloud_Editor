@@ -10,7 +10,7 @@ public class PyroUserRegistration {
     @NotEmpty(message = "The username may not be empty.")
     private String username;
 
-    @NotNull
+    @NotEmpty
     @Email
     private String email;
 

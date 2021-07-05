@@ -1,5 +1,6 @@
 stages:
   - build
+  - test
   - push
 
 .docker-job:
@@ -8,6 +9,14 @@ stages:
     - docker:20.10.6-dind
   variables:
     DOCKER_DRIVER: overlay
+
+.maven-job:
+  image: 3.8.1-openjdk-11-slim
+  cache:
+    paths:
+      - .m2/repository
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
 .docker-build:
   extends: .docker-job
@@ -34,12 +43,21 @@ stages:
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
 
 build-main:
-  extends: .docker-build
-  variables:
-    IMAGE: main
-    VERSION: latest
+  extends:
+    - .docker-build
+    - .maven-job
   only:
     - master
+
+test-main:
+  extends:
+    - .docker-build
+    - .maven-job
+  only:
+    - master
+  script: |
+    cd ./main/backend
+    ./mvnw clean test
 
 push-main:
   extends: .docker-push
