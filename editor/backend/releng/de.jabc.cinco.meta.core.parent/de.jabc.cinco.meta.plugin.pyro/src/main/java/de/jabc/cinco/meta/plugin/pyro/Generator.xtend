@@ -6,15 +6,12 @@ import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import de.jabc.cinco.meta.plugin.pyro.util.OAuthCompound
 import java.io.File
 import java.io.IOException
-import java.net.URI
-import java.net.URL
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
-import java.security.CodeSource
 import java.util.ArrayList
 import java.util.Collections
 import java.util.HashMap
@@ -34,6 +31,7 @@ import productDefinition.Annotation
 import productDefinition.CincoProduct
 import de.jabc.cinco.meta.plugin.pyro.util.MGLExtension
 import mgl.GraphModel
+import org.eclipse.emf.common.util.URI
 
 class Generator {
 	static var fileSystem = null as FileSystem;
@@ -354,8 +352,13 @@ class Generator {
 			resource = resource.substring(1)
 
 		val src = clsLoader.getResourceAsStream(resource)
-		val destPath = Paths.get(dest)
-
+		
+		// windows-path workaround
+		var sanitizedPath = dest.replace(File.separator, "/");
+		val fileURI = URI.createFileURI(sanitizedPath);
+		var sanitizedURI = java.net.URI.create(fileURI.toString)
+		val destPath = Paths.get(sanitizedURI);
+		
 		// create Folder holding the final file
 		var lastIndex = destPath.getNameCount() - 1
 		// lastIndex = lastIndex > 0 ? lastIndex : 0
