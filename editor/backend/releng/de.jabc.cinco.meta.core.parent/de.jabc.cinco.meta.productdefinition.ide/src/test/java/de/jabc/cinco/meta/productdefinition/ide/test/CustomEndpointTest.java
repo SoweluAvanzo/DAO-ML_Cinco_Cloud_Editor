@@ -66,8 +66,13 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 	@After @AfterEach
 	@Override
 	public void cleanup() {
-		URI pyro = URI.createURI(this.root.toURI().toString()).appendSegment("pyro");
-		URI pyroBackup = URI.createURI(this.root.toURI().toString()).trimSegments(1).appendSegment("pyro");
+		String rootPath = this.root.toURI().toString();
+		URI root = URI.createURI(rootPath);
+		URI pyro = root.appendSegment("pyro");
+		while(root.lastSegment().isEmpty()) {
+			root = root.trimSegments(1);
+		}
+		URI pyroBackup = root.trimSegments(1).appendSegment("pyro");
 		WorkspaceContext workspaceContextPyro = new WorkspaceContext(pyro, null);
 		WorkspaceContext workspaceContextPyroBackup = new WorkspaceContext(pyroBackup, null);
 		File pyroFolder = workspaceContextPyro.getRootFile();
