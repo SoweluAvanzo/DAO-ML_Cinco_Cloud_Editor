@@ -364,11 +364,12 @@ class Generator {
 	static def copyResource(String res, String dest, Class<?> mainClass) throws IOException {
 		var clsLoader = mainClass.getClassLoader
 		var resource = res;
-
+		
+		// windows-path workaround
+		resource = resource.replace(File.separator, "/");
 		// first "/" needs to be deleted for windows-support
 		if (("" + resource.charAt(0)).equals("/"))
 			resource = resource.substring(1)
-
 		val src = clsLoader.getResourceAsStream(resource)
 		
 		// windows-path workaround
@@ -386,6 +387,7 @@ class Generator {
 		// val folderPath = Paths.get(File.separator + destPath.subpath(0, lastIndex))
 		createFolder(destPath.toString)
 		// create/copy file not directory
+		
 		Files.copy(src, destPath, StandardCopyOption.REPLACE_EXISTING)
 	}
 
