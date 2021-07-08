@@ -74,7 +74,7 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 		org.eclipse.emf.common.util.URI projectURI = org.eclipse.emf.common.util.URI.createURI(
 				targetFolder.getUri() + "/"
 			);	
-		String projectLocation = projectURI.toFileString();
+		String projectLocation = projectURI.devicePath();
 		
 		// parse resources
 		LogHelper.log(access, "parsing resources...");
