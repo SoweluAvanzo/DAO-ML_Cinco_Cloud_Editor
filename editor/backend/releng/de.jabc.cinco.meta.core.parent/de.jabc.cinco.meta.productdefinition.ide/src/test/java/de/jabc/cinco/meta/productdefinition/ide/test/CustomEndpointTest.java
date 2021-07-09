@@ -60,7 +60,7 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 		Assertions.assertTrue(name.equals("test-project"));
 		
 		this.initialize();
-		this.languageServer.request("cinco/generate", new GenerateRequest("", ""));
+		this.languageServer.request("cinco/generate", new GenerateRequest(testFileURI.devicePath(), baseString));
 	}
 	
 	@After @AfterEach

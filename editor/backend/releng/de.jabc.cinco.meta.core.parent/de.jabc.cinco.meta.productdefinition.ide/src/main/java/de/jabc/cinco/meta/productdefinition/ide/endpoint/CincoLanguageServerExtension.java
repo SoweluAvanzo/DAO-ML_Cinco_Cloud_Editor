@@ -1,11 +1,15 @@
 package de.jabc.cinco.meta.productdefinition.ide.endpoint;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.lsp4j.WorkspaceFolder;
@@ -70,11 +74,18 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 		
 		// resolve project URI
 		List<WorkspaceFolder> workspaceFolders = this.getWorkspaceFolders(this.access);
-		WorkspaceFolder targetFolder = workspaceFolders.get(0); // TODO: resolve targetFolder from request
-		org.eclipse.emf.common.util.URI projectURI = org.eclipse.emf.common.util.URI.createURI(
-				targetFolder.getUri() + "/"
-			);	
+		Optional<WorkspaceFolder> optionalTargetFolder = workspaceFolders.stream().filter((w) -> {
+			return compare(w.getUri(), request.getTargetURI());
+		}).findFirst();
+		if(!optionalTargetFolder.isPresent()) {
+			String message = "TargetPath is no workspaceFolder!";
+			LogHelper.logError(access, message);
+			throw new RuntimeException(message);
+		}
+		WorkspaceFolder targetFolder = optionalTargetFolder.get();
+		URI projectURI = getURI(targetFolder.getUri() + "/");
 		String projectLocation = projectURI.devicePath();
+		IWorkspaceContext.setLocalInstance(new WorkspaceContext(projectURI, null));
 		
 		// parse resources
 		LogHelper.log(access, "parsing resources...");
@@ -82,22 +93,43 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 		Map<String, Resource> parsedResources = ParserHelper.getAllResources(this.access, resourceSet, projectURI);	
 		
 		// prepare generator input
+		
 		// cpd:
-		String cpdPath = request.getSourceURI(); // TODO: use only cpd related to this path
-		List<CincoProduct> cpds = parsedResources.values().stream()
+		String cpdPath = request.getSourceURI();
+		Optional<CincoProduct> optionalCpd = parsedResources.values().stream()
 				.map((Resource r) -> r.getContents().get(0)) 
 				.filter((EObject e) -> e instanceof CincoProduct)
 				.map((m) -> (CincoProduct) m)
-				.collect(Collectors.toList()); 
-		CincoProduct cpd = cpds.get(0); // TODO: only the one from the request
+				.filter((CincoProduct cpd) -> {
+					String resourcePath = cpd.eResource().getURI().devicePath();
+					return compare(resourcePath, cpdPath);
+				})
+				.findFirst();
+		if(!optionalCpd.isPresent()) {
+			String message = "CPD could not be resolved!";
+			LogHelper.logError(access, message);
+			throw new RuntimeException(message);
+		}
+		CincoProduct cpd = optionalCpd.get();
+		IWorkspaceContext.setLocalInstance(new WorkspaceContext(projectURI, cpd.eResource().getResourceSet()));
+		
 		// mgls:
 		Set<MGLModel> mgls = parsedResources.values().stream()
 				.map((Resource r) -> r.getContents().get(0)) 
 				.filter((EObject e) -> e instanceof MGLModel)
-				.map((m) -> (MGLModel) m) // TODO: online cpd referenced
+				.map((m) -> (MGLModel) m)
+				.filter((m) ->
+					// only take imported mgls from the set of all mgls in the workspace
+					cpd.getMgls().stream().anyMatch( (mglDescriptor) -> {
+						String relativePath = mglDescriptor.getMglPath();
+						URI mglUri = IWorkspaceContext.getLocalInstance().getFileURI(relativePath);
+						String importPath = mglUri.devicePath();
+						String mglPath = m.eResource().getURI().devicePath();
+						return compare(importPath, mglPath);
+					})
+				)
 				.collect(Collectors.toSet());
-		IWorkspaceContext.setLocalInstance(new WorkspaceContext(projectURI, cpd.eResource().getResourceSet()));
-				
+			
 		// execute generation
 		LogHelper.log(access, "starting pyro-generator...");
 		CreatePyroPlugin pyro = new CreatePyroPlugin();
@@ -110,11 +142,40 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 		
 		// respond information after generation
 		GenerateResponse generateResponse = new GenerateResponse();
-		generateResponse.setTargetURI(targetFolder.getUri());
+		generateResponse.setTargetURI(projectLocation);
 		return CompletableFuture.completedFuture(generateResponse);
 	}
 	
 	public List<WorkspaceFolder> getWorkspaceFolders(ILanguageServerAccess access) {
 		return access.getInitializeParams().getWorkspaceFolders();
+	}
+	
+	/**
+	 * Path-Methods
+	 */
+	
+	public static boolean compare(String pathA, String pathB) {
+		//normalize the two paths and equalize them
+		Path a = normalize(pathA);
+		Path b = normalize(pathB);
+		return a.equals(b);
+	}
+	
+	public static String cleanPlatform(String uri) {
+		return uri.replace("\\", "/")
+				.replace("%3A", ":");
+	}
+	
+	public static Path normalize(String pathString) {
+		String cleaned = cleanPlatform(pathString);
+		URI uri = URI.createURI(cleaned);
+		Path path = Paths.get(uri.path());
+		return path;
+	}
+	
+	public static URI getURI(String path) {
+		return URI.createURI(
+				cleanPlatform(path).toString()
+			);
 	}
 }
