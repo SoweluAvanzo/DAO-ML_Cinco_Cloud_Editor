@@ -38,7 +38,7 @@
       "env": {
         "CINCO_CLOUD_DEBUG": true
       },
-      "type": "chrome",
+      "type": "pwa-chrome",
       "request": "launch",
       "url": "http://localhost:3000/?jwt=test&projectId=1",
       "sourceMaps": true,
