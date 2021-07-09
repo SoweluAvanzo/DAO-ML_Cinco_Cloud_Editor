@@ -37,9 +37,6 @@ import productDefinition.Annotation
 import productDefinition.CincoProduct
 import java.io.FileOutputStream
 import java.io.FileNotFoundException
-import de.jabc.cinco.meta.plugin.pyro.util.MGLExtension
-import mgl.GraphModel
-import org.eclipse.emf.common.util.URI
 
 class Generator {
 	static var fileSystem = null as FileSystem;
@@ -192,7 +189,8 @@ class Generator {
 			copyResources("archetype/run.sh", base)
 			copyResources("archetype/nginx.conf", base)
 			copyResources("archetype/docker-compose.yml", base)
-			copyResources("archetype/docker-compose.debug.yml", base)
+			copyResources("archetype/docker-compose.yml", base)
+			copyResources("archetype/Dockerfile", base)
 			if (!baseFolder.list.contains("docker-compose.production.yml")) {
 				copyResources("archetype/docker-compose.production.yml", base)
 			}
