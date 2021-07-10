@@ -235,13 +235,18 @@ class Generator {
 				}
 			}
 		}
-
-		val FileOutputStream fos = new FileOutputStream(projectLocation + File.separator + "pyro.zip");
-		val ZipOutputStream zos = new ZipOutputStream(fos);
-		addDirToZipArchive(zos, new File(base), null);
-		zos.flush();
+				
+		
+        val File fileToZip = new File(base);
+        val File[] srcFiles = fileToZip.listFiles();
+        val FileOutputStream fos = new FileOutputStream(projectLocation + File.separator + "pyro");
+        val ZipOutputStream zipOut = new ZipOutputStream(fos);
+        for (File srcFile : srcFiles) {
+        zipFile(zipOut,srcFile,srcFile.name)
+        }     
+        zipOut.flush();
 		fos.flush();
-		zos.close();
+		zipOut.close();
 		fos.close();
 		if (devMode) {
 			cleanup(base)
@@ -425,34 +430,35 @@ class Generator {
 			e.printStackTrace();
 		}
 	}
-
-	static def void addDirToZipArchive(ZipOutputStream zos, File fileToZip,
-		String parrentDirectoryName) throws Exception {
-		if (fileToZip === null || !fileToZip.exists()) {
-			return;
-		}
-
-		var String zipEntryName = fileToZip.getName();
-		if (parrentDirectoryName !== null && !parrentDirectoryName.isEmpty()) {
-			zipEntryName = parrentDirectoryName + File.separator + fileToZip.getName();
-		}
-
-		if (fileToZip.isDirectory()) {
-			for (File file : fileToZip.listFiles()) {
-				addDirToZipArchive(zos, file, zipEntryName);
-			}
-		} else {
-			val byte[] buffer = newByteArrayOfSize(1024);
-			val FileInputStream fis = new FileInputStream(fileToZip);
-			zos.putNextEntry(new ZipEntry(zipEntryName));
-			var int length;
-			while ((length = fis.read(buffer)) > 0) {
-				zos.write(buffer, 0, length);
-			}
-			zos.closeEntry();
-			fis.close();
-		}
-	}
+	
+	  static def void zipFile( ZipOutputStream zipOut,File fileToZip, String fileName) throws IOException {
+        if (fileToZip.isHidden()) {
+            return;
+        }
+        if (fileToZip.isDirectory()) {
+            if (fileName.endsWith("/")) {
+                zipOut.putNextEntry(new ZipEntry(fileName));
+                zipOut.closeEntry();
+            } else {
+                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
+                zipOut.closeEntry();
+            }
+            val File[] children = fileToZip.listFiles();
+            for (File childFile : children) {
+                zipFile( zipOut, childFile, fileName + "/" + childFile.getName());
+            }
+            return;
+        }
+        val FileInputStream fis = new FileInputStream(fileToZip);
+        val ZipEntry zipEntry = new ZipEntry(fileName);
+        zipOut.putNextEntry(zipEntry);
+        val  byte[] bytes = newByteArrayOfSize(1024);
+        var int length;
+        while ((length = fis.read(bytes)) >= 0) {
+            zipOut.write(bytes, 0, length);
+        }
+        fis.close();
+    }
 
 	def cleanup(String dirName) {
 		val File pyroDir = new File(dirName);
