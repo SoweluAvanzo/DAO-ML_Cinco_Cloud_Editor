@@ -2745,24 +2745,43 @@ class MGLExtension {
 	
 	def commandExecuterSwitch(ModelElement me, Function<CharSequence, CharSequence> proc) {
 		val m = me.modelPackage as MGLModel
-		m.commandExecuterSwitch(proc)
+		m.commandExecuterSwitch(me, proc)
 	}
 	
 	def commandExecuterSwitch(MGLModel m, Function<CharSequence, CharSequence> proc) {
-		m.graphmodels.commandExecuterSwitch(proc)
+		m.graphmodels.commandExecuterSwitch(null, proc)
 	}
 	
-	def commandExecuterSwitch(Iterable<GraphModel> graphModels, Function<CharSequence, CharSequence> proc) {
+	def commandExecuterSwitch(MGLModel m, ModelElement me, Function<CharSequence, CharSequence> proc) {
+		m.graphmodels.commandExecuterSwitch(me, proc)
+	}
+	
+	def commandExecuterSwitch(Iterable<GraphModel> graphModels, ModelElement me, Function<CharSequence, CharSequence> proc) {
+		val graphModelz = graphModels.filter[me === null ? true : it.containableElementsDefinition.contains(me)]
 		'''
-			«FOR gM:graphModels SEPARATOR " else "
+			«FOR gM:graphModelz SEPARATOR " else "
 			»if(cmdExecuter instanceof «gM.commandExecuter») {
 				«gM.commandExecuter» «gM.commandExecuterVar» = («gM.commandExecuter») cmdExecuter;
 				«proc.apply(gM.commandExecuterVar)»
 			}«
 			ENDFOR»
-			«IF !graphModels.empty»else
+			«IF !graphModelz.empty»else
 				«ENDIF»if(cmdExecuter != null) throw new RuntimeException("GraphModelCommandExecuter can not handle this type!");
 		'''
+	}
+	
+	def getContainableElementsDefinition(mgl.ContainingElement c) {
+		val possibleContainments = new LinkedList<Type>
+		val containerTypes = c.name.parentTypes(c.MGLModel).filter(mgl.ContainingElement) + #[c]	
+		for(container : containerTypes) {
+			val containments = container.containableElements.map[types].flatten
+			possibleContainments.addAll(containments)
+		}
+		var result = possibleContainments.stream.distinct.collect(Collectors.toList).filter(Type).toSet
+		if(c instanceof GraphModel) {
+			result += c.elements.filter(Edge) // edges are always part of the modelElements, since they are used to render the set
+		}
+		result
 	}
 	
 	// FRONTEND // TODO:SAMI: search for all, and fix if wrong

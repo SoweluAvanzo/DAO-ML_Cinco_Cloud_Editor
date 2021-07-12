@@ -100,17 +100,26 @@ class DataConnector extends Generatable {
 			]
 		]
 		
-		//graphmodels
-		for(g:gc.graphMopdels) {
-			g.generateGraphModel(gc.graphMopdels)
+		for(m:gc.mglModels) {
+			// graphModels
+			m.graphmodels.filter[!isAbstract].forEach[generateGraphModel]
+			// container
+			m.nodes.filter[!isAbstract].filter(NodeContainer).forEach[generateContainer]
+			// nodes
+			m.nodes.filter[!isAbstract].filter[!(it instanceof NodeContainer)].forEach[generateNode]
+			// edges
+			m.edges.filter[!isAbstract].forEach[generateEdge]
+			// types
+			m.elements.filter(UserDefinedType).filter[!isAbstract].forEach[generateType]
 		}
-		//ecores
+		
+		// ecores
 		for(e:gc.ecores) {
 			e.generateEcore
 		}
 	}
 	
-	private def generateGraphModel(GraphModel g, Set<GraphModel> others) {
+	private def generateGraphModel(GraphModel g) {
 		val GraphModel = newModel(g.modelPackage.entityFQNBase.toString,g.name.fuEscapeJava)
 		GraphModel.singlePrimitiveAttribute("router","String")
 		GraphModel.singlePrimitiveAttribute("connector","String")
@@ -122,21 +131,12 @@ class DataConnector extends Generatable {
 		GraphModel.singlePrimitiveAttribute("extension","String")
 		GraphModel.singleAttribute("parent", "entity.core.PyroFileContainerDB", false, false)
 		
-		val possibleModelElements = this.getContainableElements(g).filter(Type).toSet
-		
-		possibleModelElements += g.elements.filter(Edge) // edges are always part of the modelElements, since they are used to render the set
+		val possibleModelElements = g.containableElementsDefinition
 		val nodesAndEdges = possibleModelElements.filter[it instanceof Node || it instanceof Edge]
 		
 		GraphModel.createMultiAttribute(nodesAndEdges, "modelElements", "container_"+g.name.fuEscapeJava);
 		GraphModel.generateAttributes(g)
-		
 		GraphModel.createDeleteFunction(g)
-		
-		possibleModelElements.filter[!isAbstract].filter(Node).filter[n|!(n instanceof NodeContainer)].forEach[generateNode]
-		possibleModelElements.filter[!isAbstract].filter(Edge).forEach[generateEdge]
-		possibleModelElements.filter[!isAbstract].filter(NodeContainer).forEach[generateContainer]
-		possibleModelElements.filter(UserDefinedType).filter[!isAbstract].forEach[generateType]
-		
 		GraphModel.generateReferences(g)
 	}
 	
@@ -167,18 +167,8 @@ class DataConnector extends Generatable {
 	private def generateContainer(NodeContainer nc) {
 		val Container = nc.generateNode
 		
-		var possibleContainments = this.getContainableElements(nc).filter(Type)
+		var possibleContainments = nc.containableElementsDefinition
 		Container.createMultiAttribute(possibleContainments, "modelElements", "container_"+nc.name.fuEscapeJava);
-	}
-	
-	private def getContainableElements(mgl.ContainingElement c) {
-		val possibleContainments = new LinkedList<Type>
-		val containerTypes = c.name.parentTypes(c.MGLModel).filter(mgl.ContainingElement) + #[c]	
-		for(container : containerTypes) {
-			val containments = container.containableElements.map[types].flatten
-			possibleContainments.addAll(containments)
-		}
-		possibleContainments.stream.distinct.collect(Collectors.toList)
 	}
 	
 	private def generateEdge(Edge e) {
