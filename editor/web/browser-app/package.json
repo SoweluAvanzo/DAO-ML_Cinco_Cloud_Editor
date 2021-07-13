@@ -43,8 +43,8 @@
   "scripts": {
     "prepare": "yarn run download:plugins && theia build --mode development",
     "theia": "theia",
-    "start": "theia start --port=3000 --root-dir=../examples/Example --plugins=local-dir:./plugins",
-    "debug": "theia start --port=3000 --root-dir=../examples/Example --loglevel=debug --plugins=local-dir:./plugins",
+    "start": "theia start --port=3000 --root-dir=../examples/flowgraph --plugins=local-dir:./plugins",
+    "debug": "theia start --port=3000 --root-dir=../examples/flowgraph --loglevel=debug --plugins=local-dir:./plugins",
     "watch": "theia build --watch --mode development",
     "download:plugins": "theia download:plugins"
   },
