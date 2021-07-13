@@ -42,6 +42,8 @@ class Generator {
 	static var fileSystem = null as FileSystem;
 	static extension MGLExtension me = MGLExtension.instance
 	String projectLocation
+	public static boolean devMode = false;
+
 
 	def generate(Set<MGLModel> mglModels, CincoProduct cpd, String base, String projectLocation) {
 		// val fileHelper = new FileExtension
@@ -58,7 +60,6 @@ class Generator {
 		var Map<String, GraphModel> transientGraphModels = new HashMap
 		val javaPath = base + "/app/src/main/java/"
 		this.projectLocation = projectLocation
-		var boolean devMode = true;
 
 		for (a : cpd.annotations) {
 
@@ -239,7 +240,7 @@ class Generator {
 		
         val File fileToZip = new File(base);
         val File[] srcFiles = fileToZip.listFiles();
-        val FileOutputStream fos = new FileOutputStream(projectLocation + File.separator + "pyro");
+        val FileOutputStream fos = new FileOutputStream(projectLocation + File.separator + "pyro.zip");
         val ZipOutputStream zipOut = new ZipOutputStream(fos);
         for (File srcFile : srcFiles) {
         zipFile(zipOut,srcFile,srcFile.name)
@@ -248,7 +249,7 @@ class Generator {
 		fos.flush();
 		zipOut.close();
 		fos.close();
-		if (devMode) {
+		if (!devMode) {
 			cleanup(base)
 		}
 
