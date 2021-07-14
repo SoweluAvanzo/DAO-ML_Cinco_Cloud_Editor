@@ -1,15 +1,15 @@
 /* eslint-disable header/header */
-import { ILogger, logger, MaybePromise } from '@theia/core';
-import { BackendApplicationContribution } from '@theia/core/lib/node';
 import { ApplicationPackage } from '@theia/application-package';
-import { inject, injectable } from 'inversify';
-import * as https from 'https';
-import * as http from 'http';
-import * as express from 'express';
-import * as querystring from 'querystring';
+import { ILogger, logger, MaybePromise } from '@theia/core';
 import URI from '@theia/core/lib/common/uri';
+import { BackendApplicationContribution } from '@theia/core/lib/node';
+import * as express from 'express';
+import * as http from 'http';
+import * as https from 'https';
+import { inject, injectable } from 'inversify';
+import * as querystring from 'querystring';
 
-const LOG_NAME = '[CINCO] ';
+const LOG_NAME = '[CINCO-AUTHENTICATOR] ';
 
 @injectable()
 export class CincoAuthenticator implements BackendApplicationContribution {
@@ -48,8 +48,11 @@ export class CincoAuthenticator implements BackendApplicationContribution {
 }
 
 async function authenticationFilter(req: any, res: any, next: any): Promise<void> {
-    if (await authenticateJWT(req, res)) {
+    const allowed = await authenticateJWT(req, res);
+    if (allowed) {
         next();
+    } else {
+        console.log(LOG_NAME + ': blocked user!');
     }
 }
 
@@ -67,7 +70,8 @@ async function authenticateJWT(req: any, res: any): Promise<boolean> {
         jwt = fallbackToken?.jwt;
         projectId = fallbackToken?.projectId;
     }
-    if (!jwt || !projectId || !await validateJWT(jwt, projectId, res)) {
+    const valid = await validateJWT(jwt, projectId, res);
+    if (!jwt || !projectId || !valid) {
         block(res);
         return false;
     }
@@ -75,12 +79,13 @@ async function authenticateJWT(req: any, res: any): Promise<boolean> {
 }
 
 async function validateJWT(jwt: any, projectId: any, res: any): Promise<boolean> {
-    // logger.info(LOG_NAME + 'jwt = ' + jwt);
+    if (isDebugging()) {
+        return true;
+    }
     return new Promise<boolean>((resolve, reject) => {
-
         // connect to master app and check jwt-token:
         // http://cinco-cloud/api/user/current/private
-        const options = { // TODO: parameterize
+        const options = {
             hostname: getCincoCloudHost(),
             port: getCincoCloudPort(),
             path: getCincoCloudPath(projectId),
@@ -99,9 +104,6 @@ async function validateJWT(jwt: any, projectId: any, res: any): Promise<boolean>
         request.addListener('error', (e: any) => {
             // if request lead to an error
             logger.error(LOG_NAME + `: ${e}`);
-            if (isDebugging()) {
-                return resolve(true);
-            }
             return resolve(false);
         });
     });
