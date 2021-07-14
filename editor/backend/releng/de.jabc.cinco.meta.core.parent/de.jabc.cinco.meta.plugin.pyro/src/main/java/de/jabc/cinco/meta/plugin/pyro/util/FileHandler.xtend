@@ -36,17 +36,17 @@ class FileHandler {
 			val pathXtend = '''/«classPath».xtend'''
 			var found = false
 			for(f:folders) {
-				if(PathValidator.getURIForString(g, '''«f»/«pathXtend»''')!==null&&!found){
+				if(PathValidator.getURIForStringExplicit(g, '''«f»/«pathXtend»''')!==null&&!found){
 					copyFile(g,'''«f»/«pathXtend»''',target,false, projectLocation)
 					found=true
 				}
-				if(PathValidator.getURIForString(g, '''«f»/«pathJava»''')!==null&&!found){
+				else if(PathValidator.getURIForStringExplicit(g, '''«f»/«pathJava»''')!==null&&!found){
 					copyFile(g,'''«f»/«pathJava»''',target,false, projectLocation)
 					found=true
 				}
-				if(!found) {
-				println('''[ERROR] could not find annotated file: «classPath»''')
 			}
+			if(!found) {
+				println('''[ERROR] could not find annotated file: «classPath»''')
 			}
 		} catch (IOException e) {
 			e.printStackTrace()
@@ -63,10 +63,10 @@ class FileHandler {
            
 			try {
 				if(!pathName.isEmpty){
-					val p = PathValidator.getURIForString(annotation, pathName)
-					//var IFile ir = (ResourcesPlugin.getWorkspace().getRoot().findMember(p.toPlatformString(true)) as IFile)
+					val p = PathValidator.getURIForStringExplicit(annotation, pathName)
+					if(p === null) 
+						throw new IllegalArgumentException("Properties file does not exist!"); 
 					var File f = new File(p.toFileString);
-					//val f = new File(ir.getRawLocation().toOSString())
 					val prop = new Properties();
 					val stream = new FileInputStream(f);
 					prop.load(stream);
@@ -89,17 +89,17 @@ class FileHandler {
 			val pathXtend = '''/«classPath».xtend'''
 			var found = false
 			for(f:folders) {
-				if(PathValidator.getURIForString(annotation, '''«f»/«pathXtend»''')!==null&&!found){
+				if(PathValidator.getURIForStringExplicit(annotation, '''«f»/«pathXtend»''')!==null&&!found){
 					copyFile(annotation,'''«f»/«pathXtend»''',target,true, projectLocation)
 					found=true
 				}
-				if(PathValidator.getURIForString(annotation, '''«f»/«pathJava»''')!==null&&!found){
+				else if(PathValidator.getURIForStringExplicit(annotation, '''«f»/«pathJava»''')!==null&&!found){
 					copyFile(annotation,'''«f»/«pathJava»''',target,true, projectLocation)
 					found=true
 				}
-				if(!found) {
-				println('''[ERROR] could not find annotated file: «classPath»''')
 			}
+			if(!found) {
+				println('''[ERROR] could not find annotated file: «classPath»''')
 			}
 		} catch (IOException e) {
 			e.printStackTrace()
@@ -115,17 +115,17 @@ class FileHandler {
 			val pathXtend = '''/«classPath».xtend'''
 			var found = false
 			for(f:folders) {
-				if(PathValidator.getURIForString(annotation, '''«f»/«pathXtend»''')!==null&&!found){
+				if(PathValidator.getURIForStringExplicit(annotation, '''«f»/«pathXtend»''')!==null&&!found){
 					copyFile(annotation,'''«f»/«pathXtend»''',target,true, projectLocation)
 					found=true
 				}
-				if(PathValidator.getURIForString(annotation, '''«f»/«pathJava»''')!==null&&!found){
+				else if(PathValidator.getURIForStringExplicit(annotation, '''«f»/«pathJava»''')!==null&&!found){
 					copyFile(annotation,'''«f»/«pathJava»''',target,true, projectLocation)
 					found=true
 				}
-				if(!found) {
-				println('''[ERROR] could not find annotated file: «classPath»''')
 			}
+			if(!found) {
+				println('''[ERROR] could not find annotated file: «classPath»''')
 			}
 		} catch (IOException e) {
 			e.printStackTrace()
@@ -141,11 +141,11 @@ class FileHandler {
 			val xtendPath = '''/«classPath».xtend'''
 			var found = false
 			for(f:folders) {
-				if(PathValidator.getURIForString(style, '''«f»/«xtendPath»''')!==null&&!found){
+				if(PathValidator.getURIForStringExplicit(style, '''«f»/«xtendPath»''')!==null&&!found){
 					copyFile(style,'''«f»/«xtendPath»''',target,false, projectLocation)
 					found=true
 				}
-				if(PathValidator.getURIForString(style, '''«f»/«javaPath»''')!==null&&!found){
+				else if(PathValidator.getURIForStringExplicit(style, '''«f»/«javaPath»''')!==null&&!found){
 					copyFile(style,'''«f»/«javaPath»''',target,false, projectLocation)
 					found=true
 				}

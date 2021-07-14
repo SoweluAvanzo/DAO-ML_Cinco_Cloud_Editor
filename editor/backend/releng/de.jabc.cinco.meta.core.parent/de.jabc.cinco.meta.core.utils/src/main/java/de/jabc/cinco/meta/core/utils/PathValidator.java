@@ -75,6 +75,25 @@ public class PathValidator {
 	}
 	
 	/**
+	 * TODO
+	 */
+	public static boolean checkPathExplicit(EObject object, String path) {
+		File file = IWorkspaceContext.getLocalInstance().getFile(path);
+		return file.exists();
+	}
+	
+	/**
+	 * TODO
+	 */
+	public static URI getURIForStringExplicit(EObject object, String path) {
+		File resource = IWorkspaceContext.getLocalInstance().getFile(path);
+		if(!resource.exists()) {
+			return null;
+		}
+		return URI.createFileURI(resource.getAbsolutePath());
+	}
+	
+	/**
 	 * Returns the id of the bundle the <code>uri</code>'s target is located in.
 	 * 
 	 * @param uri the {@link URI} for which the bundle ID should be returned
