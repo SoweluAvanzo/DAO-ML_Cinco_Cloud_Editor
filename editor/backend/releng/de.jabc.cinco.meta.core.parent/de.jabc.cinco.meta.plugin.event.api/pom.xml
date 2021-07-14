@@ -14,7 +14,6 @@
 			<plugin>
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>xtend-maven-plugin</artifactId>
-    			<version>${xtextVersion}</version>
 				<executions>
 					<execution>
 					<goals>
@@ -33,7 +32,6 @@
 	    <dependency>
 		    <groupId>org.junit.jupiter</groupId>
 		    <artifactId>junit-jupiter-api</artifactId>
-		    <version>${junit5.version}</version>
 			<!-- TODO: check if version is needed -->
 		</dependency>
 		<dependency>
@@ -49,7 +47,6 @@
 		<dependency>
 		    <groupId>org.eclipse.emf</groupId>
 		    <artifactId>org.eclipse.emf.codegen.ecore</artifactId>
-		    <version>${xtextVersion}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.jabc.cinco</groupId>

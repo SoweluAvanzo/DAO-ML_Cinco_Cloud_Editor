@@ -3,7 +3,7 @@ package de.jabc.cinco.meta.productdefinition.ide.test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
+import de.jabc.cinco.meta.plugin.pyro.Generator;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.xtext.testing.AbstractLanguageServerTest;
@@ -60,14 +60,21 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 		Assertions.assertTrue(name.equals("test-project"));
 		
 		this.initialize();
-		this.languageServer.request("cinco/generate", new GenerateRequest("", ""));
+		Generator.devMode = true;
+		this.languageServer.request("cinco/generate", new GenerateRequest(testFileURI.devicePath(), baseString));
+
 	}
 	
 	@After @AfterEach
 	@Override
 	public void cleanup() {
-		URI pyro = URI.createURI(this.root.toURI().toString()).appendSegment("pyro");
-		URI pyroBackup = URI.createURI(this.root.toURI().toString()).trimSegments(1).appendSegment("pyro");
+		String rootPath = this.root.toURI().toString();
+		URI root = URI.createURI(rootPath);
+		URI pyro = root.appendSegment("pyro");
+		while(root.lastSegment().isEmpty()) {
+			root = root.trimSegments(1);
+		}
+		URI pyroBackup = root.trimSegments(1).appendSegment("pyro");
 		WorkspaceContext workspaceContextPyro = new WorkspaceContext(pyro, null);
 		WorkspaceContext workspaceContextPyroBackup = new WorkspaceContext(pyroBackup, null);
 		File pyroFolder = workspaceContextPyro.getRootFile();
