@@ -408,22 +408,22 @@ class Generator {
 					val String newPath = projectLocation + "/" + pathName
 					val resolvedURI = URI.createURI(newPath)
 					val File directory = new File(resolvedURI.toString);
-					val newTargetPath = target + sourceName.substring(0, splitedName.get(0).length).replace('.', '/')
-					val File dest = new File(newTargetPath);
+					//val newTargetPath = target + sourceName.substring(0, splitedName.get(0).length).replace('.', '/')
+					val File dest = new File(target);
 
 					FileUtils.copyDirectory(directory, dest);
 				} else {
-					val String[] newSplitedName = pathName.split("/")
+					val String[] newSplitedName = pathName.split(File.separator)
 					if ((pathName.contains("src") && newSplitedName.get(0).equals("src")) ||
 						(pathName.contains("src-gen") && newSplitedName.get(0).equals("src-gen"))) {
 						val String newPathName = pathName.substring(newSplitedName.get(0).length + 1)
-						val String newTarget = target + "/" + newPathName;
+						val String newTarget = target + File.separator + newPathName;
 
-						val String newPath = projectLocation + "/" + pathName
+						val String newPath= projectLocation + File.separator+pathName 
 						val resolvedURI = URI.createURI(newPath)
 						val File directory = new File(resolvedURI.toString);
-						val File newDest = new File(newTarget);
-						FileUtils.copyDirectory(directory, newDest);
+						val File newDest =  new File(newTarget);
+						FileUtils.copyDirectory(directory,newDest);
 					}
 				}
 			}
