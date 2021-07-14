@@ -1832,11 +1832,13 @@ class MGLExtension {
 	}
 
 	def Set<Edge> possibleOutgoing(Node node) {
-		val directOutgoing = node.outgoingEdgeConnections.map[connectingEdges].flatten
+		val model =node.modelPackage as MGLModel;
+		var directOutgoing = !node.outgoingWildcards.empty?
+			model.edges : node.outgoingEdgeConnections.map[connectingEdges].flatten.toSet
 		if (node.outgoingEdgeConnections.exists[connectingEdges.empty]) {
-			return this.edges(node.modelPackage as MGLModel).toSet
+			return this.edges(model).toSet
 		}
-		val subTypesOfDirectOutgoing = directOutgoing.map[n|n.name.subTypes(node.modelPackage as MGLModel)].flatten.filter(Edge)
+		val subTypesOfDirectOutgoing = directOutgoing.map[n|n.name.subTypes(model)].flatten.filter(Edge)
 		if (node.extends !== null) {
 			return (directOutgoing + subTypesOfDirectOutgoing + node.extends.possibleOutgoing ).toSet
 		}
@@ -1844,11 +1846,13 @@ class MGLExtension {
 	}
 
 	def Set<Edge> possibleIncoming(Node node) {
-		val directIncoming = node.incomingEdgeConnections.map[connectingEdges].flatten
+		val model =node.modelPackage as MGLModel;
+		var directIncoming = !node.incomingWildcards.empty?
+			model.edges : node.incomingEdgeConnections.map[connectingEdges].flatten.toSet
 		if (node.incomingEdgeConnections.exists[connectingEdges.empty]) {
-			return this.edges(node.modelPackage as MGLModel).toSet
+			return this.edges(model).toSet
 		}
-		val subTypesOfDirectIncoming = directIncoming.map[n|n.name.subTypes(node.modelPackage as MGLModel)].flatten.filter(Edge)
+		val subTypesOfDirectIncoming = directIncoming.map[n|n.name.subTypes(model)].flatten.filter(Edge)
 		if (node.extends !== null) {
 			return (directIncoming + subTypesOfDirectIncoming + node.extends.possibleIncoming ).toSet
 		}
