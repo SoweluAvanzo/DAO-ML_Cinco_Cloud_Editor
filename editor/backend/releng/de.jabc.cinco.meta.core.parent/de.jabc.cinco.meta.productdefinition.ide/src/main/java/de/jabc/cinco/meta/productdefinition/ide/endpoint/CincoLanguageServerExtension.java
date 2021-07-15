@@ -142,7 +142,9 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 		
 		// respond information after generation
 		GenerateResponse generateResponse = new GenerateResponse();
-		generateResponse.setTargetURI(projectLocation);
+		URI outputURI = projectURI.appendSegment("pyro.zip");
+		String outputPath = outputURI.devicePath();
+		generateResponse.setTargetURI(outputPath);
 		return CompletableFuture.completedFuture(generateResponse);
 	}
 	

@@ -43,6 +43,7 @@ export class CincoLanguageClient extends LanguageClient {
             const message2 = "executing cinco-product";
             vscode.window.showInformationMessage(message2);
             workbenchOutput.appendLine(message2);
+            console.log("Generated artifact: "+response.targetUri);
             executeProduct(response.targetUri);
         }
     }
