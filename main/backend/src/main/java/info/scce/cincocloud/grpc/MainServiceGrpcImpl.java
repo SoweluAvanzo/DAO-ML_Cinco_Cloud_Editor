@@ -1,9 +1,10 @@
 package info.scce.cincocloud.grpc;
 
 import com.google.protobuf.ByteString;
-import com.google.rpc.Code;
-import com.google.rpc.Status;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -11,8 +12,8 @@ import java.util.logging.Logger;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import org.apache.commons.io.FileUtils;
-import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.proto.MutinyMainServiceGrpc;
 
 @Singleton
@@ -26,55 +27,59 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
         final var projectId = request.getProjectId();
         final var archiveInBytes = request.getArchive();
 
-        LOGGER.log(Level.INFO, "createImageFromArchive(projectId: {}, archive: {})", new Object[] {projectId, archiveInBytes.size()});
+        LOGGER.log(Level.INFO, "createImageFromArchive(projectId: {0}, archive: {1})", new Object[]{projectId, archiveInBytes.size()});
 
-        if (projectId < 0) {
-            return createFailure(Code.INVALID_ARGUMENT, "projectId must be > 0");
+        if (projectId <= 0) {
+            throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                    .withDescription("projectId must be > 0"));
         } else if (archiveInBytes.isEmpty()) {
-            return createFailure(Code.INVALID_ARGUMENT, "archive must not be empty");
+            throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                    .withDescription("archive must not be empty"));
         }
 
-        final var projectOptional = PyroProjectDB.findByIdOptional(projectId);
-        if (projectOptional.isEmpty()) {
-            return createFailure(Code.NOT_FOUND, "project not found");
-        } else {
-            // TODO: save archive, send build job to artemis mq
-            return Uni.createFrom().item(createImageReply(projectId));
-        }
+        return Uni.createFrom().item(() -> PyroProjectDB.findByIdOptional(projectId))
+                .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                .onItem()
+                .transform(projectOptional -> {
+                    if (projectOptional.isEmpty()) {
+                        throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                                .withDescription("project not found"));
+                    } else {
+                        return createImageReply(projectId);
+                    }
+                });
     }
 
     @Override
     @Transactional
     public Uni<CincoCloudProtos.GetGeneratedAppArchiveReply> getGeneratedAppArchive(CincoCloudProtos.GetGeneratedAppArchiveRequest request) {
-
         final var projectId = request.getProjectId();
 
-        if (projectId < 0) {
-            return createFailure(Code.INVALID_ARGUMENT, "projectId must be > 0");
+        if (projectId <= 0) {
+            throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                    .withDescription("projectId must be > 0"));
         }
 
-        final var projectOptional = PyroProjectDB.findByIdOptional(projectId);
-        if (projectOptional.isEmpty()) {
-            return createFailure(Code.NOT_FOUND, "project not found");
-        } else {
-            try {
-                // TODO: load archive
-                final var bytes = FileUtils.readFileToByteArray(new File(""));
-                final var byteString = ByteString.copyFrom(bytes);
-                return Uni.createFrom().item(getGeneratedAppArchiveReply(projectId, byteString));
-            } catch (IOException e) {
-                return createFailure(Code.INTERNAL, "failed to read archive");
-            }
-        }
-    }
-
-    private <T> Uni<T> createFailure(Code code, String message) {
-        return Uni.createFrom().failure(() -> new GrpcException(
-                Status.newBuilder()
-                        .setCode(code.getNumber())
-                        .setMessage(message)
-                        .build()
-        ));
+        return Uni.createFrom().item(() -> PyroProjectDB.findByIdOptional(projectId))
+                .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                .onItem()
+                .transform(projectOptional -> {
+                    if (projectOptional.isEmpty()) {
+                        throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                                .withDescription("project not found"));
+                    } else {
+                        try {
+                            // TODO replace with real file
+                            final var bytes = FileUtils.readFileToByteArray(new File(""));
+                            final var byteString = ByteString.copyFrom(bytes);
+                            return getGeneratedAppArchiveReply(projectId, byteString);
+                        } catch (IOException e) {
+                            throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
+                                    .withDescription("failed to read archive")
+                                    .withCause(e));
+                        }
+                    }
+                });
     }
 
     private CincoCloudProtos.GetGeneratedAppArchiveReply getGeneratedAppArchiveReply(long projectId, ByteString byteString) {

@@ -13,7 +13,7 @@ Install
 
 ### Install
 
-1. Create a `secret.yaml` file in `.infrastructure/helm` with the following contents
+1. Create a `secret.yaml` file in `./infrastructure/helm` with the following contents
 
     ```yaml
     apiVersion: v1
