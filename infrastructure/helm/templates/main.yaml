@@ -36,6 +36,7 @@ spec:
           imagePullPolicy: {{ .Values.imageConfig.pullPolicy }}
           ports:
             - containerPort: 8000
+            - containerPort: 9000
           envFrom:
             - configMapRef:
                 name: main-config
@@ -53,6 +54,9 @@ spec:
   ports:
     - port: 8000
       name: main
+      protocol: TCP
+    - port: 9000
+      name: main-grpc
       protocol: TCP
   type: NodePort
   selector:
