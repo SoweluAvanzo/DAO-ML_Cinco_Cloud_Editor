@@ -3,18 +3,17 @@ package de.jabc.cinco.meta.plugin.pyro
 import de.jabc.cinco.meta.plugin.pyro.util.Escaper
 import de.jabc.cinco.meta.plugin.pyro.util.FileHandler
 import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
+import de.jabc.cinco.meta.plugin.pyro.util.MGLExtension
 import de.jabc.cinco.meta.plugin.pyro.util.OAuthCompound
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
-import java.net.URI
-import java.net.URL
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
-import java.security.CodeSource
 import java.util.ArrayList
 import java.util.Collections
 import java.util.HashMap
@@ -23,22 +22,28 @@ import java.util.LinkedList
 import java.util.List
 import java.util.Map
 import java.util.Set
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+import mgl.GraphModel
 import mgl.Import
 import mgl.MGLModel
 import org.apache.commons.io.FileUtils
+import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EPackage
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
 import productDefinition.Annotation
 import productDefinition.CincoProduct
-import de.jabc.cinco.meta.plugin.pyro.util.MGLExtension
-import mgl.GraphModel
+import java.io.FileOutputStream
+import java.io.FileNotFoundException
 
 class Generator {
 	static var fileSystem = null as FileSystem;
 	static extension MGLExtension me = MGLExtension.instance
 	String projectLocation
+	public static boolean devMode = false;
+
 
 	def generate(Set<MGLModel> mglModels, CincoProduct cpd, String base, String projectLocation) {
 		// val fileHelper = new FileExtension
@@ -52,8 +57,8 @@ class Generator {
 		var organizationPerUser = false
 		var List<String> projetcsPerUser = null
 		var OAuthCompound oauth = null
-		var Map<String,GraphModel> transientGraphModels = new HashMap
-		val javaPath = base+"/app/src/main/java/"
+		var Map<String, GraphModel> transientGraphModels = new HashMap
+		val javaPath = base + "/app/src/main/java/"
 		this.projectLocation = projectLocation
 
 		for (a : cpd.annotations) {
@@ -80,13 +85,13 @@ class Generator {
 			if (a.name == "pyroTransientAPI") {
 				if (a.getValue().size() == 1) {
 
-					val org.eclipse.emf.common.util.URI relativeURI = org.eclipse.emf.common.util.URI.createURI(a.value.get(0));
-					val org.eclipse.emf.common.util.URI rootURI = org.eclipse.emf.common.util.URI.createURI(projectLocation);
-					val org.eclipse.emf.common.util.URI absoluteURI = relativeURI.resolve(rootURI);
+					val URI relativeURI = URI.createURI(a.value.get(0));
+					val URI rootURI = URI.createURI(projectLocation);
+					val URI absoluteURI = relativeURI.resolve(rootURI);
 
 					val m = mglModels.stream.filter[it.eResource.URI.equals(absoluteURI)].findFirst
 					if (m.present) {
-						for(g: m.get.graphmodels) // TODO:SAMI: check if this works
+						for (g : m.get.graphmodels) // TODO:SAMI: check if this works
 							transientGraphModels.put(projectLocation + "#" + g.name, g)
 					}
 
@@ -104,28 +109,28 @@ class Generator {
 
 			if (a.name == "pyroProjectPostCreate") {
 				if (a.getValue().size() == 1) {
-					FileHandler.copyAnnotatedClasses(a, javaPath,projectLocation)
+					FileHandler.copyAnnotatedClasses(a, javaPath, projectLocation)
 					projectPostCreate.add(a.value.get(0))
 				}
 			}
 
 			if (a.name == "pyroOrganizationPostCreate") {
 				if (a.getValue().size() == 1) {
-					FileHandler.copyAnnotatedClasses(a, javaPath,projectLocation)
+					FileHandler.copyAnnotatedClasses(a, javaPath, projectLocation)
 					organizationPostCreate.add(a.value.get(0))
 				}
 			}
 
 			if (a.name == "pyroEditorLayout") {
 				if (a.getValue().size() == 1) {
-					FileHandler.copyAnnotatedClasses(a, javaPath,projectLocation)
+					FileHandler.copyAnnotatedClasses(a, javaPath, projectLocation)
 					editorLayout.add(a.value.get(0))
 				}
 			}
 
 			if (a.name == "pyroRootPostCreate") {
 				if (a.getValue().size() == 1) {
-					FileHandler.copyAnnotatedClasses(a, javaPath,projectLocation)
+					FileHandler.copyAnnotatedClasses(a, javaPath, projectLocation)
 					rootPostCreate.add(a.value.get(0))
 				}
 			}
@@ -176,44 +181,44 @@ class Generator {
 		);
 
 		// generate preview
-		new de.jabc.cinco.meta.plugin.pyro.preview.Generator(base).generate(gc)  
+		new de.jabc.cinco.meta.plugin.pyro.preview.Generator(base).generate(gc)
 
 		// copy back end statics
 		{
-			val File baseFolder = new File(base); 
-			copyResources("archetype/app",base)
-			copyResources("archetype/run.sh",base)
-			copyResources("archetype/nginx.conf",base)
-			copyResources("archetype/docker-compose.yml",base)
-			copyResources("archetype/docker-compose.debug.yml",base)
-			if(!baseFolder.list.contains("docker-compose.production.yml")){
-				copyResources("archetype/docker-compose.production.yml",base)
+			val File baseFolder = new File(base);
+			copyResources("archetype/app", base)
+			copyResources("archetype/run.sh", base)
+			copyResources("archetype/nginx.conf", base)
+			copyResources("archetype/docker-compose.yml", base)
+			copyResources("archetype/docker-compose.yml", base)
+			copyResources("archetype/Dockerfile", base)
+			if (!baseFolder.list.contains("docker-compose.production.yml")) {
+				copyResources("archetype/docker-compose.production.yml", base)
 			}
 
-			copyResources("archetype/rsync-exclude.txt",base)
-			if(!baseFolder.list.contains("oauth.properties")){
-				copyResources("archetype/oauth.properties",base)
+			copyResources("archetype/rsync-exclude.txt", base)
+			if (!baseFolder.list.contains("oauth.properties")) {
+				copyResources("archetype/oauth.properties", base)
 			}
-			//generate cinco dependencies
-			
-			//generate backend sources
+			// generate cinco dependencies
+			// generate backend sources
 			val backEndGenerator = new de.jabc.cinco.meta.plugin.pyro.backend.Generator(base)
 
-			backEndGenerator.generator(gc,projectLocation)
+			backEndGenerator.generator(gc, projectLocation)
 		}
 
-		//copy front end statics
+		// copy front end statics
 		{
 			// generate front end
 			// val path = base.append("/dywa-app/app-presentation/target/generated-sources/app")
 			val path = base + "/webapp"
-			copyResources("frontend/app/build.yaml",path)
+			copyResources("frontend/app/build.yaml", path)
 			copyResources("frontend/app/lib", path)
 			copyResources("frontend/app/web", path)
-			copyResources("frontend/app/.vscode",path) // uncomment this line, only for development
-			copyResources("frontend/app/Dockerfile",path)
-			copyResources("frontend/app/basic_auth",path)
-			copyResources("frontend/app/default.conf",path)
+			copyResources("frontend/app/.vscode", path) // uncomment this line, only for development
+			copyResources("frontend/app/Dockerfile", path)
+			copyResources("frontend/app/basic_auth", path)
+			copyResources("frontend/app/default.conf", path)
 			val frontEndGen = new de.jabc.cinco.meta.plugin.pyro.frontend.Generator(path)
 			frontEndGen.generate(gc, projectLocation)
 			// generate modeling canvas
@@ -221,17 +226,33 @@ class Generator {
 			modelingGen.generator(gc, projectLocation)
 		}
 
-		for (a : cpd.annotations) {	
+		for (a : cpd.annotations) {
 			if (a.name == "pyroIncludeSources") {
 				if (a.getValue().size() != 0) {
-					for (v : a.value){
-				 		copySources(v, javaPath,projectLocation)	
-				 	}
-
+					for (v : a.value) {
+						copySources(v, javaPath, projectLocation)
+					}
 
 				}
 			}
 		}
+				
+		
+        val File fileToZip = new File(base);
+        val File[] srcFiles = fileToZip.listFiles();
+        val FileOutputStream fos = new FileOutputStream(projectLocation + File.separator + "pyro.zip");
+        val ZipOutputStream zipOut = new ZipOutputStream(fos);
+        for (File srcFile : srcFiles) {
+        zipFile(zipOut,srcFile,srcFile.name)
+        }     
+        zipOut.flush();
+		fos.flush();
+		zipOut.close();
+		fos.close();
+		if (!devMode) {
+			cleanup(base)
+		}
+
 	}
 
 	/**
@@ -242,21 +263,20 @@ class Generator {
 	def copyResources(String source, String target) {
 		copyResourceFiles(source, target, this.class)
 	}
-	
+
 	/**
 	 * Copies all files recursively from a given bundle to a given target path.
 	 * @param bundleId
 	 * @param target
 	 */
-	static def copyResourceFiles(String source, String target, Class<?> mainClass) {	
-		val baseUri = org.eclipse.emf.common.util.URI.createURI(source);
+	static def copyResourceFiles(String source, String target, Class<?> mainClass) {
+		val baseUri = URI.createURI(source);
 		var files = getResourcePathsOfFiles(source, Integer.MAX_VALUE, mainClass)
 		val base = baseUri.segment(baseUri.segmentCount - 1)
-		for(f:files) {
-			val from = f.toString.empty? source : source + File.separator + f
+		for (f : files) {
+			val from = f.toString.empty ? source : source + File.separator + f
 			val to = target + File.separator + (
-				f.toString.empty? base : 
-				base + File.separator + f
+				f.toString.empty ? base : base + File.separator + f
 			)
 			copyResource(from, to, mainClass)
 		}
@@ -286,13 +306,13 @@ class Generator {
 
 	private def Resource findImportModels(Import import1, MGLModel masterModel) {
 		val path = import1.getImportURI();
-		val uri = org.eclipse.emf.common.util.URI.createURI(path, true);
+		val uri = URI.createURI(path, true);
 		try {
 			var Resource res = null;
 			if (uri.isPlatformResource()) {
 				res = new ResourceSetImpl().getResource(uri, true);
 			} else {
-				val projectURI = org.eclipse.emf.common.util.URI.createFileURI(projectLocation)
+				val projectURI = URI.createFileURI(projectLocation)
 				val absoluteURI = uri.resolve(projectURI)
 				val File file = new File(absoluteURI.toFileString).getAbsoluteFile();
 				if (file.exists()) {
@@ -348,30 +368,36 @@ class Generator {
 	static def copyResource(String res, String dest, Class<?> mainClass) throws IOException {
 		var clsLoader = mainClass.getClassLoader
 		var resource = res;
-
+		
+		// windows-path workaround
+		resource = resource.replace(File.separator, "/");
 		// first "/" needs to be deleted for windows-support
 		if (("" + resource.charAt(0)).equals("/"))
 			resource = resource.substring(1)
-
 		val src = clsLoader.getResourceAsStream(resource)
-		val destPath = Paths.get(dest)
-
+		
+		// windows-path workaround
+		var sanitizedPath = dest.replace(File.separator, "/");
+		val fileURI = URI.createFileURI(sanitizedPath);
+		var sanitizedURI = java.net.URI.create(fileURI.toString)
+		val destPath = Paths.get(sanitizedURI);
+		
 		// create Folder holding the final file
 		var lastIndex = destPath.getNameCount() - 1
 		// lastIndex = lastIndex > 0 ? lastIndex : 0
 		if (lastIndex > 0) {
 			lastIndex = 0;
 		}
-		//val folderPath = Paths.get(File.separator + destPath.subpath(0, lastIndex))
+		// val folderPath = Paths.get(File.separator + destPath.subpath(0, lastIndex))
 		createFolder(destPath.toString)
 		// create/copy file not directory
+		
 		Files.copy(src, destPath, StandardCopyOption.REPLACE_EXISTING)
 	}
 
 	static def copySources(String sourceName, String target, String projectLocation) {
-	
-	    
-		var String[] splitedName = sourceName.split("/")	
+
+		var String[] splitedName = sourceName.split("/")
 		val String pathName = sourceName.substring(splitedName.get(0).length + 1).replace('.', '/')
 
 		try {
@@ -379,22 +405,22 @@ class Generator {
 				if (pathName.equals("src") || pathName.equals("src/") || pathName.equals("src-gen") ||
 					pathName.equals("src-gen/")) {
 
-					val String newPath= projectLocation +"/"+pathName 
-					val resolvedURI = org.eclipse.emf.common.util.URI.createURI(newPath)	
+					val String newPath = projectLocation + "/" + pathName
+					val resolvedURI = URI.createURI(newPath)
 					val File directory = new File(resolvedURI.toString);
-					val newTargetPath = target + sourceName.substring(0,splitedName.get(0).length).replace('.', '/')
-					val File dest = new File(newTargetPath); 
-										
+					//val newTargetPath = target + sourceName.substring(0, splitedName.get(0).length).replace('.', '/')
+					val File dest = new File(target);
+
 					FileUtils.copyDirectory(directory, dest);
 				} else {
-					val String[] newSplitedName = pathName.split("/")
+					val String[] newSplitedName = pathName.split(File.separator)
 					if ((pathName.contains("src") && newSplitedName.get(0).equals("src")) ||
 						(pathName.contains("src-gen") && newSplitedName.get(0).equals("src-gen"))) {
 						val String newPathName = pathName.substring(newSplitedName.get(0).length + 1)
-						val String newTarget = target + "/" + newPathName;
+						val String newTarget = target + File.separator + newPathName;
 
-						val String newPath= projectLocation +"/"+pathName 
-						val resolvedURI = org.eclipse.emf.common.util.URI.createURI(newPath)
+						val String newPath= projectLocation + File.separator+pathName 
+						val resolvedURI = URI.createURI(newPath)
 						val File directory = new File(resolvedURI.toString);
 						val File newDest =  new File(newTarget);
 						FileUtils.copyDirectory(directory,newDest);
@@ -403,6 +429,47 @@ class Generator {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+	
+	  static def void zipFile( ZipOutputStream zipOut,File fileToZip, String fileName) throws IOException {
+        if (fileToZip.isHidden()) {
+            return;
+        }
+        if (fileToZip.isDirectory()) {
+            if (fileName.endsWith("/")) {
+                zipOut.putNextEntry(new ZipEntry(fileName));
+                zipOut.closeEntry();
+            } else {
+                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
+                zipOut.closeEntry();
+            }
+            val File[] children = fileToZip.listFiles();
+            for (File childFile : children) {
+                zipFile( zipOut, childFile, fileName + "/" + childFile.getName());
+            }
+            return;
+        }
+        val FileInputStream fis = new FileInputStream(fileToZip);
+        val ZipEntry zipEntry = new ZipEntry(fileName);
+        zipOut.putNextEntry(zipEntry);
+        val  byte[] bytes = newByteArrayOfSize(1024);
+        var int length;
+        while ((length = fis.read(bytes)) >= 0) {
+            zipOut.write(bytes, 0, length);
+        }
+        fis.close();
+    }
+
+	def cleanup(String dirName) {
+		val File pyroDir = new File(dirName);
+		
+		if (pyroDir.exists()) {
+			try {
+				org.eclipse.xtext.util.Files.cleanFolder(pyroDir, null, true, true);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

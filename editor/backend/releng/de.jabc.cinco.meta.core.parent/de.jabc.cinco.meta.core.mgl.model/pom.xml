@@ -34,15 +34,8 @@
 					<dependencies>
 						<dependency>
 							<artifactId>org.eclipse.emf.codegen.ecore</artifactId>
-							<version>${emf.version}</version>
 							<type>eclipse-plugin</type>
 						</dependency>
-						<!--<dependency>
-    						<groupId>org.eclipse.platform</groupId>
-    						<artifactId>org.eclipse.core.resources</artifactId>
-    						<version>3.13.800</version>
-							<type>eclipse-plugin</type>
-						</dependency>-->
 					</dependencies>
 					<repositories>
 						<repository>
@@ -108,7 +101,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-clean-plugin</artifactId>

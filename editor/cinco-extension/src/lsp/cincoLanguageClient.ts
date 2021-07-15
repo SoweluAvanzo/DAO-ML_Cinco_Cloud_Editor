@@ -2,6 +2,7 @@ import { LanguageClient,  ServerOptions, LanguageClientOptions } from "vscode-la
 import * as vscode from "vscode";
 import { workbenchOutput } from "../extension";
 import { GenerateRequest, GenerateRequestEndpoint, GenerateResponse } from "./communication/lspMessageExtension";
+import { executeProduct } from "../grpc/grpc-handler";
 
 
 export class CincoLanguageClient extends LanguageClient {
@@ -20,15 +21,29 @@ export class CincoLanguageClient extends LanguageClient {
         generateRequest.targetUri = targetUri;
         generateRequest.execute = execute;
         
-        this.sendRequest(GenerateRequestEndpoint.type, generateRequest)
+        try{
+            this.sendRequest(GenerateRequestEndpoint.type, generateRequest)
             .then( (response: GenerateResponse) => {
-                this.onGenerateFinished(response);
+                this.onGenerateFinished(response, execute);
             });
+        } catch(e) {
+            const message = "LanguageClient could not request generation";
+            vscode.window.showErrorMessage(message);
+            workbenchOutput.appendLine(message);
+        }
+
     }
 
-    onGenerateFinished(response: GenerateResponse) {
+    onGenerateFinished(response: GenerateResponse, execute: boolean) {
         const message = "generated cinco-product to: "+response.targetUri;
         vscode.window.showInformationMessage(message);
         workbenchOutput.appendLine(message);
+
+        if(execute) {
+            const message2 = "executing cinco-product";
+            vscode.window.showInformationMessage(message2);
+            workbenchOutput.appendLine(message2);
+            executeProduct(response.targetUri);
+        }
     }
 }

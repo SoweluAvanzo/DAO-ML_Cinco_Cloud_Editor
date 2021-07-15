@@ -1,4 +1,5 @@
 @pyro
+@pyroIncludeSources("info.scce.cinco.product.flowgraph/src")
 cincoProduct FlowGraphTool {
 
 	mgl "model/FlowGraph.mgl"

@@ -7,18 +7,46 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Launch Browser Backend Windows",
+      "runtimeExecutable": "npm",
+      "cwd": "${workspaceFolder}/browser-app",
+      "runtimeArgs": [
+        "run-script",
+        "debug"
+      ],
+      "port": 9229,
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "envFile": "${workspaceRoot}/.env",
+      "outFiles": [
+        "${workspaceRoot}/node_modules/@theia/*/lib/**/*.js",
+        "${workspaceRoot}/browser-app/lib/**/*.js",
+        "${workspaceRoot}/browser-app/src-gen/backend/*.js",
+        "${workspaceRoot}/cinco-language-server-extension/lib/**/*.js",
+        "${workspaceRoot}/cinco-authenticator/lib/**/*.js"
+      ],
+      "smartStep": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "outputCapture": "std"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Launch Browser Backend",
       "program": "${workspaceRoot}/browser-app/src-gen/backend/main.js",
-      "envFile": "${workspaceFolder}/.env",
+      "envFile": "${workspaceRoot}/.env",
       "args": [
         "--loglevel=debug",
         "--port=3000",
         "--no-cluster",
-        "--app-project-path=${workspaceRoot}/browser-app",
+        "--app-project-path=${workspaceRoot}",
+        "--root-dir=../examples/flowgraph",
         "--plugins=local-dir:${workspaceRoot}/browser-app/plugins"
       ],
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "CINCO_CLOUD_DEBUG": "true"
       },
       "sourceMaps": true,
       "outFiles": [
@@ -30,17 +58,13 @@
       ],
       "smartStep": true,
       "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std",
-      "preLaunchTask": "checkNode"
+      "outputCapture": "std"
     },
     {
       "name": "Launch Browser Frontend",
-      "env": {
-        "CINCO_CLOUD_DEBUG": true
-      },
-      "type": "chrome",
+      "type": "pwa-chrome",
       "request": "launch",
-      "url": "http://localhost:3000/?jwt=test&projectId=1",
+      "url": "http://localhost:3000/?jwt=test&projectId=1#${workspaceRoot}/examples/flowgraph",
       "sourceMaps": true,
       "webRoot": "${workspaceRoot}/browser-app"
     }
