@@ -1,8 +1,9 @@
-import { LanguageClient,  ServerOptions, LanguageClientOptions } from "vscode-languageclient";
-import * as vscode from "vscode";
-import { workbenchOutput } from "../extension";
-import { GenerateRequest, GenerateRequestEndpoint, GenerateResponse } from "./communication/lspMessageExtension";
-import { executeProduct } from "../grpc/grpc-handler";
+import * as vscode from 'vscode';
+import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient';
+
+import { workbenchOutput } from '../extension';
+import { executeProduct } from '../grpc/grpc-handler';
+import { GenerateRequest, GenerateRequestEndpoint, GenerateResponse } from './communication/lspMessageExtension';
 
 
 export class CincoLanguageClient extends LanguageClient {
@@ -20,13 +21,13 @@ export class CincoLanguageClient extends LanguageClient {
         generateRequest.sourceUri = sourceUri;
         generateRequest.targetUri = targetUri;
         generateRequest.execute = execute;
-        
-        try{
+
+        try {
             this.sendRequest(GenerateRequestEndpoint.type, generateRequest)
-            .then( (response: GenerateResponse) => {
-                this.onGenerateFinished(response, execute);
-            });
-        } catch(e) {
+                .then((response: GenerateResponse) => {
+                    this.onGenerateFinished(response, execute);
+                });
+        } catch (e) {
             const message = "LanguageClient could not request generation";
             vscode.window.showErrorMessage(message);
             workbenchOutput.appendLine(message);
@@ -35,16 +36,17 @@ export class CincoLanguageClient extends LanguageClient {
     }
 
     onGenerateFinished(response: GenerateResponse, execute: boolean) {
-        const message = "generated cinco-product to: "+response.targetUri;
+        const message = "generated cinco-product to: " + response.targetUri;
         vscode.window.showInformationMessage(message);
         workbenchOutput.appendLine(message);
 
-        if(execute) {
+        if (execute) {
             const message2 = "executing cinco-product";
             vscode.window.showInformationMessage(message2);
             workbenchOutput.appendLine(message2);
-            console.log("Generated artifact: "+response.targetUri);
-            executeProduct(response.targetUri);
+            const outputPath = vscode.Uri.parse(response.targetUri).fsPath;
+            console.log("Generated artifact: " + outputPath);
+            executeProduct(outputPath);
         }
     }
 }
