@@ -6,6 +6,8 @@ import com.google.rpc.Status;
 import io.smallrye.mutiny.Uni;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import org.apache.commons.io.FileUtils;
@@ -16,11 +18,15 @@ import info.scce.cincocloud.proto.MutinyMainServiceGrpc;
 @Singleton
 public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBase {
 
+    private static final Logger LOGGER = Logger.getLogger(MainServiceGrpcImpl.class.getName());
+
     @Override
     @Transactional
     public Uni<CincoCloudProtos.CreateImageReply> createImageFromArchive(CincoCloudProtos.CreateImageRequest request) {
         final var projectId = request.getProjectId();
         final var archiveInBytes = request.getArchive();
+
+        LOGGER.log(Level.INFO, "createImageFromArchive(projectId: {}, archive: {})", new Object[] {projectId, archiveInBytes.size()});
 
         if (projectId < 0) {
             return createFailure(Code.INVALID_ARGUMENT, "projectId must be > 0");
