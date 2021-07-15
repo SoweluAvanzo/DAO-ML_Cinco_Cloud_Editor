@@ -4,8 +4,9 @@ import { CreateImageRequest, MainServiceClientImpl, GrpcWebImpl } from "../cinco
 /**
  * TODO: setup host-adresse and fetching of projectId
  */
-const host: string = "TODO";
-const grpcImpl: GrpcWebImpl = new GrpcWebImpl(host, {});
+const host: string = getCincoCloudHost();
+const port: string = getCincoCloudPort();
+const grpcImpl: GrpcWebImpl = new GrpcWebImpl(host+":"+port, {});
 
 export function executeProduct(zip: string) {
     var archive = fs.readFileSync(zip);
@@ -18,4 +19,14 @@ export function executeProduct(zip: string) {
 
 function getProjectId() {
     return 0;
+}
+
+function getCincoCloudHost(): string {
+    const cincocloudHost = process.env.CINCO_CLOUD_HOST;
+    return cincocloudHost ? cincocloudHost : 'main-service';
+}
+
+function getCincoCloudPort(): string {
+    const cincocloudPort = process.env.CINCO_CLOUD_GRPC_PORT;
+    return cincocloudPort ? cincocloudPort : '9000';
 }
