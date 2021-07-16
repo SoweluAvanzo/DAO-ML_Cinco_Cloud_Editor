@@ -111,6 +111,7 @@
         "graphviz": "0.0.9",
         "dos2unix-cli": "1.0.1",
         "@improbable-eng/grpc-web": "0.14.0",
+        "@improbable-eng/grpc-web-node-http-transport": "0.14.0",
         "google-protobuf": "^3.14.3",
         "protobufjs": "6.11.2"
     }

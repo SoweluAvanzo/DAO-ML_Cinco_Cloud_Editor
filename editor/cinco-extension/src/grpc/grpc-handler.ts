@@ -2,6 +2,8 @@
 import * as fs from 'fs';
 import { commands, window } from 'vscode';
 import {grpc} from "@improbable-eng/grpc-web";
+import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
+
 
 import { CreateImageRequest, GrpcWebImpl, MainServiceClientImpl } from '../cinco-cloud';
 import { workbenchOutput } from '../extension';
@@ -27,7 +29,11 @@ function getMetadata() {
 
 export function callGrpcImageRequest(imageRequest: CreateImageRequest) {
     const metadata: grpc.Metadata = getMetadata();
-    const grpcImpl: GrpcWebImpl = new GrpcWebImpl(host + ":" + port, { metadata: metadata });
+    const grpcImpl: GrpcWebImpl = new GrpcWebImpl(host + ":" + port,
+        {
+            metadata: metadata,
+            transport: NodeHttpTransport()
+        });
 
     const mainService = new MainServiceClientImpl({
         unary: (methodDesc, _request, metadata) => grpcImpl.unary(methodDesc, _request, metadata)
