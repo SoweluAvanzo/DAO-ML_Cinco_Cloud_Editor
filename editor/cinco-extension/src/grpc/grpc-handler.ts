@@ -1,25 +1,38 @@
-import * as fs from "fs";
-import { CreateImageRequest, MainServiceClientImpl, GrpcWebImpl } from "../cinco-cloud";
+import { grpc } from '@improbable-eng/grpc-web';
+import * as fs from 'fs';
+import { commands, window } from 'vscode';
 
-/**
- * TODO: setup host-adresse and fetching of projectId
- */
+import { CreateImageRequest, GrpcWebImpl, MainServiceClientImpl } from '../cinco-cloud';
+import { workbenchOutput } from '../extension';
+
 const host: string = getCincoCloudHost();
 const port: string = getCincoCloudPort();
-const grpcImpl: GrpcWebImpl = new GrpcWebImpl(host+":"+port, {});
+const metadata: grpc.Metadata = new grpc.Metadata();
+const grpcImpl: GrpcWebImpl = new GrpcWebImpl(host + ":" + port, { metadata: metadata });
 
-export function executeProduct(zip: string) {
+export async function executeProduct(zip: string) {
     var archive = fs.readFileSync(zip);
-    const imageRequest: CreateImageRequest = { projectId: getProjectId(), archive: archive };
+    const projectId: number = + await getProjectId();
+    const imageRequest: CreateImageRequest = { projectId: projectId, archive: archive };
     const mainService = new MainServiceClientImpl({
         unary: grpcImpl.unary
     });
     mainService.CreateImageFromArchive(imageRequest);
 }
 
-function getProjectId() {
-    return 0;
+async function getProjectId(): Promise<string> {
+    try {
+        const projectId: string = await commands.executeCommand("info.scce.cinco.cloud.projectid");
+        console.log("received projectId: " + projectId);
+        return projectId;
+    } catch (e) {
+        const message = "projectid command let to an error!";
+        window.showErrorMessage(message);
+        workbenchOutput.appendLine(message);
+        throw new Error(e);
+    }
 }
+
 
 function getCincoCloudHost(): string {
     const cincocloudHost = process.env.CINCO_CLOUD_HOST;
