@@ -1,23 +1,38 @@
-import { grpc } from '@improbable-eng/grpc-web';
+
 import * as fs from 'fs';
 import { commands, window } from 'vscode';
+import {grpc} from "@improbable-eng/grpc-web";
 
 import { CreateImageRequest, GrpcWebImpl, MainServiceClientImpl } from '../cinco-cloud';
 import { workbenchOutput } from '../extension';
 
 const host: string = getCincoCloudHost();
 const port: string = getCincoCloudPort();
-const metadata: grpc.Metadata = new grpc.Metadata();
-const grpcImpl: GrpcWebImpl = new GrpcWebImpl(host + ":" + port, { metadata: metadata });
 
 export async function executeProduct(zip: string) {
+    // data
     var archive = fs.readFileSync(zip);
     const projectId: number = + await getProjectId();
     const imageRequest: CreateImageRequest = { projectId: projectId, archive: archive };
+
+    callGrpcImageRequest(imageRequest);
+}
+
+function getMetadata() {
+    const metadata = new grpc.Metadata();
+    metadata.set("grpc-status", grpc.Code.OK.toString());
+    metadata.set("grpc-message", "OK");
+    return metadata;
+}
+
+export function callGrpcImageRequest(imageRequest: CreateImageRequest) {
+    const metadata: grpc.Metadata = getMetadata();
+    const grpcImpl: GrpcWebImpl = new GrpcWebImpl(host + ":" + port, { metadata: metadata });
+
     const mainService = new MainServiceClientImpl({
-        unary: grpcImpl.unary
+        unary: (methodDesc, _request, metadata) => grpcImpl.unary(methodDesc, _request, metadata)
     });
-    mainService.CreateImageFromArchive(imageRequest);
+    mainService.CreateImageFromArchive(imageRequest, metadata);
 }
 
 async function getProjectId(): Promise<string> {
