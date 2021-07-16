@@ -30,14 +30,14 @@ Parts of this README are taken from the coffee-editor.
 
 ### Dependencies
 - Java 11 (or greater)
-- NodeJS (version 10.16)
+- NodeJS (version 10.17)
 - Yarn
 - maven
 
-NOTE: we recommend using [nvm](https://github.com/creationix/nvm#install-script) to use NodeJS 10.16 for development use.
+NOTE: we recommend using [nvm](https://github.com/creationix/nvm#install-script) to use NodeJS 10.17 for development use.
 
-    nvm install 10.16
-    nvm use 10.16
+    nvm install 10.17
+    nvm use 10.17
     npm install -g yarn
 
 For maven please check the installation documentation for [maven](http://maven.apache.org/install.html).
