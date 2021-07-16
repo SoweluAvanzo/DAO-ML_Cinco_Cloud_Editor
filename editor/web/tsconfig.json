@@ -5,7 +5,8 @@
   },
   "include": [
     "cinco-language-server-extension/src",
-    "cinco-authenticator/src"
+    "cinco-authenticator/src",
+    "cinco-frontend-configurator/src"
   ],
   "exclude": [
     "node_modules"

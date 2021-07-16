@@ -12,6 +12,7 @@
   "workspaces": [
     "cinco-language-server-extension",
     "cinco-authenticator",
+    "cinco-frontend-configurator",
     "browser-app"
   ],
   "resolutions": {
