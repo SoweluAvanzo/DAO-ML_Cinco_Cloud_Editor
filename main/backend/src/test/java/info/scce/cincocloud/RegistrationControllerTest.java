@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 @QuarkusTest
 @QuarkusTestResource(PostgresResource.class)
+@QuarkusTestResource(ArtemisResource.class)
 public class RegistrationControllerTest {
 
     @Test

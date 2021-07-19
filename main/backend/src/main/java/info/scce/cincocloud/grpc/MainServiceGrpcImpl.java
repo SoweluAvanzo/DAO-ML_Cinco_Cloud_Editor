@@ -9,10 +9,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import org.apache.commons.io.FileUtils;
 import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.mq.WorkspaceImageBuildJob;
+import info.scce.cincocloud.mq.WorkspaceMQProducer;
 import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.proto.MutinyMainServiceGrpc;
 
@@ -20,6 +23,9 @@ import info.scce.cincocloud.proto.MutinyMainServiceGrpc;
 public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBase {
 
     private static final Logger LOGGER = Logger.getLogger(MainServiceGrpcImpl.class.getName());
+
+    @Inject
+    WorkspaceMQProducer workspaceMQProducer;
 
     @Override
     @Transactional
@@ -45,6 +51,8 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
                         throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
                                 .withDescription("project not found"));
                     } else {
+                        final var project = (PyroProjectDB) projectOptional.get();
+                        workspaceMQProducer.send(new WorkspaceImageBuildJob(projectId, project.owner.username, project.name));
                         return createImageReply(projectId);
                     }
                 });

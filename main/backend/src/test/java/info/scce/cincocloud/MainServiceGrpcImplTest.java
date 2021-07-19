@@ -16,6 +16,7 @@ import info.scce.cincocloud.proto.MainServiceGrpc;
 
 @QuarkusTest
 @QuarkusTestResource(PostgresResource.class)
+@QuarkusTestResource(ArtemisResource.class)
 public class MainServiceGrpcImplTest {
 
     @GrpcService("main")
