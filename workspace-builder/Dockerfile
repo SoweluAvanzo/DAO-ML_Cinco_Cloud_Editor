@@ -21,7 +21,7 @@ COPY --from=builder /app/workspace-builder/target/quarkus-app/ /app
 EXPOSE 8000
 CMD java \
     -Damqp-host="${AMPQ_HOST}" \
-    -Damqp-host="${AMPQ_PORT}" \
+    -Damqp-port="${AMPQ_PORT}" \
     -Damqp-username="${AMPQ_USERNAME}" \
     -Damqp-password="${AMPQ_PASSWORD}" \
     -Dccwib.docker.registry.host="${DOCKER_REGISTRY_HOST}" \

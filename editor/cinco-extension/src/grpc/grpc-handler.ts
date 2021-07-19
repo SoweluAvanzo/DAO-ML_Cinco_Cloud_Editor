@@ -38,7 +38,11 @@ export function callGrpcImageRequest(imageRequest: CreateImageRequest) {
     const mainService = new MainServiceClientImpl({
         unary: (methodDesc, _request, metadata) => grpcImpl.unary(methodDesc, _request, metadata)
     });
-    mainService.CreateImageFromArchive(imageRequest, metadata);
+
+    mainService.CreateImageFromArchive(imageRequest, metadata).then(
+      reply => console.log('Send archive to main service for projectId: ' + reply.projectId),
+      err => console.log('Failed to send archive to main service', err)
+    );
 }
 
 async function getProjectId(): Promise<string> {

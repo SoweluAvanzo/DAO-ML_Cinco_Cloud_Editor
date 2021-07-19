@@ -35,11 +35,8 @@ spec:
                 name: ampq-config
           ports:
             - containerPort: 5672
-              name: ampq
             - containerPort: 61616
-              name: ampq-core
             - containerPort: 8161
-              name: ampq-server
       volumes:
         - name: pv-data
           persistentVolumeClaim:
