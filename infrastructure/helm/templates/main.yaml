@@ -7,7 +7,7 @@ data:
   DATABASE_URL: "postgres-service/cc"
   DATABASE_USER: "cc"
   DATABASE_PASSWORD: "cc"
-  AMPQ_HOST: "ampq"
+  AMPQ_HOST: "ampq-service"
   AMPQ_PORT: "5672"
   AMPQ_USERNAME: "cc"
   AMPQ_PASSWORD: "cc"
