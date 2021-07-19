@@ -47,6 +47,10 @@ COPY --from=extension-builder /extension/cinco-extension-0.0.1.vsix /editor/brow
 RUN cp /editor/favicon.ico /editor/browser-app/lib && \
 	sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
 RUN mkdir /editor/workspace
+
+# installing dependencies
+RUN apt install -y libsecret-1-0
+
 VOLUME /editor/workspace
 EXPOSE 3000
 CMD cd /editor/browser-app && \
