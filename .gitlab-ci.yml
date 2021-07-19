@@ -27,14 +27,13 @@ stages:
   extends: .docker-job
   stage: build
   script:
-    - cd "$IMAGE"
-    - mkdir "$VERSION"
-    - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" .
-    - docker save "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" | gzip > "$VERSION/image.tar.gz"
+    - mkdir "$IMAGE-$VERSION"
+    - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
+    - docker save "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" | gzip > "$IMAGE-$VERSION/image.tar.gz"
   artifacts:
     expire_in: 1 days
     paths:
-      - $IMAGE/$VERSION/image.tar.gz
+      - $IMAGE-$VERSION/image.tar.gz
 
 .docker-push:
   extends: .docker-job
@@ -42,7 +41,7 @@ stages:
   before_script:
     - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker load < $IMAGE/$VERSION/image.tar.gz
+    - docker load < $IMAGE-$VERSION/image.tar.gz
     - docker tag $CI_REGISTRY_IMAGE/$IMAGE:$VERSION $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
@@ -74,6 +73,8 @@ test-main:
 build-main:
   extends: .docker-build
   variables:
+    CONTEXT: ./main
+    DOCKERFILE: ./main/Dockerfile
     IMAGE: main
     VERSION: latest
   only:
@@ -90,6 +91,8 @@ push-main:
 build-registry:
   extends: .docker-build
   variables:
+    CONTEXT: ./registry
+    DOCKERFILE: ./registry/Dockerfile
     IMAGE: registry
     VERSION: latest
   only:
@@ -106,6 +109,8 @@ push-registry:
 build-editor:
   extends: .docker-build
   variables:
+    CONTEXT: ./editor
+    DOCKERFILE: ./editor/Dockerfile
     IMAGE: editor
     VERSION: latest
   cache:
@@ -119,6 +124,24 @@ push-editor:
   extends: .docker-push
   variables:
     IMAGE: editor
+    VERSION: latest
+  only:
+    - master
+
+build-workspace-builder:
+  extends: .docker-build
+  variables:
+    CONTEXT: .
+    DOCKERFILE: ./workspace-builder/Dockerfile
+    IMAGE: workspace-builder
+    VERSION: latest
+  only:
+    - master
+
+push-workspace-builder:
+  extends: .docker-push
+  variables:
+    IMAGE: workspace-builder
     VERSION: latest
   only:
     - master

@@ -52,6 +52,7 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
                                 .withDescription("project not found"));
                     } else {
                         final var project = (PyroProjectDB) projectOptional.get();
+                        // TODO: save archive
                         workspaceMQProducer.send(new WorkspaceImageBuildJob(projectId, project.owner.username, project.name));
                         return createImageReply(projectId);
                     }
