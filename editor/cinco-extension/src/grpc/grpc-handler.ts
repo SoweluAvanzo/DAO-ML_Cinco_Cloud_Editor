@@ -12,12 +12,17 @@ const host: string = getCincoCloudHost();
 const port: string = getCincoCloudPort();
 
 export async function executeProduct(zip: string) {
-    // data
-    var archive = fs.readFileSync(zip);
-    const projectId: number = + await getProjectId();
-    const imageRequest: CreateImageRequest = { projectId: projectId, archive: archive };
+    try {
+        // data
+        var archive = fs.readFileSync(zip);
+        const projectId: number = + await getProjectId();
+        const imageRequest: CreateImageRequest = { projectId: projectId, archive: archive };
 
-    callGrpcImageRequest(imageRequest);
+        callGrpcImageRequest(imageRequest);
+    } catch (e) {
+        window.showErrorMessage("Failed to execute product.");
+        console.log("Failed to execute product.", e);
+    }
 }
 
 function getMetadata() {
