@@ -1,12 +1,10 @@
 
 import * as fs from 'fs';
 import { commands, window } from 'vscode';
-import {grpc} from "@improbable-eng/grpc-web";
-import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
 
-
-import { CreateImageRequest, GrpcWebImpl, MainServiceClientImpl } from '../cinco-cloud';
+import { CreateImageRequest, MainServiceClient } from '../cinco-cloud';
 import { workbenchOutput } from '../extension';
+import { ChannelCredentials } from '@grpc/grpc-js';
 
 const host: string = getCincoCloudHost();
 const port: string = getCincoCloudPort();
@@ -14,7 +12,7 @@ const port: string = getCincoCloudPort();
 export async function executeProduct(zip: string) {
     try {
         // data
-        var archive = fs.readFileSync(zip);
+        const archive = fs.readFileSync(zip);
         const projectId: number = + await getProjectId();
         const imageRequest: CreateImageRequest = { projectId: projectId, archive: archive };
 
@@ -25,29 +23,17 @@ export async function executeProduct(zip: string) {
     }
 }
 
-function getMetadata() {
-    const metadata = new grpc.Metadata();
-    metadata.set("grpc-status", grpc.Code.OK.toString());
-    metadata.set("grpc-message", "OK");
-    return metadata;
-}
-
 export function callGrpcImageRequest(imageRequest: CreateImageRequest) {
-    const metadata: grpc.Metadata = getMetadata();
-    const grpcImpl: GrpcWebImpl = new GrpcWebImpl("http://" + host + ":" + port,
-        {
-            metadata: metadata,
-            transport: NodeHttpTransport()
-        });
+    const mainService = new MainServiceClient(host + ":" + port, ChannelCredentials.createInsecure());
 
-    const mainService = new MainServiceClientImpl({
-        unary: (methodDesc, _request, metadata) => grpcImpl.unary(methodDesc, _request, metadata)
+    mainService.createImageFromArchive(imageRequest, (err, res) => {
+        if (err) {
+            console.log('Failed to send archive to main service.', err);
+            throw err;
+        } else {
+            console.log('Send archive to main service.', res);
+        }
     });
-
-    mainService.CreateImageFromArchive(imageRequest, metadata).then(
-      reply => console.log('Send archive to main service for projectId: ' + reply.projectId),
-      err => console.log('Failed to send archive to main service', err)
-    );
 }
 
 async function getProjectId(): Promise<string> {
@@ -62,7 +48,6 @@ async function getProjectId(): Promise<string> {
         throw new Error(e);
     }
 }
-
 
 function getCincoCloudHost(): string {
     const cincocloudHost = process.env.CINCO_CLOUD_HOST;

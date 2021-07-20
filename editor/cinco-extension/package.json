@@ -86,33 +86,33 @@
         "installExtensionYarn": "yarn run package",
         "deleteTmp": "rimraf cinco-extension-0.0.1.vsix",
         "generate": "run-script-os",
-        "generate:windows": "./node_modules/protoc/protoc/bin/protoc.exe --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd --ts_proto_opt=outputClientImpl=grpc-web --ts_proto_opt=env=node --ts_proto_out=src --proto_path=proto/ cinco-cloud.proto",
-        "generate:default": "./node_modules/protoc/protoc/bin/protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=outputClientImpl=grpc-web --ts_proto_opt=env=node --ts_proto_out=./src --proto_path=./proto/ cinco-cloud.proto"
+        "generate:windows": "./node_modules/protoc/protoc/bin/protoc.exe --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd --ts_proto_opt=outputServices=grpc-js,addGrpcMetadata=true,env=node --ts_proto_out=src --proto_path=proto/ cinco-cloud.proto",
+        "generate:default": "./node_modules/protoc/protoc/bin/protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=outputServices=grpc-js,addGrpcMetadata=true,env=node --ts_proto_out=./src --proto_path=./proto/ cinco-cloud.proto"
     },
     "devDependencies": {
-        "typescript": "^4.2.2",
-        "@types/vscode": "1.50",
         "@types/node": "14.14.16",
-        "vsce": "1.88.0",
+        "@types/vscode": "1.50",
         "protoc": "^1.0.4",
+        "run-script-os": "1.1.6",
         "ts-proto": "^1.82.0",
-        "run-script-os": "1.1.6"
+        "typescript": "^4.2.2",
+        "vsce": "1.88.0"
     },
     "dependencies": {
-        "vscode-languageclient": "^5.2.1",
-        "vscode-languageserver-protocol": "3.16.0",
-        "vscode-jsonrpc": "6.0.0",
+        "@grpc/grpc-js": "^1.3.6",
+        "copyfiles": "2.3.0",
+        "dos2unix-cli": "1.0.1",
+        "google-protobuf": "^3.14.3",
+        "graphviz": "0.0.9",
+        "grpc": "^1.24.10",
+        "original-fs": "1.1.0",
+        "protobufjs": "6.11.2",
         "request": "2.88.2",
         "request-progress": "3.0.0",
-        "original-fs": "1.1.0",
         "rimraf": "3.0.2",
-        "which": "2.0.2",
-        "copyfiles": "2.3.0",
-        "graphviz": "0.0.9",
-        "dos2unix-cli": "1.0.1",
-        "@improbable-eng/grpc-web": "0.14.0",
-        "@improbable-eng/grpc-web-node-http-transport": "0.14.0",
-        "google-protobuf": "^3.14.3",
-        "protobufjs": "6.11.2"
+        "vscode-jsonrpc": "6.0.0",
+        "vscode-languageclient": "^5.2.1",
+        "vscode-languageserver-protocol": "3.16.0",
+        "which": "2.0.2"
     }
 }
