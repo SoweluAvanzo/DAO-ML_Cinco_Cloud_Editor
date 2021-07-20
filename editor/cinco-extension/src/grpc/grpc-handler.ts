@@ -34,7 +34,7 @@ function getMetadata() {
 
 export function callGrpcImageRequest(imageRequest: CreateImageRequest) {
     const metadata: grpc.Metadata = getMetadata();
-    const grpcImpl: GrpcWebImpl = new GrpcWebImpl(host + ":" + port,
+    const grpcImpl: GrpcWebImpl = new GrpcWebImpl("http://" + host + ":" + port,
         {
             metadata: metadata,
             transport: NodeHttpTransport()
