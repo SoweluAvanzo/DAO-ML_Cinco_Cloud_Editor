@@ -68,7 +68,7 @@ test-main:
     - sed -i -E -e 's/localhost|0\.0\.0\.0/docker/g' "$HOME/.kube/config"
   script: |
     cd ./main/backend
-    ./mvnw clean test
+    ./mvnw verify test
 
 build-main:
   extends: .docker-build
@@ -82,6 +82,8 @@ build-main:
 
 push-main:
   extends: .docker-push
+  dependencies:
+    - build-main
   variables:
     IMAGE: main
     VERSION: latest
@@ -100,6 +102,8 @@ build-registry:
 
 push-registry:
   extends: .docker-push
+  dependencies:
+    - build-registry
   variables:
     IMAGE: registry
     VERSION: latest
@@ -122,6 +126,8 @@ build-editor:
 
 push-editor:
   extends: .docker-push
+  dependencies:
+    - build-editor
   variables:
     IMAGE: editor
     VERSION: latest
@@ -140,6 +146,8 @@ build-workspace-builder:
 
 push-workspace-builder:
   extends: .docker-push
+  dependencies:
+    - build-workspace-builder
   variables:
     IMAGE: workspace-builder
     VERSION: latest
