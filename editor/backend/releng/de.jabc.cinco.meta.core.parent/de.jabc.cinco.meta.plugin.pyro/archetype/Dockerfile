@@ -4,7 +4,7 @@
 # Note: Get MissingPortFileException from the Dart compiler during then build  
 #       if Linux Kernel > 5.4 is used on the host.
 #
-FROM google/dart:2.4.1 as builder-frontend
+FROM docker.io/google/dart:2.4.1 as builder-frontend
 WORKDIR /app/frontend
 COPY ./webapp /app/frontend
 RUN pub global activate webdev \
@@ -15,7 +15,7 @@ RUN pub global activate webdev \
 # Build the pyro quarkus backend. Move static frontend files to the quarkus resource 
 # folder so that we can build a fat jar that includes the frontend. 
 #
-FROM openjdk:15-jdk-alpine3.11 as builder-backend
+FROM docker.io/library/openjdk:15-jdk-alpine3.11 as builder-backend
 WORKDIR /app/backend
 COPY ./app /app/backend
 COPY --from=builder-frontend /app/frontend/build/web/ /app/backend/src/main/resources/META-INF/resources/
@@ -26,7 +26,7 @@ RUN ./mvnw clean package -DskipTests
 #
 # Build the fat pyro quarkus jar.
 #
-FROM openjdk:15-jdk-alpine3.11
+FROM docker.io/library/openjdk:15-jdk-alpine3.11
 WORKDIR /app
 COPY --from=builder-backend /app/backend/target/*-runner.jar /app/app.jar
 COPY --from=builder-backend /app/backend/target/lib /app/lib

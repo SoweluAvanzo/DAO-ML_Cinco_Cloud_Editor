@@ -13,13 +13,14 @@ data:
   AMPQ_PASSWORD: "cc"
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: main-deployment
+  name: main-statefulset
   namespace: default
   labels:
     app: main
 spec:
+  serviceName: main
   replicas: 1
   selector:
     matchLabels:
@@ -42,6 +43,13 @@ spec:
                 name: main-config
           securityContext:
             privileged: true
+          volumeMounts:
+            - name: pv-data
+              mountPath: /app/data
+      volumes:
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: main-pv-claim
 ---
 apiVersion: v1
 kind: Service
@@ -99,3 +107,35 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: main-sa
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: main-pv-volume
+  namespace: default
+  labels:
+    type: local
+    app: main
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 30Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data/main"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: main-pv-claim
+  namespace: default
+  labels:
+    app: main
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 30Gi

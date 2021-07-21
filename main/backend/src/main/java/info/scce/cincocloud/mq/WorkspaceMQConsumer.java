@@ -5,16 +5,22 @@ import io.vertx.core.json.jackson.DatabindCodec;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import info.scce.cincocloud.db.PyroProjectDB;
 import info.scce.cincocloud.db.PyroWorkspaceImageDB;
+import info.scce.cincocloud.sync.ProjectWebSocket;
+import info.scce.cincocloud.sync.WebSocketMessage;
 
 @ApplicationScoped
 public class WorkspaceMQConsumer {
 
     private static final Logger LOGGER = Logger.getLogger(WorkspaceMQConsumer.class.getName());
+
+    @Inject
+    ProjectWebSocket projectWebSocket;
 
     @Transactional
     @Incoming("workspaces-jobs-results")
@@ -41,6 +47,8 @@ public class WorkspaceMQConsumer {
             image.published = false;
             image.user = project.owner;
             image.persist();
+
+            projectWebSocket.send(project.id, WebSocketMessage.fromEntity(project.owner.id, "workspaces:jobs:results", message));
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -92,6 +92,8 @@ public class WorkspaceImageBuilder {
                 .setProjectId(job.projectId)
                 .build());
 
+        logger.info("received archive.zip for (projectId: {})", response.getProjectId());
+
         final var archive = Path.of(tmpImageDir.toString()).resolve("archive.zip").toFile();
         FileUtils.writeByteArrayToFile(archive, response.getArchive().toByteArray());
 
@@ -100,14 +102,16 @@ public class WorkspaceImageBuilder {
         FileUtils.deleteQuietly(archive);
 
         // build image and push to registry
-        buildImage(tmpImageDir, job.getImageTag());
-        pushImageToRegistry(job.getImageTag());
+        buildImage(response.getProjectId(), tmpImageDir, job.getImageTag());
+        pushImageToRegistry(response.getProjectId(), job.getImageTag());
 
         return new BuildResult(job.projectId, true, "success", job.getImageTag());
     }
 
-    private void buildImage(Path sourceDir, String tag) throws Exception {
+    private void buildImage(Long projectId, Path sourceDir, String tag) throws Exception {
         final var buildCommand = "cd " + sourceDir.toString() + " && buildah bud -t " + tag + " .";
+
+        logger.info("build image for (projectId: {}, command: {})", projectId, buildCommand);
 
         final var process = new ProcessBuilder()
                 .command("sh", "-c", buildCommand)
@@ -122,18 +126,15 @@ public class WorkspaceImageBuilder {
         }
     }
 
-    private void pushImageToRegistry(String tag) throws Exception {
-//        final var dockerRegistryLoginUrl = "http://" + dockerRegistryHost + ":" + dockerRegistryPort;
-//        final var dockerRegistryPushUrl = "docker://" + dockerRegistryHost + ":" + dockerRegistryPort + "/" + tag;
-
+    private void pushImageToRegistry(Long projectId, String tag) throws Exception {
         final var dockerRegistryLoginUrl = dockerRegistryHost + ":" + dockerRegistryPort;
         final var dockerRegistryPushUrl = dockerRegistryHost + ":" + dockerRegistryPort + "/" + tag + ":latest";
 
-//        final var loginCommand = "buildah login -u " + dockerRegistryUsername + " -p " + dockerRegistryPassword + " --tls-verify=false " + dockerRegistryLoginUrl;
-//        final var pushCommand = "buildah push --tls-verify=false " + tag + " " + dockerRegistryPushUrl;
-
         final var loginCommand = "buildah login --tls-verify=false " + dockerRegistryLoginUrl;
         final var pushCommand = "buildah push --tls-verify=false " + tag + " " + dockerRegistryPushUrl;
+        final var command = loginCommand + " && " + pushCommand;
+
+        logger.info("push image to registry (projectId: {}, command: {})", projectId, command);
 
         final var process = new ProcessBuilder()
                 .command("sh", "-c", loginCommand + " && " + pushCommand)

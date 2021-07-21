@@ -35,7 +35,7 @@ import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 @RequestScoped
 public class CurrentUserController {
 
-    @ConfigProperty(name = "info.scce.cincocloud.jwt.duration")
+    @ConfigProperty(name = "cincocloud.jwt.duration")
     Long duration;
 
     @ConfigProperty(name = "mp.jwt.verify.issuer")

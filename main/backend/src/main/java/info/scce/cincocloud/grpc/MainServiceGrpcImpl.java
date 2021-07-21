@@ -5,14 +5,18 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
-import java.io.File;
+import io.vertx.mutiny.core.buffer.Buffer;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import info.scce.cincocloud.config.VertxService;
 import info.scce.cincocloud.db.PyroProjectDB;
 import info.scce.cincocloud.mq.WorkspaceImageBuildJob;
 import info.scce.cincocloud.mq.WorkspaceMQProducer;
@@ -24,8 +28,14 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
 
     private static final Logger LOGGER = Logger.getLogger(MainServiceGrpcImpl.class.getName());
 
+    @ConfigProperty(name = "cincocloud.data.dir")
+    String dataDirectory;
+
     @Inject
     WorkspaceMQProducer workspaceMQProducer;
+
+    @Inject
+    VertxService vertxService;
 
     @Override
     @Transactional
@@ -43,18 +53,38 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
                     .withDescription("archive must not be empty"));
         }
 
+        final var vertx = vertxService.getVertx();
+        final var path = getArchiveDirectoryPath(projectId);
+        final var file = getArchiveFilePath(projectId);
+
+        try {
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+
+            if (Files.exists(file)) {
+                Files.delete(file);
+            }
+        } catch (Exception e) {
+            throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
+                    .withDescription("failed to save archive."));
+        }
+
         return Uni.createFrom().item(() -> PyroProjectDB.findByIdOptional(projectId))
                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-                .onItem()
-                .transform(projectOptional -> {
+                .flatMap(projectOptional -> {
                     if (projectOptional.isEmpty()) {
                         throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
                                 .withDescription("project not found"));
                     } else {
                         final var project = (PyroProjectDB) projectOptional.get();
-                        // TODO: save archive
-                        workspaceMQProducer.send(new WorkspaceImageBuildJob(projectId, project.owner.username, project.name));
-                        return createImageReply(projectId);
+                        LOGGER.log(Level.INFO, "Save archive (projectId: {0}, archive: {1})", new Object[]{project, file});
+                        return vertx.fileSystem().writeFile(file.toString(), Buffer.buffer(archiveInBytes.toByteArray()))
+                                .map(v -> {
+                                    LOGGER.log(Level.INFO, "Create build image job (projectId: {0}, user: {1}, archive: {2})", new Object[]{project, project.owner.username, file});
+                                    workspaceMQProducer.send(new WorkspaceImageBuildJob(projectId, project.owner.username, project.name));
+                                    return createImageReply(projectId);
+                                });
                     }
                 });
     }
@@ -69,17 +99,21 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
                     .withDescription("projectId must be > 0"));
         }
 
+        final var file = getArchiveFilePath(projectId);
+        if (!Files.exists(file)) {
+            throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
+                    .withDescription("the archive does not exist"));
+        }
+
         return Uni.createFrom().item(() -> PyroProjectDB.findByIdOptional(projectId))
                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-                .onItem()
-                .transform(projectOptional -> {
+                .map(projectOptional -> {
                     if (projectOptional.isEmpty()) {
                         throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
                                 .withDescription("project not found"));
                     } else {
                         try {
-                            // TODO replace with real file
-                            final var bytes = FileUtils.readFileToByteArray(new File(""));
+                            final var bytes = FileUtils.readFileToByteArray(file.toFile());
                             final var byteString = ByteString.copyFrom(bytes);
                             return getGeneratedAppArchiveReply(projectId, byteString);
                         } catch (IOException e) {
@@ -102,5 +136,13 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
         return CincoCloudProtos.CreateImageReply.newBuilder()
                 .setProjectId(projectId)
                 .build();
+    }
+
+    private Path getArchiveDirectoryPath(Long projectId) {
+        return Path.of(dataDirectory, "projects", String.valueOf(projectId));
+    }
+
+    private Path getArchiveFilePath(Long projectId) {
+        return getArchiveDirectoryPath(projectId).resolve("archive.zip");
     }
 }
