@@ -15,7 +15,7 @@ RUN pub global activate webdev \
 # Build the pyro quarkus backend. Move static frontend files to the quarkus resource 
 # folder so that we can build a fat jar that includes the frontend. 
 #
-FROM docker.io/library/openjdk:15-jdk-alpine3.11 as builder-backend
+FROM docker.io/library/maven:3.8.1-jdk-11-slim as builder-backend
 WORKDIR /app/backend
 COPY ./app /app/backend
 COPY --from=builder-frontend /app/frontend/build/web/ /app/backend/src/main/resources/META-INF/resources/

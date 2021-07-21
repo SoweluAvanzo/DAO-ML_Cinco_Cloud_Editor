@@ -57,10 +57,14 @@ metadata:
   labels:
     type: local
     app: registry
+
 spec:
   storageClassName: manual
   capacity:
-    storage: 50Gi
+    storage: 20Gi
+  claimRef:
+    namespace: default
+    name: registry-pv-claim
   accessModes:
     - ReadWriteMany
   hostPath:
@@ -79,4 +83,4 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 50Gi
+      storage: 20Gi

@@ -109,7 +109,7 @@ public class WorkspaceImageBuilder {
     }
 
     private void buildImage(Long projectId, Path sourceDir, String tag) throws Exception {
-        final var buildCommand = "cd " + sourceDir.toString() + " && buildah bud -t " + tag + " .";
+        final var buildCommand = "cd " + sourceDir.toString() + " && buildah --storage-driver vfs bud -t " + tag + " .";
 
         logger.info("build image for (projectId: {}, command: {})", projectId, buildCommand);
 
@@ -130,8 +130,8 @@ public class WorkspaceImageBuilder {
         final var dockerRegistryLoginUrl = dockerRegistryHost + ":" + dockerRegistryPort;
         final var dockerRegistryPushUrl = dockerRegistryHost + ":" + dockerRegistryPort + "/" + tag + ":latest";
 
-        final var loginCommand = "buildah login --tls-verify=false " + dockerRegistryLoginUrl;
-        final var pushCommand = "buildah push --tls-verify=false " + tag + " " + dockerRegistryPushUrl;
+        final var loginCommand = "buildah --storage-driver vfs login --tls-verify=false " + dockerRegistryLoginUrl;
+        final var pushCommand = "buildah --storage-driver vfs push --tls-verify=false " + tag + " " + dockerRegistryPushUrl;
         final var command = loginCommand + " && " + pushCommand;
 
         logger.info("push image to registry (projectId: {}, command: {})", projectId, command);

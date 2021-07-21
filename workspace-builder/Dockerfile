@@ -15,8 +15,7 @@ RUN cd /app/workspace-builder/target && ls -all
 FROM docker.io/library/ubuntu:20.10
 WORKDIR /app
 RUN apt-get -y update
-RUN apt-get -y install buildah
-RUN apt-get -y install openjdk-11-jdk
+RUN apt-get -y install buildah openjdk-11-jdk
 COPY --from=builder /app/workspace-builder/target/quarkus-app/ /app
 EXPOSE 8000
 CMD java \
