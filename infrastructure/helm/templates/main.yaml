@@ -120,6 +120,9 @@ spec:
   storageClassName: manual
   capacity:
     storage: 30Gi
+  claimRef:
+    namespace: default
+    name: main-pv-claim
   accessModes:
     - ReadWriteMany
   hostPath:

@@ -1,5 +1,7 @@
 package info.scce.cincocloud.mq;
 
+import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
 import java.util.logging.Level;
@@ -28,27 +30,31 @@ public class WorkspaceMQConsumer {
         LOGGER.log(Level.INFO, "Received message from workspaces.jobs.results: {0}.", new Object[]{message});
 
         try {
-            final var result =  DatabindCodec.mapper().readValue(message.toString(), WorkspaceImageBuildResult.class);
-
+            final var result = DatabindCodec.mapper().readValue(message.toString(), WorkspaceImageBuildResult.class);
             if (!result.success) {
                 throw new IllegalStateException("Image for project '" + result.projectId + "' could not be build.");
             }
 
-            final var projectOptional = PyroProjectDB.findByIdOptional(result.projectId);
-            if (projectOptional.isEmpty()) {
-                throw new EntityNotFoundException("The project with the id '" + result.projectId + "' could not be found.");
-            }
-
-            final var project = (PyroProjectDB) projectOptional.get();
-
-            final var image = new PyroWorkspaceImageDB();
-            image.imageName = result.image;
-            image.imageVersion = "latest";
-            image.published = false;
-            image.user = project.owner;
-            image.persist();
-
-            projectWebSocket.send(project.id, WebSocketMessage.fromEntity(project.owner.id, "workspaces:jobs:results", message));
+            Uni.createFrom().item(result)
+                    .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                    .map(r -> {
+                        final var projectOptional = PyroProjectDB.findByIdOptional(result.projectId);
+                        if (projectOptional.isEmpty()) {
+                            throw new EntityNotFoundException("The project with the id '" + result.projectId + "' could not be found.");
+                        }
+                        return (PyroProjectDB) projectOptional.get();
+                    }).map(project -> {
+                        final var image = new PyroWorkspaceImageDB();
+                        image.imageName = result.image;
+                        image.imageVersion = "latest";
+                        image.published = false;
+                        image.user = project.owner;
+                        image.persist();
+                        projectWebSocket.send(project.id, WebSocketMessage.fromEntity(project.owner.id, "workspaces:jobs:results", message));
+                        return image;
+                    })
+                    .onItem()
+                    .ignore();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -10,7 +10,6 @@ deploy:
           mainImage: registry.gitlab.com/scce/cinco-cloud/main
           registryImage: registry.gitlab.com/scce/cinco-cloud/registry
           workspaceBuilderImage: registry.gitlab.com/scce/cinco-cloud/workspace-builder
-#          editorImage: registry.gitlab.com/scce/cinco-cloud/editor
         chartPath: ./infrastructure/helm
         valuesFiles:
           - ./infrastructure/helm/values.yaml
@@ -31,14 +30,8 @@ build:
       context: .
       docker:
         dockerfile: ./workspace-builder/Dockerfile
-#    - image: registry.gitlab.com/scce/cinco-cloud/editor
-#      context: ./editor
-#      docker:
-#        dockerfile: Dockerfile
 
 profiles:
-  # profile that can be used to deploy acc to an arbitrary server
-  # run with `skaffold run -p temp`
   - name: temp
     patches:
       - op: replace

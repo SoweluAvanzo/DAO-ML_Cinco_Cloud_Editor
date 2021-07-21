@@ -103,41 +103,34 @@ public class WorkspaceImageBuilder {
 
         // build image and push to registry
         buildImage(response.getProjectId(), tmpImageDir, job.getImageTag());
-        pushImageToRegistry(response.getProjectId(), job.getImageTag());
 
         return new BuildResult(job.projectId, true, "success", job.getImageTag());
     }
 
     private void buildImage(Long projectId, Path sourceDir, String tag) throws Exception {
-        final var buildCommand = "cd " + sourceDir.toString() + " && buildah --storage-driver vfs bud -t " + tag + " .";
+        logger.info("build image (projectId: {}, archive: {}, tag: {})", projectId, sourceDir, tag);
+        executeCommand("cd " + sourceDir.toString() + " && buildah --storage-driver vfs bud -t " + tag + " .");
+        executeCommand("buildah --storage-driver vfs images");
 
-        logger.info("build image for (projectId: {}, command: {})", projectId, buildCommand);
+        logger.info("push image to registry (projectId: {}, tag: {})", projectId, tag);
+        final var registryUrl = dockerRegistryHost + ":" + dockerRegistryPort;
+        final var registryPushUrl = dockerRegistryHost + ":" + dockerRegistryPort + "/" + tag;
+        final var loginCommand = "buildah --storage-driver vfs login --tls-verify=false -u= -p= " + registryUrl;
+        final var pushCommand = "buildah --storage-driver vfs push --tls-verify=false " + tag + " " + registryPushUrl;
+        executeCommand(loginCommand + " && " + pushCommand);
 
-        final var process = new ProcessBuilder()
-                .command("sh", "-c", buildCommand)
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                .redirectError(ProcessBuilder.Redirect.INHERIT)
-                .start();
+        final var logoutCommand = "buildah --storage-driver vfs logout " + registryUrl;
+        executeCommand(logoutCommand);
 
-        int exitValue = process.waitFor();
-
-        if (exitValue != PROCESS_EXIT_SUCCESS_STATUS) {
-            throw new Exception("Failed to build image.");
-        }
+        final var deleteLocalImageCommand = "buildah --storage-driver vfs rmi -f " + tag;
+        executeCommand(deleteLocalImageCommand);
     }
 
-    private void pushImageToRegistry(Long projectId, String tag) throws Exception {
-        final var dockerRegistryLoginUrl = dockerRegistryHost + ":" + dockerRegistryPort;
-        final var dockerRegistryPushUrl = dockerRegistryHost + ":" + dockerRegistryPort + "/" + tag + ":latest";
-
-        final var loginCommand = "buildah --storage-driver vfs login --tls-verify=false " + dockerRegistryLoginUrl;
-        final var pushCommand = "buildah --storage-driver vfs push --tls-verify=false " + tag + " " + dockerRegistryPushUrl;
-        final var command = loginCommand + " && " + pushCommand;
-
-        logger.info("push image to registry (projectId: {}, command: {})", projectId, command);
+    private void executeCommand(String command) throws Exception {
+        logger.info("execute command: (command: {})", command);
 
         final var process = new ProcessBuilder()
-                .command("sh", "-c", loginCommand + " && " + pushCommand)
+                .command("sh", "-c", command)
                 .redirectOutput(ProcessBuilder.Redirect.INHERIT)
                 .redirectError(ProcessBuilder.Redirect.INHERIT)
                 .start();
@@ -145,7 +138,7 @@ public class WorkspaceImageBuilder {
         int exitValue = process.waitFor();
 
         if (exitValue != PROCESS_EXIT_SUCCESS_STATUS) {
-            throw new Exception("Failed to push image to registry.");
+            throw new Exception("Failed to execute command: " + command);
         }
     }
 }
