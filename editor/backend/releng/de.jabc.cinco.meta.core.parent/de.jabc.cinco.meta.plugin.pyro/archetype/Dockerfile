@@ -21,7 +21,7 @@ COPY ./app /app/backend
 COPY --from=builder-frontend /app/frontend/build/web/ /app/backend/src/main/resources/META-INF/resources/
 # docker does not resolve simlink, need to be resolved manually
 COPY --from=builder-frontend /app/frontend/build/packages/ /app/backend/src/main/resources/META-INF/resources/packages/
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 #
 # Build the fat pyro quarkus jar.

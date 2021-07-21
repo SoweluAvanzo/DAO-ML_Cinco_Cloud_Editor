@@ -57,11 +57,10 @@ metadata:
   labels:
     type: local
     app: registry
-
 spec:
   storageClassName: manual
   capacity:
-    storage: 20Gi
+    storage: 30Gi
   claimRef:
     namespace: default
     name: registry-pv-claim
@@ -83,4 +82,4 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 20Gi
+      storage: 30Gi
