@@ -1,6 +1,9 @@
 package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import java.time.Instant;
+import java.util.Optional;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotBlank;
@@ -22,6 +25,29 @@ public class PyroWorkspaceImageDB extends PanacheEntity {
     public boolean published = false;
 
     @NotNull
+    public Instant createdAt = Instant.now();
+
+    @NotNull
+    public Instant updatedAt = Instant.now();
+
+    @NotNull
     @ManyToOne
     public PyroUserDB user;
+
+    @Override
+    public String toString() {
+        return "PyroWorkspaceImageDB{"
+                + "name='" + name + '\''
+                + ", imageName='" + imageName + '\''
+                + ", imageVersion='" + imageVersion + '\''
+                + ", published=" + published
+                + ", createdAt=" + createdAt
+                + ", updatedAt=" + updatedAt
+                + ", user=" + user +
+                '}';
+    }
+
+    public static Optional<PyroWorkspaceImageDB> findByImageName(String imageName){
+        return find("imageName", imageName).firstResultOptional();
+    }
 }
