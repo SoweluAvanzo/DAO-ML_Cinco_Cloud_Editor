@@ -150,6 +150,9 @@
                 {
                     "include": "#comments"
                 },
+                {
+                    "include": "#strings"
+                },
                 { 
                     "name": "constant.language.cpd",
                     "match": "."
