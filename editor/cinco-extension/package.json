@@ -74,6 +74,11 @@
                 "language": "mgl",
                 "scopeName": "source.mgl",
                 "path": "./syntaxes/mgl.tmLanguage.json"
+            },
+            {
+                "language": "cpd",
+                "scopeName": "source.cpd",
+                "path": "./syntaxes/cpd.tmLanguage.json"
             }
         ]
     },
