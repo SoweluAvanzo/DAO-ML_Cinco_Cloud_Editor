@@ -79,6 +79,11 @@
                 "language": "cpd",
                 "scopeName": "source.cpd",
                 "path": "./syntaxes/cpd.tmLanguage.json"
+            },
+            {
+                "language": "style",
+                "scopeName": "source.style",
+                "path": "./syntaxes/style.tmLanguage.json"
             }
         ]
     },
