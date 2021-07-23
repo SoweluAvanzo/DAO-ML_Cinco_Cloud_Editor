@@ -67,7 +67,7 @@
         "imageInformation":{
             "patterns":
             [{
-                "name": "support.function.cpd",
+                "name": "keyword.control.cpd",
                 "match": "\\b(\\s)*(image128|image64|image48|image32|image16|linuxIcon)(\\s)*\\b"
             }]
         },
