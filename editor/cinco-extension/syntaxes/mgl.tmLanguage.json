@@ -19,10 +19,13 @@
             "include": "#xtext"
         },
         {
-            "include": "#comment"
+            "include": "#annotation"
         },
         {
-            "include": "#commentBlock"
+            "include": "#comments"
+        },
+        {
+            "include": "#strings"
         }
     ],
     "repository": {
@@ -59,6 +62,72 @@
             [{
                 "name": "storage.type.mgl",
                 "match": "\\b(\\s)*(EBigDecimal|EBigInteger|EBoolean|EByte|EChar|EDate|EDouble|EFloat|EInt|ELong|EShort|EString)(\\s)*\\b"
+            }]
+        },
+        "annotation": {
+            "begin": "@",
+            "end": "\\s",
+            "beginCaptures": {
+                "0": { "name": "constant.language.cpd" }
+            },
+            "patterns": [
+                {
+                    "include": "#comments"
+                },
+                {
+                    "include": "#strings"
+                },
+                { 
+                    "name": "constant.language.cpd",
+                    "match": "."
+                }
+            ]
+        },
+        "strings": {
+            "patterns":
+            [
+                { 
+                    "include": "#doubleQuotedString"
+                },
+                {
+                    "include": "#singleQuotedString"
+                }
+            ]
+        },
+        "doubleQuotedString": {
+			"name": "string.quoted.double",
+			"begin": "(\")",
+			"end": "(\")",
+			"patterns": [
+				{
+					"name": "constant.character.escape.bnf",
+					"match": "\\\\."
+				},
+                {
+                    "include": "#singleQuotedString"
+                }
+			]
+		},
+        "singleQuotedString": {
+			"name": "string.quoted.double",
+			"begin": "(')",
+			"end": "(')",
+			"patterns": [
+				{
+					"name": "constant.character.escape.bnf",
+					"match": "\\\\."
+				},
+                { 
+                    "include": "#doubleQuotedString"
+                }
+			]
+		},
+        "comments":{
+            "patterns":
+            [{ 
+                "include": "#commentBlock"
+            },{
+                "include": "#comment"
             }]
         },
         "commentBlock": {
