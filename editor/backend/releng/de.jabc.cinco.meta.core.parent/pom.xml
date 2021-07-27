@@ -44,7 +44,7 @@
 		<module>de.jabc.cinco.meta.core.mgl</module>
 		<module>de.jabc.cinco.meta.productdefinition</module>
 		<!-- meta-plugin -->
-		<module>de.jabc.cinco.meta.plugin.pyro</module>
+		<module>de.jabc.cinco.meta.plugin.pyro.generator</module>
 		<!-- language-server -->
 		<module>de.jabc.cinco.meta.core.ge.style.ide</module>
 		<module>de.jabc.cinco.meta.core.mgl.ide</module>
