@@ -2,10 +2,8 @@ import '../model/core.dart';
 
 class GraphModelPermissionUtils {
 	
-	static bool canChangePermissions(PyroUser user, PyroProject project) {
-		return user.systemRoles.contains(PyroSystemRole.ADMIN) 
-  			|| project.organization.owners.indexWhere((u) => u.id == user.id) > -1 
-  			|| project.owner.id == user.id;
+	static bool canChangePermissions(PyroUser user) {
+		return true;
 	}
 	
 	static bool canCreate(String type, List<PyroGraphModelPermissionVector> vectors) {

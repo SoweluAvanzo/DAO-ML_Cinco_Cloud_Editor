@@ -60,4 +60,4 @@ class ContextMenuItemComponent {
   	bool openRight = menuItemEl.nativeElement.clientWidth + menuItemEl.nativeElement.getBoundingClientRect().x + subMenuWidth <= window.innerWidth;
     return openRight ? -1 * subMenuWidth : subMenuWidth;
   }
-}
+ }

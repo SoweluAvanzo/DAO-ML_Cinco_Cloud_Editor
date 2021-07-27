@@ -20,9 +20,6 @@ abstract class Message {
   int senderId;
 
   static Message fromJSOG(Map jsog) {
-    if (jsog['messageType'] == 'project') {
-      return ProjectMessage.fromJSOG(jsog);
-    }
     if (jsog['messageType'] == 'property') {
       return PropertyMessage.fromJSOG(jsog, new Map());
     }
@@ -43,27 +40,7 @@ abstract class Message {
   Map toJSOG();
 }
 
-class ProjectMessage extends Message {
-  String messageType = "project";
-  PyroProject project;
 
-  static ProjectMessage fromJSOG(Map jsog) {
-    ProjectMessage pm = new ProjectMessage();
-    pm.senderId = jsog["senderId"];
-    pm.project = PyroProject.fromJSOG(cache: new Map(), jsog: jsog['project']);
-    return pm;
-  }
-
-  Map toJSOG() {
-    Map jsog = new Map();
-
-    jsog["senderId"] = senderId;
-    jsog['messageType'] = 'project';
-    jsog['runtimeType'] = "info.scce.pyro.core.command.types.ProjectMessage";
-    jsog['project'] = project.toJSOG(new Map());
-    return jsog;
-  }
-}
 
 abstract class GraphMessage extends Message {
   int graphModelId;

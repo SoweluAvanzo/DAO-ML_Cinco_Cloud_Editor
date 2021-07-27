@@ -7,8 +7,6 @@ import '../model/core.dart';
  * Service that contains data that is relevant for the editor and its child components
  */
 class EditorDataService {
-	PyroOrganization organization;
-	PyroProject project;
 	PyroUser user;
 	PyroEditorGrid grid;
 	

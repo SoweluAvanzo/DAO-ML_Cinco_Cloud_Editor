@@ -45,9 +45,6 @@ class TreeViewComponent implements OnInit {
   PyroUser user;
 
   @Input()
-  PyroProject project;
-
-  @Input()
   GraphModel currentGraphModel;
 
   @Input()

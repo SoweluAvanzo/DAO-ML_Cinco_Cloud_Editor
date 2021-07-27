@@ -5,7 +5,6 @@ import 'src/service/user_service.dart';
 import 'src/service/style_service.dart';
 import 'src/service/notification_service.dart';
 import 'src/service/settings_service.dart';
-import 'src/service/organization_service.dart';
 import 'src/service/context_menu_service.dart';
 import 'src/service/graph_model_permission_vector_service.dart';
 import 'src/pages/editor/notification/notification_component.dart';
@@ -21,7 +20,6 @@ import 'src/pages/shared/context_menu/context_menu_component.dart';
     ClassProvider(StyleService),
     ClassProvider(NotificationService),
     ClassProvider(SettingsService),
-    ClassProvider(OrganizationService),
     ClassProvider(GraphModelPermissionVectorService),
     ClassProvider(ContextMenuService),
   ]

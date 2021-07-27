@@ -17,11 +17,4 @@ class SettingsService extends BaseService {
       return settings;
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
-
-  Future<PyroSettings> update(PyroSettings settings) async {
-    return HttpRequest.request("${getBaseUrl()}/settings", method: "PUT", sendData:jsonEncode(settings.toJSOG(new Map())), requestHeaders: requestHeaders, withCredentials: true).then((response){
-	  var updatedSettings = PyroSettings.fromJSON(response.responseText);
-      return updatedSettings;
-    }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
-  }
 }
