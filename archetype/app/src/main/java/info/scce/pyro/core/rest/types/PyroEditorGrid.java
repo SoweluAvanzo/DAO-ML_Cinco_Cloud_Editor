@@ -6,31 +6,17 @@ package info.scce.pyro.core.rest.types;
 
 public class PyroEditorGrid extends info.scce.pyro.rest.RESTBaseImpl {
 
-    private PyroUser user = new PyroUser();
+    private long userId;
 
-    @com.fasterxml.jackson.annotation.JsonProperty("user")
-    public PyroUser geuser() {
-        return this.user;
+    @com.fasterxml.jackson.annotation.JsonProperty("userId")
+    public long geuserId() {
+        return this.userId;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("user")
-    public void setuser(final PyroUser user) {
-        this.user = user;
+    @com.fasterxml.jackson.annotation.JsonProperty("userId")
+    public void setuserId(final long userId) {
+        this.userId = userId;
     }
-    
-    private PyroProject project = new PyroProject();
-
-    @com.fasterxml.jackson.annotation.JsonProperty("project")
-    public PyroProject getproject() {
-        return this.project;
-    }
-
-    @com.fasterxml.jackson.annotation.JsonProperty("project")
-    public void setproject(final PyroProject project) {
-        this.project = project;
-    }
-    
-    
     
     private java.util.List<PyroEditorGridItem> items = new java.util.LinkedList<>();
 
@@ -69,8 +55,7 @@ public class PyroEditorGrid extends info.scce.pyro.rest.RESTBaseImpl {
         result = new PyroEditorGrid();
         result.setId(entity.id);
 
-        result.setuser(PyroUser.fromEntity(entity.user,objectCache));
-        result.setproject(PyroProject.fromEntity(entity.project,objectCache));
+        result.setuserId(entity.userId);
         
         objectCache.putRestTo(entity, result);
         

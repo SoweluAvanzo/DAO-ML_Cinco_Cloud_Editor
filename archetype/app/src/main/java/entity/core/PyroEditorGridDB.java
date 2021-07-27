@@ -5,12 +5,8 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
 @Entity()
 public class PyroEditorGridDB extends PanacheEntity {
-    
-    @javax.persistence.ManyToOne
-    public entity.core.PyroUserDB user;
-    
-    @javax.persistence.ManyToOne
-    public entity.core.PyroProjectDB project;
+	
+	public long userId;
     
     @javax.persistence.OneToMany
     public java.util.Collection<entity.core.PyroEditorGridItemDB> items = new java.util.ArrayList<>();
@@ -20,8 +16,6 @@ public class PyroEditorGridDB extends PanacheEntity {
     
     @Override
     public void delete() {
-    	user = null;
-    	project = null;
     	
     	java.util.Iterator<entity.core.PyroEditorGridItemDB> iter_items = items.iterator();
     	while(iter_items.hasNext()) {

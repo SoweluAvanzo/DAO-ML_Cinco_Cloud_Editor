@@ -1,7 +1,5 @@
 package info.scce.pyro.api;
 
-import entity.core.PyroFolderDB;
-import entity.core.PyroProjectDB;
 import entity.core.PyroUserDB;
 import graphmodel.GraphModel;
 import info.scce.pyro.core.command.CommandExecuter;
@@ -40,9 +38,6 @@ public abstract class PyroControl {
         return messageDialog;
     }
 
-    public final PyroProjectDB currentProject() {
-        return cmdExecuter.getProject();
-    }
     
     protected final void openFile(GraphModel g) {
         cmdExecuter.openFile(g.getDelegate());
@@ -52,39 +47,5 @@ public abstract class PyroControl {
         cmdExecuter.openFile(file);
     }
     
-    protected final io.quarkus.hibernate.orm.panache.PanacheEntity getParentFolder(graphmodel.GraphModel g) {
-    	PyroProjectDB current = currentProject();
-        return getParentFolder(current,g);
-    }
-
-    protected final PyroProjectDB getProject() {
-        return this.commandExecuter().getProject();
-    }
-    
-    private io.quarkus.hibernate.orm.panache.PanacheEntity getParentFolder(PyroProjectDB current, graphmodel.GraphModel g) {
-    	if(current.getFiles().stream().filter(n->n.id == g.getDelegateId()).findFirst().isPresent()) {
-            return current;
-        }
-    	for(PyroFolderDB pf:current.innerFolders) {
-            PyroFolderDB result = getParentFolder(pf,g);
-            if(result != null) {
-                return result;
-            }
-        }
-        return null;
-    }
-    
-    private PyroFolderDB getParentFolder(PyroFolderDB current, graphmodel.GraphModel g) {
-        if(current.getFiles().stream().filter(n->n.id ==g.getDelegateId()).findFirst().isPresent()) {
-            return current;
-        }
-        for(PyroFolderDB pf:current.innerFolders) {
-            PyroFolderDB result = getParentFolder(pf,g);
-            if(result != null) {
-                return result;
-            }
-        }
-        return null;
-    }
 }
 

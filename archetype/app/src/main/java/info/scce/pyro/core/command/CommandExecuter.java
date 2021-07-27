@@ -20,7 +20,6 @@ abstract public class CommandExecuter {
 	@javax.inject.Inject
 	info.scce.pyro.core.FileController fileController;
 	
-	protected PyroProjectDB pyroProject; // TODO: needs to be set in constructor
     protected final GraphModelWebSocket graphModelWebSocket;
     protected BatchExecution batch;
     protected List<HighlightCommand> highlightings;
@@ -29,10 +28,6 @@ abstract public class CommandExecuter {
     public void openFile(io.quarkus.hibernate.orm.panache.PanacheEntity file) {
         openFileCommand = new OpenFileCommand();
         openFileCommand.setId(file.id);
-    }
-    
-    public entity.core.PyroProjectDB getProject() {
-    	return pyroProject;
     }
     
     public OpenFileCommand getOpenFileCommand() {

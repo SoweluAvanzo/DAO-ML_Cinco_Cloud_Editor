@@ -51,7 +51,7 @@ public class TicketRegistrationHandler {
 			List<HashMap.Entry<String, Ticket>> toBeRemoved = registeredTickets.entrySet().stream().filter((e) -> {
 				return e.getValue() != null 
 						&& e.getValue().getUser() != null
-						&& user.id.equals(e.getValue().getUser().id);
+						&& user.id == e.getValue().getUser().id;
 			}).collect(Collectors.toList());
 			// remove those tickets
 			for(HashMap.Entry<String, Ticket> e : toBeRemoved) {

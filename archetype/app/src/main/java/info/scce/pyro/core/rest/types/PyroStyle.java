@@ -74,15 +74,15 @@ public class PyroStyle extends info.scce.pyro.rest.RESTBaseImpl {
         this.primaryTextColor = primaryTextColor;
     }
     
-    private FileReference logo;
+    private String logo;
 
     @com.fasterxml.jackson.annotation.JsonProperty("logo")
-    public FileReference getlogo() {
+    public String getlogo() {
         return this.logo;
     }
 
     @com.fasterxml.jackson.annotation.JsonProperty("logo")
-    public void setlogo(final FileReference logo) {
+    public void setlogo(final String logo) {
         this.logo = logo;
     }
     
@@ -90,9 +90,6 @@ public class PyroStyle extends info.scce.pyro.rest.RESTBaseImpl {
     		final entity.core.PyroStyleDB entity, 
     		final info.scce.pyro.rest.ObjectCache objectCache) {
 
-        if (objectCache.containsRestTo(entity)) {
-            return objectCache.getRestTo(entity);
-        }
         
         final PyroStyle result;
         result = new PyroStyle();
@@ -104,11 +101,7 @@ public class PyroStyle extends info.scce.pyro.rest.RESTBaseImpl {
         result.setbodyTextColor(entity.bodyTextColor);
         result.setprimaryBgColor(entity.primaryBgColor);
         result.setprimaryTextColor(entity.primaryTextColor);
-        if (entity.logo != null) {
-        	result.setlogo(new FileReference(entity.logo));
-        }
-
-        objectCache.putRestTo(entity, result);
+        result.setlogo(entity.logo);
 
         return result;
     }

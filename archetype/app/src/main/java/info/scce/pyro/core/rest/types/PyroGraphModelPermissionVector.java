@@ -2,28 +2,16 @@ package info.scce.pyro.core.rest.types;
 
 public class PyroGraphModelPermissionVector extends info.scce.pyro.rest.RESTBaseImpl {
 	
-	private PyroUser user;
+	private long user;
 
     @com.fasterxml.jackson.annotation.JsonProperty("user")
-    public PyroUser getuser() {
+    public long getuser() {
         return this.user;
     }
 
     @com.fasterxml.jackson.annotation.JsonProperty("user")
-    public void setuser(final PyroUser user) {
+    public void setuser(final long user) {
         this.user = user;
-    }
-    
-    private PyroProject project;    
-    
-    @com.fasterxml.jackson.annotation.JsonProperty("project")
-    public PyroProject getproject() {
-        return this.project;
-    }
-
-    @com.fasterxml.jackson.annotation.JsonProperty("project")
-    public void setproject(final PyroProject project) {
-        this.project = project;
     }
     
     private entity.core.PyroGraphModelTypeDB graphModelType;
@@ -62,8 +50,7 @@ public class PyroGraphModelPermissionVector extends info.scce.pyro.rest.RESTBase
         result = new PyroGraphModelPermissionVector();
         result.setId(entity.id);
 
-        result.setuser(PyroUser.fromEntity(entity.user, objectCache));
-        result.setproject(PyroProject.fromEntity(entity.project, objectCache));
+        result.setuser(entity.userId);
         result.setgraphModelType(entity.graphModelType);
 
         for(entity.core.PyroCrudOperationDB ar : entity.permissions){

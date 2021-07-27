@@ -8,7 +8,7 @@ import javax.ws.rs.core.SecurityContext;
 	
 @javax.transaction.Transactional
 @javax.enterprise.context.RequestScoped
-@javax.ws.rs.Path("/project/{projectId}/editorGrid")
+@javax.ws.rs.Path("/editorGrid")
 @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 @javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 public class EditorGridController {
@@ -23,14 +23,13 @@ public class EditorGridController {
 	@javax.ws.rs.GET
 	@javax.ws.rs.Path("/")
 	@javax.annotation.security.RolesAllowed("user")
-	public javax.ws.rs.core.Response get(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("projectId") final long projectId) {
+	public javax.ws.rs.core.Response get(@javax.ws.rs.core.Context SecurityContext securityContext) {
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 				
 		if (subject != null) {
-			final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(projectId);
-			checkPermission(subject, project);
+			checkPermission(subject);
 			
-			final java.util.List<entity.core.PyroEditorGridDB> result = entity.core.PyroEditorGridDB.list("user = ?1 and project = ?2",subject,project);
+			final java.util.List<entity.core.PyroEditorGridDB> result = entity.core.PyroEditorGridDB.list("user = ?1",subject.id);
 			return javax.ws.rs.core.Response.ok(PyroEditorGrid.fromEntity(result.get(0), objectCache)).build();
 		}
 		
@@ -42,15 +41,13 @@ public class EditorGridController {
 	@javax.annotation.security.RolesAllowed("user")
 	public javax.ws.rs.core.Response update(
 			@javax.ws.rs.core.Context SecurityContext securityContext,
-			@javax.ws.rs.PathParam("projectId") final long projectId,
 			@javax.ws.rs.PathParam("gridId") final long gridId,
 			final PyroEditorGrid grid) {
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 				
 		if (subject != null) {
-			final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(projectId);
 			final entity.core.PyroEditorGridDB gridInDB = entity.core.PyroEditorGridDB.findById(gridId);
-			checkPermission(subject, project, gridInDB);
+			checkPermission(subject, gridInDB);
 			
 			final java.util.Map<Long, entity.core.PyroEditorGridItemDB> itemMap = 
 					gridInDB.items.stream()
@@ -76,15 +73,13 @@ public class EditorGridController {
 	@javax.annotation.security.RolesAllowed("user")
 	public javax.ws.rs.core.Response setLayout(
 			@javax.ws.rs.core.Context SecurityContext securityContext,
-			@javax.ws.rs.PathParam("projectId") final long projectId,
 			@javax.ws.rs.PathParam("gridId") final long gridId,
 			@javax.ws.rs.PathParam("layout") final EditorGridLayout layout) {
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 				
 		if (subject != null) {
-			final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(projectId);
 			final entity.core.PyroEditorGridDB gridInDB = entity.core.PyroEditorGridDB.findById(gridId);
-			checkPermission(subject, project, gridInDB);
+			checkPermission(subject, gridInDB);
 			
 			editorLayoutService.setLayout(gridInDB, layout);
 						
@@ -99,15 +94,13 @@ public class EditorGridController {
 	@javax.annotation.security.RolesAllowed("user")
 	public javax.ws.rs.core.Response createWidgetArea(
 			@javax.ws.rs.core.Context SecurityContext securityContext,
-			@javax.ws.rs.PathParam("projectId") final long projectId,
 			@javax.ws.rs.PathParam("gridId") final long gridId) {
 		
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 		
 		if (subject != null) {
-			final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(projectId);
 			final entity.core.PyroEditorGridDB gridInDB = entity.core.PyroEditorGridDB.findById(gridId);
-			checkPermission(subject, project, gridInDB);
+			checkPermission(subject, gridInDB);
 			
 			final entity.core.PyroEditorGridItemDB newArea = new entity.core.PyroEditorGridItemDB();
 			
@@ -137,16 +130,14 @@ public class EditorGridController {
 	@javax.annotation.security.RolesAllowed("user")
 	public javax.ws.rs.core.Response removeWidgetArea(
 			@javax.ws.rs.core.Context SecurityContext securityContext,
-			@javax.ws.rs.PathParam("projectId") final long projectId,
 			@javax.ws.rs.PathParam("gridId") final long gridId,
 			@javax.ws.rs.PathParam("areaId") final long areaId) {
 		
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 		
 		if (subject != null) {
-			final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(projectId);
 			final entity.core.PyroEditorGridDB gridInDB = entity.core.PyroEditorGridDB.findById(gridId);
-			checkPermission(subject, project, gridInDB);
+			checkPermission(subject, gridInDB);
 			
 			final entity.core.PyroEditorGridItemDB areaInDB = entity.core.PyroEditorGridItemDB.findById(areaId);
 			if (!gridInDB.items.contains(areaInDB)) return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
@@ -175,16 +166,14 @@ public class EditorGridController {
 	@javax.annotation.security.RolesAllowed("user")
 	public javax.ws.rs.core.Response removeWidget(
 			@javax.ws.rs.core.Context SecurityContext securityContext,
-			@javax.ws.rs.PathParam("projectId") final long projectId,
 			@javax.ws.rs.PathParam("gridId") final long gridId,
 			@javax.ws.rs.PathParam("widgetId") final long widgetId) {
 		
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 		
 		if (subject != null) {
-			final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(projectId);
 			final entity.core.PyroEditorGridDB gridInDB = entity.core.PyroEditorGridDB.findById(gridId);
-			checkPermission(subject, project, gridInDB);
+			checkPermission(subject, gridInDB);
 			
 			final entity.core.PyroEditorWidgetDB widgetInDB = entity.core.PyroEditorWidgetDB.findById(widgetId);
 			if (!widgetInDB.grid.equals(gridInDB)) return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
@@ -218,7 +207,6 @@ public class EditorGridController {
 	@javax.annotation.security.RolesAllowed("user")
 	public javax.ws.rs.core.Response moveWidget(
 			@javax.ws.rs.core.Context SecurityContext securityContext,
-			@javax.ws.rs.PathParam("projectId") final long projectId,
 			@javax.ws.rs.PathParam("gridId") final long gridId,
 			@javax.ws.rs.PathParam("widgetId") final long widgetId,
 			@javax.ws.rs.PathParam("areaId") final long areaId) {
@@ -226,9 +214,8 @@ public class EditorGridController {
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 		
 		if (subject != null) {
-			final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(projectId);
 			final entity.core.PyroEditorGridDB gridInDB = entity.core.PyroEditorGridDB.findById(gridId);
-			checkPermission(subject, project, gridInDB);
+			checkPermission(subject, gridInDB);
 			
 			final entity.core.PyroEditorWidgetDB widgetInDB = entity.core.PyroEditorWidgetDB.findById(widgetId);
 			if (!widgetInDB.grid.equals(gridInDB)) return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
@@ -261,29 +248,21 @@ public class EditorGridController {
 	
 	
 	public void checkPermission(
-			entity.core.PyroUserDB user,
-			entity.core.PyroProjectDB project) {
+			entity.core.PyroUserDB user) {
 		
 		if (user == null) {
 			throw new WebApplicationException(Response.Status.FORBIDDEN);
-		} else if (project == null) {
-			throw new WebApplicationException(Response.Status.NOT_FOUND);
-		} else if (!(project.organization.members.contains(user) || project.organization.owners.contains(user))) {
-			throw new WebApplicationException(Response.Status.FORBIDDEN);	
 		}
 	}
 	
 	public void checkPermission(
 			entity.core.PyroUserDB user,
-			entity.core.PyroProjectDB project,
 			entity.core.PyroEditorGridDB grid) {
 		
-		checkPermission(user, project);
+		checkPermission(user);
 		
 		if (grid == null) {
 			throw new WebApplicationException(Response.Status.NOT_FOUND);
-		} else if (!grid.project.equals(project)) {
-			throw new WebApplicationException(Response.Status.FORBIDDEN);
 		}
 	}
 }	

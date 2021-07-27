@@ -6,11 +6,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 @Entity()
 public class PyroGraphModelPermissionVectorDB extends PanacheEntity {
     
-    @javax.persistence.ManyToOne
-    public entity.core.PyroUserDB user;
-
-    @javax.persistence.ManyToOne
-    public entity.core.PyroProjectDB project;
+    public long userId;
 
     @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
     public entity.core.PyroGraphModelTypeDB graphModelType;
