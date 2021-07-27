@@ -1,0 +1,19 @@
+<div class="modal show d-block" tabindex="-1" role="dialog" *ngIf="show">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            	<h4 class="modal-title">Publish {{g.filename}}</h4>
+                <button (click)="close()" type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <p *ngIf="!g.isPublic">Are you sure you want to publish <strong>{{g.filename}}</strong>?</p>
+                <p *ngIf="g.isPublic">Are you sure you want to hide <strong>{{g.filename}}</strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button *ngIf="!g.isPublic" (click)="share()" type="button" class="btn btn-success">Publish</button>
+                <button *ngIf="g.isPublic" (click)="share()" type="button" class="btn btn-success">Hide</button>
+                <button type="button" class="btn" data-dismiss="modal" (click)="close()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

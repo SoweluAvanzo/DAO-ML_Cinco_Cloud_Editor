@@ -1,0 +1,36 @@
+<div *ngIf="currentUser != null">
+	<form class="d-flex flex-row" (submit)="searchAsAdmin(emailOrUsername.value,$event)">
+		<div class="form-group w-100 mr-2">
+			<input 
+				#emailOrUsername 
+				type="text" 
+				class="form-control" 
+				placeholder="Enter an Email or Username" 
+				(change)="handleEmailOrUsernameChange(emailOrUsername.value)"
+			>
+		</div>
+		<div class="form-group">
+			<button class="btn" type="submit" (click)="searchAsAdmin(emailOrUsername.value,$event)">
+				<i class="fas fa-search"></i> Search
+			</button>
+		</div>
+	</form>
+	
+	<div style="max-height: 240px; overflow: auto">
+		<div class="list-group result-list" *ngIf="result.length > 0 && found">
+			<a 
+				class="list-group-item" 
+				*ngFor="let user of result" 
+				[ngClass]="{'active': selectedUser != null && selectedUser.id == user.id}" 
+				(click)="selectUser(user)"
+			>
+				<strong>{{user.username}}</strong><br>
+				<span>{{user.email}}</span>
+			</a>
+		</div>
+	</div>
+	
+	<div class="alert alert-info" *ngIf="result.length === 0 && found != null && !found">
+		No user found.
+	</div>
+</div>

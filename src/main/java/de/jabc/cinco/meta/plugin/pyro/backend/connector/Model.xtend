@@ -1,0 +1,237 @@
+package de.jabc.cinco.meta.plugin.pyro.backend.connector
+
+import java.util.LinkedList
+import java.util.List
+import java.util.concurrent.Callable
+import de.jabc.cinco.meta.plugin.pyro.util.Escaper
+
+class Model  {
+	public static val escaper = new Escaper
+ 	public static val dbType = '''PanacheEntity'''
+ 	public static val dbTypeFqn = '''io.quarkus.hibernate.orm.panache.«dbType»'''
+	
+	String fqn = ""
+	String name = ""
+	String entityName = ""
+	List<String> literals = new LinkedList;
+	/* 
+	 * TODO: SAMI: remove sometime later, since inheritance is not the credo of this whole approach.
+	 * Correlated locations are marked with "DEPRECATED-INHERITANCE".
+	 * Also this is errorprone since it can't be checked, if inherits references a Class that extends
+	 * a PanacheEntity.
+	 * */
+	String inherits = null;
+	
+	StringBuilder attributes = new StringBuilder
+	StringBuilder functions = new StringBuilder
+	
+	// DEPRECATED-INHERITANCE
+	new(String fqn, String name, String inherits) {
+		this.fqn = fqn
+		this.name = name
+		// create entityName for the use-case: "e.g. several packages have different elements with same name"
+		this.entityName = escaper.lowEscapeJava(fqn+"_"+name).replaceAll("\\.", "_")
+		this.inherits = inherits
+	}
+	
+	new(String fqn,String name) {
+		this.fqn = fqn
+		this.name = name
+		// create entityName for the use-case: "e.g. several packages have different elements with same name"
+		this.entityName = escaper.lowEscapeJava(fqn+"_"+name).replaceAll("\\.", "_")
+	}
+	
+	def getName() {
+		return this.name
+	}
+	
+	def getPath() {
+		return this.fqn.replaceAll("\\.","/")
+	}
+	
+	def singlePrimitiveAttribute(String name,String type) {
+		attributes.append('''
+			
+			public «type» «name»;
+		''')
+	}
+	
+	def multiPrimitiveAttribute(String name,String type) {
+		attributes.append('''
+			
+			@javax.persistence.ElementCollection
+			public java.util.Collection<«type»> «name» = new java.util.ArrayList<>();
+		''')
+	}
+	
+	def singleAttribute(String name, String type, boolean aggregation, boolean joinColumn) {
+		attributes.append('''
+			
+			«IF aggregation»
+				@javax.persistence.OneToOne(cascade=javax.persistence.CascadeType.ALL)
+			«ELSE»
+				@javax.persistence.ManyToOne(cascade=javax.persistence.CascadeType.ALL)
+				@javax.persistence.JoinColumn(
+					nullable=true«IF joinColumn»,«/* Column-name is: name of the attribute, name of the DB-class and "id" */»
+					name = "«name»_«type.substring(type.lastIndexOf('.')+1)»_id"
+				«ENDIF»
+				)
+			«ENDIF»
+			public «type» «name»;
+		''')
+	}
+	
+	def singleEnumAttribute(String name, CharSequence type) {
+		attributes.append('''
+			
+			@javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
+			public «type» «name»;
+		''')
+	}
+	
+	def multiAttributeJoinTable(String name, String type, String joinColumn, String inverseJoinColumn) {
+		// create entityName for the use-case: "e.g. several packages have different elements with same name"
+		val joinTableName = escaper.lowEscapeJava(entityName+"_"+name).replaceAll("\\.", "_")
+		attributes.append('''
+			
+			«IF joinTableName !== null»
+				@javax.persistence.JoinTable(
+					name = "«joinTableName»",
+					joinColumns = { @javax.persistence.JoinColumn(name = "«joinColumn»") },
+					inverseJoinColumns = { @javax.persistence.JoinColumn(name = "«inverseJoinColumn»") }
+				)
+			«ENDIF»
+			@javax.persistence.OneToMany
+			public java.util.Collection<«type»> «name» = new java.util.ArrayList<>();
+		''')
+	}
+	
+	def multiAttribute(String name, String type, String mapped) {
+		attributes.append('''
+			
+			@javax.persistence.OneToMany«IF !mapped.nullOrEmpty»(mappedBy="«mapped»")«ENDIF»
+			public java.util.Collection<«type»> «name» = new java.util.ArrayList<>();
+		''')
+	}
+	
+	def multiEnumAttribute(String name, CharSequence type) {
+		attributes.append('''
+			
+			@javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
+			@javax.persistence.ElementCollection
+			public java.util.Collection<«type»> «name» = new java.util.ArrayList<>();
+		''')
+	}
+	
+	def enumLiteral(String value) {
+		literals.add(value)
+	}
+	
+	def content() {
+		if(literals.empty) {
+			return classContent
+		}
+		enumContent
+	}
+	
+	def fileNameDataConnector()'''«name»DB.java'''
+	
+	def classContent() {
+		'''
+			package «fqn»;
+			
+			import javax.persistence.Entity;
+			import «dbTypeFqn»;
+			
+			@Entity(name="«entityName»")
+			public class «name»DB extends «IF !inherits.nullOrEmpty /* DEPRECATED-INHERITANCE */»«inherits»«ELSE»«dbType»«ENDIF» {
+				«attributes.toString»
+				«IF functions.length>0»
+					«functions.toString»
+				«ENDIF»
+			}
+		'''
+	}
+	
+	def enumContent() {
+		'''
+			package «fqn»;
+			
+			public enum «name»DB {
+				
+				«literals.join(",")»
+			}
+		'''
+	}
+	
+	/**
+	 * Getter/Setter
+	 */
+	 def createDelete(Callable<CharSequence> content) {
+	 	createFunction('''void''', '''delete''', null, content, null, true)
+	 }
+	
+	/**
+	 * Getter/Setter
+	 */
+	def createGetter(CharSequence returnType, CharSequence attributeName, Callable<CharSequence> content) {
+		createFunction(returnType, '''get«attributeName»''', null, content)
+	}
+	
+	def createSetter(CharSequence attributeName, CharSequence parameter, Callable<CharSequence> content) {
+		createFunction(null, '''set«attributeName»''', parameter, content)
+	}
+	
+	/**
+	 * Collection operations
+	 */
+	def createCollectionClear(CharSequence collectionAttributenName, CharSequence parameter, Callable<CharSequence> content) {
+		createFunction(null, '''clear«collectionAttributenName»''', parameter, content)
+	}
+	
+	def createCollectionAdd(CharSequence collectionAttributenName, CharSequence parameter, Callable<CharSequence> content) {
+		createFunction(null, '''add«collectionAttributenName»''', parameter, content)
+	}
+	
+	def createCollectionAddAll(CharSequence collectionAttributenName, CharSequence parameter, Callable<CharSequence> content) {
+		createFunction(null, '''addAll«collectionAttributenName»''', parameter, content)
+	}
+	
+	def createCollectionRemove(CharSequence collectionAttributenName, CharSequence parameter, Callable<CharSequence> content) {
+		createFunction('''boolean''', '''remove«collectionAttributenName»''', parameter, content)
+	}
+	
+	def createCollectionContains(CharSequence collectionAttributenName, CharSequence parameter, Callable<CharSequence> content) {
+		createFunction('''boolean''', '''contains«collectionAttributenName»''', parameter, content)
+	}
+	
+	def createCollectionIsEmpty(CharSequence collectionAttributenName, Callable<CharSequence> content) {
+		createFunction('''boolean''', '''isEmpty«collectionAttributenName»''', null, content)
+	}
+	
+	def createCollectionSize(CharSequence collectionAttributenName, Callable<CharSequence> content) {
+		createFunction('''int''', '''size«collectionAttributenName»''', null, content)
+	}
+	
+	def createFunction(CharSequence returnType, CharSequence functionName, CharSequence parameters, Callable<CharSequence> content) {
+		createFunction(returnType, functionName, parameters, content, null, false)
+	}
+	
+	def createFunction(CharSequence returnType, CharSequence functionName, CharSequence parameters, Callable<CharSequence> content, boolean overrideSuper) {
+		createFunction(returnType, functionName, parameters, content, null, overrideSuper)
+	}
+	
+	def createFunction(CharSequence returnType, CharSequence functionName, CharSequence parameters, Callable<CharSequence> content, CharSequence javaDoc, boolean overrideSuper) {
+		functions.append(
+			'''	
+				
+				«IF javaDoc !== null»«javaDoc»«ENDIF»
+				«IF overrideSuper»@Override«ENDIF»
+				public «IF returnType !== null»«returnType»«ELSE»void«ENDIF» «functionName»(«IF parameters !== null»«parameters»«ENDIF») {
+					«content.call»
+				}
+			'''
+		)	
+	}
+}
+

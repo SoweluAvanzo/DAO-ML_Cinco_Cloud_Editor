@@ -1,0 +1,32 @@
+<navigation [user]="user"></navigation>
+
+<div class="container">
+
+	<h4>Permissions</h4>
+	<p class="text-muted">Manage graph model based permissions for each user</p>
+	<hr>
+	
+	<table class="table pyro-table">
+		<thead>
+			<tr>
+				<th width="1">#</th>
+				<th>Username</th>
+				<th>Permissions</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr *ngFor="let user of users">
+				<td>{{user.id}}</td>
+				<td>{{user.username}}</td>
+				<td class="pr-0">
+					<permissions 
+						[permissionVectors]="permissionVectorMap[user.id]"
+						(changed)="handleChanged(user, $event)"
+					>
+					</permissions>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	
+</div>

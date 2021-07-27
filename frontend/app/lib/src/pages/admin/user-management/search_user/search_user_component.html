@@ -1,0 +1,44 @@
+<!-- Show Users Modal -->
+<div class="modal d-block show fade in" id="showUsersModal" tabindex="-1" role="dialog" aria-labelledby="showUsersLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            	<h4 class="modal-title" id="showUsersLabel">Find User</h4>
+                <button (click)="closeSC.add($event)" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                	<span aria-hidden="true">&times;</span>
+            	</button>
+            </div>
+            <div class="modal-body">
+                <form (ngSubmit)="submitSearchUser(findUserName.value,$event)" >
+                	<div class="form-row d-flex" style="align-items: flex-end;">
+					    <div class="form-group col-10">
+					      <label for="findUserName">Name</label>
+                          <input #findUserName type="text" class="form-control" id="findUserName" placeholder="Enter username or email" required>
+					    </div>
+					    <div class="form-group col-2">
+					      <button type="submit" (click)="submitSearchUser(findUserName.value,$event)" class="btn mt-4 btn-block">Search</button>
+					    </div>
+					  </div>                    
+                </form>
+                <div *ngIf="notFound" class="alert alert-danger">No user found</div>
+                <div *ngIf="result != null" class="alert alert-success">User found</div>
+                <table class="table" *ngIf="result != null">
+            		<tbody>
+            			<tr>
+            				<td width="1"><strong>Username</strong></td>
+            				<td>{{result.username}}</td>
+            			</tr>
+            			<tr>
+            				<td width="1"><strong>Email</strong></td>
+            				<td>{{result.email}}</td>
+            			</tr>
+            		</tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal" (click)="closeSC.add($event)">Close</button>
+                <button type="button" class="btn btn-success" *ngIf="result != null" (click)="selectUser()">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
