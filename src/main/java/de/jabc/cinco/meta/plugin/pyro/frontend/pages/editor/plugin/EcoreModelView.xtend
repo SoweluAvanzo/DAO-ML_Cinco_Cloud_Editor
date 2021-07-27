@@ -16,7 +16,7 @@ class EcoreModelView extends EditorViewPlugin {
 		pc = new PluginComponent
 		pc.tab = "Ecore"
 		pc.key = "plugin_ecore"
-		pc.fetchURL = "ecoreview/read/'+project.id.toString()+'/private"	
+		pc.fetchURL = "ecoreview/read/private"	
 	}
 	
 	override getPluginComponent() {
@@ -56,17 +56,13 @@ class EcoreModelView extends EditorViewPlugin {
 	    @javax.ws.rs.GET
 	    @javax.ws.rs.Path("read/{id}/private")
 	    @javax.annotation.security.RolesAllowed("user")
-	    public Response load(@javax.ws.rs.core.Context SecurityContext securityContext,@javax.ws.rs.PathParam("id") final long id) {
-	    	final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(id);
+	    public Response load(@javax.ws.rs.core.Context SecurityContext securityContext) {
 			
-			if(project==null){
-			    return Response.status(Response.Status.BAD_REQUEST).build();
-			}
 	    	TreeViewRest tvr = new TreeViewRest();
 	    	tvr.setlayer(new LinkedList<>());
 			«FOR lib:gc.ecores»
 				final java.util.Set<«lib.entityFQN»> list«lib.name.escapeJava» = «lib.name.escapeJava»RestController
-				        .collectProjectFiles(project);
+				        .collectFiles();
 				tvr.getlayer().addAll(buildResponse«lib.name.fuEscapeJava»(list«lib.name.escapeJava»));
 	        «ENDFOR»
 	        return Response.ok(tvr).build();

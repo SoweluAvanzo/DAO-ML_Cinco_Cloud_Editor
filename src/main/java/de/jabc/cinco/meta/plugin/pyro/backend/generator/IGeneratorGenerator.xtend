@@ -25,7 +25,6 @@ class IGeneratorGenerator extends Generatable {
 	import java.util.List;
 	import java.util.Optional;
 	
-	import info.scce.pyro.core.rest.types.PyroProject;
 	import org.apache.commons.io.FileUtils;
 	
 	
@@ -36,7 +35,6 @@ class IGeneratorGenerator extends Generatable {
 	
 		private List<GeneratedFile> files;
 		
-		private PyroProjectDB root;
 		private String basePath;
 		
 		private info.scce.pyro.core.FileController fileController;
@@ -46,213 +44,45 @@ class IGeneratorGenerator extends Generatable {
 			files = new LinkedList<>();
 		}
 		
-		public final void generateFiles(T graphModel,PyroProjectDB root, String basePath,String staticResourceBase,java.util.Map<String,String[]> staticResources,info.scce.pyro.core.FileController fileController) throws IOException {
-			this.root = root;
+		public final void generateFiles(T graphModel, String basePath,String staticResourceBase,java.util.Map<String,String[]> staticResources,info.scce.pyro.core.FileController fileController) throws IOException {
 			this.basePath = basePath;
 			this.fileController = fileController;
 			
 			generate(graphModel);
 			//get generation base folder
-			Object generationBaseFolder = getFolder(basePath,root);
-			if(generationBaseFolder==null) {
-				generationBaseFolder = createFolder(basePath,root);
-			}
-			
+			String generationBaseFolder = basePath;
+
 			//copy and overwrite with static resources
 			for(java.util.Map.Entry<String,String[]> staticResource:staticResources.entrySet())
 			{
-				for(String url:staticResource.getValue()) {
-					
-					String file = url;
-					String folder = "";
-					String extension = "";
-					String filename = file;
-					if(file.contains("/")) {
-						file = url.substring(url.lastIndexOf("/")+1);
-						folder = url.substring(0,url.lastIndexOf("/"));
-					}
-	
-					if(file.contains(".")) {
-						extension = file.substring(file.lastIndexOf(".")+1);
-						filename = file.substring(0,file.lastIndexOf("."));
-					}
-	
-					Object pf = createFolder(folder,generationBaseFolder);
-					
-					final String fFilename = filename;
-					final String fExtension = extension;
-					
-					deletePriorFile(pf,fFilename,fExtension);
-					
-					PyroURLFileDB pyroURLFile = new PyroURLFileDB();
-					pyroURLFile.filename = filename;
-					pyroURLFile.url = staticResourceBase+"/"+staticResource.getKey()+"/"+url;
-					pyroURLFile.extension = extension;
-					if(pf instanceof PyroProjectDB) {
-					    pyroURLFile.parent = (PyroProjectDB)pf;
-					    pyroURLFile.persist();
-						((PyroProjectDB)pf).urlFiles.add(pyroURLFile);
-						((PyroProjectDB)pf).persist();
-					}
-					else if(pf instanceof PyroFolderDB) {
-					    pyroURLFile.parent = (PyroFolderDB)pf;
-					    pyroURLFile.persist();
-						((PyroFolderDB)pf).urlFiles.add(pyroURLFile);
-						((PyroFolderDB)pf).persist();
-					}
-	        	}
-	
-			}
-			
-			//generate files and overwrite existing
-			for(GeneratedFile gf:files)
-			{
-				final String extension = gf.getFilename().substring(gf.getFilename().lastIndexOf(".")+1);
-				final String filename = gf.getFilename().substring(0,gf.getFilename().lastIndexOf("."));
-				
-				Object pf = createFolder(gf.getPath(),generationBaseFolder);
-				//delete prior file
-				deletePriorFile(pf, filename, extension);
-				
-				BaseFileDB fr = null;
-				if(gf.getContent()!=null) {
-					
-					InputStream stream = new ByteArrayInputStream(gf.getContent().getBytes(StandardCharsets.UTF_8));
-					fr = fileController.storeFile(gf.getFilename(),stream);
-				} else {
-					fr = fileController.storeFile(gf.getFilename(),new FileInputStream(gf.getFile()));
-	            }
-	            
-				PyroBinaryFileDB pyroBinaryFile = new PyroBinaryFileDB();
-				pyroBinaryFile.filename = filename;
-				pyroBinaryFile.file = fr;
-				pyroBinaryFile.extension = extension;
-				if(pf instanceof PyroProjectDB) {
-				    pyroBinaryFile.parent = (PyroProjectDB)pf;
-				    pyroBinaryFile.persist();
-				    ((PyroProjectDB)pf).binaryFiles.add(pyroBinaryFile);
-				    ((PyroProjectDB)pf).persist();
-				}
-				else if(pf instanceof PyroFolderDB) {
-				    pyroBinaryFile.parent = (PyroFolderDB)pf;
-				    pyroBinaryFile.persist();
-				    ((PyroFolderDB)pf).binaryFiles.add(pyroBinaryFile);
-				    ((PyroFolderDB)pf).persist();
-				}
+				//TODO transfer files to theia
 			}
 		}
 	
-		private void deletePriorFile(Object pf,String filename, String extension) {
-		    if(pf instanceof PyroProjectDB) {
-		        deletePriorFile((PyroProjectDB) pf,filename,extension);
-		    }
-		    if(pf instanceof PyroFolderDB) {
-		        deletePriorFile((PyroFolderDB) pf,filename,extension);
-		    }
-		}
 	
-		private void deletePriorFile(PyroFolderDB pf,String filename, String extension) {
-			//delete prior file
-			{
-			    Optional<PyroBinaryFileDB> optFile = pf.binaryFiles.stream().filter(n->n.filename.equals(filename)&&n.extension.equals(extension)).findAny();
-			    if(optFile.isPresent()) {
-			        PyroBinaryFileDB pyroFile = optFile.get();
-			        pf.binaryFiles.remove(pyroFile);
-			        pyroFile.file.delete();
-			        pyroFile.delete();
-			    }
-			}
-			{
-			    Optional<PyroURLFileDB> optFile = pf.urlFiles.stream().filter(n->n.filename.equals(filename)&&n.extension.equals(extension)).findAny();
-			    if(optFile.isPresent()) {
-			        PyroURLFileDB pyroFile = optFile.get();
-			        pf.urlFiles.remove(pyroFile);
-			        pyroFile.delete();
-			    }
-			}
-			{
-			    Optional<PyroTextualFileDB> optFile = pf.textualFiles.stream().filter(n->n.filename.equals(filename)&&n.extension.equals(extension)).findAny();
-			    if(optFile.isPresent()) {
-			        PyroTextualFileDB pyroFile = optFile.get();
-			        pf.textualFiles.remove(pyroFile);
-			        pyroFile.delete();
-			    }
-			}
-			«FOR g:gc.graphMopdels+gc.ecores»
-				{
-					Optional<«g.entityFQN»> optFile = pf.files_«g.name.fuEscapeJava».stream().filter(n->n.filename.equals(filename)&&n.extension.equals(extension)).findAny();
-					if(optFile.isPresent()) {
-						«g.entityFQN» graph = optFile.get();
-						pf.files_«g.name.fuEscapeJava».remove(graph);
-						pf.persist();
-						graph.delete();
-					}
-				}
-			«ENDFOR»
-		}
 		
-		private void deletePriorFile(PyroProjectDB pf,String filename, String extension) {
-			//delete prior file
-			{
-			    Optional<PyroBinaryFileDB> optFile = pf.binaryFiles.stream().filter(n->n.filename.equals(filename)&&n.extension.equals(extension)).findAny();
-			    if(optFile.isPresent()) {
-			        PyroBinaryFileDB pyroFile = optFile.get();
-			        pf.binaryFiles.remove(pyroFile);
-			        pyroFile.file.delete();
-			        pyroFile.delete();
-			    }
-			}
-			{
-			    Optional<PyroURLFileDB> optFile = pf.urlFiles.stream().filter(n->n.filename.equals(filename)&&n.extension.equals(extension)).findAny();
-			    if(optFile.isPresent()) {
-			        PyroURLFileDB pyroFile = optFile.get();
-			        pf.urlFiles.remove(pyroFile);
-			        pyroFile.delete();
-			    }
-			}
-			{
-			    Optional<PyroTextualFileDB> optFile = pf.textualFiles.stream().filter(n->n.filename.equals(filename)&&n.extension.equals(extension)).findAny();
-			    if(optFile.isPresent()) {
-			        PyroTextualFileDB pyroFile = optFile.get();
-			        pf.textualFiles.remove(pyroFile);
-			        pyroFile.delete();
-			    }
-			}
-			«FOR g:gc.graphMopdels + gc.ecores»
-				{
-					Optional<«g.entityFQN»> optFile = pf.files_«g.name.fuEscapeJava».stream().filter(n->n.filename.equals(filename)&&n.extension.equals(extension)).findAny();
-					if(optFile.isPresent()) {
-						«g.entityFQN» graph = optFile.get();
-						pf.files_«g.name.fuEscapeJava».remove(graph);
-						pf.persist();
-						graph.delete();
-					}
-				}
-			«ENDFOR»
-		}
-		
-	    public final File generateFilesTemporal(T graphModel) throws IOException {
-	        generate(graphModel);
-	        //create Files in temp directory
-	        String sourceBasepath = System.getProperty("java.io.tmpdir")+"/"+graphModel.getId()+"/sources/";
-	        String compressedBasepath = System.getProperty("java.io.tmpdir")+"/"+graphModel.getId()+"/compressed/generated.zip";
-	        File compressed = new File(compressedBasepath);
-	        compressed.getParentFile().mkdirs();
-	        new File(sourceBasepath).mkdirs();
-	        for(GeneratedFile gf:files)
-	        {
-	            File f = new File(sourceBasepath+"/"+gf.getPath()+"/"+gf.getFilename());
-	            f.getParentFile().mkdirs();
-	            f.createNewFile();
-	
-	            FileUtils.writeStringToFile(f,gf.getContent());
-	        }
-	        //create Archive
-	        ZipUtils zu = new ZipUtils();
-	        zu.zip(sourceBasepath,compressed);
-	        //return Archive
-	        return compressed;
-	    }
+«««	    public final File generateFilesTemporal(T graphModel) throws IOException {
+«««	        generate(graphModel);
+«««	        //create Files in temp directory
+«««	        String sourceBasepath = System.getProperty("java.io.tmpdir")+"/"+graphModel.getId()+"/sources/";
+«««	        String compressedBasepath = System.getProperty("java.io.tmpdir")+"/"+graphModel.getId()+"/compressed/generated.zip";
+«««	        File compressed = new File(compressedBasepath);
+«««	        compressed.getParentFile().mkdirs();
+«««	        new File(sourceBasepath).mkdirs();
+«««	        for(GeneratedFile gf:files)
+«««	        {
+«««	            File f = new File(sourceBasepath+"/"+gf.getPath()+"/"+gf.getFilename());
+«««	            f.getParentFile().mkdirs();
+«««	            f.createNewFile();
+«««	
+«««	            FileUtils.writeStringToFile(f,gf.getContent());
+«««	        }
+«««	        //create Archive
+«««	        ZipUtils zu = new ZipUtils();
+«««	        zu.zip(sourceBasepath,compressed);
+«««	        //return Archive
+«««	        return compressed;
+«««	    }
 	
 	    protected abstract void generate(T graphModel);
 	
@@ -288,88 +118,6 @@ class IGeneratorGenerator extends Generatable {
 	        files.add(new GeneratedFile(filename,path,file));
 	    }
 	    
-	    private Object createFolder(String newFolderPath,Object folder) {
-		    if(newFolderPath==null||newFolderPath.isEmpty()) {
-		        return folder;
-		    }
-		    String[] folders = newFolderPath.split("/");
-		    Object current = folder;
-		    for (String folder1 : folders) {
-		        if(folder1.isEmpty()) {
-		            continue;
-		        }
-		        if(current instanceof PyroFolderDB) {
-		
-		            Optional<PyroFolderDB> pf = ((PyroFolderDB)current).innerFolders.stream().filter(n -> n.name.equals(folder1)).findAny();
-		            if (!pf.isPresent()) {
-		                PyroFolderDB newFolder = new PyroFolderDB();
-		                newFolder.name = folder1;
-		                newFolder.parent = (PyroFolderDB) current;
-		                newFolder.persist();
-		                ((PyroFolderDB)current).innerFolders.add(newFolder);
-		                ((PyroFolderDB)current).persist();
-		                current = newFolder;
-		
-		            } else {
-		                current = pf.get();
-		            }
-		        }
-		        if(current instanceof PyroProjectDB) {
-		            Optional<PyroFolderDB> pf = ((PyroProjectDB)current).innerFolders.stream().filter(n -> n.name.equals(folder1)).findAny();
-		            if (!pf.isPresent()) {
-		                PyroFolderDB newFolder = new PyroFolderDB();
-		                newFolder.name = folder1;
-		                newFolder.parent = (PyroProjectDB) current;
-		                newFolder.persist();
-		                ((PyroProjectDB)current).innerFolders.add(newFolder);
-		                ((PyroProjectDB)current).persist();
-		                current = newFolder;
-		
-		            } else {
-		                current = pf.get();
-		            }
-		        }
-		    }
-		    return current;
-		}
-	    
-	    private PyroFolderDB getFolder(String path,PyroFolderDB folder) {
-	        String[] folders = path.split("/");
-	        PyroFolderDB current = folder;
-	        for (String folder1 : folders) {
-	            Optional<PyroFolderDB> pf = current.innerFolders.stream().filter(n -> n.name.equals(folder1)).findFirst();
-	            if (pf.isPresent()) {
-	                current = pf.get();
-	            } else {
-	                return null;
-	            }
-	        }
-	        return current;
-	    }
-	
-	    private Object getFolder(String path,PyroProjectDB folder) {
-	        String[] folders = path.split("/");
-	        Object current = folder;
-	
-	        for (String folder1 : folders) {
-	            if(current instanceof PyroFolderDB) {
-	                Optional<PyroFolderDB> pf = ((PyroFolderDB)current).innerFolders.stream().filter(n -> n.name.equals(folder1)).findFirst();
-	                if (pf.isPresent()) {
-	                    current = pf.get();
-	                } else {
-	                    return null;
-	                }
-	            } else if(current instanceof PyroProjectDB) {
-	                Optional<PyroFolderDB> pf = ((PyroProjectDB)current).innerFolders.stream().filter(n -> n.name.equals(folder1)).findFirst();
-	                if (pf.isPresent()) {
-	                    current = pf.get();
-	                } else {
-	                    return null;
-	                }
-	            }
-	        }
-	        return current;
-	    }
 	    
 	}
 	'''

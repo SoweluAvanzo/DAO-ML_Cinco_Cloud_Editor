@@ -80,16 +80,12 @@ class CanvasComponent extends Generatable {
 	  @Input()
 	  PyroUser user;
 	  @Input()
-	  PyroProject project;
-	  @Input()
-	  PyroFile currentFile;
+	  GraphModel currentFile;
 	  @Input()
 	  List<PyroGraphModelPermissionVector> permissionVectors = new List();
 	  @Input()
 	  LocalGraphModelSettings currentLocalSettings;
 	  
-	  dynamic cached_url = null;
-	  String tmp_url = null;
 	  bool isFullScreen = false;
 	  bool canEdit = false;
 	  bool isGenerating = false;
@@ -126,13 +122,6 @@ class CanvasComponent extends Generatable {
 	  @override
 	  ngOnChanges(Map<String, SimpleChange> changes) {
 	  	  this._graphService.canvasComponent = this;
-	      if (isBinaryFile() || isURLFile() || isTextFile()) {
-	     	var url = "${BaseService.getUrl()}/pyrofile/read/projectresource/${project.id.toString()}/${project.fullPath(currentFile)}${currentFile.getFullName()}";
-	     	if (tmp_url != url) {
-	      		tmp_url = url;
-	      		cached_url = _domSanitizationService.bypassSecurityTrustResourceUrl(url);
-	      	}
-	      }
 	      
 	      «FOR g:gc.graphMopdels»
 	      if(is«g.name.fuEscapeDart»()){
@@ -157,32 +146,6 @@ class CanvasComponent extends Generatable {
 	  «ENDFOR»
 	  }
 	  
-	  void createNewFile(String type,dynamic e)
-	  {
-	  	  	  if(e!=null)e.preventDefault();
-	  	  	  var c = project.files.where((f)=>f.filename!=null&&f.filename.startsWith("untitled")).length;
-			  var name = "untitled${c.toString()}";
-	  	      switch(type)
-	  	      {
-	  	        «FOR g:gc.creatableGraphmodels»
-	  	          case '«g.name.fuEscapeDart»':{
-	  	            var g = new «g.dartFQN»();
-	  	            g.filename = name;
-	  	            _graphService.create«g.name.escapeDart»(g,project).then((f){
-	  	            	var found = project.files.where((f)=>f.filename==name);
-	  	            	if(found.isNotEmpty) {
-	  	            		Map m = new Map();
-	  	            		m['graphmodel_id'] = found.first.id;
-	  	            	  	jumpToSC.add(m);showFile(found.first,null);
-	  	            	}
-	  	            });
-	  	            break;
-	  	          }
-	  	        «ENDFOR»
-
-	  	      }
-	  	
-	  }
 	  
 	  void export(dynamic e, String type){
 	  	  e.preventDefault();
@@ -247,9 +210,6 @@ class CanvasComponent extends Generatable {
 			«ENDFOR»
 		}
 		  
-	  bool isOpen(){
-	    return currentLocalSettings.openedFiles.contains(currentFile);
-	  }
 	  
 	  // for each graph model
 	  «FOR g:gc.graphMopdels»
@@ -304,7 +264,6 @@ class CanvasComponent extends Generatable {
 	  
 	  Map<String,String> getGenerators() {
 		Map<String,String> map = new Map<String,String>();
-		if(currentFile!=null){
 		«FOR g:gc.graphMopdels.filter[generating]»
 			if(currentFile is «g.dartFQN») {
 				«FOR a:g.generators.filter[value.length>=3]»
@@ -313,15 +272,11 @@ class CanvasComponent extends Generatable {
 				return map;
 			}
 		«ENDFOR»
-	    }
 	    return map;
 	  }
 	  
 	  GraphModel getModelFile() {
-	    	if(currentFile!=null && currentFile is GraphModel){
-	        return currentFile as GraphModel;
-	      }
-	      return null;
+	      return this.currentFile;
 	  }
 	    
 	  String getScaleValue() {
@@ -332,73 +287,8 @@ class CanvasComponent extends Generatable {
 	    return (getModelFile().scale*100).toInt().toString();
 	  }
 	  
-	  bool isTextFile() {
-	  	if(currentFile!=null){
-	      return currentFile is PyroTextualFile;
-	    }
-	    return false;
-	  }
-	  
-	  bool isURLFile() {
-	  	if(currentFile!=null){
-	      return currentFile is PyroURLFile;
-	    }
-	    return false;
-	  }
-	  
-	  bool isBinaryFile() {
-	  	if(currentFile!=null){
-	      return currentFile is PyroBinaryFile;
-	    }
-	    return false;
-	  }
-	  get url => cached_url;
 	
-	  String getActiveFile(PyroFile openedFile)
-	  {
-	    if(currentFile != openedFile)
-	    {
-	      return "active";
-	    }
-	    return "";
-	  }
-	
-	  void showFile(PyroFile openedFile, dynamic e) {
-	      if (e != null) {
-	        e.preventDefault();
-	      }
-	      if ((currentFile == null || currentFile.id != openedFile?.id) &&
-	      currentLocalSettings.openedFiles.contains(openedFile)) {
-	      	currentFile = openedFile;
-	      	tabChangedSC.add(currentFile);
-	      }
-	  }
-	
-	  void removeFileFromActiveList(PyroFile openedFile,dynamic e)
-	  {
-	  	if(e!=null){
-	    	e.preventDefault();
-	    }
-	    currentLocalSettings.openedFiles.remove(openedFile);
-	    if(currentFile?.id == openedFile?.id)
-	    {
-	    	«FOR g:gc.graphMopdels»
-	    		if(openedFile is «g.dartFQN»){
-	    			js.context.callMethod('destroy_«g.jsCall»',[]);
-	    		}
-	    	«ENDFOR»
-	     	tabChangedSC.add(null);
-	    }
-	  }
-	  
-	  String getURL() => "${BaseService.getUrl()}/pyrofile/read/projectresource/${project.id.toString()}/${project.fullPath(currentFile)}${currentFile.getFullName()}";
-	  String getCINCOExportURL() => "${BaseService.getUrl()}/pyrofile/export/${currentFile.extension}/${currentFile.id.toString()}/${currentFile.filename}.${currentFile.extension}";
-
-	
-		bool hasIcon(PyroFile openedFile) {
-		  	if(openedFile==null){
-		      return false;
-		    }
+		bool hasIcon() {
 			«FOR g:gc.graphMopdels.filter[!iconPath.nullOrEmpty]»
 			    if(openedFile is «g.dartFQN»){
 			      return true;
@@ -407,12 +297,9 @@ class CanvasComponent extends Generatable {
 		    return false;
 		}
 		  
-		String getIcon(PyroFile openedFile) {
-		  	 if(openedFile==null){
-		  	      return "";
-		  	  }
+		String getIcon() {
 		  	  «FOR g:gc.graphMopdels.filter[!iconPath.nullOrEmpty]»
-		  	    if(openedFile is «g.dartFQN»){
+		  	    if(currentFile is «g.dartFQN»){
 		  	      return "«g.iconPath(true)»";
 		  	    }
 		  	  «ENDFOR»
@@ -457,25 +344,17 @@ class CanvasComponent extends Generatable {
 		}
 		
 		bool isActiveRouter(String s){
-		    if(currentFile!=null && currentFile is GraphModel){
 		      return s==(currentFile as GraphModel).router;
-		    }
-		    return false;
 		  }
 		
 		  bool isActiveConnector(String s){
-		    if(currentFile!=null && currentFile is GraphModel){
 		      return s==(currentFile as GraphModel).connector;
-		    }
-		    return false;
 		  }
 		
 		  void changeRouteLayout(String type,dynamic e)
 		  {
 		    e.preventDefault();
-		    if(currentFile is GraphModel) {
-		      (currentFile as GraphModel).router = type;
-		    }
+		    currentFile.router = type;
 		    updateRouting();
 		  }
 		  
@@ -490,9 +369,7 @@ class CanvasComponent extends Generatable {
 		  void changeConnectorLayout(String type,dynamic e)
 		  {
 		    e.preventDefault();
-		    if(currentFile is GraphModel) {
-		      (currentFile as GraphModel).connector = type;
-		    }
+		    currentFile.connector = type;
 		    updateRouting();
 		  }
 		  
@@ -506,7 +383,7 @@ class CanvasComponent extends Generatable {
 		  	 }
 		  	 if(isModelFile()) {
 				«FOR g:gc.graphMopdels.filter[interpreting]»
-					if((currentFile as GraphModel).$type() == '«g.typeName»') {
+					if(currentFile.$type() == '«g.typeName»') {
 						isInterpreting = true;
 					 	HttpRequest.getString("${_graphService.getBaseUrl()}/«g.name.lowEscapeDart»/interpreter/${currentFile.id}/private",withCredentials: true).then((s){
 						   _notificationService.displayMessage("«g.name» ${currentFile.filename} interpreter finished successfully!",NotificationType.SUCCESS);
@@ -530,7 +407,7 @@ class CanvasComponent extends Generatable {
 		  	 }
 		  	 if(isModelFile()) {
 				«FOR g:gc.graphMopdels.filter[generating]»
-					if((currentFile as GraphModel).$type() == '«g.typeName»') {
+					if((currentFile.$type() == '«g.typeName»') {
 						«FOR a:g.generators»
 						«{
 	  	 	  	 	   	val generatorId = '''«IF a.value.length >= 3»'«a.value.get(0)»'«ELSE»null«ENDIF»'''
@@ -539,7 +416,6 @@ class CanvasComponent extends Generatable {
 								isGenerating = true;
 								_graphService.generateGraph(currentFile, name).then((response){
 									var s = response.responseText;
-									this.project.merge(PyroProject.fromJSOG(cache: new Map(),jsog: jsonDecode(s)));
 									_notificationService.displayMessage("«g.name» ${currentFile.filename} generation completed successfully!",NotificationType.SUCCESS);
 								})
 								.catchError((e){
@@ -576,41 +452,6 @@ class CanvasComponent extends Generatable {
 	
 	def contentCanvasComponentTemplate()
 	'''
-	<div class="d-flex flex-row">
-		<div class="w-100">
-			<ul class="nav nav-tabs nav-tabs-justified" *ngIf="currentFile!=null">
-			    <li
-			        *ngFor="let openedFile of currentLocalSettings.openedFiles"
-			        role="presentation"
-			        [ngClass]="getActiveFile(openedFile)"
-			        class="nav-item"
-			    >
-			        <a class="nav-link" data-toggle="tooltip" data-placement="bottom" title="close tab" style="cursor: pointer;padding-bottom: 5px;padding-top: 5px;" href (click)="showFile(openedFile,$event)"><img *ngIf="hasIcon(openedFile)" [src]="getIcon(openedFile)" style="width: 16px;height: 16px;margin-right: 5px;"> {{ openedFile.getFullName() }} <i class="fas fa-times" (click)="removeFileFromActiveList(openedFile,$event)"></i></a>
-			
-			    </li>
-			</ul>
-		</div>
-	</div>
-	<div *ngIf="currentFile==null" class="h-100 d-flex flex-column">
-		<div class="row">
-	   		<div class="col-12"><h5 style="text-align:center;margin-top:15px">Create a new Model?</h5></div>
-	   		<div class="col-12">
-	       		<div class="row row-cols-sm-2 row-cols-md-4">
-	       			<div class="col">
-						«FOR g:gc.graphMopdels»
-							<div class="card pyro-panel" style="background-color: rgb(255 255 255 / 0.13);margin: 15px;">
-								<div class="card-body pyro-panel-body">
-									<h6>«g.name»</h6>
-									<p>Create a new «g.name» file</p>
-									<a class="btn btn-primary" href (click)="createNewFile('«g.name.fuEscapeDart»',$event)">Create</a>
-								</div>
-							</div>
-						«ENDFOR»
-	       			</div>
-	       		</div>
-	   		</div>
-	   	</div>
-	</div>
 <div *ngIf="currentFile!=null" class="h-100 d-flex flex-column">
 
     <div class="card-header d-flex flex-row align-items-center pyro-panel-heading">
@@ -623,7 +464,7 @@ class CanvasComponent extends Generatable {
 			    <bs-dropdown-menu>
 			      <li><a class="dropdown-item" href="#" (click)="export($event, 'svg')">Export as SVG</a></li>
 			      <li><a class="dropdown-item" href="#" (click)="export($event, 'png')">Export as PNG</a></li>
-			      <li><a class="dropdown-item" [attr.href]="getCINCOExportURL()" [attr.download]="currentFile.filename+'.'+currentFile.extension">Export for CINCO</a></li>
+			      <!--<li><a class="dropdown-item" href="#" [attr.download]="currentFile.filename+'.'+currentFile.extension">Export for CINCO</a></li>-->
 			    </bs-dropdown-menu>
 			  </bs-dropdown>
 		 
@@ -644,7 +485,7 @@ class CanvasComponent extends Generatable {
 	              <a class="dropdown-item" [class.active]="isActiveConnector('jumpover')" href (click)="changeConnectorLayout('jumpover',$event)">Jumpover</a>
 			    </bs-dropdown-menu>
 			  </bs-dropdown>
-			  
+			  <!--
 			  <div *ngIf="isModelFile()" class="btn-group btn-group-sm mr-2">
 			  	<button class="btn" (click)="undo()">
 			  	  <i class="fas fa-undo-alt"></i> Undo
@@ -653,6 +494,7 @@ class CanvasComponent extends Generatable {
 			  	  <i class="fas fa-redo-alt"></i> Redo
 			  	</button>
 			  </div>
+			  -->
 			  «IF hasChecks»
 			   <div *ngIf="isModelFile()&&hasChecks()" class="btn-group btn-group-sm mr-2">
 			   		<button type="button" (click)="toggleIsError()" [class.active]="isError" class="btn btn-sm btn-outline-danger" data-toggle="tooltip" data-placement="bottom" title="Toggle error markers on canvas">E</button>
@@ -702,9 +544,6 @@ class CanvasComponent extends Generatable {
 		  </template>
              	
         <div class="flex-shrink-0 ml-auto btn-group btn-group-sm" role="group" *ngIf="currentFile!=null">
-    		<a *ngIf="(isBinaryFile()||isTextFile()||isURLFile())" [attr.href]="getURL()" class="btn btn-link" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Open in a new Tab">
-    		     <i class="fas fa-external-link-alt"></i>
-            </a>
     		<template [ngIf]="isModelFile()">
     			<input
     			[ngModel]="getScaleValue()"
@@ -726,7 +565,7 @@ class CanvasComponent extends Generatable {
 			«FOR g:gc.graphMopdels»
 				<«g.name.lowEscapeDart»-canvas
 				#«g.name.lowEscapeDart»_canvas_component
-				*ngIf="is«g.name.fuEscapeDart»()&&isOpen()"
+				*ngIf="is«g.name.fuEscapeDart»()"
 				    [user]="user"
 				    [isError]="isError"
 				    [isWarning]="isWarning"
@@ -734,21 +573,12 @@ class CanvasComponent extends Generatable {
 				    [isFullScreen]="isFullScreen"
 				    [currentGraphModel]="currentFile"
 				    [currentLocalSettings]="currentLocalSettings"
-				    [canEdit]="canEdit"
-				    [project]="project"
 				    (hasChanged)="hasChangedSC.add($event)"
 				    (selectionChanged)="selectionChangedSC.add($event)"
 				    (selectionChangedModal)="selectionChangedModalSC.add($event)"
-				    (close)="tabChangedSC.add($event)"
 				    (jumpTo)="jumpToSC.add($event)"
 				></«g.name.lowEscapeDart»-canvas>
 			«ENDFOR»
-           <template [ngIf]="(isBinaryFile()||isTextFile())&&isOpen()">
-          	  <iframe width="100%" height="500px" style="background: #fff;" [src]="url" frameborder="0" allowfullscreen></iframe>
-           </template>
-           <template [ngIf]="isURLFile()&&isOpen()">
-          	  <iframe width="100%" height="500px" style="background: #fff;" [src]="url" frameborder="0" allowfullscreen sandbox="allow-forms allow-scripts"></iframe>
-           </template>
 	        </div>
 	    </div>
 	</div>

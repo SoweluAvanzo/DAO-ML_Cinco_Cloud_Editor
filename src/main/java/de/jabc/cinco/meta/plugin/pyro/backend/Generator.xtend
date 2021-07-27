@@ -6,21 +6,18 @@ import de.jabc.cinco.meta.plugin.pyro.backend.connector.PyroGraphModelType
 import de.jabc.cinco.meta.plugin.pyro.backend.core.EditorLayoutService
 import de.jabc.cinco.meta.plugin.pyro.backend.core.GraphModelControllerGenerator
 import de.jabc.cinco.meta.plugin.pyro.backend.core.InitializeSettingsBean
-import de.jabc.cinco.meta.plugin.pyro.backend.core.OrganizationController
-import de.jabc.cinco.meta.plugin.pyro.backend.core.ProjectController
 import de.jabc.cinco.meta.plugin.pyro.backend.core.ProjectService
 import de.jabc.cinco.meta.plugin.pyro.backend.core.rest.GraphModelPropertyGenerator
-import de.jabc.cinco.meta.plugin.pyro.backend.core.rest.PyroFolderGenerator
-import de.jabc.cinco.meta.plugin.pyro.backend.core.rest.PyroModelFileGenerator
-import de.jabc.cinco.meta.plugin.pyro.backend.core.rest.PyroProjectStructureGenerator
 import de.jabc.cinco.meta.plugin.pyro.backend.generator.IGeneratorGenerator
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.EcoreElementImplementation
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.EcoreElementInterface
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.GraphModelElementInterface
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.GraphModelFactoryInterface
+import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.GraphModelSwitch
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.TypeRegistry
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.impl.GraphModelElementImplementation
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.impl.GraphModelElementTransientImplementation
+import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.impl.GraphModelFactoryImplementation
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.impl.GraphModelFactoryTransientImplementation
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.impl.GraphModelInterpreter
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.auth.OAuthController
@@ -29,7 +26,6 @@ import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.controller.EcoreControl
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.controller.GraphModelController
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.core.GraphmodelExporterGenerator
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.core.PyroFileControllerGenerator
-import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.core.rest.RegistrationGenerator
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.mcam.adapter.McamAdapter
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.mcam.adapter.McamId
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.mcam.cli.ContainmentCheck
@@ -49,12 +45,10 @@ import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import de.jabc.cinco.meta.plugin.pyro.util.MGLExtension
 import java.io.File
 import java.util.HashMap
+import mgl.MGLModel
 import mgl.ModelElement
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EEnum
-import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.impl.GraphModelFactoryImplementation
-import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.GraphModelSwitch
-import mgl.MGLModel
 
 class Generator extends FileGenerator {
 	
@@ -107,24 +101,6 @@ class Generator extends FileGenerator {
 		{
 			val path = businessBasePath+"info/scce/pyro/core"
 			val gen = new PyroFileControllerGenerator(gc)
-			generateJavaFile(path,
-				gen.filename,
-				gen.content
-			)
-		}
-		// create ProjectController
-		{
-			val path = businessBasePath+"info/scce/pyro/core"
-			val gen = new ProjectController(gc)
-			generateJavaFile(path,
-				gen.fileName,
-				gen.content
-			)
-		}
-		// create OrganizationController
-		{
-			val path = businessBasePath+"info/scce/pyro/core"
-			val gen = new OrganizationController(gc)
 			generateJavaFile(path,
 				gen.filename,
 				gen.content
@@ -192,18 +168,6 @@ class Generator extends FileGenerator {
 		}
 		
 		// create CINCO Exporter
-		{
-				
-			val path = businessBasePath+"info/scce/pyro/core/rest"
-			val gen = new RegistrationGenerator(gc)
-			gc.mglModels.forEach[g|{
-				
-				generateJavaFile(path,
-					gen.filename(g),
-					gen.content(g)
-				)
-			}]
-		}
 		
 		// create GraphModelController
 		{
@@ -266,21 +230,6 @@ class Generator extends FileGenerator {
 		}
 		{
 			val path = businessBasePath+"info/scce/pyro/core/rest/types/"
-			val gen0 = new PyroModelFileGenerator(gc)
-			generateJavaFile(path,
-						gen0.fileName(),
-						gen0.content()
-			)
-			val gen1 = new PyroFolderGenerator(gc)
-			generateJavaFile(path,
-						gen1.fileName(),
-						gen1.content()
-			)
-			val gen2 = new PyroProjectStructureGenerator(gc)
-			generateJavaFile(path,
-						gen2.fileName(),
-						gen2.content()
-			)
 			val gen3 = new GraphModelPropertyGenerator(gc)
 			generateJavaFile(path,
 						gen3.fileName(),
@@ -683,7 +632,6 @@ class Generator extends FileGenerator {
 				}]
 			}]
 		}
-		
 		//generate app pom
 		{
 			//app

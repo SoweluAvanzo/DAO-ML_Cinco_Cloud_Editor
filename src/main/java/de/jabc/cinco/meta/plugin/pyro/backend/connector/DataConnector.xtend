@@ -2,29 +2,31 @@ package de.jabc.cinco.meta.plugin.pyro.backend.connector
 
 import de.jabc.cinco.meta.plugin.pyro.util.Generatable
 import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
+import java.util.HashSet
 import java.util.LinkedList
 import java.util.List
+import java.util.Set
+import mgl.Attribute
+import mgl.ComplexAttribute
+import mgl.ContainingElement
+import mgl.Edge
+import mgl.Enumeration
 import mgl.GraphModel
+import mgl.GraphicalModelElement
+import mgl.MGLModel
 import mgl.ModelElement
 import mgl.Node
+import mgl.NodeContainer
+import mgl.Type
+import mgl.UserDefinedType
 import org.eclipse.emf.ecore.EAttribute
 import org.eclipse.emf.ecore.EClass
+import org.eclipse.emf.ecore.EClassifier
 import org.eclipse.emf.ecore.EEnum
 import org.eclipse.emf.ecore.EEnumLiteral
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EPackage
 import org.eclipse.emf.ecore.EReference
-import mgl.NodeContainer
-import mgl.Edge
-import mgl.Attribute
-import mgl.UserDefinedType
-import mgl.Enumeration
-import mgl.Type
-import mgl.ComplexAttribute
-import org.eclipse.emf.ecore.EClassifier
-import java.util.stream.Collectors
-import org.eclipse.emf.ecore.EObject
-import java.util.Set
-import mgl.MGLModel
 
 class DataConnector extends Generatable {
 	
@@ -48,21 +50,10 @@ class DataConnector extends Generatable {
 	}
 	
 	def generateFiles() {
-		val PyroProject = newModel("entity.core", "PyroProject", "entity.core.PyroFileContainerDB")
-		PyroProject.singlePrimitiveAttribute("name", "String")
-		PyroProject.singlePrimitiveAttribute("isPublic", "boolean")
-		PyroProject.singlePrimitiveAttribute("description", "String")
-		PyroProject.singleAttribute("owner", "entity.core.PyroUserDB", false, true)
-		PyroProject.singleAttribute("organization", "entity.core.PyroOrganizationDB", false, true)
-		PyroProject.multiAttribute("innerFolders", "entity.core.PyroFolderDB", "parent")
-		PyroProject.multiAttribute("binaryFiles", "entity.core.PyroBinaryFileDB", "parent")
-		PyroProject.multiAttribute("urlFiles", "entity.core.PyroURLFileDB", "parent")
-		PyroProject.multiAttribute("textualFiles", "entity.core.PyroTextualFileDB", "parent")
 		
 		// generate ProjectServices
 		for(s:gc.projectServices) {
 			val PyroProjectService = newModel("entity.core", s.projectServiceName.toString)
-			PyroProjectService.singleAttribute("project", "entity.core.PyroProjectDB", false, true)
 			for(attr:s.value.subList(2,s.value.length)) {
 				PyroProjectService.singlePrimitiveAttribute(attr.escapeJava, "String")
 			}
@@ -70,28 +61,8 @@ class DataConnector extends Generatable {
 				PyroProjectService.generateGetter(attr.fuEscapeJava, "String", attr.escapeJava)
 				PyroProjectService.generateSetter(attr.fuEscapeJava, "String", attr.escapeJava)
 			}
-			PyroProject.multiAttribute('''service_«s.projectServiceName»''', '''«s.projectServiceFQN»''', "project")
 			
 		}
-		PyroProject.generateProjectServiceGetter
-		
-		gc.graphMopdels.forEach[PyroProject.multiAttribute('''files_«it.name.fuEscapeJava»''','''«entityFQN»''', "parent")]
-		gc.ecores.forEach[PyroProject.multiAttribute('''files_«it.name.fuEscapeJava»''','''«entityFQN»''', "parent")]
-		PyroProject.generateFileFunctions
-		
-		val PyroFolder = newModel("entity.core","PyroFolder", "entity.core.PyroFileContainerDB")
-		PyroFolder.singlePrimitiveAttribute("name","String")
-		PyroFolder.singleAttribute("parent", "entity.core.PyroFileContainerDB", false, false)
-		PyroFolder.multiAttribute("innerFolders", "entity.core.PyroFolderDB", "parent")
-		PyroFolder.multiAttribute("binaryFiles", "entity.core.PyroBinaryFileDB", "parent")
-		PyroFolder.multiAttribute("urlFiles", "entity.core.PyroURLFileDB", "parent")
-		PyroFolder.multiAttribute("textualFiles", "entity.core.PyroTextualFileDB", "parent")
-		
-		gc.graphMopdels.forEach[PyroFolder.multiAttribute('''files_«it.name.fuEscapeJava»''','''«entityFQN»''',"parent")]
-		gc.ecores.forEach[PyroFolder.multiAttribute('''files_«it.name.fuEscapeJava»''','''«entityFQN»''',"parent")]
-		
-		// generate files-getter
-		PyroFolder.generateFileFunctions
 		
 		// generate enumerations
 		gc.mglModels.forEach[
@@ -129,7 +100,6 @@ class DataConnector extends Generatable {
 		GraphModel.singlePrimitiveAttribute("isPublic","boolean")
 		GraphModel.singlePrimitiveAttribute("filename","String")
 		GraphModel.singlePrimitiveAttribute("extension","String")
-		GraphModel.singleAttribute("parent", "entity.core.PyroFileContainerDB", false, false)
 		
 		val possibleModelElements = g.containableElementsDefinition
 		val nodesAndEdges = possibleModelElements.filter[it instanceof Node || it instanceof Edge]
@@ -266,7 +236,6 @@ class DataConnector extends Generatable {
 		GraphModel.singlePrimitiveAttribute("filename","String")
 		GraphModel.singlePrimitiveAttribute("extension","String")
 		GraphModel.singlePrimitiveAttribute("name","String")
-		GraphModel.singleAttribute("parent", "entity.core.PyroFileContainerDB", false, false)
 		
 		// create complex dataTypeLists for EPackage-Entity
 		val types = g.EClassifiers
@@ -355,16 +324,16 @@ class DataConnector extends Generatable {
 	 * GRAPHMODEL-ENTITY-DELETE
 	 */
 	 
-	 private def createDeleteFunction(Model m, mgl.ModelElement me) {
+	 private def createDeleteFunction(Model m, ModelElement me) {
 	 	val mglModel = me.MGLModel
 	 	m.createDelete[
 	 	'''
-			«IF me instanceof mgl.ContainingElement»
+			«IF me instanceof ContainingElement»
 				// clear and delete all contained modelElements
 				this.clearModelElements(true);
 				
 			«ENDIF»
-			«IF me instanceof mgl.GraphicalModelElement»
+			«IF me instanceof GraphicalModelElement»
 				«IF me.hasContainer(mglModel)»
 					// decouple from container
 					«Model.dbType» c = this.getContainer();
@@ -389,12 +358,7 @@ class DataConnector extends Generatable {
 					
 				«ENDIF»
 			«ENDIF»
-			«IF me instanceof mgl.GraphModel»
-				// decouple from container
-				this.parent = null;
-				
-			«ENDIF»
-			«IF me instanceof mgl.Edge»
+			«IF me instanceof Edge»
 				// remove bendingPoints
 				for(entity.core.BendingPointDB b : bendingPoints) {
 					b.delete();
@@ -448,7 +412,7 @@ class DataConnector extends Generatable {
 					
 				«ENDIF»
 			«ENDIF»
-			«IF me instanceof mgl.Node»
+			«IF me instanceof Node»
 				«IF me.hasIncoming(mglModel)»
 					// decouple from incoming
 					this.clearIncoming(true);
@@ -475,9 +439,9 @@ class DataConnector extends Generatable {
 				// cleanup all complex-attributes
 				«FOR attribute: me.attributesExtended.filter[!isPrimitive]»
 					«IF attribute.isList»
-						this.clear«attribute.name.fuEscapeJava»(«IF (attribute as mgl.ComplexAttribute).type instanceof UserDefinedType»true«ENDIF»);
+						this.clear«attribute.name.fuEscapeJava»(«IF (attribute as ComplexAttribute).type instanceof UserDefinedType»true«ENDIF»);
 					«ELSE»
-						this.set«attribute.name.fuEscapeJava»(null«IF (attribute as mgl.ComplexAttribute).type instanceof UserDefinedType», true«ENDIF»);
+						this.set«attribute.name.fuEscapeJava»(null«IF (attribute as ComplexAttribute).type instanceof UserDefinedType», true«ENDIF»);
 					«ENDIF»
 				«ENDFOR»
 				
@@ -538,8 +502,8 @@ class DataConnector extends Generatable {
 	 */
 	private def <T extends Type> createSingleAttribute(Model m, ModelElement e, Iterable<T> possibleAttributeTypes, String superAttributeName, boolean joinColumn) {
 		// resolve subTypes
-		val attributeTypes = possibleAttributeTypes.map[mgl.Type.cast(it)]
-		var resolvedTypes = new java.util.HashSet<Type>
+		val attributeTypes = possibleAttributeTypes.map[Type.cast(it)]
+		var resolvedTypes = new HashSet<Type>
 		for(me : attributeTypes) {
 			// resolves all subTypes recursively
 			resolvedTypes.addAll(me.resolveSubTypesAndType(resolvedTypes.toList))
@@ -583,7 +547,7 @@ class DataConnector extends Generatable {
 	 */
 	private def <T extends Type> createMultiAttribute(Model m, Iterable<T> possibleAttributeTypes, String superAttributeName, String mappedBy) {
 		// resolve subTypes
-		val attributeTypes = possibleAttributeTypes.map[mgl.Type.cast(it)]
+		val attributeTypes = possibleAttributeTypes.map[Type.cast(it)]
 		var resolvedTypes = new LinkedList<Type>
 		for(me : attributeTypes) {
 			// resolves all subTypes
@@ -666,7 +630,7 @@ class DataConnector extends Generatable {
 					return;
 				}
 				
-				«IF me instanceof mgl.Node»
+				«IF me instanceof Node»
 					«IF me.prime»
 						// decouple from old references
 						«FOR other : types SEPARATOR " else "
@@ -693,7 +657,7 @@ class DataConnector extends Generatable {
 					«ENDFOR»
 					// set element
 					«superAttributeName.subTypeAttributeName(t)» = («t.entityClassName») e;
-					«IF me instanceof mgl.Node»
+					«IF me instanceof Node»
 						«IF me.prime»
 							«superAttributeName.subTypeAttributeName(t)».addReference(this);
 						«ENDIF»
@@ -1297,101 +1261,6 @@ class DataConnector extends Generatable {
 		]
 	 }
 	
-	
-	private def CharSequence generateFileFunctions(Model model) {
-		model.createGetter(
-			'''java.util.Collection<io.quarkus.hibernate.orm.panache.PanacheEntity>''',
-			'''Files''',
-			[
-				'''
-					java.util.Collection<io.quarkus.hibernate.orm.panache.PanacheEntity> files = new java.util.ArrayList<>();	
-					files.addAll(binaryFiles);
-					files.addAll(urlFiles);
-					files.addAll(textualFiles);
-					«FOR g:gc.graphMopdels BEFORE "\n"»
-						files.addAll(files_«g.name.fuEscapeJava»);
-					«ENDFOR»
-					«FOR g:gc.ecores BEFORE "\n" AFTER "\n"»
-						files.addAll(files_«g.name.fuEscapeJava»);
-					«ENDFOR»
-					return files;
-				'''
-			]
-		)
-		
-		model.createCollectionAdd('''File''', '''«Model.dbType» e''', [
-				'''
-					if(e instanceof entity.core.PyroBinaryFileDB) {
-						binaryFiles.add((entity.core.PyroBinaryFileDB) e);
-					} else if(e instanceof entity.core.PyroURLFileDB) {
-						urlFiles.add((entity.core.PyroURLFileDB) e);
-					} else if(e instanceof entity.core.PyroTextualFileDB) {
-						textualFiles.add((entity.core.PyroTextualFileDB) e);
-					}«
-					FOR g:gc.graphMopdels BEFORE " else " SEPARATOR " else "
-					»if(e instanceof «g.entityFQN») {
-						files_«g.name.fuEscapeJava».add((«g.entityFQN») e);
-					}«
-					ENDFOR»«
-					FOR g:gc.ecores BEFORE " else " SEPARATOR " else "
-					»if(e instanceof «g.entityFQN») {
-						files_«g.name.fuEscapeJava».add((«g.entityFQN») e);
-					}«
-					ENDFOR»
-				'''
-			]
-		)
-		
-		model.createCollectionRemove('''File''', '''«Model.dbType» e, boolean delete''', [
-			'''
-				if(e instanceof entity.core.PyroBinaryFileDB) {
-					binaryFiles.remove((entity.core.PyroBinaryFileDB) e);
-				} else if(e instanceof entity.core.PyroURLFileDB) {
-					urlFiles.remove((entity.core.PyroURLFileDB) e);
-				} else if(e instanceof entity.core.PyroTextualFileDB) {
-					textualFiles.remove((entity.core.PyroTextualFileDB) e);
-				}«
-				FOR g:gc.graphMopdels BEFORE " else " SEPARATOR " else "
-				»if(e instanceof «g.entityFQN») {
-					files_«g.name.fuEscapeJava».remove((«g.entityFQN») e);
-				}«
-				ENDFOR»«
-				FOR g:gc.ecores BEFORE " else " SEPARATOR " else "
-				»if(e instanceof «g.entityFQN») {
-					files_«g.name.fuEscapeJava».remove((«g.entityFQN») e);
-				}«
-				ENDFOR»
-				else {
-					return false;
-				}
-				if(delete)
-					e.delete();
-				return true;
-			'''
-		])
-	}
-	
-	private def CharSequence generateProjectServiceGetter(Model model) {
-		model.createGetter(
-			'''java.util.Collection<io.quarkus.hibernate.orm.panache.PanacheEntity>''',
-			'''ProjectServices''',
-			[
-				'''
-					java.util.Collection<io.quarkus.hibernate.orm.panache.PanacheEntity> services = new java.util.ArrayList<>();	
-					«FOR s:gc.projectServices»
-						«{
-							val varName = '''service_«s.projectServiceName»''';
-							'''
-								if(«varName» != null)
-									services.addAll(«varName»);
-							'''
-						}»
-					«ENDFOR»
-					return services;
-				'''
-			]
-		)	
-	}
 	
 	
 	private def CharSequence generateGetter(Model model, CharSequence attr, CharSequence returnType, CharSequence variableName) {

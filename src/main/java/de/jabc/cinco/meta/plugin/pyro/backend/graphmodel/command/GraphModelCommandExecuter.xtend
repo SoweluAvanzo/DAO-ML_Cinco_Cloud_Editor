@@ -742,7 +742,6 @@ class GraphModelCommandExecuter extends Generatable {
 			«s».height = 600L;
 			«s».width = 2000L;
 			«s».router = null;
-			«s».parent = «injectParent»;
 			«s».isPublic = false;
 
 		«ENDIF»
@@ -751,8 +750,6 @@ class GraphModelCommandExecuter extends Generatable {
 			«s».height = 0L;
 			«s».x = 0L;
 			«s».y = 0L;
-			«IF t instanceof NodeContainer»
-			«ENDIF»
 		«ENDIF»
 		«IF t instanceof Edge»
 		«ENDIF»

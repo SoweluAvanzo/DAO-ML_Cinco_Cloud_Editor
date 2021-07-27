@@ -97,7 +97,6 @@ class EditorLayoutService extends Generatable {
 			// place widgets
 			switch(layout) {
 				case DEFAULT:
-					link(grid, createGridArea(grid, 0L, 0L, 3L, 3L), widgetMap.get("explorer"));
 					link(grid, createGridArea(grid, 0L, 3L, 3L, 3L), widgetMap.get("map"));
 					link(grid, createGridArea(grid, 3L, 0L, 6L, 6L), widgetMap.get("canvas"));
 					link(grid, createGridArea(grid, 3L, 6L, 6L, 3L), widgetMap.get("properties"));
@@ -105,19 +104,16 @@ class EditorLayoutService extends Generatable {
 					link(grid, createGridArea(grid, 9L, 3L, 3L, 3L), widgetMap.get("checks"));
 					break;
 				case MINIMAL:
-					link(grid, createGridArea(grid, 0L, 0L, 3L, 3L), widgetMap.get("explorer"));
 					link(grid, createGridArea(grid, 3L, 0L, 6L, 6L), widgetMap.get("canvas"));
 					link(grid, createGridArea(grid, 9L, 0L, 3L, 3L), widgetMap.get("palette"));
 					link(grid, createGridArea(grid, 9L, 3L, 3L, 3L), widgetMap.get("properties"));
 					break;
 				case MAXIMUM_CANVAS:
-					link(grid, createGridArea(grid, 0L, 0L, 3L, 3L), widgetMap.get("explorer"));
 					link(grid, createGridArea(grid, 0L, 3L, 3L, 3L), widgetMap.get("palette"));
 					link(grid, createGridArea(grid, 0L, 6L, 3L, 3L), widgetMap.get("properties"));
 					link(grid, createGridArea(grid, 3L, 0L, 9L, 9L), widgetMap.get("canvas"));
 					break;
 				case COMPLETE:
-					link(grid, createGridArea(grid, 0L, 0L, 3L, 3L), widgetMap.get("explorer"));
 					link(grid, createGridArea(grid, 0L, 3L, 3L, 3L), widgetMap.get("map"));
 					link(grid, createGridArea(grid, 3L, 0L, 6L, 6L), widgetMap.get("canvas"));
 					link(grid, createGridArea(grid, 3L, 6L, 6L, 3L), widgetMap.get("properties"));

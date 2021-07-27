@@ -2,14 +2,12 @@ package de.jabc.cinco.meta.plugin.pyro.frontend
 
 import de.jabc.cinco.meta.core.utils.CincoUtil
 import de.jabc.cinco.meta.plugin.pyro.frontend.deserializer.Deserializer
+import de.jabc.cinco.meta.plugin.pyro.frontend.model.Core
 import de.jabc.cinco.meta.plugin.pyro.frontend.model.Model
 import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.EditorComponent
 import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.canvas.CanvasComponent
 import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.canvas.graphs.graphmodel.GraphmodelComponent
 import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.check.CheckComponent
-import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.explorer.graphentry.FileEntryComponent
-import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.explorer.graphentry.create.CreateFileComponent
-import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.map.MapComponent
 import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.palette.PaletteComponent
 import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.palette.graphs.graphmodel.PaletteBuilder
 import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.palette.list.ListComponent
@@ -22,15 +20,6 @@ import de.jabc.cinco.meta.plugin.pyro.util.FileGenerator
 import de.jabc.cinco.meta.plugin.pyro.util.FileHandler
 import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import de.jabc.cinco.meta.plugin.pyro.util.MGLExtension
-import de.jabc.cinco.meta.plugin.pyro.frontend.model.Core
-// import de.jabc.cinco.meta.plugin.pyro.util.Escaper
-import de.jabc.cinco.meta.plugin.pyro.frontend.pages.login.LoginComponent
-import de.jabc.cinco.meta.plugin.pyro.frontend.pages.main.MainComponent
-import de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.menu.MenuComponent
-import de.jabc.cinco.meta.plugin.pyro.frontend.pages.welcome.WelcomeComponent
-import de.jabc.cinco.meta.plugin.pyro.frontend.pages.admin.user_management.users.UsersComponent
-import de.jabc.cinco.meta.plugin.pyro.frontend.pages.logout.LogoutComponent
-import de.jabc.cinco.meta.plugin.pyro.frontend.pages.shared.navigation.NavigationComponent
 import mgl.GraphicalModelElement
 
 class Generator extends FileGenerator {
@@ -144,23 +133,6 @@ class Generator extends FileGenerator {
 			)
 		}
 
-		{
-			// lib.editor.menu
-			val path = "lib/src/pages/editor/menu"
-			val gen = new MenuComponent(gc)
-
-			// view plugins
-			generateFile(
-				path,
-				gen.fileNameMenuComponent,
-				gen.contentMenuComponent
-			)
-			generateFile(
-				path,
-				gen.fileNameMenuTemplate,
-				gen.contentMenuTemplate
-			)
-		}
 
 		{
 			// lib.pages.editor.canvas.graphs.graphmodel
@@ -223,125 +195,7 @@ class Generator extends FileGenerator {
 			)
 		}
 
-		{
-			// lib.pages.login
-			val path = "lib/src/pages/login"
-			val gen = new LoginComponent(gc)
-			generateFile(
-				path,
-				gen.fileNameLoginComponent,
-				gen.contentLoginComponent
-			)
-			generateFile(
-				path,
-				gen.fileNameLoginTemplate,
-				gen.contentLoginTemplate
-			)
-		}
 
-		{
-			// lib.pages.shared.navigation
-			val path = "lib/src/pages/shared/navigation"
-			val gen = new NavigationComponent(gc)
-			generateFile(
-				path,
-				gen.fileNameTemplate,
-				gen.contentTemplate
-			)
-
-		}
-
-		{
-			// lib.pages.logout
-			val path = "lib/src/pages/logout"
-			val gen = new LogoutComponent(gc)
-			generateFile(
-				path,
-				gen.fileNameTemplate,
-				gen.contentTemplate
-			)
-		}
-
-		{
-			// lib.pages.welcome
-			val path = "lib/src/pages/welcome"
-			val gen = new WelcomeComponent(gc)
-			generateFile(
-				path,
-				gen.fileNameTemplate,
-				gen.contentTemplate
-			)
-		}
-
-		{
-			// lib.pages.admin.user_management.users
-			val path = "lib/src/pages/admin/user-management/users"
-			val gen = new UsersComponent(gc)
-			generateFile(
-				path,
-				gen.fileNameTemplate,
-				gen.contentTemplate
-			)
-			generateFile(
-				path,
-				gen.fileNameComponent,
-				gen.contentComponent
-			)
-		}
-
-		{
-			// lib.pages.main
-			val path = "lib/src/pages/main"
-			val gen = new MainComponent(gc)
-			generateFile(
-				path,
-				gen.fileNameTemplate,
-				gen.contentTemplate
-			)
-		}
-
-		{
-			// lib.editor.explorer.graph_entry
-			val path = "lib/src/pages/editor/explorer/graph_entry"
-			val gen = new FileEntryComponent(gc)
-			generateFile(
-				path,
-				gen.fileNameFileEntryComponent,
-				gen.contentFileEntryComponent
-			)
-		}
-
-		{
-			// lib.editor.explorer.graph_entry.create
-			val path = "lib/src/pages/editor/explorer/graph_entry/create"
-			val gen = new CreateFileComponent(gc)
-			generateFile(
-				path,
-				gen.fileNameCreateFileComponent,
-				gen.contentCreateFileComponent
-			)
-			generateFile(
-				path,
-				gen.fileNameCreateFileComponentTemplate,
-				gen.contentCreateFileComponentTemplate
-			)
-		}
-
-		{
-			// lib.editor.map
-			val path = "lib/src/pages/editor/map"
-			val gen = new MapComponent(gc)
-			generateFile(
-				path,
-				gen.fileNameMapComponent,
-				gen.contentMapComponent
-			)
-			generateFile(
-				path,
-				gen.fileNameMapComponentTemplate,
-				gen.contentMapComponentTemplate
-			)
-		}
 
 		{
 			// lib.editor.palette

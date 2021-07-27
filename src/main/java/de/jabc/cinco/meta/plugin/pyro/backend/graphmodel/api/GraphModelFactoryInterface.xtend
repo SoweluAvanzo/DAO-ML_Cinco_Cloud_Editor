@@ -17,8 +17,6 @@ class GraphModelFactoryInterface extends Generatable{
 	def content(GraphModel g, boolean isTransient)
 	'''
 		package «g.modelPackage.apiFQNBase»;
-		import entity.core.PyroProjectDB;
-		import info.scce.pyro.sync.ProjectWebSocket;
 		
 		/**
 		 * Author zweihoff
@@ -27,9 +25,7 @@ class GraphModelFactoryInterface extends Generatable{
 			public «g.apiFactory» eINSTANCE = «g.apiFactoryImplFQN».init();
 			public «g.name.fuEscapeJava» create«g.name.fuEscapeJava»(String projectRelativePath, String filename);
 			«IF !isTransient»
-				public void warmup(PyroProjectDB project,
-					ProjectWebSocket projectWebSocket,
-					entity.core.PyroUserDB subject,
+				public void warmup(
 					«g.commandExecuterFQN» executer
 				);
 			«ENDIF»

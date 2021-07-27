@@ -349,7 +349,7 @@ class GraphmodelComponent extends Generatable {
 		    styleUrls: const [],
 		    directives: const [coreDirectives,MessageDialog,DisplayDialog]
 		)
-		class «g.name.fuEscapeDart»CanvasComponent implements OnInit, OnChanges, OnDestroy {
+		class «g.name.fuEscapeDart»CanvasComponent implements OnInit, OnDestroy {
 		
 		
 		  final selectionChangedSC = new StreamController();
@@ -361,8 +361,6 @@ class GraphmodelComponent extends Generatable {
 		  final hasChangedSC = new StreamController();
 		  @Output() Stream get hasChanged => hasChangedSC.stream;
 		  
-		  final closeSC = new StreamController();
-		  @Output() Stream get close => closeSC.stream;
 		  
 		  final jumpToSC = new StreamController();
 		  @Output() Stream get jumpTo => jumpToSC.stream;
@@ -373,8 +371,6 @@ class GraphmodelComponent extends Generatable {
 		  @Input()
 		  core.PyroUser user;
 		  
-		  @Input()
-		  core.PyroProject project;
 		  
 		  @Input()
 		  bool isFullScreen;
@@ -382,8 +378,6 @@ class GraphmodelComponent extends Generatable {
 		  @Input()
 		  core.LocalGraphModelSettings currentLocalSettings;
 		  
-		  @Input()
-		  bool canEdit = false;
 		
 		  «g.name.fuEscapeDart»CommandGraph commandGraph;
 		  
@@ -467,11 +461,6 @@ class GraphmodelComponent extends Generatable {
 			  	showDisplayDialog = false;
 			  	displayMessages = null;
 			}
-			void saveDisplayDialog(String content) {
-				graphService.createblob("result_${DateTime.now().millisecondsSinceEpoch}.html",content,project);
-			  	showDisplayDialog = false;
-			  	displayMessages = null;
-			}
 			void downloadDisplayDialog(dynamic e) {
 			  	showDisplayDialog = false;
 			  	displayMessages = null;
@@ -546,17 +535,6 @@ class GraphmodelComponent extends Generatable {
 		                // update cursor
 		                var senderId = jsog['senderId'];
 		                if (senderId.toString() != user.id.toString()) {
-		                  var x = jsog['content']['x'];
-		                  var y = jsog['content']['y'];
-		  
-		                  List<core.PyroUser> users = _editorDataService.organization.users;
-		                  int i = users.indexWhere((u) => u.id == senderId);
-		                  core.PyroUser sender = users[i];
-		  
-		                  js.JsObject cursorManager =
-		                      js.context['\$cursor_manager_«g.jsCall»'];
-		                  cursorManager.callMethod(
-		                      'update_cursor', [senderId, sender.username, x, y]);
 		                }
 		              } else {
 		                // update graph model changed by another user
@@ -592,7 +570,7 @@ class GraphmodelComponent extends Generatable {
 		          this.webSocketGraphModel.onClose.listen((html.CloseEvent e) {
 		            if (e.code == 4001) {
 		              //graphmodel has been deleted or access denied
-		              closeSC.add({});
+		              //TODO remove file in VS Code
 		            }
 		            html.window.console.debug("[PYRO] onClose GraphModel Websocket");
 		          });
@@ -673,24 +651,7 @@ class GraphmodelComponent extends Generatable {
 				}).whenComplete(()=>loading = false);
 			 }
 			 
-			 @override
-			  ngOnChanges(Map<String, SimpleChange> changes) {
-			    if(changes.containsKey('currentGraphModel')) {
-			      var newGraph = changes['currentGraphModel'].currentValue;
-			      var preGraph = changes['currentGraphModel'].previousValue;
-			      if(newGraph != null&& newGraph.$type() == "«g.typeName»" && preGraph != null && preGraph.$type() == "«g.typeName»" && newGraph != preGraph) {
-			        //desroy
-			        loading = true;
-			        try {
-			        	js.context.callMethod('destroy_«g.jsCall»',[]);
-			        } catch(e){}
-			        closeWebSocket();
-			        //rebuild
-			        initCanvas();
-			        activateWebSocket();
-			      }
-			    }
-			  }
+			 
 			  
 			  
 			  Future<Null> startPropagation(){
@@ -1708,7 +1669,6 @@ class GraphmodelComponent extends Generatable {
 			*ngIf="showDisplayDialog==true"
 			[messages]="displayMessages"
 			(close)="closeDisplayDialog($event)"
-			(save)="saveDisplayDialog($event)"
 			(download)="downloadDisplayDialog($event)"
 		>
 		</display-dialog>
@@ -1719,7 +1679,7 @@ class GraphmodelComponent extends Generatable {
 				 	    	<div class="progress-bar progress-bar-striped active" style="width: 100%;background-color: #be0101;"></div>
 				 	    </div>
 			</template>
-			<div ondragover="confirm_drop_«g.name.lowEscapeDart»(event)" ondrop="drop_on_canvas_«g.name.lowEscapeDart»(event)" id="paper_«g.name.lowEscapeDart»" style="margin:auto" [ngClass]="{'pointer-events-none': !canEdit}"></div>
+			<div ondragover="confirm_drop_«g.name.lowEscapeDart»(event)" ondrop="drop_on_canvas_«g.name.lowEscapeDart»(event)" id="paper_«g.name.lowEscapeDart»" style="margin:auto"></div>
 		</div>
 	'''
 

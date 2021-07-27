@@ -59,49 +59,8 @@ class EcoreController extends Generatable {
 		public Response load(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id) {
 			final java.util.Set<«p.entityFQN»> list = new java.util.HashSet<>();
 					
-			final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(id);
-			if(project != null) { // if it's a project
-				list.addAll(
-					collectProjectFiles(project)
-				);
-			} else {
-				final entity.core.PyroFolderDB folder = entity.core.PyroFolderDB.findById(id);
-				if(folder != null) { // if it's a folder
-					list.addAll(
-						collectProjectFiles(folder)
-					);
-				} else {
-					throw new WebApplicationException("The specified id does neither relates to a Project nor a Folder!");
-				}
-			}
-			
 			return Response.ok(«p.name.fuEscapeJava»List.fromEntity(list, objectCache))
 								.build();
-		}
-		
-		public java.util.Set<«p.entityFQN»> collectProjectFiles(«dbTypeName» fileContainer)
-		{
-			java.util.Set<«p.entityFQN»> found = new java.util.HashSet<>();
-			
-			if(fileContainer instanceof entity.core.PyroFolderDB) {
-				entity.core.PyroFolderDB folder = (entity.core.PyroFolderDB) fileContainer;
-				found.addAll(
-					folder.files_«p.name.fuEscapeJava»
-						.stream()
-						.collect(java.util.stream.Collectors.toSet())
-				);
-				folder.innerFolders.forEach(f->found.addAll(collectProjectFiles(f)));
-			} else if(fileContainer instanceof entity.core.PyroProjectDB) {
-				entity.core.PyroProjectDB project = (entity.core.PyroProjectDB) fileContainer;
-				found.addAll(
-					project.files_«p.name.fuEscapeJava»
-						.stream()
-						.collect(java.util.stream.Collectors.toSet())
-				);
-				project.innerFolders.forEach(f->found.addAll(collectProjectFiles(f)));
-			}
-			
-			return found;
 		}
 		
 		@javax.ws.rs.POST
@@ -119,66 +78,29 @@ class EcoreController extends Generatable {
 			newEcore.filename = ecore.getfilename();
 			newEcore.extension = "ecore";
 			newEcore.parent = container;
-			PyroProjectDB project = null;
 			
-			if(container instanceof PyroFolderDB) {
-				PyroFolderDB folder = (PyroFolderDB) container;
-				folder.files_«p.name.fuEscapeJava».add(newEcore);
-				project = graphModelController.getProject(folder);
-			} else if(container instanceof PyroProjectDB) {
-				project = (PyroProjectDB) container;
-				project.files_«p.name.fuEscapeJava».add(newEcore);
-			} else {
-				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-			}
 			
 			newEcore.persist();
 			container.persist();
 			
-			projectWebSocket.send(project.id, WebSocketMessage.fromEntity(subject.id, info.scce.pyro.core.rest.types.PyroProjectStructure.fromEntity(project,objectCache)));
 			return Response.ok(«p.name.fuEscapeJava».fromEntity(newEcore,new info.scce.pyro.rest.ObjectCache())).build();
 
 		}
 	
 		@javax.ws.rs.GET
-		@javax.ws.rs.Path("remove/{id}/{parentId}/private")
+		@javax.ws.rs.Path("remove/{id}/private")
 		@javax.annotation.security.RolesAllowed("user")
 		public Response removeGraphModel(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id, @javax.ws.rs.PathParam("parentId") final long parentId) {
 			final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 			//find parent
 			final «p.entityFQN» gm = entity.«p.name.lowEscapeJava».«p.name.fuEscapeJava»DB.findById(id);
-			final PyroFileContainerDB container = PyroFileContainerDB.findById(parentId);
-			if(gm==null||container==null){
+			if(gm==null){
 				return Response.status(Response.Status.NOT_FOUND).build();
 			}
 			
-			boolean deleted = false;
-			PyroProjectDB project = null;
-			if(container instanceof PyroFolderDB) {
-				PyroFolderDB folder = (PyroFolderDB) container;
-				if(folder.files_«p.name.fuEscapeJava».contains(gm)){
-					folder.files_«p.name.fuEscapeJava».remove(gm);
-					deleted = true;
-					project = graphModelController.getProject(folder);
-				}
-			} else if(container instanceof PyroProjectDB) {
-				project = (PyroProjectDB) container;
-				if(project.files_«p.name.fuEscapeJava».contains(gm)){
-					project.files_«p.name.fuEscapeJava».remove(gm);
-					deleted = true;
-				}
-			} else {
-				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-			}
-			
-			if(deleted) {
-				gm.delete();
-				container.persist();
-				projectWebSocket.send(project.id, WebSocketMessage.fromEntity(subject.id, info.scce.pyro.core.rest.types.PyroProjectStructure.fromEntity(project,objectCache)));
-				return Response.ok("OK").build();
-			} else {
-				return Response.status(Response.Status.BAD_REQUEST).build();
-			}
+			gm.delete();
+			container.persist();
+			return Response.ok("OK").build();
 		}
 	}
 	'''

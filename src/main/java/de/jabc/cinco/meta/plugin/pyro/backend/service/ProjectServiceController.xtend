@@ -51,8 +51,7 @@ class ProjectServiceController extends Generatable {
 				graphModelController.checkPermission(project,securityContext);
 				
 				info.scce.pyro.core.rest.types.ProjectServiceList list = new info.scce.pyro.core.rest.types.ProjectServiceList();
-				java.util.List<«dbTypeName»> services = project.getProjectServices().stream()
-					.collect(java.util.stream.Collectors.toList());
+				java.util.List<«dbTypeName»> services = «dbTypeName».list();
 				
 				«FOR s:gc.projectServices»
 					{
@@ -81,19 +80,15 @@ class ProjectServiceController extends Generatable {
 			«FOR s:gc.projectServices»
 				
 				@javax.ws.rs.POST
-				@javax.ws.rs.Path("trigger/«s.value.get(1).escapeJava»/{id}/private")
+				@javax.ws.rs.Path("trigger/«s.value.get(1).escapeJava»/private")
 				@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 				@javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 				@org.jboss.resteasy.annotations.GZIP
 				@javax.annotation.security.RolesAllowed("user")
-				public Response trigger«s.value.get(1).fuEscapeJava»(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id, info.scce.pyro.service.rest.«s.value.get(1).fuEscapeJava» req) {
+				public Response trigger«s.value.get(1).fuEscapeJava»(@javax.ws.rs.core.Context SecurityContext securityContext, info.scce.pyro.service.rest.«s.value.get(1).fuEscapeJava» req) {
 					final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
-					final entity.core.PyroProjectDB project = entity.core.PyroProjectDB.findById(id);
 					
-					if(project==null){
-					    return Response.status(Response.Status.BAD_REQUEST).build();
-					}
-					graphModelController.checkPermission(project,securityContext);
+					graphModelController.checkPermission(securityContext);
 					
 					try {
 						«s.value.get(0)» service = new «s.value.get(0)»();
@@ -109,14 +104,11 @@ class ProjectServiceController extends Generatable {
 						}
 						
 						«s.projectServiceClassName» s = new «s.projectServiceClassName»();
-						s.project = project;
 						«FOR attr:s.value.subList(2,s.value.size)»
 							s.«attr.fuEscapeJava» = req.get«attr.fuEscapeJava»();
 						«ENDFOR»	
 						s.persist();
 						
-						project.service_«s.projectServiceName».add(s);
-						project.persist();
 						
 						service.execute(s); «/* TODO: SAMI: why are services persisted? how will they be deleted? */»
 					} catch(Exception e) {

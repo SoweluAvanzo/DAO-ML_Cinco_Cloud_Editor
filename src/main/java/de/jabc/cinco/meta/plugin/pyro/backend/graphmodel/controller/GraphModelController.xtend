@@ -40,7 +40,6 @@ class GraphModelController extends Generatable {
 	import info.scce.pyro.core.command.types.*;
 	import info.scce.pyro.core.rest.types.*;
 	import info.scce.pyro.sync.GraphModelWebSocket;
-	import info.scce.pyro.sync.ProjectWebSocket;
 	import info.scce.pyro.sync.WebSocketMessage;
 	import javax.ws.rs.core.SecurityContext;
 	
@@ -67,8 +66,6 @@ class GraphModelController extends Generatable {
 	@javax.enterprise.context.RequestScoped
 	public class «g.name.fuEscapeJava»Controller {
 	
-		@javax.inject.Inject
-		ProjectWebSocket projectWebSocket;
 		
 		@javax.inject.Inject
 		GraphModelWebSocket graphModelWebSocket;
@@ -93,15 +90,9 @@ class GraphModelController extends Generatable {
 		public Response createGraphModel(@javax.ws.rs.core.Context SecurityContext securityContext, CreateGraphModel graph) {
 	
 			final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
-	        final entity.core.PyroFileContainerDB container = entity.core.PyroFileContainerDB.findById(graph.getparentId());
 	        
-	        if(container==null||subject==null){
+	        if(subject==null){
 				return Response.status(Response.Status.BAD_REQUEST).build();
-			}
-	        
-	        entity.core.PyroProjectDB pp = graphModelController.getProject(container);
-			if (!canCreateGraphModel(subject, pp)) {
-				return Response.status(Response.Status.FORBIDDEN).build();
 			}
 	
 		    final «g.entityFQN» newGraph =  new «g.entityFQN»();
@@ -112,20 +103,8 @@ class GraphModelController extends Generatable {
 		    newGraph.extension = "«g.fileExtension»";
 	        newGraph.persist();
 
-	       	if(container instanceof entity.core.PyroFolderDB) {
-				((entity.core.PyroFolderDB) container).files_«g.name.fuEscapeJava».add(newGraph);
-				container.persist();
-			} else if(container instanceof entity.core.PyroProjectDB) {
-				((entity.core.PyroProjectDB) container).files_«g.name.fuEscapeJava».add(newGraph);
-			} else {
-				throw new WebApplicationException(Response.Status.EXPECTATION_FAILED);
-			}
-			container.persist();
-			
-			projectWebSocket.send(pp.id, WebSocketMessage.fromEntity(subject.id, info.scce.pyro.core.rest.types.PyroProjectStructure.fromEntity(pp,objectCache)));
-			
 			«IF (g as ModelElement).hasPostCreateHook»
-				«g.apiFactory».eINSTANCE.warmup(pp,projectWebSocket,subject,executer);
+				«g.apiFactory».eINSTANCE.warmup(subject,executer);
 				«g.apiFQN» ce = new «g.apiImplFQN»(newGraph,executer);
 				«(g as ModelElement).postCreateHook» ca = new «(g as ModelElement).postCreateHook»();
 				ca.init(executer);
@@ -147,11 +126,6 @@ class GraphModelController extends Generatable {
 			if (graph == null) {
 				return Response.status(Response.Status.BAD_REQUEST).build();
 			}
-			
-			entity.core.PyroProjectDB project = graphModelController.getProject(graph);
-			if (!canReadGraphModel(subject, project)) {
-	        	return Response.status(Response.Status.FORBIDDEN).build();
-	        }
 			
 			return Response.ok(«g.restFQN».fromEntity(graph, objectCache))
 					.build();
@@ -178,10 +152,6 @@ class GraphModelController extends Generatable {
 				
 				«g.commandExecuter» executer = new «g.commandExecuter»(subject,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				
-				entity.core.PyroProjectDB project = graphModelController.getProject(graph);
-				if (!canReadGraphModel(subject, project)) {
-					return Response.status(Response.Status.FORBIDDEN).build();
-				}
 				
 				String graphModelType = null;
 				String elementType = null;
@@ -241,11 +211,9 @@ class GraphModelController extends Generatable {
 					return Response.status(Response.Status.BAD_REQUEST).build();
 				}
 				
-				entity.core.PyroProjectDB pyroProject = graphModelController.getProject(graph);
-				
 				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(pyroProject,projectWebSocket,user,executer);
+				«g.apiFactory».eINSTANCE.warmup(user,executer);
 				
 				«g.apiFQN» cgraph = new «g.apiImplFQN»(graph,executer);
 				
@@ -289,15 +257,11 @@ class GraphModelController extends Generatable {
 					return Response.status(Response.Status.BAD_REQUEST).build();
 				}
 				
-				entity.core.PyroProjectDB project = graphModelController.getProject(graph);
-				if (!canReadGraphModel(user, project)) {
-			    	return Response.status(Response.Status.FORBIDDEN).build();
-			    }
 				
 				//setup batch execution
 				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(graphModelController.getProject(graph),projectWebSocket,user,executer);
+				«g.apiFactory».eINSTANCE.warmup(user,executer);
 				
 				//update appearance
 				executer.updateAppearance();
@@ -320,15 +284,10 @@ class GraphModelController extends Generatable {
 					return Response.status(Response.Status.BAD_REQUEST).build();
 				}
 				
-				entity.core.PyroProjectDB pyroProject = graphModelController.getProject(graph);
-				if (!canUpdateGraphModel(user, pyroProject)) {
-					return Response.status(Response.Status.FORBIDDEN).build();
-				}
-				
 				//setup batch execution
 				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(pyroProject,projectWebSocket,user,executer);
+				«g.apiFactory».eINSTANCE.warmup(user,executer);
 				«g.apiFQN» cgraph = new «g.apiImplFQN»(graph,executer);
 				
 				«FOR gen:g.generators»
@@ -350,14 +309,13 @@ class GraphModelController extends Generatable {
 							«gen.value.get(0)» generator = new «gen.value.get(0)»();
 							generator.generateFiles(
 								cgraph,
-								pyroProject,
 								"«IF gen.value.size>1»«gen.value.get(1)»«ENDIF»",
 								"asset/static/«g.name.lowEscapeJava»",«/* TODO: SAMI: outsource into MGLExtension against updateAnomaly */»
 								staticResourecURLs,
 								fileController
 							);
-							projectWebSocket.send(pyroProject.id, WebSocketMessage.fromEntity(user.id, info.scce.pyro.core.rest.types.PyroProjectStructure.fromEntity(pyroProject,objectCache)));
-							return javax.ws.rs.core.Response.ok(info.scce.pyro.core.rest.types.PyroProjectStructure.fromEntity(pyroProject,objectCache)).build();
+							//TODO
+							return javax.ws.rs.core.Response.ok(null).build();
 						
 						} catch (java.io.IOException e) {
 							e.printStackTrace();
@@ -382,15 +340,10 @@ class GraphModelController extends Generatable {
 					return Response.status(Response.Status.BAD_REQUEST).build();
 				}
 				
-				entity.core.PyroProjectDB pyroProject = graphModelController.getProject(graph);
-				if (!canUpdateGraphModel(user, pyroProject)) {
-					return Response.status(Response.Status.FORBIDDEN).build();
-				}
-				
 				//setup batch execution
 				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(pyroProject,projectWebSocket,user,executer);
+				«g.apiFactory».eINSTANCE.warmup(executer);
 				«g.apiFQN» cgraph = new «g.apiImplFQN»(graph,executer);
 				
 				«FOR gen:g.interperters»
@@ -399,8 +352,7 @@ class GraphModelController extends Generatable {
 					interpreter.runInterpreter(cgraph);
 				«ENDFOR»
 					
-				projectWebSocket.send(pyroProject.id, WebSocketMessage.fromEntity(user.id, info.scce.pyro.core.rest.types.PyroProjectStructure.fromEntity(pyroProject,objectCache)));
-				return javax.ws.rs.core.Response.ok(info.scce.pyro.core.rest.types.PyroProjectStructure.fromEntity(pyroProject,objectCache)).build();
+				return javax.ws.rs.core.Response.ok(null).build();
 			}
 		«ENDIF»
 		
@@ -413,16 +365,12 @@ class GraphModelController extends Generatable {
 			if (graph == null) {
 				return Response.status(Response.Status.BAD_REQUEST).build();
 			}
-			entity.core.PyroProjectDB pyroProject = graphModelController.getProject(graph);
-			if (!canUpdateGraphModel(user, pyroProject)) {
-				return Response.status(Response.Status.FORBIDDEN).build();
-			}
 			java.util.Map<String,String> map = new java.util.HashMap<>();
 			
 			«IF g.elementsAndGraphmodels.exists[hasCustomAction]»
 				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(graphModelController.getProject(graph),projectWebSocket,user,executer);
+				«g.apiFactory».eINSTANCE.warmup(executer);
 				«dbTypeName» e = «typeRegistryName».findById(elementId);
 				
 				«FOR e:(g.elements.filter[!isIsAbstract]+#[g]).filter[hasCustomAction] SEPARATOR " else "
@@ -469,14 +417,10 @@ class GraphModelController extends Generatable {
 				if (graph == null) {
 					return Response.status(Response.Status.BAD_REQUEST).build();
 				}
-				entity.core.PyroProjectDB pyroProject = graphModelController.getProject(graph);
-				if (!canUpdateGraphModel(user, pyroProject)) {
-					return Response.status(Response.Status.FORBIDDEN).build();
-				}
 				
 				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(graphModelController.getProject(graph),projectWebSocket,user,executer);
+				«g.apiFactory».eINSTANCE.warmup(executer);
 				«dbTypeName» elem = «typeRegistryName».findById(elementId);
 								
 				factoryWarmup(pyroProject,user,executer);
@@ -508,14 +452,10 @@ class GraphModelController extends Generatable {
 				return Response.status(Response.Status.BAD_REQUEST).build();
 			}
 			final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
-			entity.core.PyroProjectDB pyroProject = graphModelController.getProject(graph);
-			if (!canUpdateGraphModel(user, pyroProject)) {
-				return Response.status(Response.Status.FORBIDDEN).build();
-			}
 			
 			«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,action.getHighlightings());
 			info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-			«g.apiFactory».eINSTANCE.warmup(graphModelController.getProject(graph),projectWebSocket,user,executer);
+			«g.apiFactory».eINSTANCE.warmup(executer);
 			
 			«IF g.elementsAndGraphmodels.exists[hasCustomAction]»
 				«dbTypeName» e = «typeRegistryName».findById(elementId);
@@ -553,14 +493,10 @@ class GraphModelController extends Generatable {
 				return Response.status(Response.Status.BAD_REQUEST).build();
 			}
 			final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
-			entity.core.PyroProjectDB pyroProject = graphModelController.getProject(graph);
-			if (!canUpdateGraphModel(user, pyroProject)) {
-				return Response.status(Response.Status.FORBIDDEN).build();
-			}
 			
 			«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,action.getHighlightings());
 			info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-			«g.apiFactory».eINSTANCE.warmup(graphModelController.getProject(graph),projectWebSocket,user,executer);
+			«g.apiFactory».eINSTANCE.warmup(executer);
 
 			
 			«IF g.elementsAndGraphmodels.exists[hasPostSelect]»
@@ -602,14 +538,10 @@ class GraphModelController extends Generatable {
 			}
 			
 			final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
-			entity.core.PyroProjectDB pyroProject = graphModelController.getProject(graph);
-			if (!canUpdateGraphModel(user, pyroProject)) {
-				return Response.status(Response.Status.FORBIDDEN).build();
-			}
 			
 			«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,action.getHighlightings());
 			info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-			«g.apiFactory».eINSTANCE.warmup(graphModelController.getProject(graph),projectWebSocket,user,executer);
+			«g.apiFactory».eINSTANCE.warmup(executer);
 			boolean hasExecuted = false;
 			
 			«IF g.elementsAndGraphmodels.exists[hasDoubleClickAction]»
@@ -658,81 +590,47 @@ class GraphModelController extends Generatable {
 		}
 		
 		@javax.ws.rs.GET
-		@javax.ws.rs.Path("remove/{id}/{parentId}/private")
+		@javax.ws.rs.Path("remove/{id}/private")
 		@javax.annotation.security.RolesAllowed("user")
-		public Response removeGraphModel(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id, @javax.ws.rs.PathParam("parentId") final long parentId) {
+		public Response removeGraphModel(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id) {
 			final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 			
 			//find parent
 			final «g.entityFQN» gm = «g.entityFQN».findById(id);
-			final entity.core.PyroFileContainerDB parent = entity.core.PyroFileContainerDB.findById(parentId);
-			if(gm==null||parent==null){
+			if(gm==null){
 				return Response.status(Response.Status.NOT_FOUND).build();
 			}
-			entity.core.PyroProjectDB pyroProject = graphModelController.getProject(gm);
 			
-			boolean succeeded = removeGraphModel(subject, pyroProject, parent, gm, false);
+			
+			boolean succeeded = removeGraphModel(subject, gm, false);
 			if (!succeeded) {
 				return Response.status(Response.Status.FORBIDDEN).build();
 	        }
 			
 			«g.commandExecuter» executer = new «g.commandExecuter»(subject,objectCache,graphModelWebSocket,gm,new java.util.LinkedList<>());
 			info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-			«g.apiFactory».eINSTANCE.warmup(pyroProject,projectWebSocket,subject,executer);
+			«g.apiFactory».eINSTANCE.warmup(executer);
 			removeContainer(new «g.apiImplFQN»(gm,executer));
 			
 			try {
 				// trying to execute transaction (since deleting a graphmodel can lead to complex errors)
 				gm.getEntityManager().flush();
 			} catch(javax.persistence.PersistenceException e) {
-				handleException(subject, pyroProject);
 				e.printStackTrace();
 				return Response.status(Response.Status.BAD_REQUEST).build();
 			}
 			
 			// synchronize project-structure
-			projectWebSocket.send(pyroProject.id, WebSocketMessage.fromEntity(subject.id, info.scce.pyro.core.rest.types.PyroProjectStructure.fromEntity(pyroProject,objectCache)));
 			return Response.ok("OK").build();
 		}
 		
-		/**
-		 * This method creates a new transaction to send a correct update,
-		 * after a failed transaction.
-		 * @param subject
-		 * @param pyroProject
-		 */
-		@javax.transaction.Transactional(javax.transaction.Transactional.TxType.NOT_SUPPORTED)
-		public void handleException(entity.core.PyroUserDB subject, entity.core.PyroProjectDB pyroProject) {
-			// update project strucutre if e.g. prime-reference leads to incorrect deletion
-			projectWebSocket.send(pyroProject.id, WebSocketMessage.fromEntity(subject.id, info.scce.pyro.core.rest.types.PyroProjectStructure.fromEntity(pyroProject,objectCache)));
+
+		
+		public boolean removeGraphModel(entity.core.PyroUserDB subject,«g.entityFQN» gm) {
+			return removeGraphModel(subject, gm, true);
 		}
 		
-		public boolean removeGraphModel(entity.core.PyroUserDB subject, entity.core.PyroProjectDB pyroProject, entity.core.PyroFileContainerDB parent, «g.entityFQN» gm) {
-			return removeGraphModel(subject, pyroProject, parent, gm, true);
-		}
-		
-		public boolean removeGraphModel(entity.core.PyroUserDB subject, entity.core.PyroProjectDB pyroProject, entity.core.PyroFileContainerDB parent, «g.entityFQN» gm, boolean delete) {
-			// check permission
-			if (!canDeleteGraphModel(subject, pyroProject)) {
-				return false;
-	        }
-	        
-	        // decouple from folder
-	        if(parent instanceof entity.core.PyroFolderDB) {
-				entity.core.PyroFolderDB parentFolder = (entity.core.PyroFolderDB) parent;
-				if(parentFolder.files_«g.name.escapeJava».contains(gm)){
-					parentFolder.files_«g.name.escapeJava».remove(gm);
-					parentFolder.persist();
-				}
-			} else if(parent instanceof entity.core.PyroProjectDB) {
-				entity.core.PyroProjectDB project = (entity.core.PyroProjectDB) parent;
-				if(project.files_«g.name.escapeJava».contains(gm)){
-					project.files_«g.name.escapeJava».remove(gm);
-					project.persist();
-				}
-			} else {
-				return false;
-			}
+		public boolean removeGraphModel(entity.core.PyroUserDB subject, «g.entityFQN» gm, boolean delete) {
 			
 			// delete
 			if(delete)
@@ -755,10 +653,6 @@ class GraphModelController extends Generatable {
 		        return Response.status(Response.Status.BAD_REQUEST).build();
 		    }
 		
-		    entity.core.PyroProjectDB pyroProject = graphModelController.getProject(graph);
-			if (!canUpdateGraphModel(subject, pyroProject)) {
-				return Response.status(Response.Status.FORBIDDEN).build();
-		    }
 		
 		    if(m instanceof CompoundCommandMessage){
 		        Response response = executeCommand((CompoundCommandMessage) m, subject, graph, securityContext);
@@ -786,8 +680,6 @@ class GraphModelController extends Generatable {
 					graphModelWebSocket.send(graphModelId,WebSocketMessage.fromEntity(subject.id,response.getEntity()));
 				}
 				return response;
-			} else if (m instanceof ProjectMessage) {
-				return Response.ok("OK").build();
 			}
 		
 		    return Response.status(Response.Status.BAD_REQUEST).build();
@@ -796,7 +688,7 @@ class GraphModelController extends Generatable {
 		private Response executePropertyUpdate(PropertyMessage pm,entity.core.PyroUserDB user, «g.entityFQN» graph) {
 		    «g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 		    info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-		    «g.apiFactory».eINSTANCE.warmup(graphModelController.getProject(graph),projectWebSocket,user,executer);
+		    «g.apiFactory».eINSTANCE.warmup(executer);
 			
 			«IF g.hasPreSave»
 				{
@@ -916,7 +808,7 @@ class GraphModelController extends Generatable {
 	        //setup batch execution
 	        «g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,ccm.getHighlightings());
 	        info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-	        «g.apiFactory».eINSTANCE.warmup(graphModelController.getProject(graph),projectWebSocket,user,executer);
+	        «g.apiFactory».eINSTANCE.warmup(executer);
 	        
 	        //execute command
 	        try{
@@ -1178,39 +1070,6 @@ class GraphModelController extends Generatable {
 	   		return Response.ok(response).build();
 	    }
 	    
-	    private boolean canCreateGraphModel(
-	    	entity.core.PyroUserDB user,
-	    	entity.core.PyroProjectDB project) {
-	    	return canPerformOperation(user, project, entity.core.PyroCrudOperationDB.CREATE);
-	    }
-
-		private boolean canReadGraphModel(
-	    	entity.core.PyroUserDB user,
-	    	entity.core.PyroProjectDB project) {
-	    	return canPerformOperation(user, project, entity.core.PyroCrudOperationDB.READ);
-	    }
-	    
-	    private boolean canUpdateGraphModel(
-	    	entity.core.PyroUserDB user,
-	    	entity.core.PyroProjectDB project) {
-	    	return canPerformOperation(user, project, entity.core.PyroCrudOperationDB.UPDATE);
-	    }
-	    	    
-	    private boolean canDeleteGraphModel(
-	    	entity.core.PyroUserDB user,
-	    	entity.core.PyroProjectDB project) {
-	    	return canPerformOperation(user, project, entity.core.PyroCrudOperationDB.DELETE);
-	    }
-	    
-	    private boolean canPerformOperation(
-	    	entity.core.PyroUserDB user,
-	    	entity.core.PyroProjectDB project,
-	    	entity.core.PyroCrudOperationDB operation	    	
-	    ) {
-			final java.util.List<entity.core.PyroGraphModelPermissionVectorDB> result = entity.core.PyroGraphModelPermissionVectorDB
-			.list("user = ?1 and project = ?2 and graphModelType = ?3",user,project,entity.core.PyroGraphModelTypeDB.«g.name.toUnderScoreCase»);
-			return result.size() < 1 ? false : result.get(0).permissions.contains(operation);
-	    }
 	}
 	
 	'''

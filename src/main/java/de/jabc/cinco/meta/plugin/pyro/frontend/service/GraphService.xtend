@@ -20,7 +20,6 @@ class GraphService extends Generatable {
 		import '../model/core.dart';
 		import '../model/message.dart';
 		import '../model/command.dart';
-		import 'package:«gc.projectName.escapeDart»/src/pages/main/routes.dart';
 		import 'package:«gc.projectName.escapeDart»/src/pages/editor/canvas/canvas_component.dart';
 		import 'base_service.dart';
 		«FOR g : gc.ecores»
@@ -83,155 +82,16 @@ class GraphService extends Generatable {
 			    }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 			}
 		
-		  	Future<PyroProject> loadProjectStructure(PyroProject project) async {
-			    return html.HttpRequest.request("${getBaseUrl()}/project/structure/${project.id}/private",
-			    	method: "GET",
-			    	requestHeaders: requestHeaders,
-			  		withCredentials: true
-				).then((response){
-				     var p = PyroProject.fromJSON(response.responseText);
-				     print("[PYRO] load project ${p.name}");
-				     return p;
-				   }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			}
-			 
-			 Future<dynamic> moveFolder(int folderId, int targetId) {
-			 	return html.HttpRequest.request("${getBaseUrl()}/graph/move/folder/${folderId}/${targetId}/private",
-			 		method: "POST",
-			 		requestHeaders: requestHeaders,
-			 		withCredentials: true
-			 	).then((response){
-			 	   print("[PYRO] folder moved");
-			 	   return null;
-			 	 }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			 }
-			 
-			 Future<dynamic> moveFile(int fileId, int targetId) {
-			 	return html.HttpRequest.request("${getBaseUrl()}/pyrofile/move/${fileId}/${targetId}/private",
-			 		method: "POST",
-			 		requestHeaders: requestHeaders,
-			 		withCredentials: true
-			 	).then((response){
-			 	     print("[PYRO] file moved");
-			 	     return null;
-			 	 }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			 }
-			 
-			 Future<PyroProject> loadProjectStructureById(id) async {
-			     return html.HttpRequest.request("${getBaseUrl()}/project/structure/${id}/private",
-			     	method: "GET",
-			     	requestHeaders: requestHeaders,
-			     	withCredentials: true
-			     ).then((response){
-			       var p = PyroProject.fromJSON(response.responseText);
-			       print("[PYRO] load project ${p.name}");
-			       return p;
-			     }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			   }
-		
-		  Future<PyroFolder> createFolder(PyroFolder folder,dynamic parent) async {
-		    var data = {
-		      'parentId':parent.id,
-		      'name':folder.name
-		    };
-		    return html.HttpRequest.request("${getBaseUrl()}/graph/create/folder/private",
-		    	sendData:jsonEncode(data),
-		    	method: "POST",
-		    	requestHeaders: requestHeaders,
-		    	withCredentials: true
-		    ).then((response){
-		      var newFolder = PyroFolder.fromJSON(response.responseText);
-		      if(parent.innerFolders.where((f)=>f.id==newFolder.id).isEmpty) {
-		         	parent.innerFolders.add(newFolder);
-		      }
-		      print("[PYRO] new folder ${folder.name} in folder ${parent.name}");
-		      return newFolder;
-		    }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-		  }
-		
-		  Future<PyroFolder> updateFolder(PyroFolder folder) async {
-		    var data = {
-		      'id':folder.id,
-		      'name':folder.name
-		    };
-		    return html.HttpRequest.request("${getBaseUrl()}/graph/update/folder/private",
-		    	sendData:jsonEncode(data),
-		    	method: "POST",
-		    	requestHeaders: requestHeaders,
-		    	withCredentials: true
-		    ).then((response){
-		      print("[PYRO] update folder ${folder.name}");
-		      return folder;
-		    }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-		  }
-		
-		  Future<dynamic> removeFolder(PyroFolder folder, PyroFolder parent) async {
-		    return html.HttpRequest.request("${getBaseUrl()}/graph/remove/folder/${folder.id}/${parent.id}/private",
-		    	method: "GET",
-		    	requestHeaders: requestHeaders,
-		    	withCredentials: true
-		    ).then((response){
-		      print("[PYRO] removed folder ${folder.name} (if permitted)");
-		      // parent.innerFolders.remove(folder);
-			}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			 }
-			 
-			 Future<dynamic> removeFile(PyroFile file, PyroFolder parent) async {
-			     return html.HttpRequest.request("${getBaseUrl()}/pyrofile/remove/${file.id}/${parent.id}/private",
-			     	method: "GET",
-			     	requestHeaders: requestHeaders,
-			     	withCredentials: true
-			     ).then((response){
-			       print("[PYRO] tried to remove file ${file.filename}");
-			     	parent.files.remove(file);
-			  }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			 }
-			 
-			 Future<PyroFile> updateFile(PyroFile file) async {
-			       var data = {
-			         'id':file.id,
-			         'filename':file.filename,
-			       };
-			       return html.HttpRequest.request("${getBaseUrl()}/pyrofile/update/file/private",
-			        sendData:jsonEncode(data),
-			        method: "POST",
-			        requestHeaders: requestHeaders,
-			        withCredentials: true
-			       ).then((response){
-			         print("[PYRO] update file ${file.filename}");
-			         return file;
-			       }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			   }
-			 
-			 Future<GraphModel> updateShareGraphModel(GraphModel g,bool newStatus) async {
-			var data = {
-			  'id':g.id,
-			  'isPublic':newStatus,
-			};
-			return html.HttpRequest.request("${getBaseUrl()}/graph/update/graphmodel/shared/private",
-				sendData:jsonEncode(data),
-				method: "POST",
-				requestHeaders: requestHeaders,
-				withCredentials: true
-			).then((response){
-			  var responseMessage = jsonDecode(response.response);
-			     var isPublic = responseMessage['isPublic'];
-			     g.isPublic = isPublic;
-			  print("[PYRO] update share status file ${g.filename}");
-			  return g;
-			}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			 }
-		
-		  Future<dynamic> removeGraph(GraphModel graph,PyroFolder parent) async {
-		    return html.HttpRequest.request("${getBaseUrl()}/${graph.$lower_type()}/remove/${graph.id}/${parent.id}/private",
+			
+		  Future<dynamic> removeGraph(GraphModel graph) async {
+		    return html.HttpRequest.request("${getBaseUrl()}/${graph.$lower_type()}/remove/${graph.id}/private",
 		    	method: "GET",
 		    	requestHeaders: requestHeaders,
 		    	withCredentials: true
 		    ).then((response){
 		      print("[PYRO] tried to remove modelFile ${graph.filename}");
-		      parent.files.remove(graph);
 			}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			 }
+		  }
 		
 		  Future<dynamic> generateGraph(GraphModel graph, String generatorId) async {
 		    return html.HttpRequest.request(
@@ -253,81 +113,6 @@ class GraphService extends Generatable {
 		    }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 		  }
 		  
-			Future<PyroBinaryFile> createbinary(FileReference fr,PyroFolder parent) async {
-			    var data = {
-			        'parentId':parent.id,
-			        'file':fr.toJSOG(new Map())
-			    };
-			    return html.HttpRequest.request("${getBaseUrl()}/pyrofile/create/binary/private",
-			    	sendData:jsonEncode(data),
-			    	method: "POST",
-			    	requestHeaders: requestHeaders,
-			    	withCredentials: true
-			    ).then((response){
-			        var newFile = PyroBinaryFile.fromJSOG(jsonDecode(response.responseText),new Map<String, dynamic>());
-			        print("[PYRO] created PyroBinaryFile ${newFile.filename}");
-			     parent.files.add(newFile);
-			        return newFile;
-			    }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			}
-			
-			Future<PyroBinaryFile> createblob(String name,String content,PyroFolder parent) async {
-			    var data = {
-			        'parentId':parent.id,
-			        'file':content,
-			        'name':name
-			    };
-			    return html.HttpRequest.request("${getBaseUrl()}/pyrofile/create/blob/private",
-			    	sendData:jsonEncode(data),
-			    	method: "POST",
-			    	requestHeaders: requestHeaders,
-			    	withCredentials: true
-			    ).then((response){
-			        var newFile = PyroBinaryFile.fromJSOG(jsonDecode(response.responseText),new Map<String, dynamic>());
-			        print("[PYRO] created PyroBinaryFile ${newFile.filename}");
-			     parent.files.add(newFile);
-			        return newFile;
-			    }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			}
-			
-			Future<PyroTextualFile> createtextual(String filename,String extension,PyroFolder parent) async {
-			    var data = {
-			        'parentId':parent.id,
-			        'filename':filename,
-			        'extension':extension
-			    };
-			    return html.HttpRequest.request("${getBaseUrl()}/pyrofile/create/textual/private",
-			    	sendData:jsonEncode(data),
-			    	method: "POST",
-			    	requestHeaders: requestHeaders,
-			    	withCredentials: true
-			    ).then((response){
-			        var newFile = PyroTextualFile.fromJSOG(jsonDecode(response.responseText),new Map());
-			        print("[PYRO] created PyroTextualFile ${newFile.filename}");
-			     parent.files.add(newFile);
-			        return newFile;
-			    }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			}
-		
-			Future<PyroURLFile> createurl(String filename,String extension,String url,PyroFolder parent) async {
-		      var data = {
-		        'parentId':parent.id,
-		        'filename':filename,
-		        'extension':extension,
-		        'url':url
-		      };
-		      return html.HttpRequest.request("${getBaseUrl()}/pyrofile/create/url/private",
-		      	sendData:jsonEncode(data),
-		      	method: "POST",
-		      	requestHeaders: requestHeaders,
-		      	withCredentials: true
-		      ).then((response){
-		        var newFile = PyroURLFile.fromJSOG(jsonDecode(response.responseText),new Map());
-		        print("[PYRO] created PyroURLFile ${newFile.filename}");
-				    parent.files.add(newFile);
-				       return newFile;
-				     }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
-			}
 			
 			Future<dynamic> loadCommandGraph(GraphModel graph,List<HighlightCommand> highlightings) async{
 				if(graph == null) throw new Error();
@@ -391,12 +176,10 @@ class GraphService extends Generatable {
 								  }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 								}
 												  
-								Future<«g.dartFQN»> create«g.name.escapeDart»(«g.dartFQN» graph, PyroFolder parent) async {
+								Future<«g.dartFQN»> create«g.name.escapeDart»(«g.dartFQN» graph) async {
 								    var data = {
-								        'parentId':parent.id,
 								        'filename':graph.filename
 								    };
-								    parent.files.add(graph);
 								    return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/create/private",
 									    	sendData:jsonEncode(data),
 									    	method: "POST",
@@ -470,18 +253,26 @@ class GraphService extends Generatable {
 										return cg;
 									}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 								}
+								Future<«g.dartFQN»> loadGraph«g.name.fuEscapeDart»(int id) async{
+									return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/read/${id}/private",
+									  	method: "GET",
+									  	requestHeaders: requestHeaders,
+									withCredentials: true
+									).then((response){
+										print("[PYRO] load «g.name.lowEscapeDart» ${id}");
+										return «g.dartFQN».fromJSOG(jsonDecode(response.responseText),new Map<String, dynamic>());
+									}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
+								}
 							«ENDFOR»
 						'''
 					}»
 			«ENDFOR»
 			«FOR g : gc.ecores SEPARATOR "\n"»
 				
-				Future<«g.dartFQN»> create«g.name.escapeDart»(«g.dartFQN» ecore,PyroFolder parent) async {
+				Future<«g.dartFQN»> create«g.name.escapeDart»(«g.dartFQN» ecore) async {
 				    var data = {
-				        'parentId':parent.id,
 				        'filename':ecore.filename
 				    };
-				    parent.files.add(ecore);
 				    return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/create/private",
 				    	sendData:jsonEncode(data),
 				    	method: "POST",
