@@ -21,40 +21,72 @@ import style.Image
 import style.NodeStyle
 import style.Style
 import style.Styles
+import org.osgi.framework.Bundle
+import org.eclipse.core.runtime.Platform
+import org.eclipse.core.runtime.FileLocator
 
 class FileHandler {
 	static val mglExtension = MGLExtension.instance;
 	
-
+	def static boolean copyXtendOrJava(java.util.List<String> folders, String projectLocation, String target, CharSequence classPath, EObject pivot) {
+		val pathJava = '''/«classPath».java'''
+		val pathXtend = '''/«classPath».xtend'''
+			
+		var found = false
+		for(f:folders) {
+			// xtend
+			val xtendURI = PathValidator.getURIForString(pivot, '''«f»/«pathXtend»''')
+			
+			// java
+			val javaURI = PathValidator.getURIForString(pivot, '''«f»/«pathJava»''')
+			
+			// xtend
+			if(xtendURI!==null && xtendURI.fileExists && !found){
+				copyFile(pivot,'''«f»/«pathXtend»''',target,false, projectLocation)
+				found=true
+			}
+			// java
+			else if(javaURI!==null && javaURI.fileExists && !found){
+				copyFile(pivot,'''«f»/«pathJava»''',target,false, projectLocation)
+				found=true
+			}
+		}
+		return found
+	}
+	
+	def static boolean fileExists(URI uri) {
+		if(!(uri.platformResource || uri.platform)) {
+			// TODO: isJar
+			return true
+		}
+		return false
+	}
+	
+	static def resolveEclipseResourcePath(String relativePath) {
+		val Bundle b = Platform.getBundle("de.jabc.cinco.meta.plugin.pyro.generator");
+		val directoryURL = b.getEntry(relativePath);
+		try {
+			return FileLocator.toFileURL(directoryURL).toURI.path
+		} catch(Exception e) {
+			return null
+		}
+	}
 	
 	def static void copyClasse(GraphModel g,String path, String pyroAppSourcePath, String projectLocation) {
 		val classPath = path.replaceAll("\\.","/")
 		val folders = #["src","src-gen","xtend-gen","model-src-gen"]
 		try {
 			val String target = '''«pyroAppSourcePath»/«classPath.substring(0,classPath.lastIndexOf("/"))»'''
-			val pathJava = '''/«classPath».java'''
-			val pathXtend = '''/«classPath».xtend'''
-			var found = false
-			for(f:folders) {
-				if(PathValidator.getURIForStringExplicit(g, '''«f»/«pathXtend»''')!==null&&!found){
-					copyFile(g,'''«f»/«pathXtend»''',target,false, projectLocation)
-					found=true
-				}
-				else if(PathValidator.getURIForStringExplicit(g, '''«f»/«pathJava»''')!==null&&!found){
-					copyFile(g,'''«f»/«pathJava»''',target,false, projectLocation)
-					found=true
-				}
-			}
+			
+			val found = copyXtendOrJava(folders, projectLocation, target, classPath, g)
+			
 			if(!found) {
 				println('''[ERROR] could not find annotated file: «classPath»''')
 			}
 		} catch (IOException e) {
 			e.printStackTrace()
 		}
-
 	}
-	
-	
 	
 	def static Properties getPropertiesFile(productDefinition.Annotation annotation) {
 		val target = annotation.value.get(0)
@@ -63,8 +95,9 @@ class FileHandler {
            
 			try {
 				if(!pathName.isEmpty){
-					val p = PathValidator.getURIForStringExplicit(annotation, pathName)
-					if(p === null) 
+					val p = PathValidator.getURIForString(annotation, pathName)
+					var fileExists = FileUtils.getFile(p.path).exists
+					if(!fileExists) 
 						throw new IllegalArgumentException("Properties file does not exist!"); 
 					var File f = new File(p.toFileString);
 					val prop = new Properties();
@@ -79,25 +112,14 @@ class FileHandler {
 		return null
 	}
 	
-	
 	def dispatch static void copyAnnotatedClasses(productDefinition.Annotation annotation, String pyroAppSourcePath, String projectLocation) {
 		val classPath = annotation.value.get(0).replaceAll("\\.","/")
 		val folders = #["src","src-gen","xtend-gen","model-src-gen"]
 		try {
 			val String target = '''«pyroAppSourcePath»/«classPath.substring(0,classPath.lastIndexOf("/"))»'''
-			val pathJava = '''/«classPath».java'''
-			val pathXtend = '''/«classPath».xtend'''
-			var found = false
-			for(f:folders) {
-				if(PathValidator.getURIForStringExplicit(annotation, '''«f»/«pathXtend»''')!==null&&!found){
-					copyFile(annotation,'''«f»/«pathXtend»''',target,true, projectLocation)
-					found=true
-				}
-				else if(PathValidator.getURIForStringExplicit(annotation, '''«f»/«pathJava»''')!==null&&!found){
-					copyFile(annotation,'''«f»/«pathJava»''',target,true, projectLocation)
-					found=true
-				}
-			}
+			
+			val found = copyXtendOrJava(folders, projectLocation, target, classPath, annotation)
+			
 			if(!found) {
 				println('''[ERROR] could not find annotated file: «classPath»''')
 			}
@@ -111,19 +133,9 @@ class FileHandler {
 		val folders = #["src","src-gen","xtend-gen","model-src-gen"]
 		try {
 			val String target = '''«pyroAppSourcePath»/«classPath.substring(0,classPath.lastIndexOf("/"))»'''
-			val pathJava = '''/«classPath».java'''
-			val pathXtend = '''/«classPath».xtend'''
-			var found = false
-			for(f:folders) {
-				if(PathValidator.getURIForStringExplicit(annotation, '''«f»/«pathXtend»''')!==null&&!found){
-					copyFile(annotation,'''«f»/«pathXtend»''',target,true, projectLocation)
-					found=true
-				}
-				else if(PathValidator.getURIForStringExplicit(annotation, '''«f»/«pathJava»''')!==null&&!found){
-					copyFile(annotation,'''«f»/«pathJava»''',target,true, projectLocation)
-					found=true
-				}
-			}
+			
+			val found = copyXtendOrJava(folders, projectLocation, target, classPath, annotation)
+			
 			if(!found) {
 				println('''[ERROR] could not find annotated file: «classPath»''')
 			}
@@ -137,19 +149,9 @@ class FileHandler {
 		val folders = #["src","src-gen","xtend-gen","model-src-gen"]
 		try {
 			val String target = '''«pyroAppSourcePath»/«classPath.substring(0,classPath.lastIndexOf("/"))»'''
-			val javaPath = '''/«classPath».java'''
-			val xtendPath = '''/«classPath».xtend'''
-			var found = false
-			for(f:folders) {
-				if(PathValidator.getURIForStringExplicit(style, '''«f»/«xtendPath»''')!==null&&!found){
-					copyFile(style,'''«f»/«xtendPath»''',target,false, projectLocation)
-					found=true
-				}
-				else if(PathValidator.getURIForStringExplicit(style, '''«f»/«javaPath»''')!==null&&!found){
-					copyFile(style,'''«f»/«javaPath»''',target,false, projectLocation)
-					found=true
-				}
-			}
+			
+			val found = copyXtendOrJava(folders, projectLocation, target, classPath, style)
+			
 			if(!found) {
 				println('''[ERROR] could not find appearance provider file: «classPath»''')
 			}
@@ -217,16 +219,11 @@ class FileHandler {
 	}
 	
 	
-	def static void copyFile(EObject res,String path, String target,boolean replaceExisiting,String newName, String projectLocation) throws IOException {				
+	def static void copyFile(EObject res,String path, String target,boolean replaceExisiting,String newName, String projectLocation) throws IOException {				 
+		var String newPath = projectLocation+ "/" + path.replace('"','')
+		var resolvedURI = org.eclipse.emf.common.util.URI.createURI(newPath)	
+		var File ir = new File(resolvedURI.toString);
 
-		 
-		 var String newPath = projectLocation+ "/" + path.replace('"','');
-		 
-		 var resolvedURI = org.eclipse.emf.common.util.URI.createURI(newPath)	
-		 var File ir = new File(resolvedURI.toString);
-
-		
-		
 		//var IFile ire = (ResourcesPlugin.getWorkspace().getRoot().findMember(uriForString.toPlatformString(true)) as IFile)
 		//var File ir = new File(uriForString.toString);
 		var File targetFolder = new File(target)
@@ -275,6 +272,4 @@ class FileHandler {
 			FileUtils.copyFile(source,new File(target))
 		}
 	}
-	
-	
 }
