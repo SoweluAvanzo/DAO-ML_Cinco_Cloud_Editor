@@ -113,6 +113,7 @@ push-registry:
 build-editor:
   extends: .docker-build
   variables:
+    GIT_SUBMODULE_STRATEGY: recursive
     CONTEXT: ./editor
     DOCKERFILE: ./editor/Dockerfile
     IMAGE: editor
