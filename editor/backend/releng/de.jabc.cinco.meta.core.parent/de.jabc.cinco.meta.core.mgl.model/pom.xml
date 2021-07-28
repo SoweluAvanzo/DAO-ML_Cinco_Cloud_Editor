@@ -19,7 +19,7 @@
 		<relativePath>../pom.xml</relativePath>
 		<groupId>de.jabc.cinco</groupId>
 		<artifactId>de.jabc.cinco.meta.parent</artifactId>
-		<version>3.0.0-SNAPSHOT</version> <!-- TODO:SAMI: changed -->
+		<version>2.1.0-SNAPSHOT</version> <!-- TODO:SAMI: changed -->
 	</parent>
 	<artifactId>de.jabc.cinco.meta.core.mgl.model</artifactId>
 	<packaging>jar</packaging>
