@@ -1,4 +1,4 @@
-package de.jabc.cinco.meta.plugin.pyro
+package de.jabc.cinco.meta.plugin.pyro.generator
 
 import java.io.File
 import java.io.IOException
