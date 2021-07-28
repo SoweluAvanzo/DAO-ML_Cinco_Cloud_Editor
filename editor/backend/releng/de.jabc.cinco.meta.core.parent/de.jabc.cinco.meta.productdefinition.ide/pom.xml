@@ -153,7 +153,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.jabc.cinco</groupId>
-			<artifactId>de.jabc.cinco.meta.plugin.pyro</artifactId>
+			<artifactId>de.jabc.cinco.meta.plugin.pyro.generator</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
