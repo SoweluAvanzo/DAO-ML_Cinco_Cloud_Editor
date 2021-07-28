@@ -31,7 +31,7 @@ import productDefinition.CincoProduct;
 import de.jabc.cinco.meta.core.mgl.MGLRuntimeModule;
 import de.jabc.cinco.meta.core.utils.IWorkspaceContext;
 import de.jabc.cinco.meta.core.utils.WorkspaceContext;
-import de.jabc.cinco.meta.plugin.pyro.CreatePyroPlugin;
+import de.jabc.cinco.meta.plugin.pyro.generator.CreatePyroPlugin;
 import de.jabc.cinco.meta.productdefinition.ide.communication.LogHelper;
 import de.jabc.cinco.meta.productdefinition.ide.communication.StaticMessages;
 
