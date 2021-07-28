@@ -24,6 +24,8 @@ import style.Styles
 import org.osgi.framework.Bundle
 import org.eclipse.core.runtime.Platform
 import org.eclipse.core.runtime.FileLocator
+import java.nio.file.Paths
+import java.nio.file.Files
 
 class FileHandler {
 	static val mglExtension = MGLExtension.instance;
@@ -34,38 +36,55 @@ class FileHandler {
 			
 		var found = false
 		for(f:folders) {
-			// xtend
-			val xtendURI = PathValidator.getURIForString(pivot, '''«f»/«pathXtend»''')
-			
-			// java
-			val javaURI = PathValidator.getURIForString(pivot, '''«f»/«pathJava»''')
-			
-			// xtend
-			if(xtendURI!==null && xtendURI.fileExists && !found){
-				copyFile(pivot,'''«f»/«pathXtend»''',target,false, projectLocation)
-				found=true
-			}
-			// java
-			else if(javaURI!==null && javaURI.fileExists && !found){
-				copyFile(pivot,'''«f»/«pathJava»''',target,false, projectLocation)
+			if(!found){
+				val path = getSourcePath(pivot, f, pathXtend, pathJava)
+				copyFile(pivot,'''«f»/«path»''',target,false, projectLocation)
 				found=true
 			}
 		}
 		return found
 	}
 	
-	def static boolean fileExists(URI uri) {
-		if(!(uri.platformResource || uri.platform)) {
-			// TODO: isJar
-			return true
+	def static CharSequence getSourcePath(EObject pivot, String folder, CharSequence pathXtend, CharSequence pathJava) {
+		// xtend
+		val xtendURI = PathValidator.getURIForString(pivot, '''«folder»/«pathXtend»''')
+		val xtendURISegments = xtendURI !== null ? xtendURI.segments.length : 0
+		
+		// java
+		val javaURI = PathValidator.getURIForString(pivot, '''«folder»/«pathJava»''')
+		val javaURISegments = javaURI !== null ? javaURI.segments.length : 0
+		
+		if(javaURISegments > xtendURISegments) {
+			if(javaURI.fileExists)
+				return pathJava	
+		} else {
+			if(xtendURI.fileExists)
+				return pathXtend
 		}
-		return false
+		return null
+	}
+	
+	def static boolean fileExists(URI uri) {
+		if(uri === null)
+			return false
+		if(!(uri.platformResource || uri.platform)) {
+			// isJar or runtime
+			val path = Paths.get(uri.toFileString)
+			val exists = Files.exists(path)
+			return exists
+		}
+		// is eclipse
+		return true
 	}
 	
 	static def resolveEclipseResourcePath(String relativePath) {
-		val Bundle b = Platform.getBundle("de.jabc.cinco.meta.plugin.pyro.generator");
-		val directoryURL = b.getEntry(relativePath);
 		try {
+			// CASE ECLIPSE-PLUGIN
+			if(!Platform.running) {
+				return null
+			}
+			val Bundle b = Platform.getBundle("de.jabc.cinco.meta.plugin.pyro.generator");
+			val directoryURL = b.getEntry(relativePath);
 			return FileLocator.toFileURL(directoryURL).toURI.path
 		} catch(Exception e) {
 			return null

@@ -356,7 +356,13 @@ class Generator {
 			path = Paths.get(path.toUri) // needed
 		} else {
 			val resolvedPath = FileHandler.resolveEclipseResourcePath(folderPath)
-			path = Paths.get(resolvedPath)
+			if(resolvedPath !== null) {
+				// case eclipse-platform
+				path = Paths.get(resolvedPath)
+			} else {
+				// case runtime-development/test
+				path = Paths.get(uri)
+			}
 		}
 		var pathList = new ArrayList<Path>
 		var walk = Files.walk(path, depth)
