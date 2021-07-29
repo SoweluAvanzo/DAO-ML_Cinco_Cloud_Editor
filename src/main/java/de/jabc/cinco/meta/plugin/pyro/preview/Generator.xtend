@@ -37,7 +37,7 @@ class Generator extends FileGenerator {
 		}
 		
 		//copy static resources
-		de.jabc.cinco.meta.plugin.pyro.Generator.copyResourceFiles("frontend/app/web",basePath + "/preview/vendor", this.class)
+		de.jabc.cinco.meta.plugin.pyro.generator.Generator.copyResourceFiles("frontend/app/web",basePath + "/preview/vendor", this.class)
 	}
 	
 	

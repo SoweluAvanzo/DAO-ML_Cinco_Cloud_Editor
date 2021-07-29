@@ -1,4 +1,4 @@
-package de.jabc.cinco.meta.plugin.pyro
+package de.jabc.cinco.meta.plugin.pyro.generator
 
 import de.jabc.cinco.meta.plugin.pyro.util.Escaper
 import de.jabc.cinco.meta.plugin.pyro.util.FileHandler
@@ -42,8 +42,9 @@ class Generator {
 	static var fileSystem = null as FileSystem;
 	static extension MGLExtension me = MGLExtension.instance
 	String projectLocation
-	public static boolean devMode = false;
-
+	
+	public static boolean deleteSources = true
+	public static boolean generateZip = true
 
 	def generate(Set<MGLModel> mglModels, CincoProduct cpd, String base, String projectLocation) {
 		// val fileHelper = new FileExtension
@@ -60,7 +61,7 @@ class Generator {
 		var Map<String, GraphModel> transientGraphModels = new HashMap
 		val javaPath = base + "/app/src/main/java/"
 		this.projectLocation = projectLocation
-
+		
 		for (a : cpd.annotations) {
 
 			if (a.name == "pyroProjectService" && a.value.size >= 3) {
@@ -236,8 +237,16 @@ class Generator {
 				}
 			}
 		}
-				
 		
+		if(generateZip) {
+			packageZip(base)
+		}
+		if (deleteSources) {
+			cleanup(base)
+		}
+	}
+	
+	def packageZip(String base) {
         val File fileToZip = new File(base);
         val File[] srcFiles = fileToZip.listFiles();
         val FileOutputStream fos = new FileOutputStream(projectLocation + File.separator + "pyro.zip");
@@ -249,10 +258,6 @@ class Generator {
 		fos.flush();
 		zipOut.close();
 		fos.close();
-		if (!devMode) {
-			cleanup(base)
-		}
-
 	}
 
 	/**
@@ -312,7 +317,7 @@ class Generator {
 			if (uri.isPlatformResource()) {
 				res = new ResourceSetImpl().getResource(uri, true);
 			} else {
-				val projectURI = URI.createFileURI(projectLocation)
+				val projectURI = URI.createFileURI(projectLocation + "/")
 				val absoluteURI = uri.resolve(projectURI)
 				val File file = new File(absoluteURI.toFileString).getAbsoluteFile();
 				if (file.exists()) {
@@ -350,7 +355,14 @@ class Generator {
 			path = fileSystem.getPath(folderPath)
 			path = Paths.get(path.toUri) // needed
 		} else {
-			path = Paths.get(uri)
+			val resolvedPath = FileHandler.resolveEclipseResourcePath(folderPath)
+			if(resolvedPath !== null) {
+				// case eclipse-platform
+				path = Paths.get(resolvedPath)
+			} else {
+				// case runtime-development/test
+				path = Paths.get(uri)
+			}
 		}
 		var pathList = new ArrayList<Path>
 		var walk = Files.walk(path, depth)
@@ -432,7 +444,7 @@ class Generator {
 		}
 	}
 	
-	  static def void zipFile( ZipOutputStream zipOut,File fileToZip, String fileName) throws IOException {
+	static def void zipFile( ZipOutputStream zipOut,File fileToZip, String fileName) throws IOException {
         if (fileToZip.isHidden()) {
             return;
         }
