@@ -105,7 +105,7 @@ public class WorkspaceContext implements IWorkspaceContext {
 	 * return the File-Folder that is containing the given file(uri/string)
 	 */
 	public File getFolder(String absolutePath) {
-		File file = this.getFile(absolutePath);
+		File file = new File(absolutePath);
 		return getFolder(file);
 	}
 
@@ -114,8 +114,12 @@ public class WorkspaceContext implements IWorkspaceContext {
 	 * return the File-Folder that is containing the given file(uri/string)
 	 */
 	public File getFolder(URI uri) {
-		File file = this.getFile(uri);
-		return getFolder(file);
+		if(uri.hasAbsolutePath()) {
+			return this.getFolder(uri.path());
+		} else {
+			File file = this.getFile(uri);
+			return getFolder(file);
+		}
 	}
 
 	@Override
