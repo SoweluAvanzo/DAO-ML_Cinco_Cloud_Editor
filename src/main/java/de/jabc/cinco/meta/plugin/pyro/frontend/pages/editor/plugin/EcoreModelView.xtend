@@ -61,15 +61,14 @@ class EcoreModelView extends EditorViewPlugin {
 	    	TreeViewRest tvr = new TreeViewRest();
 	    	tvr.setlayer(new LinkedList<>());
 			«FOR lib:gc.ecores»
-				final java.util.Set<«lib.entityFQN»> list«lib.name.escapeJava» = «lib.name.escapeJava»RestController
-				        .collectFiles();
+				final java.util.List<«lib.entityFQN»> list«lib.name.escapeJava» = «lib.entityFQN».listAll();
 				tvr.getlayer().addAll(buildResponse«lib.name.fuEscapeJava»(list«lib.name.escapeJava»));
 	        «ENDFOR»
 	        return Response.ok(tvr).build();
 	    }
 		«FOR lib:gc.ecores»
 			
-			private List<TreeViewNodeRest> buildResponse«lib.name.fuEscapeJava»(java.util.Set<«lib.entityFQN»> list) {
+			private List<TreeViewNodeRest> buildResponse«lib.name.fuEscapeJava»(java.util.List<«lib.entityFQN»> list) {
 				java.util.Map<«dbTypeName»,TreeViewNodeRest> cache = new java.util.HashMap<>();
 				return list.stream().map(n->buildResponse«lib.name.fuEscapeJava»(n,cache)).collect(Collectors.toList());
 			}
