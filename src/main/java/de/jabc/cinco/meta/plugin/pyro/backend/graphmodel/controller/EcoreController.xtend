@@ -20,7 +20,6 @@ class EcoreController extends Generatable {
 	import info.scce.pyro.«p.name.lowEscapeJava».rest.«p.name.fuEscapeJava»;
 	import info.scce.pyro.core.rest.types.CreateEcore;
 	import info.scce.pyro.sync.GraphModelWebSocket;
-	import info.scce.pyro.sync.ProjectWebSocket;
 	import info.scce.pyro.sync.WebSocketMessage;
 	import javax.ws.rs.core.SecurityContext;
 	import «dbTypeFQN»;
@@ -40,9 +39,6 @@ class EcoreController extends Generatable {
 	
 		@javax.inject.Inject
 		info.scce.pyro.rest.ObjectCache objectCache;
-		
-		@javax.inject.Inject
-		ProjectWebSocket projectWebSocket;
 	
 		@javax.inject.Inject
 		GraphModelWebSocket graphModelWebSocket;
@@ -91,7 +87,6 @@ class EcoreController extends Generatable {
 			}
 			
 			gm.delete();
-			container.persist();
 			return Response.ok("OK").build();
 		}
 	}
