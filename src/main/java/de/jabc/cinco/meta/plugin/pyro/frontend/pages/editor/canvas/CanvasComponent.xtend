@@ -290,7 +290,7 @@ class CanvasComponent extends Generatable {
 	
 		bool hasIcon() {
 			«FOR g:gc.graphMopdels.filter[!iconPath.nullOrEmpty]»
-			    if(openedFile is «g.dartFQN»){
+			    if(currentFile is «g.dartFQN»){
 			      return true;
 			    }
 			«ENDFOR»
@@ -407,7 +407,7 @@ class CanvasComponent extends Generatable {
 		  	 }
 		  	 if(isModelFile()) {
 				«FOR g:gc.graphMopdels.filter[generating]»
-					if((currentFile.$type() == '«g.typeName»') {
+					if(currentFile.$type() == '«g.typeName»') {
 						«FOR a:g.generators»
 						«{
 	  	 	  	 	   	val generatorId = '''«IF a.value.length >= 3»'«a.value.get(0)»'«ELSE»null«ENDIF»'''
@@ -557,7 +557,7 @@ class CanvasComponent extends Generatable {
     <div class="card pyro-panel h-100 d-flex flex-column">
         <div class="card-body pyro-panel-body p-0 overflow: hidden">
         	«FOR g:gc.ecores»
-        		<template [ngIf]="is«g.name.fuEscapeDart»()&&isOpen()">
+        		<template [ngIf]="is«g.name.fuEscapeDart»()">
         			<p>No Editor available for «g.name» Ecore</p>
         		</template>
         	«ENDFOR»
