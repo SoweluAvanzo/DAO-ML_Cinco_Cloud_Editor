@@ -104,7 +104,7 @@ class GraphModelController extends Generatable {
 	        newGraph.persist();
 
 			«IF (g as ModelElement).hasPostCreateHook»
-				«g.apiFactory».eINSTANCE.warmup(subject,executer);
+				«g.apiFactory».eINSTANCE.warmup(executer);
 				«g.apiFQN» ce = new «g.apiImplFQN»(newGraph,executer);
 				«(g as ModelElement).postCreateHook» ca = new «(g as ModelElement).postCreateHook»();
 				ca.init(executer);
@@ -213,7 +213,7 @@ class GraphModelController extends Generatable {
 				
 				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(user,executer);
+				«g.apiFactory».eINSTANCE.warmup(executer);
 				
 				«g.apiFQN» cgraph = new «g.apiImplFQN»(graph,executer);
 				
@@ -261,7 +261,7 @@ class GraphModelController extends Generatable {
 				//setup batch execution
 				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(user,executer);
+				«g.apiFactory».eINSTANCE.warmup(executer);
 				
 				//update appearance
 				executer.updateAppearance();
@@ -287,7 +287,7 @@ class GraphModelController extends Generatable {
 				//setup batch execution
 				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(user,executer);
+				«g.apiFactory».eINSTANCE.warmup(executer);
 				«g.apiFQN» cgraph = new «g.apiImplFQN»(graph,executer);
 				
 				«FOR gen:g.generators»
