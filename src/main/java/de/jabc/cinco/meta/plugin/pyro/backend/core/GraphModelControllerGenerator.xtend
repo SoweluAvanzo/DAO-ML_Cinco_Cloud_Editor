@@ -21,6 +21,9 @@ class GraphModelControllerGenerator extends Generatable {
 		import javax.ws.rs.WebApplicationException;
 		import javax.ws.rs.core.Response;
 		import java.util.Optional;
+		import java.util.List;
+		import java.util.ArrayList;
+		import java.util.Arrays;
 		import javax.ws.rs.core.SecurityContext;
 		«FOR gm:gc.graphMopdels»
 			import «gm.controllerFQN»;
