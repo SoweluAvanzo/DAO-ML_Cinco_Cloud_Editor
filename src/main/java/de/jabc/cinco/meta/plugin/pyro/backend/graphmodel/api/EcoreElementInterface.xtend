@@ -42,7 +42,6 @@ class EcoreElementInterface extends Generatable {
 				«IF me instanceof EPackage»
 					public void setExtension(String extension);
 					public void setFilename(String filename);
-					public void setParent(«dbTypeName» parent);
 					public String getExtension();
 					public String getFilename();
 					«{
