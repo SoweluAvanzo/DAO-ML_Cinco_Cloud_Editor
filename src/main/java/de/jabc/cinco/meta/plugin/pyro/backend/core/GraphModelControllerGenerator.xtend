@@ -22,7 +22,6 @@ class GraphModelControllerGenerator extends Generatable {
 		import javax.ws.rs.core.Response;
 		import java.util.Optional;
 		import javax.ws.rs.core.SecurityContext;
-		import entity.core.PyroFileContainerDB;
 		«FOR gm:gc.graphMopdels»
 			import «gm.controllerFQN»;
 		«ENDFOR»
@@ -44,8 +43,8 @@ class GraphModelControllerGenerator extends Generatable {
 				@javax.inject.Inject
 				«gm.controllerName» «gm.name.lowEscapeJava»Controller;
 			«ENDFOR»
-			
-			public void checkPermission(PanacheEntity peb,SecurityContext securityContext) {
+
+			public void checkPermission(SecurityContext securityContext) {
 		        final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
 				if(user != null){
 		            return;
@@ -78,7 +77,7 @@ class GraphModelControllerGenerator extends Generatable {
 		            final Optional<«g.entityFQN»> opt = «g.entityFQN».findByIdOptional(graphModel.getId());
 		            if(opt.isPresent()) {
 		                «g.entityFQN» g = opt.get();
-		                checkPermission(g,securityContext);
+		                checkPermission(securityContext);
 		                
 		                // update
 		                if(graphModel.getscale()!=null){

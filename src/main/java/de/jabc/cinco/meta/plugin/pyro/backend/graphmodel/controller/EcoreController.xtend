@@ -18,9 +18,6 @@ class EcoreController extends Generatable {
 	
 	import info.scce.pyro.«p.name.lowEscapeJava».rest.«p.name.fuEscapeJava»List;
 	import info.scce.pyro.«p.name.lowEscapeJava».rest.«p.name.fuEscapeJava»;
-	import entity.core.PyroFolderDB;
-	import entity.core.PyroProjectDB;
-	import entity.core.PyroFileContainerDB;
 	import info.scce.pyro.core.rest.types.CreateEcore;
 	import info.scce.pyro.sync.GraphModelWebSocket;
 	import info.scce.pyro.sync.ProjectWebSocket;
@@ -69,22 +66,17 @@ class EcoreController extends Generatable {
 		public Response createEcore(@javax.ws.rs.core.Context SecurityContext securityContext, CreateEcore ecore) {
 	
 			final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
-			final PyroFileContainerDB container = PyroFileContainerDB.findById(ecore.getparentId());
-			if(container==null||subject==null){
+			if(subject==null){
 				return Response.status(Response.Status.BAD_REQUEST).build();
 			}
 			
 			final «p.entityFQN» newEcore =  new entity.«p.name.lowEscapeJava».«p.name.fuEscapeJava»DB();
 			newEcore.filename = ecore.getfilename();
 			newEcore.extension = "ecore";
-			newEcore.parent = container;
-			
 			
 			newEcore.persist();
-			container.persist();
 			
 			return Response.ok(«p.name.fuEscapeJava».fromEntity(newEcore,new info.scce.pyro.rest.ObjectCache())).build();
-
 		}
 	
 		@javax.ws.rs.GET

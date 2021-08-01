@@ -69,36 +69,6 @@ class EcoreElementImplementation extends Generatable {
 					public String getFilename() {
 						return this.delegate.filename;
 					}
-					
-					@Override
-					public void setParent(«dbTypeName» parent) {
-						if(parent instanceof entity.core.PyroProjectDB)
-							this.delegate.parent = (entity.core.PyroProjectDB) parent;
-						else if(parent instanceof entity.core.PyroFolderDB)
-							this.delegate.parent = (entity.core.PyroFolderDB) parent;
-						else
-							throw new IllegalArgumentException("parent is no FileContainerType!");
-						delegate.persist();
-					}
-					
-					@Override
-					public «dbTypeName» getParent() {
-						return this.delegate.parent;
-					}
-					
-					@Override
-					public entity.core.PyroProjectDB getProject() {
-						«dbTypeName» parent = this.delegate.parent;
-						if(parent instanceof entity.core.PyroProjectDB)
-							return (entity.core.PyroProjectDB) parent;
-						while(!(parent instanceof entity.core.PyroProjectDB)) {
-							if(parent instanceof entity.core.PyroFolderDB)
-								parent = ((entity.core.PyroFolderDB) parent).parent;
-							else
-								throw new IllegalArgumentException("parent is no FileContainerType!");
-						}
-						return (entity.core.PyroProjectDB) parent;
-					}
 				«ENDIF»
 				
 				@Override

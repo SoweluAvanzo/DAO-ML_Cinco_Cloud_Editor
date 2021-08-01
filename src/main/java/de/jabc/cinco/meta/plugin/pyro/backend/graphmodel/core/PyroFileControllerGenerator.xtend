@@ -65,7 +65,7 @@ class PyroFileControllerGenerator extends Generatable {
 					if (graph == null) {
 					    return Response.status(Response.Status.NOT_FOUND).build();
 					}
-					checkPermission(graph, securityContext);
+					checkPermission(securityContext);
 					
 					info.scce.pyro.core.export.«g.name.fuEscapeJava»Exporter exporter = new info.scce.pyro.core.export.«g.name.fuEscapeJava»Exporter();
 					
@@ -91,8 +91,8 @@ class PyroFileControllerGenerator extends Generatable {
 			
 		    
 			
-			public void checkPermission(io.quarkus.hibernate.orm.panache.PanacheEntity entity, SecurityContext securityContext) {
-				graphModelController.checkPermission(entity,securityContext);
+			public void checkPermission(SecurityContext securityContext) {
+				graphModelController.checkPermission(securityContext);
 			}
 			
 			private MediaType getMime(String fileName, InputStream content) {

@@ -45,8 +45,6 @@ class EcoreElementInterface extends Generatable {
 					public void setParent(«dbTypeName» parent);
 					public String getExtension();
 					public String getFilename();
-					public «dbTypeName» getParent();
-					public entity.core.PyroProjectDB getProject();
 					«{
 						val types = g.EClassifiers.filter(EClass)
 						'''
