@@ -547,7 +547,7 @@ class CanvasComponent extends Generatable {
     		<template [ngIf]="isModelFile()">
     			<input
     			[ngModel]="getScaleValue()"
-  				(ngModelChange)="updateScaleFactorStr($event.toString(),false)"
+  				(ngModelChange)="updateScaleFactorStr($event.toString(),true)"
     			type="range" min="25" max="150">
     		</template>
         </div>
