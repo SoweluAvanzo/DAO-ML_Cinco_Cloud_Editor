@@ -1232,7 +1232,7 @@ class GraphmodelComponent extends Generatable {
 					«FOR n : g.nodesTopologically.filter[!isIsAbstract] SEPARATOR "else "
 					»if(target.$type() == "«n.typeName»"){
 						«FOR edge:g.edgesTopologically SEPARATOR " else "
-						»if(edge == null || edge.$type() is «edge.typeName») {
+						»if(edge == null || edge.$type() == "«edge.typeName»") {
 							«IF !n.parentTypes.filter(Node).map[incomingEdgeConnections].flatten.filter[containesEdge(edge)].empty»
 								var incoming = target.incoming;
 							«ENDIF»
