@@ -319,7 +319,11 @@ class PyroWorkspaceImage {
       published = jsog["published"];
 
       if (jsog.containsKey("user")) {
-        user = new PyroUser(cache: cache, jsog: jsog["user"]);
+        if (jsog["user"].containsKey("@ref")) {
+          user = cache[jsog["user"]["@ref"]];
+        } else {
+          user = new PyroUser(cache: cache, jsog: jsog["user"]);
+        }
       }
     } else {
       id = -1;

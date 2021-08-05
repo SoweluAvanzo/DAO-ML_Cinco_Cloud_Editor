@@ -1,4 +1,4 @@
-package info.scce.cincocloud.k8s;
+package info.scce.cincocloud.k8s.languageeditor;
 
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
@@ -8,10 +8,11 @@ import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.k8s.K8SResource;
 
-public class ProjectK8SPersistentVolumeClaim extends ProjectK8SResource<PersistentVolumeClaim> {
+public class TheiaK8SPersistentVolumeClaim extends TheiaK8SResource<PersistentVolumeClaim> {
 
-    public ProjectK8SPersistentVolumeClaim(KubernetesClient client, PyroProjectDB project) {
+    public TheiaK8SPersistentVolumeClaim(KubernetesClient client, PyroProjectDB project) {
         super(client, project);
         this.resource = build();
     }
@@ -41,7 +42,7 @@ public class ProjectK8SPersistentVolumeClaim extends ProjectK8SResource<Persiste
         return new PersistentVolumeClaimBuilder()
                 .withNewMetadata()
                     .withName(getProjectName() + "-pv-claim")
-                    .withNamespace(DEFAULT_NAMESPACE)
+                    .withNamespace(K8SResource.DEFAULT_NAMESPACE)
                     .withLabels(Map.of("app", getProjectName()))
                 .endMetadata()
                 .withSpec(new PersistentVolumeClaimSpecBuilder()

@@ -1,4 +1,4 @@
-package info.scce.cincocloud.k8s;
+package info.scce.cincocloud.k8s.languageeditor;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -8,9 +8,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
 
-public class ProjectK8SService extends ProjectK8SResource<Service> {
+public class TheiaK8SService extends TheiaK8SResource<Service> {
 
-    public ProjectK8SService(KubernetesClient client, PyroProjectDB project) {
+    public TheiaK8SService(KubernetesClient client, PyroProjectDB project) {
         super(client, project);
         this.resource = build();
     }

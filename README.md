@@ -28,12 +28,12 @@ Install
 
     where `<KEY>` is the encoded `dockerconfig.json` file for `registry.gitlab.com` (see [here][docker-secret])
 
-1. Start a local single node cluster: `minikube start`
-2. Enable addons: `minikube enable default-storageclass ingress storage-provisioner` *(once)*
-3. Deploy kubernetes files locally: `skaffold dev`
-4. Execute `kubectl get ingress` and wait until `ADDRESS` and `HOSTS` are visible
-5. Add the entry `<ADDRESS> cinco-cloud` to the `/etc/hosts` file *(once)*
-6. Open `http://cinco-cloud` in a Web browser
+2. Start a local single node cluster: `minikube start`
+3. Enable addons: `minikube enable default-storageclass ingress storage-provisioner` *(once)*
+4. Deploy kubernetes files locally: `skaffold dev`
+5. Execute `kubectl get ingress` and wait until `ADDRESS` and `HOSTS` are visible
+6. Add the entry `<ADDRESS> cinco-cloud` to the `/etc/hosts` file *(once)*
+7. Open `http://cinco-cloud` in a Web browser
 
 [helm]: https://helm.sh/
 [docker]: https://docs.docker.com/get-docker/

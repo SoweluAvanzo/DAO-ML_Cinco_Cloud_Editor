@@ -1,4 +1,4 @@
-package info.scce.cincocloud.k8s;
+package info.scce.cincocloud.k8s.languageeditor;
 
 import io.fabric8.kubernetes.api.model.IntOrStringBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1beta1.HTTPIngressPathBuilder;
@@ -12,11 +12,11 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
 
-public class ProjectK8SIngress extends ProjectK8SResource<Ingress> {
+public class TheiaK8SIngress extends TheiaK8SResource<Ingress> {
 
-    private final ProjectK8SService service;
+    private final TheiaK8SService service;
 
-    public ProjectK8SIngress(KubernetesClient client, ProjectK8SService service, PyroProjectDB project) {
+    public TheiaK8SIngress(KubernetesClient client, TheiaK8SService service, PyroProjectDB project) {
         super(client, project);
         this.service = service;
         this.resource = build();

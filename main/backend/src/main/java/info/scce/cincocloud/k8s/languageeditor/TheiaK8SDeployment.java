@@ -1,4 +1,4 @@
-package info.scce.cincocloud.k8s;
+package info.scce.cincocloud.k8s.languageeditor;
 
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
@@ -16,14 +16,15 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.k8s.K8SResource;
 
-public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
+public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
 
-    private final ProjectK8SPersistentVolumeClaim persistentVolumeClaim;
+    private final TheiaK8SPersistentVolumeClaim persistentVolumeClaim;
 
-    public ProjectK8SDeployment(
+    public TheiaK8SDeployment(
             KubernetesClient client,
-            ProjectK8SPersistentVolumeClaim persistentVolumeClaim,
+            TheiaK8SPersistentVolumeClaim persistentVolumeClaim,
             PyroProjectDB project
     ) {
         super(client, project);
@@ -75,7 +76,7 @@ public class ProjectK8SDeployment extends ProjectK8SResource<StatefulSet> {
         return new StatefulSetBuilder()
                 .withNewMetadata()
                     .withName(getProjectName() + "-statefulset")
-                    .withNamespace(DEFAULT_NAMESPACE)
+                    .withNamespace(K8SResource.DEFAULT_NAMESPACE)
                     .withLabels(Map.of("app", getProjectName(), "project", String.valueOf(project.id)))
                 .endMetadata()
                 .withSpec(new StatefulSetSpecBuilder()

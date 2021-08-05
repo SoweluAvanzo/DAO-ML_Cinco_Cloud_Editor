@@ -83,3 +83,12 @@ spec:
   resources:
     requests:
       storage: 30Gi
+---
+apiVersion: v1
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJodHRwOi8vcmVnaXN0cnktc2VydmljZTo1MDAwIjp7InVzZXJuYW1lIjoiY2MiLCJwYXNzd29yZCI6ImNjIiwiYXV0aCI6IlkyTTZZMk09In19fQ==
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: cinco-cloud-registry-secret
+type: kubernetes.io/dockerconfigjson
