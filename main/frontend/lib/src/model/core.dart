@@ -307,6 +307,7 @@ class PyroWorkspaceImage {
   String imageVersion;
   bool published;
   PyroUser user;
+  PyroProject project;
 
   PyroWorkspaceImage({Map cache, dynamic jsog}) {
     if (jsog != null) {
@@ -318,13 +319,8 @@ class PyroWorkspaceImage {
       imageVersion = jsog["imageVersion"];
       published = jsog["published"];
 
-      if (jsog.containsKey("user")) {
-        if (jsog["user"].containsKey("@ref")) {
-          user = cache[jsog["user"]["@ref"]];
-        } else {
-          user = new PyroUser(cache: cache, jsog: jsog["user"]);
-        }
-      }
+      user = _resolveComplexType(cache, jsog, "user", (c, j) => new PyroUser(cache: c, jsog: j));
+      project = _resolveComplexType(cache, jsog, "project", (c, j) => new PyroProject(cache: c, jsog: j));
     } else {
       id = -1;
       user = new PyroUser();
@@ -352,6 +348,7 @@ class PyroWorkspaceImage {
       jsog['imageVersion'] = imageVersion;
       jsog['published'] = published;
       jsog['user'] = user.toJSOG(cache);
+      jsog['project'] = project.toJSOG(cache);
       jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroWorkspaceImage";
     }
     return jsog;
@@ -487,13 +484,48 @@ class PyroOrganization {
         ..addAll(members);
 }
 
+class PyroProjectType {
+  static final String LANGUAGE_EDITOR = "LANGUAGE_EDITOR";
+  static final String MODEL_EDITOR = "MODEL_EDITOR";
+}
+
+
+T _resolveComplexType<T>(Map cache, dynamic jsog, String key, T Function(Map, dynamic) f) {
+  if (jsog != null && jsog.containsKey(key) && jsog[key] != null) {
+    if (jsog[key].containsKey("@ref")) {
+      return cache[jsog[key]["@ref"]];
+    } else {
+      return f(cache, jsog[key]);
+    }
+  } else {
+    return null;
+  }
+}
+
+List<T> _resolveComplexListType<T>(Map cache, dynamic jsog, String key, T Function(Map, dynamic) f) {
+  var items = List<T>();
+  if (jsog != null && jsog.containsKey(key) && jsog[key] != null) {
+    for (var value in jsog[key]) {
+      if (value.containsKey("@ref")) {
+        items.add(cache[value["@ref"]]);
+      } else {
+        items.add(f(cache, value));
+      }
+    }
+  }
+  return items;
+}
+
+
 class PyroProject extends PyroFolder {
   int id;
   PyroUser owner;
+  String type;
   String name;
   String description;
   PyroOrganization organization;
   PyroWorkspaceImage image;
+  PyroWorkspaceImage template;
   List<PyroFolder> innerFolders;
   List<PyroFile> files;
 
@@ -505,26 +537,12 @@ class PyroProject extends PyroFolder {
       id = jsog["id"];
       description = jsog["description"];
       name = jsog["name"];
+      type = jsog["type"];
 
-      if (jsog["organization"].containsKey("@ref")) {
-        organization = cache[jsog["organization"]["@ref"]];
-      } else {
-        organization = new PyroOrganization(cache: cache, jsog: jsog["organization"]);
-      }
-
-      if (jsog["image"] != null) {
-        if (jsog["image"].containsKey("@ref")) {
-          image = cache[jsog["image"]["@ref"]];
-        } else {
-          image = new PyroWorkspaceImage(cache: cache, jsog: jsog["image"]);
-        }
-      }
-
-      if (jsog["owner"].containsKey("@ref")) {
-        owner = cache[jsog["owner"]["@ref"]];
-      } else {
-        owner = new PyroUser(cache: cache, jsog: jsog["owner"]);
-      }
+      organization = _resolveComplexType(cache, jsog, "organization", (c, j) => new PyroOrganization(cache: c, jsog: j));
+      image = _resolveComplexType(cache, jsog, "image", (c, j) => new PyroWorkspaceImage(cache: c, jsog: j));
+      template = _resolveComplexType(cache, jsog, "template", (c, j) => new PyroWorkspaceImage(cache: c, jsog: j));
+      owner = _resolveComplexType(cache, jsog, "owner", (c, j) => new PyroUser(cache: c, jsog: j));
 
       if (jsog.containsKey("innerFolders")) {
         for (var value in jsog["innerFolders"]) {
@@ -576,6 +594,9 @@ class PyroProject extends PyroFolder {
       }
       if (image != null) {
         jsog['image'] = image.toJSOG(cache);
+      }
+      if (template != null) {
+        jsog['template'] = template.toJSOG(cache);
       }
       jsog['description'] = description;
       jsog['innerFolders'] = innerFolders.map((n) => n.toJSOG(cache)).toList();

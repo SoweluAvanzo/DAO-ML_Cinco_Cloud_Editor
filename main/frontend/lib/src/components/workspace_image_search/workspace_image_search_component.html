@@ -17,7 +17,7 @@
           (click)="handleSelect(image)"
       >
         <div class="w-100 flex-grow-1">
-          <span>{{image.user.username}}/{{image.imageName}}</span>
+          <span>{{getDisplayName(image.imageName)}}</span>
         </div>
         <div>
           <span class="badge badge-dark">{{image.imageVersion}}</span>

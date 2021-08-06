@@ -16,8 +16,9 @@
     <div *ngFor="let project of organization.projects" class="list-group-item pyro-list-entry">
       <div class="list-group-item-heading d-flex flex-row">
         <div (click)="openCurrentProject(project)" class="w-100 d-flex flex-row align-items-center" style="cursor: pointer">
-          <h5 class="m-0 mr-2">{{project.name}}</h5>
-          <workspace-image-badge [image]="project.image" *ngIf="project.image != null"></workspace-image-badge>
+          <h5 class="w-100 m-0 mr-2">{{project.name}}</h5>
+          <workspace-image-badge class="flex-shrink-0 mr-3" [image]="project.template" *ngIf="project.template != null"></workspace-image-badge>
+          <span class="language-editor-badge flex-shrink-0 mr-3" *ngIf="project.template == null">Language editor</span>
         </div>
         <div class="flex-shrink-0">
           <div class="btn-group btn-group-sm">
@@ -35,11 +36,14 @@
         <p *ngIf="project.description.trim() != ''">
           <em>{{project.description}}</em>
         </p>
-        <p class="mb-0 text-muted">
+        <div class="text-muted">
           Owner:
           <strong *ngIf="project.owner.id == user.id">You</strong>
-          <span *ngIf="project.owner.id != user.id">{{project.owner.username}}</span>
-        </p>
+          <em *ngIf="project.owner.id != user.id">{{project.owner.username}}</em>
+        </div>
+        <div class="text-muted" *ngIf="project.image != null">
+          Image: <em>@{{project.image.imageName}}</em>
+        </div>
       </div>
     </div>
   </div>

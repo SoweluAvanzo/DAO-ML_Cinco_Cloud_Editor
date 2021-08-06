@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.db.StopProjectPodsTask;
+import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 
 @ApplicationScoped
 public class StopProjectPodsTaskBean {
@@ -25,7 +25,7 @@ public class StopProjectPodsTaskBean {
     @Transactional
     @Scheduled(every = "120s", identity = "task-job")
     void schedule() {
-        final List<StopProjectPodsTask> tasks = StopProjectPodsTask.findAll().list();
+        final List<StopProjectPodsTaskDB> tasks = StopProjectPodsTaskDB.findAll().list();
         final var now = Instant.now();
 
         tasks.stream()

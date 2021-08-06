@@ -46,7 +46,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                             .withContainers(
                                     new ContainerBuilder()
                                             .withName(name)
-                                            .withImage(registryUrl + "/" + project.image.imageName)
+                                            .withImage(registryUrl + "/" + project.template.imageName)
                                             .withImagePullPolicy("Always")
                                             .withEnv(
                                                     new EnvVarBuilder()
@@ -60,6 +60,10 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                                                     new EnvVarBuilder()
                                                             .withName("DATABASE_PASSWORD")
                                                             .withValue(getProjectName())
+                                                            .build(),
+                                                    new EnvVarBuilder()
+                                                            .withName("BASE_HREF")
+                                                            .withValue("/workspaces/" + getProjectName() + "/")
                                                             .build()
                                             )
                                             .build()

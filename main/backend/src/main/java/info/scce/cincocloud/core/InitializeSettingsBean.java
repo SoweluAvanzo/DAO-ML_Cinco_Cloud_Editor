@@ -10,7 +10,7 @@ import javax.enterprise.event.Observes;
 import javax.transaction.Transactional;
 import info.scce.cincocloud.db.PyroSettingsDB;
 import info.scce.cincocloud.db.PyroStyleDB;
-import info.scce.cincocloud.db.StopProjectPodsTask;
+import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 
 @ApplicationScoped
 @Transactional
@@ -51,7 +51,7 @@ public class InitializeSettingsBean {
                 .filter(Objects::nonNull)
                 .map(Long::valueOf)
                 .forEach(id -> {
-                    final var task = new StopProjectPodsTask();
+                    final var task = new StopProjectPodsTaskDB();
                     task.setProjectId(id);
                     task.setCreatedAt(Instant.now());
                     task.persist();

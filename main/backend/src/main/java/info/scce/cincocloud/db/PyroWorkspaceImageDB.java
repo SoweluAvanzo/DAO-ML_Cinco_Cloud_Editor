@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.Optional;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -33,6 +34,10 @@ public class PyroWorkspaceImageDB extends PanacheEntity {
     @ManyToOne
     public PyroUserDB user;
 
+    @NotNull
+    @OneToOne
+    public PyroProjectDB project;
+
     @Override
     public String toString() {
         return "PyroWorkspaceImageDB{"
@@ -42,6 +47,7 @@ public class PyroWorkspaceImageDB extends PanacheEntity {
                 + ", published=" + published
                 + ", createdAt=" + createdAt
                 + ", updatedAt=" + updatedAt
+                + ", project=" + project
                 + ", user=" + user +
                 '}';
     }

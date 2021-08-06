@@ -6,7 +6,6 @@ import '../../../components/workspace_image_search/workspace_image_search_compon
 import '../../../components/workspace_image_badge/workspace_image_badge_component.dart';
 import '../../../model/core.dart';
 import '../../../service/project_service.dart';
-import '../../../service/workspace_image_service.dart';
 
 enum ProjectType {
   EMPTY,
@@ -39,9 +38,8 @@ class NewProjectComponent {
   PyroUser user;
   PyroOrganization organization;
   ProjectService _projectService;
-  WorkspaceImageService _workspaceImageService;
 
-  NewProjectComponent(ProjectService this._projectService, WorkspaceImageService this._workspaceImageService) {
+  NewProjectComponent(ProjectService this._projectService) {
   }
 
   void createNewProject(String name, String description) {

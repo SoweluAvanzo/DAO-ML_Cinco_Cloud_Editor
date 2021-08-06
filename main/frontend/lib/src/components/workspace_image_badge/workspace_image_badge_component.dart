@@ -11,4 +11,6 @@ class WorkspaceImageBadgeComponent {
 
   @Input()
   PyroWorkspaceImage image;
+
+  String get name => image.imageName.split(':')[0];
 }

@@ -19,7 +19,7 @@ import javax.websocket.server.ServerEndpoint;
 import info.scce.cincocloud.core.rest.types.PyroProjectDeployment;
 import info.scce.cincocloud.core.rest.types.PyroUser;
 import info.scce.cincocloud.db.PyroUserDB;
-import info.scce.cincocloud.db.StopProjectPodsTask;
+import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.sync.helper.WorkerThreadHelper;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
@@ -146,9 +146,9 @@ public class ProjectWebSocket {
     private void createStopProjectPodsTask(long projectId) {
         try {
             transactionManager.begin();
-            final var task = new StopProjectPodsTask();
+            final var task = new StopProjectPodsTaskDB();
             task.setProjectId(projectId);
-            StopProjectPodsTask.persist(task);
+            StopProjectPodsTaskDB.persist(task);
             transactionManager.commit();
         } catch (Exception e) {
             e.printStackTrace();

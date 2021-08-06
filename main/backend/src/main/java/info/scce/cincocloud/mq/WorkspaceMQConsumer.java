@@ -56,7 +56,12 @@ public class WorkspaceMQConsumer {
                 image.imageVersion = "latest";
                 image.published = true;
                 image.user = project.owner;
+                image.project = project;
                 image.persist();
+
+                project.image = image;
+                project.persist();
+
                 LOGGER.log(Level.INFO, "Image {0} created.", new Object[]{image.toString()});
             }
 

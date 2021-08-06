@@ -11,6 +11,7 @@ public class PyroWorkspaceImage extends RESTBaseImpl {
     public String imageVersion;
     public boolean published;
     public PyroUser user;
+    public PyroProject project;
 
     public static PyroWorkspaceImage fromEntity(
             final PyroWorkspaceImageDB entity,
@@ -29,6 +30,7 @@ public class PyroWorkspaceImage extends RESTBaseImpl {
         result.imageVersion = entity.imageVersion;
         result.published = entity.published;
         result.user = PyroUser.fromEntity(entity.user, objectCache);
+        result.project = PyroProject.fromEntity(entity.project, objectCache);
 
         objectCache.putRestTo(entity, result);
 

@@ -21,6 +21,7 @@ import info.scce.cincocloud.db.PyroOrganizationAccessRightDB;
 import info.scce.cincocloud.db.PyroOrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.PyroOrganizationDB;
 import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.db.PyroProjectTypeDB;
 import info.scce.cincocloud.db.PyroUserDB;
 import info.scce.cincocloud.db.PyroWorkspaceImageDB;
 import info.scce.cincocloud.rest.ObjectCache;
@@ -57,7 +58,7 @@ public class ProjectController {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        final Optional<PyroWorkspaceImageDB> image = Optional.ofNullable(newProject.getimage())
+        final Optional<PyroWorkspaceImageDB> image = Optional.ofNullable(newProject.getTemplate())
                 .map(i -> PyroWorkspaceImageDB.findById(i.getId()));
 
         if (canCreateProject(subject, org)) {
@@ -68,6 +69,7 @@ public class ProjectController {
                     org,
                     image
             );
+
             return Response.ok(PyroProject.fromEntity(pp, objectCache)).build();
         }
         return Response.status(Response.Status.FORBIDDEN).build();
@@ -87,7 +89,11 @@ public class ProjectController {
         pp.organization = org;
         subject.ownedProjects.add(pp);
         org.projects.add(pp);
-        image.ifPresent(i -> pp.image = i);
+
+        image.ifPresent(i -> {
+            pp.template = i;
+            pp.type = PyroProjectTypeDB.MODEL_EDITOR;
+        });
 
         pp.persist();
         subject.persist();

@@ -6,7 +6,7 @@ import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
 @Entity(name = "entity_core_stop_project_pods_task")
-public class StopProjectPodsTask extends PanacheEntity {
+public class StopProjectPodsTaskDB extends PanacheEntity {
 
     @NotNull
     private Long projectId;
@@ -14,7 +14,7 @@ public class StopProjectPodsTask extends PanacheEntity {
     @NotNull
     private Instant createdAt;
 
-    public StopProjectPodsTask() {
+    public StopProjectPodsTaskDB() {
         this.createdAt = Instant.now();
     }
 

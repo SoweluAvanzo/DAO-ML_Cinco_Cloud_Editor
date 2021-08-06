@@ -1,12 +1,16 @@
 package info.scce.cincocloud.core.rest.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.db.PyroProjectTypeDB;
 
 public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
 
     private PyroUser owner;
     private PyroOrganization organization;
     private PyroWorkspaceImage image;
+    private PyroWorkspaceImage template;
+    private PyroProjectTypeDB type;
     private String name;
     private String description;
 
@@ -18,7 +22,7 @@ public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
         final PyroProject result;
         result = new PyroProject();
         result.setId(entity.id);
-
+        result.setType(entity.type);
         result.setname(entity.name);
         result.setdescription(entity.description);
 
@@ -26,6 +30,10 @@ public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
 
         if (entity.image != null) {
             result.setimage(PyroWorkspaceImage.fromEntity(entity.image, objectCache));
+        }
+
+        if (entity.template != null) {
+            result.setTemplate(PyroWorkspaceImage.fromEntity(entity.template, objectCache));
         }
 
         if (entity.organization != null) {
@@ -38,53 +46,73 @@ public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
         return result;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("owner")
+    @JsonProperty("owner")
     public PyroUser getowner() {
         return this.owner;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("owner")
+    @JsonProperty("owner")
     public void setowner(final PyroUser owner) {
         this.owner = owner;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("organization")
+    @JsonProperty("organization")
     public PyroOrganization getorganization() {
         return this.organization;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("organization")
+    @JsonProperty("organization")
     public void setorganization(final PyroOrganization organization) {
         this.organization = organization;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("image")
+    @JsonProperty("image")
     public PyroWorkspaceImage getimage() {
         return this.image;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("image")
+    @JsonProperty("image")
     public void setimage(final PyroWorkspaceImage image) {
         this.image = image;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("name")
+    @JsonProperty("name")
     public java.lang.String getname() {
         return this.name;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("name")
+    @JsonProperty("name")
     public void setname(final java.lang.String name) {
         this.name = name;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("description")
+    @JsonProperty("description")
     public java.lang.String getdescription() {
         return this.description;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("description")
+    @JsonProperty("description")
     public void setdescription(final java.lang.String description) {
         this.description = description;
+    }
+
+    @JsonProperty("template")
+    public PyroWorkspaceImage getTemplate() {
+        return template;
+    }
+
+    @JsonProperty("template")
+    public void setTemplate(PyroWorkspaceImage template) {
+        this.template = template;
+    }
+
+    @JsonProperty("type")
+    public PyroProjectTypeDB getType() {
+        return type;
+    }
+
+    @JsonProperty("type")
+    public void setType(PyroProjectTypeDB type) {
+        this.type = type;
     }
 }

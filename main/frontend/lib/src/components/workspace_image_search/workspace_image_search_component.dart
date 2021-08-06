@@ -29,7 +29,7 @@ class WorkspaceImageSearchComponent {
     if (_debounce?.isActive ?? false) _debounce.cancel();
     if (value.trim() != "") {
       _debounce = Timer(const Duration(milliseconds: 500), () {
-        _workspaceImageService.getAll(value.trim()).then((r) {
+        _workspaceImageService.search(value.trim()).then((r) {
           results = r;
         });
       });
@@ -41,5 +41,9 @@ class WorkspaceImageSearchComponent {
   void handleSelect(PyroWorkspaceImage image) {
     selectImageSC.add(image);
     results.clear();
+  }
+
+  String getDisplayName(String imageName) {
+    return '@' + imageName.split(':')[0];
   }
 }

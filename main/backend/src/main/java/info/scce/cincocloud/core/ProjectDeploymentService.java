@@ -14,9 +14,14 @@ import javax.transaction.Transactional;
 import info.scce.cincocloud.core.rest.types.PyroProjectDeployment;
 import info.scce.cincocloud.core.rest.types.PyroProjectDeploymentStatus;
 import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.db.StopProjectPodsTask;
+import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 import info.scce.cincocloud.k8s.K8SException;
 import info.scce.cincocloud.k8s.K8SUtils;
+import info.scce.cincocloud.k8s.languageeditor.TheiaK8SDeployment;
+import info.scce.cincocloud.k8s.languageeditor.TheiaK8SIngress;
+import info.scce.cincocloud.k8s.languageeditor.TheiaK8SPersistentVolume;
+import info.scce.cincocloud.k8s.languageeditor.TheiaK8SPersistentVolumeClaim;
+import info.scce.cincocloud.k8s.languageeditor.TheiaK8SService;
 import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SDeployment;
 import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SIngress;
 import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SService;
@@ -24,11 +29,6 @@ import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SDeployment;
 import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SPersistentVolume;
 import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SPersistentVolumeClaim;
 import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SService;
-import info.scce.cincocloud.k8s.languageeditor.TheiaK8SDeployment;
-import info.scce.cincocloud.k8s.languageeditor.TheiaK8SIngress;
-import info.scce.cincocloud.k8s.languageeditor.TheiaK8SPersistentVolume;
-import info.scce.cincocloud.k8s.languageeditor.TheiaK8SPersistentVolumeClaim;
-import info.scce.cincocloud.k8s.languageeditor.TheiaK8SService;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 import info.scce.cincocloud.util.CDIUtils;
 import info.scce.cincocloud.util.WaitUtils;
@@ -66,7 +66,7 @@ public class ProjectDeploymentService {
     }
 
     public void delete(PyroProjectDB project) {
-        if (project.image == null) {
+        if (project.isLanguageEditor()) {
             stopAndDeleteLanguageEditor(project);
         } else {
             stopAndDeleteModelEditor(project);
@@ -281,7 +281,7 @@ public class ProjectDeploymentService {
     }
 
     private void removeScheduledTasks(PyroProjectDB project) {
-        StopProjectPodsTask.delete("projectId", project.id);
+        StopProjectPodsTaskDB.delete("projectId", project.id);
     }
 
     private Service getRegistryService() {
