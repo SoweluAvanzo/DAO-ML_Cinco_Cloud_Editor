@@ -55,7 +55,10 @@ class EditProjectComponent implements OnInit {
     projectName = project.name;
     projectDescription = project.description;
     selectedOwnerId = "${user.id}";
-    imagePublished = project.image.published;
+
+    if (project.image != null) {
+      imagePublished = project.image.published;
+    }
   }
 
   void editProject() {
