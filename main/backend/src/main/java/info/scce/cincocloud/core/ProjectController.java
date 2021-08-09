@@ -61,6 +61,10 @@ public class ProjectController {
         final Optional<PyroWorkspaceImageDB> image = Optional.ofNullable(newProject.getTemplate())
                 .map(i -> PyroWorkspaceImageDB.findById(i.getId()));
 
+        if (image.isPresent() && !image.get().published) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
         if (canCreateProject(subject, org)) {
             final PyroProjectDB pp = createProject(
                     newProject.getname(),
