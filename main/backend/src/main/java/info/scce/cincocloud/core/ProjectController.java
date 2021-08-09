@@ -58,11 +58,14 @@ public class ProjectController {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        final Optional<PyroWorkspaceImageDB> image = Optional.ofNullable(newProject.getTemplate())
+        final Optional<PyroWorkspaceImageDB> imageOptional = Optional.ofNullable(newProject.getTemplate())
                 .map(i -> PyroWorkspaceImageDB.findById(i.getId()));
 
-        if (image.isPresent() && !image.get().published) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        if (imageOptional.isPresent()) {
+            final PyroWorkspaceImageDB image = imageOptional.get();
+            if (!image.published && !image.project.owner.equals(subject)) {
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
         }
 
         if (canCreateProject(subject, org)) {
@@ -71,7 +74,7 @@ public class ProjectController {
                     newProject.getdescription(),
                     subject,
                     org,
-                    image
+                    imageOptional
             );
 
             return Response.ok(PyroProject.fromEntity(pp, objectCache)).build();
