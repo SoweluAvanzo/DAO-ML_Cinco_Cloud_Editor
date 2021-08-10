@@ -20,74 +20,38 @@
         </button>
       </div>
       <div class="modal-body">
-
-        <div class="nav nav-tabs mb-3">
-          <div class="nav-item">
-            <a class="nav-link" [class.active]="isProjectTab" (click)="setProjectTab($event)" href="#">Project</a>
-          </div>
-          <div class="nav-item" *ngIf="project.image != null">
-            <a class="nav-link" [class.active]="isImageTab" (click)="setImageTab($event)" href="#">Image</a>
-          </div>
-        </div>
-
         <div *ngIf="hasBeenSaved" class="alert alert-success">
           Changes has been saved!
         </div>
-
-        <ng-container *ngIf="isProjectTab">
-          <form (ngSubmit)="editProject()">
-            <div class="form-group">
-              <label for="projectName">Name</label>
-              <input [(ngModel)]="projectName" class="form-control" id="projectName" placeholder="Name" type="text">
-            </div>
-            <div class="form-group">
-              <label for="projectDescription">Description</label>
-              <textarea
-                  [(ngModel)]="projectDescription"
-                  class="form-control"
-                  id="projectDescription"
-                  placeholder="Description"
-              ></textarea>
-            </div>
-            <div *ngIf="canChangeOwner" class="form-group">
-              <label>Owner</label>
-              <select [(ngModel)]="selectedOwnerId" class="form-control">
-                <optgroup label="Owners">
-                  <option *ngFor="let user of organization.owners" value="{{user.id}}">{{user.username}}</option>
-                </optgroup>
-                <optgroup label="Members">
-                  <option *ngFor="let user of organization.members" value="{{user.id}}">{{user.username}}</option>
-                </optgroup>
-              </select>
-            </div>
-          </form>
-        </ng-container>
-
-        <ng-container *ngIf="isImageTab">
-          <div class="d-flex flex-row align-items-center">
-            <div class="w-100">
-              <workspace-image-badge [image]="project.image"></workspace-image-badge>
-            </div>
-            <div class="d-flex flex-row align-items-center flex-shrink-0">
-              <toggle-button
-                  (changed)="handleImagePublishedChanged($event)"
-                  [enabled]="imagePublished"
-                  [show-tooltip]="false"
-              >
-              </toggle-button>
-              <span class="ml-2" *ngIf="imagePublished">Public</span>
-              <span class="ml-2" *ngIf="!imagePublished">Private</span>
-            </div>
+        <form (ngSubmit)="editProject()">
+          <div class="form-group">
+            <label for="projectName">Name</label>
+            <input [(ngModel)]="projectName" class="form-control" id="projectName" placeholder="Name" type="text">
           </div>
-        </ng-container>
+          <div class="form-group">
+            <label for="projectDescription">Description</label>
+            <textarea
+                [(ngModel)]="projectDescription"
+                class="form-control"
+                id="projectDescription"
+                placeholder="Description"
+            ></textarea>
+          </div>
+          <div *ngIf="canChangeOwner" class="form-group">
+            <label>Owner</label>
+            <select [(ngModel)]="selectedOwnerId" class="form-control">
+              <optgroup label="Owners">
+                <option *ngFor="let user of organization.owners" value="{{user.id}}">{{user.username}}</option>
+              </optgroup>
+              <optgroup label="Members">
+                <option *ngFor="let user of organization.members" value="{{user.id}}">{{user.username}}</option>
+              </optgroup>
+            </select>
+          </div>
+        </form>
       </div>
       <div class="modal-footer">
-        <ng-container *ngIf="isProjectTab">
-          <button (click)="editProject()" class="btn btn-primary" type="button">Edit Project</button>
-        </ng-container>
-        <ng-container *ngIf="isImageTab">
-          <button (click)="editImage()" class="btn btn-primary" type="button">Edit Image</button>
-        </ng-container>
+        <button (click)="editProject()" class="btn btn-primary" type="button">Edit Project</button>
         <button (click)="closeSC.add($event)" class="btn" data-dismiss="modal" type="button">Cancel</button>
       </div>
     </div>
