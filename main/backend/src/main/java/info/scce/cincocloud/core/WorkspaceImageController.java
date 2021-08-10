@@ -39,12 +39,9 @@ public class WorkspaceImageController {
     @Path("/search")
     @RolesAllowed("user")
     public Response search(@Context SecurityContext securityContext, @QueryParam("q") String query) {
-        final var currentUser = PyroUserDB.getCurrentUser(securityContext);
-
         final List<PyroWorkspaceImage> images = PyroWorkspaceImageDB.listAll()
                 .stream()
                 .map(image -> (PyroWorkspaceImageDB) image)
-                .filter(image -> image.published || image.project.owner.equals(currentUser))
                 .map(image -> PyroWorkspaceImage.fromEntity(image, objectCache))
                 .collect(Collectors.toList());
 
@@ -93,6 +90,6 @@ public class WorkspaceImageController {
         imageInDb.published = image.published;
         imageInDb.persist();
 
-        return Response.ok(PyroWorkspaceImage.fromEntity(imageInDb, objectCache)).build();
+        return Response.ok(imageInDb).build();
     }
 }
