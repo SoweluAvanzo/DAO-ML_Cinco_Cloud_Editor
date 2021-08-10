@@ -13,6 +13,9 @@ class ToggleButtonComponent {
   
   @Input("enabled")
   bool enabled;
+
+  @Input()
+  bool showTooltip = true;
   
   final changedSC = new StreamController();
   @Output() Stream get changed => changedSC.stream;
