@@ -300,6 +300,31 @@ class PyroSettings {
   }
 }
 
+class WorkspaceImageBuildResult {
+  int projectId;
+  bool success;
+  String message;
+  String image;
+
+  WorkspaceImageBuildResult({Map cache, dynamic jsog}) {
+    if (jsog != null) {
+      projectId = jsog["projectId"];
+      success = jsog["success"];
+      message = jsog["message"];
+      image = jsog["image"];
+    } else {
+      projectId = -1;
+      success = false;
+      message = "";
+      image = "";
+    }
+  }
+
+  static WorkspaceImageBuildResult fromJSOG(Map cache, dynamic jsog) {
+    return new WorkspaceImageBuildResult(cache: cache, jsog: jsog);
+  }
+}
+
 class PyroWorkspaceImage {
   int id;
   String name;

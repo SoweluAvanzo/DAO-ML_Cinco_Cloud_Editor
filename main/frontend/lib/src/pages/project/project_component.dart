@@ -103,6 +103,14 @@ class ProjectComponent implements OnActivate, OnDeactivate {
             case 'project:podDeploymentStatus':
               deployment = PyroProjectDeployment.fromJSOG(new Map(), message['content']);
               break;
+            case 'workspaces:jobs:results':
+              var result = WorkspaceImageBuildResult.fromJSOG(new Map(), message['content']);
+              if (result.success) {
+                _notificationService.displayMessage("Image ${result.image} has been build successfully.", NotificationType.SUCCESS);
+              } else {
+                _notificationService.displayMessage("Image ${result.image} could not be build: ${result.message}", NotificationType.DANGER);
+              }
+              break;
           }
         });
 
