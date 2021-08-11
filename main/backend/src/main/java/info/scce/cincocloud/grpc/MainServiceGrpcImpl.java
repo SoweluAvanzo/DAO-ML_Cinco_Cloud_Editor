@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
-import javax.transaction.UserTransaction;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import info.scce.cincocloud.config.VertxService;
@@ -39,9 +38,6 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
 
     @Inject
     VertxService vertxService;
-
-    @Inject
-    UserTransaction transaction;
 
     @Override
     @Transactional
@@ -110,6 +106,8 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
     public Uni<CincoCloudProtos.GetGeneratedAppArchiveReply> getGeneratedAppArchive(CincoCloudProtos.GetGeneratedAppArchiveRequest request) {
         final var projectId = request.getProjectId();
 
+        LOGGER.log(Level.INFO, "getGeneratedAppArchive(projectId: {0})", new Object[]{projectId});
+
         if (projectId <= 0) {
             throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
                     .withDescription("projectId must be > 0"));
@@ -141,6 +139,48 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
                 });
     }
 
+    @Override
+    @Transactional
+    public Uni<CincoCloudProtos.BuildJobStatus> getBuildJobStatus(CincoCloudProtos.GetBuildJobStatusRequest request) {
+        LOGGER.log(Level.INFO, "getBuildJobStatus(jobId: {0})", new Object[]{request.getJobId()});
+
+        return Uni.createFrom().item(() -> PyroWorkspaceImageBuildJobDB.findByIdOptional(request.getJobId()))
+                .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                .map(jobOptional -> {
+                    if (jobOptional.isEmpty()) {
+                        throw new StatusRuntimeException(Status.fromCode(Status.Code.NOT_FOUND)
+                                .withDescription("job not found"));
+                    } else {
+                        final var job = (PyroWorkspaceImageBuildJobDB) jobOptional.get();
+                        return CincoCloudProtos.BuildJobStatus.newBuilder()
+                                .setJobId(job.id)
+                                .setStatus(jobStatusToProtoJobStatus(job.status))
+                                .build();
+                    }
+                });
+    }
+
+    @Override
+    @Transactional
+    public Uni<CincoCloudProtos.BuildJobStatus> setBuildJobStatus(CincoCloudProtos.BuildJobStatus request) {
+        LOGGER.log(Level.INFO, "setBuildJobStatus(jobId: {0}, status: {1})", new Object[]{request.getJobId(), request.getStatus()});
+
+        return Uni.createFrom().item(() -> {
+            final var job = (PyroWorkspaceImageBuildJobDB) PyroWorkspaceImageBuildJobDB.findByIdOptional(request.getJobId()).orElseThrow(
+                    () -> new StatusRuntimeException(Status.fromCode(Status.Code.NOT_FOUND).withDescription("job not found"))
+            );
+            job.status = protoJobStatusToJobStatus(request.getStatus());
+            job.persist();
+            return job;
+        })
+                .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                .map(job -> CincoCloudProtos.BuildJobStatus.newBuilder()
+                        .setJobId(job.id)
+                        .setStatus(jobStatusToProtoJobStatus(job.status))
+                        .build()
+                );
+    }
+
     private Optional<PyroWorkspaceImageBuildJobDB> createBuildJob(PyroProjectDB project) {
         final var buildJob = new PyroWorkspaceImageBuildJobDB(
                 project,
@@ -148,6 +188,28 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
         );
         buildJob.persist();
         return Optional.of(buildJob);
+    }
+
+    private CincoCloudProtos.BuildJobStatus.Status jobStatusToProtoJobStatus(PyroWorkspaceImageBuildJobDB.Status status) {
+        switch (status) {
+            case PENDING: return CincoCloudProtos.BuildJobStatus.Status.PENDING;
+            case BUILDING: return CincoCloudProtos.BuildJobStatus.Status.BUILDING;
+            case ABORTED: return CincoCloudProtos.BuildJobStatus.Status.ABORTED;
+            case FINISHED_WITH_SUCCESS: return CincoCloudProtos.BuildJobStatus.Status.FINISHED_WITH_SUCCESS;
+            case FINISHED_WITH_FAILURE: return CincoCloudProtos.BuildJobStatus.Status.FINISHED_WITH_FAILURE;
+        }
+        throw new IllegalArgumentException("unknown job status enum type: " + status);
+    }
+
+    private PyroWorkspaceImageBuildJobDB.Status protoJobStatusToJobStatus(CincoCloudProtos.BuildJobStatus.Status status) {
+        switch (status.getNumber()) {
+            case CincoCloudProtos.BuildJobStatus.Status.PENDING_VALUE: return PyroWorkspaceImageBuildJobDB.Status.PENDING;
+            case CincoCloudProtos.BuildJobStatus.Status.BUILDING_VALUE: return PyroWorkspaceImageBuildJobDB.Status.BUILDING;
+            case CincoCloudProtos.BuildJobStatus.Status.ABORTED_VALUE: return PyroWorkspaceImageBuildJobDB.Status.ABORTED;
+            case CincoCloudProtos.BuildJobStatus.Status.FINISHED_WITH_SUCCESS_VALUE: return PyroWorkspaceImageBuildJobDB.Status.FINISHED_WITH_SUCCESS;
+            case CincoCloudProtos.BuildJobStatus.Status.FINISHED_WITH_FAILURE_VALUE: return PyroWorkspaceImageBuildJobDB.Status.FINISHED_WITH_FAILURE;
+        }
+        throw new IllegalArgumentException("unknown proto job status type: " + status);
     }
 
     private CincoCloudProtos.GetGeneratedAppArchiveReply getGeneratedAppArchiveReply(long projectId, ByteString byteString) {

@@ -66,9 +66,30 @@ public class WorkspaceImageBuilder {
             }
 
             try {
+                final var jobInDB = mainService.getBuildJobStatus(CincoCloudProtos.GetBuildJobStatusRequest.newBuilder()
+                        .setJobId(job.jobId)
+                        .build());
+
+                if (jobInDB.getStatus().getNumber() == CincoCloudProtos.BuildJobStatus.Status.ABORTED_VALUE) {
+                    logger.info("image was was already aborted and will not be build.");
+                    message.ack();
+                    return;
+                }
+            } catch (Exception e) {
+                logger.error("could not fetch job from main service.", e);
+                message.ack();
+                return;
+            }
+
+            try {
                 for (var cv: validator.validate(job)) {
                     throw new ValidationException(cv.getMessage());
                 }
+
+                mainService.setBuildJobStatus(CincoCloudProtos.BuildJobStatus.newBuilder()
+                        .setStatus(CincoCloudProtos.BuildJobStatus.Status.BUILDING)
+                        .setJobId(job.jobId)
+                        .build());
 
                 final var result = build(job);
                 logger.info("image was build successfully: {}", result);

@@ -24,10 +24,32 @@ message GetGeneratedAppArchiveReply {
     bytes archive = 2;
 }
 
+message GetBuildJobStatusRequest {
+    uint64 jobId = 1;
+}
+
+message BuildJobStatus {
+    uint64 jobId = 1;
+    enum Status {
+        PENDING = 0;
+        BUILDING = 1;
+        FINISHED_WITH_SUCCESS = 2;
+        FINISHED_WITH_FAILURE = 3;
+        ABORTED = 4;
+    }
+    Status status = 2;
+}
+
 service MainService {
     rpc CreateImageFromArchive (CreateImageRequest) returns (CreateImageReply) {
     }
 
     rpc GetGeneratedAppArchive (GetGeneratedAppArchiveRequest) returns (GetGeneratedAppArchiveReply) {
+    }
+
+    rpc GetBuildJobStatus (GetBuildJobStatusRequest) returns (BuildJobStatus) {
+    }
+
+    rpc SetBuildJobStatus (BuildJobStatus) returns (BuildJobStatus) {
     }
 }
