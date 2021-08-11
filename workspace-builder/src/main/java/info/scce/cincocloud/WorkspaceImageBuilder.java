@@ -75,7 +75,7 @@ public class WorkspaceImageBuilder {
                 buildResultEmitter.send(result);
             } catch (Exception e) {
                 logger.error("image build failed.", e);
-                final var result = new BuildResult(job.projectId, false, e.getMessage(), null);
+                final var result = new BuildResult(job.projectId, job.jobId, false, e.getMessage(), null);
                 buildResultEmitter.send(result);
             } finally {
                 message.ack();
@@ -104,7 +104,7 @@ public class WorkspaceImageBuilder {
         // build image and push to registry
         buildImage(response.getProjectId(), tmpImageDir, job.getImageTag());
 
-        return new BuildResult(job.projectId, true, "success", job.getImageTag());
+        return new BuildResult(job.projectId, job.jobId, true, "success", job.getImageTag());
     }
 
     private void buildImage(Long projectId, Path sourceDir, String tag) throws Exception {

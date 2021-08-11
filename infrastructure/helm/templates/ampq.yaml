@@ -6,8 +6,8 @@ metadata:
   labels:
     app: ampq
 data:
-  ARTEMIS_USERNAME: cc
-  ARTEMIS_PASSWORD: cc
+  AMQ_USER: cc
+  AMQ_PASSWORD: cc
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: ampq
-          image: vromero/activemq-artemis:2.16.0-alpine
+          image: quay.io/artemiscloud/activemq-artemis-broker:0.1.3
           envFrom:
             - configMapRef:
                 name: ampq-config
@@ -74,7 +74,7 @@ metadata:
 spec:
   storageClassName: manual
   capacity:
-    storage: 1Gi
+    storage: 2Gi
   accessModes:
     - ReadWriteMany
   hostPath:
@@ -93,4 +93,4 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 1Gi
+      storage: 2Gi

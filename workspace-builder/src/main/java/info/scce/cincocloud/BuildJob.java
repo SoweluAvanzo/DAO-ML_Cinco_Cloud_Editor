@@ -14,6 +14,10 @@ public class BuildJob {
     @Min(value = 0, message = "The ID must not be < 0.")
     public Long projectId;
 
+    @NotNull(message = "The ID must not be null.")
+    @Min(value = 0, message = "The ID must not be < 0.")
+    public Long jobId;
+
     /**
      * The username the workspace belongs to.
      */

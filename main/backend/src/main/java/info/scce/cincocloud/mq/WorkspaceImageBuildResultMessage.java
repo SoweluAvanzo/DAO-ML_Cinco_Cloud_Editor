@@ -1,12 +1,17 @@
 package info.scce.cincocloud.mq;
 
-public class WorkspaceImageBuildResult {
+public class WorkspaceImageBuildResultMessage {
 
     /**
      * The ID of the project.
-     * Should match with the ID of the corresponding build job {@link WorkspaceImageBuildJob}.
+     * Should match with the ID of the corresponding build job {@link WorkspaceImageBuildJobMessage}.
      */
     public Long projectId;
+
+    /**
+     * The ID of the job.
+     */
+    public Long jobId;
 
     /**
      * The the image could be built successfully.

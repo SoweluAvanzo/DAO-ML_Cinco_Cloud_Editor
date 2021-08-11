@@ -16,9 +16,9 @@ public class WorkspaceMQProducer {
     @Inject
     @Channel("workspaces-jobs-queue")
     @OnOverflow(value = OnOverflow.Strategy.NONE)
-    Emitter<WorkspaceImageBuildJob> workspaces;
+    Emitter<WorkspaceImageBuildJobMessage> workspaces;
 
-    public void send(WorkspaceImageBuildJob job) {
+    public void send(WorkspaceImageBuildJobMessage job) {
         LOGGER.log(Level.INFO, "Send message to workspaces.jobs.queue: {0}", new Object[]{job.toString()});
         workspaces.send(job);
     }

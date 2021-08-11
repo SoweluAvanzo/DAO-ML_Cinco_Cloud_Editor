@@ -1,11 +1,16 @@
 package info.scce.cincocloud.mq;
 
-public class WorkspaceImageBuildJob {
+public class WorkspaceImageBuildJobMessage {
 
     /**
      * The ID of the project.
      */
     public Long projectId;
+
+    /**
+     * The ID of the build job.
+     */
+    public Long jobId;
 
     /**
      * The username the workspace belongs to.
@@ -17,16 +22,18 @@ public class WorkspaceImageBuildJob {
      */
     public String language;
 
-    public WorkspaceImageBuildJob(Long projectId, String username, String language) {
+    public WorkspaceImageBuildJobMessage(Long projectId, Long jobId, String username, String language) {
         this.projectId = projectId;
+        this.jobId = jobId;
         this.username = username;
         this.language = language;
     }
 
     @Override
     public String toString() {
-        return "WorkspaceImageBuildJob{"
+        return "WorkspaceImageBuildJobMessage{"
                 + "projectId=" + projectId
+                + ", jobId=" + jobId
                 + ", username='" + username + '\''
                 + ", language='" + language + '\''
                 + '}';

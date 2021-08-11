@@ -1,5 +1,6 @@
 package info.scce.cincocloud.config;
 
+import io.quarkus.runtime.Startup;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,10 +9,12 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import info.scce.cincocloud.grpc.MainServiceGrpcImpl;
 
-@ApplicationScoped
+@Singleton
+@Startup
 public class StartupBean {
 
     private static final Logger LOGGER = Logger.getLogger(StartupBean.class.getName());

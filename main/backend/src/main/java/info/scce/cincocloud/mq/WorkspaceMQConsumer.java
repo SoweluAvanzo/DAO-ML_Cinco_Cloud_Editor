@@ -12,6 +12,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.db.PyroWorkspaceImageBuildJobDB;
 import info.scce.cincocloud.db.PyroWorkspaceImageDB;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 import info.scce.cincocloud.sync.WebSocketMessage;
@@ -31,16 +32,21 @@ public class WorkspaceMQConsumer {
         LOGGER.log(Level.INFO, "Received message from workspaces.jobs.results: {0}.", new Object[]{message});
 
         try {
-            final var result = DatabindCodec.mapper().readValue(message.toString(), WorkspaceImageBuildResult.class);
+            final var result = DatabindCodec.mapper().readValue(message.toString(), WorkspaceImageBuildResultMessage.class);
+
+            final var buildJob = (PyroWorkspaceImageBuildJobDB) PyroWorkspaceImageBuildJobDB.findByIdOptional(result.jobId)
+                    .orElseThrow(() -> new EntityNotFoundException("The job with the id '" + result.jobId + "' could not be found."));
+            buildJob.status = result.success
+                    ? PyroWorkspaceImageBuildJobDB.Status.FINISHED_WITH_SUCCESS
+                    : PyroWorkspaceImageBuildJobDB.Status.FINISHED_WITH_FAILURE;
+            buildJob.persist();
+
             if (!result.success) {
                 throw new IllegalStateException("Image for project '" + result.projectId + "' could not be build.");
             }
 
-            final var projectOptional = PyroProjectDB.findByIdOptional(result.projectId);
-            if (projectOptional.isEmpty()) {
-                throw new EntityNotFoundException("The project with the id '" + result.projectId + "' could not be found.");
-            }
-            final var project = (PyroProjectDB) projectOptional.get();
+            final var project = (PyroProjectDB) PyroProjectDB.findByIdOptional(result.projectId)
+                    .orElseThrow(() -> new EntityNotFoundException("The project with the id '" + result.projectId + "' could not be found."));
 
             final var existingImageOptional = PyroWorkspaceImageDB.findByImageName(result.image);
             final PyroWorkspaceImageDB image;

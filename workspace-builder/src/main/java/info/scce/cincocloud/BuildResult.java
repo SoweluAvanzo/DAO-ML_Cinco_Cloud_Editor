@@ -1,5 +1,8 @@
 package info.scce.cincocloud;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
 public class BuildResult {
 
     /**
@@ -7,6 +10,11 @@ public class BuildResult {
      * Should match with the ID of the corresponding build job {@link BuildJob}.
      */
     public Long projectId;
+
+    /**
+     * The ID of the job.
+     */
+    public Long jobId;
 
     /**
      * The the image could be built successfully.
@@ -23,8 +31,9 @@ public class BuildResult {
      */
     public String image;
 
-    public BuildResult(Long projectId, Boolean success, String message, String image) {
+    public BuildResult(Long projectId, Long jobId, Boolean success, String message, String image) {
         this.projectId = projectId;
+        this.jobId = jobId;
         this.success = success;
         this.message = message;
         this.image = image;
@@ -32,11 +41,12 @@ public class BuildResult {
 
     @Override
     public String toString() {
-        return "JobResult{" +
-                "id=" + projectId +
-                ", success=" + success +
-                ", message='" + message + '\'' +
-                ", image='" + image + '\'' +
-                '}';
+        return "JobResult{"
+                + "projectId=" + projectId
+                + ", jobId=" + jobId
+                + ", success=" + success
+                + ", message='" + message + '\''
+                + ", image='" + image + '\''
+                + '}';
     }
 }

@@ -9,16 +9,19 @@ import io.vertx.mutiny.core.buffer.Buffer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
+import javax.transaction.UserTransaction;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import info.scce.cincocloud.config.VertxService;
 import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.mq.WorkspaceImageBuildJob;
+import info.scce.cincocloud.db.PyroWorkspaceImageBuildJobDB;
+import info.scce.cincocloud.mq.WorkspaceImageBuildJobMessage;
 import info.scce.cincocloud.mq.WorkspaceMQProducer;
 import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.proto.MutinyMainServiceGrpc;
@@ -36,6 +39,9 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
 
     @Inject
     VertxService vertxService;
+
+    @Inject
+    UserTransaction transaction;
 
     @Override
     @Transactional
@@ -70,22 +76,32 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
                     .withDescription("failed to save archive."));
         }
 
-        return Uni.createFrom().item(() -> PyroProjectDB.findByIdOptional(projectId))
+        return Uni.createFrom().item(() -> {
+            final var project = (PyroProjectDB) PyroProjectDB.findByIdOptional(projectId).orElseThrow(() -> new StatusRuntimeException(
+                    Status.fromCode(Status.Code.INVALID_ARGUMENT).withDescription("project not found")
+            ));
+
+            PyroWorkspaceImageBuildJobDB.findByProjectId(projectId).stream()
+                .filter(job -> job.status.equals(PyroWorkspaceImageBuildJobDB.Status.BUILDING))
+                .findFirst()
+                .orElseThrow(() -> new StatusRuntimeException(
+                        Status.fromCode(Status.Code.ALREADY_EXISTS).withDescription("a build job for the project already exists")
+                ));
+
+            return createBuildJob(project).orElseThrow(() -> new StatusRuntimeException(
+                    Status.fromCode(Status.Code.INTERNAL).withDescription("failed to create a build job")
+            ));
+        })
                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-                .flatMap(projectOptional -> {
-                    if (projectOptional.isEmpty()) {
-                        throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
-                                .withDescription("project not found"));
-                    } else {
-                        final var project = (PyroProjectDB) projectOptional.get();
-                        LOGGER.log(Level.INFO, "Save archive (projectId: {0}, archive: {1})", new Object[]{project, file});
-                        return vertx.fileSystem().writeFile(file.toString(), Buffer.buffer(archiveInBytes.toByteArray()))
-                                .map(v -> {
-                                    LOGGER.log(Level.INFO, "Create build image job (projectId: {0}, user: {1}, archive: {2})", new Object[]{project, project.owner.username, file});
-                                    workspaceMQProducer.send(new WorkspaceImageBuildJob(projectId, project.owner.username, project.name));
-                                    return createImageReply(projectId);
-                                });
-                    }
+                .flatMap(job -> {
+                    final var project = job.project;
+                    LOGGER.log(Level.INFO, "Save archive (projectId: {0}, archive: {1})", new Object[]{project, file});
+                    return vertx.fileSystem().writeFile(file.toString(), Buffer.buffer(archiveInBytes.toByteArray()))
+                            .map(v -> {
+                                LOGGER.log(Level.INFO, "Create build image job (projectId: {0}, user: {1}, archive: {2})", new Object[]{project, project.owner.username, file});
+                                workspaceMQProducer.send(new WorkspaceImageBuildJobMessage(projectId, job.id, project.owner.username, project.name));
+                                return createImageReply(projectId);
+                            });
                 });
     }
 
@@ -123,6 +139,15 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
                         }
                     }
                 });
+    }
+
+    private Optional<PyroWorkspaceImageBuildJobDB> createBuildJob(PyroProjectDB project) {
+        final var buildJob = new PyroWorkspaceImageBuildJobDB(
+                project,
+                PyroWorkspaceImageBuildJobDB.Status.PENDING
+        );
+        buildJob.persist();
+        return Optional.of(buildJob);
     }
 
     private CincoCloudProtos.GetGeneratedAppArchiveReply getGeneratedAppArchiveReply(long projectId, ByteString byteString) {

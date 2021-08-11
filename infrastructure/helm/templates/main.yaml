@@ -122,7 +122,7 @@ metadata:
 spec:
   storageClassName: manual
   capacity:
-    storage: 30Gi
+    storage: 20Gi
   claimRef:
     namespace: default
     name: main-pv-claim
@@ -144,4 +144,4 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 30Gi
+      storage: 20Gi
