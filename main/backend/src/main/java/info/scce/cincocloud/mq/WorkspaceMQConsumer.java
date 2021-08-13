@@ -39,6 +39,7 @@ public class WorkspaceMQConsumer {
             buildJob.status = result.success
                     ? PyroWorkspaceImageBuildJobDB.Status.FINISHED_WITH_SUCCESS
                     : PyroWorkspaceImageBuildJobDB.Status.FINISHED_WITH_FAILURE;
+            buildJob.finishedAt = Instant.now();
             buildJob.persist();
 
             if (!result.success) {

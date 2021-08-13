@@ -1,16 +1,23 @@
 package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-import java.util.List;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import io.quarkus.panache.common.Sort;
+import java.time.Instant;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.OneToOne;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
 import javax.validation.constraints.NotNull;
 
 @Entity
+@NamedQuery(
+        name = "PyroWorkspaceImageBuildJobDB.findByProjectId",
+        query = "select job from PyroWorkspaceImageBuildJobDB job inner join job.project p where p.id = ?1"
+)
 public class PyroWorkspaceImageBuildJobDB extends PanacheEntity {
 
     public enum Status {
@@ -22,11 +29,17 @@ public class PyroWorkspaceImageBuildJobDB extends PanacheEntity {
     }
 
     @NotNull
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "project_PyroUserDB_id")
     public PyroProjectDB project;
+
 
     @Enumerated(EnumType.STRING)
     public Status status = Status.PENDING;
+
+    public Instant startedAt;
+
+    public Instant finishedAt;
 
     public PyroWorkspaceImageBuildJobDB() {
     }
@@ -36,15 +49,12 @@ public class PyroWorkspaceImageBuildJobDB extends PanacheEntity {
         this.status = status;
     }
 
-    public static List<PyroWorkspaceImageBuildJobDB> findByStatus(Status status) {
-        return find("status", status).list();
+    public static PanacheQuery<PyroWorkspaceImageBuildJobDB> findByProjectId(Long projectId) {
+        return find("#PyroWorkspaceImageBuildJobDB.findByProjectId", projectId);
     }
 
-    public static List<PyroWorkspaceImageBuildJobDB> findByProjectId(Long projectId) {
-        return findAll().stream()
-                .map(e -> (PyroWorkspaceImageBuildJobDB) e)
-                .filter(e -> e.project.id.equals(projectId))
-                .collect(Collectors.toList());
+    public static PanacheQuery<PyroWorkspaceImageBuildJobDB> findByProjectId(Long projectId, Sort sort) {
+        return find("#PyroWorkspaceImageBuildJobDB.findByProjectId", sort, projectId);
     }
 
     @Override

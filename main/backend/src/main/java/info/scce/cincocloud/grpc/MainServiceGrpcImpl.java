@@ -9,6 +9,7 @@ import io.vertx.mutiny.core.buffer.Buffer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -80,9 +81,11 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
             PyroWorkspaceImageBuildJobDB.findByProjectId(projectId).stream()
                 .filter(job -> job.status.equals(PyroWorkspaceImageBuildJobDB.Status.BUILDING))
                 .findFirst()
-                .orElseThrow(() -> new StatusRuntimeException(
-                        Status.fromCode(Status.Code.ALREADY_EXISTS).withDescription("a build job for the project already exists")
-                ));
+                .ifPresent((job) -> {
+                    throw new StatusRuntimeException(
+                            Status.fromCode(Status.Code.ALREADY_EXISTS).withDescription("a build job for the project already exists")
+                    );
+                });
 
             return createBuildJob(project).orElseThrow(() -> new StatusRuntimeException(
                     Status.fromCode(Status.Code.INTERNAL).withDescription("failed to create a build job")
@@ -186,6 +189,7 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
                 project,
                 PyroWorkspaceImageBuildJobDB.Status.PENDING
         );
+        buildJob.startedAt = Instant.now();
         buildJob.persist();
         return Optional.of(buildJob);
     }

@@ -2,6 +2,7 @@ import 'package:angular/angular.dart';
 import 'dart:html';
 import 'dart:convert';
 import 'package:angular_router/angular_router.dart';
+import 'package:ng_bootstrap/ng_bootstrap.dart';
 
 import '../../model/core.dart';
 import 'new_project/new_project_component.dart';
@@ -29,7 +30,8 @@ import '../main/route_paths.dart';
       NewProjectComponent,
       EditProjectComponent,
       DeleteProjectComponent,
-      WorkspaceImageBadgeComponent
+      WorkspaceImageBadgeComponent,
+      bsDirectives
     ],
     styleUrls: const [
       'projects_component.css'
@@ -169,4 +171,8 @@ class ProjectsComponent implements OnDestroy, OnInit {
   bool get canDelete =>
       orgArv != null &&
       orgArv.accessRights.contains(PyroOrganizationAccessRight.DELETE_PROJECTS);
+
+  String getProjectBuildJobsUrl(PyroProject project) {
+    return top_routes.RoutePaths.projectBuildJobs.toUrl(parameters: {"projectId": project.id.toString()});
+  }
 }

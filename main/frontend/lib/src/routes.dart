@@ -7,6 +7,7 @@ import './pages/logout/logout_component.template.dart' as ng;
 import './pages/organizations/organizations_component.template.dart' as ng;
 import './pages/organization/organization_component.template.dart' as ng;
 import './pages/project/project_component.template.dart' as ng;
+import './pages/project-build-jobs/project_build_jobs_component.template.dart' as ng;
 import './pages/profile/profile_component.template.dart' as ng;
 
 export 'route_paths.dart';
@@ -42,6 +43,11 @@ class Routes {
       component: ng.ProjectComponentNgFactory
   );
 
+  static final projectBuildJobs = RouteDefinition(
+      routePath: RoutePaths.projectBuildJobs,
+      component: ng.ProjectBuildJobsComponentNgFactory
+  );
+
   static final profile = RouteDefinition(
     routePath: RoutePaths.profile,
     component: ng.ProfileComponentNgFactory
@@ -58,6 +64,7 @@ class Routes {
 	  organizations,
 	  organization,
 	  profile,
-    project
+    project,
+    projectBuildJobs
   ];
 }

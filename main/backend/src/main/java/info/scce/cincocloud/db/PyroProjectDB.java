@@ -1,11 +1,15 @@
 package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import java.util.ArrayList;
+import java.util.Collection;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
@@ -45,6 +49,9 @@ public class PyroProjectDB extends PanacheEntity {
     @ManyToOne
     @JoinColumn(name = "organization_PyroOrganizationDB_id")
     public PyroOrganizationDB organization;
+
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "project")
+    public Collection<PyroWorkspaceImageBuildJobDB> buildJobs = new ArrayList<>();
 
     @Transient
     public boolean isLanguageEditor() {

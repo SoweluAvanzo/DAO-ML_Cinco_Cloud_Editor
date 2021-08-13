@@ -1,4 +1,4 @@
-package info.scce.cincocloud.core;
+package info.scce.cincocloud.core.beans;
 
 import io.quarkus.scheduler.Scheduled;
 import java.time.Instant;
@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import info.scce.cincocloud.core.ProjectDeploymentService;
 import info.scce.cincocloud.db.PyroProjectDB;
 import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 

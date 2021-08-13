@@ -29,6 +29,17 @@
               <i class="fas fa-fw fa-trash"></i>
             </button>
           </div>
+
+          <bs-dropdown>
+            <button class="btn btn-sm ml-1 dropdown-toggle no-caret" type="button">
+              <i class="fas fa-fw fa-ellipsis-h"></i>
+            </button>
+            <bs-dropdown-menu class="dropdown-menu-right">
+              <li *ngIf="project.template == null">
+                <a class="dropdown-item" [routerLink]="getProjectBuildJobsUrl(project)">Build Jobs</a>
+              </li>
+            </bs-dropdown-menu>
+          </bs-dropdown>
         </div>
       </div>
 

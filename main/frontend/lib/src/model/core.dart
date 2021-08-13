@@ -344,8 +344,8 @@ class PyroWorkspaceImage {
       imageVersion = jsog["imageVersion"];
       published = jsog["published"];
 
-      user = _resolveComplexType(cache, jsog, "user", (c, j) => new PyroUser(cache: c, jsog: j));
       project = _resolveComplexType(cache, jsog, "project", (c, j) => new PyroProject(cache: c, jsog: j));
+      user = _resolveComplexType(cache, jsog, "user", (c, j) => new PyroUser(cache: c, jsog: j));
     } else {
       id = -1;
       user = new PyroUser();
@@ -375,6 +375,54 @@ class PyroWorkspaceImage {
       jsog['user'] = user.toJSOG(cache);
       jsog['project'] = project.toJSOG(cache);
       jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroWorkspaceImage";
+    }
+    return jsog;
+  }
+}
+
+class PyroWorkspaceImageBuildJob {
+
+  int id;
+  PyroProject project;
+  String status;
+  DateTime startedAt;
+  DateTime finishedAt;
+
+  PyroWorkspaceImageBuildJob({Map cache, dynamic jsog}) {
+    if (jsog != null) {
+      cache[jsog["@id"]] = this;
+      id = jsog["id"];
+      status = jsog["status"];
+      startedAt = jsog["startedAt"] != null ? DateTime.parse(jsog["startedAt"]) : null;
+      finishedAt = jsog["finishedAt"] != null ? DateTime.parse(jsog["finishedAt"]) : null;
+      project = _resolveComplexType(cache, jsog, "project", (c, j) => new PyroProject(cache: c, jsog: j));
+    } else {
+      id = -1;
+      project = new PyroProject();
+    }
+  }
+
+  static PyroWorkspaceImageBuildJob fromJSON(String s) {
+    return PyroWorkspaceImageBuildJob.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
+  }
+
+  static PyroWorkspaceImageBuildJob fromJSOG({Map cache, dynamic jsog}) {
+    return new PyroWorkspaceImageBuildJob(cache: cache, jsog: jsog);
+  }
+
+  Map toJSOG(Map cache) {
+    Map jsog = new Map();
+    if (cache.containsKey("core.PyroWorkspaceImageBuildJob:${id}")) {
+      jsog["@ref"] = cache["core.PyroWorkspaceImageBuildJob:${id}"];
+    } else {
+      cache["core.PyroWorkspaceImageBuildJob:${id}"] = (cache.length + 1).toString();
+      jsog['@id'] = cache["core.PyroWorkspaceImageBuildJob:${id}"];
+      jsog['id'] = id;
+      jsog["status"] = status;
+      jsog["startedAt"] = startedAt.toIso8601String();
+      jsog["finishedAt"] = finishedAt == null ? null : finishedAt.toIso8601String();
+      jsog['project'] = project.toJSOG(cache);
+      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroWorkspaceImageBuildJob";
     }
     return jsog;
   }
@@ -564,10 +612,10 @@ class PyroProject extends PyroFolder {
       name = jsog["name"];
       type = jsog["type"];
 
-      organization = _resolveComplexType(cache, jsog, "organization", (c, j) => new PyroOrganization(cache: c, jsog: j));
       image = _resolveComplexType(cache, jsog, "image", (c, j) => new PyroWorkspaceImage(cache: c, jsog: j));
-      template = _resolveComplexType(cache, jsog, "template", (c, j) => new PyroWorkspaceImage(cache: c, jsog: j));
+      organization = _resolveComplexType(cache, jsog, "organization", (c, j) => new PyroOrganization(cache: c, jsog: j));
       owner = _resolveComplexType(cache, jsog, "owner", (c, j) => new PyroUser(cache: c, jsog: j));
+      template = _resolveComplexType(cache, jsog, "template", (c, j) => new PyroWorkspaceImage(cache: c, jsog: j));
 
       if (jsog.containsKey("innerFolders")) {
         for (var value in jsog["innerFolders"]) {

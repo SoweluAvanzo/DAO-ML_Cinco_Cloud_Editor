@@ -1,0 +1,37 @@
+<div class="position-absolute w-100 h-100 d-flex flex-column">
+  <div class="flex-grow-0 flex-shrink-0">
+    <navigation [user]="user" [organization]="organization"></navigation>
+  </div>
+  <div class="overflow-auto flex-grow-1">
+    <div class="container mt-3">
+
+      <div class="alert alert-info" *ngIf="buildJobs.length === 0">
+        There are no build jobs for this project yet.
+      </div>
+
+      <ng-container *ngIf="buildJobs.length > 0">
+        <table class="table pyro-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Started</th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let job of buildJobs">
+              <td width="1">
+                <project-build-job-status-badge [job]="job"></project-build-job-status-badge>
+              </td>
+              <td>
+                <span>{{job.startedAt | date:'medium'}}</span>
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
+
+    </div>
+  </div>
+</div>
