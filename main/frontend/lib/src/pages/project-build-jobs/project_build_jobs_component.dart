@@ -1,12 +1,11 @@
 import 'package:angular/angular.dart';
-import 'package:angular/security.dart';
 import 'dart:html';
 import 'dart:convert';
 import 'package:angular_router/angular_router.dart';
+import 'package:ng_bootstrap/ng_bootstrap.dart';
 import '../../routes.dart' as top_routes;
 import '../../model/core.dart';
 import '../shared/navigation/navigation_component.dart';
-import '../../service/base_service.dart';
 import '../../service/notification_service.dart';
 import '../../service/project_service.dart';
 import '../../service/workspace_image_build_job_service.dart';
@@ -19,6 +18,7 @@ import './project-build-job-status-badge/project_build_job_status_badge_componen
     directives: const [
       coreDirectives,
       routerDirectives,
+      bsDirectives,
       NavigationComponent,
       ProjectBuildJobStatusBadgeComponent,
     ],
@@ -44,14 +44,12 @@ class ProjectBuildJobsComponent implements OnActivate {
   final UserService _userService;
   final WorkspaceImageBuildJobService _buildJobService;
   final NotificationService _notificationService;
-  final Router _router;
 
   ProjectBuildJobsComponent(
       this._projectService,
       this._userService,
       this._buildJobService,
-      this._notificationService,
-      this._router) {
+      this._notificationService) {
   }
 
   @override
@@ -76,6 +74,28 @@ class ProjectBuildJobsComponent implements OnActivate {
     }).catchError((err){
       window.console.log(err);
     });
+  }
+
+  void abortJob(PyroWorkspaceImageBuildJob job) {
+    _buildJobService.abort(project.id, job).then((abortedJob){
+      _notificationService.displayMessage("The job has been aborted.", NotificationType.SUCCESS);
+      job.status = abortedJob.status;
+    }).catchError((err) {
+      _notificationService.displayMessage("The job could not be aborted.", NotificationType.DANGER);
+    });
+  }
+
+  void deleteJob(PyroWorkspaceImageBuildJob job) {
+    _buildJobService.remove(project.id, job).then((deletedJob){
+      _notificationService.displayMessage("The job has been deleted.", NotificationType.SUCCESS);
+      buildJobs.remove(job);
+    }).catchError((err) {
+      _notificationService.displayMessage("The job could not be deleted.", NotificationType.DANGER);
+    });
+  }
+
+  String getDurationAsString(PyroWorkspaceImageBuildJob job) {
+    return job.finishedAt.difference(job.startedAt).inMinutes.toString() + "min";
   }
 
   PyroOrganization get organization => project == null ? null : project.organization;

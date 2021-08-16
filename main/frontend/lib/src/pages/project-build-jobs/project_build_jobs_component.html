@@ -4,6 +4,9 @@
   </div>
   <div class="overflow-auto flex-grow-1">
     <div class="container mt-3">
+      <h1 class="h5" *ngIf="project != null">{{project.name}} > Build Jobs</h1>
+    </div>
+    <div class="container mt-3">
 
       <div class="alert alert-info" *ngIf="buildJobs.length === 0">
         There are no build jobs for this project yet.
@@ -14,7 +17,7 @@
           <thead>
             <tr>
               <th>Status</th>
-              <th>Started</th>
+              <th>Time</th>
               <th>&nbsp;</th>
             </tr>
           </thead>
@@ -24,9 +27,28 @@
                 <project-build-job-status-badge [job]="job"></project-build-job-status-badge>
               </td>
               <td>
-                <span>{{job.startedAt | date:'medium'}}</span>
+                <div class="text-muted">
+                  <i class="fas fa-fw fa-calendar"></i> {{job.startedAt | date:'short'}}
+                </div>
+                <div *ngIf="job.finishedAt != null" class="text-muted">
+                  <i class="fas fa-fw fa-clock"></i> {{getDurationAsString(job)}}
+                </div>
               </td>
-              <td></td>
+              <td class="text-right">
+                <bs-dropdown>
+                  <button class="btn btn-sm ml-1 dropdown-toggle no-caret" type="button">
+                    <i class="fas fa-fw fa-ellipsis-h"></i>
+                  </button>
+                  <bs-dropdown-menu class="dropdown-menu-right">
+                    <li *ngIf="job.status === 'PENDING' || job.status === 'BUILDING'">
+                      <div class="dropdown-item" (click)="abortJob(job)">Abort</div>
+                    </li>
+                    <li *ngIf="job.status !== 'BUILDING'">
+                      <div class="dropdown-item" (click)="deleteJob(job)">Delete</div>
+                    </li>
+                  </bs-dropdown-menu>
+                </bs-dropdown>
+              </td>
             </tr>
           </tbody>
         </table>
