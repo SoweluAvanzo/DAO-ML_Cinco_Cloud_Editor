@@ -32,8 +32,10 @@ RUN ./mvnw package -DskipTests
 #
 # Build the fat pyro quarkus jar.
 #
-FROM docker.io/library/openjdk:15-jdk-slim
+FROM docker.io/library/ubuntu:20.10
 WORKDIR /app
+RUN apt-get -y update
+RUN apt-get -y install runc buildah openjdk-11-jdk
 COPY --from=builder-backend /app/backend/target/quarkus-app/ /app
 EXPOSE 8000 9000
 CMD java \
