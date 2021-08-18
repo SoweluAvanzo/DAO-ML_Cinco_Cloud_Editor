@@ -22,7 +22,7 @@ spec:
           imagePullPolicy: {{ .Values.imageConfig.pullPolicy }}
           ports:
             - containerPort: 5000
-              name: registry
+            - containerPort: 8000
           volumeMounts:
             - name: pv-data
               mountPath: /var/lib/registry
@@ -44,6 +44,9 @@ spec:
   ports:
     - port: 5000
       name: registry
+      protocol: TCP
+    - port: 8000
+      name: registry-api
       protocol: TCP
   type: NodePort
   selector:

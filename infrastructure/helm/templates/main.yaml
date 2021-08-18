@@ -11,6 +11,9 @@ data:
   AMPQ_PORT: "5672"
   AMPQ_USERNAME: "cc"
   AMPQ_PASSWORD: "cc"
+  PODAN_REGISTRY_HOST: "registry-service"
+  PODAN_REGISTRY_PORT: "5000"
+  PODAN_REGISTRY_API_PORT: "8000"
 ---
 apiVersion: apps/v1
 kind: StatefulSet

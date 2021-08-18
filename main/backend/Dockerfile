@@ -29,4 +29,7 @@ CMD java \
     -Damqp-port="${AMPQ_PORT}" \
     -Damqp-username="${AMPQ_USERNAME}" \
     -Damqp-password="${AMPQ_PASSWORD}" \
+    -Dpodman.registry.host="${PODAN_REGISTRY_HOST}" \
+    -Dpodman.registry.port="${PODAN_REGISTRY_PORT}" \
+    -Dpodman.registry.api.port="${PODAN_REGISTRY_API_PORT}" \
     -jar quarkus-run.jar
