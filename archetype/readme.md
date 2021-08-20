@@ -1,13 +1,24 @@
-@DEPRECATED
-Start Wildfly and deploy DyWA
+# If you want to Test
+1. run for database setup:
 
-in dywa-config/
-mvn install -Pdefault -Pembedded -Pdeploy -Pstartwildfly -Dwildfly.path=/Applications/wildfly-10.1.0.Final
+    `docker-compose -f postgres.yml`
 
-Clean Wildfly and DyWA
+2. run to compile the pyro-editor:
 
-mvn clean -Pdefault -Pembedded -Dwildfly.path=/Applications/wildfly-10.1.0.Final
+    `./compile.sh`
 
-Deploy Pyro
+3. the folder `pyro-server` contains the executable jar-files
 
-mvn install -Pembedded -X -Ddart.path=/usr/local/Cellar/dart/1.23.0/libexec -Dwildfly.path=/Applications/wildfly-10.1.0.Final
+# if you just want to develop
+
+1. run for database setup:
+
+    `docker-compose -f postgres.yml up`
+
+2. to compile the frontend (currently no good hotcode-injection):
+    
+    `./compileFrontend.sh`
+
+3. to compile the backend dynamically with hotcode-injection:
+
+    `./develop.sh`
