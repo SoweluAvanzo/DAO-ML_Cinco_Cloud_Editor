@@ -188,11 +188,19 @@ class Generator {
 		{
 			val File baseFolder = new File(base);
 			copyResources("archetype/app", base)
+
 			copyResources("archetype/run.sh", base)
+			copyResources("archetype/compile.sh", base)
+			copyResources("archetype/compileFrontend.sh", base)
+			copyResources("archetype/develop.sh", base)
+			copyResources("archetype/env.list", base)
+			copyResources("archetype/postgres.yml", base)
+
 			copyResources("archetype/nginx.conf", base)
 			copyResources("archetype/docker-compose.yml", base)
 			copyResources("archetype/docker-compose.yml", base)
 			copyResources("archetype/Dockerfile", base)
+			
 			if (!baseFolder.list.contains("docker-compose.production.yml")) {
 				copyResources("archetype/docker-compose.production.yml", base)
 			}

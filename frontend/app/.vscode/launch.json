@@ -5,15 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "firefox",
+            "type": "pwa-chrome",
             "request": "launch",
             "reAttach": true,
             "name": "Launch localhost",
-            "url": "http://127.0.0.1:8080",
+            "url": "http://localhost:8000/#/editor/1?ext=flowgraph&token=asd",
             "webRoot": "${workspaceFolder}/lib",
             "pathMappings": [
                 {
-                    "url": "file:///packages/Pyrus",
+                    "url": "file:///packages/FlowGraphTool",
                     "path": "${workspaceFolder}/lib"
                 }
             ]

@@ -30,8 +30,6 @@ class ProjectService extends Generatable {
 		
 		@ApplicationScoped
 		public class ProjectService {
-		
-		
 		    
 		    @javax.inject.Inject
 		    EditorLayoutService editorLayoutService;
@@ -39,15 +37,15 @@ class ProjectService extends Generatable {
 		    @javax.inject.Inject
 		    GraphModelController graphModelController;
 				
-			public void createDefaultEditorGrid(
-				final entity.core.PyroUserDB user) {
+			public entity.core.PyroEditorGridDB createDefaultEditorGrid(
+				final long userId) {
 				
 				final entity.core.PyroEditorGridDB grid = new entity.core.PyroEditorGridDB();
 				grid.persist();
-				grid.userId = user.id;
+				grid.userId = userId;
 				grid.persist();
-				
 				«IF !gc.editorLayout.empty»
+					
 					«FOR e:gc.editorLayout»
 						{
 							«e» editorLayout = new «e»();
@@ -85,6 +83,8 @@ class ProjectService extends Generatable {
 					«ENDFOR»
 					grid.persist();
 				«ENDIF»
+
+				return grid;
 			}
 					    
 		    

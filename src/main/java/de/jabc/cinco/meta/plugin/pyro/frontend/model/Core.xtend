@@ -371,7 +371,8 @@ class Core extends Generatable {
 		class PyroEditorGrid {
 			int id;
 			
-			PyroUser user;
+			int userId;
+
 			List<PyroEditorGridItem> items;
 			List<PyroEditorWidget> availableWidgets;
 			
@@ -398,16 +399,7 @@ class Core extends Generatable {
 				    items.add(new PyroEditorGridItem(cache:cache,jsog:value));
 				  }
 				}
-						      
-			  	if(jsog["user"].containsKey("@ref")){              
-			      user = cache[jsog["user"]["@ref"]];
-			    } else {
-			      user = new PyroUser(cache:cache, jsog:jsog["user"]);
-			    }
-			    
-			    
-				
-				
+			  	userId = jsog['userId'];
 			  } else {
 				id=-1;
 			  }
@@ -433,7 +425,7 @@ class Core extends Generatable {
 		    	cache["core.PyroEditorGrid:${id}"]=(cache.length+1).toString();
 		    	jsog["@id"]=cache["core.PyroEditorGrid:${id}"];
 		    	jsog["id"]=id;
-		  		jsog["user"]=user.toJSOG(cache);
+		  		jsog["userId"]=userId;
 		  		jsog["items"]=items.map((i) => i.toJSOG(cache)).toList();
 		  		jsog["availableWidgets"]=availableWidgets.map((i) => i.toJSOG(cache)).toList();
 		  		jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroEditorGrid";
@@ -582,7 +574,7 @@ class Core extends Generatable {
 		  String username;
 		  String email;
 		  String emailHash;
-		  FileReference profilePicture;
+		  String profilePicture;
 		  
 		  
 		  var knownUsers;
@@ -598,9 +590,8 @@ class Core extends Generatable {
 		      email = jsog["email"];
 		      emailHash = jsog["emailHash"];
 		      
-		      
 		      if (jsog.containsKey("profilePicture") && jsog["profilePicture"] != null) {
-			  	profilePicture = new FileReference(jsog:jsog["profilePicture"]);
+			  	profilePicture = jsog["profilePicture"];
 			  }
 		    }
 		    else{
@@ -636,8 +627,8 @@ class Core extends Generatable {
 		  		jsog["email"]=email;
 		  		jsog["emailHash"]=emailHash;
 		  		if (profilePicture != null) {
-			    	jsog["profilePicture"]=profilePicture.toJSOG(cache);
-		  		}
+					jsog["profilePicture"]=profilePicture;
+				}
 		  		jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroUser";
 		    }
 		    return jsog;

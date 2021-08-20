@@ -1,5 +1,6 @@
 package info.scce.pyro.core;
 
+import info.scce.pyro.auth.SecurityOverrideFilter;
 import info.scce.pyro.core.rest.types.*;
 
 import javax.ws.rs.core.Response;
@@ -23,12 +24,20 @@ public class SettingsController {
 	@javax.ws.rs.GET
 	@javax.ws.rs.Path("/public")
 	@javax.annotation.security.PermitAll()
-	public javax.ws.rs.core.Response get() {				
-		entity.core.PyroStyleDB style = entity.core.PyroStyleDB.fromPOJO(styleClient.getStyle());
+	public javax.ws.rs.core.Response get() {		
+		entity.core.PyroStyleDB style;		
+		try {
+			if(SecurityOverrideFilter.isDebugging()) {
+				style = entity.core.PyroStyleDB.getDefault();
+			} else {
+				style = entity.core.PyroStyleDB.fromPOJO(styleClient.getStyle());
+			}
+		} catch (Exception e) {
+			System.out.println("Could not fetch styling. Falling back to default.");
+			style = entity.core.PyroStyleDB.getDefault();
+		}
 		entity.core.PyroSettingsDB settings = new entity.core.PyroSettingsDB();
 		settings.style = style;
 		return javax.ws.rs.core.Response.ok(PyroSettings.fromEntity(settings, objectCache)).build();	
 	}
-	
-	
 }

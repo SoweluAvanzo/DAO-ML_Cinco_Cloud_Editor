@@ -2,7 +2,6 @@ package info.scce.pyro.core;
 
 import info.scce.pyro.core.rest.types.PyroUser;
 
-import javax.servlet.ServletException;
 import javax.ws.rs.core.SecurityContext;
 
 @javax.transaction.Transactional
@@ -20,6 +19,7 @@ public class CurrentUserController {
 	@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 	@javax.annotation.security.RolesAllowed("user")
 	public javax.ws.rs.core.Response getCurrentUser(@javax.ws.rs.core.Context SecurityContext securityContext) {
+		// TODO: SAMI: THEIA - DOES NOT RETURN THE CORRECT USER, I GUESS
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 
 		if(subject!=null) {
@@ -28,5 +28,4 @@ public class CurrentUserController {
 
 		return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
 	}
-
 }

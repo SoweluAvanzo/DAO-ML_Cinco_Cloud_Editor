@@ -1674,7 +1674,7 @@ class GraphmodelComponent extends Generatable {
 		</display-dialog>
 		<div style="overflow: hidden;">
 			<template [ngIf]="loading">
-				<h3 style="text-align: center;">Loading «g.name»..</h3>
+				<h3 style="text-align: center;">Loading «g.name»..</h3>
 				<div class="progress">
 				 	    	<div class="progress-bar progress-bar-striped active" style="width: 100%;background-color: #be0101;"></div>
 				 	    </div>

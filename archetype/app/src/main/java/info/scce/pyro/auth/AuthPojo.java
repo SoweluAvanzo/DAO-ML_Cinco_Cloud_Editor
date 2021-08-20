@@ -13,4 +13,13 @@ public class AuthPojo {
     public String email;
     public String id;
     public String profile_image;
+
+    public static AuthPojo getDebugUser() {
+    	AuthPojo debugUser = new AuthPojo();
+    	debugUser.username = "peter";
+    	debugUser.email = "peter@parker.com";
+    	debugUser.id = "1";
+    	debugUser.profile_image = "debug.png";
+    	return debugUser;
+    }
 }

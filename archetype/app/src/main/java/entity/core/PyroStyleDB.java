@@ -23,4 +23,17 @@ public class PyroStyleDB {
     	s.logo = p.logo;
     	return s;
     }
+
+    // TODO: SAMI: THEIA: better default-values
+    public static PyroStyleDB getDefault() {
+        PyroStyleDB s = new PyroStyleDB();
+    	s.navBgColor = "rgb(200,200,200)";
+    	s.navTextColor = "rgb(200,200,200)";
+    	s.bodyBgColor = "rgb(200,200,200)";
+    	s.bodyTextColor = "rgb(200,200,200)";
+    	s.primaryBgColor = "rgb(200,200,200)";
+    	s.primaryTextColor = "rgb(200,200,200)";
+    	s.logo = null;
+    	return s;
+    }
 }

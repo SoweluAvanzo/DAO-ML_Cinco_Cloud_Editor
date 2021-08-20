@@ -124,42 +124,53 @@ class EditorComponent extends Generatable {
 	  				  this._styleService, this._permissionService, this._editorDataService) {
 	    currentLocalSettings = new LocalGraphModelSettings();
 	    permissionVectors = new List();
+
+		fetchGrid(); // TODO: SAMI: THEIA: needed?
 	  }
 		  
 		@override
 		void ngAfterViewInit() {	
 			var timer = new Timer.periodic(const Duration(milliseconds: 100), (Timer t){
-				if (grid != null&&mainLayout=='classic') {
-					t.cancel();
-		  			
-					document.dispatchEvent(new CustomEvent("editor:grid-init"));
-				          	
-			          document.on["editor:grid-change"].listen((Event event) {
-			      	    var items = (event as CustomEvent).detail['items'];
-			      	    
-			      	    var map = new Map<String, PyroEditorGridItem>();
-						_editorDataService.grid.items.forEach((i) {
-						  map.putIfAbsent(i.id.toString(), () => i);
-						});
-			      	   
-			      	    items.forEach((i){
-			      	    	if(i['x'] is int && i['y'] is int) {
-				      	      var id = i['id'];
-				      	      if(map.containsKey(id)) {
-				      	      	map[id].x = i['x'];
-				      	        map[id].y = i['y'];
-				      	        map[id].width = i['width'];
-				      	        map[id].height = i['height'];
-				      	      }
-			      	      }
-			      	    });
-			      	    		      	    		      	        
-			      	    _editorGridService.update(grid).then((g) {
-			      	      updateGrid(g);
-			      	    });
-			      	  }); 
+				if (grid != null && mainLayout=='classic') {
+					initializeGrid(t);
 				}
 			});   
+		}
+
+		void fetchGrid() {
+			this._editorGridService.get().then((g) {
+				this.updateGrid(g);
+			});
+		}
+
+		void initializeGrid(Timer t) {
+			t.cancel();
+			document.dispatchEvent(new CustomEvent("editor:grid-init"));
+					
+			document.on["editor:grid-change"].listen((Event event) {
+				var items = (event as CustomEvent).detail['items'];
+						
+				var map = new Map<String, PyroEditorGridItem>();
+				_editorDataService.grid.items.forEach((i) {
+					map.putIfAbsent(i.id.toString(), () => i);
+				});
+					
+				items.forEach((i){
+					if(i['x'] is int && i['y'] is int) {
+						var id = i['id'];
+						if(map.containsKey(id)) {
+							map[id].x = i['x'];
+							map[id].y = i['y'];
+							map[id].width = i['width'];
+							map[id].height = i['height'];
+						}
+					}
+				});
+												
+				_editorGridService.update(grid).then((g) {
+					updateGrid(g);
+				});
+			}); 
 		}
 	    
 		@override
@@ -169,55 +180,46 @@ class EditorComponent extends Generatable {
 			}
 		}
 	  
-	  @override
-	  void onActivate(_, RouterState current) async {
-	  	if(current.queryParameters.containsKey("token")) {
-	  	  window.localStorage[BaseService.tokenKey] = current.queryParameters["token"];
-	  	} else {
-	  	  print("ERR: no token in URL");
-	  	  return;
-	  	}
-	  	int modelId = 0;
-		if(current.parameters.containsKey("modelId")) {
-		  modelId = int.tryParse(current.parameters["modelId"]);
-		} else {
-		  print("ERR: no modelId in URL");
-		  return;
+		@override
+	  	void onActivate(_, RouterState current) async {
+			if(current.queryParameters.containsKey("token")) {
+  	 			// TODO: SAMI: THEIA
+				// window.localStorage[BaseService.tokenKey] = current.queryParameters["token"];
+			} else {
+				print("ERR: no token in URL");
+				return;
+			}
+			int modelId = 0;
+			if(current.parameters.containsKey("modelId")) {
+				modelId = int.tryParse(current.parameters["modelId"]);
+			} else {
+				print("ERR: no modelId in URL");
+				return;
+			}
+			String ext = null;
+			if(current.queryParameters.containsKey("ext")) {
+				ext = current.queryParameters["ext"];
+			} else {
+				print("ERR: no extension in URL");
+				return;
+			}
+			_userService.loadUser().then((u){
+				user = u;
+				_editorDataService.user = u;
+				document.title = "editor";
+				«FOR m : gc.mglModels»
+					«FOR g:m.graphModels SEPARATOR " else "
+					»if(ext == "«g.fileExtension»") {
+						graphService.loadGraph«g.name.fuEscapeDart»(modelId).then((g) {
+							this.currentFile = g;
+							this.selectedElement = g;
+							this.selectedElementModal = g;
+						}).catchError((_){});
+					}«
+					ENDFOR»
+				«ENDFOR»	     	     
+			}).catchError((_){});
 		}
-		String ext = null;
-		if(current.queryParameters.containsKey("ext")) {
-		  ext = current.queryParameters["ext"];
-		} else {
-		  print("ERR: no extension in URL");
-		  return;
-		}
-	    _userService.loadUser().then((u){
-	      user = u;
-	      _editorDataService.user = u;
-	      document.title = "editor";
-	      «FOR m : gc.mglModels»
-	      	«FOR g:m.graphModels»
-	      		if(ext == "«g.fileExtension»") {
-	      			graphService.loadGraph«g.name.fuEscapeDart»(modelId).then((g) => this.currentFile=g ).catchError((_){});
-	      		}
-	      	«ENDFOR»
-	      «ENDFOR»
-«««	      _organizationService.getById(orgId).then((org){
-«««	      	organization = org;
-«««	      	_editorDataService.organization = org;
-«««	      	_styleService.update(organization.style);
-«««	      }).catchError((err){
-«««	      	_router.navigate(top_routes.Routes.organizations.toUrl());
-«««	      });
-«««	      _permissionService.getMy().then((pvs) {
-«««	      	permissionVectors = pvs;
-«««	      }).catchError((err){});	
-«««	      _editorGridService.get().then((g) {
-«««	        updateGrid(g);
-«««	      }).catchError((err){
-«««	  	  }); 	     	     
-	    }).catchError((_){});
-	  }
 	  
 	  void selectView(dynamic e,String view) {
 		e.preventDefault();

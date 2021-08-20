@@ -13,6 +13,8 @@ import javax.ws.rs.core.SecurityContext;
 @javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 public class EditorGridController {
 	
+    @javax.inject.Inject
+    ProjectService projectService;
 	
 	@javax.inject.Inject
 	EditorLayoutService editorLayoutService;
@@ -25,11 +27,15 @@ public class EditorGridController {
 	@javax.annotation.security.RolesAllowed("user")
 	public javax.ws.rs.core.Response get(@javax.ws.rs.core.Context SecurityContext securityContext) {
 		final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
-				
+		
 		if (subject != null) {
 			checkPermission(subject);
-			
-			final java.util.List<entity.core.PyroEditorGridDB> result = entity.core.PyroEditorGridDB.list("user = ?1",subject.id);
+			java.util.List<entity.core.PyroEditorGridDB> result = entity.core.PyroEditorGridDB.list("userId = ?1",subject.id);
+			if(result.isEmpty()) {
+				System.out.println("No Editor available! Create new for subject - "+subject.id);
+				entity.core.PyroEditorGridDB newGrid = projectService.createDefaultEditorGrid(subject.id);
+				result.add(newGrid);
+			}
 			return javax.ws.rs.core.Response.ok(PyroEditorGrid.fromEntity(result.get(0), objectCache)).build();
 		}
 		
