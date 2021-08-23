@@ -11,11 +11,15 @@
 
 # if you just want to develop
 
-1. run for database setup:
+1. take the steps from above (needed to compile the xtend-files):
 
     `docker-compose -f postgres.yml up`
+    
+    and 
+    
+    `./compile.sh`
 
-2. to compile the frontend (currently no good hotcode-injection):
+2. to compile the frontend only (currently no good hotcode-injection):
     
     `./compileFrontend.sh`
 
