@@ -1,4 +1,4 @@
-# dependencies
+# Dependencies
 
 - You must have Dart version [2.4.1](https://storage.googleapis.com/dart-archive/channels/stable/release/2.4.1/linux_packages/dart_2.4.1-1_amd64.deb) (!)
 - Maven 3.6.2 and above
@@ -15,7 +15,7 @@
 
 3. the folder `pyro-server` contains the executable jar-files
 
-# if you just want to develop
+# If you just want to develop
 
 1. take the steps from above (needed to compile the xtend-files):
 
