@@ -1,6 +1,8 @@
 # dependencies
 
-You must have Dart version [2.4.1](https://storage.googleapis.com/dart-archive/channels/stable/release/2.4.1/linux_packages/dart_2.4.1-1_amd64.deb) (!)
+- You must have Dart version [2.4.1](https://storage.googleapis.com/dart-archive/channels/stable/release/2.4.1/linux_packages/dart_2.4.1-1_amd64.deb) (!)
+- Maven 3.6.2 and above
+- Java 11 and above
 
 # If you want to Test
 1. run for database setup:
