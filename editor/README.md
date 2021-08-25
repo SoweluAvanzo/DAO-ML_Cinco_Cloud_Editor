@@ -54,6 +54,12 @@ On Windows the most reliable way seems to be to install Python and set `npm conf
 
 ## Getting started
 
+Initialize submodules:
+
+    git submodule init
+
+    git submodule update
+
 Build the cinco-cloud:
 
     ./run.sh
