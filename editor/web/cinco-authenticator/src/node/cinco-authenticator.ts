@@ -65,6 +65,9 @@ async function authenticateJWT(req: any, res: any): Promise<boolean> {
     if (!query || !jwt || !projectId) {
         const headers = req.headers;
         const referer = new URI(headers.referer);
+        if (isWebview(referer)) {
+            return true;
+        }
         const fallbackQuery = referer?.query;
         const fallbackToken = querystring.parse(fallbackQuery);
         jwt = fallbackToken?.jwt;
@@ -138,4 +141,11 @@ function getCincoCloudPort(): string {
 
 function getCincoCloudPath(projectId: any): string {
     return '/api/project/' + projectId;
+}
+
+function isWebview(referer: URI): boolean {
+    return referer
+        && referer.parent
+        && referer.parent.path
+        && referer.parent.path.name === 'webview';
 }
