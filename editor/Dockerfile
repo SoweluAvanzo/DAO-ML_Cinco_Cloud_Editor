@@ -35,6 +35,7 @@ RUN apt update && \
     apt update && \
     apt install -y nodejs npm yarn && \
     apt remove -y gnupg gnupg2 curl && \
+    apt install -y libsecret-1-dev && \
     apt autoremove -y
 # copy language-server to singleton cinco-language-server-extension
 COPY --from=backend-builder /backend/language-server/ /editor/cinco-language-server-extension/language-server/
@@ -47,9 +48,6 @@ COPY --from=extension-builder /extension/cinco-extension-0.0.1.vsix /editor/brow
 RUN cp /editor/favicon.ico /editor/browser-app/lib && \
 	sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
 RUN mkdir /editor/workspace
-
-# installing dependencies
-RUN apt install -y libsecret-1-dev
 
 VOLUME /editor/workspace
 EXPOSE 3000
