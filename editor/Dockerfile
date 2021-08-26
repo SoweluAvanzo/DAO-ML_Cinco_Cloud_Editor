@@ -49,7 +49,7 @@ RUN cp /editor/favicon.ico /editor/browser-app/lib && \
 RUN mkdir /editor/workspace
 
 # installing dependencies
-RUN apt install -y libsecret-1-0
+RUN apt install -y libsecret-1-dev
 
 VOLUME /editor/workspace
 EXPOSE 3000
