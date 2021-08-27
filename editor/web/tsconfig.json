@@ -4,6 +4,7 @@
     "baseUrl": "."
   },
   "include": [
+    "pyro-model-server-extension/src",
     "cinco-language-server-extension/src",
     "cinco-authenticator/src",
     "cinco-frontend-configurator/src"

@@ -10,6 +10,7 @@
     "lerna": "^3.13.0"
   },
   "workspaces": [
+    "pyro-model-server-extension",
     "cinco-language-server-extension",
     "cinco-authenticator",
     "cinco-frontend-configurator",
