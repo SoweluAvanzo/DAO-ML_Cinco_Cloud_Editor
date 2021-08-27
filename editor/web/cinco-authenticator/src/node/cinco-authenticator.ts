@@ -8,6 +8,7 @@ import * as http from 'http';
 import * as https from 'https';
 import { inject, injectable } from 'inversify';
 import * as querystring from 'querystring';
+import { isDebugging } from './debugHandler';
 
 const LOG_NAME = '[CINCO-AUTHENTICATOR] ';
 
@@ -88,6 +89,7 @@ async function authenticateJWT(req: any, res: any): Promise<boolean> {
 
 async function validateJWT(jwt: any, projectId: any, res: any): Promise<boolean> {
     if (isDebugging()) {
+        logger.info(LOG_NAME + ': debugging mode on - allow access without authentification');
         return true;
     }
     return new Promise<boolean>((resolve, reject) => {
@@ -115,19 +117,6 @@ async function validateJWT(jwt: any, projectId: any, res: any): Promise<boolean>
             return resolve(false);
         });
     });
-}
-
-/**
- * If this is executed as a child of the vscode terminal process,
- * it ignores authentification-failures, for easier development.
- */
-function isDebugging(): boolean {
-    const debugging = process.env.CINCO_CLOUD_DEBUG;
-    if (debugging === 'true') {
-        logger.info(LOG_NAME + ': debugging mode on - allow access without authentification');
-        return true;
-    }
-    return false;
 }
 
 function block(res: any): void {
