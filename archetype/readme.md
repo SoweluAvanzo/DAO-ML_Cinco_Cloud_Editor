@@ -20,8 +20,7 @@
 1. take the steps from above (needed to compile the xtend-files):
 
     `docker-compose -f postgres.yml up`
-    
-    **Note** : If this does not work, it is probably because the port specification format is incorrectly set for your platform. To correct this, open the postgres.yml file and replace **ports: [ 5432:5432 ]** with ports: **ports: [ 5432 ]**. 
+
     
     and 
     
