@@ -20,6 +20,7 @@
 1. take the steps from above (needed to compile the xtend-files):
 
     `docker-compose -f postgres.yml up`
+
     
     and 
     
