@@ -12,6 +12,6 @@ services:
       POSTGRES_PASSWORD: quarkus_test
       POSTGRES_USER: quarkus_test
     image: postgres:11.2
-    ports: [ 5432:5432 ]
+    ports: [ '5432:5432' ]
     networks:
       - postgres
