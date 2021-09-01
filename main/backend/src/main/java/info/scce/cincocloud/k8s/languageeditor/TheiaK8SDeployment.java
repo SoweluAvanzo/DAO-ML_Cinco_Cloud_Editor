@@ -119,7 +119,7 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                                                     .build())
                                             .build())
                                     .withImagePullSecrets(new LocalObjectReferenceBuilder()
-                                            .withName("gitlab-registry-secret")
+                                            .withName("cinco-cloud-registry-secret")
                                             .build())
                                     .build())
                             .build())

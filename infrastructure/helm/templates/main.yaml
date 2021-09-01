@@ -53,6 +53,8 @@ spec:
         - name: pv-data
           persistentVolumeClaim:
             claimName: main-pv-claim
+      imagePullSecrets:
+        - name: {{ .Values.registry.secret.name }}
 ---
 apiVersion: v1
 kind: Service

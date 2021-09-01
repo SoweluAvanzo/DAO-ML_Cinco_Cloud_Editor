@@ -37,3 +37,8 @@ profiles:
       - op: replace
         path: /deploy/helm/releases/0/valuesFiles/1
         value: ./infrastructure/helm/values-temp.yaml
+  - name: ls5vs024
+    patches:
+      - op: replace
+        path: /deploy/helm/releases/0/valuesFiles/1
+        value: ./infrastructure/helm/values-ls5vs024.yaml

@@ -19,7 +19,7 @@ Install
     apiVersion: v1
     kind: Secret
     metadata:
-      name: gitlab-registry-secret
+      name: cinco-cloud-registry-secret
       namespace: default
     data:
       .dockerconfigjson: <KEY>
@@ -40,3 +40,10 @@ Install
 [skaffold]: https://skaffold.dev/
 [minikube]: https://minikube.sigs.k8s.io/
 [docker-secret]: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+
+
+### Deploy
+
+1. Install the secret created from the local development on the target server
+2. Create a context for the remote server and name it `ls5vs024-context`
+3. Execute `skaffold deploy -t latest --kube-context ls5vs024-context -n default -p ls5vs024 --status-check=true`

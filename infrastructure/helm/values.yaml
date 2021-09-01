@@ -1,3 +1,5 @@
 # base values file
 registry:
   base: registry.gitlab.com/scce/cinco-cloud
+  secret:
+    name: cinco-cloud-registry-secret
