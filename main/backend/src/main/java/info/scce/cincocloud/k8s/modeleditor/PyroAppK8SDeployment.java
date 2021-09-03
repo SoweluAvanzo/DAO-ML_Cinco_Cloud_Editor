@@ -10,7 +10,6 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.k8s.K8SResource;
 
 public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
 
@@ -30,7 +29,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
         return new DeploymentBuilder()
                 .withNewMetadata()
                     .withName(name)
-                    .withNamespace(K8SResource.DEFAULT_NAMESPACE)
+                    .withNamespace(client.getNamespace())
                     .withLabels(Map.of("app", name, "project", String.valueOf(project.id)))
                 .endMetadata()
                 .withNewSpec()

@@ -40,7 +40,7 @@ public class TheiaK8SService extends TheiaK8SResource<Service> {
         return new ServiceBuilder()
                 .withNewMetadata()
                     .withName(getProjectName() + "-service")
-                    .withNamespace(DEFAULT_NAMESPACE)
+                    .withNamespace(client.getNamespace())
                     .withLabels(Map.of("app", getProjectName()))
                 .endMetadata()
                 .withSpec(new ServiceSpecBuilder()

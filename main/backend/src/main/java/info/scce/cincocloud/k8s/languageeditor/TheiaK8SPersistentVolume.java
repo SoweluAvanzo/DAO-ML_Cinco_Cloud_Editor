@@ -8,7 +8,6 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.k8s.K8SResource;
 
 public class TheiaK8SPersistentVolume extends TheiaK8SResource<PersistentVolume> {
 
@@ -42,7 +41,7 @@ public class TheiaK8SPersistentVolume extends TheiaK8SResource<PersistentVolume>
     protected PersistentVolume build() {
         return new PersistentVolumeBuilder()
                 .withNewMetadata()
-                    .withNamespace(K8SResource.DEFAULT_NAMESPACE)
+                    .withNamespace(client.getNamespace())
                     .withName(getProjectName() + "-pv-volume")
                     .withLabels(Map.of("app", getProjectName()))
                 .endMetadata()

@@ -15,6 +15,8 @@ public class RemoveUntaggedImagesTaskBean {
 
     private static final Logger LOGGER = Logger.getLogger(RemoveUntaggedImagesTaskBean.class.getName());
 
+    private static final String API_PATH = "/api/registry/gc/run";
+
     @ConfigProperty(name = "podman.registry.host")
     String registryHost;
 
@@ -29,7 +31,7 @@ public class RemoveUntaggedImagesTaskBean {
     void schedule() {
         final var webClient = WebClient.create(vertx);
         LOGGER.log(Level.INFO, "Make request to: {0}", new Object[]{getGarbageCollectionUrl()});
-        final var request = webClient.post(registryApiPort, registryHost, "/api/registry/gc/run").send();
+        final var request = webClient.post(registryApiPort, registryHost, API_PATH).send();
         request.subscribe().with(req -> {
             LOGGER.log(Level.INFO, "Removed untagged images in registry: {0}", new Object[]{req.bodyAsString()});
         }, err -> {
@@ -38,6 +40,6 @@ public class RemoveUntaggedImagesTaskBean {
     }
 
     private String getGarbageCollectionUrl() {
-        return "http://" + registryHost + ":" + registryApiPort + "/api/registry/gc/run";
+        return "http://" + registryHost + ":" + registryApiPort + API_PATH;
     }
 }

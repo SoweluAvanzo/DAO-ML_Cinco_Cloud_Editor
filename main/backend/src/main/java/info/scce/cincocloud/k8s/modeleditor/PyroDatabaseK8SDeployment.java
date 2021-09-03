@@ -15,7 +15,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.k8s.K8SResource;
 
 public class PyroDatabaseK8SDeployment extends PyroK8SResource<StatefulSet> {
 
@@ -38,7 +37,7 @@ public class PyroDatabaseK8SDeployment extends PyroK8SResource<StatefulSet> {
         return new StatefulSetBuilder()
                 .withNewMetadata()
                 .withName(name)
-                .withNamespace(K8SResource.DEFAULT_NAMESPACE)
+                .withNamespace(client.getNamespace())
                 .withLabels(Map.of(
                         "app", name,
                         "project", String.valueOf(project.id)

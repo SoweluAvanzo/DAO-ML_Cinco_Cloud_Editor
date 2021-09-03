@@ -3,18 +3,20 @@ package info.scce.cincocloud.core;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.runtime.StartupEvent;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
 import java.time.Duration;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import info.scce.cincocloud.core.rest.types.PyroProjectDeployment;
 import info.scce.cincocloud.core.rest.types.PyroProjectDeploymentStatus;
 import info.scce.cincocloud.db.PyroProjectDB;
 import info.scce.cincocloud.db.StopProjectPodsTaskDB;
+import info.scce.cincocloud.k8s.K8SClientService;
 import info.scce.cincocloud.k8s.K8SException;
 import info.scce.cincocloud.k8s.K8SUtils;
 import info.scce.cincocloud.k8s.languageeditor.TheiaK8SDeployment;
@@ -41,12 +43,15 @@ public class ProjectDeploymentService {
     ProjectWebSocket projectWebSocket;
 
     @Inject
+    K8SClientService clientService;
+
+    @Inject
     Vertx vertx;
 
-    private final KubernetesClient client;
+    KubernetesClient client;
 
-    public ProjectDeploymentService() {
-        this.client = new DefaultKubernetesClient();
+    void startup(@Observes StartupEvent event) {
+        client = clientService.createClient();
     }
 
     public PyroProjectDeployment deploy(PyroProjectDB project) {

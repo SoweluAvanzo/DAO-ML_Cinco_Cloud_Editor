@@ -32,4 +32,5 @@ CMD java \
     -Dpodman.registry.host="${PODAN_REGISTRY_HOST}" \
     -Dpodman.registry.port="${PODAN_REGISTRY_PORT}" \
     -Dpodman.registry.api.port="${PODAN_REGISTRY_API_PORT}" \
+    -Dkubernetes.namespace="${KUBERNETES_NAMESPACE}" \
     -jar quarkus-run.jar

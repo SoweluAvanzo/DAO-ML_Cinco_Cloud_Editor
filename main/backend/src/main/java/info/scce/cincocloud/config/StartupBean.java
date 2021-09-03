@@ -1,18 +1,27 @@
 package info.scce.cincocloud.config;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import javax.inject.Singleton;
+import javax.transaction.Transactional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import info.scce.cincocloud.db.PyroSettingsDB;
+import info.scce.cincocloud.db.PyroStyleDB;
+import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 import info.scce.cincocloud.grpc.MainServiceGrpcImpl;
+import info.scce.cincocloud.k8s.K8SClientService;
 
-@Singleton
+@ApplicationScoped
 @Startup
 public class StartupBean {
 
@@ -24,13 +33,55 @@ public class StartupBean {
     @Inject
     MainServiceGrpcImpl mainServiceGrpc;
 
-    @PostConstruct
-    public void initDataDirectory() throws IOException {
+    @Inject
+    K8SClientService clientService;
+
+    @Transactional
+    public void startup(@Observes StartupEvent event) throws Exception {
+        initDataDirectory();
+        initSettings();
+        removeDanglingPods();
+    }
+
+    private void initDataDirectory() throws IOException {
         final var dir = Path.of(dataDirectory);
-        LOGGER.log(Level.INFO, dir.toAbsolutePath().toString());
+        LOGGER.log(Level.INFO, "Init directory: " + dir.toAbsolutePath().toString());
         if (!Files.exists(dir)) {
-            LOGGER.log(Level.INFO, "Create data directory.");
             Files.createDirectories(dir);
         }
+    }
+
+    private void initSettings() {
+        LOGGER.log(Level.INFO, "Init application settings.");
+        if (PyroStyleDB.listAll().isEmpty()) {
+            PyroStyleDB style = new PyroStyleDB();
+            style.navBgColor = "525252";
+            style.navTextColor = "afafaf";
+            style.bodyBgColor = "313131";
+            style.bodyTextColor = "ffffff";
+            style.primaryBgColor = "007bff";
+            style.primaryTextColor = "ffffff";
+            style.persist();
+
+            PyroSettingsDB settings = new PyroSettingsDB();
+            settings.style = style;
+            settings.persist();
+        }
+    }
+
+    private void removeDanglingPods() {
+        LOGGER.log(Level.INFO, "Remove dangling pods.");
+        final KubernetesClient client = clientService.createClient();
+        client.apps().statefulSets().list().getItems().stream()
+                .filter(s -> s.getMetadata().getName().startsWith("project"))
+                .map(s -> s.getMetadata().getLabels().get("project"))
+                .filter(Objects::nonNull)
+                .map(Long::valueOf)
+                .forEach(id -> {
+                    final var task = new StopProjectPodsTaskDB();
+                    task.setProjectId(id);
+                    task.setCreatedAt(Instant.now());
+                    task.persist();
+                });
     }
 }

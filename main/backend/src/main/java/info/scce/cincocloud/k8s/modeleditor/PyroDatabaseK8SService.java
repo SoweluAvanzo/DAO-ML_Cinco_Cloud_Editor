@@ -20,7 +20,7 @@ public class PyroDatabaseK8SService extends PyroK8SResource<Service> {
         return new ServiceBuilder()
                 .withNewMetadata()
                     .withName(getProjectName() + "-database-service")
-                    .withNamespace(DEFAULT_NAMESPACE)
+                    .withNamespace(client.getNamespace())
                     .withLabels(Map.of("app", getProjectName()))
                 .endMetadata()
                 .withSpec(new ServiceSpecBuilder()

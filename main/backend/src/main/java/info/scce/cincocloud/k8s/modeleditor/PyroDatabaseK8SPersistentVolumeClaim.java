@@ -8,7 +8,6 @@ import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.k8s.K8SResource;
 
 public class PyroDatabaseK8SPersistentVolumeClaim extends PyroK8SResource<PersistentVolumeClaim> {
 
@@ -24,7 +23,7 @@ public class PyroDatabaseK8SPersistentVolumeClaim extends PyroK8SResource<Persis
         return new PersistentVolumeClaimBuilder()
                 .withNewMetadata()
                 .withName(getProjectName() + "-database-pv-claim")
-                .withNamespace(K8SResource.DEFAULT_NAMESPACE)
+                .withNamespace(client.getNamespace())
                 .withLabels(Map.of("app", getProjectName()))
                 .endMetadata()
                 .withSpec(new PersistentVolumeClaimSpecBuilder()

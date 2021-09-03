@@ -3,3 +3,4 @@ ingress:
 serverTier: local
 imageConfig:
   pullPolicy: Never
+namespace: default

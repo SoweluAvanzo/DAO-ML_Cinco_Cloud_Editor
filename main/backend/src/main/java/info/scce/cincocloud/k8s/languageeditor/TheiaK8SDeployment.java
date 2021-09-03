@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.k8s.K8SResource;
 
 public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
 
@@ -76,7 +75,7 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
         return new StatefulSetBuilder()
                 .withNewMetadata()
                     .withName(getProjectName() + "-statefulset")
-                    .withNamespace(K8SResource.DEFAULT_NAMESPACE)
+                    .withNamespace(client.getNamespace())
                     .withLabels(Map.of("app", getProjectName(), "project", String.valueOf(project.id)))
                 .endMetadata()
                 .withSpec(new StatefulSetSpecBuilder()
