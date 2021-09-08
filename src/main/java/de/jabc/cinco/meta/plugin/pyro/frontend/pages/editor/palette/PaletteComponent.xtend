@@ -61,7 +61,8 @@ class PaletteComponent extends Generatable {
 	  		«FOR g:gc.graphMopdels SEPARATOR " else "
 	  		»if(is«g.name.fuEscapeDart»(currentGraphModel)) {
 	  			map = «g.name.fuEscapeDart»PaletteBuilder.build(currentGraphModel);
-	  			canEdit = GraphModelPermissionUtils.canUpdate("«g.name.toUnderScoreCase»", permissionVectors);
+	  			//canEdit = GraphModelPermissionUtils.canUpdate("«g.name.toUnderScoreCase»", permissionVectors);
+	  			canEdit = true;
 	  		}«
 	  		ENDFOR»
 	    } else {
