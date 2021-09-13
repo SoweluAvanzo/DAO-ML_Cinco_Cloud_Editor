@@ -1,0 +1,7 @@
+<form class="form-horizontal" style="padding-right: 5px;" (ngSubmit)="valueChanged(null)">
+<div class="form-group">
+
+    <label for="modelname">modelName</label>
+    <input (blur)="valueChanged($event)" (ngModelChange)="updatemodelName($event)" [ngModel]="currentElement.modelName" type="text" class="form-control" id="modelname">
+</div>
+</form>

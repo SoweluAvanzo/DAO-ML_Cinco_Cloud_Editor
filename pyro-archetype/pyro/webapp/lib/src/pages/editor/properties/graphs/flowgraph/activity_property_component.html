@@ -1,0 +1,12 @@
+<form class="form-horizontal" style="padding-right: 5px;" (ngSubmit)="valueChanged(null)">
+<div class="form-group">
+
+    <label for="name">name</label>
+    <input (blur)="valueChanged($event)" (ngModelChange)="updatename($event)" [ngModel]="currentElement.name" type="text" class="form-control" id="name">
+</div>
+<div class="form-group">
+
+    <label for="description">description</label>
+    <input (blur)="valueChanged($event)" (ngModelChange)="updatedescription($event)" [ngModel]="currentElement.description" type="text" class="form-control" id="description">
+</div>
+</form>

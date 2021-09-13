@@ -1,0 +1,11 @@
+cinco-extension/language-server
+cinco-extension/node_modules
+cinco-extension/package-lock.json
+cinco-extension/out
+web/node_modules
+web/browser-app/lib
+web/browser-app/node_modules
+web/browser-app/plugins
+web/browser-app/src-gen
+web/browser-app/gen-webpack.config.js
+web/browser-app/webpack.config.js

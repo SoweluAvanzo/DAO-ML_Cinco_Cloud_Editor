@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html><head>
+    <title>Pyro</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="vendor/web/css/bootstrap.min.css">
+    <link rel="stylesheet" href="vendor/web/css/joint.css">
+    <script type="application/javascript" src="vendor/web/js/jquery.min.js"></script>
+    <script type="application/javascript" src="vendor/web/js/bootstrap.min.js"></script>
+    <script type="application/javascript" src="vendor/web/js/lodash.js"></script>
+    <script type="application/javascript" src="vendor/web/js/backbone.js"></script>
+    <script type="application/javascript" src="vendor/web/js/joint.js"></script>
+    <script type="application/javascript" src="vendor/web/js/pyro_core.js"></script>
+    <script type="application/javascript" src="js/flowgraph_shapes.js"></script>
+    <style>
+      body {
+        padding: 50px;
+        color: white;
+        background-color: #333;
+        font-family: Roboto, Helvetica, Arial, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+  <h1>FlowGraph</h1>
+  <div class="row">
+  	<div class="col-3">
+  		<h4>End</h4>
+  		<div id="paper_flowgraph_end" style="border: 2px solid gray; width: 200px; height: 200px;" class="joint-theme-default joint-paper"></div>
+  	</div>
+  	<div class="col-3">
+  		<h4>Swimlane</h4>
+  		<div id="paper_flowgraph_swimlane" style="border: 2px solid gray; width: 200px; height: 200px;" class="joint-theme-default joint-paper"></div>
+  	</div>
+  	<div class="col-3">
+  		<h4>SubFlowGraph</h4>
+  		<div id="paper_flowgraph_subflowgraph" style="border: 2px solid gray; width: 200px; height: 200px;" class="joint-theme-default joint-paper"></div>
+  	</div>
+  	<div class="col-3">
+  		<h4>Transition</h4>
+  		<div id="paper_flowgraph_transition" style="border: 2px solid gray; width: 200px; height: 200px;" class="joint-theme-default joint-paper"></div>
+  	</div>
+  	<div class="col-3">
+  		<h4>Start</h4>
+  		<div id="paper_flowgraph_start" style="border: 2px solid gray; width: 200px; height: 200px;" class="joint-theme-default joint-paper"></div>
+  	</div>
+  	<div class="col-3">
+  		<h4>Activity</h4>
+  		<div id="paper_flowgraph_activity" style="border: 2px solid gray; width: 200px; height: 200px;" class="joint-theme-default joint-paper"></div>
+  	</div>
+  	<div class="col-3">
+  		<h4>ExternalActivity</h4>
+  		<div id="paper_flowgraph_externalactivity" style="border: 2px solid gray; width: 200px; height: 200px;" class="joint-theme-default joint-paper"></div>
+  	</div>
+  	<div class="col-3">
+  		<h4>LabeledTransition</h4>
+  		<div id="paper_flowgraph_labeledtransition" style="border: 2px solid gray; width: 200px; height: 200px;" class="joint-theme-default joint-paper"></div>
+  	</div>
+  	<div class="col-3">
+  		<h4>FlowGraphDiagram</h4>
+  		<div id="paper_flowgraph_flowgraphdiagram" style="border: 2px solid gray; width: 200px; height: 200px;" class="joint-theme-default joint-paper"></div>
+  	</div>
+  </div>
+  </body>
+  <script>
+	$( document ).ready(function() {
+		var $graph_flowgraph_end = new joint.dia.Graph;
+		var $paper_flowgraph_end = new joint.dia.Paper({
+			el: document.getElementById('paper_flowgraph_end'),
+			width: 200,
+			height: 200,
+			gridSize: 1,
+			model: $graph_flowgraph_end
+		});
+		var elem = new joint.shapes.flowgraph.End({
+			        position: {
+			            x: 50,
+			            y: 50
+			        }
+		});
+		$graph_flowgraph_end.addCells([ elem ]);
+		$paper_flowgraph_end.scaleContentToFit({padding:10});
+		var $graph_flowgraph_swimlane = new joint.dia.Graph;
+		var $paper_flowgraph_swimlane = new joint.dia.Paper({
+			el: document.getElementById('paper_flowgraph_swimlane'),
+			width: 200,
+			height: 200,
+			gridSize: 1,
+			model: $graph_flowgraph_swimlane
+		});
+		var elem = new joint.shapes.flowgraph.Swimlane({
+			        position: {
+			            x: 50,
+			            y: 50
+			        }
+		});
+		$graph_flowgraph_swimlane.addCells([ elem ]);
+		$paper_flowgraph_swimlane.scaleContentToFit({padding:10});
+		var $graph_flowgraph_subflowgraph = new joint.dia.Graph;
+		var $paper_flowgraph_subflowgraph = new joint.dia.Paper({
+			el: document.getElementById('paper_flowgraph_subflowgraph'),
+			width: 200,
+			height: 200,
+			gridSize: 1,
+			model: $graph_flowgraph_subflowgraph
+		});
+		var elem = new joint.shapes.flowgraph.SubFlowGraph({
+			        position: {
+			            x: 50,
+			            y: 50
+			        }
+		});
+		$graph_flowgraph_subflowgraph.addCells([ elem ]);
+		$paper_flowgraph_subflowgraph.scaleContentToFit({padding:10});
+		var $graph_flowgraph_transition = new joint.dia.Graph;
+		var $paper_flowgraph_transition = new joint.dia.Paper({
+			el: document.getElementById('paper_flowgraph_transition'),
+			width: 200,
+			height: 200,
+			gridSize: 1,
+			model: $graph_flowgraph_transition
+		});
+		var link = new joint.shapes.flowgraph.Transition({
+		        source: { x: 20, y: 50 },
+		        target: { x: 180, y: 50 }
+		 });
+		 link.addTo($graph_flowgraph_transition).reparent();
+		var $graph_flowgraph_start = new joint.dia.Graph;
+		var $paper_flowgraph_start = new joint.dia.Paper({
+			el: document.getElementById('paper_flowgraph_start'),
+			width: 200,
+			height: 200,
+			gridSize: 1,
+			model: $graph_flowgraph_start
+		});
+		var elem = new joint.shapes.flowgraph.Start({
+			        position: {
+			            x: 50,
+			            y: 50
+			        }
+		});
+		$graph_flowgraph_start.addCells([ elem ]);
+		$paper_flowgraph_start.scaleContentToFit({padding:10});
+		var $graph_flowgraph_activity = new joint.dia.Graph;
+		var $paper_flowgraph_activity = new joint.dia.Paper({
+			el: document.getElementById('paper_flowgraph_activity'),
+			width: 200,
+			height: 200,
+			gridSize: 1,
+			model: $graph_flowgraph_activity
+		});
+		var elem = new joint.shapes.flowgraph.Activity({
+			        position: {
+			            x: 50,
+			            y: 50
+			        }
+		});
+		$graph_flowgraph_activity.addCells([ elem ]);
+		$paper_flowgraph_activity.scaleContentToFit({padding:10});
+		var $graph_flowgraph_externalactivity = new joint.dia.Graph;
+		var $paper_flowgraph_externalactivity = new joint.dia.Paper({
+			el: document.getElementById('paper_flowgraph_externalactivity'),
+			width: 200,
+			height: 200,
+			gridSize: 1,
+			model: $graph_flowgraph_externalactivity
+		});
+		var elem = new joint.shapes.flowgraph.ExternalActivity({
+			        position: {
+			            x: 50,
+			            y: 50
+			        }
+		});
+		$graph_flowgraph_externalactivity.addCells([ elem ]);
+		$paper_flowgraph_externalactivity.scaleContentToFit({padding:10});
+		var $graph_flowgraph_labeledtransition = new joint.dia.Graph;
+		var $paper_flowgraph_labeledtransition = new joint.dia.Paper({
+			el: document.getElementById('paper_flowgraph_labeledtransition'),
+			width: 200,
+			height: 200,
+			gridSize: 1,
+			model: $graph_flowgraph_labeledtransition
+		});
+		var link = new joint.shapes.flowgraph.LabeledTransition({
+		        source: { x: 20, y: 50 },
+		        target: { x: 180, y: 50 }
+		 });
+		 link.addTo($graph_flowgraph_labeledtransition).reparent();
+		var $graph_flowgraph_flowgraphdiagram = new joint.dia.Graph;
+		var $paper_flowgraph_flowgraphdiagram = new joint.dia.Paper({
+			el: document.getElementById('paper_flowgraph_flowgraphdiagram'),
+			width: 200,
+			height: 200,
+			gridSize: 1,
+			model: $graph_flowgraph_flowgraphdiagram
+		});
+		var link = new joint.shapes.flowgraph.FlowGraphDiagram({
+		        source: { x: 20, y: 50 },
+		        target: { x: 180, y: 50 }
+		 });
+		 link.addTo($graph_flowgraph_flowgraphdiagram).reparent();
+	});
+</script>
+</html>
