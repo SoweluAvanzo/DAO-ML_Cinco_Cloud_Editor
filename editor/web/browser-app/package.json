@@ -36,8 +36,7 @@
     "@theia/vsx-registry": "latest",
     "@theia/workspace": "latest",
     "cinco-language-server-extension": "1.0.0",
-    "cinco-frontend-configurator": "1.0.0",
-    "pyro-model-server-extension": "1.0.0"
+    "cinco-frontend-configurator": "1.0.0"
   },
   "devDependencies": {
     "@theia/cli": "latest"
