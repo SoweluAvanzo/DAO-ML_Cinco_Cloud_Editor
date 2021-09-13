@@ -1,8 +1,18 @@
 # build the pyro server
+FROM docker.io/google/dart:2.4.1 as pyro-server-frontend-builder
+WORKDIR /pyro-server
+COPY ./pyro/webapp /pyro-server/webapp
+RUN cd webapp \
+    && pub global activate webdev \
+    && pub get \
+    && pub run build_runner build -o build
+
 # --------------------------------
 FROM docker.io/library/maven:3-adoptopenjdk-11 as pyro-server-builder
 WORKDIR /pyro-server
-COPY ./pyro /pyro-server
+COPY --from=pyro-server-frontend-builder /pyro-server/webapp/ /pyro-server/webapp/
+COPY ./pyro/app /pyro-server/app
+COPY ./pyro/compile.sh /pyro-server/compile.sh
 # make outsourced compilation-script executable
 RUN sed -i 's/\r$//' /pyro-server/compile.sh  && \  
     chmod +x /pyro-server/compile.sh
