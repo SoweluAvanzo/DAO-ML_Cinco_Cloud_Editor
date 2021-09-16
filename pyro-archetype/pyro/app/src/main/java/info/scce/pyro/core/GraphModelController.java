@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+
 import javax.ws.rs.core.SecurityContext;
 import info.scce.pyro.core.FlowGraphDiagramController;
 
@@ -37,15 +39,16 @@ public class GraphModelController {
         throw new WebApplicationException(Response.Status.FORBIDDEN);
     }
     
+    // TODO: SAMI: CINCO_CLOUD
     @javax.ws.rs.GET
     @javax.ws.rs.Path("list/private")
     @javax.annotation.security.RolesAllowed("user")
     public Response listGraphModels(@javax.ws.rs.core.Context SecurityContext securityContext) {
         final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
         //find graphmodel
-        List<String> extensions = new ArrayList<>(Arrays.asList(
-        	"flowgraph"
-        ));
+        HashMap<String, String> extensions = new HashMap<>();
+        // <graphModelName, graphModelFileExtension>
+        extensions.put("flowgraphdiagram", "flowgraph");
         return Response.ok(extensions).build();
     }
 
