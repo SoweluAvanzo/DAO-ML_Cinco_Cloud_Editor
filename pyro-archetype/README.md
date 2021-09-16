@@ -1,3 +1,5 @@
+USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
+
 1. to compile the docker image execute:
     
     `./build.sh`

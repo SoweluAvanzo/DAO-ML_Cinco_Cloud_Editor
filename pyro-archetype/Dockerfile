@@ -21,7 +21,7 @@ RUN /pyro-server/compile.sh
 
 # build pyro client
 # --------------------------------
-FROM docker.io/library/node:10-buster-slim as pyro-client-builder
+FROM docker.io/library/node:12.14.1-buster-slim as pyro-client-builder
 WORKDIR /pyro-client-extension
 COPY ./pyro-client-extension /pyro-client-extension
 # outputs extension to /pyro-client/pyro-client-0.0.1.vsix
@@ -30,7 +30,7 @@ RUN yarn
 
 # build the theia editor
 # --------------------------------
-FROM docker.io/library/openjdk:11.0.11-slim-buster
+FROM docker.io/library/openjdk:11.0.12-slim-bullseye
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV CINCO_CLOUD_HOST=cinco-cloud
 ENV CINCO_CLOUD_PORT=80
@@ -50,12 +50,16 @@ RUN apt update && \
     apt remove -y gnupg gnupg2 curl && \
     apt install -y libsecret-1-dev && \
     apt autoremove -y
+
 # copy pyro-server to singleton pyro-server-extension
 COPY --from=pyro-server-builder /pyro-server/pyro-server/ /editor/pyro-server-extension/pyro-server/
+
 # install theia
 RUN yarn
+
 # copy pyro-client after the build
 COPY --from=pyro-client-builder /pyro-client-extension/pyro-client-extension-0.0.1.vsix /editor/browser-app/plugins
+
 # integrate favicon
 RUN cp /editor/favicon.ico /editor/browser-app/lib && \
 	sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
