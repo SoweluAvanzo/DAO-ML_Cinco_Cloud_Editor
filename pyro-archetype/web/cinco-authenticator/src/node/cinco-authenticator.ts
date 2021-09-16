@@ -145,6 +145,14 @@ function isWebviewReferer(referer: URI): boolean {
 }
 
 function isWebviewHost(host: string): boolean {
+    const PYRO_HOST = process.env.PYRO_HOST;
+    console.log('isWebviewHost: PYRO_HOST='+PYRO_HOST);
+    console.log('isWebviewHost: host='+host);
+    if(host === PYRO_HOST 
+        || (host === 'localhost' && process.env.CINCO_CLOUD_DEBUG)
+     ) {
+        return true;
+    }
     const re = /(\w+-?)*(\w+)(.)(webview).(\w+)(?::\d+)?/g;
     const matched = host.match(re);
     // eslint-disable-next-line no-null/no-null
