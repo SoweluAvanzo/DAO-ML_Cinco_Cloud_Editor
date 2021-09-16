@@ -1,4 +1,5 @@
 node_modules
 out
 package-lock.json
-pyro-client-0.0.1.vsix
+pyro-client-extension-0.0.1.vsix
+yarn.lock
