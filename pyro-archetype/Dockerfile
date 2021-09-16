@@ -35,6 +35,8 @@ ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV CINCO_CLOUD_HOST=cinco-cloud
 ENV CINCO_CLOUD_PORT=80
 ENV CINCO_CLOUD_DEBUG=false
+ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT='{{hostname}}'
+ENV PYRO_HOST="localhost"
 # make readable for root only
 RUN chmod -R 750 /var/run/
 WORKDIR /editor
@@ -75,4 +77,6 @@ CMD cd /editor/browser-app && \
     CINCO_CLOUD_DEBUG=${CINCO_CLOUD_DEBUG} \
     CINCO_CLOUD_HOST="${CINCO_CLOUD_HOST}" \
     CINCO_CLOUD_PORT="${CINCO_CLOUD_PORT}" \
+    THEIA_WEBVIEW_EXTERNAL_ENDPOINT='{{hostname}}' \
+    PYRO_HOST="${PYRO_HOST}" \
     yarn run theia start --port=3000 --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0

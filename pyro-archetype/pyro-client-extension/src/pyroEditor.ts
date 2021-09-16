@@ -186,13 +186,11 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 		<html>
 			<head>
 				<meta charset="utf-8"/>
-
 				<title>Pyro Model Editor</title>
 				<meta http-equiv="Content-Security-Policy" content="default-src *; font-src data:; img-src *; script-src *; script-src-elem * 'nonce-2726c7f26c'; style-src * 'unsafe-inline'; ">
-				
 			</head>
 			<body style="padding: 0px;">
-				<iframe id="pyro_editor" src="http://${PYRO_HOST}:${PYRO_PORT}/#/editor/${modelId}?ext=${fileExtension}&token=${this.TOKEN}" title="Pyro editor iframe" style="position:absolute; width:100%; height:100%; border:none; margin:0; padding:0;">Not Supported</iframe>
+				<iframe id="pyro_editor" src='http://${PYRO_HOST}:${PYRO_PORT}/#/editor/${modelId}?ext=${fileExtension}&token=${this.TOKEN}' title="Pyro editor iframe" style="position:absolute; width:100%; height:100%; border:none; margin:0; padding:0;">Not Supported</iframe>
 				<script nonce="2726c7f26c">
 
 					const vscode = acquireVsCodeApi();
