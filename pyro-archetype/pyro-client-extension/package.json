@@ -26,6 +26,9 @@
 				"viewType": "scce.pyro",
 				"displayName": "Pyro Editor",
 				"selector": [
+					{
+						"filenamePattern": "*.cinco"
+					}
 				],
 				"priority": "option"
 			}

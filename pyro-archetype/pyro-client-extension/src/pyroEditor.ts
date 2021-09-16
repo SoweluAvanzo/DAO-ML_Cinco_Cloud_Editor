@@ -59,7 +59,6 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 			for(const t of fileTypes) {
 				// if fileType is a registered graphModel-fileType
 				if(t[1] == fileType) {
-					//await document.save();
 					console.log("Switching to Pyro-Editor: "+document.uri.fsPath);
 					await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 					await vscode.commands.executeCommand('vscode.openWith', document.uri, this.viewType);
