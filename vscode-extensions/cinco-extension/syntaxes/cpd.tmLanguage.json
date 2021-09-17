@@ -1,0 +1,232 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "cpd",
+    "scopeName": "source.cpd",
+    "patterns": [
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#cincoproduct"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#plugins"
+        },
+        {
+            "include": "#imageInformation"
+        },
+        {
+            "include": "#imageProperties"
+        },
+        {
+            "include": "#generationProperties"
+        },
+        {
+            "include": "#splashScreen"
+        },
+        {
+            "include": "#aboutProperties"
+        },
+        {
+            "include": "#annotation"
+        },
+        {
+            "include": "#comments"
+        }
+    ],
+    "repository": {
+        "cincoproduct": {
+            "begin": "cincoProduct",
+            "end": "{",
+            "beginCaptures": {
+                "0": { "name": "keyword.control.cpd" }
+            },
+            "patterns":
+            [{ 
+                "name": "entity.name",
+                "match": "."
+            }]
+        },
+        "keywords":{
+            "patterns":
+            [{
+                "name": "keyword.control.cpd",
+                "match": "\\b(\\s)*(version|about|defaultPerspective|extensionClasses|features|id|mgl)(\\s)*\\b"
+            }]
+        },
+        "plugin":{
+            "patterns":
+            [{
+                "name": "support.function.cpd",
+                "match": "\\b(\\s)*(plugins)(\\s)*\\b"
+            }]
+        },
+        "imageInformation":{
+            "patterns":
+            [{
+                "name": "keyword.control.cpd",
+                "match": "\\b(\\s)*(image128|image64|image48|image32|image16|linuxIcon)(\\s)*\\b"
+            }]
+        },
+        "imageProperties":{
+            "patterns":
+            [{
+                "name": "support.function.cpd",
+                "match": "\\b(\\s)*(imagePath|text)(\\s)*\\b"
+            }]
+        },
+        "generationProperties":{
+            "patterns":
+            [{
+                "name": "support.function.cpd",
+                "match": "\\b(\\s)*(forceGenerate|generateNOT)(\\s)*\\b"
+            }]
+        },
+        "splashScreen": {
+            "begin": "splashScreen",
+            "end": "}",
+            "beginCaptures": {
+                "0": { "name": "keyword.control.cpd" }
+            },
+			"patterns": [
+                {
+                    "name": "support.function.cpd",
+                    "match": "\\b(\\s)*(progressBar|progressMessage)(\\s)*\\b"
+                },
+                {
+                    "include": "#strings"
+                },
+                {
+                    "include": "#colors"
+                },
+                {
+                    "include": "#comments"
+                }
+            ]
+        },
+        "colors": {
+            "patterns":
+            [{ 
+                "name": "constant.numeric.cpd",
+                "match": "\\((.)*\\)"
+            }]
+        },
+        "plugins": {
+            "begin": "plugins",
+            "end": "}",
+            "beginCaptures": {
+                "0": { "name": "keyword.control.cpd" }
+            },
+			"patterns": [
+                {
+                    "match": "{"
+                },
+                {
+                    "name": "storage.modifier.import.java",
+                    "match": "(\\w)((.)\\w)*"
+                },
+                {
+                    "include": "#comments"
+                }
+            ]
+        },
+        "aboutProperties":{
+            "patterns":
+            [{
+                "name": "support.function.cpd",
+                "match": "\\b(\\s)*(text|textColor)(\\s)*\\b"
+            }]
+        },
+        "annotation": {
+            "begin": "@",
+            "end": "\\s",
+            "beginCaptures": {
+                "0": { "name": "constant.language.cpd" }
+            },
+            "patterns": [
+                {
+                    "include": "#comments"
+                },
+                {
+                    "include": "#strings"
+                },
+                { 
+                    "name": "constant.language.cpd",
+                    "match": "."
+                }
+            ]
+        },
+        "strings": {
+            "patterns":
+            [
+                { 
+                    "include": "#doubleQuotedString"
+                },
+                {
+                    "include": "#singleQuotedString"
+                }
+            ]
+        },
+        "doubleQuotedString": {
+			"name": "string.quoted.double",
+			"begin": "(\")",
+			"end": "(\")",
+			"patterns": [
+				{
+					"name": "constant.character.escape.bnf",
+					"match": "\\\\."
+				},
+                {
+                    "include": "#singleQuotedString"
+                }
+			]
+		},
+        "singleQuotedString": {
+			"name": "string.quoted.double",
+			"begin": "(')",
+			"end": "(')",
+			"patterns": [
+				{
+					"name": "constant.character.escape.bnf",
+					"match": "\\\\."
+				},
+                { 
+                    "include": "#doubleQuotedString"
+                }
+			]
+		},
+        "comments":{
+            "patterns":
+            [{ 
+                "include": "#commentBlock"
+            },{
+                "include": "#comment"
+            }]
+        },
+        "commentBlock": {
+            "begin": "\\/\\*",
+            "end": "\\*\\/",
+            "beginCaptures": {
+                "0": { "name": "comment.block" }
+            },
+            "endCaptures": {
+                "0": { "name": "comment.block" }
+            },
+            "patterns":
+            [{ 
+                "name": "comment.block",
+                "match": "."
+            }]
+        },
+        "comment": {
+            "patterns":
+            [{ 
+                "name": "comment.block",
+                "match": "\\/\\/(.)*"
+            }]
+        }
+    }
+}
