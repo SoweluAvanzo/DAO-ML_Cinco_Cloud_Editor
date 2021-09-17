@@ -31,7 +31,7 @@ RUN chmod -R 750 /var/run/
 WORKDIR /editor
 COPY ./editor /editor
 RUN useradd -ms /bin/bash theia
-COPY --chown=theia:theia web /editor
+COPY --chown=theia:theia editor /editor
 
 # install node, yarn and dependencies
 RUN apt update && \

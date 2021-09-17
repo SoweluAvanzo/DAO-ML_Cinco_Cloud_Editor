@@ -3,8 +3,8 @@
 This project represents an archetypical theia-editor for a cinco-cloud product.
 
 ## Structure
-- `vsocde-extensions` contains all extensions, that can be developed withing vscode. They are used inside the theia editor by installing the packaged *.vsix into the `web/browser-app/plugins`-folder.
-- `web` contains a eclipse theia-editor-project with all needed theia-extensions and files
+- `vsocde-extensions` contains all extensions, that can be developed withing vscode. They are used inside the theia editor by installing the packaged *.vsix into the `editor/browser-app/plugins`-folder.
+- `editor` contains a eclipse theia-editor-project with all needed theia-extensions and files
 
 ## Getting started
 USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
