@@ -2,6 +2,10 @@
 
 This project represents an archetypical theia-editor for a cinco-cloud product.
 
+## Structure
+- `vsocde-extensions` contains all extensions, that can be developed withing vscode. They are used inside the theia editor by installing the packaged *.vsix into the `web/browser-app/plugins`-folder.
+- `web` contains a eclipse theia-editor-project with all needed theia-extensions and files
+
 ## Getting started
 USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
 
@@ -9,7 +13,11 @@ USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
     
     `./build.sh`
 
-2. to run the docker image execute:
+2. to setup a database for a pyro-application run:
+
+    `docker-compose -f postgres.yml up`
+
+3. to run the docker image execute:
 
     `./run.sh`
 
