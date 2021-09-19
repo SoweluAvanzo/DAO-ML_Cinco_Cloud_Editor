@@ -14,6 +14,7 @@
     "cinco-language-server-extension",
     "cinco-authenticator",
     "cinco-frontend-configurator",
+    "cinco-branding",
     "browser-app"
   ],
   "resolutions": {

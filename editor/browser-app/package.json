@@ -37,6 +37,7 @@
     "@theia/workspace": "latest",
     "cinco-language-server-extension": "1.0.0",
     "cinco-frontend-configurator": "1.0.0",
+    "cinco-branding": "1.0.0",
     "pyro-server-extension": "1.0.0"
   },
   "devDependencies": {
