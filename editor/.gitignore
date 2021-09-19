@@ -11,3 +11,4 @@ docs
 server/
 .DS_Store
 .yalc
+yarn.lock
