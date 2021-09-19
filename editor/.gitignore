@@ -6,7 +6,7 @@ docs
 *.log
 *-app/*
 !*-app/package.json
-!*-app/lib/
+!*-app/lib/favion.ico
 .idea/
 server/
 .DS_Store
