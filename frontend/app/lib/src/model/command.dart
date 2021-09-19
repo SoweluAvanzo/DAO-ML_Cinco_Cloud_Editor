@@ -637,7 +637,7 @@ class UpdateCommand extends Command {
     UpdateCommand cmd = new UpdateCommand();
     cmd.delegateId = jsog['delegateId'];
     cmd.type = jsog['type'];
-    var type = cmd.type.substring(cmd.type.indexOf(".") + 1, cmd.type.length);
+    var type = cmd.type.substring(0, cmd.type.indexOf(".")); //TODO: JOEL ok
     cmd.element =
         PropertyDeserializer.deserialize(jsog['element'], type, cache);
     cmd.prevElement =

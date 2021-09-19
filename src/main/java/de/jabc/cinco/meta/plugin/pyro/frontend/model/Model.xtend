@@ -3,7 +3,7 @@ package de.jabc.cinco.meta.plugin.pyro.frontend.model
 import de.jabc.cinco.meta.plugin.pyro.util.Generatable
 import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import java.util.Collections
-import mgl.ContainingElement
+import mgl.ContainingElement 
 import mgl.Edge
 import mgl.GraphModel
 import mgl.GraphicalModelElement
@@ -620,8 +620,22 @@ class Model extends Generatable {
 		
 	'''
 	
-	def getStyleArgs(ModelElement element){
-		val values = element.annotations.findFirst[name.equals("style")]?.value
+	def getStyleArgs(ModelElement element) {
+		if (element instanceof Node ) {
+			var values = element.styleParameters
+			if (!values.nullOrEmpty) {
+			return values.map[replaceEscapeDart]; 			}
+		}else if (element instanceof Edge ) {
+			var values = element.styleParameters
+			if (!values.nullOrEmpty) {
+			return values.map[replaceEscapeDart]; 			}
+		}
+
+		return Collections.EMPTY_LIST
+	}
+	
+	def getStyleArgs(Edge element){
+		val values = element.styleParameters
 		if(!values.nullOrEmpty){
 			return values.subList(1,values.size).map[replaceEscapeDart];
 		}

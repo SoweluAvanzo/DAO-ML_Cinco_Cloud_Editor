@@ -68,11 +68,11 @@ class Deserializer extends Generatable {
 		
 		class PropertyDeserializer
 		{
-		  static core.IdentifiableElement deserialize(dynamic jsog, String graphModelType, Map cache)
+		  static core.IdentifiableElement deserialize(dynamic jsog, String packageType, Map cache)
 		  {
-		    //for each graphmodel
+		    //for each package TODO: JOEL
 		    «FOR g:gc.graphMopdels SEPARATOR " else "
-		    »if(graphModelType == '«g.name.fuEscapeDart»' || graphModelType == '«g.name.lowEscapeDart»'){
+		    »if(packageType == '«g.modelPackage.name.fuEscapeDart»' || packageType == '«g.modelPackage.name.lowEscapeDart»'){
 		    	return «g.propertyDeserializer».deserialize(jsog,cache);
 		    }«ENDFOR»
 		    return null;

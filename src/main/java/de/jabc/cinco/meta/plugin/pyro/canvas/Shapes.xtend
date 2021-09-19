@@ -93,7 +93,7 @@ class Shapes extends Generatable {
 	'''
 	hasInformation:«IF !node.information»true«ELSE»false«ENDIF»,
 	«IF node instanceof Node»
-	editLabel:«IF node.directlyEditable»true«ELSE»false«ENDIF»,
+	editLabel:«IF !node.directlyEditable»true«ELSE»false«ENDIF»,
 	«ENDIF»
 	disableResize:«IF !node.resizable»true«ELSE»false«ENDIF»,
 	disableRemove:«IF !node.removable»true«ELSE»false«ENDIF»,
