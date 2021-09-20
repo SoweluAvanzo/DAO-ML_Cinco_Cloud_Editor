@@ -40,7 +40,7 @@ build:
     IMAGE: archetype
     VERSION: latest
   only:
-    - master
+    - main
 
 push:
   extends: .docker-push
@@ -49,4 +49,4 @@ push:
     IMAGE: archetype
     VERSION: latest
   only:
-    - master
+    - main
