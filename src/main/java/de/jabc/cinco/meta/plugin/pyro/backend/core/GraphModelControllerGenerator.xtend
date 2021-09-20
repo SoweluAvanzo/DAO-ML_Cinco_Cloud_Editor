@@ -24,6 +24,7 @@ class GraphModelControllerGenerator extends Generatable {
 		import java.util.List;
 		import java.util.ArrayList;
 		import java.util.Arrays;
+		import java.util.HashMap;
 		import javax.ws.rs.core.SecurityContext;
 		«FOR gm:gc.graphMopdels»
 			import «gm.controllerFQN»;
@@ -60,13 +61,14 @@ class GraphModelControllerGenerator extends Generatable {
 		    @javax.annotation.security.RolesAllowed("user")
 		    public Response listGraphModels(@javax.ws.rs.core.Context SecurityContext securityContext) {
 		        final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
-		        //find graphmodel
-		        List<String> extensions = new ArrayList<>(Arrays.asList(
-		        	«FOR g:gc.graphMopdels SEPARATOR ","»
-		        	"«g.fileExtension»"
-		            «ENDFOR»
-		        ));
-		        return Response.ok(extensions).build();
+		        
+				HashMap<String, String> extensions = new HashMap<>();
+				// <graphModelName, graphModelFileExtension>
+				«FOR g:gc.graphMopdels»
+					extensions.put("«g.name.escapeDart»", "«g.fileExtension»");
+				«ENDFOR»
+
+				return Response.ok(extensions).build();
 		    }
 		
 		    @javax.ws.rs.POST
