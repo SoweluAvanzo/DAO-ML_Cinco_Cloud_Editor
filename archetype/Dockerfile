@@ -1,42 +1,46 @@
-# 
-# Build the angular dart frontend.
-# 
-# Note: Get MissingPortFileException from the Dart compiler during then build  
-#       if Linux Kernel > 5.4 is used on the host.
-#
-FROM docker.io/google/dart:2.4.1 as builder-frontend
-WORKDIR /app/frontend
-COPY ./webapp /app/frontend
-RUN pub global activate webdev \
+# STEP 1: build the pyro server
+# --------------------------------
+FROM docker.io/google/dart:2.4.1 as pyro-server-frontend-builder
+WORKDIR /pyro-server
+COPY ./webapp /pyro-server/webapp
+RUN cd webapp \
+    && pub global activate webdev \
     && pub get \
     && pub run build_runner build -o build
+# --------------------------------
+FROM docker.io/library/maven:3-adoptopenjdk-11 as pyro-server-builder
+WORKDIR /pyro-server
+# copy frontend into this container
+COPY --from=pyro-server-frontend-builder /pyro-server/webapp/ /pyro-server/webapp/
+COPY ./app /pyro-server/app
+COPY ./compile.sh /pyro-server/compile.sh
+# make outsourced compilation-script executable
+RUN sed -i 's/\r$//' /pyro-server/compile.sh  && \  
+    chmod +x /pyro-server/compile.sh
+# outputs pyro-model-server to pyro-server/pyro-server
+RUN /pyro-server/compile.sh
 
-#
-# Build the pyro quarkus backend. Move static frontend files to the quarkus resource 
-# folder so that we can build a fat jar that includes the frontend. 
-#
-FROM docker.io/library/maven:3.8.1-jdk-11-slim as builder-backend
-WORKDIR /app/backend
-COPY ./app /app/backend
-COPY --from=builder-frontend /app/frontend/build/web/ /app/backend/src/main/resources/META-INF/resources/
-# docker does not resolve simlink, need to be resolved manually
-COPY --from=builder-frontend /app/frontend/build/packages/ /app/backend/src/main/resources/META-INF/resources/packages/
-RUN mvn clean package -DskipTests
-
-#
-# Build the fat pyro quarkus jar.
-#
-FROM docker.io/library/openjdk:15-jdk-alpine3.11
-WORKDIR /app
-COPY --from=builder-backend /app/backend/target/*-runner.jar /app/app.jar
-COPY --from=builder-backend /app/backend/target/lib /app/lib
-EXPOSE 8000
-CMD java \
-    -Dquarkus.datasource.jdbc.url="jdbc:postgresql://${DATABASE_URL}" \
-    -Dquarkus.datasource.username="${DATABASE_USER}" \
-    -Dquarkus.datasource.password="${DATABASE_PASSWORD}" \
-    -Dquarkus.http.port=8000 \
-    -jar app.jar
-
-
-
+# STEP 2: integrate
+# --------------------------------
+FROM registry.gitlab.com/scce/cinco-cloud-archetype/archetype:latest as cinco-cloud-archetype
+ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
+ENV CINCO_CLOUD_HOST=cinco-cloud
+ENV CINCO_CLOUD_PORT=80
+ENV CINCO_CLOUD_DEBUG=false
+ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT='{{hostname}}'
+ENV PYRO_HOST="localhost"
+# integrate pyro-server into cinco-cloud-archetype
+COPY --from=pyro-server-builder /pyro-server/pyro-server/ /editor/pyro-server-extension/pyro-server/
+VOLUME /editor/workspace
+EXPOSE 3000 8000
+CMD cd /editor/browser-app && \
+    # TODO: comment CINCO_CLOUD_DEBUG out, for debug purpose only (insecure)
+    DATABASE_URL="${DATABASE_URL}" \
+    DATABASE_USER="${DATABASE_USER}" \
+    DATABASE_PASSWORD="${DATABASE_PASSWORD}" \
+    CINCO_CLOUD_DEBUG=${CINCO_CLOUD_DEBUG} \
+    CINCO_CLOUD_HOST="${CINCO_CLOUD_HOST}" \
+    CINCO_CLOUD_PORT="${CINCO_CLOUD_PORT}" \
+    THEIA_WEBVIEW_EXTERNAL_ENDPOINT="${THEIA_WEBVIEW_EXTERNAL_ENDPOINT}" \
+    PYRO_HOST="${PYRO_HOST}" \
+    yarn run theia start --port=3000 --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0

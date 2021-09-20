@@ -21,7 +21,6 @@
 
     `docker-compose -f postgres.yml up`
 
-    
     and 
     
     `./compile.sh`
@@ -33,3 +32,17 @@
 3. to compile the backend dynamically with hotcode-injection:
 
     `./develop.sh`
+
+4. to just run the compiled pyro-server:
+
+    `./run.sh`
+
+# Build Cinco-Cloud-Product
+
+1. to build the docker-image:
+
+    `./docker.sh`
+
+2. to run the docker-image:
+
+    `./runDocker.sh`

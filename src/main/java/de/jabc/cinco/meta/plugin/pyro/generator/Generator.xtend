@@ -189,26 +189,20 @@ class Generator {
 			val File baseFolder = new File(base);
 			copyResources("archetype/app", base)
 
-			copyResources("archetype/run.sh", base)
 			copyResources("archetype/compile.sh", base)
 			copyResources("archetype/compileFrontend.sh", base)
 			copyResources("archetype/develop.sh", base)
-			copyResources("archetype/env.list", base)
-			copyResources("archetype/postgres.yml", base)
-
-			copyResources("archetype/nginx.conf", base)
-			copyResources("archetype/docker-compose.yml", base)
-			copyResources("archetype/docker-compose.yml", base)
+			copyResources("archetype/docker.sh", base)
 			copyResources("archetype/Dockerfile", base)
-			
-			if (!baseFolder.list.contains("docker-compose.production.yml")) {
-				copyResources("archetype/docker-compose.production.yml", base)
-			}
-
-			copyResources("archetype/rsync-exclude.txt", base)
+			copyResources("archetype/env.list", base)
 			if (!baseFolder.list.contains("oauth.properties")) {
 				copyResources("archetype/oauth.properties", base)
 			}
+			copyResources("archetype/postgres.yml", base)
+			copyResources("archetype/readme.md", base)
+			copyResources("archetype/run.sh", base)
+			copyResources("archetype/runDocker.sh", base)
+			
 			// generate cinco dependencies
 			// generate backend sources
 			val backEndGenerator = new de.jabc.cinco.meta.plugin.pyro.backend.Generator(base)
