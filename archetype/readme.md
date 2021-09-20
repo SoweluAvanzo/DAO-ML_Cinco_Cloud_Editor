@@ -29,6 +29,10 @@
     
     `./compileFrontend.sh`
 
+2. to compile the backend only:
+    
+    `./compileBackend.sh`
+
 3. to compile the backend dynamically with hotcode-injection:
 
     `./develop.sh`
@@ -41,7 +45,7 @@
 
 1. to build the docker-image:
 
-    `./docker.sh`
+    `./buildDocker.sh`
 
 2. to run the docker-image:
 

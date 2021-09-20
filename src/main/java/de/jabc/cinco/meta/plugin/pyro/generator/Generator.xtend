@@ -189,10 +189,11 @@ class Generator {
 			val File baseFolder = new File(base);
 			copyResources("archetype/app", base)
 
+			copyResources("archetype/buildDocker.sh", base)
 			copyResources("archetype/compile.sh", base)
+			copyResources("archetype/compileBackend.sh", base)
 			copyResources("archetype/compileFrontend.sh", base)
 			copyResources("archetype/develop.sh", base)
-			copyResources("archetype/docker.sh", base)
 			copyResources("archetype/Dockerfile", base)
 			copyResources("archetype/env.list", base)
 			if (!baseFolder.list.contains("oauth.properties")) {
