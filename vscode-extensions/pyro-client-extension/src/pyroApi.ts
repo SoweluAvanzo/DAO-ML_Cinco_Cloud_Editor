@@ -14,6 +14,7 @@ export abstract class PyroApi {
 		return new Promise((resolve, reject) => {
 			const req = http.request(options,(response: http.IncomingMessage) => {
 					if (response.statusCode != 200) {
+						outputChannel.appendLine('REQUEST FAILED:\n'+options.hostname+'\n'+options.path+'\n'+options.port);
 						outputChannel.appendLine('CODE: '+response.statusCode+" | MESSAGE: "+response.statusMessage);
 						reject(new Error(response.statusMessage));
 					}
@@ -43,7 +44,7 @@ export abstract class PyroApi {
 		const options = {
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
-			path: '/api/'+modelType+'/create/private',
+			path: '/api/'+modelType?.toLowerCase()+'/create/private',
 			method: 'POST',
 			'headers': {
 				'Authorization': token,
