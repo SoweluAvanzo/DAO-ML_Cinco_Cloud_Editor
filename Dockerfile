@@ -16,6 +16,13 @@ COPY ./vscode-extensions/pyro-client-extension /pyro-client-extension
 RUN npm install -g vsce
 RUN yarn
 
+# build the cinco-language-server
+# --------------------------------
+# FROM docker.io/library/maven:3.8.1-jdk-11-openj9 as cinco-language-server-builder
+# WORKDIR /cinco-language-server
+# COPY ./backend/cinco-language-server /cinco-language-server
+# RUN mvn clean install
+
 # build the theia editor
 # --------------------------------
 FROM docker.io/library/openjdk:11.0.12-slim-bullseye
@@ -33,7 +40,7 @@ COPY ./editor /editor
 RUN useradd -ms /bin/bash theia
 COPY --chown=theia:theia editor /editor
 
-# install node, yarn and dependencies
+# install node, yarn and other dependencies
 RUN apt update && \
     apt install -y gnupg gnupg2 curl && \
     curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
@@ -50,6 +57,8 @@ RUN yarn
 # copy vscode-extensions into plugins
 COPY --from=pyro-client-builder /pyro-client-extension/pyro-client-extension-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=cinco-extension-builder /cinco-extension/cinco-extension-0.0.1.vsix /editor/browser-app/plugins
+# copy cinco-language-server into backend
+# COPY --from=cinco-language-server-builder /cinco-language-server/de.jabc.cinco.meta.core.ide/target/language-server /editor/cinco-language-server-extension/language-server
 
 # integrate favicon
 RUN sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html

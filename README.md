@@ -9,6 +9,10 @@ This project represents an archetypical theia-editor for a cinco-cloud product.
 ## Getting started
 USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
 
+0. to initialize this repository and it's submodules:
+
+    `./init.sh`
+
 1. to compile the docker image execute:
     
     `./build.sh`
