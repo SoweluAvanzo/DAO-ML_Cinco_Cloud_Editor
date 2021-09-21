@@ -8,6 +8,7 @@ stages:
     - docker:20.10.6-dind
   variables:
     DOCKER_DRIVER: overlay
+    GIT_SUBMODULE_STRATEGY: recursive
 
 .docker-build:
   extends: .docker-job
