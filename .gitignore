@@ -1,0 +1,6 @@
+src-gen/
+target/
+xtend-gen/
+.settings/
+workspace-emf-tmp/
+.project

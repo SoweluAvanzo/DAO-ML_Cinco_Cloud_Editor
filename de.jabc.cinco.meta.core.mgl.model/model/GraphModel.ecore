@@ -1,0 +1,971 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="graphmodel" nsURI="http://www.jabc.de/cinco/gdl/graphmodel"
+    nsPrefix="graphmodel">
+  <eClassifiers xsi:type="ecore:EClass" name="ConnectionConstraint" instanceClassName="de.jabc.cinco.meta.core.mgl.model.constraints.ConnectionConstraint"
+      abstract="true" interface="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Container" abstract="true" interface="true"
+      eSuperTypes="#//ModelElementContainer #//Node">
+    <eOperations name="getInternalContainerElement" eType="#//internal/InternalModelElementContainer">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return (InternalModelElementContainer)getInternalElement();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="delete">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="preDelete();&#xA;Runnable postDeleteFunction = getPostDeleteFunction();&#xA;Runnable postDeleteEvent = getPostDeleteEvent();&#xA;for (graphmodel.Node child : getAllNodes())&#xA;&#x9;child.delete();&#xA;if (getInternalElement() == null) return; //deleting children might have hook-deleted myself&#xA;java.util.HashSet&lt;graphmodel.Edge> allEdges = new java.util.HashSet&lt;>();&#xA;allEdges.addAll(getIncoming());&#xA;allEdges.addAll(getOutgoing());&#xA;for (graphmodel.Edge edge : allEdges)&#xA;&#x9;edge.delete();&#xA;if (getInternalElement() == null) return; //deleting edges might have hook-deleted myself&#xA;transact(&quot;Delete&quot;, () -> {&#xA;&#x9;org.eclipse.emf.ecore.util.EcoreUtil.delete(this.getInternalElement());&#xA;&#x9;org.eclipse.emf.ecore.util.EcoreUtil.delete(this);&#xA;});&#xA;postDeleteFunction.run();&#xA;postDeleteEvent.run();"/>
+      </eAnnotations>
+    </eOperations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ContainmentConstraint" instanceClassName="de.jabc.cinco.meta.core.mgl.model.constraints.ContainmentConstraint"
+      abstract="true" interface="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Edge" eSuperTypes="#//ModelElement">
+    <eOperations name="getSourceElement" eType="#//Node">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return ((graphmodel.internal.InternalEdge)getInternalElement()).getSourceElement();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getTargetElement" eType="#//Node">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return ((graphmodel.internal.InternalEdge)getInternalElement()).getTargetElement();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="setSourceElement">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Set Source&quot;, () -> {&#xA;&#x9;((graphmodel.internal.InternalEdge)getInternalElement()).setSourceElement(sourceElement);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="sourceElement" eType="#//Node"/>
+    </eOperations>
+    <eOperations name="setTargetElement">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Set Target&quot;, () -> {&#xA;&#x9;((graphmodel.internal.InternalEdge)getInternalElement()).setTargetElement(targetElement);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="targetElement" eType="#//Node"/>
+    </eOperations>
+    <eOperations name="getPostDeleteFunction" eType="#//Runnable">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return () -> {};"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getPostDeleteEvent" eType="#//Runnable">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return () -> {};"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="preDelete">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value=""/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="delete">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="preDelete();&#xA;Runnable postDeleteFunction = getPostDeleteFunction();&#xA;Runnable postDeleteEvent = getPostDeleteEvent();&#xA;transact(&quot;Delete&quot;, () -> {&#xA;&#x9;org.eclipse.emf.ecore.util.EcoreUtil.delete(this.getInternalElement());&#xA;&#x9;org.eclipse.emf.ecore.util.EcoreUtil.delete(this);&#xA;});&#xA;postDeleteFunction.run();&#xA;postDeleteEvent.run();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="canClone" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return source.canStart(this.getClass()) &amp;&amp; target.canEnd(this.getClass());"/>
+      </eAnnotations>
+      <eParameters name="source" eType="#//Node"/>
+      <eParameters name="target" eType="#//Node"/>
+    </eOperations>
+    <eOperations name="clone">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="graphmodel.internal.InternalEdge copy = (graphmodel.internal.InternalEdge) org.eclipse.emf.ecore.util.EcoreUtil.copy(this.getInternalElement());&#xA;copy.set_sourceElement((graphmodel.internal.InternalNode) source.getInternalElement());&#xA;copy.set_targetElement((graphmodel.internal.InternalNode) target.getInternalElement());&#xA;org.eclipse.emf.ecore.util.EcoreUtil.setID(copy, getInternalElement().getId());&#xA;org.eclipse.emf.ecore.util.EcoreUtil.setID(copy.getElement(), getId());&#xA;org.eclipse.emf.ecore.EObject container = source.getContainer().getInternalContainerElement();&#xA;while (container != null &amp;&amp; !org.eclipse.emf.ecore.util.EcoreUtil.isAncestor(container, target)) {&#xA;&#x9;container = container.eContainer();&#xA;}&#xA;if (container != null) {&#xA;&#x9;((graphmodel.internal.InternalModelElementContainer) container).getModelElements().add(copy);&#xA;} else {&#xA;&#x9;container = target.getContainer().getInternalContainerElement();&#xA;&#x9;while (container != null &amp;&amp; !org.eclipse.emf.ecore.util.EcoreUtil.isAncestor(container, source)) {&#xA;&#x9;&#x9;container = container.eContainer();&#xA;&#x9;}&#xA;&#x9;if (container != null) {&#xA;&#x9;&#x9;((graphmodel.internal.InternalModelElementContainer) container).getModelElements().add(copy);&#xA;&#x9;} else {&#xA;&#x9;&#x9;source.getRootElement().getInternalContainerElement().getModelElements().add(copy);&#xA;&#x9;}&#xA;} &#xA;@SuppressWarnings(&quot;unchecked&quot;)&#xA;T t = (T) copy.getElement();&#xA;return t;"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Edge/clone/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Edge"/>
+      </eTypeParameters>
+      <eParameters name="source" eType="#//Node"/>
+      <eParameters name="target" eType="#//Node"/>
+    </eOperations>
+    <eOperations name="reconnectSource">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Reconnect source&quot;, () -> {&#xA;&#x9;((graphmodel.internal.InternalEdge)getInternalElement()).setSourceElement(sourceElement);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="sourceElement" eType="#//Node"/>
+    </eOperations>
+    <eOperations name="reconnectTarget">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Reconnect target&quot;, () -> {&#xA;&#x9;((graphmodel.internal.InternalEdge)getInternalElement()).setTargetElement(targetElement);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="targetElement" eType="#//Node"/>
+    </eOperations>
+    <eOperations name="copy">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="Edge copy = this.clone(source, target);&#xA;org.eclipse.emf.ecore.util.EcoreUtil.setID(copy, org.eclipse.emf.ecore.util.EcoreUtil.generateUUID());&#xA;org.eclipse.emf.ecore.util.EcoreUtil.setID(copy.getInternalElement(), copy.getId());&#xA;@SuppressWarnings(&quot;unchecked&quot;)&#xA;T t = (T) copy;&#xA;return t;"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Edge/copy/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Edge"/>
+      </eTypeParameters>
+      <eParameters name="source" eType="#//Node"/>
+      <eParameters name="target" eType="#//Node"/>
+    </eOperations>
+    <eOperations name="addBendpoint">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Add Bendpoint&quot;, () -> {&#xA;&#x9;((graphmodel.internal.InternalEdge) this.getInternalElement()).addBendpoint(x,y);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="x" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="y" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="GraphModel" abstract="true" eSuperTypes="#//ModelElementContainer">
+    <eOperations name="getAllNodeTypes" upperBound="-1">
+      <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+        <eTypeArguments>
+          <eUpperBound eClassifier="#//Node"/>
+        </eTypeArguments>
+      </eGenericType>
+    </eOperations>
+    <eOperations name="getInternalContainerElement" eType="#//internal/InternalModelElementContainer">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getInternalElement();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getRootElement" eType="#//GraphModel"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="internalElement" eType="#//internal/InternalGraphModel"
+        eOpposite="#//internal/InternalGraphModel/element"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IdentifiableElement" abstract="true"
+      interface="true">
+    <eOperations name="equals" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return (obj != null &amp;&amp; (obj == this))&#xA;&#x9;&#x9;&#x9;|| obj instanceof graphmodel.IdentifiableElement&#xA;&#x9;&#x9;&#x9;&#x9;&amp;&amp; ((graphmodel.IdentifiableElement) obj).getId() != null&#xA;&#x9;&#x9;&#x9;&#x9;&amp;&amp; ((graphmodel.IdentifiableElement) obj).getId().equals(this.getId())&#xA;&#x9;&#x9;&#x9;&#x9;&amp;&amp; obj.getClass().getName().equals(this.getClass().getName());"/>
+      </eAnnotations>
+      <eParameters name="obj" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>
+    </eOperations>
+    <eOperations name="hashCode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return java.util.Objects.hash(getId(),getClass().getName());"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="save">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="try {&#xA;&#x9;preSave();&#xA;&#x9;this.eResource().save(null);&#xA;&#x9;postSave();&#xA;} catch (java.io.IOException e) {&#xA;&#x9;e.printStackTrace();&#xA;}"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getInternalElement" eType="#//internal/InternalIdentifiableElement"/>
+    <eOperations name="preSave">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value=""/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="postSave">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value=""/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="transact">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="/* TODO:SAMI: changed &#xA;org.eclipse.emf.transaction.TransactionalEditingDomain dom;&#xA;org.eclipse.emf.transaction.TransactionalEditingDomain.Factory factory = org.eclipse.emf.transaction.TransactionalEditingDomain.Factory.INSTANCE;&#xA;org.eclipse.emf.ecore.resource.Resource res = getInternalElement().eResource();&#xA;if (res == null)&#xA;&#x9;dom = factory.createEditingDomain();&#xA;else dom = org.eclipse.emf.transaction.util.TransactionUtil.getEditingDomain(res);&#xA;if (dom == null)&#x9;&#xA;&#x9;if (res.getResourceSet() != null)&#xA;&#x9;&#x9;dom = factory.createEditingDomain(res.getResourceSet());&#xA;&#x9;else&#xA;&#x9;&#x9;dom = factory.createEditingDomain();&#xA;if (dom != null) {&#xA;&#x9;dom.getCommandStack().execute(new org.eclipse.emf.transaction.RecordingCommand(dom, label) {&#xA;&#x9;&#x9;&#xA;&#x9;&#x9;@Override&#xA;&#x9;&#x9;protected void doExecute() {&#xA;&#x9;&#x9;&#x9;try {&#xA;&#x9;&#x9;&#x9;&#x9;runnable.run();&#xA;&#x9;&#x9;&#x9;} catch (Exception e) {&#xA;&#x9;&#x9;&#x9;&#x9;e.printStackTrace();&#xA;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;}&#xA;&#x9;});&#xA;}*/"/>
+      </eAnnotations>
+      <eParameters name="label" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="runnable" eType="#//Runnable"/>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="" derived="true" iD="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="suppressedSetVisibility" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ModelElement" abstract="true" eSuperTypes="#//IdentifiableElement">
+    <eOperations name="getContainer" eType="#//ModelElementContainer">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getInternalElement().getContainer().getContainerElement();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getRootElement" eType="#//GraphModel">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getInternalElement().getRootElement().getElement();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="highlight">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value=""/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="update">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value=""/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="updateGraphModel">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="this.getRootElement().updateModelElements();"/>
+      </eAnnotations>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="internalElement" lowerBound="1"
+        eType="#//internal/InternalModelElement" eOpposite="#//internal/InternalModelElement/element"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ModelElementContainer" abstract="true"
+      eSuperTypes="#//IdentifiableElement">
+    <eOperations name="getModelElements" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="EList&lt;T> list = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;&#x9;&#x9;if(clazz!=null){&#xA;&#x9;&#x9;&#x9;for(ModelElement e: this.getModelElements()){&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;if(clazz.isInstance(e)){&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;list.add(clazz.cast(e));&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;}else{&#xA;&#x9;&#x9;&#x9;throw new NullPointerException(&quot;Class must not be null.&quot;);&#xA;&#x9;&#x9;}&#xA;&#x9;&#x9;&#xA;&#x9;&#x9;return org.eclipse.emf.common.util.ECollections.unmodifiableEList(list);"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//ModelElementContainer/getModelElements/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//ModelElement"/>
+      </eTypeParameters>
+      <eParameters name="clazz">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments eTypeParameter="#//ModelElementContainer/getModelElements/T"/>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="getAllNodes" upperBound="-1" eType="#//Node">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getModelElements(Node.class);"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getAllEdges" upperBound="-1" eType="#//Edge">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getModelElements(graphmodel.Edge.class);"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getAllContainers" upperBound="-1" eType="#//Container">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getModelElements(graphmodel.Container.class);"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="canContain" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getInternalContainerElement().canContain(nodes);&#xA;"/>
+      </eAnnotations>
+      <eParameters name="nodes" upperBound="-1">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments>
+            <eUpperBound eClassifier="#//Node"/>
+          </eTypeArguments>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="canContain" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getInternalContainerElement().canContain(node);&#xA;"/>
+      </eAnnotations>
+      <eParameters name="node">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments>
+            <eUpperBound eClassifier="#//Node"/>
+          </eTypeArguments>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="getContainableTypes" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="graphmodel.GraphModel rootGraphModel = null;&#xA;&#x9;&#x9;if(this instanceof graphmodel.GraphModel){&#xA;&#x9;&#x9;&#x9;rootGraphModel = (graphmodel.GraphModel) this;&#xA;&#x9;&#x9;}else if(this instanceof graphmodel.Container){&#xA;&#x9;&#x9;&#x9;rootGraphModel = ((graphmodel.Container)this).getRootElement();&#xA;&#x9;&#x9;}&#xA;&#x9;&#x9;if(getInternalContainerElement().getContainmentConstraints().size()>0){&#xA;&#x9;&#x9;&#x9;return new org.eclipse.emf.common.util.BasicEList&lt;Class&lt;? extends Node>>(&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;rootGraphModel.getAllNodeTypes().stream().filter(n -> canContain(n)).collect(java.util.stream.Collectors.toList()));&#xA;&#xA;&#x9;&#x9;}else{&#xA;&#x9;&#x9;&#x9;return rootGraphModel.getAllNodeTypes();&#xA;&#x9;&#x9;}"/>
+      </eAnnotations>
+      <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+        <eTypeArguments>
+          <eUpperBound eClassifier="#//Node"/>
+        </eTypeArguments>
+      </eGenericType>
+    </eOperations>
+    <eOperations name="getModelElements" upperBound="-1" eType="#//ModelElement">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="org.eclipse.emf.common.util.BasicEList&lt;ModelElement> bel = new org.eclipse.emf.common.util.BasicEList&lt;>();&#xA;&#x9;&#x9;bel.addAll(getInternalContainerElement().getModelElements().stream().map(me -> me.getElement()).collect(java.util.stream.Collectors.toList()));&#xA;&#x9;&#x9;return bel;"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getInternalContainerElement" eType="#//internal/InternalModelElementContainer"/>
+    <eOperations name="getEdges" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="EList&lt;T> list = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;&#x9;&#x9;if(clazz!=null){&#xA;&#x9;&#x9;&#x9;for(ModelElement e: this.getModelElements()){&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;if(clazz.isInstance(e)){&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;list.add(clazz.cast(e));&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;}else{&#xA;&#x9;&#x9;&#x9;throw new NullPointerException(&quot;Class must not be null.&quot;);&#xA;&#x9;&#x9;}&#xA;&#x9;&#x9;&#xA;&#x9;&#x9;return org.eclipse.emf.common.util.ECollections.unmodifiableEList(list);"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//ModelElementContainer/getEdges/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Edge"/>
+      </eTypeParameters>
+      <eParameters name="clazz">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments eTypeParameter="#//ModelElementContainer/getEdges/T"/>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="getNodes" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="EList&lt;T> list = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;&#x9;&#x9;if(clazz!=null){&#xA;&#x9;&#x9;&#x9;for(ModelElement e: this.getModelElements()){&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;if(clazz.isInstance(e)){&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;list.add(clazz.cast(e));&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;}else{&#xA;&#x9;&#x9;&#x9;throw new NullPointerException(&quot;Class must not be null.&quot;);&#xA;&#x9;&#x9;}&#xA;&#x9;&#x9;&#xA;&#x9;&#x9;return org.eclipse.emf.common.util.ECollections.unmodifiableEList(list);"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//ModelElementContainer/getNodes/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Node"/>
+      </eTypeParameters>
+      <eParameters name="clazz">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments eTypeParameter="#//ModelElementContainer/getNodes/T"/>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="updateModelElements">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="for (ModelElement me : getModelElements()) {&#xA;&#x9;me.update();&#xA;&#x9;if (me instanceof ModelElementContainer)&#xA;&#x9;&#x9;((ModelElementContainer) me).updateModelElements();&#xA;}"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getNodes" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return (EList&lt;T>)getNodes(Node.class);"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//ModelElementContainer/getNodes.1/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Node"/>
+      </eTypeParameters>
+    </eOperations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Node" abstract="true" eSuperTypes="#//ModelElement">
+    <eOperations name="getSuccessors" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="EList&lt;graphmodel.internal.InternalNode> iSucc= ((graphmodel.internal.InternalNode) this.getInternalElement()).getSuccessors();&#xA;@SuppressWarnings(&quot;unchecked&quot;)&#xA;java.util.List&lt;M> collect = iSucc.stream().map(iNode -> (M) iNode.getElement()).collect(java.util.stream.Collectors.toList());&#xA;EList&lt;M> successors = new org.eclipse.emf.common.util.BasicEList&lt;M>(collect);&#xA;return successors;"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Node/getSuccessors/M"/>
+      <eTypeParameters name="M">
+        <eBounds eClassifier="#//Node"/>
+      </eTypeParameters>
+    </eOperations>
+    <eOperations name="getSuccessors" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="@SuppressWarnings(&quot;all&quot;)&#xA;java.util.List&lt;T> successors =(java.util.List&lt;T>) ((graphmodel.internal.InternalNode)this.getInternalElement()).&#xA;&#x9;&#x9;getSuccessors().stream().&#xA;&#x9;&#x9;&#x9;map(me -> me.getElement()).&#xA;&#x9;&#x9;&#x9;&#x9;filter(me -> clazz.isAssignableFrom(((Node)me).getClass())).&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;collect(java.util.stream.Collectors.toList());&#xA;&#x9;&#x9;&#xA;EList&lt;T> retval = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;retval.addAll(successors);&#xA;return retval;"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Node/getSuccessors.1/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Node"/>
+      </eTypeParameters>
+      <eParameters name="clazz">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments eTypeParameter="#//Node/getSuccessors.1/T"/>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="getPredecessors" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="EList&lt;graphmodel.internal.InternalNode> iSucc= ((graphmodel.internal.InternalNode) this.getInternalElement()).getPredecessors();&#xA;@SuppressWarnings(&quot;unchecked&quot;)&#xA;java.util.List&lt;M> collect = iSucc.stream().map(iNode -> (M) iNode.getElement()).collect(java.util.stream.Collectors.toList());&#xA;EList&lt;M> successors = new org.eclipse.emf.common.util.BasicEList&lt;M>(collect);&#xA;return successors;"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Node/getPredecessors/M"/>
+      <eTypeParameters name="M">
+        <eBounds eClassifier="#//Node"/>
+      </eTypeParameters>
+    </eOperations>
+    <eOperations name="getPredecessors" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="@SuppressWarnings(&quot;all&quot;)&#xA;&#x9;&#x9;java.util.List&lt;T> successors =(java.util.List&lt;T>) ((graphmodel.internal.InternalNode)this.getInternalElement()).&#xA;&#x9;&#x9;&#x9;&#x9;getPredecessors().stream().&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;map(me -> me.getElement()).&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;filter(me -> clazz.isAssignableFrom(((Node)me).getClass())).&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;map(me -> clazz.cast(me)).&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;collect(java.util.stream.Collectors.toList());&#xA;&#x9;&#x9;&#x9;&#x9;&#xA;&#x9;&#x9;EList&lt;T> retval = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;&#x9;&#x9;retval.addAll(successors);&#xA;&#x9;&#x9;return retval;"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Node/getPredecessors.1/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Node"/>
+      </eTypeParameters>
+      <eParameters name="clazz">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments eTypeParameter="#//Node/getPredecessors.1/T"/>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="getIncoming" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="java.util.List&lt;T> it = ((graphmodel.internal.InternalNode) getInternalElement()).getIncoming().stream()&#xA;&#x9;&#x9;&#x9;&#x9;.filter(iNode -> clazz.isInstance(iNode.getElement())).map(iNode -> clazz.cast(iNode.getElement()))&#xA;&#x9;&#x9;&#x9;&#x9;.collect(java.util.stream.Collectors.toList());&#xA;&#x9;&#x9;org.eclipse.emf.common.util.BasicEList&lt;T> bl = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;&#x9;&#x9;bl.addAll(it);&#xA;&#x9;&#x9;return bl;"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Node/getIncoming/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Edge"/>
+      </eTypeParameters>
+      <eParameters name="clazz">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments eTypeParameter="#//Node/getIncoming/T"/>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="getOutgoing" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="java.util.List&lt;T> it = ((graphmodel.internal.InternalNode) getInternalElement()).getOutgoing().stream()&#xA;&#x9;&#x9;&#x9;&#x9;.filter(iNode -> clazz.isInstance(iNode.getElement())).map(iNode -> clazz.cast(iNode.getElement()))&#xA;&#x9;&#x9;&#x9;&#x9;.collect(java.util.stream.Collectors.toList());&#xA;&#x9;&#x9;org.eclipse.emf.common.util.BasicEList&lt;T> bl = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;&#x9;&#x9;bl.addAll(it);&#xA;&#x9;&#x9;return bl;"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Node/getOutgoing/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Edge"/>
+      </eTypeParameters>
+      <eParameters name="clazz">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments eTypeParameter="#//Node/getOutgoing/T"/>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="canConnect" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return canStart(with.getClass())&amp;&amp; to.canEnd(with.getClass());"/>
+      </eAnnotations>
+      <eParameters name="with" eType="#//Edge"/>
+      <eParameters name="to" eType="#//Node"/>
+    </eOperations>
+    <eOperations name="getOutgoingConstraints" upperBound="-1" eType="#//ConnectionConstraint">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return ((graphmodel.internal.InternalNode)getInternalElement()).getOutgoingConstraints();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getIncomingConstraints" upperBound="-1" eType="#//ConnectionConstraint">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return ((graphmodel.internal.InternalNode)getInternalElement()).getIncomingConstraints();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="canStart" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return ((graphmodel.internal.InternalNode)getInternalElement()).canStart(edgeType);"/>
+      </eAnnotations>
+      <eParameters name="edgeType">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments>
+            <eUpperBound eClassifier="#//Edge"/>
+          </eTypeArguments>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="canEnd" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return ((graphmodel.internal.InternalNode)getInternalElement()).canEnd(edgeType);"/>
+      </eAnnotations>
+      <eParameters name="edgeType">
+        <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+          <eTypeArguments>
+            <eUpperBound eClassifier="#//Edge"/>
+          </eTypeArguments>
+        </eGenericType>
+      </eParameters>
+    </eOperations>
+    <eOperations name="move">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Move&quot;, () -> {&#xA;&#x9;graphmodel.internal.InternalNode ime = (graphmodel.internal.InternalNode) this.getInternalElement();&#xA;&#x9;int deltaX = x - ime.getX();&#xA;&#x9;int deltaY = y - ime.getY();&#xA;&#x9;if (deltaX != 0 || deltaY != 0)&#xA;&#x9;&#x9;preMove(getContainer(), x, y);&#xA;&#x9;if (deltaX != 0)&#xA;&#x9;&#x9;ime.setX(x);&#xA;&#x9;if (deltaY != 0)&#xA;&#x9;&#x9;ime.setY(y);&#xA;&#x9;if (deltaX != 0 || deltaY != 0)&#xA;&#x9;&#x9;postMove(getContainer(), getContainer(), x, y, deltaX, deltaY);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="x" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="y" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="resize">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="resize(width,  height, getX(), getY());"/>
+      </eAnnotations>
+      <eParameters name="width" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="height" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="resize">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Resize&quot;, () -> {&#xA;&#x9;graphmodel.internal.InternalNode ime = (graphmodel.internal.InternalNode) getInternalElement();&#xA;&#x9;int oldWidth  = ime.getWidth();&#xA;&#x9;int oldHeight = ime.getHeight();&#xA;&#x9;int oldX      = ime.getX();&#xA;&#x9;int oldY      = ime.getY();&#xA;&#x9;boolean widthChanged  = width  != oldWidth;&#xA;&#x9;boolean heightChanged = height != oldHeight;&#xA;&#x9;boolean xChanged      = x != oldX;&#xA;&#x9;boolean yChanged      = y != oldY;&#xA;&#x9;graphmodel.Direction direction = graphmodel.Direction.UNSPECIFIED;&#xA;&#x9;if (widthChanged || heightChanged || xChanged || yChanged) {&#xA;&#x9;&#x9;boolean north = heightChanged &amp;&amp;  yChanged;&#xA;&#x9;&#x9;boolean south = heightChanged &amp;&amp; !yChanged;&#xA;&#x9;&#x9;boolean west  = widthChanged  &amp;&amp;  xChanged;&#xA;&#x9;&#x9;boolean east  = widthChanged  &amp;&amp; !xChanged;&#xA;&#x9;&#x9;direction =&#xA;&#x9;&#x9;&#x9;( north &amp;&amp; !south &amp;&amp; !west &amp;&amp; !east) ? graphmodel.Direction.NORTH      :&#xA;&#x9;&#x9;&#x9;( north &amp;&amp; !south &amp;&amp; !west &amp;&amp;  east) ? graphmodel.Direction.NORTH_EAST :&#xA;&#x9;&#x9;&#x9;(!north &amp;&amp; !south &amp;&amp; !west &amp;&amp;  east) ? graphmodel.Direction.EAST       :&#xA;&#x9;&#x9;&#x9;(!north &amp;&amp;  south &amp;&amp; !west &amp;&amp;  east) ? graphmodel.Direction.SOUTH_EAST :&#xA;&#x9;&#x9;&#x9;(!north &amp;&amp;  south &amp;&amp; !west &amp;&amp; !east) ? graphmodel.Direction.SOUTH      :&#xA;&#x9;&#x9;&#x9;(!north &amp;&amp;  south &amp;&amp;  west &amp;&amp; !east) ? graphmodel.Direction.SOUTH_WEST :&#xA;&#x9;&#x9;&#x9;(!north &amp;&amp; !south &amp;&amp;  west &amp;&amp; !east) ? graphmodel.Direction.WEST       :&#xA;&#x9;&#x9;&#x9;( north &amp;&amp; !south &amp;&amp;  west &amp;&amp; !east) ? graphmodel.Direction.NORTH_WEST :&#xA;&#x9;&#x9;&#x9;                                       graphmodel.Direction.UNSPECIFIED;&#xA;&#x9;&#x9;this.preResize(width, height, x, y, direction);&#xA;&#x9;}&#xA;&#x9;if (widthChanged)  ime.setWidth(width);&#xA;&#x9;if (heightChanged) ime.setHeight(height);&#xA;&#x9;if (xChanged)      ime.setX(x);&#xA;&#x9;if (yChanged)      ime.setY(y);&#xA;&#x9;if (widthChanged || heightChanged || xChanged || yChanged) {&#xA;&#x9;&#x9;this.postResize(oldWidth, oldHeight, oldX, oldY, direction);&#xA;&#x9;&#x9;this.update();&#xA;&#x9;}&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="width" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="height" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="x" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="y" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="preMove">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body"/>
+      </eAnnotations>
+      <eParameters name="newContainer" eType="#//ModelElementContainer"/>
+      <eParameters name="newX" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="newY" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="postMove">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body"/>
+      </eAnnotations>
+      <eParameters name="source" eType="#//ModelElementContainer"/>
+      <eParameters name="target" eType="#//ModelElementContainer"/>
+      <eParameters name="x" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="y" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="deltaX" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="deltaY" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="delete">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="preDelete();&#xA;Runnable postDeleteFunction = getPostDeleteFunction();&#xA;Runnable postDeleteEvent = getPostDeleteEvent();&#xA;java.util.HashSet&lt;graphmodel.Edge> allEdges = new java.util.HashSet&lt;>();&#xA;allEdges.addAll(getUntypedIncoming());&#xA;allEdges.addAll(getUntypedOutgoing());&#xA;for (graphmodel.Edge edge : allEdges)&#xA;&#x9;edge.delete();&#xA;if (getInternalElement() == null) return; //deleting edges might have hook-deleted myself&#xA;transact(&quot;Delete&quot;, () -> {&#xA;&#x9;org.eclipse.emf.ecore.util.EcoreUtil.delete(this.getInternalElement());&#xA;&#x9;org.eclipse.emf.ecore.util.EcoreUtil.delete(this);&#xA;});&#xA;postDeleteFunction.run();&#xA;postDeleteEvent.run();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getPostDeleteFunction" eType="#//Runnable">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return () -> {};"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getPostDeleteEvent" eType="#//Runnable">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return () -> {};"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="preDelete">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value=""/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="canMoveTo" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return targetContainer.canContain(this.getClass());"/>
+      </eAnnotations>
+      <eParameters name="targetContainer" lowerBound="1" eType="#//ModelElementContainer"/>
+    </eOperations>
+    <eOperations name="moveTo">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Move to&quot;, () -> {&#xA;&#x9;graphmodel.ModelElementContainer sourceContainer = this.getContainer();&#xA;&#x9;graphmodel.internal.InternalNode ime = (graphmodel.internal.InternalNode) this.getInternalElement();&#xA;&#x9;int deltaX = x - ime.getX();&#xA;&#x9;int deltaY = y - ime.getY();&#xA;&#x9;preMove(targetContainer, x, y);&#xA;&#x9;s_moveTo(targetContainer, x, y);&#xA;&#x9;targetContainer.getInternalContainerElement().getModelElements().add(ime);&#xA;&#x9;ime.setX(x);&#xA;&#x9;ime.setY(y);&#xA;&#x9;postMove(sourceContainer, targetContainer, x, y, deltaX, deltaY);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="targetContainer" lowerBound="1" eType="#//ModelElementContainer"/>
+      <eParameters name="x" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="y" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="canClone" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return targetContainer.canContain(this.getClass());"/>
+      </eAnnotations>
+      <eParameters name="targetContainer" eType="#//ModelElementContainer"/>
+    </eOperations>
+    <eOperations name="clone">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="graphmodel.internal.InternalNode copy = (graphmodel.internal.InternalNode) org.eclipse.emf.ecore.util.EcoreUtil.copy(this.getInternalElement());&#xA;org.eclipse.emf.ecore.util.EcoreUtil.setID(copy, getInternalElement().getId());&#xA;org.eclipse.emf.ecore.util.EcoreUtil.setID(copy.getElement(), getId());&#xA;targetContainer.getInternalContainerElement().getModelElements().add(copy);&#xA;@SuppressWarnings(&quot;unchecked&quot;)&#xA;T t = (T) copy.getElement();&#xA;return t;"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Node/clone/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Node"/>
+      </eTypeParameters>
+      <eParameters name="targetContainer" eType="#//ModelElementContainer"/>
+    </eOperations>
+    <eOperations name="getX" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return ((graphmodel.internal.InternalNode) getInternalElement()).getX();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getY" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return ((graphmodel.internal.InternalNode) getInternalElement()).getY();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getWidth" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return ((graphmodel.internal.InternalNode) getInternalElement()).getWidth();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getHeight" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return ((graphmodel.internal.InternalNode) getInternalElement()).getHeight();"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="copy">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="graphmodel.internal.InternalNode copy = (graphmodel.internal.InternalNode) org.eclipse.emf.ecore.util.EcoreUtil.copy(this.getInternalElement());&#xA;org.eclipse.emf.ecore.util.EcoreUtil.setID(copy, org.eclipse.emf.ecore.util.EcoreUtil.generateUUID());&#xA;targetContainer.getInternalContainerElement().getModelElements().add(copy);&#xA;@SuppressWarnings(&quot;unchecked&quot;)&#xA;T t = (T) copy.getElement();&#xA;return t;"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Node/copy/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Node"/>
+      </eTypeParameters>
+      <eParameters name="targetContainer" eType="#//ModelElementContainer"/>
+    </eOperations>
+    <eOperations name="setX">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Set x&quot;, () -> {&#xA;((graphmodel.internal.InternalNode) getInternalElement()).setX(x);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="x" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="setY">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Set Y&quot;, () -> {&#xA;((graphmodel.internal.InternalNode) getInternalElement()).setY(y);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="y" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="setWidth">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Set width&quot;, () -> {&#xA;&#x9;((graphmodel.internal.InternalNode) getInternalElement()).setWidth(width);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="width" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="setHeight">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="transact(&quot;Set height&quot;, () -> {&#xA;&#x9;((graphmodel.internal.InternalNode) getInternalElement()).setHeight(height);&#xA;});"/>
+      </eAnnotations>
+      <eParameters name="height" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="preResize">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value=""/>
+      </eAnnotations>
+      <eParameters name="newWidth" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="newHeight" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="newX" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="newY" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="direction" lowerBound="1" eType="#//Direction"/>
+    </eOperations>
+    <eOperations name="postResize">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value=""/>
+      </eAnnotations>
+      <eParameters name="oldWidth" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="oldHeight" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="oldX" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="oldY" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="direction" lowerBound="1" eType="#//Direction"/>
+    </eOperations>
+    <eOperations name="getLayer" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getContainer().getModelElements().indexOf(this);"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="s_moveTo">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value=""/>
+      </eAnnotations>
+      <eParameters name="targetContainer" lowerBound="1" eType="#//ModelElementContainer"/>
+      <eParameters name="x" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eParameters name="y" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="getIncoming" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return (EList&lt;T>)getIncoming(graphmodel.Edge.class);"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Node/getIncoming.1/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Edge"/>
+      </eTypeParameters>
+    </eOperations>
+    <eOperations name="getOutgoing" upperBound="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return (EList&lt;T>)getOutgoing(graphmodel.Edge.class);"/>
+      </eAnnotations>
+      <eGenericType eTypeParameter="#//Node/getOutgoing.1/T"/>
+      <eTypeParameters name="T">
+        <eBounds eClassifier="#//Edge"/>
+      </eTypeParameters>
+    </eOperations>
+    <eOperations name="getUntypedIncoming" upperBound="-1" eType="#//Edge">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="EList&lt;graphmodel.internal.InternalEdge> in = ((graphmodel.internal.InternalNode)getInternalElement()).getIncoming();&#xA;&#x9;&#x9;return org.eclipse.emf.common.util.ECollections.unmodifiableEList(in&#xA;&#x9;&#x9;&#x9;.stream().map(me -> (graphmodel.Edge)me.getElement()).&#xA;&#x9;&#x9;&#x9;&#x9;collect(java.util.stream.Collectors.toList()));"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="getUntypedOutgoing" upperBound="-1" eType="#//Edge">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="EList&lt;graphmodel.internal.InternalEdge> out = ((graphmodel.internal.InternalNode)getInternalElement()).getOutgoing();&#xA;&#x9;&#x9;return org.eclipse.emf.common.util.ECollections.unmodifiableEList(out&#xA;&#x9;&#x9;&#x9;.stream().map(me -> (graphmodel.Edge)me.getElement()).&#xA;&#x9;&#x9;&#x9;&#x9;collect(java.util.stream.Collectors.toList()));"/>
+      </eAnnotations>
+    </eOperations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Parameter" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="parameterName" iD="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Runnable" instanceClassName="java.lang.Runnable"
+      abstract="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Type" abstract="true" interface="true"
+      eSuperTypes="#//IdentifiableElement">
+    <eOperations name="delete">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="preDelete();&#xA;org.eclipse.emf.ecore.util.EcoreUtil.delete(this.getInternalElement());&#xA;org.eclipse.emf.ecore.util.EcoreUtil.delete(this);"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="preDelete">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value=""/>
+      </eAnnotations>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="internalElement" lowerBound="1"
+        eType="#//internal/InternalType" containment="true" eOpposite="#//internal/InternalType/element"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Direction">
+    <eLiterals name="NORTH"/>
+    <eLiterals name="NORTH_EAST" value="1" literal="NORTH_EAST"/>
+    <eLiterals name="EAST" value="2"/>
+    <eLiterals name="SOUTH_EAST" value="3"/>
+    <eLiterals name="SOUTH" value="4"/>
+    <eLiterals name="SOUTH_WEST" value="5"/>
+    <eLiterals name="WEST" value="6"/>
+    <eLiterals name="NORTH_WEST" value="7"/>
+    <eLiterals name="UNSPECIFIED" value="9"/>
+  </eClassifiers>
+  <eSubpackages name="internal" nsURI="http://www.jabc.de/cinco/gdl/graphmodel/internal"
+      nsPrefix="graphmodel-internal">
+    <eClassifiers xsi:type="ecore:EClass" name="_Decoration">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="nameHint" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="locationShift" eType="#//internal/_Point"
+          containment="true"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="location" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="_Point">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="x" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="y" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="InternalContainer" eSuperTypes="#//internal/InternalNode #//internal/InternalModelElementContainer">
+      <eOperations name="getContainerElement" eType="#//ModelElementContainer">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="return (ModelElementContainer) this.getElement();&#xA;"/>
+        </eAnnotations>
+      </eOperations>
+      <eOperations name="canContain" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="if (nodes != null &amp;&amp; nodes.size() > 0 &amp;&amp; getContainmentConstraints().size() > 0) {&#xA;boolean canContain = true;&#xA;&#xA;for (int i = 1; i &lt;= nodes.size(); i++) {&#xA;&#x9;final java.util.List&lt;Class&lt;? extends Node>> subNodes = nodes.subList(i, nodes.size());&#xA;&#x9;Class&lt;? extends Node> currentNode = nodes.get(i - 1);&#xA;&#x9;long constraintCount = getContainmentConstraints().stream().filter(c -> c.isInTypes(currentNode)).count();&#xA;&#x9;canContain &amp;= constraintCount != 0 &amp;&amp; getContainmentConstraints().stream().filter(c -> c.isInTypes(currentNode)).allMatch(&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;(c -> !c.violationAfterInsert(currentNode, subNodes, this.getContainerElement())));&#xA;&#x9;}&#xA;&#x9;return canContain;&#xA;}&#xA;else if(getContainmentConstraints().size()== 0) {&#xA;&#x9;&#x9;&#x9;return true;&#xA;&#x9;&#x9;}&#xA;&#x9;&#x9;return false;"/>
+        </eAnnotations>
+        <eParameters name="nodes" upperBound="-1">
+          <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+            <eTypeArguments>
+              <eUpperBound eClassifier="#//Node"/>
+            </eTypeArguments>
+          </eGenericType>
+        </eParameters>
+      </eOperations>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="InternalEdge" eSuperTypes="#//internal/InternalModelElement">
+      <eOperations name="getSourceElement" eType="#//Node">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="return (Node)get_sourceElement().getElement();"/>
+        </eAnnotations>
+      </eOperations>
+      <eOperations name="getTargetElement" eType="#//Node">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="return  (Node)get_targetElement().getElement();"/>
+        </eAnnotations>
+      </eOperations>
+      <eOperations name="setSourceElement">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="set_sourceElement((InternalNode)sourceElement.getInternalElement());&#xA;"/>
+        </eAnnotations>
+        <eParameters name="sourceElement" eType="#//Node"/>
+      </eOperations>
+      <eOperations name="setTargetElement">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="set_targetElement((InternalNode)targetElement.getInternalElement());&#xA;"/>
+        </eAnnotations>
+        <eParameters name="targetElement" eType="#//Node"/>
+      </eOperations>
+      <eOperations name="addBendpoint">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="_Point p = graphmodel.internal.InternalFactory.eINSTANCE.create_Point();&#xA;p.setX(x);&#xA;p.setY(y);&#xA;this.getBendpoints().add(p);"/>
+        </eAnnotations>
+        <eParameters name="x" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+        <eParameters name="y" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+      </eOperations>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="_sourceElement" eType="#//internal/InternalNode"
+          eOpposite="#//internal/InternalNode/outgoing"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="_targetElement" eType="#//internal/InternalNode"
+          eOpposite="#//internal/InternalNode/incoming"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="bendpoints" upperBound="-1"
+          eType="#//internal/_Point" containment="true"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="decorators" upperBound="-1"
+          eType="#//internal/_Decoration" containment="true"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="InternalGraphModel" eSuperTypes="#//internal/InternalModelElementContainer">
+      <eOperations name="getContainerElement" eType="#//ModelElementContainer">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="return this.getElement();"/>
+        </eAnnotations>
+      </eOperations>
+      <eOperations name="getRootElement" eType="#//internal/InternalGraphModel">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="return this;"/>
+          <details key="documentation" value="Returns the Root GraphModel of the containment hierarchie.&#xA;null if no containment root can be found"/>
+        </eAnnotations>
+      </eOperations>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="element" eType="#//GraphModel"
+          containment="true" eOpposite="#//GraphModel/internalElement"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="InternalIdentifiableElement" abstract="true"
+        interface="true">
+      <eOperations name="equals" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="return obj != null &amp;&amp; ((obj == this) || obj instanceof graphmodel.IdentifiableElement&#xA;&#x9;&#x9;&#x9;&#x9;&amp;&amp; ((graphmodel.IdentifiableElement) obj).getId() == this.getId()&#xA;&#x9;&#x9;&#x9;&#x9;&amp;&amp; obj.getClass().getName().equals(this.getClass().getName()));"/>
+        </eAnnotations>
+        <eParameters name="obj" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>
+      </eOperations>
+      <eOperations name="hashCode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="return java.util.Objects.hash(getId(),getClass().getName());"/>
+        </eAnnotations>
+      </eOperations>
+      <eOperations name="save">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="try {&#xA;&#x9;this.eResource().save(null);&#xA;} catch (java.io.IOException e) {&#xA;&#x9;e.printStackTrace();&#xA;}"/>
+        </eAnnotations>
+      </eOperations>
+      <eOperations name="getElement" eType="#//IdentifiableElement"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+          defaultValueLiteral="" derived="true" iD="true">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="suppressedSetVisibility" value="true"/>
+        </eAnnotations>
+      </eStructuralFeatures>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="InternalModelElement" eSuperTypes="#//internal/InternalIdentifiableElement">
+      <eOperations name="getRootElement" eType="#//internal/InternalGraphModel">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="InternalModelElementContainer container = this.getContainer();&#xA;&#x9;&#x9;&#x9;&#x9;if(container!=null){&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;while(container!=null &amp;&amp; !(container instanceof InternalGraphModel))&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;container= ((InternalModelElement)container).getContainer();&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;if(container!=null)&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;return (InternalGraphModel)container;&#xA;&#x9;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;&#x9;&#x9;&#xA;&#x9;&#x9;&#x9;&#x9;&#xA;&#x9;&#x9;&#x9;&#x9;return null;"/>
+          <details key="documentation" value="Returns the Root GraphModel of the containment hierarchie.&#xA;null if no containment root can be found"/>
+        </eAnnotations>
+      </eOperations>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="container" eType="#//internal/InternalModelElementContainer"
+          eOpposite="#//internal/InternalModelElementContainer/modelElements"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="element" lowerBound="1"
+          eType="#//ModelElement" containment="true" eOpposite="#//ModelElement/internalElement"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="InternalModelElementContainer" abstract="true"
+        interface="true" eSuperTypes="#//internal/InternalIdentifiableElement">
+      <eOperations name="getContainerElement" eType="#//ModelElementContainer"/>
+      <eOperations name="canContain" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="if (nodes != null &amp;&amp; nodes.size() > 0 &amp;&amp; getContainmentConstraints().size() > 0) {&#xA;boolean canContain = true;&#xA;&#xA;for (int i = 1; i &lt;= nodes.size(); i++) {&#xA;&#x9;final java.util.List&lt;Class&lt;? extends Node>> subNodes = nodes.subList(i, nodes.size());&#xA;&#x9;Class&lt;? extends Node> currentNode = nodes.get(i - 1);&#xA;&#x9;long constraintCount = getContainmentConstraints().stream().filter(c -> c.isInTypes(currentNode)).count();&#xA;&#x9;canContain &amp;= constraintCount != 0 &amp;&amp; getContainmentConstraints().stream().filter(c -> c.isInTypes(currentNode)).allMatch(&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;(c -> !c.violationAfterInsert(currentNode, subNodes, this.getContainerElement())));&#xA;&#x9;}&#xA;&#x9;return canContain;&#xA;}&#xA;return true;"/>
+        </eAnnotations>
+        <eParameters name="nodes" upperBound="-1">
+          <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+            <eTypeArguments>
+              <eUpperBound eClassifier="#//Node"/>
+            </eTypeArguments>
+          </eGenericType>
+        </eParameters>
+      </eOperations>
+      <eOperations name="canContain" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="EList&lt;Class&lt;? extends Node>> list = new org.eclipse.emf.common.util.BasicEList&lt;Class&lt;? extends Node>>();&#xA;&#x9;&#x9;list.add(node);&#xA;&#x9;&#x9;return canContain(list);"/>
+        </eAnnotations>
+        <eParameters name="node">
+          <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+            <eTypeArguments>
+              <eUpperBound eClassifier="#//Node"/>
+            </eTypeArguments>
+          </eGenericType>
+        </eParameters>
+      </eOperations>
+      <eOperations name="getContainmentConstraints" upperBound="-1" eType="#//ContainmentConstraint">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value=" org.eclipse.emf.common.util.BasicEList&lt;de.jabc.cinco.meta.core.mgl.model.constraints.ContainmentConstraint>constraints = &#xA;&#x9;&#x9;            new org.eclipse.emf.common.util.BasicEList&lt;de.jabc.cinco.meta.core.mgl.model.constraints.ContainmentConstraint>();&#xA;&#x9;&#x9;&#xA;&#x9;&#x9;return constraints;"/>
+        </eAnnotations>
+      </eOperations>
+      <eOperations name="canContainNodes" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="EList&lt;Class&lt;? extends Node>> nodeClasses = new org.eclipse.emf.common.util.BasicEList&lt;>();&#xA;for (Node n : nodes) {&#xA;&#x9;nodeClasses.add(n.getClass());&#xA;}&#xA;return canContain(nodeClasses);"/>
+        </eAnnotations>
+        <eParameters name="nodes" upperBound="-1" eType="#//Node"/>
+      </eOperations>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="modelElements" upperBound="-1"
+          eType="#//internal/InternalModelElement" containment="true" eOpposite="#//internal/InternalModelElement/container"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="InternalNode" eSuperTypes="#//internal/InternalModelElement">
+      <eOperations name="getSuccessors" upperBound="-1">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="@SuppressWarnings(&quot;unchecked&quot;)&#xA;EList&lt;M> m = (EList&lt;M>) getSuccessors(InternalNode.class);&#xA;return m;"/>
+        </eAnnotations>
+        <eGenericType eTypeParameter="#//internal/InternalNode/getSuccessors/M"/>
+        <eTypeParameters name="M">
+          <eBounds eClassifier="#//internal/InternalNode"/>
+        </eTypeParameters>
+      </eOperations>
+      <eOperations name="getSuccessors" upperBound="-1">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="EList&lt;T> list = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;if(clazz!=null){&#xA;&#x9;for(InternalEdge e: this.getOutgoing()){&#xA;&#x9;&#x9;if(clazz.isInstance(e.get_targetElement())){&#xA;&#x9;&#x9;&#x9;list.add(clazz.cast(e.get_targetElement()));&#xA;&#x9;&#x9;}&#xA;&#x9;}&#xA;}else{&#xA;&#x9;throw new NullPointerException(&quot;Class must not be null.&quot;);&#xA;}&#xA;&#x9;&#x9;&#xA;&#x9;&#x9;return org.eclipse.emf.common.util.ECollections.unmodifiableEList(list);"/>
+        </eAnnotations>
+        <eGenericType eTypeParameter="#//internal/InternalNode/getSuccessors.1/T"/>
+        <eTypeParameters name="T">
+          <eBounds eClassifier="#//internal/InternalNode"/>
+        </eTypeParameters>
+        <eParameters name="clazz">
+          <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+            <eTypeArguments eTypeParameter="#//internal/InternalNode/getSuccessors.1/T"/>
+          </eGenericType>
+        </eParameters>
+      </eOperations>
+      <eOperations name="getPredecessors" upperBound="-1">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="@SuppressWarnings(&quot;unchecked&quot;)&#xA;EList&lt;M> m = (EList&lt;M>) getPredecessors(InternalNode.class);&#xA;return m;"/>
+        </eAnnotations>
+        <eGenericType eTypeParameter="#//internal/InternalNode/getPredecessors/M"/>
+        <eTypeParameters name="M">
+          <eBounds eClassifier="#//internal/InternalNode"/>
+        </eTypeParameters>
+      </eOperations>
+      <eOperations name="getPredecessors" upperBound="-1">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="EList&lt;T> list = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;if(clazz!=null){&#xA;&#x9;for(InternalEdge e: this.getIncoming()){&#xA;&#x9;&#x9;if(clazz.isInstance(e.get_sourceElement())){&#xA;&#x9;&#x9;&#x9;list.add(clazz.cast(e.get_sourceElement()));&#xA;&#x9;&#x9;}&#xA;&#x9;}&#xA;}else{&#xA;&#x9;throw new NullPointerException(&quot;Class must not be null.&quot;);&#xA;}&#xA;&#x9;&#x9;&#xA;&#x9;&#x9;return org.eclipse.emf.common.util.ECollections.unmodifiableEList(list);"/>
+        </eAnnotations>
+        <eGenericType eTypeParameter="#//internal/InternalNode/getPredecessors.1/T"/>
+        <eTypeParameters name="T">
+          <eBounds eClassifier="#//internal/InternalNode"/>
+        </eTypeParameters>
+        <eParameters name="clazz">
+          <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+            <eTypeArguments eTypeParameter="#//internal/InternalNode/getPredecessors.1/T"/>
+          </eGenericType>
+        </eParameters>
+      </eOperations>
+      <eOperations name="getIncoming" upperBound="-1">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="EList&lt;T> list = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;&#x9;&#x9;if(clazz!=null){&#xA;&#x9;&#x9;&#x9;for(InternalEdge e: this.getIncoming()){&#xA;&#x9;&#x9;&#x9;&#x9;if(clazz.isInstance(e)){&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;list.add(clazz.cast(e));&#xA;&#x9;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;}else{&#xA;&#x9;&#x9;&#x9;throw new NullPointerException(&quot;Class must not be null.&quot;);&#xA;&#x9;&#x9;}&#xA;&#x9;&#x9;&#xA;&#x9;&#x9;return org.eclipse.emf.common.util.ECollections.unmodifiableEList(list);"/>
+        </eAnnotations>
+        <eGenericType eTypeParameter="#//internal/InternalNode/getIncoming/T"/>
+        <eTypeParameters name="T">
+          <eBounds eClassifier="#//Edge"/>
+        </eTypeParameters>
+        <eParameters name="clazz">
+          <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+            <eTypeArguments eTypeParameter="#//internal/InternalNode/getIncoming/T"/>
+          </eGenericType>
+        </eParameters>
+      </eOperations>
+      <eOperations name="getOutgoing" upperBound="-1">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="EList&lt;T> list = new org.eclipse.emf.common.util.BasicEList&lt;T>();&#xA;&#x9;&#x9;if(clazz!=null){&#xA;&#x9;&#x9;&#x9;for(InternalEdge e: this.getOutgoing()){&#xA;&#x9;&#x9;&#x9;&#x9;if(clazz.isInstance(e)){&#xA;&#x9;&#x9;&#x9;&#x9;&#x9;list.add(clazz.cast(e));&#xA;&#x9;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;&#x9;}&#xA;&#x9;&#x9;}else{&#xA;&#x9;&#x9;&#x9;throw new NullPointerException(&quot;Class must not be null.&quot;);&#xA;&#x9;&#x9;}&#xA;&#x9;&#x9;&#xA;&#x9;&#x9;return org.eclipse.emf.common.util.ECollections.unmodifiableEList(list);"/>
+        </eAnnotations>
+        <eGenericType eTypeParameter="#//internal/InternalNode/getOutgoing/T"/>
+        <eTypeParameters name="T">
+          <eBounds eClassifier="#//internal/InternalEdge"/>
+        </eTypeParameters>
+        <eParameters name="clazz">
+          <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+            <eTypeArguments eTypeParameter="#//internal/InternalNode/getOutgoing/T"/>
+          </eGenericType>
+        </eParameters>
+      </eOperations>
+      <eOperations name="canConnect" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="return canStart(with.getClass())&amp;&amp; to.canEnd(with.getClass());"/>
+        </eAnnotations>
+        <eParameters name="with" eType="#//Edge"/>
+        <eParameters name="to" eType="#//Node"/>
+      </eOperations>
+      <eOperations name="getOutgoingConstraints" upperBound="-1" eType="#//ConnectionConstraint">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="return new org.eclipse.emf.common.util.BasicEList&lt;ConnectionConstraint>();"/>
+        </eAnnotations>
+      </eOperations>
+      <eOperations name="getIncomingConstraints" upperBound="-1" eType="#//ConnectionConstraint">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="return new org.eclipse.emf.common.util.BasicEList&lt;ConnectionConstraint>();"/>
+        </eAnnotations>
+      </eOperations>
+      <eOperations name="canStart" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="EList&lt;ConnectionConstraint> outConstraints = getOutgoingConstraints();&#xA;&#x9;&#x9;long constraintCount = outConstraints.stream().filter(c -> c.isInEdges(edgeType)).count();&#xA;&#x9;&#x9;return constraintCount>0&amp;&amp;outConstraints.stream().filter(c -> c.isInEdges(edgeType)).allMatch(c -> c.canConnect(((Node)this.getElement()),edgeType));"/>
+        </eAnnotations>
+        <eParameters name="edgeType">
+          <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+            <eTypeArguments>
+              <eUpperBound eClassifier="#//Edge"/>
+            </eTypeArguments>
+          </eGenericType>
+        </eParameters>
+      </eOperations>
+      <eOperations name="canEnd" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+        <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+          <details key="body" value="EList&lt;ConnectionConstraint> inConstraints = getIncomingConstraints();&#xA;&#x9;&#x9;long constraintCount = inConstraints.stream().filter(c -> c.isInEdges(edgeType)).count();&#xA;&#x9;&#x9;return constraintCount>0&amp;&amp;inConstraints.stream().filter(c -> c.isInEdges(edgeType)).allMatch(c -> c.canConnect(((Node)this.getElement()),edgeType));"/>
+        </eAnnotations>
+        <eParameters name="edgeType">
+          <eGenericType eClassifier="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaClass">
+            <eTypeArguments>
+              <eUpperBound eClassifier="#//Edge"/>
+            </eTypeArguments>
+          </eGenericType>
+        </eParameters>
+      </eOperations>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="x" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+          defaultValueLiteral="-1"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="y" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+          defaultValueLiteral="-1"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="height" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+          defaultValueLiteral="-1"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="width" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+          defaultValueLiteral="-1"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="incoming" upperBound="-1"
+          eType="#//internal/InternalEdge" eOpposite="#//internal/InternalEdge/_targetElement"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="outgoing" upperBound="-1"
+          eType="#//internal/InternalEdge" eOpposite="#//internal/InternalEdge/_sourceElement"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="InternalType" abstract="true" eSuperTypes="#//internal/InternalIdentifiableElement">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="element" lowerBound="1"
+          eType="#//Type" eOpposite="#//Type/internalElement"/>
+    </eClassifiers>
+  </eSubpackages>
+</ecore:EPackage>
