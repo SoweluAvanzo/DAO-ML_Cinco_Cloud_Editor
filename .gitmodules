@@ -1,3 +1,3 @@
 [submodule "cinco-language-server"]
-	path = cinco-language-server
+	path = backend/cinco-language-server
 	url = git@gitlab.com:scce/cinco-language-server.git
