@@ -1,5 +1,5 @@
 stages:
-  - test
+#  - test
   - build
   - push
 
@@ -46,29 +46,29 @@ stages:
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
 
-test-main:
-  extends: .maven-job
-  stage: test
-  only:
-    - master
-  variables:
-    KUBECTL: v1.17.0
-    KIND: v0.8.1
-  before_script:
-    - docker info
-    - apk update && apk add -U wget openjdk11
-    - wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
-    - wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.33-r0/glibc-2.33-r0.apk
-    - apk add glibc-2.33-r0.apk
-    - wget -O /usr/local/bin/kind https://github.com/kubernetes-sigs/kind/releases/download/${KIND}/kind-linux-amd64
-    - chmod +x /usr/local/bin/kind
-    - wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL}/bin/linux/amd64/kubectl
-    - chmod +x /usr/local/bin/kubectl
-    - kind create cluster --config=./.gitlab/kind-config.yaml
-    - sed -i -E -e 's/localhost|0\.0\.0\.0/docker/g' "$HOME/.kube/config"
-  script: |
-    cd ./main/backend
-    ./mvnw verify test
+#test-main:
+#  extends: .maven-job
+#  stage: test
+#  only:
+#    - master
+#  variables:
+#    KUBECTL: v1.17.0
+#    KIND: v0.8.1
+#  before_script:
+#    - docker info
+#    - apk update && apk add -U wget openjdk11
+#    - wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+#    - wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.33-r0/glibc-2.33-r0.apk
+#    - apk add glibc-2.33-r0.apk
+#    - wget -O /usr/local/bin/kind https://github.com/kubernetes-sigs/kind/releases/download/${KIND}/kind-linux-amd64
+#    - chmod +x /usr/local/bin/kind
+#    - wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL}/bin/linux/amd64/kubectl
+#    - chmod +x /usr/local/bin/kubectl
+#    - kind create cluster --config=./.gitlab/kind-config.yaml
+#    - sed -i -E -e 's/localhost|0\.0\.0\.0/docker/g' "$HOME/.kube/config"
+#  script: |
+#    cd ./main/backend
+#    ./mvnw verify test
 
 build-main:
   extends: .docker-build
