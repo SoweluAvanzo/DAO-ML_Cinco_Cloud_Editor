@@ -3,5 +3,5 @@
 	url = ../cinco-language-server.git
 
 [submodule "pyro-generator"]
-	path = de.jabc.cinco.meta.plugin.pyro.generator
+	path = cinco-ls/de.jabc.cinco.meta.plugin.pyro.generator
 	url = ../pyro-generator.git
