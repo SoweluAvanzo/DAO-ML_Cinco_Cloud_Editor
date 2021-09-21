@@ -18,10 +18,10 @@ RUN yarn
 
 # build the cinco-language-server
 # --------------------------------
-# FROM docker.io/library/maven:3.8.1-jdk-11-openj9 as cinco-language-server-builder
-# WORKDIR /cinco-language-server
-# COPY ./backend/cinco-language-server /cinco-language-server
-# RUN mvn clean install
+FROM docker.io/library/maven:3.8.1-jdk-11-openj9 as cinco-ls-builder
+WORKDIR /cinco-ls
+COPY ./cinco-ls /cinco-ls
+RUN mvn clean install
 
 # build the theia editor
 # --------------------------------
@@ -58,7 +58,7 @@ RUN yarn
 COPY --from=pyro-client-builder /pyro-client-extension/pyro-client-extension-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=cinco-extension-builder /cinco-extension/cinco-extension-0.0.1.vsix /editor/browser-app/plugins
 # copy cinco-language-server into backend
-# COPY --from=cinco-language-server-builder /cinco-language-server/de.jabc.cinco.meta.core.ide/target/language-server /editor/cinco-language-server-extension/language-server
+COPY --from=cinco-ls-builder /cinco-ls/de.jabc.cinco.meta.core.ide/target/language-server /editor/cinco-language-server-extension/language-server
 
 # integrate favicon
 RUN sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
