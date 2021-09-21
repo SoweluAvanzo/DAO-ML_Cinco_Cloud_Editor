@@ -15,11 +15,13 @@ import info.scce.cincocloud.db.PyroProjectDB;
 public class TheiaK8SIngress extends TheiaK8SResource<Ingress> {
 
     private final TheiaK8SService service;
+    private final String host;
 
-    public TheiaK8SIngress(KubernetesClient client, TheiaK8SService service, PyroProjectDB project) {
+    public TheiaK8SIngress(KubernetesClient client, TheiaK8SService service, PyroProjectDB project, String host) {
         super(client, project);
         this.service = service;
         this.resource = build();
+        this.host = host;
     }
 
     /**
@@ -60,7 +62,7 @@ public class TheiaK8SIngress extends TheiaK8SResource<Ingress> {
                 .endMetadata()
                 .withSpec(new IngressSpecBuilder()
                         .withRules(new IngressRuleBuilder()
-                                .withHost("cinco-cloud")
+                                .withHost(host)
                                 .withHttp(new HTTPIngressRuleValueBuilder()
                                         .withPaths(new HTTPIngressPathBuilder()
                                                 .withPath(path)

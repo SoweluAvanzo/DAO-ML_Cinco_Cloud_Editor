@@ -50,5 +50,6 @@ CMD java \
     -Dpodman.registry.port="${PODAN_REGISTRY_PORT}" \
     -Dpodman.registry.api.port="${PODAN_REGISTRY_API_PORT}" \
     -Dkubernetes.namespace="${KUBERNETES_NAMESPACE}" \
+    -Dcincocloud.host="${CINCO_CLOUD_HOST}" \
     -Dquarkus.http.port=8000 \
     -jar quarkus-run.jar

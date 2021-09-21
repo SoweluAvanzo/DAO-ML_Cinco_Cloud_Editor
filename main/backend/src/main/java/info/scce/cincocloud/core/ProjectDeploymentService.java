@@ -12,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import info.scce.cincocloud.core.rest.types.PyroProjectDeployment;
 import info.scce.cincocloud.core.rest.types.PyroProjectDeploymentStatus;
 import info.scce.cincocloud.db.PyroProjectDB;
@@ -50,6 +51,9 @@ public class ProjectDeploymentService {
 
     KubernetesClient client;
 
+    @ConfigProperty(name = "cincocloud.host")
+    String host;
+
     void startup(@Observes StartupEvent event) {
         client = clientService.createClient();
     }
@@ -82,7 +86,7 @@ public class ProjectDeploymentService {
         // create modeleditor app resources
         final var appService = new PyroAppK8SService(client, project);
         final var appDeployment = new PyroAppK8SDeployment(client, getRegistryService(), project);
-        final var appIngress = new PyroAppK8SIngress(client, appService, project);
+        final var appIngress = new PyroAppK8SIngress(client, appService, project, host);
 
         // create modeleditor database resources
         final var databaseService = new PyroDatabaseK8SService(client, project);
@@ -134,7 +138,7 @@ public class ProjectDeploymentService {
         final var persistentVolume = new TheiaK8SPersistentVolume(client, project);
         final var service = new TheiaK8SService(client, project);
         final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project);
-        final var ingress = new TheiaK8SIngress(client, service, project);
+        final var ingress = new TheiaK8SIngress(client, service, project, host);
 
         final var deployedDeploymentOptional = client.apps().statefulSets().list().getItems().stream()
                 .filter(pod -> pod.getMetadata() != null)
@@ -232,7 +236,7 @@ public class ProjectDeploymentService {
     public void stopModelEditor(PyroProjectDB project) {
         final var appService = new PyroAppK8SService(client, project);
         final var appDeployment = new PyroAppK8SDeployment(client, getRegistryService(), project);
-        final var appIngress = new PyroAppK8SIngress(client, appService, project);
+        final var appIngress = new PyroAppK8SIngress(client, appService, project, host);
 
         final var databaseService = new PyroDatabaseK8SService(client, project);
         final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project);
@@ -250,7 +254,7 @@ public class ProjectDeploymentService {
         final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
         final var service = new TheiaK8SService(client, project);
         final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project);
-        final var ingress = new TheiaK8SIngress(client, service, project);
+        final var ingress = new TheiaK8SIngress(client, service, project, host);
 
         client.services().delete(service.getResource());
         client.apps().statefulSets().delete(deployment.getResource());

@@ -15,11 +15,13 @@ import info.scce.cincocloud.db.PyroProjectDB;
 public class PyroAppK8SIngress extends PyroK8SResource<Ingress> {
 
     private final PyroAppK8SService service;
+    private final String host;
 
-    public PyroAppK8SIngress(KubernetesClient client, PyroAppK8SService service, PyroProjectDB project) {
+    public PyroAppK8SIngress(KubernetesClient client, PyroAppK8SService service, PyroProjectDB project, String host) {
         super(client, project);
         this.service = service;
         this.resource = build();
+        this.host = host;
     }
 
     @Override
@@ -35,7 +37,7 @@ public class PyroAppK8SIngress extends PyroK8SResource<Ingress> {
                 .endMetadata()
                 .withSpec(new IngressSpecBuilder()
                         .withRules(new IngressRuleBuilder()
-                                .withHost("cinco-cloud")
+                                .withHost(host)
                                 .withHttp(new HTTPIngressRuleValueBuilder()
                                         .withPaths(new HTTPIngressPathBuilder()
                                                 .withPath(path)
