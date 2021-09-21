@@ -20,8 +20,8 @@ public class TheiaK8SIngress extends TheiaK8SResource<Ingress> {
     public TheiaK8SIngress(KubernetesClient client, TheiaK8SService service, PyroProjectDB project, String host) {
         super(client, project);
         this.service = service;
-        this.resource = build();
         this.host = host;
+        this.resource = build();
     }
 
     /**

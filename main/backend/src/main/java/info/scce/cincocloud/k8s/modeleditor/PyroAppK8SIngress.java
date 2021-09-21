@@ -20,8 +20,8 @@ public class PyroAppK8SIngress extends PyroK8SResource<Ingress> {
     public PyroAppK8SIngress(KubernetesClient client, PyroAppK8SService service, PyroProjectDB project, String host) {
         super(client, project);
         this.service = service;
-        this.resource = build();
         this.host = host;
+        this.resource = build();
     }
 
     @Override
