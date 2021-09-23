@@ -28,7 +28,7 @@ export class MenuCommandRemovalContribution implements MenuContribution, Fronten
         registry.unregisterCommand(WorkspaceCommands.OPEN_WORKSPACE_FILE);
         registry.unregisterCommand(WorkspaceCommands.ADD_FOLDER);
         registry.unregisterCommand(WorkspaceCommands.REMOVE_FOLDER);
-
+        registry.unregisterCommand('workbench.action.newWindow');
         registry.unregisterCommand('workbench.action.addRootFolder');
         registry.unregisterCommand('workbench.action.openFile');
         registry.unregisterCommand('workbench.action.openFileFolder');
@@ -48,6 +48,7 @@ export class MenuCommandRemovalContribution implements MenuContribution, Fronten
         registry.unregisterMenuAction(WorkspaceCommands.OPEN_WORKSPACE_FILE);
         registry.unregisterMenuAction(WorkspaceCommands.SAVE_AS);
         registry.unregisterMenuAction(WorkspaceCommands.SAVE_AS);
+        registry.unregisterMenuAction('workbench.action.newWindow');
     }
 }
 
