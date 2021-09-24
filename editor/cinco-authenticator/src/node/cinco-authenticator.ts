@@ -8,6 +8,7 @@ import * as http from 'http';
 import * as https from 'https';
 import { inject, injectable } from 'inversify';
 import * as querystring from 'querystring';
+
 import { isDebugging } from './debugHandler';
 
 const LOG_NAME = '[CINCO-AUTHENTICATOR] ';
@@ -146,11 +147,11 @@ function isWebviewReferer(referer: URI): boolean {
 
 function isWebviewHost(host: string): boolean {
     const PYRO_HOST = process.env.PYRO_HOST;
-    console.log('isWebviewHost: PYRO_HOST='+PYRO_HOST);
-    console.log('isWebviewHost: host='+host);
-    if(host === PYRO_HOST 
+    console.log('isWebviewHost: PYRO_HOST=' + PYRO_HOST);
+    console.log('isWebviewHost: host=' + host);
+    if (host === PYRO_HOST
         || (host === 'localhost' && process.env.CINCO_CLOUD_DEBUG)
-     ) {
+    ) {
         return true;
     }
     const re = /(\w+-?)*(\w+)(.)(webview).(\w+)(?::\d+)?/g;

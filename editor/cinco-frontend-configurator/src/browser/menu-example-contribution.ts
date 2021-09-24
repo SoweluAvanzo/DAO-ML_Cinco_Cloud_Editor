@@ -1,15 +1,14 @@
 /* eslint-disable header/header */
-import { QuickInputService } from '@theia/core/lib/browser';
 import {
     Command,
     CommandContribution,
     CommandRegistry,
     MAIN_MENU_BAR,
     MenuContribution,
-    MenuModelRegistry,
-    MessageService
+    MenuModelRegistry
 } from '@theia/core/lib/common';
 import { inject } from '@theia/core/shared/inversify';
+import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { injectable } from 'inversify';
 
 /**
@@ -22,9 +21,9 @@ export class MenuExampleCreationContribution implements MenuContribution {
     public registerMenus(menus: MenuModelRegistry): void {
         const menuLocation = [...MAIN_MENU_BAR, '1_file', '1_new'];
         const subSubMenuPath = [...menuLocation, 'example-creation-menu'];
-        menus.registerSubmenu(subSubMenuPath, 'Create Project...', { order: '3' });
+        menus.registerSubmenu(subSubMenuPath, 'New Project...', { order: '3' });
         menus.registerMenuAction(subSubMenuPath, {
-            commandId: SampleCommand.id,
+            commandId: ExampleCreatorCommand.id,
             order: '1'
         });
     }
@@ -34,24 +33,34 @@ export class MenuExampleCreationContribution implements MenuContribution {
  * COMMAND
  */
 
-const SampleCommand: Command = {
+const ExampleCreatorCommand: Command = {
     id: 'cinco-example-creation-command',
     label: 'Create Flowgraph-Example'
 };
 
+// eslint-disable-next-line @typescript-eslint/camelcase
+const cinco_example_creator_command_id = 'cinco.command.create_example'; // TODO:
+
 @injectable()
 export class ExampleCommandContribution implements CommandContribution {
 
-    @inject(QuickInputService)
-    protected readonly quickInputService: QuickInputService;
-
-    @inject(MessageService)
-    protected readonly messageService: MessageService;
+    @inject(WorkspaceService)
+    protected readonly workspaceService: WorkspaceService;
 
     registerCommands(commands: CommandRegistry): void {
-        commands.registerCommand(SampleCommand, {
+        commands.registerCommand(ExampleCreatorCommand, {
             execute: () => {
-                alert('This is a sample command!');
+                // deduce rootURI
+                const rootURI = this.workspaceService.getWorkspaceRootUri(undefined);
+                if (!rootURI) {
+                    alert('No workspace present.');
+                    return;
+                }
+                commands.executeCommand(cinco_example_creator_command_id, rootURI).then(() => {
+                    alert('Project created!');
+                }).catch(() => {
+                    alert('Creating project failed!');
+                });
             }
         });
     }
