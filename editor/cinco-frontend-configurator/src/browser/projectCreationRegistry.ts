@@ -2,7 +2,7 @@
 export const newProjectRegistry = [
     {
         id: 'info.scce.cinco-cloud.example-project.call',
-        label: 'Create Flowgraph-Example',
+        label: 'New CINCO Project (Flowgraph)',
         triggers: 'info.scce.cinco-cloud.example-project.create'
     }
     // Add more here
