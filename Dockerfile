@@ -7,6 +7,15 @@ COPY ./vscode-extensions/cinco-extension /cinco-extension
 RUN npm install -g vsce
 RUN yarn
 
+# build cinco-example-project-creator
+# --------------------------------
+FROM docker.io/library/node:12.14.1-buster-slim as cinco-example-project-creator-builder
+WORKDIR /cinco-example-project-creator
+COPY ./vscode-extensions/cinco-example-project-creator /cinco-example-project-creator
+# outputs extension to /cinco-example-project-creator/cinco-example-project-creator-0.0.1.vsix
+RUN npm install -g vsce
+RUN yarn
+
 # build pyro client
 # --------------------------------
 FROM docker.io/library/node:12.14.1-buster-slim as pyro-client-builder
@@ -55,14 +64,14 @@ RUN apt update && \
 RUN yarn
 
 # copy vscode-extensions into plugins
-COPY --from=pyro-client-builder /pyro-client-extension/pyro-client-extension-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=cinco-extension-builder /cinco-extension/cinco-extension-0.0.1.vsix /editor/browser-app/plugins
+COPY --from=cinco-example-project-creator-builder /cinco-example-project-creator/cinco-example-project-creator-0.0.1.vsix /editor/browser-app/plugins
+COPY --from=pyro-client-builder /pyro-client-extension/pyro-client-extension-0.0.1.vsix /editor/browser-app/plugins
 # copy cinco-language-server into backend
 COPY --from=cinco-ls-builder /cinco-ls/de.jabc.cinco.meta.core.ide/target/language-server /editor/cinco-language-server-extension/language-server
 
 # integrate favicon
 RUN sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
-RUN mkdir /editor/workspace
 
 # runtime configuration
 VOLUME /editor/workspace
