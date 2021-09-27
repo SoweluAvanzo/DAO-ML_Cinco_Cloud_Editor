@@ -1,6 +1,0 @@
-out/
-node_modules/
-*.vsix
-language-server/
-package-lock.json
-src/cinco-cloud.ts
