@@ -112,6 +112,8 @@ push-registry:
 
 build-editor:
   extends: .docker-build
+  before_script:
+    - docker login --username $CINCO_CLOUD_ARCHTYPE_REGISTRY_USER --password $CINCO_CLOUD_ARCHTYPE_REGISTRY_TOKEN registry.gitlab.com
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
     CONTEXT: ./editor
