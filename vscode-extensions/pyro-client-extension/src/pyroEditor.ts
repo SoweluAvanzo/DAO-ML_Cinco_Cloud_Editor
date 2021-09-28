@@ -196,7 +196,14 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 
 	public async contextCreateModelTypes(e: any) {
 		const path = e._formatted;
-		const creationPath = vscode.Uri.parse(path);
+		let creationPath = vscode.workspace.workspaceFile;
+		if(path) {
+			creationPath = vscode.Uri.parse(path);
+		}
+		if(!creationPath) {
+			vscode.window.showErrorMessage("No path for file specified. Please right click on a folder or workspace to create a Graphmodel!");
+			return;
+		}
 		PyroApi.getModelTypes(this.TOKEN!).then((types: Map<string, string>) => {
 			const items: string[] = [];
 			for (const entry of Object.entries(types)) {
@@ -211,11 +218,11 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 				vscode.window.showInputBox({
 					title: "Model Name",
 					placeHolder: "myModel (for myModel."+fileExtension+")",
-					prompt: "please type a name for your model"
+					prompt: "Please type a name for your model."
 				}).then( (name) => {
 					if(name) {
 						console.log("creating: "+name+"."+fileExtension);
-						const newFile = vscode.Uri.joinPath(creationPath, name+"."+fileExtension);
+						const newFile = vscode.Uri.joinPath(creationPath!, name+"."+fileExtension);
 						vscode.workspace.fs.writeFile(newFile, new Uint8Array()).then( (v) => {
 							vscode.workspace.openTextDocument(newFile).then(document => {
 								const edit = new vscode.WorkspaceEdit();
@@ -224,7 +231,7 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 									if (success) {
 										vscode.window.showTextDocument(document);
 									} else {
-										vscode.window.showInformationMessage('Error!');
+										vscode.window.showErrorMessage('Error, Could not create file!');
 									}
 								});
 							});
