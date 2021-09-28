@@ -5,6 +5,7 @@ import { PYRO_HOST, PYRO_PORT } from './env_var';
 import { PyroApi } from './pyroApi';
 import { getExtension, getExtensionFrom, getFileNameFrom, isEmpty } from './fileNameUtils';
 import { GraphModelFile } from './graphmodelFile';
+import { stringify } from 'querystring';
 
 export const outputChannel = vscode.window.createOutputChannel("PYRO-SERVER");
 
@@ -26,6 +27,12 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 		this.PROJECT_ID = 1;
 		vscode.window.onDidChangeActiveTextEditor( (editor: vscode.TextEditor | undefined) => PyroEditorProvider.switchToPyroEditor(editor, this.TOKEN!));
 		vscode.workspace.onWillDeleteFiles( (e) => e.waitUntil(this.removeModelReference(e)));
+		_context.subscriptions.push(
+			vscode.commands.registerCommand(
+				"scce.pyro.createModel",
+				(e) => this.contextCreateModelTypes(e)
+			)
+		);
 	}
 
 	public static register(context: vscode.ExtensionContext): vscode.Disposable {
@@ -185,6 +192,47 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 				});
 			}
 		}).then();
+	}
+
+	public async contextCreateModelTypes(e: any) {
+		const path = e._formatted;
+		const creationPath = vscode.Uri.parse(path);
+		PyroApi.getModelTypes(this.TOKEN!).then((types: Map<string, string>) => {
+			const items: string[] = [];
+			for (const entry of Object.entries(types)) {
+				items.push(entry[1] + " ("+entry[0]+")");
+			}
+			vscode.window.showQuickPick(items, {
+				title: "Model Type",
+				placeHolder: "please pick a type...",
+				canPickMany: false,
+			}).then((value) => {
+				const fileExtension = value?.split(" (")[0];
+				vscode.window.showInputBox({
+					title: "Model Name",
+					placeHolder: "myModel (for myModel."+fileExtension+")",
+					prompt: "please type a name for your model"
+				}).then( (name) => {
+					if(name) {
+						console.log("creating: "+name+"."+fileExtension);
+						const newFile = vscode.Uri.joinPath(creationPath, name+"."+fileExtension);
+						vscode.workspace.fs.writeFile(newFile, new Uint8Array()).then( (v) => {
+							vscode.workspace.openTextDocument(newFile).then(document => {
+								const edit = new vscode.WorkspaceEdit();
+								edit.insert(newFile, new vscode.Position(0, 0), "");
+								return vscode.workspace.applyEdit(edit).then(success => {
+									if (success) {
+										vscode.window.showTextDocument(document);
+									} else {
+										vscode.window.showInformationMessage('Error!');
+									}
+								});
+							});
+						});
+					}
+				});
+			});
+		});
 	}
 
 	/**

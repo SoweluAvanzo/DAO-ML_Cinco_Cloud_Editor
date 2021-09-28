@@ -32,7 +32,21 @@
 				],
 				"priority": "option"
 			}
-		]
+		],
+		"commands": [
+			{
+				"command": "scce.pyro.createModel",
+				"title": "New Graphmodel"
+			}
+		],
+		"menus": {
+			"explorer/context": [
+				{
+					"command": "scce.pyro.createModel",
+					"group": "navigation@10"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
