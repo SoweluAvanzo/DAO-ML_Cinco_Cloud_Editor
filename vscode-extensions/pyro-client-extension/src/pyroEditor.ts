@@ -7,7 +7,9 @@ import { getExtension, getExtensionFrom, getFileNameFrom, isEmpty } from './file
 import { GraphModelFile } from './graphmodelFile';
 import { stringify } from 'querystring';
 
-export const outputChannel = vscode.window.createOutputChannel("PYRO-SERVER");
+
+const LOG_NAME = "PYRO-CLIENT";
+export const outputChannel = vscode.window.createOutputChannel(LOG_NAME);
 
 export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorProvider<PyroDocument> {
 
@@ -68,7 +70,7 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 			for(const t of fileTypes) {
 				// if fileType is a registered graphModel-fileType
 				if(t[1] == fileType) {
-					console.log("Switching to Pyro-Editor: "+document.uri.fsPath);
+					this.logging("Switching to Pyro-Editor: "+document.uri.fsPath);
 					await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 					await vscode.commands.executeCommand('vscode.openWith', document.uri, this.viewType);
 					break;
@@ -96,7 +98,7 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 		openContext: { backupId?: string },
 		_token: vscode.CancellationToken
 	): Promise<PyroDocument> {
-		console.log("Trying to open as PYRO-DOCUMENT: "+uri.fsPath);
+		this.logging("Trying to open as PYRO-DOCUMENT: "+uri.fsPath);
 
 		const document: PyroDocument = await PyroDocument.create(uri, openContext.backupId);
 		const listeners: vscode.Disposable[] = [];
@@ -117,17 +119,17 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 		webviewPanel: vscode.WebviewPanel,
 		_token: vscode.CancellationToken
 	): Promise<void> {
-		console.log("Resolving PYRO-EDITOR: "+document.delegate.uri.fsPath);
+		this.logging("Resolving PYRO-EDITOR: "+document.delegate.uri.fsPath);
 		// only pyro compatible iff fileType of document is a registered one
 
 		if(!await this.isPyroCompatible(document.delegate.fileName, this.TOKEN!)) {
-			console.log("Not compatible to Pyro: "+document.delegate.uri.fsPath);
+			this.logging("Not compatible to Pyro: "+document.delegate.uri.fsPath);
 			await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 			await vscode.commands.executeCommand('vscode.openWith', document.delegate.uri, 'default');
-			console.log("openedWith passed: "+document.delegate.uri.fsPath);
+			this.logging("openedWith passed: "+document.delegate.uri.fsPath);
 			return;
 		}
-		console.log("Compatible to Pyro: "+document.delegate.uri.fsPath);
+		this.logging("Compatible to Pyro: "+document.delegate.uri.fsPath);
 
 		// read query-information
 		const jsonDocument = await this.getDocumentAsJson(document);
@@ -179,10 +181,10 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 							const content = document.getText();
 							const model: GraphModelFile = JSON.parse(content);
 							PyroEditorProvider.removeModel(model.modelType, model.id, this.TOKEN!).then( () => {
-								console.log("Successfully removed graphModel:\n"+model);
+								this.logging("Successfully removed graphModel:\n"+model);
 							}).catch((e) => {
-								console.log("Failed to removed graphModel:\n"+model);
-								console.log("ERROR: "+e);
+								this.logging("Failed to removed graphModel:\n"+model);
+								this.logging("ERROR: "+e);
 							});
 							resolve(true);
 						});
@@ -195,12 +197,9 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 	}
 
 	public async contextCreateModelTypes(e: any) {
-		const path = e._formatted;
-		let creationPath = vscode.workspace.workspaceFile;
-		if(path) {
-			creationPath = vscode.Uri.parse(path);
-		}
-		if(!creationPath) {
+		const path = "/"+e.fsPath;
+		this.logging("path into: "+path);
+		if(!path) {
 			vscode.window.showErrorMessage("No path for file specified. Please right click on a folder or workspace to create a Graphmodel!");
 			return;
 		}
@@ -221,8 +220,9 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 					prompt: "Please type a name for your model."
 				}).then( (name) => {
 					if(name) {
-						console.log("creating: "+name+"."+fileExtension);
-						const newFile = vscode.Uri.joinPath(creationPath!, name+"."+fileExtension);
+						this.logging("creating: "+name+"."+fileExtension);
+						const fileName = name+"."+fileExtension;
+						const newFile = vscode.Uri.parse(path + "/" + fileName);
 						vscode.workspace.fs.writeFile(newFile, new Uint8Array()).then( (v) => {
 							vscode.workspace.openTextDocument(newFile).then(document => {
 								const edit = new vscode.WorkspaceEdit();
@@ -251,8 +251,8 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 		const fs = require("fs");
 		const data = JSON.stringify(json, null, 2);
 		fs.writeFile(uri.fsPath, data, (err: any) => {
-			if (err) console.log(err);
-			console.log("Successfully Written to File - "+uri.fsPath);
+			if (err) this.logging(err);
+			this.logging("Successfully Written to File - "+uri.fsPath);
 		});
 	}
 
@@ -262,7 +262,7 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 	private getHtmlForWebview(jsonDocument: any): string {
 		const modelId = jsonDocument.id.toString();
 		const fileExtension = jsonDocument.fileExtension.toString();
-		console.log(`accessing: http://${PYRO_HOST}${PYRO_PORT ? ':' + PYRO_PORT : ""}${PYRO_SUBPATH}/#/editor/${modelId}?ext=${fileExtension}&token=${this.TOKEN}`);
+		this.logging(`accessing: http://${PYRO_HOST}${PYRO_PORT ? ':' + PYRO_PORT : ""}${PYRO_SUBPATH}/#/editor/${modelId}?ext=${fileExtension}&token=${this.TOKEN}`);
 		return `
 		<!DOCTYPE html>
 		<html>
@@ -295,7 +295,7 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 	 */
 
 	private onWebviewEditorMessage(document: PyroDocument, e: any) {
-		console.log(e);
+		this.logging(e);
 		if(e.type=="changed") {
 			document.makeEdit();
 		}
@@ -315,5 +315,15 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 
 	public revertCustomDocument(document: PyroDocument, cancellation: vscode.CancellationToken): Thenable<void> {
 		return document.revert(cancellation);
+	}
+
+	public static logging(input: any) {
+		const LOG = "["+LOG_NAME+"]";
+		console.log(LOG+":"+input);
+		outputChannel.appendLine(input);
+	}
+
+	public logging(input: any) {
+		PyroEditorProvider.logging(input);
 	}
 }
