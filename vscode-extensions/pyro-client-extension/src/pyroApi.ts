@@ -1,5 +1,5 @@
 import * as http from 'http';
-import { PYRO_HOST, PYRO_PORT } from "./env_var";
+import { PYRO_HOST, PYRO_PORT, PYRO_SUBPATH } from "./env_var";
 import { isEmpty } from './fileNameUtils';
 import { outputChannel } from './pyroEditor';
 
@@ -44,7 +44,7 @@ export abstract class PyroApi {
 		const options = {
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
-			path: '/api/'+modelType?.toLowerCase()+'/create/private',
+			path: PYRO_SUBPATH+'/api/'+modelType?.toLowerCase()+'/create/private',
 			method: 'POST',
 			'headers': {
 				'Authorization': token,
@@ -60,7 +60,7 @@ export abstract class PyroApi {
 		const options = {
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
-			path: '/api/'+modelType?.toLowerCase()+'/remove/'+id+'/private',
+			path: PYRO_SUBPATH+'/api/'+modelType?.toLowerCase()+'/remove/'+id+'/private',
 			method: 'GET',
 			'headers': {
 				'Authorization': token,
@@ -74,7 +74,7 @@ export abstract class PyroApi {
 		const options = {
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
-			path: '/api/graph/list/private',
+			path: PYRO_SUBPATH+'/api/graph/list/private',
 			method: 'GET',
 			'headers': {
 				//'Authorization': token,
