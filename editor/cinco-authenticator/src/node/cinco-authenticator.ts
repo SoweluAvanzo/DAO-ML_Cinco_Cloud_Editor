@@ -146,10 +146,10 @@ function isWebviewReferer(referer: URI): boolean {
 }
 
 function isWebviewHost(host: string): boolean {
-    const PYRO_PORT = process.env.PYRO_PORT? process.env.PYRO_PORT: "8000";
+    const PYRO_PORT = process.env.PYRO_PORT? process.env.PYRO_PORT: '8000';
     const PYRO_HOST = process.env.PYRO_HOST? process.env.PYRO_HOST: 'localhost';
     const PYRO_SUBPATH = process.env.PYRO_SUBPATH? process.env.PYRO_SUBPATH: '';
-    console.log('isWebviewHost: PYRO_HOST=' + PYRO_HOST + ":" + PYRO_PORT + PYRO_SUBPATH);
+    console.log('isWebviewHost: PYRO_HOST=' + PYRO_HOST + ':' + PYRO_PORT + PYRO_SUBPATH);
     console.log('isWebviewHost: host=' + host);
     if(process.env.CINCO_CLOUD_DEBUG) {
         return true;
