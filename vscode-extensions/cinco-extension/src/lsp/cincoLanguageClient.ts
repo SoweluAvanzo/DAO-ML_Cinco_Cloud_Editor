@@ -14,6 +14,21 @@ export class CincoLanguageClient extends LanguageClient {
         super("cinco-language-server", serverOptions, clientOptions);
         this.languageIds = languageIds;
         this.instance = this;
+        // this.activateMultiUserFunctionality();
+    }
+
+    activateMultiUserFunctionality() {
+        vscode.workspace.onDidChangeTextDocument( (e) => {
+            const langId = e.document.languageId;
+            if(this.languageIds.indexOf(langId) >= 0) {
+                if(e.contentChanges.length > 0) {
+                    workbenchOutput.appendLine("changed: "+e.document.fileName + " | "+ e.contentChanges.length);
+                    e.document.save();
+                } else {
+                    workbenchOutput.appendLine("changed: "+e.document.fileName + " | "+ e.contentChanges.length);
+                }
+            }
+        })
     }
 
     generate(sourceUri: string, targetUri: string, execute: boolean) {
@@ -32,7 +47,6 @@ export class CincoLanguageClient extends LanguageClient {
             vscode.window.showErrorMessage(message);
             workbenchOutput.appendLine(message);
         }
-
     }
 
     onGenerateFinished(response: GenerateResponse, execute: boolean) {

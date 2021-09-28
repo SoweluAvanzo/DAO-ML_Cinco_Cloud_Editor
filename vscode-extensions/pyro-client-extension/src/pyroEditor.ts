@@ -4,6 +4,7 @@ import { PyroDocument } from './pyroDocument';
 import { PYRO_HOST, PYRO_PORT } from './env_var';
 import { PyroApi } from './pyroApi';
 import { getExtension, getExtensionFrom, getFileNameFrom, isEmpty } from './fileNameUtils';
+import { GraphModelFile } from './graphmodelFile';
 
 export const outputChannel = vscode.window.createOutputChannel("PYRO-SERVER");
 
@@ -24,6 +25,7 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 		this.TOKEN = 'asd';
 		this.PROJECT_ID = 1;
 		vscode.window.onDidChangeActiveTextEditor( (editor: vscode.TextEditor | undefined) => PyroEditorProvider.switchToPyroEditor(editor, this.TOKEN!));
+		vscode.workspace.onWillDeleteFiles( (e) => e.waitUntil(this.removeModelReference(e)));
 	}
 
 	public static register(context: vscode.ExtensionContext): vscode.Disposable {
@@ -151,13 +153,38 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 		const modelTypes = await PyroEditorProvider.getModelTypesOf(extension, this.TOKEN!);
 		const modelType = modelTypes[0];
 		const model = await PyroEditorProvider.createModel(filename, modelType, this.TOKEN!);
-		const modelReference = {
+		const modelReference: GraphModelFile = {
 			id: model.id,
 			modelType: modelType,
 			fileExtension: extension
 		};
 		this.updateTextDocument(document, modelReference);
 		return modelReference;
+	}
+
+	private removeModelReference(e: vscode.FileWillDeleteEvent): Thenable<vscode.WorkspaceEdit> {
+		const files = e.files;
+		return new Promise((resolve, reject) => {
+			for(const file of files) {
+				this.isPyroCompatible(file.fsPath, this.TOKEN!).then( (compatible) => {
+					if(compatible) {
+						vscode.workspace.openTextDocument(file).then((document) => {
+							const content = document.getText();
+							const model: GraphModelFile = JSON.parse(content);
+							PyroEditorProvider.removeModel(model.modelType, model.id, this.TOKEN!).then( () => {
+								console.log("Successfully removed graphModel:\n"+model);
+							}).catch((e) => {
+								console.log("Failed to removed graphModel:\n"+model);
+								console.log("ERROR: "+e);
+							});
+							resolve(true);
+						});
+					} else {
+						resolve(false);
+					}
+				});
+			}
+		}).then();
 	}
 
 	/**

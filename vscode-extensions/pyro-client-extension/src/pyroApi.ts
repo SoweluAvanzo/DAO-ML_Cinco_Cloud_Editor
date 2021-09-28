@@ -56,6 +56,20 @@ export abstract class PyroApi {
 		});
 	}
 
+	public static async removeModel(modelType:string|undefined, id: string, token: string): Promise<any> {
+		const options = {
+			hostname: PYRO_HOST,
+			port: PYRO_PORT,
+			path: '/api/'+modelType?.toLowerCase()+'/remove/'+id+'/private',
+			method: 'GET',
+			'headers': {
+				'Authorization': token,
+				'Content-Type': 'application/json'
+			}
+		};
+		return this.performRequest(options);
+	}
+
 	public static async getModelTypes(token: string): Promise<Map<string, string>> {
 		const options = {
 			hostname: PYRO_HOST,
