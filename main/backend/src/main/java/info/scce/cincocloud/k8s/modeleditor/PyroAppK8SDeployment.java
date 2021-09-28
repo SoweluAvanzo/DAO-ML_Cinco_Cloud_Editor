@@ -1,6 +1,7 @@
 package info.scce.cincocloud.k8s.modeleditor;
 
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
@@ -47,6 +48,9 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                                             .withName(name)
                                             .withImage(registryUrl + "/" + project.template.imageName)
                                             .withImagePullPolicy("Always")
+                                            .withPorts(new ContainerPortBuilder()
+                                                    .withContainerPort(3000)
+                                                    .build())
                                             .withEnv(
                                                     new EnvVarBuilder()
                                                             .withName("DATABASE_URL")
@@ -61,8 +65,20 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                                                             .withValue(getProjectName())
                                                             .build(),
                                                     new EnvVarBuilder()
-                                                            .withName("BASE_HREF")
-                                                            .withValue("/workspaces/" + getProjectName() + "/")
+                                                            .withName("CINCO_CLOUD_HOST")
+                                                            .withValue("main-service")
+                                                            .build(),
+                                                    new EnvVarBuilder()
+                                                            .withName("CINCO_CLOUD_PORT")
+                                                            .withValue("8000")
+                                                            .build(),
+                                                    new EnvVarBuilder()
+                                                            .withName("CINCO_CLOUD_HOST")
+                                                            .withValue("main-service")
+                                                            .build(),
+                                                    new EnvVarBuilder()
+                                                            .withName("PYRO_HOST")
+                                                            .withValue(getProjectName() + "-app-service")
                                                             .build()
                                             )
                                             .build()

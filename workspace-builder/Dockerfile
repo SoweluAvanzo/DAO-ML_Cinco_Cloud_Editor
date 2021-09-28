@@ -23,6 +23,9 @@ CMD java \
     -Damqp-port="${AMPQ_PORT}" \
     -Damqp-username="${AMPQ_USERNAME}" \
     -Damqp-password="${AMPQ_PASSWORD}" \
-    -Dccwib.docker.registry.host="${DOCKER_REGISTRY_HOST}" \
-    -Dccwib.docker.registry.port="${DOCKER_REGISTRY_PORT}" \
+    -Dcincocloud.docker.registry.host="${DOCKER_REGISTRY_HOST}" \
+    -Dcincocloud.docker.registry.port="${DOCKER_REGISTRY_PORT}" \
+    -Dcincocloud.archetype.registry.url="${ARCHETYPE_REGISTRY_URL}" \
+    -Dcincocloud.archetype.registry.username="${ARCHETYPE_REGISTRY_USERNAME}" \
+    -Dcincocloud.archetype.registry.password="${ARCHETYPE_REGISTRY_PASSWORD}" \
     -jar quarkus-run.jar

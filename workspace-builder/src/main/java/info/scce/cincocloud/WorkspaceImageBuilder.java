@@ -36,11 +36,20 @@ public class WorkspaceImageBuilder {
     @GrpcService("main")
     MainServiceGrpc.MainServiceBlockingStub mainService;
 
-    @ConfigProperty(name = "info.scce.cincocloud.docker.registry.host")
+    @ConfigProperty(name = "cincocloud.docker.registry.host")
     String dockerRegistryHost;
 
-    @ConfigProperty(name = "info.scce.cincocloud.docker.registry.port")
+    @ConfigProperty(name = "cincocloud.docker.registry.port")
     Integer dockerRegistryPort;
+
+    @ConfigProperty(name = "cincocloud.archetype.registry.url")
+    String archetypeRegistryUrl;
+
+    @ConfigProperty(name = "cincocloud.archetype.registry.username")
+    String archetypeRegistryUsername;
+
+    @ConfigProperty(name = "cincocloud.archetype.registry.password")
+    String archetypeRegistryPassword;
 
     @Inject
     Validator validator;
@@ -130,6 +139,11 @@ public class WorkspaceImageBuilder {
 
     private void buildImage(Long projectId, Path sourceDir, String tag) throws Exception {
         logger.info("build image (projectId: {}, archive: {}, tag: {})", projectId, sourceDir, tag);
+
+        final var archetypeRegistryUsername2 = archetypeRegistryUsername.replace("\n", "").replace("\r", "");
+        final var archetypeRegistryPassword2 = archetypeRegistryPassword.replace("\n", "").replace("\r", "");
+
+        executeCommand("buildah --storage-driver vfs login -u=" + archetypeRegistryUsername2 + " -p=" + archetypeRegistryPassword2 + " " + archetypeRegistryUrl);
         executeCommand("cd " + sourceDir.toString() + " && buildah --storage-driver vfs bud -t " + tag + " .");
         executeCommand("buildah --storage-driver vfs images");
 

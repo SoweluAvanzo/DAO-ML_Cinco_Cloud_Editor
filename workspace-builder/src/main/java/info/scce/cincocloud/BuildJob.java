@@ -32,6 +32,11 @@ public class BuildJob {
 
     @JsonIgnore
     public String getImageTag() {
-        return username.trim() + "/" + language.trim().replaceAll(" ", "_") + "-" + projectId + ":latest";
+        return username.trim().toLowerCase()
+                + "/"
+                + language.toLowerCase().trim().replaceAll(" ", "_")
+                + "-"
+                + projectId
+                + ":latest";
     }
 }

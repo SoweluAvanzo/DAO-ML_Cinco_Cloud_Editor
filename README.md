@@ -18,10 +18,29 @@
     1. Execute `minikube ip` to retrieve the IP address
     2. Add an entry to the `/etc/hosts`: `<IP> cinco-cloud`
 
-3. Create and apply a secret for the GitLab registry
-    1. Create a secret: `kubectl create secret docker-registry cinco-cloud-registry-secret --docker-server=registry.gitlab.com --docker-username=<USERNAME> --docker-password=<USERNAME> --dry-run=client -o yaml`
-    2. Copy the terminal output in a file called `secret.yaml`
-    3. Apply the secret to the cluster: `kubectl apply -f secret.yaml`
+4. Create a deploy token in the [cinco cloud archetype repository][cinco-cloud-archetype] with `read_registry` rights
+
+5. Create a `secrets.yaml` file and add the following secret, for `<USERNAME>` and `<PASSWORD>` base64 encode and enter the credentials from step 4:
+
+    ```
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: cinco-cloud-archetype-registry-credentials
+    type: Opaque
+    data:
+      username: <USERNAME>
+      password: <PASSWORD>
+    ```
+
+6. Create and apply secrets for the GitLab registry
+    1. Create a secret for the cinco cloud repository:
+        - `kubectl create secret docker-registry cinco-cloud-registry-secret --docker-server=registry.gitlab.com --docker-username=<USERNAME> --docker-password=<USERNAME> --dry-run=client -o yaml`
+    2. Create a secret for the cinco cloud archetype repository:
+        - `kubectl create secret docker-registry cinco-cloud-archetype-registry-secret --docker-server=registry.gitlab.com --docker-username=<USERNAME> --docker-password=<USERNAME> --dry-run=client -o yaml`
+    3. Copy the terminal output in the`secrets.yaml` file
+
+7. Apply the secret to the cluster: `kubectl apply -f secrets.yaml`
 
 ### Installation
 
@@ -40,3 +59,4 @@
 [skaffold]: https://skaffold.dev/
 [minikube]: https://minikube.sigs.k8s.io/
 [docker-secret]: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+[cinco-cloud-archetype]: https://gitlab.com/scce/cinco-cloud-archetype

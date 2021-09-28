@@ -56,7 +56,7 @@ spec:
           persistentVolumeClaim:
             claimName: main-pv-claim
       imagePullSecrets:
-        - name: {{ .Values.registry.secret.name }}
+        - name: {{ .Values.registries.cincocloud.secret.name }}
 ---
 apiVersion: v1
 kind: Service

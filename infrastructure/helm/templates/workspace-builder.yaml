@@ -10,6 +10,7 @@ data:
   AMPQ_PASSWORD: "cc"
   DOCKER_REGISTRY_HOST: "registry-service"
   DOCKER_REGISTRY_PORT: "5000"
+  ARCHETYPE_REGISTRY_URL: "registry.gitlab.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -37,10 +38,21 @@ spec:
           envFrom:
             - configMapRef:
                 name: workspace-builder-config
+          env:
+            - name: ARCHETYPE_REGISTRY_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-archetype-registry-credentials
+                  key: username
+            - name: ARCHETYPE_REGISTRY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-archetype-registry-credentials
+                  key: password
           securityContext:
             privileged: true
       imagePullSecrets:
-        - name: {{ .Values.registry.secret.name }}
+        - name: {{ .Values.registries.cincocloud.secret.name }}
 ---
 apiVersion: v1
 kind: Service

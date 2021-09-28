@@ -2,7 +2,7 @@
   <span class="badge p-2 badge-success" *ngIf="job.status == 'FINISHED_WITH_SUCCESS'">
     <i class="fas fa-fw mr-2 fa-check"></i> Success
   </span>
-  <span class="badge p-2 badge-danger" *ngIf="job.status == 'FINISHED_WITH_ERRORS'">
+  <span class="badge p-2 badge-danger" *ngIf="job.status == 'FINISHED_WITH_FAILURE'">
     <i class="fas fa-fw mr-2 fa-times"></i> Failed
   </span>
   <span class="badge p-2 badge-danger" *ngIf="job.status == 'ABORTED'">
