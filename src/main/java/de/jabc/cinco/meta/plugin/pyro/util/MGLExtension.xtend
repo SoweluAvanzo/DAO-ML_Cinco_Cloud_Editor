@@ -1993,13 +1993,15 @@ class MGLExtension {
 	}
 
 	def String getBestContainerSuperTypeNameAPI(GraphicalModelElement node) {
-		val type = node.bestContainerSuperType
+		//val type = node.bestContainerSuperType
+		val type = null
 		if(type === null) return "graphmodel.ModelElementContainer"
 		'''«type.apiFQN»'''.toString
 	}
 
 	def getBestContainerSuperTypeNameDart(GraphicalModelElement node) {
-		val type = node.bestContainerSuperType
+		//val type = node.bestContainerSuperType
+		val  type = null
 		if(type === null) return "core.ModelElementContainer"
 		type.name.escapeDart
 	}
