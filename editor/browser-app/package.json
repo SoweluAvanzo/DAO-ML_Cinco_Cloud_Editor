@@ -55,5 +55,8 @@
     "target": "browser"
   },
   "theiaPluginsDir": "plugins",
-  "theiaPlugins": {}
+  "theiaPlugins": {
+    "vscode-builtin-java": "https://github.com/theia-ide/vscode-builtin-extensions/releases/download/v1.39.1-prel/java-1.39.1-prel.vsix",
+    "grammarcraft.xtend-lang": "https://open-vsx.org/api/grammarcraft/xtend-lang/0.2.3/file/grammarcraft.xtend-lang-0.2.3.vsix"
+  }
 }
