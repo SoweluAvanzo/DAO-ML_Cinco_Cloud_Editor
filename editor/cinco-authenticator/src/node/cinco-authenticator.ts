@@ -63,8 +63,7 @@ async function authenticateJWT(req: any, res: any): Promise<boolean> {
     let jwt = query.jwt;
     let projectId = query.projectId;
 
-    const host = req.host;
-    if (isWebviewHost(host)) {
+    if (isWebviewHost(req)) {
         return true;
     }
 
@@ -145,16 +144,21 @@ function isWebviewReferer(referer: URI): boolean {
         && referer.parent.path.name === 'webview';
 }
 
-function isWebviewHost(host: string): boolean {
-    const PYRO_PORT = process.env.PYRO_PORT? process.env.PYRO_PORT: '8000';
-    const PYRO_HOST = process.env.PYRO_HOST? process.env.PYRO_HOST: 'localhost';
-    const PYRO_SUBPATH = process.env.PYRO_SUBPATH? process.env.PYRO_SUBPATH: '';
-    console.log('isWebviewHost: PYRO_HOST=' + PYRO_HOST + ':' + PYRO_PORT + PYRO_SUBPATH);
+function isWebviewHost(req: any): boolean {
+    const host = req.host;
+    const path = req.path;
+    const PYRO_PORT = process.env.PYRO_PORT ? process.env.PYRO_PORT : '8000';
+    const PYRO_HOST = process.env.PYRO_HOST ? process.env.PYRO_HOST : 'localhost';
+    const PYRO_SUBPATH = process.env.PYRO_SUBPATH ? process.env.PYRO_SUBPATH : '';
+    console.log('isWebviewHost: PYRO_HOST=' + PYRO_HOST);
     console.log('isWebviewHost: host=' + host);
-    if(process.env.CINCO_CLOUD_DEBUG) {
+    console.log('isWebviewHost: PYRO_SUBPATH=' + PYRO_SUBPATH);
+    console.log('isWebviewHost: path=' + path);
+    console.log('isWebviewHost: PYRO_PORT=' + PYRO_PORT);
+    if (process.env.CINCO_CLOUD_DEBUG) {
         return true;
     }
-    if (host === PYRO_HOST+PYRO_SUBPATH) { // TODO: fix me and make it more secure
+    if (host === PYRO_HOST) { // TODO: fix me and make it more secure
         return true;
     }
     const re = /(\w+-?)*(\w+)(.)(webview).(\w+)(?::\d+)?/g;

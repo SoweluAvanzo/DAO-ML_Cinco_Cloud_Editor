@@ -1,7 +1,7 @@
 import * as http from 'http';
 import { PYRO_HOST, PYRO_PORT, PYRO_SUBPATH } from "./env_var";
 import { isEmpty } from './fileNameUtils';
-import { outputChannel } from './pyroEditor';
+import { PyroEditorProvider } from './pyroEditor';
 
 
 export abstract class PyroApi {
@@ -10,21 +10,22 @@ export abstract class PyroApi {
 	protected PROJECT_ID: number | undefined = undefined;
 
 	private static async performRequest(options: http.RequestOptions,data?:any):Promise<any> {
-		console.log("REQUESTING:\n"+options.path);
+		PyroEditorProvider.logging("REQUESTING:\n"+options.path);
 		return new Promise((resolve, reject) => {
 			const req = http.request(options,(response: http.IncomingMessage) => {
 					if (response.statusCode != 200) {
-						outputChannel.appendLine('REQUEST FAILED:\n'+options.hostname+'\n'+options.path+'\n'+options.port);
-						outputChannel.appendLine('CODE: '+response.statusCode+" | MESSAGE: "+response.statusMessage);
+						PyroEditorProvider.logging('REQUEST FAILED:\n'+options.hostname+'\n'+options.path+'\n'+options.port);
+						PyroEditorProvider.logging('CODE: '+response.statusCode+" | MESSAGE: "+response.statusMessage);
 						reject(new Error(response.statusMessage));
 					}
 					const chunks:any[] = [];
 					response.on('data', (chunk) => {
 						chunks.push(chunk);
 					});
-					response.on('error',(e)=>console.log(e));
+					response.on('error',(e)=>PyroEditorProvider.logging("Process-Error:\n"+e));
 					response.on('end', () => {
 						const result = Buffer.concat(chunks).toString();
+						PyroEditorProvider.logging("Process-Ended");
 						try {
 							resolve(JSON.parse(result));
 						} catch {
