@@ -20,6 +20,7 @@ export abstract class PyroApi {
 					}
 					const chunks:any[] = [];
 					response.on('data', (chunk) => {
+						PyroEditorProvider.logging('RESPONSE-RECEIVED:\n'+chunk);
 						chunks.push(chunk);
 					});
 					response.on('error',(e)=>PyroEditorProvider.logging("Process-Error:\n"+e));
