@@ -793,6 +793,11 @@ class GraphmodelComponent extends Generatable {
 				//add nodes and container bottom up
 				«'''
 					initContainerDeeply(currentGraphModel);
+					for(var node in currentGraphModel.modelElements){
+						if(node is core.ModelElementContainer && (node as core.ModelElementContainer).modelElements.isNotEmpty){
+						initContainerDeeply(node as core.ModelElementContainer);
+						}
+					};
 					//connect by edges
 					currentGraphModel.modelElements.where((n)=>n is core.Edge).forEach((e){
 						«FOR edge : g.edgesTopologically.filter[!isIsAbstract] SEPARATOR " else "

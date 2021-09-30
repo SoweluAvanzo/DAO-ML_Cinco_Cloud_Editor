@@ -1924,7 +1924,7 @@ class MGLExtension {
 	 * TODO: Alternated FROM MGLEcoreGenerator
 	 */
 	private def containingElements(GraphicalModelElement element){
-		val elementsGraphModel = element.graphModel
+		val elementsGraphModel = element.graphModels
 		val result = new HashSet<ContainingElement>
 		for(g : elementsGraphModel) {
 			val cE = MGLUtil.getContainingElements(g).filter[allContainmentConstraints.exists[types.contains(element) && upperBound !== 0]]
