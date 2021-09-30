@@ -11,7 +11,7 @@
     - [Minikube][minikube]
 
 2. Run a local Kubernetes cluster
-    1. Start the cluster: `minikube start -cpus 4 --memory 8192` (CincoCloud works best with 4 CPU cores and 8Gb of RAM)
+    1. Start the cluster: `minikube start --cpus 4 --memory 8192` (CincoCloud works best with 4 CPU cores and 8Gb of RAM)
     2. Enable necessary plugins: `minikube addons enable default-storageclass ingress ingress-dns storage-provisioner`
 
 3. Add the minikube IP address to the `/etc/hosts` file

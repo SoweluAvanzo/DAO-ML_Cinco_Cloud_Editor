@@ -16,9 +16,12 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
 
     private final Service registryService;
 
-    public PyroAppK8SDeployment(KubernetesClient client, Service registryService, PyroProjectDB project) {
+    private final String host;
+
+    public PyroAppK8SDeployment(KubernetesClient client, Service registryService, String host, PyroProjectDB project) {
         super(client, project);
         this.registryService = registryService;
+        this.host = host;
         this.resource = build();
     }
 
@@ -48,9 +51,14 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                                             .withName(name)
                                             .withImage(registryUrl + "/" + project.template.imageName)
                                             .withImagePullPolicy("Always")
-                                            .withPorts(new ContainerPortBuilder()
-                                                    .withContainerPort(3000)
-                                                    .build())
+                                            .withPorts(
+                                                    new ContainerPortBuilder()
+                                                            .withContainerPort(3000)
+                                                            .build(),
+                                                    new ContainerPortBuilder()
+                                                            .withContainerPort(8000)
+                                                            .build()
+                                            )
                                             .withEnv(
                                                     new EnvVarBuilder()
                                                             .withName("DATABASE_URL")
@@ -77,8 +85,20 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                                                             .withValue("main-service")
                                                             .build(),
                                                     new EnvVarBuilder()
+                                                            .withName("CINCO_CLOUD_DEBUG")
+                                                            .withValue("true")
+                                                            .build(),
+                                                    new EnvVarBuilder()
                                                             .withName("PYRO_HOST")
-                                                            .withValue(getProjectName() + "-app-service")
+                                                            .withValue(host)
+                                                            .build(),
+                                                    new EnvVarBuilder()
+                                                            .withName("PYRO_PORT")
+                                                            .withValue("80")
+                                                            .build(),
+                                                    new EnvVarBuilder()
+                                                            .withName("PYRO_SUBPATH")
+                                                            .withValue("/workspaces/" + getProjectName())
                                                             .build()
                                             )
                                             .build()

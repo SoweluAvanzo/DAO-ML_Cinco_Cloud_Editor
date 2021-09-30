@@ -110,33 +110,6 @@ push-registry:
   only:
     - master
 
-build-editor:
-  extends: .docker-build
-  before_script:
-    - docker login --username $CINCO_CLOUD_ARCHTYPE_REGISTRY_USER --password $CINCO_CLOUD_ARCHTYPE_REGISTRY_TOKEN registry.gitlab.com
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-    CONTEXT: ./editor
-    DOCKERFILE: ./editor/Dockerfile
-    IMAGE: editor
-    VERSION: latest
-  cache:
-    paths:
-      - /editor/node_modules/
-      - /editor/browser-app/node_modules/
-  only:
-    - master
-
-push-editor:
-  extends: .docker-push
-  dependencies:
-    - build-editor
-  variables:
-    IMAGE: editor
-    VERSION: latest
-  only:
-    - master
-
 build-workspace-builder:
   extends: .docker-build
   variables:

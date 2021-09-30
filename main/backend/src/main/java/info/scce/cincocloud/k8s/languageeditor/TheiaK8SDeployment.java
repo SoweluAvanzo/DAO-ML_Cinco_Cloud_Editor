@@ -54,7 +54,7 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
      *     spec:
      *       containers:
      *         - name: {name}
-     *           image: registry.gitlab.com/scce/cinco-cloud/editor
+     *           image: registry.gitlab.com/scce/cinco-cloud-archetype/archetype:latest
      *           imagePullPolicy: IfNotPresent
      *           ports:
      *             - containerPort: 3000
@@ -91,7 +91,7 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                             .withSpec(new PodSpecBuilder()
                                     .withContainers(new ContainerBuilder()
                                             .withName(getProjectName())
-                                            .withImage("registry.gitlab.com/scce/cinco-cloud/editor")
+                                            .withImage("registry.gitlab.com/scce/cinco-cloud-archetype/archetype")
                                             .withImagePullPolicy("IfNotPresent")
                                             .withPorts(new ContainerPortBuilder()
                                                     .withContainerPort(3000)
@@ -118,7 +118,7 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                                                     .build())
                                             .build())
                                     .withImagePullSecrets(new LocalObjectReferenceBuilder()
-                                            .withName("cinco-cloud-registry-secret")
+                                            .withName("cinco-cloud-archetype-registry-secret")
                                             .build())
                                     .build())
                             .build())

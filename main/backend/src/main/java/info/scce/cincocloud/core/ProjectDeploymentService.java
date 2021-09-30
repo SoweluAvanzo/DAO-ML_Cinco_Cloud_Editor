@@ -85,7 +85,7 @@ public class ProjectDeploymentService {
     private PyroProjectDeployment deployModelEditor(PyroProjectDB project) {
         // create modeleditor app resources
         final var appService = new PyroAppK8SService(client, project);
-        final var appDeployment = new PyroAppK8SDeployment(client, getRegistryService(), project);
+        final var appDeployment = new PyroAppK8SDeployment(client, getRegistryService(), host, project);
         final var appIngress = new PyroAppK8SIngress(client, appService, project, host);
 
         // create modeleditor database resources
@@ -235,7 +235,7 @@ public class ProjectDeploymentService {
 
     public void stopModelEditor(PyroProjectDB project) {
         final var appService = new PyroAppK8SService(client, project);
-        final var appDeployment = new PyroAppK8SDeployment(client, getRegistryService(), project);
+        final var appDeployment = new PyroAppK8SDeployment(client, getRegistryService(), host, project);
         final var appIngress = new PyroAppK8SIngress(client, appService, project, host);
 
         final var databaseService = new PyroDatabaseK8SService(client, project);
