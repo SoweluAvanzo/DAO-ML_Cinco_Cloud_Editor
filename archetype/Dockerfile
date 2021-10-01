@@ -23,5 +23,13 @@ RUN /pyro-server/compileBackend.sh
 # STEP 2: integrate
 # --------------------------------
 FROM registry.gitlab.com/scce/cinco-cloud-archetype/archetype:latest as cinco-cloud-archetype
+# set baseHref path for static resources of frontend
+ENV BASE_HREF=/
 # integrate pyro-server into cinco-cloud-archetype
 COPY --from=pyro-server-builder /pyro-server/pyro-server/ /editor/pyro-server-extension/pyro-server/
+# modify baseHref path for static resources of frontend
+CMD cd /editor/pyro-server-extension/pyro-server/ &&
+    jar xf ./app.jar ./META-INF/resources/index.html && \
+    baseHref=$(echo "${BASE_HREF}" | sed "s/\//\\\\\//g") && \
+    sed -i "s/base href=\"\/\"/base href=\"${baseHref}\"/g" ./META-INF/resources/index.html && \   
+    jar uf ./app.jar ./META-INF/resources/index.html
