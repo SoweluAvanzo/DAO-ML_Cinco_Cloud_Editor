@@ -27,12 +27,12 @@ public class PyroAppK8SService extends PyroK8SResource<Service> {
                         .withPorts(
                                 new ServicePortBuilder()
                                     .withName("theia")
-                                    .withPort(3000)
+                                    .withPort(getFrontendPort())
                                     .withProtocol("TCP")
                                     .build(),
                                 new ServicePortBuilder()
                                     .withName("pyro")
-                                    .withPort(8000)
+                                    .withPort(getBackendPort())
                                     .withProtocol("TCP")
                                     .build()
                         )
@@ -40,5 +40,13 @@ public class PyroAppK8SService extends PyroK8SResource<Service> {
                         .withSelector(Map.of("app", getProjectName() + "-app-deployment"))
                         .build())
                 .build();
+    }
+
+    public int getFrontendPort() {
+        return 3000;
+    }
+
+    public int getBackendPort() {
+        return 80;
     }
 }

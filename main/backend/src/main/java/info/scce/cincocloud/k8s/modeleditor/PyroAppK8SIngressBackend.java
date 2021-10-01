@@ -12,12 +12,12 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
 
-public class PyroAppK8SIngress extends PyroK8SResource<Ingress> {
+public class PyroAppK8SIngressBackend extends PyroK8SResource<Ingress> {
 
     private final PyroAppK8SService service;
     private final String host;
 
-    public PyroAppK8SIngress(KubernetesClient client, PyroAppK8SService service, PyroProjectDB project, String host) {
+    public PyroAppK8SIngressBackend(KubernetesClient client, PyroAppK8SService service, PyroProjectDB project, String host) {
         super(client, project);
         this.service = service;
         this.host = host;
@@ -26,14 +26,14 @@ public class PyroAppK8SIngress extends PyroK8SResource<Ingress> {
 
     @Override
     protected Ingress build() {
-        final var path = getPath().substring(0, getPath().length() - 1) + "(/|$)(.*)";
+        final var path = "/workspaces/" + getProjectName() + "/pyro(/|$)(.*)";
 
         return new IngressBuilder()
                 .withNewMetadata()
-                .withName(getProjectName() + "-app-ingress")
+                .withName(getProjectName() + "-app-ingress-backend")
                 .withAnnotations(Map.of(
-                        "nginx.ingress.kubernetes.io/add-base-url", "true",
-                        "nginx.ingress.kubernetes.io/rewrite-target", "/$2"))
+                        "nginx.ingress.kubernetes.io/rewrite-target", "/$2",
+                        "nginx.ingress.kubernetes.io/use-regex", "true"))
                 .endMetadata()
                 .withSpec(new IngressSpecBuilder()
                         .withRules(new IngressRuleBuilder()
@@ -45,7 +45,7 @@ public class PyroAppK8SIngress extends PyroK8SResource<Ingress> {
                                                 .withBackend(new IngressBackendBuilder()
                                                         .withServiceName(service.getResource().getMetadata().getName())
                                                         .withServicePort(new IntOrStringBuilder()
-                                                                .withIntVal(service.getResource().getSpec().getPorts().get(0).getPort())
+                                                                .withIntVal(service.getBackendPort())
                                                                 .build())
                                                         .build())
                                                 .build())
@@ -53,9 +53,5 @@ public class PyroAppK8SIngress extends PyroK8SResource<Ingress> {
                                 .build())
                         .build())
                 .build();
-    }
-
-    public String getPath() {
-        return "/workspaces/" + getProjectName() + "/" ;
     }
 }

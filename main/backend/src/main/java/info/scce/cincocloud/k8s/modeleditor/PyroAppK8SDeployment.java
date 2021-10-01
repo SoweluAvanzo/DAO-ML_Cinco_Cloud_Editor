@@ -56,7 +56,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                                                             .withContainerPort(3000)
                                                             .build(),
                                                     new ContainerPortBuilder()
-                                                            .withContainerPort(8000)
+                                                            .withContainerPort(80)
                                                             .build()
                                             )
                                             .withEnv(
@@ -81,10 +81,6 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                                                             .withValue("8000")
                                                             .build(),
                                                     new EnvVarBuilder()
-                                                            .withName("CINCO_CLOUD_HOST")
-                                                            .withValue("main-service")
-                                                            .build(),
-                                                    new EnvVarBuilder()
                                                             .withName("CINCO_CLOUD_DEBUG")
                                                             .withValue("true")
                                                             .build(),
@@ -98,7 +94,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                                                             .build(),
                                                     new EnvVarBuilder()
                                                             .withName("PYRO_SUBPATH")
-                                                            .withValue("/workspaces/" + getProjectName())
+                                                            .withValue("/workspaces/" + getProjectName() + "/pyro")
                                                             .build()
                                             )
                                             .build()

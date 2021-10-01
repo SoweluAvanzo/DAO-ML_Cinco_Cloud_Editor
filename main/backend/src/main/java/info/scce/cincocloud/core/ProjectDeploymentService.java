@@ -26,7 +26,8 @@ import info.scce.cincocloud.k8s.languageeditor.TheiaK8SPersistentVolume;
 import info.scce.cincocloud.k8s.languageeditor.TheiaK8SPersistentVolumeClaim;
 import info.scce.cincocloud.k8s.languageeditor.TheiaK8SService;
 import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SDeployment;
-import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SIngress;
+import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SIngressBackend;
+import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SIngressFrontend;
 import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SService;
 import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SDeployment;
 import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SPersistentVolume;
@@ -86,7 +87,8 @@ public class ProjectDeploymentService {
         // create modeleditor app resources
         final var appService = new PyroAppK8SService(client, project);
         final var appDeployment = new PyroAppK8SDeployment(client, getRegistryService(), host, project);
-        final var appIngress = new PyroAppK8SIngress(client, appService, project, host);
+        final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host);
+        final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host);
 
         // create modeleditor database resources
         final var databaseService = new PyroDatabaseK8SService(client, project);
@@ -103,7 +105,7 @@ public class ProjectDeploymentService {
         // if any pod removal is scheduled, that task is removed
         if (deployedAppOptional.isPresent() && K8SUtils.isDeploymentRunning(deployedAppOptional.get())) {
             removeScheduledTasks(project);
-            final var status = new PyroProjectDeployment(appIngress.getPath(), PyroProjectDeploymentStatus.READY);
+            final var status = new PyroProjectDeployment(appIngressFrontend.getPath(), PyroProjectDeploymentStatus.READY);
             projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
             return status;
         }
@@ -123,12 +125,13 @@ public class ProjectDeploymentService {
         // start modeleditor app
         final var service = client.services().create(appService.getResource());
         final var deployment = client.apps().deployments().create(appDeployment.getResource());
-        client.network().ingress().create(appIngress.getResource());
+        client.network().ingress().create(appIngressFrontend.getResource());
+        client.network().ingress().create(appIngressBackend.getResource());
 
-        final var status = new PyroProjectDeployment(appIngress.getPath(), PyroProjectDeploymentStatus.DEPLOYING);
+        final var status = new PyroProjectDeployment(appIngressFrontend.getPath(), PyroProjectDeploymentStatus.DEPLOYING);
         projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
 
-        waitUntilPyroPodIsReady(project, deployment, service, appIngress);
+        waitUntilPyroPodIsReady(project, deployment, service, appIngressFrontend);
 
         return status;
     }
@@ -174,7 +177,7 @@ public class ProjectDeploymentService {
         return status;
     }
 
-    private void waitUntilPyroPodIsReady(PyroProjectDB project, Deployment deployment, Service service, PyroAppK8SIngress ingress) {
+    private void waitUntilPyroPodIsReady(PyroProjectDB project, Deployment deployment, Service service, PyroAppK8SIngressFrontend ingress) {
         WaitUtils.asyncWaitUntil(
                 vertx,
                 () -> {
@@ -236,7 +239,8 @@ public class ProjectDeploymentService {
     public void stopModelEditor(PyroProjectDB project) {
         final var appService = new PyroAppK8SService(client, project);
         final var appDeployment = new PyroAppK8SDeployment(client, getRegistryService(), host, project);
-        final var appIngress = new PyroAppK8SIngress(client, appService, project, host);
+        final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host);
+        final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host);
 
         final var databaseService = new PyroDatabaseK8SService(client, project);
         final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project);
@@ -244,7 +248,8 @@ public class ProjectDeploymentService {
 
         client.services().delete(appService.getResource());
         client.apps().deployments().delete(appDeployment.getResource());
-        client.network().ingress().delete(appIngress.getResource());
+        client.network().ingress().delete(appIngressFrontend.getResource());
+        client.network().ingress().delete(appIngressBackend.getResource());
 
         client.services().delete(databaseService.getResource());
         client.apps().statefulSets().delete(databaseDeployment.getResource());
