@@ -26,7 +26,8 @@ FROM registry.gitlab.com/scce/cinco-cloud-archetype/archetype:latest as cinco-cl
 # set baseHref path for static resources of frontend
 ENV BASE_HREF=/
 # integrate pyro-server into cinco-cloud-archetype
-COPY --from=pyro-server-builder /pyro-server/pyro-server/ /editor/pyro-server-extension/pyro-server/  #-----------------------------------------------------------------------
+COPY --from=pyro-server-builder /pyro-server/pyro-server/ /editor/pyro-server-extension/pyro-server
+#-----------------------------------------------------------------------
 # modify baseHref path for static resources of frontend
 #-----------------------------------------------------------------------
 CMD cd /editor/pyro-server-extension/pyro-server/ && \
