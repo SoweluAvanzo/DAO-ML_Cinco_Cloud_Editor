@@ -36,11 +36,17 @@ class BaseService {
 
   static String getBase({String protocol: null}) {
   	if(window.location.protocol.contains("https")) {
-    	return '${protocol == null ? window.location.protocol : protocol+"s"}//${window.location.host}';
+    	return '${protocol == null ? window.location.protocol : protocol+"s"}//${window.location.host}${getBaseHref()}';
     }
-    return '${protocol == null ? window.location.protocol : protocol}//${window.location.host}';
+    return '${protocol == null ? window.location.protocol : protocol}//${window.location.host}${getBaseHref()}';
   }
 
+  static String getBaseHref() {
+    var baseHref = window.document.querySelector('base').getAttribute('href');
+    var cleanBaseHref = baseHref.substring(0, baseHref.length - 1);
+    return cleanBaseHref;
+  }
+  
   static String getUrl({String protocol: null}) {
     return '${getBase(protocol:protocol)}/api';
   }
