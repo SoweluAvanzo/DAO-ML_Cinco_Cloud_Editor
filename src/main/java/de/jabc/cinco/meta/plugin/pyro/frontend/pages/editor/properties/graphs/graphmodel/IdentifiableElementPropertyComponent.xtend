@@ -50,8 +50,9 @@ class IdentifiableElementPropertyComponent extends Generatable {
 		  
 			«FOR file:fileAttributes»
 				FileUploader uploader_«file.name.escapeDart» = new FileUploader({
-					'url': '${BaseService.getUrl()}/files/create',
-					'authToken': BaseService.getAuthToken()
+					'url': '${BaseService.getUrl()}/files/create'
+					//,
+					//'authToken': BaseService.getAuthToken()
 				},autoUpload:true«IF !file.getFile.value.empty», accept:"«file.getFile.value.join(", ")»"«ENDIF»);
 			«ENDFOR»
 		  
