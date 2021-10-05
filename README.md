@@ -51,7 +51,7 @@ On Unix:
 3. Open `http://cinco-cloud` in a Web browser
 
 ## Devlopment under Windows:
-0. Activate `hyper-vv` in windows. It is used instead of docker. Also, you need atleast `60GB` of disk-storage and Administrator Rights. Almost all commands need to be run with high privileges, because of the `hyper-v`-context.
+0. Activate `hyper-vv` in windows. It is used instead of docker. Also, you need atleast `60GB` of disk-storage and administrator-rights. Almost all commands need to be run with high privileges, because of the `hyper-v`-context.
 1. Start minikube by running (as Administrator):
 
     `minikube start --cpus 4 --memory 8192 --driver=hyperv --disk-size 60000mb`
