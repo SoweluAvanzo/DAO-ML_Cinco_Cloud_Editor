@@ -46,7 +46,50 @@
 
 1. Clone the repository and ensure that the cluster is running
 2. In the root of the repository directory, execute `skaffold dev` and wait for all pods to be deployed
+
+On Unix:
 3. Open `http://cinco-cloud` in a Web browser
+
+## Devlopment under Windows:
+0. Activate `hyper-vv` in windows. It is used instead of docker. Also, you need atleast `60GB` of disk-storage and Administrator Rights. Almost all commands need to be run with high privileges, because of the `hyper-v`-context.
+1. Start minikube by running (as Administrator):
+
+    `minikube start --cpus 4 --memory 8192 --driver=hyperv --disk-size 60000mb`
+
+    NOTE: In this command the diskspace is set to around 60GB from which about 30GB are used for the
+    registry of the infrastructure. If you run into issues, adjust this value. We recommend to use
+    Windows only for development purpose, but not for a real deployment.
+
+2. Install addons:
+
+    `minikube addons enable default-storageclass && minikube addons enable ingress && minikube addons enable ingress-dns && minikube addons enable storage-provisioner`
+
+3. do step 4 to 7 from "Preparations" and set your secret:
+
+    `kubectl apply -f secrets.yaml`
+
+4. run:
+
+    `skaffold dev`
+
+    
+5. Get an copy the IP you get from running:
+    
+    `minikube ip`
+
+    NOTE: The ip can change on every start of minikube under windows.
+
+6. Add to `C:\Windows\System32\drivers\etc\hosts` as administrator the follwing string (fill in `<...>`):
+    
+    `<ip of step 3> cinco-cloud` 
+
+    check if everything works as expected by running:
+    
+    `ping cinco-cloud`
+
+7. Open `http://cinco-cloud/` in a Web browser
+
+Note: if you create a project it will currently take around 5minutes to initially deploy.
 
 ## Deployment
 
