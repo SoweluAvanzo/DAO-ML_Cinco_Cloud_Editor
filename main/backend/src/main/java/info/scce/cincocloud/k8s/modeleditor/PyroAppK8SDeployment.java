@@ -94,7 +94,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                                                             .build(),
                                                     new EnvVarBuilder()
                                                             .withName("PYRO_SUBPATH")
-                                                            .withValue("/workspaces/" + getProjectName() + "/pyro")
+                                                            .withValue("/workspaces/" + getProjectName() + "/pyro/")
                                                             .build()
                                             )
                                             .build()
