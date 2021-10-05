@@ -10,9 +10,12 @@ class BaseService {
 
   Map<String, String> get requestHeaders {
     Map<String, String> rh = {'Content-Type': 'application/json'};
-    if (window.localStorage.containsKey(tokenKey)) {
-      rh['Authorization'] = 'Bearer ' + window.localStorage[tokenKey];
-    }
+    /*
+      This is nolonger needed:
+      if (window.localStorage.containsKey(tokenKey)) {
+        rh['Authorization'] = 'Bearer ' + window.localStorage[tokenKey];
+      }
+    */
     return rh;
   }
 
