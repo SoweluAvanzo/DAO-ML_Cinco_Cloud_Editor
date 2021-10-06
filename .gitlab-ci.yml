@@ -1,7 +1,7 @@
 stages:
-#  - test
   - build
   - push
+  - deliver
 
 .docker-job:
   image: docker:20.10.6
@@ -46,29 +46,22 @@ stages:
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
 
-#test-main:
-#  extends: .maven-job
-#  stage: test
-#  only:
-#    - master
-#  variables:
-#    KUBECTL: v1.17.0
-#    KIND: v0.8.1
-#  before_script:
-#    - docker info
-#    - apk update && apk add -U wget openjdk11
-#    - wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
-#    - wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.33-r0/glibc-2.33-r0.apk
-#    - apk add glibc-2.33-r0.apk
-#    - wget -O /usr/local/bin/kind https://github.com/kubernetes-sigs/kind/releases/download/${KIND}/kind-linux-amd64
-#    - chmod +x /usr/local/bin/kind
-#    - wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL}/bin/linux/amd64/kubectl
-#    - chmod +x /usr/local/bin/kubectl
-#    - kind create cluster --config=./.gitlab/kind-config.yaml
-#    - sed -i -E -e 's/localhost|0\.0\.0\.0/docker/g' "$HOME/.kube/config"
-#  script: |
-#    cd ./main/backend
-#    ./mvnw verify test
+build-wiki:
+  stage: build
+  image: 'node:12.18.4'
+  cache:
+    paths:
+      - docs/vuepress/node_modules/
+  script:
+    - cd docs/vuepress
+    - rm src/.vuepress/env.default.js
+    - mv src/.vuepress/env.prod.js src/.vuepress/env.default.js
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - docs/vuepress/src/.vuepress/dist/*
+    expire_in: 1 day
 
 build-main:
   extends: .docker-build
@@ -82,7 +75,7 @@ build-main:
 
 push-main:
   extends: .docker-push
-  dependencies:
+  needs:
     - build-main
   variables:
     IMAGE: main
@@ -102,7 +95,7 @@ build-registry:
 
 push-registry:
   extends: .docker-push
-  dependencies:
+  needs:
     - build-registry
   variables:
     IMAGE: registry
@@ -122,10 +115,25 @@ build-workspace-builder:
 
 push-workspace-builder:
   extends: .docker-push
-  dependencies:
+  needs:
     - build-workspace-builder
   variables:
     IMAGE: workspace-builder
     VERSION: latest
+  only:
+    - master
+
+pages:
+  stage: deliver
+  needs:
+    - build-wiki
+  image: 'node:12.18.4'
+  script:
+    - mkdir public
+    - mv docs/vuepress/src/.vuepress/dist/* public/
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 day
   only:
     - master

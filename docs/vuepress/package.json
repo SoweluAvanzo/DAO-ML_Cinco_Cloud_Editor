@@ -1,0 +1,19 @@
+{
+  "name": "cinco-cloud-docs",
+  "version": "0.0.1",
+  "description": "Documentation for running and using Cinco Cloud.",
+  "main": "index.js",
+  "authors": {
+    "name": "Alexander Bainczyk",
+    "email": "alexander.bainczyk@tu-dortmund.de"
+  },
+  "repository": "https://gitlab.com/scce/cinco-cloud/cinco-cloud-docs",
+  "scripts": {
+    "dev": "vuepress dev src",
+    "build": "vuepress build src"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "vuepress": "^1.5.3"
+  }
+}

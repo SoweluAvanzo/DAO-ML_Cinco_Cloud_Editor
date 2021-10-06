@@ -1,0 +1,4 @@
+.idea
+src/.vuepress/dist
+node_modules
+
