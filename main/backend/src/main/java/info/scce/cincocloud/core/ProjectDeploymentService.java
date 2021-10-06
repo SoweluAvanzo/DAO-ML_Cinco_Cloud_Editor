@@ -28,6 +28,8 @@ import info.scce.cincocloud.k8s.languageeditor.TheiaK8SService;
 import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SDeployment;
 import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SIngressBackend;
 import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SIngressFrontend;
+import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SPersistentVolume;
+import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SPersistentVolumeClaim;
 import info.scce.cincocloud.k8s.modeleditor.PyroAppK8SService;
 import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SDeployment;
 import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SPersistentVolume;
@@ -86,7 +88,9 @@ public class ProjectDeploymentService {
     private PyroProjectDeployment deployModelEditor(PyroProjectDB project) {
         // create modeleditor app resources
         final var appService = new PyroAppK8SService(client, project);
-        final var appDeployment = new PyroAppK8SDeployment(client, getRegistryService(), host, project);
+        final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
+        final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
+        final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim, getRegistryService(), host, project);
         final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host);
         final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host);
 
@@ -108,6 +112,14 @@ public class ProjectDeploymentService {
             final var status = new PyroProjectDeployment(appIngressFrontend.getPath(), PyroProjectDeploymentStatus.READY);
             projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
             return status;
+        }
+
+        if (K8SUtils.getPersistentVolumeClaimByName(client, appPersistentVolumeClaim.getResource().getMetadata().getName()).isEmpty()) {
+            client.persistentVolumeClaims().create(appPersistentVolumeClaim.getResource());
+        }
+
+        if (K8SUtils.getPersistentVolumeByName(client, appPersistentVolume.getResource().getMetadata().getName()).isEmpty()) {
+            client.persistentVolumes().create(appPersistentVolume.getResource());
         }
 
         if (K8SUtils.getPersistentVolumeClaimByName(client, databasePersistentVolumeClaim.getResource().getMetadata().getName()).isEmpty()) {
@@ -238,7 +250,9 @@ public class ProjectDeploymentService {
 
     public void stopModelEditor(PyroProjectDB project) {
         final var appService = new PyroAppK8SService(client, project);
-        final var appDeployment = new PyroAppK8SDeployment(client, getRegistryService(), host, project);
+        final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
+        final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
+        final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim, getRegistryService(), host, project);
         final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host);
         final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host);
 
@@ -269,12 +283,16 @@ public class ProjectDeploymentService {
     private void stopAndDeleteModelEditor(PyroProjectDB project) {
         stopModelEditor(project);
 
-        final var persistentVolume = new PyroDatabaseK8SPersistentVolume(client, project);
-        final var persistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project);
+        final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project);
+        final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project);
+        final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
+        final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
 
         // remove the claim first so that the volume can be deleted
-        client.persistentVolumeClaims().delete(persistentVolumeClaim.getResource());
-        client.persistentVolumes().delete(persistentVolume.getResource());
+        client.persistentVolumeClaims().delete(databasePersistentVolumeClaim.getResource());
+        client.persistentVolumes().delete(databasePersistentVolume.getResource());
+        client.persistentVolumeClaims().delete(appPersistentVolumeClaim.getResource());
+        client.persistentVolumes().delete(appPersistentVolume.getResource());
 
         // no need to schedule pod removal if all resources are already deleted.
         removeScheduledTasks(project);
