@@ -155,13 +155,13 @@ function isWebviewHost(req: any): boolean {
     console.log('isWebviewHost: PYRO_SUBPATH=' + PYRO_SUBPATH);
     console.log('isWebviewHost: path=' + path);
     console.log('isWebviewHost: PYRO_PORT=' + PYRO_PORT);
-    if (process.env.CINCO_CLOUD_DEBUG) {
+    if (isDebugging()) {
         return true;
     }
     if (host === PYRO_HOST) { // TODO: fix me and make it more secure
         return true;
     }
-    const re = /(\w+-?)*(\w+)(.)(webview).(\w+)(?::\d+)?/g;
+    const re = /(\w+-?)*(\w+)(.)(webview|mini-browser).(\w+)(?::\d+)?/g;
     const matched = host.match(re);
     // eslint-disable-next-line no-null/no-null
     return matched !== null && matched.length > 0;
