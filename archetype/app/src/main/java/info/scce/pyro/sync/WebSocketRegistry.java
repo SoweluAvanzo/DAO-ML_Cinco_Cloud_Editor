@@ -36,8 +36,8 @@ public class WebSocketRegistry {
             }
         }
         try {
-            session.getBasicRemote().sendText(response);
-        } catch (IOException e) {
+            session.getAsyncRemote().sendText(response);
+        } catch (Exception e) {
             //e.printStackTrace();
             try {
                 session.close();

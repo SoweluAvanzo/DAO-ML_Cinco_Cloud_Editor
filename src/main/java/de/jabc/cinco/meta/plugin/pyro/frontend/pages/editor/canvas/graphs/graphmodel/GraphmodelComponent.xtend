@@ -496,12 +496,11 @@ class GraphmodelComponent extends Generatable {
 		  }
 		  
 		  void activateWebSocket() {
-		      BaseService.getTicket().then((ticket) {
-		        if (this.currentGraphModel != null &&
+		      if (this.currentGraphModel != null &&
 		            user != null &&
 		            this.webSocketGraphModel == null) {
 		          this.webSocketGraphModel = new html.WebSocket(
-		              '${graphService.getBaseUrl(protocol: 'ws:')}/ws/graphmodel/${currentGraphModel.id}/${ticket}/private');
+		              '${graphService.getBaseUrl(protocol: 'ws:')}/ws/graphmodel/${currentGraphModel.id}/private');
 		          _editorDataService.graphModelWebSocketSC.add(webSocketGraphModel);
 		  
 		          // Callbacks for currentUser
@@ -512,58 +511,60 @@ class GraphmodelComponent extends Generatable {
 		          this.webSocketGraphModel.onMessage.listen((html.MessageEvent e) {
 		            html.window.console.debug("[PYRO] onMessage GraphModel Websocket");
 		            if (e.data != null) {
-		              var jsog = convert.jsonDecode(e.data);
+		              	var jsog = convert.jsonDecode(e.data);
 		  
-		              String event = jsog['event'];
-		              if (event == 'dialog') {
-		                //message for current user
-		                if (jsog['content']['messageType'] ==
-		                    'message_dialog_no_answer') {
-		                  print(jsog['content']['message']);
-		                  dialogMessage = jsog['content'];
-		                  messageDialogType = 'no_answer';
-		                  showMessageDialog = true;
-		                }
-		                if (jsog['content']['messageType'] ==
-		                    'message_dialog_one_answer') {
-		                  print(jsog['content']['message']);
-		                  dialogMessage = jsog['content'];
-		                  messageDialogType = 'one_answer';
-		                  showMessageDialog = true;
-		                }
-		              } else if (event == 'updateCursorPosition') {
-		                // update cursor
-		                var senderId = jsog['senderId'];
-		                if (senderId.toString() != user.id.toString()) {
-		                }
-		              } else {
-		                // update graph model changed by another user
-		                if (jsog['senderId'].toString() != user.id.toString()) {
-		                  if (jsog['content']['messageType'] == 'graphmodel') {
-		                    startPropagation().then((_) {
-		                      var _g = «g.dartFQN».fromJSOG(
-		                          jsog['content'], new Map());
-		                      currentGraphModel.merge(_g, structureOnly: true);
-		                      currentGraphModel.connector = _g.connector;
-		                      currentGraphModel.router = _g.router;
-		                      currentGraphModel.filename = _g.filename;
-		                      currentGraphModel.height = _g.height;
-		                      currentGraphModel.width = _g.width;
-		                      js.context.callMethod('update_routing_«g.jsCall»', [
-		                        currentGraphModel.router,
-		                        currentGraphModel.connector
-		                      ]);
-		                    }).then((_) => endPropagation());
-		                  } else {
-		                    var m = Message.fromJSOG(jsog['content']);
-		                    startPropagation().then((_) {
-		                      if (m is CompoundCommandMessage) {
-		                        executeCommands(m, true);
-		                      }
-		                    }).then((_) => endPropagation());
-		                  }
-		                }
-		              }
+		              	String event = jsog['event'];
+		              	if (event == 'dialog') {
+							//message for current user
+							if (jsog['content']['messageType'] ==
+								'message_dialog_no_answer') {
+								print(jsog['content']['message']);
+								dialogMessage = jsog['content'];
+								messageDialogType = 'no_answer';
+								showMessageDialog = true;
+							}
+							if (jsog['content']['messageType'] ==
+								'message_dialog_one_answer') {
+								print(jsog['content']['message']);
+								dialogMessage = jsog['content'];
+								messageDialogType = 'one_answer';
+								showMessageDialog = true;
+							}
+		              	} else if (event == 'userInformation') {
+							var senderId = jsog['senderId'];
+							user.id = senderId;
+						} else if (event == 'updateCursorPosition') {
+							// update cursor
+							var senderId = jsog['senderId'];
+							if (senderId.toString() != user.id.toString()) {}
+						} else {
+							// update graph model changed by another user
+							if (jsog['senderId'].toString() != user.id.toString()) {
+								if (jsog['content']['messageType'] == 'graphmodel') {
+									startPropagation().then((_) {
+									var _g = «g.dartFQN».fromJSOG(
+										jsog['content'], new Map());
+									currentGraphModel.merge(_g, structureOnly: true);
+									currentGraphModel.connector = _g.connector;
+									currentGraphModel.router = _g.router;
+									currentGraphModel.filename = _g.filename;
+									currentGraphModel.height = _g.height;
+									currentGraphModel.width = _g.width;
+									js.context.callMethod('update_routing_«g.jsCall»', [
+										currentGraphModel.router,
+										currentGraphModel.connector
+									]);
+									}).then((_) => endPropagation());
+								} else {
+									var m = Message.fromJSOG(jsog['content']);
+									startPropagation().then((_) {
+									if (m is CompoundCommandMessage) {
+										executeCommands(m, true);
+									}
+									}).then((_) => endPropagation());
+								}
+							}
+		              	}
 		            }
 		          });
 		  
@@ -579,7 +580,6 @@ class GraphmodelComponent extends Generatable {
 		                .debug("[PYRO] Error on GraphModel Websocket: ${e.toString()}");
 		          });
 		        }
-		      });
 		    }
 			
 		  
