@@ -10,8 +10,17 @@
     - [Skaffold][skaffold]
     - [Minikube][minikube]
 
+    - If you're running Windows:
+    
+        Activate `hyper-v` in Windows. It will be used instead of docker. Also, you need atleast `60GB` of disk-storage and administrator-rights. Almost all commands need to be run with high privileges, because of the `hyper-v`-context.
+
 2. Run a local Kubernetes cluster
     1. Start the cluster: `minikube start --cpus 4 --memory 8192` (CincoCloud works best with 4 CPU cores and 8Gb of RAM)
+    
+        - on Windows: `minikube start --cpus 4 --memory 8192 --driver=hyperv --disk-size 60000mb`
+
+            NOTE: With this command the diskspace is set to around 60GB from which about 30GB are used for the registry of the infrastructure. If you run into issues, adjust this value. We recommend to use Windows only for development purpose, but not for real deployment.
+
     2. Enable necessary plugins:
 
     ```
@@ -24,6 +33,7 @@
 3. Add the minikube IP address to the `/etc/hosts` file
     1. Execute `minikube ip` to retrieve the IP address
     2. Add an entry to the `/etc/hosts`: `<IP> cinco-cloud`
+        - on Windows: `C:\Windows\System32\drivers\etc\hosts`
 
 4. Create a deploy token in the [cinco cloud archetype repository][cinco-cloud-archetype] with `read_registry` rights
 
