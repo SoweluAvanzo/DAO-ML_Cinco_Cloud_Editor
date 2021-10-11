@@ -22,7 +22,7 @@ async function generationCommand(languageClient: CincoLanguageClient) {
 
     if (languageClient) {
         let value: string = await window.showInformationMessage(
-            "Do you want to run the generated Pyro Product?",
+            "Do you want to deploy the generated product?",
             ...["Yes", "No", "Cancel"]);
         if (value == "Cancel")
             return;

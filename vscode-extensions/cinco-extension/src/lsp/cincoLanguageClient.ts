@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient';
 
-import { workbenchOutput } from '../extension';
+import { extensionContext, workbenchOutput } from '../extension';
 import { executeProduct } from '../grpc/grpc-handler';
 import { GenerateRequest, GenerateRequestEndpoint, GenerateResponse } from './communication/lspMessageExtension';
 
@@ -14,7 +14,14 @@ export class CincoLanguageClient extends LanguageClient {
         super("cinco-language-server", serverOptions, clientOptions);
         this.languageIds = languageIds;
         this.instance = this;
+        this.activateGenerationButton();
         // this.activateMultiUserFunctionality();
+    }
+
+    activateGenerationButton() {
+        this.onReady().then(()=> {
+            vscode.commands.executeCommand('setContext', "languageServerReady", true);
+        });
     }
 
     activateMultiUserFunctionality() {
@@ -31,16 +38,16 @@ export class CincoLanguageClient extends LanguageClient {
         })
     }
 
-    generate(sourceUri: string, targetUri: string, execute: boolean) {
+    generate(sourceUri: string, targetUri: string, upload: boolean) {
         var generateRequest: GenerateRequest = new GenerateRequest();
         generateRequest.sourceUri = sourceUri;
         generateRequest.targetUri = targetUri;
-        generateRequest.execute = execute;
+        generateRequest.execute = upload;
 
         try {
             this.sendRequest(GenerateRequestEndpoint.type, generateRequest)
                 .then((response: GenerateResponse) => {
-                    this.onGenerateFinished(response, execute);
+                    this.onGenerateFinished(response, upload);
                 });
         } catch (e) {
             const message = "LanguageClient could not request generation";
@@ -49,17 +56,18 @@ export class CincoLanguageClient extends LanguageClient {
         }
     }
 
-    onGenerateFinished(response: GenerateResponse, execute: boolean) {
-        const message = "generated cinco-product to: " + response.targetUri;
+    onGenerateFinished(response: GenerateResponse, upload: boolean) {
+        const message = "generated image to: " + response.targetUri;
         vscode.window.showInformationMessage(message);
         workbenchOutput.appendLine(message);
 
-        if (execute) {
-            const message2 = "executing cinco-product";
-            vscode.window.showInformationMessage(message2);
-            workbenchOutput.appendLine(message2);
+        if (upload) {
             const outputPath = vscode.Uri.parse(response.targetUri).fsPath;
             console.log("Generated artifact: " + outputPath);
+
+            const message2 = "starting building-job...";
+            vscode.window.showInformationMessage(message2);
+            workbenchOutput.appendLine(message2);
             executeProduct(outputPath);
         }
     }

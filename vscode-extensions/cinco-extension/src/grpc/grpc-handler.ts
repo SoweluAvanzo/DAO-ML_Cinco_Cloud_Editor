@@ -18,8 +18,9 @@ export async function executeProduct(zip: string) {
 
         callGrpcImageRequest(imageRequest);
     } catch (e) {
-        window.showErrorMessage("Failed to execute product.");
-        console.log("Failed to execute product.", e);
+        const message = "Failed to build image!";
+        window.showErrorMessage(message);
+        console.log("message", e);
     }
 }
 
