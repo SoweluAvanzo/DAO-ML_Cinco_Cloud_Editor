@@ -21,7 +21,7 @@ class IncomingCheck extends Generatable{
 	package «g.MGLModel.package».mcam.modules.checks;
 	
 	
-	import «g.apiFQN».«g.name.fuEscapeJava»;
+	import «g.apiFQN»;
 	
 	
 	public class «g.name.fuEscapeJava»IncomingCheck extends «g.name.fuEscapeJava»Check {
@@ -31,8 +31,8 @@ class IncomingCheck extends Generatable{
 			«IF !nodes.empty»
 			g.getAllNodes().forEach((n)->{
 				«FOR n:nodes»
-				if(n instanceof «g.apiFQN».«n.name.fuEscapeJava») {
-					«g.apiFQN».«n.name.fuEscapeJava» node = («g.apiFQN».«n.name.fuEscapeJava»)n;
+				if(n instanceof «n.apiFQN») {
+					«n.apiFQN» node = («n.apiFQNWithoutName».impl.«n.name.fuEscapeJava»Impl)n;
 					
 					«FOR group:n.incomingEdgeConnections.filter[lowerBound>0]»
 						{
@@ -44,7 +44,7 @@ class IncomingCheck extends Generatable{
 							}
 							«ELSE»
 								«FOR containableType:group.connectingEdges.map[subTypesAndType(it.name,g)].flatten.filter(Edge).filter[!isIsAbstract]»
-								 	amount += node.getIncoming(«g.apiFQN».«containableType.name.fuEscapeJava».class).stream().filter(c->c.getClass().getName().equals(«g.apiFQN».impl.«containableType.name.fuEscapeJava»Impl.class.getName())).count();
+								 	amount += node.getIncoming(«containableType.apiFQN».class).stream().filter(c->c.getClass().getName().equals(«containableType.apiFQNWithoutName».impl.«containableType.name.fuEscapeJava»Impl.class.getName())).count();
 								«ENDFOR»
 								if(amount < «group.lowerBound»){
 									addError(n,"at least «group.lowerBound» of [«group.connectingEdges.map[name].join(",")»] incoming required");

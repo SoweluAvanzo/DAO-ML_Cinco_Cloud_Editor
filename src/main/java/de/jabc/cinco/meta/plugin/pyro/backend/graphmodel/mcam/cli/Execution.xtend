@@ -20,7 +20,7 @@ class Execution extends Generatable{
 	
 	import «g.MGLModel.package».mcam.adapter.«g.name.fuEscapeJava»Adapter;
 	
-	import «g.apiFQN».«g.name.fuEscapeJava»;
+	import «g.apiFQN»;
 	
 	import de.jabc.cinco.meta.plugin.mcam.runtime.core.CincoCheckModule;
 	

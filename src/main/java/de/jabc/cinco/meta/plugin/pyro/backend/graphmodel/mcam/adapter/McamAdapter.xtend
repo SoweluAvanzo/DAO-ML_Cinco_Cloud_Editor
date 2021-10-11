@@ -23,7 +23,7 @@ class McamAdapter extends Generatable{
 	import de.jabc.cinco.meta.plugin.mcam.runtime.core._CincoAdapter;
 	import graphmodel.ModelElement;
 	import graphmodel.IdentifiableElement;
-	import «g.apiFQN».«g.name.fuEscapeJava»;
+	import «g.apiFQN»;
 	
 
 	

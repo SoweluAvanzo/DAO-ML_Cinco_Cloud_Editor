@@ -105,7 +105,7 @@ class CheckComponent extends Generatable {
 		   	}
 		   	loading = true;
 			«FOR g : gc.graphMopdels.filter[it.hasChecks]»
-				if(g.$type == "«g.typeName»"){
+				if(g.$type() == "«g.typeName»"){
 				 //read checks for «g.name.escapeDart»
 				 checkResults.clear();
 				 _checkService.read("«g.name.lowEscapeDart»",g).then((cr){checkResults=cr==null?[]:cr.results;}).whenComplete((){loading=false;});

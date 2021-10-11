@@ -21,7 +21,7 @@ class ContainmentCheck extends Generatable{
 	package «g.MGLModel.package».mcam.modules.checks;
 	
 	
-	import «g.apiFQN».«g.name.fuEscapeJava»;
+	import «g.apiFQN»;
 	
 	
 	public class «g.name.fuEscapeJava»ContainmentCheck extends «g.name.fuEscapeJava»Check {
@@ -38,7 +38,7 @@ class ContainmentCheck extends Generatable{
 						}
 					«ELSE»
 						«FOR containableType:con.types»
-						 	amount += g.getModelElements(«g.apiFQN».«containableType.name.fuEscapeJava».class).stream()«IF !containableType.isAbstract».filter(c->c.getClass().getName().equals(«g.apiFQN».impl.«containableType.name.fuEscapeJava»Impl.class.getName()))«ENDIF».count();
+						 	amount += g.getModelElements(«containableType.apiFQN».class).stream()«IF !containableType.isAbstract».filter(c->c.getClass().getName().equals(«containableType.apiFQN».impl.«containableType.name.fuEscapeJava»Impl.class.getName()))«ENDIF».count();
 						«ENDFOR»
 						if(amount < «con.lowerBound»){
 							addError(g,"at least «con.lowerBound» of [«con.getGroupContainables(g.MGLModel).toSet.map[name].join(",")»] required");
@@ -50,9 +50,8 @@ class ContainmentCheck extends Generatable{
 			«IF !nodes.empty»
 			g.getAllNodes().forEach((n)->{
 				«FOR n:nodes»
-				if(n instanceof «g.apiFQN».«n.name.fuEscapeJava») {
-					«g.apiFQN».«n.name.fuEscapeJava» container = («g.apiFQN».«n.name.fuEscapeJava»)n;
-					
+				if(n instanceof «g.apiFQN») {
+					«g.apiFQN» container = («g.apiFQNWithoutName».impl.«g.name.fuEscapeJava»Impl)n;
 					«FOR group:n.containableElements.filter[lowerBound>0]»
 						{
 							//check if type can be contained in group
@@ -63,7 +62,7 @@ class ContainmentCheck extends Generatable{
 							}
 							«ELSE»
 								«FOR containableType:group.types»
-								 	amount += container.getModelElements(«g.apiFQN».«containableType.name.fuEscapeJava».class).stream().filter(c->c.getClass().getName().equals(«g.apiFQN».impl.«containableType.name.fuEscapeJava»Impl.class.getName())).count();
+								 	amount += container.getModelElements(«containableType.apiFQN».class).stream().filter(c->c.getClass().getName().equals(«containableType.apiFQNWithoutName».impl.«containableType.name.fuEscapeJava»Impl.class.getName())).count();
 								«ENDFOR»
 								if(amount < «group.lowerBound»){
 									addError(n,"at least «group.lowerBound» of [«group.getGroupContainables(g.MGLModel).toSet.map[name].join(",")»] required");

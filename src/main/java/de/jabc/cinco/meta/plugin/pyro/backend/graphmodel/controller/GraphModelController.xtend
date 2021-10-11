@@ -231,7 +231,7 @@ class GraphModelController extends Generatable {
 							crc = results.get(element);
 						}
 						info.scce.pyro.core.command.types.CheckResultCommand crcFinal = crc;
-						«g.mcamAdapterIdFQN» adapterId = («g.mcamAdapterFQN») i;
+						«g.mcamAdapterIdFQN» adapterId = («g.mcamAdapterIdFQN») i;
 						adapterId.getErrors().forEach(m->crcFinal.addResult(m,"error"));
 						adapterId.getWarnings().forEach(m->crcFinal.addResult(m,"warning"));
 						adapterId.getInfos().forEach(m->crcFinal.addResult(m,"info"));

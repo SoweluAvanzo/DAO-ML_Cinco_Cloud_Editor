@@ -18,7 +18,7 @@ class Module extends Generatable{
 	package «g.MGLModel.package».mcam.modules.checks;
 	
 	import de.jabc.cinco.meta.plugin.mcam.runtime.core.CincoCheckModule;
-	import «g.apiFQN».«g.name.fuEscapeJava»;
+	import «g.apiFQN»;
 	import «g.MGLModel.package».mcam.adapter.«g.name.fuEscapeJava»Id;
 	import «g.MGLModel.package».mcam.adapter.«g.name.fuEscapeJava»Adapter;
 	
