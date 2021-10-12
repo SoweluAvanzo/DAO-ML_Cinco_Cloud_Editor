@@ -43,6 +43,9 @@ import info.scce.cincocloud.util.WaitUtils;
 @Transactional
 public class ProjectDeploymentService {
 
+    private static int TIMEOUT_TIME_MIN = 10;
+    private static int DELAY_TIME_SEC = 1;
+
     @Inject
     ProjectWebSocket projectWebSocket;
 
@@ -204,8 +207,8 @@ public class ProjectDeploymentService {
                     final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.FAILED);
                     CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
                 },
-                Duration.ofMinutes(1),
-                Duration.ofSeconds(1)
+                Duration.ofMinutes(TIMEOUT_TIME_MIN),
+                Duration.ofSeconds(DELAY_TIME_SEC)
         );
     }
 
@@ -224,8 +227,8 @@ public class ProjectDeploymentService {
                     final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.FAILED);
                     CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
                 },
-                Duration.ofMinutes(1),
-                Duration.ofSeconds(1)
+                Duration.ofMinutes(TIMEOUT_TIME_MIN),
+                Duration.ofSeconds(DELAY_TIME_SEC)
         );
     }
 
@@ -243,8 +246,8 @@ public class ProjectDeploymentService {
                     final var s2 = new PyroProjectDeployment(path, PyroProjectDeploymentStatus.FAILED);
                     CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
                 },
-                Duration.ofMinutes(1),
-                Duration.ofSeconds(1)
+                Duration.ofMinutes(TIMEOUT_TIME_MIN),
+                Duration.ofSeconds(DELAY_TIME_SEC)
         );
     }
 
