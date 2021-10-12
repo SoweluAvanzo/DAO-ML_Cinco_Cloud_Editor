@@ -48,6 +48,7 @@ CMD cd /editor/pyro-server-extension/pyro-server/ && \
     CINCO_CLOUD_HOST="${CINCO_CLOUD_HOST}" \
     CINCO_CLOUD_PORT="${CINCO_CLOUD_PORT}" \
     THEIA_WEBVIEW_EXTERNAL_ENDPOINT='{{hostname}}' \
+    THEIA_MINI_BROWSER_HOST_PATTERN={{hostname}} \
     PYRO_HOST="${PYRO_HOST}" \
     PYRO_PORT="${PYRO_PORT}" \
     PYRO_SUBPATH="${PYRO_SUBPATH}" \
