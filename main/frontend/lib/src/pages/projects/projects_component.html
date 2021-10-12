@@ -32,12 +32,10 @@
               <li (click)="removeProject(project)" *ngIf="canDelete">
                 <div class="dropdown-item"><i class="fas fa-fw fa-trash"></i> Delete</div>
               </li>
-              <ng-container *ngIf="project.template == null">
-                <div class="dropdown-divider"></div>
-                <li>
-                  <a class="dropdown-item" [routerLink]="getProjectBuildJobsUrl(project)"><i class="fas fa-fw fa-history"></i> Build Jobs</a>
-                </li>
-              </ng-container>
+              <div class="dropdown-divider"></div>
+              <li>
+                <a class="dropdown-item" [routerLink]="getProjectBuildJobsUrl(project)"><i class="fas fa-fw fa-history"></i> Build Jobs</a>
+              </li>
             </bs-dropdown-menu>
           </bs-dropdown>
         </div>
