@@ -1,5 +1,5 @@
 git clean -xdf
-cd backend/cinco-language-server
+cd cinco-ls
 git clean -xdf
-cd de.jabc.cinco.meta.plugin.pyro.generator
+cd cinco-ls/de.jabc.cinco.meta.plugin.pyro.generator
 git clean -xdf
