@@ -76,6 +76,7 @@ build-workspace-builder:
     - master
 
 push-images:
+  extends: .docker-job
   needs:
     - build-main
     - build-registry
