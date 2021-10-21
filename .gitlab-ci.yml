@@ -80,9 +80,8 @@ push-images:
     - build-main
     - build-registry
     - build-workspace-builder
-  before_script:
-    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
+    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker load < main-latest/image.tar.gz
     - docker tag $CI_REGISTRY_IMAGE/main:latest $CI_REGISTRY_IMAGE/main:latest-$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/main:latest
