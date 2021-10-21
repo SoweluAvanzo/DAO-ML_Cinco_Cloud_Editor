@@ -1,8 +1,3 @@
-stages:
-  - build
-  - push
-  - deliver
-
 .docker-job:
   image: docker:20.10.6
   services:
@@ -25,7 +20,6 @@ stages:
 
 .docker-build:
   extends: .docker-job
-  stage: build
   script:
     - mkdir "$IMAGE-$VERSION"
     - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
@@ -35,19 +29,7 @@ stages:
     paths:
       - $IMAGE-$VERSION/image.tar.gz
 
-.docker-push:
-  extends: .docker-job
-  stage: push
-  before_script:
-    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - docker load < $IMAGE-$VERSION/image.tar.gz
-    - docker tag $CI_REGISTRY_IMAGE/$IMAGE:$VERSION $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION
-    - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
-
 build-wiki:
-  stage: build
   image: 'node:12.18.4'
   cache:
     paths:
@@ -73,31 +55,11 @@ build-main:
   only:
     - master
 
-push-main:
-  extends: .docker-push
-  needs:
-    - build-main
-  variables:
-    IMAGE: main
-    VERSION: latest
-  only:
-    - master
-
 build-registry:
   extends: .docker-build
   variables:
     CONTEXT: ./registry
     DOCKERFILE: ./registry/Dockerfile
-    IMAGE: registry
-    VERSION: latest
-  only:
-    - master
-
-push-registry:
-  extends: .docker-push
-  needs:
-    - build-registry
-  variables:
     IMAGE: registry
     VERSION: latest
   only:
@@ -113,20 +75,33 @@ build-workspace-builder:
   only:
     - master
 
-push-workspace-builder:
-  extends: .docker-push
+push-images:
   needs:
+    - build-main
+    - build-registry
     - build-workspace-builder
-  variables:
-    IMAGE: workspace-builder
-    VERSION: latest
+  before_script:
+    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker load < main-latest/image.tar.gz
+    - docker tag $CI_REGISTRY_IMAGE/main:latest $CI_REGISTRY_IMAGE/main:latest-$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/main:latest
+    - docker push $CI_REGISTRY_IMAGE/main:latest-$CI_COMMIT_SHA
+    - docker load < registry-latest/image.tar.gz
+    - docker tag $CI_REGISTRY_IMAGE/registry:latest $CI_REGISTRY_IMAGE/registry:latest-$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/registry:latest
+    - docker push $CI_REGISTRY_IMAGE/registry:latest-$CI_COMMIT_SHA
+    - docker load < workspace-builder-latest/image.tar.gz
+    - docker tag $CI_REGISTRY_IMAGE/workspace-builder:latest $CI_REGISTRY_IMAGE/workspace-builder:latest-$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/workspace-builder:latest
+    - docker push $CI_REGISTRY_IMAGE/workspace-builder:latest-$CI_COMMIT_SHA
   only:
     - master
 
 pages:
-  stage: deliver
   needs:
     - build-wiki
+    - push-images
   image: 'node:12.18.4'
   script:
     - mkdir public
