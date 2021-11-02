@@ -5,7 +5,7 @@ There are several repositories involved in the concept of Cinco Cloud.
 
 Here you see a quick overview of all the repositories and their relations:
 
-![Cinco Cloud Overview](Cinco-Cloud-Overview.png)
+![Cinco Cloud Overview](./assets/Cinco-Cloud-Overview.png)
 
 [**Cinco Cloud**](https://gitlab.com/scce/cinco-cloud):
 The *Cinco-Cloud repository* contains the *main-app*, which orchestrates the image deployment of editors and functions as central administration instances for the user- and project management.
