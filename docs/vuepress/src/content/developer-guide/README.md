@@ -1,5 +1,12 @@
 # Developer Guide
 
+## Overview of Repositories
+
+There are several repositories involved in the concept of Cinco Cloud.
+Here you see a quick overview of all the repositories and there relations:
+
+[Cinco Cloud Overview](Cinco-Cloud-Overview.png "Cinco Cloud Repositories")
+
 ## Preparations
 
 *For CincoCloud to run locally, ensure that you have at least 60GB of free disc space available.*
