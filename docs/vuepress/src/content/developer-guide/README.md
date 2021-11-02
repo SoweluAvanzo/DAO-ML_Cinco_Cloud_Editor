@@ -5,7 +5,7 @@
 There are several repositories involved in the concept of Cinco Cloud.
 Here you see a quick overview of all the repositories and there relations:
 
-[Cinco Cloud Overview](Cinco-Cloud-Overview.png "Cinco Cloud Repositories")
+[!Cinco Cloud Overview](Cinco-Cloud-Overview.png "Cinco Cloud Repositories")
 
 ## Preparations
 
