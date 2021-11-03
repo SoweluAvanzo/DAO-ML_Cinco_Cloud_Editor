@@ -115,7 +115,7 @@ Install one of them.
    All pods listed by `kubectl get pods` should have the status `running`.
    Thanks to skaffold, you can now change the code and skaffold automatically rebuilds and redeploys new images with the changes.
 4. Open `http://cinco-cloud` in a Web browser.
-   Please, either use *Chrome* or *Firefox*, as it seems that there is a bug with *Safari* where some resources cannot be loaded properly.
+   **Please, either use *Chrome* or *Firefox*, as it seems that there is a bug with *Safari* where some resources cannot be loaded properly.**
 
 [helm]: https://helm.sh/
 [docker]: https://docs.docker.com/get-docker/
