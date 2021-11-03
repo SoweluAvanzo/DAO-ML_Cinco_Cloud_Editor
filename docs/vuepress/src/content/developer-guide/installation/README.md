@@ -27,7 +27,7 @@ Since the default Docker driver for minikube currently does not support Ingress 
 We tested it with `hyperkit` and `vmware` drivers.
 Install one of them.
 
-|-- Driver --|- Installation ------------------------------|
+| Driver     | Installation                                |
 |------------|---------------------------------------------|
 | `hyperkit` | `brew install hyperkit`                     |
 | `vmware`   | `brew install docker-machine-driver-vmware` |
