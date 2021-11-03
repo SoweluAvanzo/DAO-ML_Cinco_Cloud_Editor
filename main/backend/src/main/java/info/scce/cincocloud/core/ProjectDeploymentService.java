@@ -140,8 +140,8 @@ public class ProjectDeploymentService {
         // start modeleditor app
         final var service = client.services().create(appService.getResource());
         final var deployment = client.apps().deployments().create(appDeployment.getResource());
-        client.network().ingress().create(appIngressFrontend.getResource());
-        client.network().ingress().create(appIngressBackend.getResource());
+        client.network().v1().ingresses().create(appIngressFrontend.getResource());
+        client.network().v1().ingresses().create(appIngressBackend.getResource());
 
         final var status = new PyroProjectDeployment(appIngressFrontend.getPath(), PyroProjectDeploymentStatus.DEPLOYING);
         projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
@@ -182,7 +182,7 @@ public class ProjectDeploymentService {
 
         final var editorService = client.services().create(service.getResource());
         final var editorPod = client.apps().statefulSets().create(deployment.getResource());
-        client.network().ingress().create(ingress.getResource());
+        client.network().v1().ingresses().create(ingress.getResource());
 
         final var status = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.DEPLOYING);
         projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
@@ -265,8 +265,8 @@ public class ProjectDeploymentService {
 
         client.services().delete(appService.getResource());
         client.apps().deployments().delete(appDeployment.getResource());
-        client.network().ingress().delete(appIngressFrontend.getResource());
-        client.network().ingress().delete(appIngressBackend.getResource());
+        client.network().v1().ingresses().delete(appIngressFrontend.getResource());
+        client.network().v1().ingresses().delete(appIngressBackend.getResource());
 
         client.services().delete(databaseService.getResource());
         client.apps().statefulSets().delete(databaseDeployment.getResource());
@@ -280,7 +280,7 @@ public class ProjectDeploymentService {
 
         client.services().delete(service.getResource());
         client.apps().statefulSets().delete(deployment.getResource());
-        client.network().ingress().delete(ingress.getResource());
+        client.network().v1().ingresses().delete(ingress.getResource());
     }
 
     private void stopAndDeleteModelEditor(PyroProjectDB project) {

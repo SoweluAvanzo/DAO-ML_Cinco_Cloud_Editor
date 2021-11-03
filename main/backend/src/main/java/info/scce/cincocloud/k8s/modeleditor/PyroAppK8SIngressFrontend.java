@@ -1,13 +1,16 @@
 package info.scce.cincocloud.k8s.modeleditor;
 
 import io.fabric8.kubernetes.api.model.IntOrStringBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1beta1.HTTPIngressPathBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1beta1.HTTPIngressRuleValueBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1beta1.Ingress;
-import io.fabric8.kubernetes.api.model.networking.v1beta1.IngressBackendBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1beta1.IngressBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1beta1.IngressRuleBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1beta1.IngressSpecBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.HTTPIngressPathBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.HTTPIngressRuleValueBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressBackendBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressRuleBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressServiceBackendBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressSpecBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.ServiceBackendPort;
+import io.fabric8.kubernetes.api.model.networking.v1.ServiceBackendPortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Map;
 import info.scce.cincocloud.db.PyroProjectDB;
@@ -44,10 +47,14 @@ public class PyroAppK8SIngressFrontend extends PyroK8SResource<Ingress> {
                                                     .withPath(path)
                                                     .withPathType("Prefix")
                                                     .withBackend(new IngressBackendBuilder()
-                                                            .withServiceName(service.getResource().getMetadata().getName())
-                                                            .withServicePort(new IntOrStringBuilder()
-                                                                    .withIntVal(service.getFrontendPort())
-                                                                    .build())
+                                                            .withService(new IngressServiceBackendBuilder()
+                                                                    .withName(service.getResource().getMetadata().getName())
+                                                                    .withPort(new ServiceBackendPortBuilder()
+                                                                        .withNumber(service.getFrontendPort())
+                                                                        .build()
+                                                                    )
+                                                                    .build()
+                                                            )
                                                             .build())
                                                     .build()
                                         )
