@@ -55,7 +55,20 @@ module.exports = {
     ],
     sidebar: [
       ['content/introduction/', 'Introduction'],
-      ['content/developer-guide/', 'Developer Guide'],
+      {
+        title: 'Developer Guide',
+        sidebarDepth: 2,
+        children: [
+          {
+            title: 'Overview',
+            path: '/content/developer-guide/overview/'
+          },
+          {
+            title: 'Installation',
+            path: '/content/developer-guide/installation/'
+          }
+        ]
+      },
       ['content/operator-guide/', 'Operator Guide']
     ]
   },
