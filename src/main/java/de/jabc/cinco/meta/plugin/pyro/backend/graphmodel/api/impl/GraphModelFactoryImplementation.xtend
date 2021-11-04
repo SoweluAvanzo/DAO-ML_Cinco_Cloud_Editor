@@ -26,10 +26,6 @@ class GraphModelFactoryImplementation extends Generatable{
 			import «g.apiFQN»;
 			import «g.commandExecuterFQN»;
 			import «modelPackage.typeRegistryFQN»;
-			import info.scce.pyro.rest.ObjectCache;
-			import info.scce.pyro.sync.WebSocketMessage;
-			
-			import java.util.Optional;
 			
 			/**
 			 * Author zweihoff
@@ -37,13 +33,11 @@ class GraphModelFactoryImplementation extends Generatable{
 			@javax.enterprise.context.RequestScoped
 			public class «g.apiFactoryImpl» implements «g.apiFactory» {
 			
-			    private entity.core.PyroUserDB subject;
 			    private «g.commandExecuter» executer;
 			    
 			    public void warmup(
 			    	         «g.commandExecuter» executer
 			    	    ) {
-			    	        this.subject = executer.getBatch().getUser();
 			    	        this.executer = executer;
 			   }
 			
@@ -53,10 +47,6 @@ class GraphModelFactoryImplementation extends Generatable{
 			
 			    public «g.name.fuEscapeJava» create«g.name.fuEscapeJava»(String projectRelativePath, String filename)
 			    {
-«««			        String[] folders = projectRelativePath.split("/");
-«««			        //create all not present folders
-«««			        Object folder = createFolders(project,0,folders);
-«««			        //create graphmodel
 			        final «g.entityFQN» newGraph =  new «g.entityFQN»();
 			        newGraph.filename = filename;
 			        newGraph.extension = "«g.fileExtension»";
@@ -65,7 +55,6 @@ class GraphModelFactoryImplementation extends Generatable{
 			        
 			        «IF (g as ModelElement).hasPostCreateHook»
 			        	
-			        	«g.apiFQN» ce = new «g.apiImplFQN»(newGraph,executer);
 			        	«(g as ModelElement).postCreateHook» ca = new «(g as ModelElement).postCreateHook»();
 			        	ca.init(executer);
 			        	«g.apiFQN» newGraphApi = («g.apiFQN») «typeRegistryName».getDBToApi(newGraph, executer);

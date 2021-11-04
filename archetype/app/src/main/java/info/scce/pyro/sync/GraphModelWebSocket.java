@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
+import entity.core.PyroUserDB;
 import info.scce.pyro.rest.PyroSelectiveRestFilter;
+import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,72 +31,40 @@ import javax.websocket.Session;
 /**
  * Author zweihoff
  */
-@ServerEndpoint(value = "/api/ws/graphmodel/{graphModelId}/private")
+@ServerEndpoint(value = "/api/ws/graphmodel/{graphModelId}/{ticket}/private")
 @ApplicationScoped
 public class GraphModelWebSocket {
+
+    private final static String USER_ID = "USER_ID";
 
     @Inject
     GraphModelRegistry graphModelRegistry;
 
     @Inject
     DialogRegistry dialogRegistry;
-    
-    static final String userIdKey = "user_id";
 
     private static final Logger LOGGER =
             Logger.getLogger(GraphModelWebSocket.class.getName());
-
-    private static Map<String, Long> userIdMap = new HashMap<String, Long>();
-    private static long currentUserId = 0;
     
     @OnOpen
-    public void open(final Session session,@PathParam("graphModelId") long graphModelId) throws IOException {
-    	String userId = session.getId();
-    	session.setMaxIdleTimeout(3600000);    	
-    	session.getUserProperties().put(userIdKey, userId); // TODO: SAMI: needed?    	
-    	graphModelRegistry.getCurrentOpenSockets().putIfAbsent(graphModelId,new ConcurrentHashMap<>());
-        graphModelRegistry.getCurrentOpenSockets().get(graphModelId).put(userId,session);
-        
-        registerUserId(session);
-    }
-    
-    private void registerUserId(Session session) {
-    	String alphaUserId = session.getId();
-    	Long numUserId = getNextUserId(); 
-    	userIdMap.put(alphaUserId, numUserId);
-    	
-    	WebSocketMessage message = WebSocketMessage.fromEntity(numUserId, "userInformation", null);
-    	graphModelRegistry.send(session, message);
-    }
-    
-    private void unregisterUserId(Session session) {
-    	String userId = session.getId();
-        synchronized(userIdMap) {
-        	if(userIdMap.containsKey(userId)) {
-            	userIdMap.remove(userId);
-        	}
-        }
-    }
-    
-    private synchronized long getNextUserId() {
-    	long userId = currentUserId;
-    	currentUserId = userId + 1;
-    	return userId;
-    }
-
-    public void send(long graphmodelId,WebSocketMessage message)
-    {
-        graphModelRegistry.send(graphmodelId,message);
+    public void open(final Session session,@PathParam("graphModelId") long graphModelId, @PathParam("ticket") String ticket) throws IOException {
+    	session.setMaxIdleTimeout(3600000);
+    	String userId = getUserId(ticket);
+    	session.getUserProperties().put(USER_ID, userId);
+		graphModelRegistry.getCurrentOpenSockets().putIfAbsent(graphModelId,new ConcurrentHashMap<>());
+		graphModelRegistry.getCurrentOpenSockets().get(graphModelId).put(userId,session);
     }
 
     @OnMessage
     public void onMessage(String message, Session session) {
+    	// configure mapper
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         mapper.setFilterProvider(new SimpleFilterProvider().addFilter("PYRO_Selective_Filter", new PyroSelectiveRestFilter()));
+        // handle message
         try {
         	final WebSocketMessage m = mapper.readValue(message, WebSocketMessage.class);
         	
@@ -116,20 +86,29 @@ public class GraphModelWebSocket {
         LOGGER.log(Level.INFO, "New message from Client [{0}]: {1}",
                 new Object[] {session.getId(), message});
     }
-
+    
     @OnClose
     public void onClose(Session session) {
-    	String userId = session.getId();
-        unregisterUserId(session);
+    	String userId = session.getUserProperties().getOrDefault(USER_ID, null).toString();
         this.graphModelRegistry.getCurrentOpenSockets().values().removeIf(n->n.containsKey(userId));
-        LOGGER.log(Level.INFO, "Close graphmodel connection for client: {0}",
-                session.getId());
+        LOGGER.log(Level.INFO, "Close graphmodel connection for client: {0}", userId);
     }
 
     @OnError
     public void onError(Throwable exception, Session session) {
-        unregisterUserId(session);
-        LOGGER.log(Level.INFO, "Error for graphmodel client: {0}", session.getId());
+    	String userId = session.getUserProperties().getOrDefault(USER_ID, null).toString();
+        LOGGER.log(Level.INFO, "Error for graphmodel client: {0}", userId);
+    }
+
+    public void send(long graphmodelId,WebSocketMessage message)
+    {
+        graphModelRegistry.send(graphmodelId,message);
+    }
+
+    public String getUserId(String ticket) {
+    	PyroUserDB user = TicketRegistrationHandler.checkGetRelated(ticket);
+    	String userId = ""+user.id; 
+    	return userId;
     }
 
     public boolean hasGraphModel(long graphModelId)

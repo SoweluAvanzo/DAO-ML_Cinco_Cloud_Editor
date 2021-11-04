@@ -1,7 +1,5 @@
 package info.scce.pyro.auth;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -18,8 +16,14 @@ public class AuthPojo {
     	AuthPojo debugUser = new AuthPojo();
     	debugUser.username = "peter";
     	debugUser.email = "peter@parker.com";
-    	debugUser.id = "1";
+    	debugUser.id = ""+getNextId(); // TODO: need better debug-case
     	debugUser.profile_image = "debug.png";
     	return debugUser;
+    }
+
+    private static long getNextId() {
+    	long id = idCounter;
+    	idCounter++;
+    	return id;
     }
 }

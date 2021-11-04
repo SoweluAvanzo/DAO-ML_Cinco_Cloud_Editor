@@ -17,7 +17,8 @@ public class PyroUserDB {
     }
 
     public static PyroUserDB getCurrentUser(javax.ws.rs.core.SecurityContext context) {
-        PyroUserDB user = new PyroUserDB(context.getUserPrincipal().getName());
+        String raw = context.getUserPrincipal().getName();
+        PyroUserDB user = new PyroUserDB(raw);
     	return user;
     }
 }

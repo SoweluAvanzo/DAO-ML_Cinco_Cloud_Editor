@@ -107,7 +107,7 @@ class GraphModelPropertyGenerator extends Generatable {
 				    result.setwidth(entity.width);
 				    result.setheight(entity.height);
 				    result.setscale(entity.scale);
-				    result.setmessageType("graphmodel");
+				    result.setmessageType("graphmodelProperty");
 				
 				
 				    return result;

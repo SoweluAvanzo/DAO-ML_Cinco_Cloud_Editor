@@ -421,7 +421,9 @@ class GraphmodelComponent extends Generatable {
 		  void ngOnInit() {
 		  	loading = true;
 		  	initCanvas();
-		  	activateWebSocket();
+			BaseService.getTicket().then((ticket) => {
+      			activateWebSocket(ticket)
+    		});
 		  }
 		  
 		  @override
@@ -496,11 +498,10 @@ class GraphmodelComponent extends Generatable {
 		  }
 		  
 		  void activateWebSocket() {
-		      if (this.currentGraphModel != null &&
-		            user != null &&
-		            this.webSocketGraphModel == null) {
+		      if (this.currentGraphModel != null && user != null && this.webSocketGraphModel == null) {
 		          this.webSocketGraphModel = new html.WebSocket(
-		              '${graphService.getBaseUrl(protocol: 'ws:')}/ws/graphmodel/${currentGraphModel.id}/private');
+              	    '${graphService.getBaseUrl(protocol: 'ws:')}/ws/graphmodel/${currentGraphModel.id}/${ticket}/private'
+				  );
 		          _editorDataService.graphModelWebSocketSC.add(webSocketGraphModel);
 		  
 		          // Callbacks for currentUser
@@ -530,13 +531,18 @@ class GraphmodelComponent extends Generatable {
 								messageDialogType = 'one_answer';
 								showMessageDialog = true;
 							}
-		              	} else if (event == 'userInformation') {
-							var senderId = jsog['senderId'];
-							user.id = senderId;
-						} else if (event == 'updateCursorPosition') {
+		              	} else if (event == 'updateCursorPosition') {
 							// update cursor
 							var senderId = jsog['senderId'];
-							if (senderId.toString() != user.id.toString()) {}
+							if (senderId.toString() != user.id.toString()) {
+								var content = jsog['content'];
+								var x = content['x'];
+								var y = content['y'];
+								var userName = senderId;
+
+								js.JsObject cursorManager = js.context['\$cursor_manager_flowgraphdiagram'];
+								cursorManager.callMethod('update_cursor', [senderId, userName, x, y]);  
+							}
 						} else {
 							// update graph model changed by another user
 							if (jsog['senderId'].toString() != user.id.toString()) {

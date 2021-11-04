@@ -45,7 +45,6 @@ class GraphModelController extends Generatable {
 	
 	import io.quarkus.hibernate.orm.panache.PanacheEntity;
 	
-	import javax.ws.rs.WebApplicationException;
 	import javax.ws.rs.core.Response;
 	
 	import «modelPackage.typeRegistryFQN»;
@@ -89,15 +88,15 @@ class GraphModelController extends Generatable {
 		@javax.annotation.security.RolesAllowed("user")
 		public Response createGraphModel(@javax.ws.rs.core.Context SecurityContext securityContext, CreateGraphModel graph) {
 	
-			final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
+			final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
 	        
-	        if(subject==null){
+	        if(user==null){
 				return Response.status(Response.Status.BAD_REQUEST).build();
 			}
 	
 		    final «g.entityFQN» newGraph =  new «g.entityFQN»();
 		    newGraph.filename = graph.getfilename();
-	        «g.commandExecuter» executer = new «g.commandExecuter»(subject,objectCache,graphModelWebSocket,newGraph, new java.util.LinkedList<>());
+	        «g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,newGraph, new java.util.LinkedList<>());
 	        info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
 		    «new GraphModelCommandExecuter(gc).setDefault('''newGraph''',g,true, '''container''')»
 		    newGraph.extension = "«g.fileExtension»";
@@ -119,9 +118,6 @@ class GraphModelController extends Generatable {
 		@javax.ws.rs.Path("read/{id}/private")
 		@javax.annotation.security.RolesAllowed("user")
 		public Response load(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") long id) {
-			
-			final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
-													
 			final «g.entityFQN» graph = «g.entityFQN».findById(id);
 			if (graph == null) {
 				return Response.status(Response.Status.BAD_REQUEST).build();
@@ -137,7 +133,7 @@ class GraphModelController extends Generatable {
 			@javax.annotation.security.RolesAllowed("user")
 			public Response load(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") long id, @javax.ws.rs.PathParam("elementid") long elementId) {
 				
-				final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
+				final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
 														
 				final «g.entityFQN» graph = «g.entityFQN».findById(id);
 				if (graph == null) {
@@ -150,7 +146,7 @@ class GraphModelController extends Generatable {
 					return Response.status(Response.Status.BAD_REQUEST).build();
 				}
 				
-				«g.commandExecuter» executer = new «g.commandExecuter»(subject,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
+				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 				
 				
 				String graphModelType = null;
@@ -435,7 +431,7 @@ class GraphModelController extends Generatable {
 				
 				//propagate
 				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
-				graphModelWebSocket.send(id,WebSocketMessage.fromEntity(user.id,response.getEntity()));
+				propagateChange(id, user.id, response.getEntity());
 				return response;
 			}
 			'''
@@ -521,7 +517,7 @@ class GraphModelController extends Generatable {
 				
 				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
 				//propagate
-				graphModelWebSocket.send(id,WebSocketMessage.fromEntity(user.id,response.getEntity()));
+				propagateChange(id, user.id, response.getEntity());
 			«ELSE»
 				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
 			«ENDIF»
@@ -580,7 +576,7 @@ class GraphModelController extends Generatable {
 				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
 				if(hasExecuted){
 					//propagate
-					graphModelWebSocket.send(id,WebSocketMessage.fromEntity(user.id,response.getEntity()));
+					propagateChange(id, user.id, response.getEntity());
 				}
 			«ELSE»
 				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
@@ -593,7 +589,7 @@ class GraphModelController extends Generatable {
 		@javax.ws.rs.Path("remove/{id}/private")
 		@javax.annotation.security.RolesAllowed("user")
 		public Response removeGraphModel(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") final long id) {
-			final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
+			final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
 			
 			//find parent
 			final «g.entityFQN» gm = «g.entityFQN».findById(id);
@@ -602,12 +598,12 @@ class GraphModelController extends Generatable {
 			}
 			
 			
-			boolean succeeded = removeGraphModel(subject, gm, false);
+			boolean succeeded = removeGraphModel(user, gm, false);
 			if (!succeeded) {
 				return Response.status(Response.Status.FORBIDDEN).build();
 	        }
 			
-			«g.commandExecuter» executer = new «g.commandExecuter»(subject,objectCache,graphModelWebSocket,gm,new java.util.LinkedList<>());
+			«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,gm,new java.util.LinkedList<>());
 			info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
 			«g.apiFactory».eINSTANCE.warmup(executer);
 			removeContainer(new «g.apiImplFQN»(gm,executer));
@@ -626,11 +622,11 @@ class GraphModelController extends Generatable {
 		
 
 		
-		public boolean removeGraphModel(entity.core.PyroUserDB subject,«g.entityFQN» gm) {
-			return removeGraphModel(subject, gm, true);
+		public boolean removeGraphModel(entity.core.PyroUserDB user,«g.entityFQN» gm) {
+			return removeGraphModel(user, gm, true);
 		}
 		
-		public boolean removeGraphModel(entity.core.PyroUserDB subject, «g.entityFQN» gm, boolean delete) {
+		public boolean removeGraphModel(entity.core.PyroUserDB user, «g.entityFQN» gm, boolean delete) {
 			
 			// delete
 			if(delete)
@@ -647,17 +643,18 @@ class GraphModelController extends Generatable {
 		@javax.ws.rs.Path("message/{graphModelId}/private")
 		@javax.annotation.security.RolesAllowed("user")
 		public Response receiveMessage(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("graphModelId") long graphModelId, Message m) {
-		    final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
+		    final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
+
 		    final «g.entityFQN» graph = «g.entityFQN».findById(graphModelId);
-		    if(subject==null||graph==null){
+		    if(user==null||graph==null){
 		        return Response.status(Response.Status.BAD_REQUEST).build();
 		    }
 		
 		
 		    if(m instanceof CompoundCommandMessage){
-		        Response response = executeCommand((CompoundCommandMessage) m, subject, graph, securityContext);
+		        Response response = executeCommand((CompoundCommandMessage) m, user, graph, securityContext);
 				if(response.getStatus()==200){
-					graphModelWebSocket.send(graphModelId,WebSocketMessage.fromEntity(subject.id,response.getEntity()));
+					propagateChange(graphModelId, user.id, response.getEntity());
 				}
 				graph.persist();
 				return response;
@@ -671,18 +668,22 @@ class GraphModelController extends Generatable {
 		        graph.scale = gpm.getGraph().getscale();
 		        graph.persist();
 		        //propagate
-		        graphModelWebSocket.send(graphModelId,WebSocketMessage.fromEntity(subject.id, m));
+				propagateChange(graphModelId, user.id, m);
 		        return Response.ok("OK").build();
 		    }
 		    else if (m instanceof PropertyMessage) {
-				Response response = executePropertyUpdate((PropertyMessage) m, subject,graph);
+				Response response = executePropertyUpdate((PropertyMessage) m, user,graph);
 				if(response.getStatus()==200){
-					graphModelWebSocket.send(graphModelId,WebSocketMessage.fromEntity(subject.id,response.getEntity()));
+					propagateChange(graphModelId, user.id, response.getEntity());
 				}
 				return response;
 			}
 		
 		    return Response.status(Response.Status.BAD_REQUEST).build();
+		}
+
+		private void propagateChange(long graphModelId, long senderId, Object content) {
+			graphModelWebSocket.send(graphModelId,WebSocketMessage.fromEntity(senderId,content));
 		}
 
 		private Response executePropertyUpdate(PropertyMessage pm,entity.core.PyroUserDB user, «g.entityFQN» graph) {

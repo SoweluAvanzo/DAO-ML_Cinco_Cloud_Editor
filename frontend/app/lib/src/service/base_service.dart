@@ -82,15 +82,13 @@ class BaseService {
    * without exposing the jwt token (pyro_token).
    */
   static Future<dynamic> getTicket() async {
-    if (window.localStorage.containsKey(tokenKey)) {
-      return await HttpRequest.request(getUrl() + "/ticket",
-              method: "GET",
-              requestHeaders: REQUEST_HEADERS,
-              withCredentials: true)
-          .then((response) {
-        return json.decode(response.responseText)['ticket'];
-      });
-    }
+    return await HttpRequest.request(getUrl() + "/ticket",
+            method: "GET",
+            requestHeaders: REQUEST_HEADERS,
+            withCredentials: true)
+        .then((response) {
+          return json.decode(response.responseText)['ticket'];
+        });
   }
 
   @deprecated
