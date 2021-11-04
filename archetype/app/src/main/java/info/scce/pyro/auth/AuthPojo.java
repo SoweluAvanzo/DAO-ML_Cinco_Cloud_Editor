@@ -11,6 +11,8 @@ public class AuthPojo {
     public String email;
     public String id;
     public String profile_image;
+    
+    private static long idCounter = 0; 
 
     public static AuthPojo getDebugUser() {
     	AuthPojo debugUser = new AuthPojo();
