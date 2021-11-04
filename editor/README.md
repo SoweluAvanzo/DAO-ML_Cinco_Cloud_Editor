@@ -2,7 +2,34 @@
 
 This part contains the frontend of the CINCO-Cloud IDE shown in the browser.
 
+### Dependencies
+- NodeJS (version 12.14.1)
+- Yarn
+
+NOTE: we recommend using [nvm](https://github.com/creationix/nvm#install-script) to use NodeJS 12.14.1 for development use.
+
+    nvm install 12.14.1
+    nvm use 12.14.1
+    npm install -g yarn
+
+## Install linux packages (if necessary).
+
+    sudo apt-get install g++-4.8 libsecret-1-dev xvfb libx11-dev libxkbfile-dev libxml2-utils
+
+## Install python and additional dependencies (needed by theia dependencies):
+
+Please check the installation description [here](https://github.com/nodejs/node-gyp#installation).
+
+(On Windows run: ```npm config set msvs_version 2019```)
+
 ## Developing with the browser example (untested)
+
+0. If you want to build everything run the following command inside this folder:
+
+   ```
+   yarn
+   ```
+
 
 1. Start watching changes on the extension via 
    ```
