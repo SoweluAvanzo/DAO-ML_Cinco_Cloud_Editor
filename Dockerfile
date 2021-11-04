@@ -4,7 +4,7 @@ FROM docker.io/library/node:12.14.1-buster-slim as cinco-extension-builder
 WORKDIR /cinco-extension
 COPY ./vscode-extensions/cinco-extension /cinco-extension
 # outputs extension to /cinco-extension/cinco-extension-0.0.1.vsix
-RUN npm install -g vsce
+RUN npm install -g vsce --unsafe-perm
 RUN yarn
 
 # build cinco-example-project-creator
@@ -13,7 +13,7 @@ FROM docker.io/library/node:12.14.1-buster-slim as cinco-example-project-creator
 WORKDIR /cinco-example-project-creator
 COPY ./vscode-extensions/cinco-example-project-creator /cinco-example-project-creator
 # outputs extension to /cinco-example-project-creator/cinco-example-project-creator-0.0.1.vsix
-RUN npm install -g vsce
+RUN npm install -g vsce --unsafe-perm
 RUN yarn
 
 # build pyro client
@@ -22,7 +22,7 @@ FROM docker.io/library/node:12.14.1-buster-slim as pyro-client-builder
 WORKDIR /pyro-client-extension
 COPY ./vscode-extensions/pyro-client-extension /pyro-client-extension
 # outputs extension to /pyro-client-extension/pyro-client-extension-0.0.1.vsix
-RUN npm install -g vsce
+RUN npm install -g vsce --unsafe-perm
 RUN yarn
 
 # build the cinco-language-server
