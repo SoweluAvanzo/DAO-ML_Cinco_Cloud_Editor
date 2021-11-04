@@ -497,7 +497,7 @@ class GraphmodelComponent extends Generatable {
 			});
 		  }
 		  
-		  void activateWebSocket() {
+		  void activateWebSocket(String ticket) {
 		      if (this.currentGraphModel != null && user != null && this.webSocketGraphModel == null) {
 		          this.webSocketGraphModel = new html.WebSocket(
               	    '${graphService.getBaseUrl(protocol: 'ws:')}/ws/graphmodel/${currentGraphModel.id}/${ticket}/private'
