@@ -4,3 +4,6 @@ xtend-gen/
 .settings/
 workspace-emf-tmp/
 .project
+yarn.lock
+node_modules
+out

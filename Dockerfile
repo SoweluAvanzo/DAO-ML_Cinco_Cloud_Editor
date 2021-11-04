@@ -1,6 +1,6 @@
 # build cinco extension
 # --------------------------------
-FROM docker.io/library/node:12.14.1-buster-slim as cinco-extension-builder
+FROM docker.io/library/node:14.18-buster-slim as cinco-extension-builder
 WORKDIR /cinco-extension
 COPY ./vscode-extensions/cinco-extension /cinco-extension
 # outputs extension to /cinco-extension/cinco-extension-0.0.1.vsix
@@ -9,7 +9,7 @@ RUN yarn
 
 # build cinco-example-project-creator
 # --------------------------------
-FROM docker.io/library/node:12.14.1-buster-slim as cinco-example-project-creator-builder
+FROM docker.io/library/node:14.18-buster-slim as cinco-example-project-creator-builder
 WORKDIR /cinco-example-project-creator
 COPY ./vscode-extensions/cinco-example-project-creator /cinco-example-project-creator
 # outputs extension to /cinco-example-project-creator/cinco-example-project-creator-0.0.1.vsix
@@ -18,7 +18,7 @@ RUN yarn
 
 # build pyro client
 # --------------------------------
-FROM docker.io/library/node:12.14.1-buster-slim as pyro-client-builder
+FROM docker.io/library/node:14.18-buster-slim as pyro-client-builder
 WORKDIR /pyro-client-extension
 COPY ./vscode-extensions/pyro-client-extension /pyro-client-extension
 # outputs extension to /pyro-client-extension/pyro-client-extension-0.0.1.vsix
@@ -62,7 +62,11 @@ RUN apt update && \
     apt install -y libsecret-1-dev && \
     apt autoremove -y
 
-# install theia
+# install python
+RUN apt install -y python && python --version && sleep 10
+# install npm dependencies
+RUN npm install -g node-gyp && npm install -g typescript
+# build theia-editor
 RUN yarn
 
 # copy vscode-extensions into plugins

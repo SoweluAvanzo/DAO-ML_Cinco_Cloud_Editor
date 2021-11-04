@@ -3,13 +3,13 @@
 This part contains the frontend of the CINCO-Cloud IDE shown in the browser.
 
 ### Dependencies
-- NodeJS (version 12.14.1)
+- NodeJS (version 14.18)
 - Yarn
 
-NOTE: we recommend using [nvm](https://github.com/creationix/nvm#install-script) to use NodeJS 12.14.1 for development use.
+NOTE: we recommend using [nvm](https://github.com/creationix/nvm#install-script) to use NodeJS 14.18 for development use.
 
-    nvm install 12.14.1
-    nvm use 12.14.1
+    nvm install 14.18
+    nvm use 14.18
     npm install -g yarn
 
 ## Install linux packages (if necessary).
