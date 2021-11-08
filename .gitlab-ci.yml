@@ -53,7 +53,7 @@ build-main:
     IMAGE: main
     VERSION: latest
   only:
-    - master
+    - main
 
 build-registry:
   extends: .docker-build
@@ -63,7 +63,7 @@ build-registry:
     IMAGE: registry
     VERSION: latest
   only:
-    - master
+    - main
 
 build-workspace-builder:
   extends: .docker-build
@@ -73,7 +73,7 @@ build-workspace-builder:
     IMAGE: workspace-builder
     VERSION: latest
   only:
-    - master
+    - main
 
 push-images:
   extends: .docker-job
@@ -96,7 +96,7 @@ push-images:
     - docker push $CI_REGISTRY_IMAGE/workspace-builder:latest
     - docker push $CI_REGISTRY_IMAGE/workspace-builder:latest-$CI_COMMIT_SHA
   only:
-    - master
+    - main
 
 pages:
   needs:
@@ -111,4 +111,4 @@ pages:
       - public
     expire_in: 1 day
   only:
-    - master
+    - main
