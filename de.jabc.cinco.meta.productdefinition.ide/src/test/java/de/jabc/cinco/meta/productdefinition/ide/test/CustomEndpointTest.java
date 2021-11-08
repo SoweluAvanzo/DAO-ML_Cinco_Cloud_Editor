@@ -43,7 +43,7 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 		File baseFile2 = workspaceContext.getFile(workspaceContext.getRootURI());
 		Assertions.assertTrue(baseFile.getPath().equals(baseFile2.getPath()));
 		
-		String testFileName = "FlowGraphTool.cpd";
+		String testFileName = "Test.cpd";
 		URI testFileURI = base.appendSegment("model").appendSegment(testFileName);
 		File testFile = workspaceContext.getFile(testFileURI);
 		File folder = workspaceContext.getFolder(testFile);
