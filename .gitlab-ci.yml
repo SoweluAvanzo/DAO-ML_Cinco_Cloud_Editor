@@ -40,6 +40,8 @@ build-wiki:
     - mv src/.vuepress/env.prod.js src/.vuepress/env.default.js
     - npm install
     - npm run build
+  only:
+    - main
   artifacts:
     paths:
       - docs/vuepress/src/.vuepress/dist/*
