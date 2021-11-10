@@ -138,9 +138,8 @@ class Generator extends FileGenerator {
 			// lib.pages.editor.canvas.graphs.graphmodel
 			mglModels.forEach [ m |
 				val styles = CincoUtil.getStyles(m)
-				m.graphModels.forEach [ g |
-					val path = "lib/" + g.componentPackage
-					clearDirectory(path)
+				m.discreteGraphModels.forEach [ g |
+					val path = "lib/" + g.componentCanvasPath
 					val gen = new GraphmodelComponent(gc)
 					generateFile(
 						path,
@@ -211,13 +210,13 @@ class Generator extends FileGenerator {
 		{
 			// lib.editor.palette.graphs.graphmodel
 			mglModels.forEach [ m |
-				m.graphModels.forEach [ g |
+				m.discreteGraphModels.forEach [ g |
 
 					val path = "lib/" + g.paletteBuilderPackage
 					val gen = new PaletteBuilder(gc)
 					generateFile(
 						path,
-						gen.fileNamePaletteBuilder,
+						gen.fileNamePaletteBuilder(g),
 						gen.contentPaletteBuilder(g)
 					)
 				]

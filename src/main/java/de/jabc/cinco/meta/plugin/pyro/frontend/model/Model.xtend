@@ -317,7 +317,7 @@ class Model extends Generatable {
 								this.«attr.name.escapeDart» = value«attr.name.escapeDart»;
 							«ENDIF»
 						«ELSE»
-							«attr.complexDartType.fuEscapeDart» value«attr.name.escapeDart»;
+							«attr.complexDartType» value«attr.name.escapeDart»;
 							String jsogId;
 							if (jsogObj.containsKey('@ref')) {
 								jsogId = jsogObj['@ref'];
@@ -643,15 +643,16 @@ class Model extends Generatable {
 	}
 
 	def pyroElementAttributeDeclaration(ModelElement element, MGLModel g) '''
-		 «IF element instanceof GraphModel»
-			«element.name.fuEscapeDart»CommandGraph commandGraph;
+		«IF element instanceof GraphModel»
+			CommandGraph commandGraph;
+					 	
 			int width;
 			int height;
 			double scale;
 			String router;
 			String connector;
 			bool isPublic;
-	    «ENDIF»
+		«ENDIF»
 	    «IF element instanceof Node»
 	    	«IF element.prime»
 		    	«{
@@ -664,7 +665,7 @@ class Model extends Generatable {
 			«IF attr.list»List<«ENDIF»«attr.primitiveDartType(g)»«IF attr.list»>«ENDIF» «attr.name.escapeDart» = «IF attr.list»[]«ELSE»«attr.primitiveDefaultDart»«ENDIF»;
 		«ENDFOR»
 		«FOR attr : element.attributesExtended.filter[!isPrimitive]»
-			«IF attr.list»List<«ENDIF»«attr.complexDartType.fuEscapeDart»«IF attr.list»>«ENDIF» «attr.name.escapeDart»;
+			«IF attr.list»List<«ENDIF»«attr.complexDartType»«IF attr.list»>«ENDIF» «attr.name.escapeDart»;
 		«ENDFOR»
 	'''
 
@@ -743,7 +744,7 @@ class Model extends Generatable {
 				«IF attr.list»List<«ENDIF»«attr.primitiveDartType(g)»«IF attr.list»>«ENDIF» «attr.name.escapeDart»«IF attr.list» = new List()«ENDIF»;
 			«ENDFOR»
 			«FOR attr : element.eContents.filter(EReference)»
-				«IF attr.list»List<«ENDIF»«attr.complexDartType.fuEscapeDart»«IF attr.list»>«ENDIF» «attr.name.escapeDart»«IF attr.list» = new List()«ENDIF»;
+				«IF attr.list»List<«ENDIF»«attr.complexDartType»«IF attr.list»>«ENDIF» «attr.name.escapeDart»«IF attr.list» = new List()«ENDIF»;
 			«ENDFOR»
 			
 			«IF !element.abstract»
@@ -794,7 +795,7 @@ class Model extends Generatable {
 											this.«attr.name.escapeDart» = value«attr.name.escapeDart»;
 										«ENDIF»
 									«ELSE»
-										«attr.complexDartType.fuEscapeDart» value«attr.name.escapeDart»;
+										«attr.complexDartType» value«attr.name.escapeDart»;
 										String jsogId;
 										if (jsogObj.containsKey('@ref')) {
 											jsogId = jsogObj['@ref'];
@@ -890,9 +891,9 @@ class Model extends Generatable {
 						if(this.«attr.name.escapeDart»!=null) {
 							elem.«attr.name.escapeDart» = this.«attr.name.escapeDart»
 							«IF attr.list»
-								.map((n) => n.propertyCopy(root:false) as «attr.complexDartType.fuEscapeDart»).toList();
+								.map((n) => n.propertyCopy(root:false) as «attr.complexDartType»).toList();
 							«ELSE»
-								.propertyCopy(root:false) as «attr.complexDartType.fuEscapeDart»;
+								.propertyCopy(root:false) as «attr.complexDartType»;
 							«ENDIF»
 						}
 					«ENDFOR»
@@ -910,7 +911,8 @@ class Model extends Generatable {
 		import 'dart:js' as js;
 		
 		import './«m.modelFile»' as «m.name.lowEscapeDart»;
-		«FOR gm:m.graphModels»
+		import 'command_graph.dart';
+		«FOR gm:m.graphModels.filter[!isAbstract]»
 			import '../../«gm.commandGraphPath»';
 		«ENDFOR»
 		«FOR pr:gc.ecores»

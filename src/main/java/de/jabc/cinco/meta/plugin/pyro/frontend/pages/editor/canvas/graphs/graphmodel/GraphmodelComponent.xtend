@@ -26,10 +26,17 @@ class GraphmodelComponent extends Generatable {
 	def fileNameGraphModelCommandGraph(GraphModel graphModel) '''«graphModel.commandGraphFile»'''
 
 	def contentGraphModelCommandGraph(GraphModel g, Styles styles) {
+		val inheritedDiscreteType = g.extends !== null ? g.extends.firstDiscreteType as GraphModel : null
+		val hasDiscreteCommandGraph = inheritedDiscreteType !== null && inheritedDiscreteType !== g
+		val commandGraphName = hasDiscreteCommandGraph ? '''«inheritedDiscreteType.name.fuEscapeDart»CommandGraph''' : '''CommandGraph'''
 		'''
 			import 'package:«gc.projectName.escapeDart»/src/model/core.dart' as core;
-			import 'package:«gc.projectName.escapeDart»/src/model/command_graph.dart';
 			import 'package:«gc.projectName.escapeDart»/src/model/command.dart';
+			«IF hasDiscreteCommandGraph»
+				import 'package:«gc.projectName.escapeDart»/«inheritedDiscreteType.commandGraphPath»';
+			«ELSE»
+				import 'package:«gc.projectName.escapeDart»/src/model/command_graph.dart';
+			«ENDIF»
 			
 			import 'package:«gc.projectName.escapeDart»/«g.modelFilePath»' as «g.modelPackage.name.lowEscapeDart»;
 			«FOR pr : g.primeReferencedGraphModels.filter[!equals(g)].map[modelPackage as MGLModel].toSet»
@@ -43,7 +50,7 @@ class GraphmodelComponent extends Generatable {
 			
 			import 'dart:js' as js;
 			
-			class «g.name.fuEscapeDart»CommandGraph extends CommandGraph{
+			class «g.name.fuEscapeDart»CommandGraph extends «commandGraphName»{
 			
 			  «g.name.fuEscapeDart»CommandGraph(core.GraphModel currentGraphModel,List<HighlightCommand> highlightings,{Map jsog}) : super(currentGraphModel,highlightings,jsog:jsog);
 			
@@ -628,7 +635,7 @@ class GraphmodelComponent extends Generatable {
 		  	  	     cb_delete_selected,
 		  	  	     cb_cursor_moved,
 		  	  	     cb_property_persist,
-		  	  	     «FOR elem : g.elements.filter[!isIsAbstract] SEPARATOR ","»
+		  	  	     «FOR elem : g.elements.filter[!isIsAbstract].filter[!isType] SEPARATOR ","»
 		  	  	     	«IF elem instanceof Node»
 		  	  	     		cb_create_node_«elem.jsCall(g)»,
 		  	  	     		cb_remove_node_«elem.jsCall(g)»,

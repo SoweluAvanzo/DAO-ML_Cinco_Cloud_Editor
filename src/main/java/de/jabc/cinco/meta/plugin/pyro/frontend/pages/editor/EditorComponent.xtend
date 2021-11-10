@@ -53,7 +53,7 @@ class EditorComponent extends Generatable {
 	import 'package:«gc.projectName.escapeDart»/src/service/graph_service.dart';
 	import 'package:«gc.projectName.escapeDart»/src/view/tree_view.dart';
 	
-	«FOR g:gc.graphMopdels»
+	«FOR g:gc.discreteGraphModels»
 		import 'package:«gc.projectName.escapeDart»/«g.commandGraphPath»';
 	«ENDFOR»
 	
@@ -208,7 +208,7 @@ class EditorComponent extends Generatable {
 				_editorDataService.user = u;
 				document.title = "editor";
 				«FOR m : gc.mglModels»
-					«FOR g:m.graphModels SEPARATOR " else "
+					«FOR g:m.discreteGraphModels SEPARATOR " else "
 					»if(ext == "«g.fileExtension»") {
 						graphService.loadGraph«g.name.fuEscapeDart»(modelId).then((g) {
 							this.currentFile = g;
@@ -386,12 +386,12 @@ class EditorComponent extends Generatable {
 	
 	  void receiveGraphModelUpdate(CompoundCommandMessage message)
 	  {
-		  «FOR g:gc.graphMopdels»
-		      if(this.currentFile.$lower_type() == '«g.lowerType»') {
+		  «FOR g:gc.discreteGraphModels SEPARATOR " else "
+		  »if(this.currentFile.$lower_type() == '«g.lowerType»') {
 		        «g.name.fuEscapeDart»CommandGraph cg = new «g.name.fuEscapeDart»CommandGraph(this.currentFile,new List());
 		        cg.receiveCommand(message);
-		      }
-		  «ENDFOR»
+		  }«
+		  ENDFOR»
 	  }
 	
 	  void receivePropertyUpdate(PropertyMessage message)

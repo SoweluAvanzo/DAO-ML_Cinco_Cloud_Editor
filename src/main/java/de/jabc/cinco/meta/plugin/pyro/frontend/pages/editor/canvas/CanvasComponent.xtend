@@ -33,7 +33,7 @@ class CanvasComponent extends Generatable {
 	«FOR g:gc.mglModels»
 		import 'package:«gc.projectName.escapeDart»/«g.modelFilePath»' as «g.name.lowEscapeDart»;
 	«ENDFOR»
-	«FOR g:gc.graphMopdels»
+	«FOR g:gc.discreteGraphModels»
 		import 'package:«gc.projectName.escapeDart»/«g.componentFilePath»' as «g.modelPackage.name.lowEscapeDart»;
 	«ENDFOR»
 	«FOR g:gc.ecores»
@@ -47,7 +47,7 @@ class CanvasComponent extends Generatable {
 	    directives: const [
 	        bsDropdownDirectives,
 	    	coreDirectives,formDirectives
-	    	«FOR g:gc.graphMopdels BEFORE "," SEPARATOR ","»
+	    	«FOR g:gc.discreteGraphModels BEFORE "," SEPARATOR ","»
 	    		«g.modelPackage.name.lowEscapeDart».«g.name.fuEscapeDart»CanvasComponent
     		«ENDFOR»
 	    ]
@@ -58,7 +58,7 @@ class CanvasComponent extends Generatable {
 	  final NotificationService _notificationService;
 	  final GraphService _graphService;
 	
-	  «FOR g:gc.graphMopdels»
+	  «FOR g:gc.discreteGraphModels»
 	  	@ViewChild('«g.name.lowEscapeDart»_canvas_component')
 	  	«g.modelPackage.name.lowEscapeDart».«g.name.fuEscapeDart»CanvasComponent «g.name.lowEscapeDart»CanvasComponent;
 	  «ENDFOR»
@@ -123,7 +123,7 @@ class CanvasComponent extends Generatable {
 	  ngOnChanges(Map<String, SimpleChange> changes) {
 	  	  this._graphService.canvasComponent = this;
 	      
-	      «FOR g:gc.graphMopdels»
+	      «FOR g:gc.discreteGraphModels»
 	      if(is«g.name.fuEscapeDart»()){
 	        canEdit = GraphModelPermissionUtils.canUpdate("«g.name.toUnderScoreCase»", permissionVectors);
 	      }
@@ -131,7 +131,7 @@ class CanvasComponent extends Generatable {
 	  }
 	  
 	  void executeCommands(CompoundCommandMessage m,bool forceExecute) {
-	  	«FOR g:gc.graphMopdels»
+	  	«FOR g:gc.discreteGraphModels»
 	  		if(«g.name.lowEscapeDart»CanvasComponent!=null) {
 	  			«g.name.lowEscapeDart»CanvasComponent.executeCommands(m,forceExecute);
 	  		}
@@ -139,7 +139,7 @@ class CanvasComponent extends Generatable {
 	  }
 	  
 	  void updateProperties(IdentifiableElement element) {
-	  «FOR g:gc.graphMopdels»
+	  «FOR g:gc.discreteGraphModels»
 	    if(«g.name.lowEscapeDart»CanvasComponent!=null) {
 	    	«g.name.lowEscapeDart»CanvasComponent.updateProperties(element);
 	    }
@@ -149,7 +149,7 @@ class CanvasComponent extends Generatable {
 	  
 	  void export(dynamic e, String type){
 	  	  e.preventDefault();
-	      «FOR g:gc.graphMopdels»
+	      «FOR g:gc.discreteGraphModels»
 	      	if(«g.name.lowEscapeDart»CanvasComponent!=null) {
 	      		«g.name.lowEscapeDart»CanvasComponent.export(type);
 	      	}
@@ -157,7 +157,7 @@ class CanvasComponent extends Generatable {
 	  }
 	  
 	  Map<String,String> getEditorButtons(){
-		«FOR g:gc.graphMopdels»
+		«FOR g:gc.discreteGraphModels»
 			if(currentFile!=null && currentFile is «g.dartFQN»){
 				«IF g.editorButtons.empty»
 					return new Map<String,String>();
@@ -177,7 +177,7 @@ class CanvasComponent extends Generatable {
 	  }
 	  
 	  void updateScale({double factor:0.0,bool persist:true}) {
-	  	«FOR g:gc.graphMopdels»
+	  	«FOR g:gc.discreteGraphModels»
 	  		if(«g.name.lowEscapeDart»CanvasComponent!=null) {
 	  			«g.name.lowEscapeDart»CanvasComponent.updateScale(factor,persist:persist);
 	  		}
@@ -187,7 +187,7 @@ class CanvasComponent extends Generatable {
 	  void updateScaleFactor(double factor,[bool persist=true]) => updateScale(factor:factor,persist:persist);
 	  
 	  void updateRouting() {
-		«FOR g:gc.graphMopdels»
+		«FOR g:gc.discreteGraphModels»
 		  if(«g.name.lowEscapeDart»CanvasComponent!=null) {
 		  	«g.name.lowEscapeDart»CanvasComponent.updateRouting();
 		  }
@@ -195,7 +195,7 @@ class CanvasComponent extends Generatable {
 	  }
 	  
 	  void undo() {
-	  «FOR g:gc.graphMopdels»
+	  «FOR g:gc.discreteGraphModels»
 	  	if(«g.name.lowEscapeDart»CanvasComponent!=null) {
 	  		«g.name.lowEscapeDart»CanvasComponent.undo();
 	  	}
@@ -203,7 +203,7 @@ class CanvasComponent extends Generatable {
 	  }
 	  	  
 		void redo() {
-			«FOR g:gc.graphMopdels»
+			«FOR g:gc.discreteGraphModels»
 				if(«g.name.lowEscapeDart»CanvasComponent!=null) {
 					«g.name.lowEscapeDart»CanvasComponent.redo();
 				}
@@ -212,7 +212,7 @@ class CanvasComponent extends Generatable {
 		  
 	  
 	  // for each graph model
-	  «FOR g:gc.graphMopdels»
+	  «FOR g:gc.discreteGraphModels»
 	  	
 	  	bool is«g.name.fuEscapeDart»(){
 	  		if(currentFile!=null){
@@ -242,7 +242,7 @@ class CanvasComponent extends Generatable {
 	  
 	  bool hasChecks() {
 	  	if(currentFile!=null){
-			«FOR g:gc.graphMopdels.filter[hasChecks(it)]»
+			«FOR g:gc.discreteGraphModels.filter[hasChecks(it)]»
 				if(currentFile is «g.dartFQN») {
 					return true;
 				}
@@ -253,7 +253,7 @@ class CanvasComponent extends Generatable {
 	  
 	  bool hasGenerator() {
 	  	if(currentFile!=null){
-			«FOR g:gc.graphMopdels.filter[generating]»
+			«FOR g:gc.discreteGraphModels.filter[generating]»
 				if(currentFile is «g.dartFQN») {
 					return true;
 				}
@@ -264,7 +264,7 @@ class CanvasComponent extends Generatable {
 	  
 	  Map<String,String> getGenerators() {
 		Map<String,String> map = new Map<String,String>();
-		«FOR g:gc.graphMopdels.filter[generating]»
+		«FOR g:gc.discreteGraphModels.filter[generating]»
 			if(currentFile is «g.dartFQN») {
 				«FOR a:g.generators.filter[value.length>=3]»
 					map['«a.value.get(0)»'] = '«a.value.get(2)»';
@@ -289,7 +289,7 @@ class CanvasComponent extends Generatable {
 	  
 	
 		bool hasIcon() {
-			«FOR g:gc.graphMopdels.filter[!iconPath.nullOrEmpty]»
+			«FOR g:gc.discreteGraphModels.filter[!iconPath.nullOrEmpty]»
 			    if(currentFile is «g.dartFQN»){
 			      return true;
 			    }
@@ -298,7 +298,7 @@ class CanvasComponent extends Generatable {
 		}
 		  
 		String getIcon() {
-		  	  «FOR g:gc.graphMopdels.filter[!iconPath.nullOrEmpty]»
+		  	  «FOR g:gc.discreteGraphModels.filter[!iconPath.nullOrEmpty]»
 		  	    if(currentFile is «g.dartFQN»){
 		  	      return "«g.iconPath(true)»";
 		  	    }
@@ -328,7 +328,7 @@ class CanvasComponent extends Generatable {
 		}
 		
 		void _updateChecks() {
-			«FOR g:gc.graphMopdels»
+			«FOR g:gc.discreteGraphModels»
 			if(«g.name.lowEscapeDart»CanvasComponent!=null) {
 			   	«g.name.lowEscapeDart»CanvasComponent.updateCheckLevel(isError,isWarning,isInfo);
 			}
@@ -336,7 +336,7 @@ class CanvasComponent extends Generatable {
 		}
 		
 		void _updateGluelines() {
-			«FOR g:gc.graphMopdels»
+			«FOR g:gc.discreteGraphModels»
 			if(«g.name.lowEscapeDart»CanvasComponent!=null) {
 			   	«g.name.lowEscapeDart»CanvasComponent.updateGlueline(isGluelines);
 			}
@@ -359,7 +359,7 @@ class CanvasComponent extends Generatable {
 		  }
 		  
 		  void executeGraphmodelButton(String key) {
-			«FOR g:gc.graphMopdels»
+			«FOR g:gc.discreteGraphModels»
 				if(«g.name.lowEscapeDart»CanvasComponent!=null) {
 				   	«g.name.lowEscapeDart»CanvasComponent.executeGraphmodelButton(key);
 				}
@@ -382,7 +382,7 @@ class CanvasComponent extends Generatable {
 		  	 	return;
 		  	 }
 		  	 if(isModelFile()) {
-				«FOR g:gc.graphMopdels.filter[interpreting]»
+				«FOR g:gc.discreteGraphModels.filter[interpreting]»
 					if(currentFile.$type() == '«g.typeName»') {
 						isInterpreting = true;
 					 	HttpRequest.getString("${_graphService.getBaseUrl()}/«g.name.lowEscapeDart»/interpreter/${currentFile.id}/private",withCredentials: true).then((s){
@@ -406,7 +406,7 @@ class CanvasComponent extends Generatable {
 		  	 	return;
 		  	 }
 		  	 if(isModelFile()) {
-				«FOR g:gc.graphMopdels.filter[generating]»
+				«FOR g:gc.discreteGraphModels.filter[generating]»
 					if(currentFile.$type() == '«g.typeName»') {
 						«FOR a:g.generators»
 						«{
@@ -437,15 +437,15 @@ class CanvasComponent extends Generatable {
 	'''
 	
 	def hasGenerator() {
-		gc.graphMopdels.exists[generating]
+		gc.discreteGraphModels.exists[generating]
 	}
 	
 	def hasInterpreter() {
-		gc.graphMopdels.exists[interpreting]
+		gc.discreteGraphModels.exists[interpreting]
 	}
 	
 	def hasChecks() {
-		gc.graphMopdels.exists[it.hasChecks]
+		gc.discreteGraphModels.exists[it.hasChecks]
 	}
 	
 	def fileNameCanvasComponentTemplate()'''canvas_component.html'''
@@ -505,7 +505,7 @@ class CanvasComponent extends Generatable {
 			  «IF hasInterpreter»
 			  	<div *ngIf="isModelFile()" class="btn-group btn-group-sm mr-2">
 			  		<button class="btn btn-sm" (click)="triggerInterpreter(null,null)" data-toggle="tooltip" data-placement="bottom" title="Trigger the generation process"
-			  			*ngIf="«FOR g:gc.graphMopdels.filter[interpreting] SEPARATOR "||"»currentFile.$type()=='«g.typeName»'«ENDFOR»">
+			  			*ngIf="«FOR g:gc.discreteGraphModels.filter[interpreting] SEPARATOR "||"»currentFile.$type()=='«g.typeName»'«ENDFOR»">
 			  			<i class="fas fa-fw fa-play"></i> <strong>Run</strong>
 			  		</button>
 			  	</div>
@@ -515,7 +515,7 @@ class CanvasComponent extends Generatable {
 			  		<template [ngIf]="getGenerators().length <= 1">
 			  			<button class="btn btn-sm" (click)="triggerGenerator(null,null)"	
 			  				data-toggle="tooltip" data-placement="bottom" title="Trigger the generation process"
-			  				*ngIf="«FOR g:gc.graphMopdels.filter[generating] SEPARATOR "||"»currentFile.$type()=='«g.typeName»'«ENDFOR»">
+			  				*ngIf="«FOR g:gc.discreteGraphModels.filter[generating] SEPARATOR "||"»currentFile.$type()=='«g.typeName»'«ENDFOR»">
 			  				<i class="fas fa-fw fa-cog"></i> <strong>G</strong>
 			  			</button>
 			  		</template>
@@ -562,7 +562,7 @@ class CanvasComponent extends Generatable {
         		</template>
         	«ENDFOR»
             <!-- for each graph type -->
-			«FOR g:gc.graphMopdels»
+			«FOR g:gc.discreteGraphModels»
 				<«g.name.lowEscapeDart»-canvas
 				#«g.name.lowEscapeDart»_canvas_component
 				*ngIf="is«g.name.fuEscapeDart»()"

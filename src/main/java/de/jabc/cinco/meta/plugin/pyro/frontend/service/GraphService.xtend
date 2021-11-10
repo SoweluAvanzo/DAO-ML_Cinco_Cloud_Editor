@@ -28,7 +28,7 @@ class GraphService extends Generatable {
 		«FOR g : gc.mglModels»
 			import 'package:«gc.projectName.escapeDart»/«g.modelFilePath»' as «g.name.lowEscapeDart»;
 		«ENDFOR»
-		«FOR g : gc.graphMopdels»
+		«FOR g : gc.discreteGraphModels»
 			import 'package:«gc.projectName.escapeDart»/«g.commandGraphPath»' as «g.name.lowEscapeDart»CG;
 		«ENDFOR»
 		
@@ -116,7 +116,7 @@ class GraphService extends Generatable {
 			
 			Future<dynamic> loadCommandGraph(GraphModel graph,List<HighlightCommand> highlightings) async{
 				if(graph == null) throw new Error();
-				«FOR g : gc.graphMopdels SEPARATOR " else "»if(graph.$lower_type() == "«g.name.lowEscapeDart»") {
+				«FOR g : gc.discreteGraphModels SEPARATOR " else "»if(graph.$lower_type() == "«g.name.lowEscapeDart»") {
 					return loadCommandGraph«g.name.fuEscapeDart»(graph, highlightings);
 				}«ENDFOR»
 				      throw new Error();
@@ -125,7 +125,7 @@ class GraphService extends Generatable {
 					«{
 						val styles = CincoUtil.getStyles(m)
 						'''
-							«FOR g:m.graphModels»
+							«FOR g:m.discreteGraphModels»
 								
 								/**
 								 * METHODS FOR «g.dartFQN»

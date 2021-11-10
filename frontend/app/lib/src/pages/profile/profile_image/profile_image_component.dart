@@ -20,7 +20,7 @@ class ProfileImageComponent {
       return "https://www.gravatar.com/avatar/${user.emailHash}?d=retro";
     } else {
       // TODO: SAMI: security
-      return user.profilePicture.downloadPath;
+      return user.profilePicture;
     }
   }
 }

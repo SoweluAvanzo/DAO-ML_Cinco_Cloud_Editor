@@ -150,7 +150,6 @@ class GraphmodelTree extends Generatable {
 		«FOR attr:gme.attributesExtended.filter[!isPrimitive].filter[!isModelElement].filter[list]»
 			«val subTypes = (attr as ComplexAttribute).getType().resolveSubTypesAndType»
 			class «gme.name.fuEscapeJava»«attr.name.fuEscapeDart»TreeListNode extends TreeNode {
-				List<«attr.dartFQN»> delegate;
 				String name;
 							
 				«gme.name.fuEscapeJava»«attr.name.fuEscapeDart»TreeListNode(
@@ -294,7 +293,5 @@ class GraphmodelTree extends Generatable {
 		«g.elementProperties(g)»
 		
 		«g.elements.filter[!it.isIsAbstract].map[elementProperties(g)].join("\n")»
-		
-		«g.MGLModel.types.filter(UserDefinedType).filter[!it.abstractType].map[elementProperties(g)].join("\n")»
 	'''
 }

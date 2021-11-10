@@ -2840,6 +2840,42 @@ class MGLExtension {
 		result
 	}
 	
+	def dispatch firstDiscreteType(GraphModel element) {
+ 		// searching for first discrete-type in hierarchy-chain
+ 		var e = element
+ 		while(e.isAbstract && e.extends !== null) {
+ 			e = e.extends
+ 		}
+ 		return e.isAbstract? null : e
+	}
+	
+	def dispatch firstDiscreteType(Edge element) {
+ 		// searching for first discrete-type in hierarchy-chain
+ 		var e = element
+ 		while(e.isAbstract && e.extends !== null) {
+ 			e = e.extends
+ 		}
+ 		return e.isAbstract? null : e
+	}
+	
+	def dispatch firstDiscreteType(Node element) {
+ 		// searching for first discrete-type in hierarchy-chain
+ 		var e = element
+ 		while(e.isAbstract && e.extends !== null) {
+ 			e = e.extends
+ 		}
+ 		return e.isAbstract? null : e
+	}
+	
+	def dispatch firstDiscreteType(UserDefinedType element) {
+ 		// searching for first discrete-type in hierarchy-chain
+ 		var e = element
+ 		while(e.isAbstract && e.extends !== null) {
+ 			e = e.extends
+ 		}
+ 		return e.isAbstract? null : e
+	}
+	
 	// FRONTEND // TODO:SAMI: search for all, and fix if wrong
 	def propertyDeserializer(GraphModel g)'''«(g.modelPackage as MGLModel).propertyDeserializer»'''
 	def propertyDeserializer(MGLModel g)'''«g.name.fuEscapeDart»PropertyDeserializer'''
@@ -2854,8 +2890,9 @@ class MGLExtension {
 	
 	def componentFileDart(GraphModel g) '''«g.name.lowEscapeDart»_component.dart'''
 	def componentFileHTML(GraphModel g) '''«g.name.lowEscapeDart»_component.html'''
-	def componentPackage(GraphModel g) '''src/pages/editor/canvas/graphs/«g.modelPackage.name.lowEscapeDart»'''
-	def componentFilePath(GraphModel g) '''«g.componentPackage»/«g.componentFileDart»'''
+	def componentCanvasPath(GraphModel g) '''«componentCanvasPath»/«g.modelPackage.name.lowEscapeDart»'''
+	def componentCanvasPath() '''src/pages/editor/canvas/graphs'''
+	def componentFilePath(GraphModel g) '''«g.componentCanvasPath»/«g.componentFileDart»'''
 	
 	def modelFilePath(GraphModel g) '''«(g.modelPackage as MGLModel).modelFilePath»'''
 	def modelFilePath(MGLModel g) '''src/model/«g.modelFile»'''
@@ -2869,9 +2906,9 @@ class MGLExtension {
 	def propertyComponentFileDart() '''property_component.dart'''
 	def propertyComponentFileHTML() '''property_component.html'''
 	
-	def paletteBuilderFile() '''palette_builder.dart'''
+	def paletteBuilderFile(GraphModel g) '''«g.name.lowEscapeDart»_palette_builder.dart'''
 	def paletteBuilderPackage(GraphModel g) '''src/pages/editor/palette/graphs/«g.modelPackage.name.lowEscapeDart»'''
-	def paletteBuilderPath(GraphModel g) '''«g.paletteBuilderPackage»/«paletteBuilderFile»'''
+	def paletteBuilderPath(GraphModel g) '''«g.paletteBuilderPackage»/«g.paletteBuilderFile»'''
 	
 	def treeFilePath(GraphModel g) '''«g.propertyPackagePath»/«g.treeFile»'''
 	def propertyFilePath(GraphModel g) '''«g.propertyGraphModelPath»/«propertyComponentFileDart»'''
@@ -2883,7 +2920,8 @@ class MGLExtension {
 	def dartFQN(EObject e) '''«e.modelPackage.name.lowEscapeJava».«e.dartClass»'''
 	def dartFQN(ComplexAttribute e) '''«attributeTypeName(e)»'''
 	def dartFQN(EObject e, CharSequence alias) '''«alias».«e.dartClass»'''
-	def dartClass(EObject e) '''«e.name.fuEscapeJava»'''
+	def dispatch dartClass(EObject e) '''«e.name.fuEscapeJava»'''
+	def dispatch dartClass(ComplexAttribute e) '''«e.type.name.fuEscapeJava»'''
 	
 	def dartImplClass(EObject e) '''impl_«e.dartFQN»'''
 	def dartImplPackage(MGLModel e) '''impl_«e.name.lowEscapeJava»'''
@@ -2896,4 +2934,8 @@ class MGLExtension {
 	
 	def shapeFQN(ModelElement me) '''«(me.modelPackage as MGLModel).shapeFQN».«me.name.fuEscapeDart»'''
 	def shapeFQN(MGLModel m) '''joint.shapes.«m.name.lowEscapeDart»'''
+	
+	def discreteGraphModels(MGLModel m) {
+		return m.graphModels.filter[!isAbstract]
+	}
  }
