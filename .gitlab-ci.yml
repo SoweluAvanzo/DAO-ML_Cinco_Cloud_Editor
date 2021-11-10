@@ -50,7 +50,7 @@ build-wiki:
 build-main:
   extends: .docker-build
   variables:
-    CONTEXT: ./services/main
+    CONTEXT: ./services
     DOCKERFILE: ./services/main/Dockerfile
     IMAGE: main
     VERSION: latest
