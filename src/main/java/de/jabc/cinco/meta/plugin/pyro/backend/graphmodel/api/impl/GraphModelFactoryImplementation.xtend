@@ -70,10 +70,12 @@ class GraphModelFactoryImplementation extends Generatable{
 						«udt.entityFQN» entity = new «udt.entityFQN»();
 						entity.persist();
 							«udt.apiFQN» apiEntity = new «udt.apiImplFQN»(
-							entity,
-					    	executer,
-					    	null,
-					    	null);
+								entity,
+						    	executer«IF !udt.isType»,
+						    	null,
+						    	null
+						    	«ENDIF»
+					    	);
 					    return apiEntity;
 					}
 				«ENDFOR»

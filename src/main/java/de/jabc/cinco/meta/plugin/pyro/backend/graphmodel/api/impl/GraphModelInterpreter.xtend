@@ -76,7 +76,7 @@ class GraphModelInterpreter extends Generatable{
 			    
 			    public abstract <T extends graphmodel.ModelElement> java.util.List<T> getInitialElements(«g.apiFQN» g);
 			    
-				«FOR n:g.elements»
+				«FOR n:g.elementsAndTypesAndGraphModels»
 					
 					public void execute«n.name.fuEscapeJava»(«n.apiFQN» element,«g.apiFQN» graph) {}
 					

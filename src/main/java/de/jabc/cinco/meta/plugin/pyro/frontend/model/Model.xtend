@@ -305,8 +305,8 @@ class Model extends Generatable {
 						«IF attr.isPrimitive»
 							«attr.primitiveDartType(g)» value«attr.name.escapeDart»;
 							if (jsogObj != null) {
-								«IF attr.type.getEnum(g)!==null»
-									value«attr.name.escapeDart» = «attr.type.fuEscapeDart»Parser.fromJSOG(jsogObj);
+								«IF attr.attributeTypeName.getEnum(g)!==null»
+									value«attr.name.escapeDart» = «attr.attributeTypeName.fuEscapeDart»Parser.fromJSOG(jsogObj);
 								«ELSE»
 									value«attr.name.escapeDart» = jsogObj«attr.deserialize(g)»;
 								«ENDIF»
@@ -328,7 +328,7 @@ class Model extends Generatable {
 								value«attr.name.escapeDart» = cache[jsogId];
 							} else {
 								if (jsogObj != null) {
-									«val subTypes = attr.type.subTypesAndType(g).toList»
+									«val subTypes = attr.attributeTypeName.subTypesAndType(g).toList»
 									«FOR subType : subTypes»										
 										«IF subType instanceof ModelElement && (subType as ModelElement).isIsAbstract»
 											«FOR subSubType : subType.name.subTypes(g).filter[!subTypes.contains(it)]»
@@ -422,7 +422,7 @@ class Model extends Generatable {
 				«IF !attr.isPrimitive()»if(this.«attr.name.escapeDart»!=null) {«ENDIF»
 				«IF attr.list»
 					elem.«attr.name.escapeDart» = this.«attr.name.escapeDart».map((n){
-						«FOR sub:attr.type.subTypesAndType(g).filter(ModelElement).filter[!isAbstract] SEPARATOR " else "»
+						«FOR sub:attr.attributeTypeName.subTypesAndType(g).filter(ModelElement).filter[!isAbstract] SEPARATOR " else "»
 							if(n is «sub.dartFQN») {
 								return (n as «sub.dartFQN»).propertyCopy(root:false);
 							}
@@ -430,7 +430,7 @@ class Model extends Generatable {
 						return null;
 					}).cast<«IF attr.isPrimitive»«attr.primitiveDartType(g)»«ELSE»«attr.complexDartType»«ENDIF»>();
 				«ELSE»
-					«FOR sub:attr.type.subTypesAndType(g).filter(ModelElement).filter[!isAbstract] SEPARATOR " else "»
+					«FOR sub:attr.attributeTypeName.subTypesAndType(g).filter(ModelElement).filter[!isAbstract] SEPARATOR " else "»
 						if(this.«attr.name.escapeDart» is «sub.dartFQN») {
 							elem.«attr.name.escapeDart» = (this.«attr.name.escapeDart» as «sub.dartFQN»).propertyCopy(root:false);
 						}
@@ -558,7 +558,7 @@ class Model extends Generatable {
 				}
 			«ENDIF»
 			«FOR attr : element.attributesExtended»
-				«IF !attr.list && g.elementsAndTypes.map[name].exists[equals(attr.type)]»
+				«IF !attr.list && g.elementsAndTypes.map[name].exists[equals(attr.attributeTypeName)]»
 					if(«attr.name.escapeDart»!=null && elem.«attr.name.escapeDart»!=null){
 						if(!cache.containsKey("${«attr.name.escapeDart».id}")){
 							«attr.name.escapeDart».merge(elem.«attr.name.escapeDart»,cache:cache,structureOnly:structureOnly);
@@ -568,7 +568,7 @@ class Model extends Generatable {
 					} else {
 						«attr.name.escapeDart» = elem.«attr.name.escapeDart»;
 					}
-				«ELSEIF !attr.list && g.elementsAndTypes.map[name].exists[equals(attr.type)]»
+				«ELSEIF !attr.list && g.elementsAndTypes.map[name].exists[equals(attr.attributeTypeName)]»
 					//remove missing
 					«attr.name.escapeDart».removeWhere((m)=>elem.«attr.name.escapeDart».where((e)=>m.id==e.id).isEmpty);
 					//merge known
@@ -579,7 +579,7 @@ class Model extends Generatable {
 					}
 					//add new
 					elem.«attr.name.escapeDart».where((e)=>«attr.name.escapeDart».where((m)=>m.id==e.id).isEmpty).forEach((e)=>«attr.name.escapeDart».add(e));
-				«ELSEIF attr.list && g.elementsAndTypes.map[name].exists[equals(attr.type)]»
+				«ELSEIF attr.list && g.elementsAndTypes.map[name].exists[equals(attr.attributeTypeName)]»
 					elem.«attr.name.escapeDart».asMap().forEach((idx,b){
 						if(!«attr.name.escapeDart».any((a)=>a.id==b.id)) {
 							if(«attr.name.escapeDart».length>idx && «attr.name.escapeDart»[idx].id==-1) {

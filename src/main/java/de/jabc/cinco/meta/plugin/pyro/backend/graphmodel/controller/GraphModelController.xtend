@@ -705,7 +705,7 @@ class GraphModelController extends Generatable {
 				if (type.equals("«e.typeName»")){
 					«e.entityFQN» target = «e.entityFQN».findById(pm.getDelegate().getId());
 					«e.apiFQN» targetAPI = new «e.apiImplFQN»(target,executer);
-					executer.update«e.name.escapeJava»(targetAPI, («e.restFQN») pm.getDelegate());
+					executer.update«e.name.escapeJava»(«IF !e.isType»targetAPI, «ENDIF»(«e.restFQN») pm.getDelegate());
 				}
 			«ENDFOR»
 		    CompoundCommandMessage response = new CompoundCommandMessage();
@@ -1008,7 +1008,9 @@ class GraphModelController extends Generatable {
 						«FOR e:g.elementsAndGraphmodels.filter[!isIsAbstract] SEPARATOR " else " 
 						»if(ce instanceof «e.apiFQN») {
 							executer.update«e.name.fuEscapeJava»(
-								(«e.apiFQN») ce,
+								«IF !e.isType»
+									(«e.apiFQN») ce,
+								«ENDIF»
 								(«e.restFQN») cm.getElement()
 							);
 						}«

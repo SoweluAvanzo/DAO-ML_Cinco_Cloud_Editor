@@ -158,7 +158,7 @@ class Generator extends FileGenerator {
 				
 			val path = businessBasePath+"info/scce/pyro/core/export"
 			val gen = new GraphmodelExporterGenerator(gc)
-			gc.graphMopdels.forEach[g|{
+			gc.graphMopdels.filter[!isAbstract].forEach[g|{
 				
 				generateJavaFile(path,
 					gen.filename(g),
@@ -202,7 +202,7 @@ class Generator extends FileGenerator {
 		{
 			val path = businessBasePath+"info/scce/pyro/interpreter/"
 			val gen = new GraphModelInterpreter(gc)
-			gc.graphMopdels.forEach[g|{
+			gc.graphMopdels.filter[!isAbstract].forEach[g|{
 				val graphPath = path + g.modelPackage.name.lowEscapeJava
 				clearDirectory(graphPath)
 				generateJavaFile(graphPath,
@@ -458,11 +458,11 @@ class Generator extends FileGenerator {
 			//dywa-app.app-business.target.generated-sources
 			val path = businessBasePath
 			val gen = new GraphModelElementTransientImplementation(gc)
-			gc.transientGraphModels.entrySet.forEach[e|{
-				val styles = CincoUtil.getStyles(e.value)
-				val graphPath = path+e.value.apiImplPath.toString;
+			gc.transientGraphModels.values.forEach[e|{
+				val styles = CincoUtil.getStyles(e)
+				val graphPath = path+e.apiImplPath.toString;
 				clearDirectory(graphPath)
-				(#[e.value]+(e.value.elementsAndTypes)).filter(ModelElement).filter[!isIsAbstract].forEach[t|{
+				(#[e]+(e.elementsAndTypes)).filter(ModelElement).filter[!isIsAbstract].forEach[t|{
 					generateJavaFile(graphPath,
 						gen.filename(t),
 						gen.content(t,styles)
@@ -477,7 +477,7 @@ class Generator extends FileGenerator {
 			//dywa-app.app-business.target.generated-sources
 			val path = businessBasePath
 			val gen = new GraphModelFactoryInterface(gc)
-			gc.transientGraphModels.values.forEach[g|{
+			gc.transientGraphModels.values.filter[!isAbstract].forEach[g|{
 				val graphPath = path+g.apiPath.toString;
 				generateJavaFile(graphPath,
 					gen.filename(g),
@@ -491,7 +491,7 @@ class Generator extends FileGenerator {
 			//dywa-app.app-business.target.generated-sources
 			val path = businessBasePath
 			val gen = new GraphModelFactoryTransientImplementation(gc)
-			gc.transientGraphModels.values.forEach[g|{
+			gc.transientGraphModels.values.filter[!isAbstract].forEach[g|{
 				val graphPath = path+g.apiImplPath.toString;
 				generateJavaFile(graphPath,
 					gen.filename(g),
@@ -535,7 +535,7 @@ class Generator extends FileGenerator {
 			val gen = new GraphModelFactoryInterface(gc)
 			gc.mglModels.forEach[m|{
 				val modelPackagePath = path+m.apiPath.toString;
-				m.graphModels.forEach[g|	
+				m.graphModels.filter[!isAbstract].forEach[g|	
 					generateJavaFile(modelPackagePath,
 						gen.filename(g),
 						gen.content(g,false)
@@ -550,7 +550,7 @@ class Generator extends FileGenerator {
 			val gen = new GraphModelFactoryImplementation(gc)
 			gc.mglModels.forEach[m|{
 				val modelPackagePath = path+m.apiImplPath.toString;
-				m.graphModels.forEach[g|	
+				m.graphModels.filter[!isAbstract].forEach[g|	
 					generateJavaFile(modelPackagePath,
 						gen.filename(g),
 						gen.content(g)
@@ -562,7 +562,7 @@ class Generator extends FileGenerator {
 		//create graphmodel rest controller
 		{
 			val path = businessBasePath+"info/scce/pyro/core"
-			gc.graphMopdels.forEach[g|{
+			gc.graphMopdels.filter[!isAbstract].forEach[g|{
 				val staticResourceFiles = new HashMap
 				if(g.hasIncludeResourcesAnnotation) { 
 					g.annotations.filter[name.equals("pyroGeneratorResource")&&!value.isEmpty].forEach[ann|{
@@ -596,7 +596,7 @@ class Generator extends FileGenerator {
 		//create executer
 		{
 			val path = businessBasePath+"info/scce/pyro/core/command"
-			gc.graphMopdels.forEach[g|{
+			gc.graphMopdels.filter[!isAbstract].forEach[g|{
 				val styles = CincoUtil.getStyles(g)
 				val gen = new GraphModelCommandExecuter(gc)
 				generateJavaFile(path,

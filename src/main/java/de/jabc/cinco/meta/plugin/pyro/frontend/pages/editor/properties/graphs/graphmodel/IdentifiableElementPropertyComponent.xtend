@@ -78,14 +78,14 @@ class IdentifiableElementPropertyComponent extends Generatable {
 		  }
 		  
 		  //get for enumeration literals
-		  «FOR attr:me.attributesExtended.filter[type.getEnum(g)!==null].filter[!isHidden]»
-			«attr.type» parse«attr.name»Enum(String e) {
+		  «FOR attr:me.attributesExtended.filter[attributeTypeName.getEnum(g)!==null].filter[!isHidden]»
+			«attr.attributeTypeName» parse«attr.name»Enum(String e) {
 				switch(e) {
-				  «FOR lit:attr.type.getEnum(g).literals»
-				  	case "«attr.type.fuEscapeDart».«lit.escapeDart»": return «g.name.lowEscapeDart».«attr.type.fuEscapeDart».«lit.escapeDart»;
+				  «FOR lit:attr.attributeTypeName.getEnum(g).literals»
+				  	case "«attr.attributeTypeName.fuEscapeDart».«lit.escapeDart»": return «g.name.lowEscapeDart».«attr.attributeTypeName.fuEscapeDart».«lit.escapeDart»;
 				  «ENDFOR»
 				}
-				return «attr.dartFQN».«attr.type.getEnum(g).literals.get(0).escapeDart»;
+				return «attr.dartFQN».«attr.attributeTypeName.getEnum(g).literals.get(0).escapeDart»;
 			}
 		  «ENDFOR»
 		  
@@ -183,18 +183,18 @@ class IdentifiableElementPropertyComponent extends Generatable {
 			«ENDFOR»
 			«FOR attr : me.attributesExtended.filter[isPrimitive].filter[!isHidden]»
 				«IF !attr.isList»
-					«IF attr.type.equals("EBoolean")»
+					«IF attr.attributeTypeName.equals("EBoolean")»
 						<div class="checkbox">
 							<label>
 							<input «IF attr.readOnly»disabled «ENDIF»(blur)="valueChanged($event)" (ngModelChange)="update«attr.name.escapeDart»($event)" [ngModel]="currentElement.«attr.name.escapeDart»" type="checkbox"> «attr.name»
 							</label>
 						</div>
-					«ELSEIF attr.type.getEnum(g)!==null»
+					«ELSEIF attr.attributeTypeName.getEnum(g)!==null»
 						<div class="form-group">
 							<label for="«attr.name.lowEscapeDart»">«attr.name»</label>
 							<select «IF attr.readOnly»disabled «ENDIF»(blur)="valueChanged($event)" id="«attr.name.lowEscapeDart»" class="form-control" (ngModelChange)="update«attr.name.escapeDart»(parse«attr.name»Enum($event))" [ngModel]="currentElement.«attr.name.escapeDart»">
-								«FOR lit:attr.type.getEnum(g).literals»
-									<option value="«attr.type.fuEscapeDart».«lit.escapeDart»">«lit»</option>
+								«FOR lit:attr.attributeTypeName.getEnum(g).literals»
+									<option value="«attr.attributeTypeName.fuEscapeDart».«lit.escapeDart»">«lit»</option>
 								«ENDFOR»
 							</select>
 						</div>
@@ -224,7 +224,7 @@ class IdentifiableElementPropertyComponent extends Generatable {
 						</div>
 					«ENDIF»
 				«ELSE»
-					«IF attr.type.getEnum(g)!== null»
+					«IF attr.attributeTypeName.getEnum(g)!== null»
 						<div class="form-group">
 						        <label>«attr.name»</label>
 						        «IF !attr.readOnly»
@@ -234,8 +234,8 @@ class IdentifiableElementPropertyComponent extends Generatable {
 						         «ENDIF»
 						         <div class="input-group" *ngFor="let i of currentElement.«attr.name.escapeDart»; let x = index;trackBy: trackPrimitiveValue" style="margin-bottom: 5px;">
 						             <select «IF attr.readOnly»disabled «ENDIF»class="form-control" (blur)="valueChanged($event)"  (ngModelChange)="update«attr.name.escapeDart»(x,parse«attr.name»Enum($event))" [ngModel]="currentElement.«attr.name.escapeDart»[x]">
-						                 «FOR lit:attr.type.getEnum(g).literals»
-						                 	<option value="«attr.type.fuEscapeDart».«lit.escapeDart»">«lit»</option>
+						                 «FOR lit:attr.attributeTypeName.getEnum(g).literals»
+						                 	<option value="«attr.attributeTypeName.fuEscapeDart».«lit.escapeDart»">«lit»</option>
 						                 «ENDFOR»
 						             </select>
 						             «IF !attr.readOnly»
@@ -247,7 +247,7 @@ class IdentifiableElementPropertyComponent extends Generatable {
 						             «ENDIF»
 						         </div>
 						</div>
-					«ELSEIF attr.type.equals("EBoolean")»
+					«ELSEIF attr.attributeTypeName.equals("EBoolean")»
 						<div class="form-group">
 						       <label>«attr.name»</label>
 						       «IF !attr.readOnly»

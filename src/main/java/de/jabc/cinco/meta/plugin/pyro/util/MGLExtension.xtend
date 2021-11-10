@@ -238,15 +238,13 @@ class MGLExtension {
 		
 		// resolve types that can be contained
 		val directContainable = g.containableElements.map[types].flatten
-		elements.addAll(directContainable)
-		// resolve all userdefinedTypes that can be used
-		// TODO: not very precise
+		elements.addAll(directContainable)		
 		val types = (g.MGLModel as MGLModel).types.filter(UserDefinedType).toSet
 		elements.addAll(types)
 		
-		// resolve hierarchical subtypes, that can be contained
+		// resolve hierarchical subTypes and superTypes, that can be contained
 		for(e : elements) {
-			val subTypesAndType = e.mglModel.resolveSubTypesAndType(e);
+			val subTypesAndType = e.resolveAllSubTypesAndType + #[e];
 			for(s : subTypesAndType) {
 				if(!cache.contains(s) && !result.contains(s)) {
 					result.add(s)
@@ -255,7 +253,7 @@ class MGLExtension {
 						val newNested = s.elementsTopologically((cache + result).toSet)
 						result.addAll(newNested)
 					}
-					// edges
+					// find and handle edges
 					if(s instanceof Node) {
 						val edges = s.possibleIncoming + s.possibleOutgoing
 						for(edge : edges) {
@@ -265,7 +263,27 @@ class MGLExtension {
 						}					
 					}
 				}
-			}			
+			}
+			val superTypesAndType = e.resolveSuperTypesAndType.filter(ModelElement)
+			for(s : superTypesAndType) {
+				if(!cache.contains(s) && !result.contains(s)) {
+					result.add(s)
+					// nesting
+					if(s instanceof ContainingElement) {
+						val newNested = s.elementsTopologically((cache + result).toSet)
+						result.addAll(newNested)
+					}
+					// find and handle edges
+					if(s instanceof Node) {
+						val edges = s.possibleIncoming + s.possibleOutgoing
+						for(edge : edges) {
+							if(!cache.contains(edge) && !result.contains(edge)) {
+								result.add(edge)
+							}
+						}					
+					}
+				}
+			}
 		}
 		result
 	}
@@ -312,6 +330,15 @@ class MGLExtension {
 		i * (-1)
 	}
 
+	private def dispatch int inheritanceScore(UserDefinedType element) {
+		var i = 0
+		if (element.extends !== null) {
+			i++
+			i += element.extends.inheritanceScore
+		}
+		i * (-1)
+	}
+
 	private def dispatch int inheritanceScore(ModelElement element) {
 		var i = 0
 		if (element instanceof GraphModel) {
@@ -348,7 +375,7 @@ class MGLExtension {
 
 	def boolean isModelElement(Attribute attribute) {
 		val modelPackage = attribute.modelPackage as MGLModel
-		modelPackage.elementsAndGraphmodels.exists[name.equals(attribute.type)]
+		modelPackage.elementsAndGraphmodels.exists[name.equals(attribute.name)]
 	}
 
 	/**    ************************************************************************************    */
@@ -460,12 +487,12 @@ class MGLExtension {
 		null
 	}
 
-	def type(Attribute attr) {
+	def attributeTypeName(Attribute attr) {
 		if (attr instanceof PrimitiveAttribute) {
 			return attr.type.getName
 		}
 		if (attr instanceof ComplexAttribute) {
-			return attr.type.dartFQN.toString // TODO:SAMI: check if correct, or revert to "name"
+			return attr.type.name.fuEscapeJava
 		}
 		throw new IllegalStateException("Exhaustive if");
 	}
@@ -479,7 +506,7 @@ class MGLExtension {
 	}
 
 	def htmlType(Attribute attr) {
-		switch (attr.type) {
+		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''checkbox'''
 			case "EInt": return '''number'''
 			case "ELong": return '''number'''
@@ -498,13 +525,13 @@ class MGLExtension {
 	}
 
 	def javaType(Attribute attr, MGLModel g) {
-		if (attr.type.getEnum(g) !== null) {
-			return g.apiFQN + "." + attr.type.fuEscapeJava
-		}
 		if (!attr.isPrimitive) {
-			return '''«attr.type.fuEscapeJava»'''
+			return '''«attr.apiFQN»'''
 		}
-		switch (attr.type) {
+		if (attr.attributeTypeName.getEnum(g) !== null) {
+			return g.apiFQN + "." + attr.attributeTypeName.fuEscapeJava
+		}
+		switch (attr.attributeTypeName) {
 			case "EBoolean": {
 				if (attr.list) {
 					return '''Boolean'''
@@ -569,13 +596,13 @@ class MGLExtension {
 	}
 
 	def javaDBType(Attribute attr, MGLModel g) {
-		if (attr.type.getEnum(g) !== null) {
-			return g.apiFQN + "." + attr.type.fuEscapeJava
+		if (attr.attributeTypeName.getEnum(g) !== null) {
+			return g.apiFQN + "." + attr.attributeTypeName.fuEscapeJava
 		}
 		if (!attr.isPrimitive) {
-			return '''«attr.type.fuEscapeJava»'''
+			return '''«attr.attributeTypeName.fuEscapeJava»'''
 		}
-		switch (attr.type) {
+		switch (attr.attributeTypeName) {
 			case "EBoolean": {
 				if (attr.list) {
 					return '''Boolean'''
@@ -1194,7 +1221,9 @@ class MGLExtension {
 
 	def isPrimitive(Attribute attr) {
 		val mglModel = attr.MGLModel as MGLModel
-		primitiveETypes.contains(attr.type) || attr.type.getEnum(mglModel) !== null
+		if (attr instanceof ComplexAttribute)
+			return false
+		primitiveETypes.contains(attr.attributeTypeName) || attr.attributeTypeName.getEnum(mglModel) !== null
 	}
 	
 	def isPrimitive(EStructuralFeature attr) {
@@ -1218,8 +1247,8 @@ class MGLExtension {
 
 	def init(Attribute it, MGLModel g, String prefix) {
 		if (isPrimitive) {
-			if (type.getEnum(g) !== null) {
-				return '''«prefix»«type».«type.getEnum(g).literals.get(0).escapeDart»'''
+			if (attributeTypeName.getEnum(g) !== null) {
+				return '''«prefix»«attributeTypeName».«attributeTypeName.getEnum(g).literals.get(0).escapeDart»'''
 			}
 			if (!defaultValue.nullOrEmpty) {
 				return '''«primitiveBolster»«defaultValue»«primitiveBolster»'''
@@ -1246,7 +1275,7 @@ class MGLExtension {
 	}
 
 	def initValue(Attribute attr) {
-		switch (attr.type) {
+		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''false'''
 			case "EInt": return '''0'''
 			case "ELong": return '''0'''
@@ -1403,6 +1432,10 @@ class MGLExtension {
 				if(element.extends === null) return null
 				return element.extends
 			}
+			UserDefinedType: {
+				if(element.extends === null) return null
+				return element.extends
+			}
 		}
 		return null
 	}
@@ -1441,10 +1474,10 @@ class MGLExtension {
 	}
 
 	def primitiveDartType(Attribute attr, MGLModel g) {
-		if (attr.type.getEnum(g) !== null) {
-			return attr.type.getEnum(g).name.fuEscapeDart
+		if (attr.attributeTypeName.getEnum(g) !== null) {
+			return attr.attributeTypeName.getEnum(g).name.fuEscapeDart
 		}
-		switch (attr.type) {
+		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''bool'''
 			case "EInt": return '''int'''
 			case "ELong": return '''int'''
@@ -1529,10 +1562,10 @@ class MGLExtension {
 
 	def serialize(Attribute it, MGLModel g, String s) {
 		if (isPrimitive) {
-			if (type.getEnum(g) !== null) {
-				return '''«type.fuEscapeDart»Parser.toJSOG(«s»)'''
+			if (attributeTypeName.getEnum(g) !== null) {
+				return '''«attributeTypeName.fuEscapeDart»Parser.toJSOG(«s»)'''
 			}
-			switch (type) {
+			switch (attributeTypeName) {
 				case "EBoolean": return '''«s»?"true":"false"'''
 				case "EInt": return '''«s»'''
 				case "ELong": return '''«s»'''
@@ -1581,8 +1614,8 @@ class MGLExtension {
 	
 	def deserialize(Attribute it, MGLModel mglModel) {
 		if (isPrimitive) {
-			if(type.getEnum(mglModel) !== null) return ""
-			switch (type) {
+			if(attributeTypeName.getEnum(mglModel) !== null) return ""
+			switch (attributeTypeName) {
 				case "EBoolean": return '''=="true"||jsogObj==true'''
 				case "EInt": return ''''''
 				case "ELong": return ''''''
@@ -1620,7 +1653,7 @@ class MGLExtension {
 	}
 
 	def complexDartType(Attribute attr) {
-		attr.type
+		attr.dartFQN.toString
 	}
 
 	def complexDartType(EStructuralFeature attr) {
@@ -1701,7 +1734,7 @@ class MGLExtension {
 	}
 
 	def primitiveBolster(Attribute attr) {
-		switch (attr.type) {
+		switch (attr.attributeTypeName) {
 			case "EString": return '''"'''
 			case "EChar": return '''"'''
 			case "EDate": return '''"'''
@@ -1941,11 +1974,12 @@ class MGLExtension {
 		var sType = ce.extend
 		var result = new HashSet<GraphicalElementContainment>
 		while(sType!==null){
-			superTypes.add(sType)
 			if(superTypes.contains(sType)) {
 				throw new IllegalArgumentException("InheritanceCircle Detected: "+superTypes)
-			} else
+			} else {
+				superTypes.add(sType)
 				sType = sType.extend
+			}
 		}
 		result += ce.containableElements + superTypes.filter(ContainingElement).map[containableElements].flatten
 		result
@@ -2027,20 +2061,23 @@ class MGLExtension {
 		if(object instanceof EPackage) {
 			return object.name
 		}
-		if(object instanceof MGLModel) {
+		else if(object instanceof MGLModel) {
 			return object.fileName
 		}
-		if (object instanceof Type) {
+		else if (object instanceof Type) {
 			return object.name
 		}
-		if (object instanceof ENamedElement) {
+		else if (object instanceof ENamedElement) {
+			return object.name
+		}
+		else if (object instanceof Attribute) {
 			return object.name
 		}
 		throw new IllegalStateException(object.toString)
 	}
 
 	def dispatch boolean isAbstract(GraphModel ce) {
-		false
+		ce.isAbstract
 	}
 
 	def dispatch boolean isAbstract(UserDefinedType ce) {
@@ -2202,8 +2239,17 @@ class MGLExtension {
 	def resolvePossibleTargets(Edge me) {
 		me.possibleTargets.resolveSubTypesAndType
 	}
+	
+	def resolvePossibleContainer(ModelElement me) {
+		if(me instanceof Node) {
+			me.resolvePossibleContainerNode
+		} else if(me instanceof Edge) {
+			me.resolvePossibleContainerEdge
+		} else
+			throw new IllegalStateException("Exhaustive if");
+	}
 
-	def dispatch resolvePossibleContainer(Node me) {		
+	def resolvePossibleContainerNode(Node me) {		
 		val possibleContainer = new HashSet<ContainingElement>
 		val types = me.resolveSuperTypesAndType
 		val mglModel = me.mglModel
@@ -2229,10 +2275,10 @@ class MGLExtension {
 				]
 			]
 		)
-		possibleContainer.map[ModelElement.cast(it)].toSet
+		possibleContainer.map[ModelElement.cast(it)].toSet.filter[!isAbstract]
 	}
 	
-	def dispatch resolvePossibleContainer(Edge me) {
+	def resolvePossibleContainerEdge(Edge me) {
 		val possibleContainer = new HashSet<ContainingElement>
 		val types = me.resolveSuperTypesAndType
 		val mglModel = me.mglModel
@@ -2268,7 +2314,7 @@ class MGLExtension {
 				]
 			]
 		)
-		possibleContainer.map[ModelElement.cast(it)].toSet
+		possibleContainer.map[ModelElement.cast(it)].toSet.filter[!isAbstract]
 	}
 
 	def HashSet<GraphicalElementContainment> resolvePossibleContainingTypes(ContainingElement container) {
@@ -2331,9 +2377,7 @@ class MGLExtension {
 		t.resolveSuperTypesAndType.filter[it.name != t.name]
 	}
 
-	def HashSet<Type> resolveSuperTypesAndType(Type type) {
-		val modelPackage = type.modelPackage as MGLModel
-		
+	def HashSet<Type> resolveSuperTypesAndType(Type type) {		
 		var result = new HashSet<Type>
 
 		// early break
@@ -2341,38 +2385,27 @@ class MGLExtension {
 			return result
 		result.add(type)
 
-		// resolve decendent-types
-		val types = modelPackage.elementsAndTypes
-		for (potencialSuperType : types) {
-			switch (potencialSuperType) {
-				Node: {
-					val maybeType = potencialSuperType.extends as Type
-					if (maybeType == type) {
-						val descendents = potencialSuperType.resolveSuperTypesAndType as HashSet<Type>
-						result.addAll(descendents)
-					}
-				}
-				Edge: {
-					val maybeType = potencialSuperType.extends as Type
-					if (maybeType == type) {
-						val descendents = potencialSuperType.resolveSuperTypesAndType as HashSet<Type>
-						result.addAll(descendents)
-					}
-				}
-				GraphModel: {
-					val maybeType = potencialSuperType.extends as Type
-					if (maybeType == type) {
-						val descendents = potencialSuperType.resolveSuperTypesAndType as HashSet<Type>
-						result.addAll(descendents)
-					}
-				}
-				UserDefinedType: {
-					val maybeType = potencialSuperType.extends as Type
-					if (maybeType == type) {
-						val descendents = potencialSuperType.resolveSuperTypesAndType as HashSet<Type>
-						result.addAll(descendents)
-					}
-				}
+		// resolve descendent-types
+		switch (type) {
+			Node: {
+				val superType = type.extends as Type
+				val descendents = superType.resolveSuperTypesAndType as HashSet<Type>
+				result.addAll(descendents)
+			}
+			Edge: {
+				val superType = type.extends as Type
+				val descendents = superType.resolveSuperTypesAndType as HashSet<Type>
+				result.addAll(descendents)
+			}
+			GraphModel: {
+				val superType = type.extends as Type
+				val descendents = superType.resolveSuperTypesAndType as HashSet<Type>
+				result.addAll(descendents)
+			}
+			UserDefinedType: {
+				val superType = type.extends as Type
+				val descendents = superType.resolveSuperTypesAndType as HashSet<Type>
+				result.addAll(descendents)
 			}
 		}
 		return result
@@ -2408,6 +2441,14 @@ class MGLExtension {
 			throw new RuntimeException("GraphModel is Package is Deprecated!")
 	}
 	
+	def <T extends Type> List<T> resolveAllSubTypesAndType(T element) {
+		element.resolveSubTypesAndType(
+			new LinkedList<T>,
+			[e|false],
+			[el|el.name.subTypes(element.modelPackage) as Iterable<T>]
+		)
+	}
+	
 	private def <T extends Type> List<T> resolveSubTypesAndType(MGLModel g, T element) {
 		element.resolveSubTypesAndType(new LinkedList<T>)
 	}
@@ -2432,19 +2473,19 @@ class MGLExtension {
 		)
 	}
 
-	def <G, T> List<T> resolveSubTypesAndType(T element, List<T> cached, Function<T, Boolean> isAbstract,
+	def <G, T> List<T> resolveSubTypesAndType(T element, List<T> cached, Function<T, Boolean> filterAway,
 		Function<T, Iterable<T>> getSubTypes) {
 		if (cached.contains(element))
 			return cached;
 		var cachedSubTypes = new LinkedList<T>
 		cachedSubTypes.addAll(cached)
-		if (!isAbstract.apply(element)) {
+		if (!filterAway.apply(element)) {
 			cachedSubTypes.add(element)
 		}
 		// resolve subTypes further recursively
 		val subTypes = getSubTypes.apply(element)
 		for (subType : subTypes) {
-			cachedSubTypes = subType.resolveSubTypesAndType(cachedSubTypes.toList, isAbstract,
+			cachedSubTypes = subType.resolveSubTypesAndType(cachedSubTypes.toList, filterAway,
 				getSubTypes) as LinkedList<T>
 		}
 		return cachedSubTypes
@@ -2517,7 +2558,7 @@ class MGLExtension {
 
 	def getPrimitiveDefault(Attribute attr) {
 		if (attr.defaultValue !== null) {
-			switch (attr.type) {
+			switch (attr.attributeTypeName) {
 				case "EInt": return '''«attr.defaultValue»L'''
 				case "ELong": return '''«attr.defaultValue»L'''
 				case "EBigInteger": return '''«attr.defaultValue»L'''
@@ -2527,7 +2568,7 @@ class MGLExtension {
 				default: return '''«attr.defaultValue»'''
 			}
 		}
-		switch (attr.type) {
+		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''false'''
 			case "ELong": return '''0L'''
 			case "EBigInteger": return '''0L'''
@@ -2544,12 +2585,12 @@ class MGLExtension {
 
 	def getPrimitiveDefaultDart(Attribute attr) {
 		if (attr.defaultValue !== null) {
-			switch (attr.type) {
+			switch (attr.attributeTypeName) {
 				case "EString": return '''"«attr.defaultValue»"'''
 				default: return '''«attr.defaultValue»'''
 			}
 		}
-		switch (attr.type) {
+		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''false'''
 			case "ELong": return '''0'''
 			case "EBigInteger": return '''0'''
@@ -2589,7 +2630,7 @@ class MGLExtension {
 
 	def dispatch entityFQNBase(MGLModel g) '''entity.«g.name.lowEscapeJava»'''
 	def dispatch entityFQNBase(EPackage g) '''entity.«g.name.lowEscapeJava»'''
-	def dispatch entityFQN(Attribute me) '''«me.modelPackage.entityFQNBase».«me.type.fuEscapeJava»DB'''
+	def dispatch entityFQN(Attribute me) '''«me.modelPackage.entityFQNBase».«me.attributeTypeName.fuEscapeJava»DB'''
 	def dispatch entityFQN(ContainingElement me) '''«me.modelPackage.entityFQNBase».«me.name.fuEscapeJava»DB'''
 	def dispatch entityFQN(Type me) '''«me.modelPackage.entityFQNBase».«me.name.fuEscapeJava»DB'''
 	def dispatch entityFQN(ENamedElement e) '''«e.modelPackage.entityFQNBase».«e.name.fuEscapeJava»DB'''
@@ -2598,7 +2639,7 @@ class MGLExtension {
 	def dispatch entityFQN(EPackage g) '''«g.entityFQNBase».«g.name.fuEscapeJava»DB'''
 	
 	@Deprecated
-	def dispatch entityFQN(Attribute me, MGLModel g) '''«g.entityFQNBase».«me.type.fuEscapeJava»DB'''
+	def dispatch entityFQN(Attribute me, MGLModel g) '''«g.entityFQNBase».«me.attributeTypeName.fuEscapeJava»DB'''
 	@Deprecated
 	def dispatch entityFQN(ContainingElement me, MGLModel g) '''«g.entityFQNBase».«me.name.fuEscapeJava»DB'''
 	@Deprecated
@@ -2612,7 +2653,7 @@ class MGLExtension {
 	//def dispatch apiFQNBase(EObject me) '''«me.modelPackage.apiFQNBase»'''
 	//def dispatch apiFQNBase(Attribute me) '''«me.modelPackage.apiFQNBase»'''
 	def dispatch apiFQNBase(EPackage g) '''«g.name.lowEscapeJava»'''
-	def dispatch apiFQN(Attribute me) '''«me.modelPackage.apiFQNBase».«me.type.fuEscapeJava»'''
+	def dispatch apiFQN(ComplexAttribute me) '''«me.modelPackage.apiFQNBase».«me.type.name.fuEscapeJava»'''
 	def dispatch apiFQN(GraphicalElementContainment me) '''«me.modelPackage.apiFQNBase».«me.name.fuEscapeJava»'''
 	def dispatch apiFQN(ModelElement me) '''«me.modelPackage.apiFQNBase».«me.name.fuEscapeJava»'''
 	def dispatch apiFQN(EObject me) '''«me.modelPackage.apiFQNBase».«me.name.fuEscapeJava»'''
@@ -2632,7 +2673,7 @@ class MGLExtension {
 	@Deprecated
 	def dispatch apiFQN(Type me, MGLModel g) '''«g.apiFQNBase».«me.name.fuEscapeJava»'''
 	@Deprecated
-	def dispatch apiFQN(Attribute me, MGLModel g) '''«g.apiFQNBase».«me.type.fuEscapeJava»'''
+	def dispatch apiFQN(Attribute me, MGLModel g) '''«g.apiFQNBase».«me.attributeTypeName.fuEscapeJava»'''
 	@Deprecated
 	def dispatch apiFQN(GraphicalElementContainment me, MGLModel g) '''«g.apiFQNBase».«me.name.fuEscapeJava»'''
 	@Deprecated
@@ -2665,8 +2706,8 @@ class MGLExtension {
 		val modelPackage = me.modelPackage
 		if (modelPackage instanceof MGLModel) {
 			switch (me) {
-				ComplexAttribute: '''«modelPackage.restFQNBase».«type(me).fuEscapeDart»'''
-				PrimitiveAttribute: '''«modelPackage.restFQNBase».«type(me).fuEscapeDart»'''
+				ComplexAttribute: '''«modelPackage.restFQNBase».«(me as ComplexAttribute).type.name.fuEscapeDart»'''
+				PrimitiveAttribute: '''«modelPackage.restFQNBase».«attributeTypeName(me).fuEscapeDart»'''
 				Type: '''«modelPackage.restFQNBase».«me.name.escapeJava»'''
 			}
 		} else if (modelPackage instanceof EPackage) {
@@ -2684,8 +2725,8 @@ class MGLExtension {
 		val packageId = e.modelPackage.name.lowEscapeDart
 		if (e instanceof ModelElement) {
 			switch (e) {
-				ComplexAttribute: '''«packageId».«type(e).fuEscapeDart»'''
-				PrimitiveAttribute: '''«packageId».«type(e).fuEscapeDart»'''
+				ComplexAttribute: '''«packageId».«attributeTypeName(e).fuEscapeDart»'''
+				PrimitiveAttribute: '''«packageId».«attributeTypeName(e).fuEscapeDart»'''
 				Type: '''«packageId».«e.name.fuEscapeDart»'''
 			}
 		} else {
@@ -2772,7 +2813,7 @@ class MGLExtension {
 	}
 	
 	def commandExecuterSwitch(Iterable<GraphModel> graphModels, ModelElement me, Function<CharSequence, CharSequence> proc) {
-		val graphModelz = graphModels.filter[me === null ? true : it.containableElementsDefinition.contains(me)]
+		val graphModelz = graphModels.filter[me === null ? true : it.containableElementsDefinition.contains(me)].filter[!isAbstract]
 		'''
 			«FOR gM:graphModelz SEPARATOR " else "
 			»if(cmdExecuter instanceof «gM.commandExecuter») {
@@ -2840,7 +2881,7 @@ class MGLExtension {
 	def propertyPackagePath(MGLModel m) '''src/pages/editor/properties/graphs/«m.name.lowEscapeDart»'''
 	
 	def dartFQN(EObject e) '''«e.modelPackage.name.lowEscapeJava».«e.dartClass»'''
-	def dartFQN(ComplexAttribute e) '''«type(e)»'''
+	def dartFQN(ComplexAttribute e) '''«attributeTypeName(e)»'''
 	def dartFQN(EObject e, CharSequence alias) '''«alias».«e.dartClass»'''
 	def dartClass(EObject e) '''«e.name.fuEscapeJava»'''
 	

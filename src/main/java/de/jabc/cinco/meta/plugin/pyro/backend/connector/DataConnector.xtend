@@ -205,7 +205,7 @@ class DataConnector extends Generatable {
 	
 	private def generatePrimitiveAttribute(Model m, Attribute attribute) {
 		val mglModel = attribute.MGLModel
-		if(getEnum(attribute.type,mglModel)!==null){
+		if(getEnum(attribute.attributeTypeName,mglModel)!==null){
 			// is enum
 			if(attribute.isList) {
 				m.multiEnumAttribute(attribute.name.escapeJava, attribute.entityFQN)
@@ -215,9 +215,9 @@ class DataConnector extends Generatable {
 		} else {
 			// no enum
 			if(attribute.isList) {
-				m.multiPrimitiveAttribute(attribute.name.escapeJava, attribute.type.getPrimitveObjectTypeLiteral)
+				m.multiPrimitiveAttribute(attribute.name.escapeJava, attribute.attributeTypeName.getPrimitveObjectTypeLiteral)
 			} else {
-				m.singlePrimitiveAttribute(attribute.name.escapeJava, attribute.type.getPrimitveTypeLiteral)
+				m.singlePrimitiveAttribute(attribute.name.escapeJava, attribute.attributeTypeName.getPrimitveTypeLiteral)
 			}
 		}		
 	}

@@ -336,7 +336,7 @@ class GraphModelRestTO extends Generatable{
 				public static «t.name.fuEscapeJava» fromEntity(final «dbTypeName» dbEntity, info.scce.pyro.rest.ObjectCache objectCache) {
 					«IF t.isAbstract»
 						«{
-							var types = modelPackage.resolveSubTypesAndType
+							var types = t.resolveSubTypesAndType
 							'''
 								«FOR type:types SEPARATOR " else "
 								»if(dbEntity instanceof «type.entityFQN») {
@@ -371,7 +371,7 @@ class GraphModelRestTO extends Generatable{
 				public static «t.name.fuEscapeJava» fromEntityProperties(final «dbTypeName» dbEntity, info.scce.pyro.rest.ObjectCache objectCache) {
 					«IF t.isAbstract»
 						«{
-							var types = modelPackage.resolveSubTypesAndType
+							var types = t.resolveSubTypesAndType
 							'''
 								«FOR type:types SEPARATOR " else "
 								»if(dbEntity instanceof «type.entityFQN») {
@@ -481,7 +481,7 @@ class GraphModelRestTO extends Generatable{
 	'''
 		«IF attr.isList»
 			«IF attr.isPrimitive»
-				«IF attr.type.getEnum(modelPackage)!==null»
+				«IF attr.attributeTypeName.getEnum(modelPackage)!==null»
 					if(entity.«attr.name.escapeJava»!=null){
 						result.set«attr.name.escapeJava»(entity.«attr.name.escapeJava».stream()
 							.map(n->info.scce.pyro.core.graphmodel.PyroEnum.fromEntity(n.toString()))
@@ -498,14 +498,14 @@ class GraphModelRestTO extends Generatable{
 			«ENDIF»
 		«ELSE»
 			«IF attr.isPrimitive»
-				«IF attr.type.getEnum(modelPackage)!==null»
+				«IF attr.attributeTypeName.getEnum(modelPackage)!==null»
 					result.set«attr.name.escapeJava»(info.scce.pyro.core.graphmodel.PyroEnum.fromEntity(entity.«attr.name.escapeJava».toString()));
 				«ELSE»
 					result.set«attr.name.escapeJava»(entity.«attr.name.escapeJava»);
 				«ENDIF»
 			«ELSE»
 				«dbTypeName» db«attr.name.fuEscapeJava» = entity.get«attr.name.fuEscapeJava»();
-				«attr.type.fuEscapeJava» rest«attr.name.fuEscapeJava» = («attr.restFQN») «typeRegistryName».getDBToRest(db«attr.name.fuEscapeJava», objectCache, «onlyProperties»);
+				«attr.restFQN» rest«attr.name.fuEscapeJava» = («attr.restFQN») «typeRegistryName».getDBToRest(db«attr.name.fuEscapeJava», objectCache, «onlyProperties»);
 				result.set«attr.name.escapeJava»(rest«attr.name.fuEscapeJava»);	
 			«ENDIF»
 		«ENDIF»
@@ -544,27 +544,27 @@ class GraphModelRestTO extends Generatable{
 	
 	def attributeDeclaration(Attribute attr, MGLModel modelPackage)
 	'''
-		private «attr.javaType(modelPackage)» «attr.name.escapeJava»;
+		private «attr.wrapJavaType(modelPackage)» «attr.name.escapeJava»;
 		
 		@com.fasterxml.jackson.annotation.JsonProperty("c_«attr.name.escapeJava»")
-		public «attr.javaType(modelPackage)» get«attr.name.escapeJava»() {
+		public «attr.wrapJavaType(modelPackage)» get«attr.name.escapeJava»() {
 		    return this.«attr.name.escapeJava»;
 		}
 		
 		@com.fasterxml.jackson.annotation.JsonProperty("«attr.name.escapeJava»")
-		public void set«attr.name.escapeJava»(final «attr.javaType(modelPackage)» «attr.name.escapeJava») {
+		public void set«attr.name.escapeJava»(final «attr.wrapJavaType(modelPackage)» «attr.name.escapeJava») {
 		    this.«attr.name.escapeJava» = «attr.name.escapeJava»;
 		}
 	'''
 	
-	def javaType(Attribute attribute, MGLModel modelPackage){
+	def wrapJavaType(Attribute attribute, MGLModel modelPackage){
 		var res = ""
 		if(attribute.isList){
 			res += "java.util.List<"
 		}
 		if(attribute.isPrimitive){
 			if(attribute.isList){
-				if(attribute.type.getEnum(modelPackage)!==null) {
+				if(attribute.attributeTypeName.getEnum(modelPackage)!==null) {
 					res += attribute.getToJavaType(modelPackage)
 				} else {
 					res += attribute.getToJavaType(modelPackage).toFirstUpper
@@ -574,7 +574,7 @@ class GraphModelRestTO extends Generatable{
 			}
 		}
 		else{
-			res += attribute.type.fuEscapeJava
+			res += attribute.restFQN
 		}
 		if(attribute.isList){
 			res += ">"
@@ -583,10 +583,10 @@ class GraphModelRestTO extends Generatable{
 	}
 	
 	def getToJavaType(Attribute attr, MGLModel modelPackage) {
-		if(attr.type.getEnum(modelPackage)!==null){
+		if(attr.attributeTypeName.getEnum(modelPackage)!==null){
 			return "info.scce.pyro.core.graphmodel.PyroEnum"
 		}
-		switch(attr.type){
+		switch(attr.attributeTypeName){
 			case "EBoolean": {
 				if(attr.list){
 					return '''Boolean'''
@@ -677,7 +677,10 @@ class GraphModelRestTO extends Generatable{
 	
 	def restExtending(ModelElement element){
 		switch element {
-			GraphModel: return "info.scce.pyro.core.graphmodel.GraphModel, info.scce.pyro.core.rest.types.IPyroFile"
+			GraphModel: {
+				if (element.extends === null) return "info.scce.pyro.core.graphmodel.GraphModel"
+				return element.extends.name
+			}
 			NodeContainer: {
 				if (element.extends === null) return "info.scce.pyro.core.graphmodel.Container"
 				return element.extends.name

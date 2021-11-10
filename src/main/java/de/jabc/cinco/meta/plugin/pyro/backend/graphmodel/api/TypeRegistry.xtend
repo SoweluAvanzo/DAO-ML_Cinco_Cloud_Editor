@@ -34,7 +34,7 @@ class TypeRegistry extends Generatable {
 		
 		import «dbTypeFQN»;
 		import «commandExecuterFQN»;
-		«FOR graphModel: modelPackage.graphmodels»
+		«FOR graphModel: modelPackage.graphmodels.filter[!isAbstract]»
 			import «graphModel.commandExecuterFQN»;
 		«ENDFOR»
 		
@@ -283,11 +283,7 @@ class TypeRegistry extends Generatable {
 				«FOR e:modelPackage.elements.filter[!isAbstract] SEPARATOR " else "
 				»if(e instanceof «e.entityFQN») {
 					«e.entityFQN» en = («e.entityFQN») e;
-					«IF !e.isType»
-						return new «e.apiImplFQN»(en, executer);
-					«ELSE»
-						return new «e.apiImplFQN»(en, executer, parent, prev);
-					«ENDIF»
+					return new «e.apiImplFQN»(en, executer);
 				}«
 				ENDFOR»
 				return getDBToApiPrime(e, executer, parent, prev);
@@ -360,7 +356,7 @@ class TypeRegistry extends Generatable {
 			 * GRAPHMODEL-SPECIFIC FUNCTIONS
 			 */
 			
-			«FOR gM: modelPackage.graphmodels»
+			«FOR gM: modelPackage.graphmodels.filter[!isAbstract]»
 				public static graphmodel.IdentifiableElement getDBToApiPrime«gM.commandExecuterVar»(
 					«dbTypeName» e,
 					«gM.commandExecuter» executer,

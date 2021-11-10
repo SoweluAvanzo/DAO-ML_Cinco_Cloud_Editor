@@ -272,13 +272,13 @@ class GraphmodelTree extends Generatable {
 						tree.root = new «g.name.fuEscapeDart»TreeNode(element,element);
 					}
 					«val elements = g.elements.toList»
-					«FOR elem : elements»
+					«FOR elem : elements.filter[!isAbstract]»
 						«IF elem.isIsAbstract»
-							«FOR subType:elem.name.subTypes(g).filter[!elements.contains(it)]»
-								if(element.$type() == '«subType.typeName»'){
-									tree.root = new «subType.name.fuEscapeDart»TreeNode(element,element);
-								}
-							«ENDFOR»
+							//«FOR subType:elem.name.subTypes(g).filter[!elements.contains(it)]»
+							//	if(element.$type() == '«subType.typeName»'){
+							//		tree.root = new «subType.name.fuEscapeDart»TreeNode(element,element);
+							//	}
+							//«ENDFOR»
 						«ELSE»
 							if(element.$type() == '«elem.typeName»'){
 								tree.root = new «elem.name.fuEscapeDart»TreeNode(element,element);
