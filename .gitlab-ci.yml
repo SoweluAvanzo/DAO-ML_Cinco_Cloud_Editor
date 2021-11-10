@@ -50,8 +50,8 @@ build-wiki:
 build-main:
   extends: .docker-build
   variables:
-    CONTEXT: ./main
-    DOCKERFILE: ./main/Dockerfile
+    CONTEXT: ./services/main
+    DOCKERFILE: ./services/main/Dockerfile
     IMAGE: main
     VERSION: latest
   only:
@@ -60,8 +60,8 @@ build-main:
 build-registry:
   extends: .docker-build
   variables:
-    CONTEXT: ./registry
-    DOCKERFILE: ./registry/Dockerfile
+    CONTEXT: ./services/registry
+    DOCKERFILE: ./services/registry/Dockerfile
     IMAGE: registry
     VERSION: latest
   only:
@@ -70,8 +70,8 @@ build-registry:
 build-workspace-builder:
   extends: .docker-build
   variables:
-    CONTEXT: .
-    DOCKERFILE: ./workspace-builder/Dockerfile
+    CONTEXT: ./services
+    DOCKERFILE: ./services/workspace-builder/Dockerfile
     IMAGE: workspace-builder
     VERSION: latest
   only:
