@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core.rest.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.db.BaseFileDB;
 
 public class FileReference {
@@ -21,32 +22,32 @@ public class FileReference {
         this.setContentType(delegate.contentType);
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("id")
+    @JsonProperty("id")
     public long getId() {
         return id;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("id")
+    @JsonProperty("id")
     public void setId(long id) {
         this.id = id;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("fileName")
+    @JsonProperty("fileName")
     public String getFileName() {
         return fileName;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("fileName")
+    @JsonProperty("fileName")
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("contentType")
+    @JsonProperty("contentType")
     public String getContentType() {
         return contentType;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("contentType")
+    @JsonProperty("contentType")
     public void setContentType(String contentType) {
         this.contentType = contentType;
     }

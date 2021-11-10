@@ -1,15 +1,18 @@
 package info.scce.cincocloud.core.rest.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.db.PyroSettingsDB;
+import info.scce.cincocloud.rest.ObjectCache;
+import info.scce.cincocloud.rest.RESTBaseImpl;
 
-public class PyroSettings extends info.scce.cincocloud.rest.RESTBaseImpl {
+public class PyroSettings extends RESTBaseImpl {
 
     private PyroStyle style;
     private boolean globallyCreateOrganizations;
 
     public static PyroSettings fromEntity(
             final PyroSettingsDB entity,
-            final info.scce.cincocloud.rest.ObjectCache objectCache) {
+            final ObjectCache objectCache) {
 
         if (objectCache.containsRestTo(entity)) {
             return objectCache.getRestTo(entity);
@@ -26,22 +29,22 @@ public class PyroSettings extends info.scce.cincocloud.rest.RESTBaseImpl {
         return result;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("style")
+    @JsonProperty("style")
     public PyroStyle getstyle() {
         return this.style;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("style")
+    @JsonProperty("style")
     public void setstyle(final PyroStyle style) {
         this.style = style;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("globallyCreateOrganizations")
+    @JsonProperty("globallyCreateOrganizations")
     public boolean getgloballyCreateOrganizations() {
         return this.globallyCreateOrganizations;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("globallyCreateOrganizations")
+    @JsonProperty("globallyCreateOrganizations")
     public void setgloballyCreateOrganizations(final boolean globallyCreateOrganizations) {
         this.globallyCreateOrganizations = globallyCreateOrganizations;
     }

@@ -1,6 +1,7 @@
 package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import java.util.ArrayList;
 import java.util.Collection;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -25,7 +26,7 @@ public class PyroOrganizationDB extends PanacheEntity {
             joinColumns = @JoinColumn(name = "PyroOrganizationDB_id"),
             inverseJoinColumns = @JoinColumn(name = "PyroUserDB_id")
     )
-    public java.util.Collection<PyroUserDB> owners = new java.util.ArrayList<>();
+    public Collection<PyroUserDB> owners = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
@@ -33,8 +34,8 @@ public class PyroOrganizationDB extends PanacheEntity {
             joinColumns = @JoinColumn(name = "PyroOrganizationDB_id"),
             inverseJoinColumns = @JoinColumn(name = "PyroUserDB_id")
     )
-    public Collection<PyroUserDB> members = new java.util.ArrayList<>();
+    public Collection<PyroUserDB> members = new ArrayList<>();
 
     @OneToMany
-    public Collection<PyroProjectDB> projects = new java.util.ArrayList<>();
+    public Collection<PyroProjectDB> projects = new ArrayList<>();
 }

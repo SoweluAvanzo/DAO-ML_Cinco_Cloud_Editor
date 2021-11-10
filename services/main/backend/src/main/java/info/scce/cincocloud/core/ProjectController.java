@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core;
 
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
@@ -232,7 +233,7 @@ public class ProjectController {
             PyroUserDB user,
             PyroOrganizationDB org
     ) {
-        final java.util.List<PyroOrganizationAccessRightVectorDB> result = PyroOrganizationAccessRightVectorDB.list("user = ?1 and organization = ?2", user, org);
+        final List<PyroOrganizationAccessRightVectorDB> result = PyroOrganizationAccessRightVectorDB.list("user = ?1 and organization = ?2", user, org);
         return result.size() == 1 ? result.get(0) : null;
     }
 }

@@ -1,19 +1,23 @@
 package info.scce.cincocloud.core.rest.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.db.PyroProjectDB;
 import info.scce.cincocloud.db.PyroSystemRoleDB;
 import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.rest.ObjectCache;
+import info.scce.cincocloud.rest.RESTBaseImpl;
+import java.util.List;
 
-public class PyroUser extends info.scce.cincocloud.rest.RESTBaseImpl {
+public class PyroUser extends RESTBaseImpl {
 
-    private java.util.List<PyroProject> ownedProjects = new java.util.LinkedList<>();
-    private java.util.List<PyroSystemRoleDB> systemRoles = new java.util.LinkedList<>();
-    private java.lang.String username;
-    private java.lang.String email;
+    private List<PyroProject> ownedProjects = new java.util.LinkedList<>();
+    private List<PyroSystemRoleDB> systemRoles = new java.util.LinkedList<>();
+    private String username;
+    private String email;
     private FileReference profilePicture;
 
-    public static PyroUser fromEntity(final PyroUserDB entity, info.scce.cincocloud.rest.ObjectCache objectCache) {
-
+    public static PyroUser fromEntity(final PyroUserDB entity, final ObjectCache objectCache) {
+        
         if (objectCache.containsRestTo(entity)) {
             return objectCache.getRestTo(entity);
         }
@@ -41,52 +45,52 @@ public class PyroUser extends info.scce.cincocloud.rest.RESTBaseImpl {
         return result;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("ownedProjects")
-    public java.util.List<PyroProject> getownedProjects() {
+    @JsonProperty("ownedProjects")
+    public List<PyroProject> getownedProjects() {
         return this.ownedProjects;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("ownedProjects")
-    public void setownedProjects(final java.util.List<PyroProject> ownedProjects) {
+    @JsonProperty("ownedProjects")
+    public void setownedProjects(final List<PyroProject> ownedProjects) {
         this.ownedProjects = ownedProjects;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("systemRoles")
-    public java.util.List<PyroSystemRoleDB> getsystemRoles() {
+    @JsonProperty("systemRoles")
+    public List<PyroSystemRoleDB> getsystemRoles() {
         return this.systemRoles;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("systemRoles")
-    public void setsystemRoles(final java.util.List<PyroSystemRoleDB> systemRoles) {
+    @JsonProperty("systemRoles")
+    public void setsystemRoles(final List<PyroSystemRoleDB> systemRoles) {
         this.systemRoles = systemRoles;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("username")
-    public java.lang.String getusername() {
+    @JsonProperty("username")
+    public String getusername() {
         return this.username;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("username")
-    public void setusername(final java.lang.String username) {
+    @JsonProperty("username")
+    public void setusername(final String username) {
         this.username = username;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("email")
-    public java.lang.String getemail() {
+    @JsonProperty("email")
+    public String getemail() {
         return this.email;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("email")
-    public void setemail(final java.lang.String email) {
+    @JsonProperty("email")
+    public void setemail(final String email) {
         this.email = email;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("profilePicture")
+    @JsonProperty("profilePicture")
     public FileReference getprofilePicture() {
         return this.profilePicture;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("profilePicture")
+    @JsonProperty("profilePicture")
     public void setprofilePicture(final FileReference profilePicture) {
         this.profilePicture = profilePicture;
     }

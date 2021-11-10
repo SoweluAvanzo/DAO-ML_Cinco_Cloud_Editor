@@ -3,8 +3,10 @@ package info.scce.cincocloud.core.rest.types;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.db.PyroProjectDB;
 import info.scce.cincocloud.db.PyroProjectTypeDB;
+import info.scce.cincocloud.rest.ObjectCache;
+import info.scce.cincocloud.rest.RESTBaseImpl;
 
-public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
+public class PyroProject extends RESTBaseImpl {
 
     private PyroUser owner;
     private PyroOrganization organization;
@@ -14,7 +16,7 @@ public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
     private String name;
     private String description;
 
-    public static PyroProject fromEntity(final PyroProjectDB entity, info.scce.cincocloud.rest.ObjectCache objectCache) {
+    public static PyroProject fromEntity(final PyroProjectDB entity, final ObjectCache objectCache) {
 
         if (objectCache.containsRestTo(entity)) {
             return objectCache.getRestTo(entity);
@@ -77,22 +79,22 @@ public class PyroProject extends info.scce.cincocloud.rest.RESTBaseImpl {
     }
 
     @JsonProperty("name")
-    public java.lang.String getname() {
+    public String getname() {
         return this.name;
     }
 
     @JsonProperty("name")
-    public void setname(final java.lang.String name) {
+    public void setname(final String name) {
         this.name = name;
     }
 
     @JsonProperty("description")
-    public java.lang.String getdescription() {
+    public String getdescription() {
         return this.description;
     }
 
     @JsonProperty("description")
-    public void setdescription(final java.lang.String description) {
+    public void setdescription(final String description) {
         this.description = description;
     }
 

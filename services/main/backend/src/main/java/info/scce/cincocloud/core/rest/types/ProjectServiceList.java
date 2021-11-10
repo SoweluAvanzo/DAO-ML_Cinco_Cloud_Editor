@@ -3,12 +3,13 @@ package info.scce.cincocloud.core.rest.types;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.voodoodyne.jackson.jsog.JSOGGenerator;
+import java.util.LinkedList;
 import java.util.List;
 
 @JsonIdentityInfo(generator = JSOGGenerator.class)
 public class ProjectServiceList {
-    private List<String> active = new java.util.LinkedList<>();
-    private List<String> disabled = new java.util.LinkedList<>();
+    private List<String> active = new LinkedList<>();
+    private List<String> disabled = new LinkedList<>();
 
     @JsonProperty("active")
     public List<String> getActive() {

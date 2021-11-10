@@ -1,20 +1,23 @@
 package info.scce.cincocloud.core.rest.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.db.PyroStyleDB;
+import info.scce.cincocloud.rest.ObjectCache;
+import info.scce.cincocloud.rest.RESTBaseImpl;
 
-public class PyroStyle extends info.scce.cincocloud.rest.RESTBaseImpl {
+public class PyroStyle extends RESTBaseImpl {
 
-    private java.lang.String navBgColor;
-    private java.lang.String navTextColor;
-    private java.lang.String bodyBgColor;
-    private java.lang.String bodyTextColor;
-    private java.lang.String primaryBgColor;
-    private java.lang.String primaryTextColor;
+    private String navBgColor;
+    private String navTextColor;
+    private String bodyBgColor;
+    private String bodyTextColor;
+    private String primaryBgColor;
+    private String primaryTextColor;
     private FileReference logo;
 
     public static PyroStyle fromEntity(
             final PyroStyleDB entity,
-            final info.scce.cincocloud.rest.ObjectCache objectCache) {
+            final ObjectCache objectCache) {
 
         if (objectCache.containsRestTo(entity)) {
             return objectCache.getRestTo(entity);
@@ -39,72 +42,72 @@ public class PyroStyle extends info.scce.cincocloud.rest.RESTBaseImpl {
         return result;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("navBgColor")
-    public java.lang.String getnavBgColor() {
+    @JsonProperty("navBgColor")
+    public String getnavBgColor() {
         return this.navBgColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("navBgColor")
-    public void setnavBgColor(final java.lang.String navBgColor) {
+    @JsonProperty("navBgColor")
+    public void setnavBgColor(final String navBgColor) {
         this.navBgColor = navBgColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("navTextColor")
-    public java.lang.String getnavTextColor() {
+    @JsonProperty("navTextColor")
+    public String getnavTextColor() {
         return this.navTextColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("navTextColor")
-    public void setnavTextColor(final java.lang.String navTextColor) {
+    @JsonProperty("navTextColor")
+    public void setnavTextColor(final String navTextColor) {
         this.navTextColor = navTextColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("bodyBgColor")
-    public java.lang.String getbodyBgColor() {
+    @JsonProperty("bodyBgColor")
+    public String getbodyBgColor() {
         return this.bodyBgColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("bodyBgColor")
-    public void setbodyBgColor(final java.lang.String bodyBgColor) {
+    @JsonProperty("bodyBgColor")
+    public void setbodyBgColor(final String bodyBgColor) {
         this.bodyBgColor = bodyBgColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("bodyTextColor")
-    public java.lang.String getbodyTextColor() {
+    @JsonProperty("bodyTextColor")
+    public String getbodyTextColor() {
         return this.bodyTextColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("bodyTextColor")
-    public void setbodyTextColor(final java.lang.String bodyTextColor) {
+    @JsonProperty("bodyTextColor")
+    public void setbodyTextColor(final String bodyTextColor) {
         this.bodyTextColor = bodyTextColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("primaryBgColor")
-    public java.lang.String getprimaryBgColor() {
+    @JsonProperty("primaryBgColor")
+    public String getprimaryBgColor() {
         return this.primaryBgColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("primaryBgColor")
-    public void setprimaryBgColor(final java.lang.String primaryBgColor) {
+    @JsonProperty("primaryBgColor")
+    public void setprimaryBgColor(final String primaryBgColor) {
         this.primaryBgColor = primaryBgColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("primaryTextColor")
-    public java.lang.String getprimaryTextColor() {
+    @JsonProperty("primaryTextColor")
+    public String getprimaryTextColor() {
         return this.primaryTextColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("primaryTextColor")
-    public void setprimaryTextColor(final java.lang.String primaryTextColor) {
+    @JsonProperty("primaryTextColor")
+    public void setprimaryTextColor(final String primaryTextColor) {
         this.primaryTextColor = primaryTextColor;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("logo")
+    @JsonProperty("logo")
     public FileReference getlogo() {
         return this.logo;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("logo")
+    @JsonProperty("logo")
     public void setlogo(final FileReference logo) {
         this.logo = logo;
     }

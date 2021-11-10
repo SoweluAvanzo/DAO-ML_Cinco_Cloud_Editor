@@ -1,98 +1,114 @@
 package info.scce.cincocloud.core;
 
+import info.scce.cincocloud.core.rest.types.FileReference;
 import info.scce.cincocloud.db.BaseFileDB;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import javax.annotation.security.RolesAllowed;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import org.apache.commons.io.IOUtils;
+import org.jboss.resteasy.plugins.providers.multipart.InputPart;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
-@javax.transaction.Transactional
-@javax.ws.rs.Path("/files")
-@javax.enterprise.context.RequestScoped
+@Transactional
+@Path("/files")
+@RequestScoped
 public class FileReferenceController {
 
-    @javax.inject.Inject
+    @Inject
     FileController fileController;
 
-    @javax.ws.rs.POST
-    @javax.ws.rs.Path("/create")
-    @javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA)
-    @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response create(
-            final org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput input)
-            throws java.io.IOException {
+    @POST
+    @Path("/create")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("user")
+    public Response create(final MultipartFormDataInput input) throws java.io.IOException {
 
-        final java.util.List<org.jboss.resteasy.plugins.providers.multipart.InputPart> inputParts = input
-                .getFormDataMap().get("file");
+        final List<InputPart> inputParts = input.getFormDataMap().get("file");
+        
 
         if (inputParts == null || inputParts.isEmpty()) {
-            throw new javax.ws.rs.WebApplicationException("invalid request");
+            throw new WebApplicationException("invalid request");
         }
 
-        final org.jboss.resteasy.plugins.providers.multipart.InputPart inputPart = inputParts
-                .get(0);
-        final javax.ws.rs.core.MultivaluedMap<java.lang.String, java.lang.String> header = inputPart
-                .getHeaders();
+        final InputPart inputPart = inputParts.get(0);
+        final MultivaluedMap<String, String> header = inputPart.getHeaders();
 
-        java.lang.String fileName = "unknown";
-        final java.lang.String[] contentDisposition = header.getFirst(
-                "Content-Disposition").split(";");
+        String fileName = "unknown";
+        final String[] contentDisposition = header
+            .getFirst("Content-Disposition")
+            .split(";");
 
-        for (java.lang.String filename : contentDisposition) {
+        for (String filename : contentDisposition) {
             if ((filename.trim().startsWith("filename"))) {
-                final java.lang.String[] name = filename.split("=");
+                final String[] name = filename.split("=");
                 fileName = name[1].trim().replaceAll("\"", "");
                 break;
             }
         }
 
         final BaseFileDB reference = this.fileController
-                .storeFile(fileName,
-                        inputPart.getBody(java.io.InputStream.class, null));
+                .storeFile(fileName, inputPart.getBody(InputStream.class, null));
         reference.contentType = inputPart.getMediaType().toString();
         reference.persist();
-        return javax.ws.rs.core.Response.ok(
-                new info.scce.cincocloud.core.rest.types.FileReference(reference))
-                .build();
+        
+        return Response.ok(new FileReference(reference)).build();
     }
 
-    @javax.ws.rs.GET
-    @javax.ws.rs.Path("/download/{id}/private")
-    @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM)
-    public javax.ws.rs.core.Response download(@javax.ws.rs.PathParam("id") final long id) {
+    @GET
+    @Path("/download/{id}/private")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response download(@PathParam("id") final long id) {
         // TODO: SAMI: security
         final BaseFileDB reference = this.fileController.getFileReference(id);
-        final java.io.InputStream stream = this.fileController.loadFile(reference);
+        final InputStream stream = this.fileController.loadFile(reference);
 
         final byte[] result;
 
         try {
-            result = org.apache.commons.io.IOUtils.toByteArray(stream);
-        } catch (java.io.IOException e) {
-            throw new javax.ws.rs.WebApplicationException(e);
+            result = IOUtils.toByteArray(stream);
+        } catch (IOException e) {
+            throw new WebApplicationException(e);
         }
-
-        return javax.ws.rs.core.Response
+        
+        return Response
                 .ok(result, reference.contentType)
                 .header("Content-Disposition", "attachment; filename=" + (reference.filename + "." + reference.fileExtension))
                 .build();
     }
 
-    @javax.ws.rs.GET
-    @javax.ws.rs.Path("/read/{id}/private")
-    @javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM)
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response read(@javax.ws.rs.PathParam("id") final long id) {
+    @GET
+    @Path("/read/{id}/private")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RolesAllowed("user")
+    public Response read(@PathParam("id") final long id) {
 
         final BaseFileDB reference = this.fileController.getFileReference(id);
-        final java.io.InputStream stream = this.fileController.loadFile(reference);
+        final InputStream stream = this.fileController.loadFile(reference);
 
         final byte[] result;
 
         try {
-            result = org.apache.commons.io.IOUtils.toByteArray(stream);
-        } catch (java.io.IOException e) {
-            throw new javax.ws.rs.WebApplicationException(e);
+            result = IOUtils.toByteArray(stream);
+        } catch (IOException e) {
+            throw new WebApplicationException(e);
         }
 
-        return javax.ws.rs.core.Response
+        return Response
                 .ok(result, reference.contentType)
                 .build();
     }

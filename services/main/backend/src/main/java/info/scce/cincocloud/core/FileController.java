@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import javax.enterprise.context.ApplicationScoped;
 import info.scce.cincocloud.db.BaseFileDB;
+import org.apache.commons.io.FilenameUtils;
 
 @ApplicationScoped
 public class FileController {
@@ -50,10 +51,10 @@ public class FileController {
 
     public BaseFileDB storeFile(final String fileName, final InputStream data) throws IOException {
         final BaseFileDB result = new BaseFileDB();
-        result.filename = org.apache.commons.io.FilenameUtils.removeExtension(fileName);
+        result.filename = FilenameUtils.removeExtension(fileName);
 
-        if (org.apache.commons.io.FilenameUtils.indexOfExtension(fileName) > -1) {
-            result.fileExtension = org.apache.commons.io.FilenameUtils.getExtension(fileName);
+        if (FilenameUtils.indexOfExtension(fileName) > -1) {
+            result.fileExtension = FilenameUtils.getExtension(fileName);
         } else {
             result.fileExtension = null;
         }

@@ -1,6 +1,5 @@
 package info.scce.cincocloud.core;
 
-import javax.ws.rs.core.SecurityContext;
 import info.scce.cincocloud.core.rest.types.PyroOrganization;
 import info.scce.cincocloud.core.rest.types.PyroUser;
 import info.scce.cincocloud.db.BaseFileDB;
@@ -14,30 +13,49 @@ import info.scce.cincocloud.db.PyroSystemRoleDB;
 import info.scce.cincocloud.db.PyroUserDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.util.DefaultColors;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import javax.annotation.security.RolesAllowed;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
-@javax.transaction.Transactional
-@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-@javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
-@javax.ws.rs.Path("/organization")
-@javax.enterprise.context.RequestScoped
+@Transactional
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@Path("/organization")
+@RequestScoped
 public class OrganizationController {
 
-    @javax.inject.Inject
+    @Inject
     ProjectService projectService;
 
-    @javax.inject.Inject
+    @Inject
     ObjectCache objectCache;
 
-    @javax.ws.rs.GET
-    @javax.ws.rs.Path("/")
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response getAll(@javax.ws.rs.core.Context SecurityContext securityContext) {
+    @GET
+    @Path("/")
+    @RolesAllowed("user")
+    public Response getAll(@Context SecurityContext securityContext) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         if (subject != null) {
-            final java.util.List<PyroOrganizationDB> result = PyroOrganizationDB.listAll();
+            final List<PyroOrganizationDB> result = PyroOrganizationDB.listAll();
 
-            final java.util.List<PyroOrganization> orgs = new java.util.LinkedList<>();
+            final List<PyroOrganization> orgs = new LinkedList<>();
             if (isOrgManager(subject)) {
                 for (PyroOrganizationDB org : result) {
                     orgs.add(PyroOrganization.fromEntity(org, objectCache));
@@ -50,56 +68,56 @@ public class OrganizationController {
                 }
             }
 
-            return javax.ws.rs.core.Response.ok(orgs).build();
+            return Response.ok(orgs).build();
         }
 
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    @javax.ws.rs.GET
-    @javax.ws.rs.Path("/{orgId}")
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response get(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("orgId") final long orgId) {
+    @GET
+    @Path("/{orgId}")
+    @RolesAllowed("user")
+    public Response get(@Context SecurityContext securityContext, @PathParam("orgId") final long orgId) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         if (subject != null) {
             final PyroOrganizationDB org = PyroOrganizationDB.findById(orgId);
             if (org == null) {
-                return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             if (isMemberOf(subject, org) || isOwnerOf(subject, org) || isOrgManager(subject)) {
-                return javax.ws.rs.core.Response.ok(PyroOrganization.fromEntity(org, objectCache)).build();
+                return Response.ok(PyroOrganization.fromEntity(org, objectCache)).build();
             }
         }
 
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    @javax.ws.rs.POST
-    @javax.ws.rs.Path("/{orgId}/leave")
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response leave(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("orgId") final long orgId) {
+    @POST
+    @Path("/{orgId}/leave")
+    @RolesAllowed("user")
+    public Response leave(@Context SecurityContext securityContext, @PathParam("orgId") final long orgId) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         final PyroOrganizationDB org = PyroOrganizationDB.findById(orgId);
         if (subject != null) {
             if (!removeFromOrganization(subject, org)) {
-                return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
+                return Response.status(Response.Status.BAD_REQUEST).build();
             }
             org.persist();
             subject.persist();
 
-            return javax.ws.rs.core.Response.ok().build();
+            return Response.ok().build();
         }
 
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    @javax.ws.rs.POST
-    @javax.ws.rs.Path("/{orgId}/addMember")
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response addMember(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("orgId") final long orgId, PyroUser user) {
+    @POST
+    @Path("/{orgId}/addMember")
+    @RolesAllowed("user")
+    public Response addMember(@Context SecurityContext securityContext, @PathParam("orgId") final long orgId, PyroUser user) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         final PyroOrganizationDB org = PyroOrganizationDB.findById(orgId);
@@ -108,12 +126,12 @@ public class OrganizationController {
             final PyroUserDB member = PyroUserDB.findById(user.getId());
 
             if (org == null || member == null) {
-                return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             if (org.owners.contains(member)) {
                 if (org.owners.size() == 1) { // do not make the ownly owner a member of the org
-                    return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
+                    return Response.status(Response.Status.BAD_REQUEST).build();
                 }
                 org.owners.remove(member);
             }
@@ -124,16 +142,16 @@ public class OrganizationController {
 
             org.members.add(member);
             org.persist();
-            return javax.ws.rs.core.Response.ok(PyroOrganization.fromEntity(org, objectCache)).build();
+            return Response.ok(PyroOrganization.fromEntity(org, objectCache)).build();
         }
 
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    @javax.ws.rs.POST
-    @javax.ws.rs.Path("/{orgId}/addOwner")
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response addOwner(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("orgId") final long orgId, PyroUser user) {
+    @POST
+    @Path("/{orgId}/addOwner")
+    @RolesAllowed("user")
+    public Response addOwner(@Context SecurityContext securityContext, @PathParam("orgId") final long orgId, PyroUser user) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         final PyroOrganizationDB org = PyroOrganizationDB.findById(orgId);
@@ -142,7 +160,7 @@ public class OrganizationController {
             final PyroUserDB owner = PyroUserDB.findById(user.getId());
 
             if (org == null || owner == null) {
-                return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             org.members.remove(owner);
@@ -153,16 +171,16 @@ public class OrganizationController {
 
             org.owners.add(owner);
             org.persist();
-            return javax.ws.rs.core.Response.ok(PyroOrganization.fromEntity(org, objectCache)).build();
+            return Response.ok(PyroOrganization.fromEntity(org, objectCache)).build();
         }
 
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    @javax.ws.rs.POST
-    @javax.ws.rs.Path("/{orgId}/removeUser")
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response removeUser(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("orgId") final long orgId, PyroUser user) {
+    @POST
+    @Path("/{orgId}/removeUser")
+    @RolesAllowed("user")
+    public Response removeUser(@Context SecurityContext securityContext, @PathParam("orgId") final long orgId, PyroUser user) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         final PyroOrganizationDB org = PyroOrganizationDB.findById(orgId);
@@ -171,11 +189,11 @@ public class OrganizationController {
             final PyroUserDB userToRemove = PyroUserDB.findById(user.getId());
 
             if (org == null || userToRemove == null) {
-                return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             if (!removeFromOrganization(userToRemove, org)) {
-                return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
+                return Response.status(Response.Status.BAD_REQUEST).build();
             }
             org.persist();
 
@@ -188,25 +206,25 @@ public class OrganizationController {
                 project.persist();
             }
 
-            return javax.ws.rs.core.Response.ok(PyroOrganization.fromEntity(org, objectCache)).build();
+            return Response.ok(PyroOrganization.fromEntity(org, objectCache)).build();
         }
 
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    @javax.ws.rs.POST
-    @javax.ws.rs.Path("/")
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response create(@javax.ws.rs.core.Context SecurityContext securityContext, PyroOrganization newOrg) {
+    @POST
+    @Path("/")
+    @RolesAllowed("user")
+    public Response create(@Context SecurityContext securityContext, PyroOrganization newOrg) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         if (mayCreateOrganization(subject)) {
             final PyroOrganizationDB org = this.createOrganization(newOrg.getname(), newOrg.getdescription(), subject);
 
-            return javax.ws.rs.core.Response.ok(PyroOrganization.fromEntity(org, objectCache)).build();
+            return Response.ok(PyroOrganization.fromEntity(org, objectCache)).build();
         }
 
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     public PyroOrganizationDB createOrganization(String name, String description, PyroUserDB subject) {
@@ -240,20 +258,20 @@ public class OrganizationController {
         return org;
     }
 
-    @javax.ws.rs.PUT
-    @javax.ws.rs.Path("/{orgId}")
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response update(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("orgId") final long orgId, PyroOrganization organization) {
+    @PUT
+    @Path("/{orgId}")
+    @RolesAllowed("user")
+    public Response update(@Context SecurityContext securityContext, @PathParam("orgId") final long orgId, PyroOrganization organization) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         if (subject != null) {
             final PyroOrganizationDB orgInDB = PyroOrganizationDB.findById(orgId);
             if (orgInDB == null) {
-                return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             if ((orgInDB.id != organization.getId()) || organization.getname().trim().equals("")) {
-                return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
+                return Response.status(Response.Status.BAD_REQUEST).build();
             }
 
             if (isOwnerOf(subject, orgInDB)) {
@@ -278,22 +296,22 @@ public class OrganizationController {
                 }
                 style.persist();
 
-                return javax.ws.rs.core.Response.ok(PyroOrganization.fromEntity(orgInDB, objectCache)).build();
+                return Response.ok(PyroOrganization.fromEntity(orgInDB, objectCache)).build();
             }
         }
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    @javax.ws.rs.DELETE
-    @javax.ws.rs.Path("/{orgId}")
-    @javax.annotation.security.RolesAllowed("user")
-    public javax.ws.rs.core.Response delete(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("orgId") final long orgId) {
+    @DELETE
+    @Path("/{orgId}")
+    @RolesAllowed("user")
+    public Response delete(@Context SecurityContext securityContext, @PathParam("orgId") final long orgId) {
         final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
 
         if (subject != null) {
             final PyroOrganizationDB orgInDB = PyroOrganizationDB.findById(orgId);
             if (orgInDB == null) {
-                return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.NOT_FOUND).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             if (isOrgManager(subject) || isOwnerOf(subject, orgInDB)) {
@@ -304,15 +322,15 @@ public class OrganizationController {
                 orgInDB.owners.clear();
                 orgInDB.projects.clear();
                 orgInDB.delete();
-                return javax.ws.rs.core.Response.ok(PyroOrganization.fromEntity(orgInDB, objectCache)).build();
+                return Response.ok(PyroOrganization.fromEntity(orgInDB, objectCache)).build();
             }
         }
 
-        return javax.ws.rs.core.Response.status(javax.ws.rs.core.Response.Status.FORBIDDEN).build();
+        return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     private void deleteAllProjects(PyroOrganizationDB org, PyroUserDB subject, SecurityContext securityContext) {
-        java.util.Iterator<PyroProjectDB> iter = org.projects.iterator();
+        Iterator<PyroProjectDB> iter = org.projects.iterator();
         while (iter.hasNext()) {
             PyroProjectDB project = iter.next();
             projectService.deleteById(subject, project.id, securityContext);
@@ -323,14 +341,13 @@ public class OrganizationController {
     private PyroOrganizationAccessRightVectorDB findAccessRightVector(
             PyroUserDB user,
             PyroOrganizationDB org) {
-
-
-        final java.util.List<PyroOrganizationAccessRightVectorDB> result = PyroOrganizationAccessRightVectorDB.list("user = ?1 and organization = ?2", user, org);
+        
+        final List<PyroOrganizationAccessRightVectorDB> result = PyroOrganizationAccessRightVectorDB.list("user = ?1 and organization = ?2", user, org);
         return result.size() == 1 ? result.get(0) : null;
     }
 
-    private java.util.List<PyroOrganizationAccessRightVectorDB> findAccessRightVectors(PyroOrganizationDB org) {
-        final java.util.List<PyroOrganizationAccessRightVectorDB> result = PyroOrganizationAccessRightVectorDB.list("organization = ?1", org);
+    private List<PyroOrganizationAccessRightVectorDB> findAccessRightVectors(PyroOrganizationDB org) {
+        final List<PyroOrganizationAccessRightVectorDB> result = PyroOrganizationAccessRightVectorDB.list("organization = ?1", org);
         return result;
     }
 
@@ -371,7 +388,7 @@ public class OrganizationController {
     }
 
     private void deleteAccessRightVectors(PyroOrganizationDB org) {
-        java.util.List<PyroOrganizationAccessRightVectorDB> accessRightVectors = findAccessRightVectors(org);
+        List<PyroOrganizationAccessRightVectorDB> accessRightVectors = findAccessRightVectors(org);
         for (PyroOrganizationAccessRightVectorDB e : accessRightVectors) {
             e.accessRights.clear();
             e.organization = null;

@@ -1,11 +1,15 @@
 package info.scce.cincocloud.core.rest.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.db.PyroOrganizationAccessRightDB;
 import info.scce.cincocloud.db.PyroOrganizationAccessRightVectorDB;
+import info.scce.cincocloud.rest.RESTBaseImpl;
+import java.util.LinkedList;
+import java.util.List;
 
-public class PyroOrganizationAccessRightVector extends info.scce.cincocloud.rest.RESTBaseImpl {
+public class PyroOrganizationAccessRightVector extends RESTBaseImpl {
 
-    private java.util.List<PyroOrganizationAccessRightDB> accessRights = new java.util.LinkedList<>();
+    private List<PyroOrganizationAccessRightDB> accessRights = new LinkedList<>();
     private PyroUser user;
     private PyroOrganization organization;
 
@@ -33,32 +37,32 @@ public class PyroOrganizationAccessRightVector extends info.scce.cincocloud.rest
         return result;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("accessRights")
-    public java.util.List<PyroOrganizationAccessRightDB> getaccessRights() {
+    @JsonProperty("accessRights")
+    public List<PyroOrganizationAccessRightDB> getaccessRights() {
         return this.accessRights;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("accessRights")
-    public void setaccessRights(final java.util.List<PyroOrganizationAccessRightDB> accessRights) {
+    @JsonProperty("accessRights")
+    public void setaccessRights(final List<PyroOrganizationAccessRightDB> accessRights) {
         this.accessRights = accessRights;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("user")
+    @JsonProperty("user")
     public PyroUser getuser() {
         return this.user;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("user")
+    @JsonProperty("user")
     public void setuser(final PyroUser user) {
         this.user = user;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("organization")
+    @JsonProperty("organization")
     public PyroOrganization getorganization() {
         return this.organization;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("organization")
+    @JsonProperty("organization")
     public void setorganization(final PyroOrganization organization) {
         this.organization = organization;
     }

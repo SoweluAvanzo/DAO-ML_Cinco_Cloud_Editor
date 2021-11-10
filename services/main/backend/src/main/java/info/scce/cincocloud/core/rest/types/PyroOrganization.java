@@ -1,21 +1,27 @@
 package info.scce.cincocloud.core.rest.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.db.PyroOrganizationDB;
 import info.scce.cincocloud.db.PyroProjectDB;
 import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.rest.ObjectCache;
+import info.scce.cincocloud.rest.RESTBaseImpl;
+import java.util.LinkedList;
+import java.util.List;
 
-public class PyroOrganization extends info.scce.cincocloud.rest.RESTBaseImpl {
-
-    private java.lang.String name;
-    private java.lang.String description;
-    private java.util.List<PyroUser> owners = new java.util.LinkedList<>();
-    private java.util.List<PyroUser> members = new java.util.LinkedList<>();
-    private java.util.List<PyroProject> projects = new java.util.LinkedList<>();
+public class PyroOrganization extends RESTBaseImpl {
+    
+    private String name;
+    private String description;
+    private List<PyroUser> owners = new LinkedList<>();
+    private List<PyroUser> members = new LinkedList<>();
+    private List<PyroProject> projects = new LinkedList<>();
     private PyroStyle style;
 
     public static PyroOrganization fromEntity(
-            final PyroOrganizationDB entity,
-            final info.scce.cincocloud.rest.ObjectCache objectCache) {
+        final PyroOrganizationDB entity,
+        final ObjectCache objectCache
+    ) {
 
         if (objectCache.containsRestTo(entity)) {
             return objectCache.getRestTo(entity);
@@ -45,62 +51,62 @@ public class PyroOrganization extends info.scce.cincocloud.rest.RESTBaseImpl {
         return result;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("name")
-    public java.lang.String getname() {
+    @JsonProperty("name")
+    public String getname() {
         return this.name;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("name")
-    public void setname(final java.lang.String name) {
+    @JsonProperty("name")
+    public void setname(final String name) {
         this.name = name;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("description")
-    public java.lang.String getdescription() {
+    @JsonProperty("description")
+    public String getdescription() {
         return this.description;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("description")
-    public void setdescription(final java.lang.String description) {
+    @JsonProperty("description")
+    public void setdescription(final String description) {
         this.description = description;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("owners")
-    public java.util.List<PyroUser> getowners() {
+    @JsonProperty("owners")
+    public List<PyroUser> getowners() {
         return this.owners;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("owners")
-    public void setowners(final java.util.List<PyroUser> owners) {
+    @JsonProperty("owners")
+    public void setowners(final List<PyroUser> owners) {
         this.owners = owners;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("members")
-    public java.util.List<PyroUser> getmembers() {
+    @JsonProperty("members")
+    public List<PyroUser> getmembers() {
         return this.members;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("members")
-    public void setmembers(final java.util.List<PyroUser> members) {
+    @JsonProperty("members")
+    public void setmembers(final List<PyroUser> members) {
         this.members = members;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("projects")
-    public java.util.List<PyroProject> getprojects() {
+    @JsonProperty("projects")
+    public List<PyroProject> getprojects() {
         return this.projects;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("projects")
-    public void setprojects(final java.util.List<PyroProject> projects) {
+    @JsonProperty("projects")
+    public void setprojects(final List<PyroProject> projects) {
         this.projects = projects;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("style")
+    @JsonProperty("style")
     public PyroStyle getstyle() {
         return this.style;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("style")
+    @JsonProperty("style")
     public void setstyle(final PyroStyle style) {
         this.style = style;
     }
