@@ -2,7 +2,7 @@
 
 FROM docker.io/library/openjdk:11-slim-buster as builder
 WORKDIR /app
-COPY ./main/backend/src/main/resources/proto/cinco-cloud.proto /app/main/backend/src/main/resources/proto/cinco-cloud.proto
+COPY ./resources/proto/cinco-cloud.proto /app/resources/proto/cinco-cloud.proto
 COPY ./workspace-builder/pom.xml /app/workspace-builder/pom.xml
 COPY ./workspace-builder/.mvn /app/workspace-builder/.mvn
 COPY ./workspace-builder/mvnw /app/workspace-builder/mvnw

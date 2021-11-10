@@ -1,3 +1,5 @@
+## build from parent directory: docker build -f main/Dockerfile .
+
 #
 # Build the angular dart frontend.
 #
@@ -7,11 +9,11 @@
 FROM docker.io/google/dart:2.4.1 as builder-frontend
 WORKDIR /app/frontend
 RUN pub global activate webdev
-COPY ./frontend/pubspec.yaml /app/frontend
-COPY ./frontend/build.yaml /app/frontend
+COPY ./main/frontend/pubspec.yaml /app/frontend
+COPY ./main/frontend/build.yaml /app/frontend
 RUN pub get
-COPY ./frontend/web /app/frontend/web
-COPY ./frontend/lib /app/frontend/lib
+COPY ./main/frontend/web /app/frontend/web
+COPY ./main/frontend/lib /app/frontend/lib
 RUN pub run build_runner build -o build
 
 #
@@ -19,14 +21,15 @@ RUN pub run build_runner build -o build
 # folder so that we can build a fat jar that includes the frontend.
 #
 FROM docker.io/library/openjdk:15-jdk-slim as builder-backend
-WORKDIR /app/backend
-COPY ./backend/.mvn /app/backend/.mvn
-COPY ./backend/mvnw /app/backend/
-COPY ./backend/pom.xml /app/backend/
+WORKDIR /app/main/backend
+COPY ./resources/proto/cinco-cloud.proto /app/resources/proto/cinco-cloud.proto
+COPY ./main/backend/.mvn /app/main/backend/.mvn
+COPY ./main/backend/mvnw /app/main/backend/
+COPY ./main/backend/pom.xml /app/main/backend/
 RUN ./mvnw verify
-COPY ./backend/src /app/backend/src
-COPY --from=builder-frontend /app/frontend/build/web/ /app/backend/src/main/resources/META-INF/resources/
-COPY --from=builder-frontend /app/frontend/build/packages/ /app/backend/src/main/resources/META-INF/resources/packages/
+COPY ./main/backend/src /app/main/backend/src
+COPY --from=builder-frontend /app/frontend/build/web/ /app/main/backend/src/main/resources/META-INF/resources/
+COPY --from=builder-frontend /app/frontend/build/packages/ /app/main/backend/src/main/resources/META-INF/resources/packages/
 RUN ./mvnw package -DskipTests
 
 #
@@ -36,7 +39,7 @@ FROM docker.io/library/ubuntu:20.10
 WORKDIR /app
 RUN apt-get -y update
 RUN apt-get -y install runc buildah openjdk-11-jdk
-COPY --from=builder-backend /app/backend/target/quarkus-app/ /app
+COPY --from=builder-backend /app/main/backend/target/quarkus-app/ /app
 EXPOSE 8000 9000
 CMD java \
     -Dquarkus.datasource.jdbc.url="jdbc:postgresql://${DATABASE_URL}" \

@@ -19,9 +19,9 @@ build:
     gitCommit: { }
   artifacts:
     - image: registry.gitlab.com/scce/cinco-cloud/main
-      context: ./services/main
+      context: ./services
       docker:
-        dockerfile: Dockerfile
+        dockerfile: ./main/Dockerfile
     - image: registry.gitlab.com/scce/cinco-cloud/registry
       context: ./services/registry
       docker:
