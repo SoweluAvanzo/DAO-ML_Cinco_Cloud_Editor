@@ -635,7 +635,10 @@ class GraphmodelComponent extends Generatable {
 		  	  	     cb_delete_selected,
 		  	  	     cb_cursor_moved,
 		  	  	     cb_property_persist,
-		  	  	     «FOR elem : g.elements.filter[!isIsAbstract].filter[!isType] SEPARATOR ","»
+		  	  	     «FOR elem : g.elements.filter[!isIsAbstract]
+		  	  	     	.filter[!(it instanceof GraphModel)]
+		  	  	     	.filter[!isType]
+		  	  	     SEPARATOR ","»
 		  	  	     	«IF elem instanceof Node»
 		  	  	     		cb_create_node_«elem.jsCall(g)»,
 		  	  	     		cb_remove_node_«elem.jsCall(g)»,

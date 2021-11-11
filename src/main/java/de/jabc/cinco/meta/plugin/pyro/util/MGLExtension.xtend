@@ -230,62 +230,88 @@ class MGLExtension {
 	}
 	
 	/**
-	 * Returns all Elements that can be contained by the given ContainingElement
+	 * Returns all Elements that are related to the given ContainingElement
 	 */
 	private def Iterable<ModelElement> elementsTopologically(ContainingElement g, Set<ModelElement> cache) {
 		var elements = new HashSet<ModelElement>
 		var result = new HashSet<ModelElement>
 		
-		// resolve types that can be contained
+		// resolve types that are directly related
 		val directContainable = g.containableElements.map[types].flatten
-		elements.addAll(directContainable)		
-		val types = (g.MGLModel as MGLModel).types.filter(UserDefinedType).toSet
-		elements.addAll(types)
+		val attributes = (g as ModelElement).attributeElements
+		elements.addAll(attributes);
+		elements.addAll(directContainable)
 		
 		// resolve hierarchical subTypes and superTypes, that can be contained
 		for(e : elements) {
-			val subTypesAndType = e.resolveAllSubTypesAndType + #[e];
-			for(s : subTypesAndType) {
-				if(!cache.contains(s) && !result.contains(s)) {
-					result.add(s)
-					// nesting
-					if(s instanceof ContainingElement) {
-						val newNested = s.elementsTopologically((cache + result).toSet)
-						result.addAll(newNested)
-					}
-					// find and handle edges
-					if(s instanceof Node) {
-						val edges = s.possibleIncoming + s.possibleOutgoing
-						for(edge : edges) {
-							if(!cache.contains(edge) && !result.contains(edge)) {
-								result.add(edge)
-							}
-						}					
-					}
-				}
-			}
-			val superTypesAndType = e.resolveSuperTypesAndType.filter(ModelElement)
-			for(s : superTypesAndType) {
-				if(!cache.contains(s) && !result.contains(s)) {
-					result.add(s)
-					// nesting
-					if(s instanceof ContainingElement) {
-						val newNested = s.elementsTopologically((cache + result).toSet)
-						result.addAll(newNested)
-					}
-					// find and handle edges
-					if(s instanceof Node) {
-						val edges = s.possibleIncoming + s.possibleOutgoing
-						for(edge : edges) {
-							if(!cache.contains(edge) && !result.contains(edge)) {
-								result.add(edge)
-							}
-						}					
-					}
-				}
+			if(!cache.contains(e) && !result.contains(e))
+				result += e.collectTypes(cache)
+		}
+		
+		result
+	}
+	
+	def Set<ModelElement> collectTypes(ModelElement e, Set<ModelElement> cache) {
+		var result = new HashSet<ModelElement>
+		val subTypes = e.resolveAllSubTypesAndType;
+		val superTypesAndType = e.resolveSuperTypesAndType.filter(ModelElement)
+		val superAndSubTypes = subTypes + superTypesAndType
+		
+		for(s : superAndSubTypes) {
+			if(!cache.contains(s) && !result.contains(s)) {
+				result.add(s)
+				cache.add(s)
+				
+				// handle attributes
+				result += s.collectAttributes(cache)
+				
+				// find and handle edges
+				result += s.collectEdges(cache)
+				
+				// handle contained elements
+				result += s.collectNested(cache)
 			}
 		}
 		result
+	}
+	
+	def Set<ModelElement> collectAttributes(ModelElement s, Set<ModelElement> cache) {
+		var result = new HashSet<ModelElement>
+		val attributeTypes = (s as ModelElement).attributeElements
+		for(t : attributeTypes) {
+			result.addAll(
+				t.collectTypes(cache)
+			);
+		}
+		result
+	}
+	
+	def Set<ModelElement> collectEdges(ModelElement s, Set<ModelElement> cache) {
+		var result = new HashSet<ModelElement>
+		if(s instanceof Node) {
+			val edges = s.possibleIncoming + s.possibleOutgoing
+			for(edge : edges) {
+				if(!cache.contains(edge) && !result.contains(edge)) {
+					result.addAll(
+						edge.collectTypes(cache)
+					);
+				}
+			}					
+		}
+		result
+	}
+	
+	def Set<ModelElement> collectNested(ModelElement s, Set<ModelElement> cache) {
+		var result = new HashSet<ModelElement>
+		if(s instanceof ContainingElement) {
+			val newNested = s.elementsTopologically((cache + result).toSet)
+			result.addAll(newNested)
+		}
+		result
+	}
+	
+	def getAttributeElements(ModelElement e) {
+		(e as ModelElement).attributesExtended.filter[!isPrimitive].filter(ComplexAttribute).map[type].filter(ModelElement).toSet
 	}
 	
 	/**
@@ -529,7 +555,7 @@ class MGLExtension {
 			return '''«attr.apiFQN»'''
 		}
 		if (attr.attributeTypeName.getEnum(g) !== null) {
-			return g.apiFQN + "." + attr.attributeTypeName.fuEscapeJava
+			return '''«attr.apiFQN»'''
 		}
 		switch (attr.attributeTypeName) {
 			case "EBoolean": {
@@ -1185,7 +1211,7 @@ class MGLExtension {
 	}
 
 	def elementsAndTypesAndGraphModels(GraphModel g) {
-		return g.elementsAndTypes + #[g]
+		return (g.elementsAndTypes + #[g]).toSet
 	}
 
 	def elementsAndTypesAndEnums(MGLModel model) {
@@ -1221,7 +1247,9 @@ class MGLExtension {
 
 	def isPrimitive(Attribute attr) {
 		val mglModel = attr.MGLModel as MGLModel
-		if (attr instanceof ComplexAttribute)
+		if (attr instanceof ComplexAttribute
+			&& !((attr as ComplexAttribute).type instanceof Enumeration)
+		)
 			return false
 		primitiveETypes.contains(attr.attributeTypeName) || attr.attributeTypeName.getEnum(mglModel) !== null
 	}

@@ -240,7 +240,7 @@ class Generator extends FileGenerator {
 			mglModels.forEach [ m |
 				val path = "lib/" + m.propertyPackagePath
 
-				m.graphModels.forEach [ g |
+				m.discreteGraphModels.forEach [ g |
 					val treeGen = new GraphmodelTree(gc)
 					generateFile(
 						path,

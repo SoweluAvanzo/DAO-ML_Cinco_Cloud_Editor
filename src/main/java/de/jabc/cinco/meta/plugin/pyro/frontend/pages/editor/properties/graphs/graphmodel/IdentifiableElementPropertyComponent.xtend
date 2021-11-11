@@ -68,7 +68,6 @@ class IdentifiableElementPropertyComponent extends Generatable {
 		  		});
 		  	«ENDFOR»
 		  }
-		 
 		  
 		  void valueChanged(dynamic e) {
 		  	hasChangedSC.add(currentElement);
@@ -79,7 +78,7 @@ class IdentifiableElementPropertyComponent extends Generatable {
 		  
 		  //get for enumeration literals
 		  «FOR attr:me.attributesExtended.filter[attributeTypeName.getEnum(g)!==null].filter[!isHidden]»
-			«attr.attributeTypeName» parse«attr.name»Enum(String e) {
+			«attr.dartFQN» parse«attr.name»Enum(String e) {
 				switch(e) {
 				  «FOR lit:attr.attributeTypeName.getEnum(g).literals»
 				  	case "«attr.attributeTypeName.fuEscapeDart».«lit.escapeDart»": return «g.name.lowEscapeDart».«attr.attributeTypeName.fuEscapeDart».«lit.escapeDart»;

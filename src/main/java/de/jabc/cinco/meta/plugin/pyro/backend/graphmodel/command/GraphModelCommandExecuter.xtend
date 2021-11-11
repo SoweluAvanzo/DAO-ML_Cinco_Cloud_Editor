@@ -14,7 +14,6 @@ import mgl.GraphicalModelElement
 import mgl.MGLModel
 import mgl.ModelElement
 import mgl.Node
-import mgl.NodeContainer
 import mgl.UserDefinedType
 import style.AbstractShape
 import style.BooleanEnum
@@ -339,7 +338,7 @@ class GraphModelCommandExecuter extends Generatable {
 			    }
 			    
 			    public void updateIdentifiableElement(IdentifiableElement entity, info.scce.pyro.core.graphmodel.IdentifiableElement prev) {
-				    «FOR e:g.elements.filter[!isIsAbstract]+#[g]»
+				    «FOR e:g.elements.filter[!isIsAbstract]»
 				    	if(entity instanceof «e.apiFQN») {
 				    		update«e.name.fuEscapeJava»Properties((«e.apiFQN») entity,(«e.restFQN»)prev);
 				    		return;
@@ -347,7 +346,7 @@ class GraphModelCommandExecuter extends Generatable {
 				    «ENDFOR»
 			    }
 		
-				«FOR e:g.elements.filter[!isIsAbstract]+#[g]»
+				«FOR e:g.elements.filter[!isIsAbstract]»
 					public void update«e.name.fuEscapeJava»Properties(«e.apiFQN» entity, «e.restFQN» prev) {
 						super.updatePropertiesReNew(
 							TypeRegistry.getTypeOf(entity),
@@ -711,7 +710,7 @@ class GraphModelCommandExecuter extends Generatable {
 								«ELSE»
 									if(entity.get«attr.name.fuEscapeJava»() != null) {
 										«dbTypeName» cp«attr.name.escapeJava» = entity.get«attr.name.fuEscapeJava»();
-										«g.apiFQN».«attr.attributeTypeName.fuEscapeJava» apiEntity = («g.apiFQN».«attr.attributeTypeName.fuEscapeJava») TypeRegistry.getDBToApi(cp«attr.name.escapeJava», this);
+										«attr.apiFQN» apiEntity = («attr.apiFQN») TypeRegistry.getDBToApi(cp«attr.name.escapeJava», this);
 										remove«attr.attributeTypeName.fuEscapeJava»(apiEntity);
 									}
 								«ENDIF»

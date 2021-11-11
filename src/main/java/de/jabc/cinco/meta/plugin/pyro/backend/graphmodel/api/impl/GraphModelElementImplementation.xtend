@@ -655,11 +655,11 @@ class GraphModelElementImplementation extends Generatable {
 							«IF attr.isList»
 									java.util.Collection<«dbTypeName»> entityList = this.delegate.get«attr.name.fuEscapeJava»();
 									return («attributeType») entityList.stream().map(n -> {
-										return («rawType») «typeRegistry».getDBToApi(n, this.cmdExecuter«IF !attr.isModelElement», this, prev«ENDIF»);
+										return («rawType») «typeRegistry».getDBToApi(n, this.cmdExecuter);
 									}).collect(java.util.stream.Collectors.toList());
 							«ELSE»
 									«dbTypeName» attribute = this.delegate.get«attr.name.fuEscapeJava»();
-									return («attributeType») «typeRegistry».getDBToApi(attribute, this.cmdExecuter«IF !attr.isModelElement», this, prev«ENDIF»);
+									return («attributeType») «typeRegistry».getDBToApi(attribute, this.cmdExecuter);
 							«ENDIF»
 						«ENDIF»
 					}
