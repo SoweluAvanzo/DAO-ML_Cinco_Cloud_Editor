@@ -13,33 +13,36 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @ApplicationScoped
 public class RemoveUntaggedImagesTaskBean {
 
-    private static final Logger LOGGER = Logger.getLogger(RemoveUntaggedImagesTaskBean.class.getName());
+  private static final Logger LOGGER = Logger
+      .getLogger(RemoveUntaggedImagesTaskBean.class.getName());
 
-    private static final String API_PATH = "/api/registry/gc/run";
+  private static final String API_PATH = "/api/registry/gc/run";
 
-    @ConfigProperty(name = "podman.registry.host")
-    String registryHost;
+  @ConfigProperty(name = "podman.registry.host")
+  String registryHost;
 
-    @ConfigProperty(name = "podman.registry.api.port")
-    Integer registryApiPort;
+  @ConfigProperty(name = "podman.registry.api.port")
+  Integer registryApiPort;
 
-    @Inject
-    Vertx vertx;
+  @Inject
+  Vertx vertx;
 
-    @Transactional
-    @Scheduled(every = "1h", identity = "remove-untagged-images-task")
-    void schedule() {
-        final var webClient = WebClient.create(vertx);
-        LOGGER.log(Level.INFO, "Make request to: {0}", new Object[]{getGarbageCollectionUrl()});
-        final var request = webClient.post(registryApiPort, registryHost, API_PATH).send();
-        request.subscribe().with(req -> {
-            LOGGER.log(Level.INFO, "Removed untagged images in registry: {0}", new Object[]{req.bodyAsString()});
-        }, err -> {
-            LOGGER.log(Level.INFO, "Failed to remove untagged images in registry: {0}", new Object[]{err.getMessage()});
-        });
-    }
+  @Transactional
+  @Scheduled(every = "1h", identity = "remove-untagged-images-task")
+  void schedule() {
+    final var webClient = WebClient.create(vertx);
+    LOGGER.log(Level.INFO, "Make request to: {0}", new Object[] {getGarbageCollectionUrl()});
+    final var request = webClient.post(registryApiPort, registryHost, API_PATH).send();
+    request.subscribe().with(req -> {
+      LOGGER.log(Level.INFO, "Removed untagged images in registry: {0}",
+          new Object[] {req.bodyAsString()});
+    }, err -> {
+      LOGGER.log(Level.INFO, "Failed to remove untagged images in registry: {0}",
+          new Object[] {err.getMessage()});
+    });
+  }
 
-    private String getGarbageCollectionUrl() {
-        return "http://" + registryHost + ":" + registryApiPort + API_PATH;
-    }
+  private String getGarbageCollectionUrl() {
+    return "http://" + registryHost + ":" + registryApiPort + API_PATH;
+  }
 }

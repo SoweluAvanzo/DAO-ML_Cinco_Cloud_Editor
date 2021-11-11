@@ -9,12 +9,12 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @ApplicationScoped
 public class K8SClientService {
 
-    @ConfigProperty(name = "kubernetes.namespace")
-    String namespace;
+  @ConfigProperty(name = "kubernetes.namespace")
+  String namespace;
 
-    public KubernetesClient createClient() {
-        return new DefaultKubernetesClient(
-                new ConfigBuilder().withNamespace(namespace).build()
-        );
-    }
+  public KubernetesClient createClient() {
+    return new DefaultKubernetesClient(
+        new ConfigBuilder().withNamespace(namespace).build()
+    );
+  }
 }

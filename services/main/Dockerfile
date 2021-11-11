@@ -22,7 +22,7 @@ RUN pub run build_runner build -o build
 #
 FROM docker.io/library/openjdk:15-jdk-slim as builder-backend
 WORKDIR /app/main/backend
-COPY ./resources/proto/cinco-cloud.proto /app/resources/proto/cinco-cloud.proto
+COPY ./resources /app/resources
 COPY ./main/backend/.mvn /app/main/backend/.mvn
 COPY ./main/backend/mvnw /app/main/backend/
 COPY ./main/backend/pom.xml /app/main/backend/

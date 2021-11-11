@@ -13,13 +13,13 @@ import javax.persistence.ManyToOne;
 @Entity()
 public class PyroOrganizationAccessRightVectorDB extends PanacheEntity {
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    public PyroUserDB user;
+  @ManyToOne(cascade = CascadeType.ALL)
+  public PyroUserDB user;
 
-    @ManyToOne
-    public PyroOrganizationDB organization;
+  @ManyToOne
+  public PyroOrganizationDB organization;
 
-    @Enumerated(EnumType.STRING)
-    @ElementCollection
-    public List<PyroOrganizationAccessRightDB> accessRights = new ArrayList<>();
+  @Enumerated(EnumType.STRING)
+  @ElementCollection
+  public List<PyroOrganizationAccessRightDB> accessRights = new ArrayList<>();
 }

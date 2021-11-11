@@ -1,18 +1,5 @@
 package info.scce.cincocloud.core;
 
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.quarkus.runtime.StartupEvent;
-import io.vertx.mutiny.core.Vertx;
-import io.vertx.mutiny.ext.web.client.WebClient;
-import java.time.Duration;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import javax.transaction.Transactional;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import info.scce.cincocloud.core.rest.types.PyroProjectDeployment;
 import info.scce.cincocloud.core.rest.types.PyroProjectDeploymentStatus;
 import info.scce.cincocloud.db.PyroProjectDB;
@@ -38,289 +25,335 @@ import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SService;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 import info.scce.cincocloud.util.CDIUtils;
 import info.scce.cincocloud.util.WaitUtils;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.runtime.StartupEvent;
+import io.vertx.mutiny.core.Vertx;
+import io.vertx.mutiny.ext.web.client.WebClient;
+import java.time.Duration;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 @Transactional
 public class ProjectDeploymentService {
 
-    private static int TIMEOUT_TIME_MIN = 10;
-    private static int DELAY_TIME_SEC = 1;
+  private static final int TIMEOUT_TIME_MIN = 10;
+  private static final int DELAY_TIME_SEC = 1;
 
-    @Inject
-    ProjectWebSocket projectWebSocket;
+  @Inject
+  ProjectWebSocket projectWebSocket;
 
-    @Inject
-    K8SClientService clientService;
+  @Inject
+  K8SClientService clientService;
 
-    @Inject
-    Vertx vertx;
+  @Inject
+  Vertx vertx;
 
-    KubernetesClient client;
+  KubernetesClient client;
 
-    @ConfigProperty(name = "cincocloud.host")
-    String host;
+  @ConfigProperty(name = "cincocloud.host")
+  String host;
 
-    void startup(@Observes StartupEvent event) {
-        client = clientService.createClient();
+  void startup(@Observes StartupEvent event) {
+    client = clientService.createClient();
+  }
+
+  public PyroProjectDeployment deploy(PyroProjectDB project) {
+    if (project.isLanguageEditor()) {
+      return deployLanguageEditor(project);
+    } else {
+      return deployModelEditor(project);
+    }
+  }
+
+  public void stop(PyroProjectDB project) {
+    if (project.isLanguageEditor()) {
+      stopLanguageEditor(project);
+    } else {
+      stopModelEditor(project);
+    }
+  }
+
+  public void delete(PyroProjectDB project) {
+    if (project.isLanguageEditor()) {
+      stopAndDeleteLanguageEditor(project);
+    } else {
+      stopAndDeleteModelEditor(project);
+    }
+  }
+
+  private PyroProjectDeployment deployModelEditor(PyroProjectDB project) {
+    // create modeleditor app resources
+    final var appService = new PyroAppK8SService(client, project);
+    final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
+    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
+    final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim,
+        getRegistryService(), host, project);
+    final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host);
+    final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host);
+
+    // create modeleditor database resources
+    final var databaseService = new PyroDatabaseK8SService(client, project);
+    final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project);
+    final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client,
+        project);
+    final var databaseDeployment = new PyroDatabaseK8SDeployment(client,
+        databasePersistentVolumeClaim, project);
+
+    final var deployedAppOptional = client.apps().deployments().list().getItems().stream()
+        .filter(pod -> pod.getMetadata() != null)
+        .filter(pod -> pod.getMetadata().getName()
+            .startsWith(appDeployment.getResource().getMetadata().getName()))
+        .findFirst();
+
+    // do not redeploy pods if they are still active
+    // if any pod removal is scheduled, that task is removed
+    if (deployedAppOptional.isPresent() && K8SUtils
+        .isDeploymentRunning(deployedAppOptional.get())) {
+      removeScheduledTasks(project);
+      final var status = new PyroProjectDeployment(appIngressFrontend.getPath(),
+          PyroProjectDeploymentStatus.READY);
+      projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
+      return status;
     }
 
-    public PyroProjectDeployment deploy(PyroProjectDB project) {
-        if (project.isLanguageEditor()) {
-            return deployLanguageEditor(project);
-        } else {
-            return deployModelEditor(project);
-        }
+    if (K8SUtils.getPersistentVolumeClaimByName(client,
+        appPersistentVolumeClaim.getResource().getMetadata().getName()).isEmpty()) {
+      client.persistentVolumeClaims().create(appPersistentVolumeClaim.getResource());
     }
 
-    public void stop(PyroProjectDB project) {
-        if (project.isLanguageEditor()) {
-            stopLanguageEditor(project);
-        } else {
-            stopModelEditor(project);
-        }
+    if (K8SUtils.getPersistentVolumeByName(client,
+        appPersistentVolume.getResource().getMetadata().getName()).isEmpty()) {
+      client.persistentVolumes().create(appPersistentVolume.getResource());
     }
 
-    public void delete(PyroProjectDB project) {
-        if (project.isLanguageEditor()) {
-            stopAndDeleteLanguageEditor(project);
-        } else {
-            stopAndDeleteModelEditor(project);
-        }
+    if (K8SUtils.getPersistentVolumeClaimByName(client,
+        databasePersistentVolumeClaim.getResource().getMetadata().getName()).isEmpty()) {
+      client.persistentVolumeClaims().create(databasePersistentVolumeClaim.getResource());
     }
 
-    private PyroProjectDeployment deployModelEditor(PyroProjectDB project) {
-        // create modeleditor app resources
-        final var appService = new PyroAppK8SService(client, project);
-        final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
-        final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
-        final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim, getRegistryService(), host, project);
-        final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host);
-        final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host);
-
-        // create modeleditor database resources
-        final var databaseService = new PyroDatabaseK8SService(client, project);
-        final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project);
-        final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project);
-        final var databaseDeployment = new PyroDatabaseK8SDeployment(client, databasePersistentVolumeClaim, project);
-
-        final var deployedAppOptional = client.apps().deployments().list().getItems().stream()
-                .filter(pod -> pod.getMetadata() != null)
-                .filter(pod -> pod.getMetadata().getName().startsWith(appDeployment.getResource().getMetadata().getName()))
-                .findFirst();
-
-        // do not redeploy pods if they are still active
-        // if any pod removal is scheduled, that task is removed
-        if (deployedAppOptional.isPresent() && K8SUtils.isDeploymentRunning(deployedAppOptional.get())) {
-            removeScheduledTasks(project);
-            final var status = new PyroProjectDeployment(appIngressFrontend.getPath(), PyroProjectDeploymentStatus.READY);
-            projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
-            return status;
-        }
-
-        if (K8SUtils.getPersistentVolumeClaimByName(client, appPersistentVolumeClaim.getResource().getMetadata().getName()).isEmpty()) {
-            client.persistentVolumeClaims().create(appPersistentVolumeClaim.getResource());
-        }
-
-        if (K8SUtils.getPersistentVolumeByName(client, appPersistentVolume.getResource().getMetadata().getName()).isEmpty()) {
-            client.persistentVolumes().create(appPersistentVolume.getResource());
-        }
-
-        if (K8SUtils.getPersistentVolumeClaimByName(client, databasePersistentVolumeClaim.getResource().getMetadata().getName()).isEmpty()) {
-            client.persistentVolumeClaims().create(databasePersistentVolumeClaim.getResource());
-        }
-
-        if (K8SUtils.getPersistentVolumeByName(client, databasePersistentVolume.getResource().getMetadata().getName()).isEmpty()) {
-            client.persistentVolumes().create(databasePersistentVolume.getResource());
-        }
-
-        // start database
-        client.services().create(databaseService.getResource());
-        client.apps().statefulSets().create(databaseDeployment.getResource());
-
-        // start modeleditor app
-        final var service = client.services().create(appService.getResource());
-        final var deployment = client.apps().deployments().create(appDeployment.getResource());
-        client.network().v1().ingresses().create(appIngressFrontend.getResource());
-        client.network().v1().ingresses().create(appIngressBackend.getResource());
-
-        final var status = new PyroProjectDeployment(appIngressFrontend.getPath(), PyroProjectDeploymentStatus.DEPLOYING);
-        projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
-
-        waitUntilPyroPodIsReady(project, deployment, service, appIngressFrontend);
-
-        return status;
+    if (K8SUtils.getPersistentVolumeByName(client,
+        databasePersistentVolume.getResource().getMetadata().getName()).isEmpty()) {
+      client.persistentVolumes().create(databasePersistentVolume.getResource());
     }
 
-    private PyroProjectDeployment deployLanguageEditor(PyroProjectDB project) {
-        final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
-        final var persistentVolume = new TheiaK8SPersistentVolume(client, project);
-        final var service = new TheiaK8SService(client, project);
-        final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project);
-        final var ingress = new TheiaK8SIngress(client, service, project, host);
+    // start database
+    client.services().create(databaseService.getResource());
+    client.apps().statefulSets().create(databaseDeployment.getResource());
 
-        final var deployedDeploymentOptional = client.apps().statefulSets().list().getItems().stream()
-                .filter(pod -> pod.getMetadata() != null)
-                .filter(pod -> pod.getMetadata().getName().startsWith(deployment.getResource().getMetadata().getName()))
-                .findFirst();
+    // start modeleditor app
+    final var service = client.services().create(appService.getResource());
+    final var deployment = client.apps().deployments().create(appDeployment.getResource());
+    client.network().v1().ingresses().create(appIngressFrontend.getResource());
+    client.network().v1().ingresses().create(appIngressBackend.getResource());
 
-        // do not redeploy pods if they are still active
-        // if any pod removal is scheduled, that task is removed
-        if (deployedDeploymentOptional.isPresent() && K8SUtils.isStatefulSetRunning(deployedDeploymentOptional.get())) {
-            removeScheduledTasks(project);
-            final var status = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.READY);
-            projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
-            return status;
-        }
+    final var status = new PyroProjectDeployment(appIngressFrontend.getPath(),
+        PyroProjectDeploymentStatus.DEPLOYING);
+    projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
 
-        if (K8SUtils.getPersistentVolumeClaimByName(client, persistentVolumeClaim.getResource().getMetadata().getName()).isEmpty()) {
-            client.persistentVolumeClaims().create(persistentVolumeClaim.getResource());
-        }
+    waitUntilPyroPodIsReady(project, deployment, service, appIngressFrontend);
 
-        if (K8SUtils.getPersistentVolumeByName(client, persistentVolume.getResource().getMetadata().getName()).isEmpty()) {
-            client.persistentVolumes().create(persistentVolume.getResource());
-        }
+    return status;
+  }
 
-        final var editorService = client.services().create(service.getResource());
-        final var editorPod = client.apps().statefulSets().create(deployment.getResource());
-        client.network().v1().ingresses().create(ingress.getResource());
+  private PyroProjectDeployment deployLanguageEditor(PyroProjectDB project) {
+    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
+    final var persistentVolume = new TheiaK8SPersistentVolume(client, project);
+    final var service = new TheiaK8SService(client, project);
+    final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project);
+    final var ingress = new TheiaK8SIngress(client, service, project, host);
 
-        final var status = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.DEPLOYING);
-        projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
+    final var deployedDeploymentOptional = client.apps().statefulSets().list().getItems().stream()
+        .filter(pod -> pod.getMetadata() != null)
+        .filter(pod -> pod.getMetadata().getName()
+            .startsWith(deployment.getResource().getMetadata().getName()))
+        .findFirst();
 
-        waitUntilTheaiPodIsReady(project, editorPod, editorService, ingress);
-
-        return status;
+    // do not redeploy pods if they are still active
+    // if any pod removal is scheduled, that task is removed
+    if (deployedDeploymentOptional.isPresent() && K8SUtils
+        .isStatefulSetRunning(deployedDeploymentOptional.get())) {
+      removeScheduledTasks(project);
+      final var status = new PyroProjectDeployment(ingress.getPath(),
+          PyroProjectDeploymentStatus.READY);
+      projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
+      return status;
     }
 
-    private void waitUntilPyroPodIsReady(PyroProjectDB project, Deployment deployment, Service service, PyroAppK8SIngressFrontend ingress) {
-        WaitUtils.asyncWaitUntil(
-                vertx,
-                () -> {
-                    final var s = K8SUtils.getDeploymentByName(client, deployment.getMetadata().getName());
-                    return s.isPresent() && K8SUtils.isDeploymentRunning(s.get());
-                },
-                () -> {
-                    final var webClient = WebClient.create(vertx);
-                    waitUntilAppIsReady(webClient, project, service, ingress.getPath());
-                },
-                () -> {
-                    final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.FAILED);
-                    CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
-                },
-                Duration.ofMinutes(TIMEOUT_TIME_MIN),
-                Duration.ofSeconds(DELAY_TIME_SEC)
-        );
+    if (K8SUtils.getPersistentVolumeClaimByName(client,
+        persistentVolumeClaim.getResource().getMetadata().getName()).isEmpty()) {
+      client.persistentVolumeClaims().create(persistentVolumeClaim.getResource());
     }
 
-    private void waitUntilTheaiPodIsReady(PyroProjectDB project, StatefulSet statefulSet, Service service, TheiaK8SIngress ingress) {
-        WaitUtils.asyncWaitUntil(
-                vertx,
-                () -> {
-                    final var s = K8SUtils.getStatefulSetByName(client,statefulSet.getMetadata().getName());
-                    return s.isPresent() && K8SUtils.isStatefulSetRunning(s.get());
-                },
-                () -> {
-                    final var webClient = WebClient.create(vertx);
-                    waitUntilAppIsReady(webClient, project, service, ingress.getPath());
-                },
-                () -> {
-                    final var s2 = new PyroProjectDeployment(ingress.getPath(), PyroProjectDeploymentStatus.FAILED);
-                    CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
-                },
-                Duration.ofMinutes(TIMEOUT_TIME_MIN),
-                Duration.ofSeconds(DELAY_TIME_SEC)
-        );
+    if (K8SUtils
+        .getPersistentVolumeByName(client, persistentVolume.getResource().getMetadata().getName())
+        .isEmpty()) {
+      client.persistentVolumes().create(persistentVolume.getResource());
     }
 
-    private void waitUntilAppIsReady(WebClient webClient, PyroProjectDB project, Service service, String path) {
-        WaitUtils.asyncWaitUntil(
-                vertx,
-                webClient.get(service.getSpec().getPorts().get(0).getPort(), service.getSpec().getClusterIP(), "")
-                        .send()
-                        .map(res -> res.statusCode() == 200 || res.statusCode() == 403),
-                () -> {
-                    final var s2 = new PyroProjectDeployment(path, PyroProjectDeploymentStatus.READY);
-                    CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
-                },
-                () -> {
-                    final var s2 = new PyroProjectDeployment(path, PyroProjectDeploymentStatus.FAILED);
-                    CDIUtils.getBean(ProjectWebSocket.class).send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
-                },
-                Duration.ofMinutes(TIMEOUT_TIME_MIN),
-                Duration.ofSeconds(DELAY_TIME_SEC)
-        );
-    }
+    final var editorService = client.services().create(service.getResource());
+    final var editorPod = client.apps().statefulSets().create(deployment.getResource());
+    client.network().v1().ingresses().create(ingress.getResource());
 
-    public void stopModelEditor(PyroProjectDB project) {
-        final var appService = new PyroAppK8SService(client, project);
-        final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
-        final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
-        final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim, getRegistryService(), host, project);
-        final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host);
-        final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host);
+    final var status = new PyroProjectDeployment(ingress.getPath(),
+        PyroProjectDeploymentStatus.DEPLOYING);
+    projectWebSocket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(status));
 
-        final var databaseService = new PyroDatabaseK8SService(client, project);
-        final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project);
-        final var databaseDeployment = new PyroDatabaseK8SDeployment(client, databasePersistentVolumeClaim, project);
+    waitUntilTheaiPodIsReady(project, editorPod, editorService, ingress);
 
-        client.services().delete(appService.getResource());
-        client.apps().deployments().delete(appDeployment.getResource());
-        client.network().v1().ingresses().delete(appIngressFrontend.getResource());
-        client.network().v1().ingresses().delete(appIngressBackend.getResource());
+    return status;
+  }
 
-        client.services().delete(databaseService.getResource());
-        client.apps().statefulSets().delete(databaseDeployment.getResource());
-    }
+  private void waitUntilPyroPodIsReady(PyroProjectDB project, Deployment deployment,
+      Service service, PyroAppK8SIngressFrontend ingress) {
+    WaitUtils.asyncWaitUntil(
+        vertx,
+        () -> {
+          final var s = K8SUtils.getDeploymentByName(client, deployment.getMetadata().getName());
+          return s.isPresent() && K8SUtils.isDeploymentRunning(s.get());
+        },
+        () -> {
+          final var webClient = WebClient.create(vertx);
+          waitUntilAppIsReady(webClient, project, service, ingress.getPath());
+        },
+        () -> {
+          final var s2 = new PyroProjectDeployment(ingress.getPath(),
+              PyroProjectDeploymentStatus.FAILED);
+          CDIUtils.getBean(ProjectWebSocket.class)
+              .send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+        },
+        Duration.ofMinutes(TIMEOUT_TIME_MIN),
+        Duration.ofSeconds(DELAY_TIME_SEC)
+    );
+  }
 
-    private void stopLanguageEditor(PyroProjectDB project) {
-        final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
-        final var service = new TheiaK8SService(client, project);
-        final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project);
-        final var ingress = new TheiaK8SIngress(client, service, project, host);
+  private void waitUntilTheaiPodIsReady(PyroProjectDB project, StatefulSet statefulSet,
+      Service service, TheiaK8SIngress ingress) {
+    WaitUtils.asyncWaitUntil(
+        vertx,
+        () -> {
+          final var s = K8SUtils.getStatefulSetByName(client, statefulSet.getMetadata().getName());
+          return s.isPresent() && K8SUtils.isStatefulSetRunning(s.get());
+        },
+        () -> {
+          final var webClient = WebClient.create(vertx);
+          waitUntilAppIsReady(webClient, project, service, ingress.getPath());
+        },
+        () -> {
+          final var s2 = new PyroProjectDeployment(ingress.getPath(),
+              PyroProjectDeploymentStatus.FAILED);
+          CDIUtils.getBean(ProjectWebSocket.class)
+              .send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+        },
+        Duration.ofMinutes(TIMEOUT_TIME_MIN),
+        Duration.ofSeconds(DELAY_TIME_SEC)
+    );
+  }
 
-        client.services().delete(service.getResource());
-        client.apps().statefulSets().delete(deployment.getResource());
-        client.network().v1().ingresses().delete(ingress.getResource());
-    }
+  private void waitUntilAppIsReady(WebClient webClient, PyroProjectDB project, Service service,
+      String path) {
+    WaitUtils.asyncWaitUntil(
+        vertx,
+        webClient
+            .get(service.getSpec().getPorts().get(0).getPort(), service.getSpec().getClusterIP(),
+                "")
+            .send()
+            .map(res -> res.statusCode() == 200 || res.statusCode() == 403),
+        () -> {
+          final var s2 = new PyroProjectDeployment(path, PyroProjectDeploymentStatus.READY);
+          CDIUtils.getBean(ProjectWebSocket.class)
+              .send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+        },
+        () -> {
+          final var s2 = new PyroProjectDeployment(path, PyroProjectDeploymentStatus.FAILED);
+          CDIUtils.getBean(ProjectWebSocket.class)
+              .send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+        },
+        Duration.ofMinutes(TIMEOUT_TIME_MIN),
+        Duration.ofSeconds(DELAY_TIME_SEC)
+    );
+  }
 
-    private void stopAndDeleteModelEditor(PyroProjectDB project) {
-        stopModelEditor(project);
+  public void stopModelEditor(PyroProjectDB project) {
+    final var appService = new PyroAppK8SService(client, project);
+    final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
+    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
+    final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim,
+        getRegistryService(), host, project);
+    final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host);
+    final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host);
 
-        final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project);
-        final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project);
-        final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
-        final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
+    final var databaseService = new PyroDatabaseK8SService(client, project);
+    final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client,
+        project);
+    final var databaseDeployment = new PyroDatabaseK8SDeployment(client,
+        databasePersistentVolumeClaim, project);
 
-        // remove the claim first so that the volume can be deleted
-        client.persistentVolumeClaims().delete(databasePersistentVolumeClaim.getResource());
-        client.persistentVolumes().delete(databasePersistentVolume.getResource());
-        client.persistentVolumeClaims().delete(appPersistentVolumeClaim.getResource());
-        client.persistentVolumes().delete(appPersistentVolume.getResource());
+    client.services().delete(appService.getResource());
+    client.apps().deployments().delete(appDeployment.getResource());
+    client.network().v1().ingresses().delete(appIngressFrontend.getResource());
+    client.network().v1().ingresses().delete(appIngressBackend.getResource());
 
-        // no need to schedule pod removal if all resources are already deleted.
-        removeScheduledTasks(project);
-    }
+    client.services().delete(databaseService.getResource());
+    client.apps().statefulSets().delete(databaseDeployment.getResource());
+  }
 
-    private void stopAndDeleteLanguageEditor(PyroProjectDB project) {
-        stopLanguageEditor(project);
+  private void stopLanguageEditor(PyroProjectDB project) {
+    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
+    final var service = new TheiaK8SService(client, project);
+    final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project);
+    final var ingress = new TheiaK8SIngress(client, service, project, host);
 
-        final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
-        final var persistentVolume = new TheiaK8SPersistentVolume(client, project);
+    client.services().delete(service.getResource());
+    client.apps().statefulSets().delete(deployment.getResource());
+    client.network().v1().ingresses().delete(ingress.getResource());
+  }
 
-        // remove the claim first so that the volume can be deleted
-        client.persistentVolumeClaims().delete(persistentVolumeClaim.getResource());
-        client.persistentVolumes().delete(persistentVolume.getResource());
+  private void stopAndDeleteModelEditor(PyroProjectDB project) {
+    stopModelEditor(project);
 
-        // no need to schedule pod removal if all resources are already deleted.
-        removeScheduledTasks(project);
-    }
+    final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project);
+    final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client,
+        project);
+    final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
+    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
 
-    private void removeScheduledTasks(PyroProjectDB project) {
-        StopProjectPodsTaskDB.delete("projectId", project.id);
-    }
+    // remove the claim first so that the volume can be deleted
+    client.persistentVolumeClaims().delete(databasePersistentVolumeClaim.getResource());
+    client.persistentVolumes().delete(databasePersistentVolume.getResource());
+    client.persistentVolumeClaims().delete(appPersistentVolumeClaim.getResource());
+    client.persistentVolumes().delete(appPersistentVolume.getResource());
 
-    private Service getRegistryService() {
-        return K8SUtils.getServiceByName(client, "registry-service")
-                .orElseThrow(() -> new K8SException("could not find registryService."));
-    }
+    // no need to schedule pod removal if all resources are already deleted.
+    removeScheduledTasks(project);
+  }
+
+  private void stopAndDeleteLanguageEditor(PyroProjectDB project) {
+    stopLanguageEditor(project);
+
+    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
+    final var persistentVolume = new TheiaK8SPersistentVolume(client, project);
+
+    // remove the claim first so that the volume can be deleted
+    client.persistentVolumeClaims().delete(persistentVolumeClaim.getResource());
+    client.persistentVolumes().delete(persistentVolume.getResource());
+
+    // no need to schedule pod removal if all resources are already deleted.
+    removeScheduledTasks(project);
+  }
+
+  private void removeScheduledTasks(PyroProjectDB project) {
+    StopProjectPodsTaskDB.delete("projectId", project.id);
+  }
+
+  private Service getRegistryService() {
+    return K8SUtils.getServiceByName(client, "registry-service")
+        .orElseThrow(() -> new K8SException("could not find registryService."));
+  }
 }

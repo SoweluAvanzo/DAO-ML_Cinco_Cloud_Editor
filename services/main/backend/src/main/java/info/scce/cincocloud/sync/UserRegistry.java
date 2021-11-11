@@ -8,22 +8,22 @@ import javax.websocket.Session;
 @ApplicationScoped
 public class UserRegistry extends WebSocketRegistry {
 
-    /**
-     * Map<UserId,Map<Websocket>>
-     */
-    private Map<Long, Session> currentOpenSockets;
+  /**
+   * Map: UserId -> Session
+   */
+  private final Map<Long, Session> currentOpenSockets;
 
-    public UserRegistry() {
-        currentOpenSockets = new ConcurrentHashMap<>();
-    }
+  public UserRegistry() {
+    currentOpenSockets = new ConcurrentHashMap<>();
+  }
 
-    public Map<Long, Session> getCurrentOpenSockets() {
-        return currentOpenSockets;
-    }
+  public Map<Long, Session> getCurrentOpenSockets() {
+    return currentOpenSockets;
+  }
 
-    public void send(long userId, WebSocketMessage message) {
-        if (currentOpenSockets.containsKey(userId)) {
-            super.send(currentOpenSockets.get(userId), message);
-        }
+  public void send(long userId, WebSocketMessage message) {
+    if (currentOpenSockets.containsKey(userId)) {
+      super.send(currentOpenSockets.get(userId), message);
     }
+  }
 }

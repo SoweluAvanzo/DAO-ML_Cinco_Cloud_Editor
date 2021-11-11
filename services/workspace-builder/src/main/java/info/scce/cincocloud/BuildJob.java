@@ -7,36 +7,36 @@ import javax.validation.constraints.NotNull;
 
 public class BuildJob {
 
-    /**
-     * The ID of the workspace.
-     */
-    @NotNull(message = "The ID must not be null.")
-    @Min(value = 0, message = "The ID must not be < 0.")
-    public Long projectId;
+  /**
+   * The ID of the workspace.
+   */
+  @NotNull(message = "The ID must not be null.")
+  @Min(value = 0, message = "The ID must not be < 0.")
+  public Long projectId;
 
-    @NotNull(message = "The ID must not be null.")
-    @Min(value = 0, message = "The ID must not be < 0.")
-    public Long jobId;
+  @NotNull(message = "The ID must not be null.")
+  @Min(value = 0, message = "The ID must not be < 0.")
+  public Long jobId;
 
-    /**
-     * The username the workspace belongs to.
-     */
-    @NotBlank(message = "The username must not be empty.")
-    public String username;
+  /**
+   * The username the workspace belongs to.
+   */
+  @NotBlank(message = "The username must not be empty.")
+  public String username;
 
-    /**
-     * The name of the language for which a workspace image should be build.
-     */
-    @NotBlank(message = "The language must not be empty.")
-    public String language;
+  /**
+   * The name of the language for which a workspace image should be build.
+   */
+  @NotBlank(message = "The language must not be empty.")
+  public String language;
 
-    @JsonIgnore
-    public String getImageTag() {
-        return username.trim().toLowerCase()
-                + "/"
-                + language.toLowerCase().trim().replaceAll(" ", "_")
-                + "-"
-                + projectId
-                + ":latest";
-    }
+  @JsonIgnore
+  public String getImageTag() {
+    return username.trim().toLowerCase()
+        + "/"
+        + language.toLowerCase().trim().replaceAll(" ", "_")
+        + "-"
+        + projectId
+        + ":latest";
+  }
 }

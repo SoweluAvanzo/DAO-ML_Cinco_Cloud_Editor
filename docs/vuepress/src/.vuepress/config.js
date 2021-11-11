@@ -66,6 +66,10 @@ module.exports = {
           {
             title: 'Installation',
             path: '/content/developer-guide/installation/'
+          },
+          {
+            title: 'Coding conventions',
+            path: '/content/developer-guide/coding-conventions/'
           }
         ]
       },

@@ -1,5 +1,8 @@
 package info.scce.cincocloud.core;
 
+import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.sync.ticket.TicketMessage;
+import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 import javax.annotation.security.RolesAllowed;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
@@ -11,9 +14,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
-import info.scce.cincocloud.db.PyroUserDB;
-import info.scce.cincocloud.sync.ticket.TicketMessage;
-import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 
 @Transactional
 @Path("/ticket")
@@ -21,15 +21,15 @@ import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 @Consumes(MediaType.APPLICATION_JSON)
 public class TicketController {
 
-    @GET
-    @Path("/")
-    @RolesAllowed("user")
-    public Response requestTicket(@Context SecurityContext securityContext) {
-        final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
-        if (subject == null) {
-            return Response.status(Status.FORBIDDEN).build();
-        }
-        TicketMessage ticket = TicketRegistrationHandler.createTicket(subject);
-        return Response.ok(ticket).build();
+  @GET
+  @Path("/")
+  @RolesAllowed("user")
+  public Response requestTicket(@Context SecurityContext securityContext) {
+    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    if (subject == null) {
+      return Response.status(Status.FORBIDDEN).build();
     }
+    TicketMessage ticket = TicketRegistrationHandler.createTicket(subject);
+    return Response.ok(ticket).build();
+  }
 }

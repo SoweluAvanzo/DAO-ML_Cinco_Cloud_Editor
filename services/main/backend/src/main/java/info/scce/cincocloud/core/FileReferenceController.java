@@ -28,88 +28,88 @@ import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 @RequestScoped
 public class FileReferenceController {
 
-    @Inject
-    FileController fileController;
+  @Inject
+  FileController fileController;
 
-    @POST
-    @Path("/create")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("user")
-    public Response create(final MultipartFormDataInput input) throws java.io.IOException {
+  @POST
+  @Path("/create")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces(MediaType.APPLICATION_JSON)
+  @RolesAllowed("user")
+  public Response create(final MultipartFormDataInput input) throws java.io.IOException {
 
-        final List<InputPart> inputParts = input.getFormDataMap().get("file");
-        
+    final List<InputPart> inputParts = input.getFormDataMap().get("file");
 
-        if (inputParts == null || inputParts.isEmpty()) {
-            throw new WebApplicationException("invalid request");
-        }
-
-        final InputPart inputPart = inputParts.get(0);
-        final MultivaluedMap<String, String> header = inputPart.getHeaders();
-
-        String fileName = "unknown";
-        final String[] contentDisposition = header
-            .getFirst("Content-Disposition")
-            .split(";");
-
-        for (String filename : contentDisposition) {
-            if ((filename.trim().startsWith("filename"))) {
-                final String[] name = filename.split("=");
-                fileName = name[1].trim().replaceAll("\"", "");
-                break;
-            }
-        }
-
-        final BaseFileDB reference = this.fileController
-                .storeFile(fileName, inputPart.getBody(InputStream.class, null));
-        reference.contentType = inputPart.getMediaType().toString();
-        reference.persist();
-        
-        return Response.ok(new FileReference(reference)).build();
+    if (inputParts == null || inputParts.isEmpty()) {
+      throw new WebApplicationException("invalid request");
     }
 
-    @GET
-    @Path("/download/{id}/private")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response download(@PathParam("id") final long id) {
-        // TODO: SAMI: security
-        final BaseFileDB reference = this.fileController.getFileReference(id);
-        final InputStream stream = this.fileController.loadFile(reference);
+    final InputPart inputPart = inputParts.get(0);
+    final MultivaluedMap<String, String> header = inputPart.getHeaders();
 
-        final byte[] result;
+    String fileName = "unknown";
+    final String[] contentDisposition = header
+        .getFirst("Content-Disposition")
+        .split(";");
 
-        try {
-            result = IOUtils.toByteArray(stream);
-        } catch (IOException e) {
-            throw new WebApplicationException(e);
-        }
-        
-        return Response
-                .ok(result, reference.contentType)
-                .header("Content-Disposition", "attachment; filename=" + (reference.filename + "." + reference.fileExtension))
-                .build();
+    for (String filename : contentDisposition) {
+      if ((filename.trim().startsWith("filename"))) {
+        final String[] name = filename.split("=");
+        fileName = name[1].trim().replaceAll("\"", "");
+        break;
+      }
     }
 
-    @GET
-    @Path("/read/{id}/private")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @RolesAllowed("user")
-    public Response read(@PathParam("id") final long id) {
+    final BaseFileDB reference = this.fileController
+        .storeFile(fileName, inputPart.getBody(InputStream.class, null));
+    reference.contentType = inputPart.getMediaType().toString();
+    reference.persist();
 
-        final BaseFileDB reference = this.fileController.getFileReference(id);
-        final InputStream stream = this.fileController.loadFile(reference);
+    return Response.ok(new FileReference(reference)).build();
+  }
 
-        final byte[] result;
+  @GET
+  @Path("/download/{id}/private")
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  public Response download(@PathParam("id") final long id) {
+    // TODO: SAMI: security
+    final BaseFileDB reference = this.fileController.getFileReference(id);
+    final InputStream stream = this.fileController.loadFile(reference);
 
-        try {
-            result = IOUtils.toByteArray(stream);
-        } catch (IOException e) {
-            throw new WebApplicationException(e);
-        }
+    final byte[] result;
 
-        return Response
-                .ok(result, reference.contentType)
-                .build();
+    try {
+      result = IOUtils.toByteArray(stream);
+    } catch (IOException e) {
+      throw new WebApplicationException(e);
     }
+
+    return Response
+        .ok(result, reference.contentType)
+        .header("Content-Disposition",
+            "attachment; filename=" + (reference.filename + "." + reference.fileExtension))
+        .build();
+  }
+
+  @GET
+  @Path("/read/{id}/private")
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  @RolesAllowed("user")
+  public Response read(@PathParam("id") final long id) {
+
+    final BaseFileDB reference = this.fileController.getFileReference(id);
+    final InputStream stream = this.fileController.loadFile(reference);
+
+    final byte[] result;
+
+    try {
+      result = IOUtils.toByteArray(stream);
+    } catch (IOException e) {
+      throw new WebApplicationException(e);
+    }
+
+    return Response
+        .ok(result, reference.contentType)
+        .build();
+  }
 }

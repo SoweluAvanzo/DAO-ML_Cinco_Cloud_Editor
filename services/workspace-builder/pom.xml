@@ -8,9 +8,11 @@
   <version>0.1.0-SNAPSHOT</version>
 
   <properties>
+    <checkstyle.version>9.0</checkstyle.version>
     <commons-io.version>2.8.0</commons-io.version>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <hibernate-validator.version>7.0.1.Final</hibernate-validator.version>
+    <maven-checkstyle.version>3.1.2</maven-checkstyle.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
@@ -125,6 +127,36 @@
             <goals>
               <goal>test-compile</goal>
               <goal>test-compile-custom</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven-checkstyle.version}</version>
+        <configuration>
+          <configLocation>${basedir}/../resources/checkstyle/checkstyle-google-checks.xml</configLocation>
+          <suppressionsLocation>${basedir}/../resources/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
+          <encoding>UTF-8</encoding>
+          <consoleOutput>true</consoleOutput>
+          <failsOnError>true</failsOnError>
+          <linkXRef>false</linkXRef>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
             </goals>
           </execution>
         </executions>

@@ -7,108 +7,108 @@ import info.scce.cincocloud.rest.RESTBaseImpl;
 
 public class PyroStyle extends RESTBaseImpl {
 
-    private String navBgColor;
-    private String navTextColor;
-    private String bodyBgColor;
-    private String bodyTextColor;
-    private String primaryBgColor;
-    private String primaryTextColor;
-    private FileReference logo;
+  private String navBgColor;
+  private String navTextColor;
+  private String bodyBgColor;
+  private String bodyTextColor;
+  private String primaryBgColor;
+  private String primaryTextColor;
+  private FileReference logo;
 
-    public static PyroStyle fromEntity(
-            final PyroStyleDB entity,
-            final ObjectCache objectCache) {
+  public static PyroStyle fromEntity(
+      final PyroStyleDB entity,
+      final ObjectCache objectCache) {
 
-        if (objectCache.containsRestTo(entity)) {
-            return objectCache.getRestTo(entity);
-        }
-
-        final PyroStyle result;
-        result = new PyroStyle();
-        result.setId(entity.id);
-
-        result.setnavBgColor(entity.navBgColor);
-        result.setnavTextColor(entity.navTextColor);
-        result.setbodyBgColor(entity.bodyBgColor);
-        result.setbodyTextColor(entity.bodyTextColor);
-        result.setprimaryBgColor(entity.primaryBgColor);
-        result.setprimaryTextColor(entity.primaryTextColor);
-        if (entity.logo != null) {
-            result.setlogo(new FileReference(entity.logo));
-        }
-
-        objectCache.putRestTo(entity, result);
-
-        return result;
+    if (objectCache.containsRestTo(entity)) {
+      return objectCache.getRestTo(entity);
     }
 
-    @JsonProperty("navBgColor")
-    public String getnavBgColor() {
-        return this.navBgColor;
+    final PyroStyle result;
+    result = new PyroStyle();
+    result.setId(entity.id);
+
+    result.setnavBgColor(entity.navBgColor);
+    result.setnavTextColor(entity.navTextColor);
+    result.setbodyBgColor(entity.bodyBgColor);
+    result.setbodyTextColor(entity.bodyTextColor);
+    result.setprimaryBgColor(entity.primaryBgColor);
+    result.setprimaryTextColor(entity.primaryTextColor);
+    if (entity.logo != null) {
+      result.setlogo(new FileReference(entity.logo));
     }
 
-    @JsonProperty("navBgColor")
-    public void setnavBgColor(final String navBgColor) {
-        this.navBgColor = navBgColor;
-    }
+    objectCache.putRestTo(entity, result);
 
-    @JsonProperty("navTextColor")
-    public String getnavTextColor() {
-        return this.navTextColor;
-    }
+    return result;
+  }
 
-    @JsonProperty("navTextColor")
-    public void setnavTextColor(final String navTextColor) {
-        this.navTextColor = navTextColor;
-    }
+  @JsonProperty("navBgColor")
+  public String getnavBgColor() {
+    return this.navBgColor;
+  }
 
-    @JsonProperty("bodyBgColor")
-    public String getbodyBgColor() {
-        return this.bodyBgColor;
-    }
+  @JsonProperty("navBgColor")
+  public void setnavBgColor(final String navBgColor) {
+    this.navBgColor = navBgColor;
+  }
 
-    @JsonProperty("bodyBgColor")
-    public void setbodyBgColor(final String bodyBgColor) {
-        this.bodyBgColor = bodyBgColor;
-    }
+  @JsonProperty("navTextColor")
+  public String getnavTextColor() {
+    return this.navTextColor;
+  }
 
-    @JsonProperty("bodyTextColor")
-    public String getbodyTextColor() {
-        return this.bodyTextColor;
-    }
+  @JsonProperty("navTextColor")
+  public void setnavTextColor(final String navTextColor) {
+    this.navTextColor = navTextColor;
+  }
 
-    @JsonProperty("bodyTextColor")
-    public void setbodyTextColor(final String bodyTextColor) {
-        this.bodyTextColor = bodyTextColor;
-    }
+  @JsonProperty("bodyBgColor")
+  public String getbodyBgColor() {
+    return this.bodyBgColor;
+  }
 
-    @JsonProperty("primaryBgColor")
-    public String getprimaryBgColor() {
-        return this.primaryBgColor;
-    }
+  @JsonProperty("bodyBgColor")
+  public void setbodyBgColor(final String bodyBgColor) {
+    this.bodyBgColor = bodyBgColor;
+  }
 
-    @JsonProperty("primaryBgColor")
-    public void setprimaryBgColor(final String primaryBgColor) {
-        this.primaryBgColor = primaryBgColor;
-    }
+  @JsonProperty("bodyTextColor")
+  public String getbodyTextColor() {
+    return this.bodyTextColor;
+  }
 
-    @JsonProperty("primaryTextColor")
-    public String getprimaryTextColor() {
-        return this.primaryTextColor;
-    }
+  @JsonProperty("bodyTextColor")
+  public void setbodyTextColor(final String bodyTextColor) {
+    this.bodyTextColor = bodyTextColor;
+  }
 
-    @JsonProperty("primaryTextColor")
-    public void setprimaryTextColor(final String primaryTextColor) {
-        this.primaryTextColor = primaryTextColor;
-    }
+  @JsonProperty("primaryBgColor")
+  public String getprimaryBgColor() {
+    return this.primaryBgColor;
+  }
 
-    @JsonProperty("logo")
-    public FileReference getlogo() {
-        return this.logo;
-    }
+  @JsonProperty("primaryBgColor")
+  public void setprimaryBgColor(final String primaryBgColor) {
+    this.primaryBgColor = primaryBgColor;
+  }
 
-    @JsonProperty("logo")
-    public void setlogo(final FileReference logo) {
-        this.logo = logo;
-    }
+  @JsonProperty("primaryTextColor")
+  public String getprimaryTextColor() {
+    return this.primaryTextColor;
+  }
+
+  @JsonProperty("primaryTextColor")
+  public void setprimaryTextColor(final String primaryTextColor) {
+    this.primaryTextColor = primaryTextColor;
+  }
+
+  @JsonProperty("logo")
+  public FileReference getlogo() {
+    return this.logo;
+  }
+
+  @JsonProperty("logo")
+  public void setlogo(final FileReference logo) {
+    this.logo = logo;
+  }
 }

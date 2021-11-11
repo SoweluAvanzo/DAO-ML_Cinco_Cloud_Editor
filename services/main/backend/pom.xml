@@ -8,10 +8,12 @@
     <version>0.1.0-SNAPSHOT</version>
 
     <properties>
+        <checkstyle.version>9.0</checkstyle.version>
         <commons.io.version>2.8.0</commons.io.version>
         <compiler-plugin.version>3.8.0</compiler-plugin.version>
         <jackson-jsog.version>1.1.1</jackson-jsog.version>
         <kubernetes-client.version>5.4.1</kubernetes-client.version>
+        <maven-checkstyle.version>3.1.2</maven-checkstyle.version>
         <os-maven-plugin.version>1.6.1</os-maven-plugin.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -180,6 +182,36 @@
                             <goal>build</goal>
                             <goal>generate-code</goal>
                             <goal>generate-code-tests</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle.version}</version>
+                <configuration>
+                    <configLocation>${basedir}/../../resources/checkstyle/checkstyle-google-checks.xml</configLocation>
+                    <suppressionsLocation>${basedir}/../../resources/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
+                    <encoding>UTF-8</encoding>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>

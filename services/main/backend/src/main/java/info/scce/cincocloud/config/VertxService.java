@@ -7,10 +7,10 @@ import javax.inject.Inject;
 @ApplicationScoped
 public class VertxService {
 
-    @Inject
-    Vertx vertx;
+  @Inject
+  Vertx vertx;
 
-    public Vertx getVertx() {
-        return vertx;
-    }
+  public Vertx getVertx() {
+    return vertx;
+  }
 }

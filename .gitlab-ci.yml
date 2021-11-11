@@ -6,7 +6,7 @@
     DOCKER_DRIVER: overlay
 
 .maven-job:
-  image: docker:20.10.6
+  image: maven:latest
   services:
     - docker:20.10.6-dind
   cache:
@@ -47,8 +47,16 @@ build-wiki:
       - docs/vuepress/src/.vuepress/dist/*
     expire_in: 1 day
 
+lint-main-backend:
+  extends: .maven-job
+  script:
+    - cd services/main/backend
+    - mvn checkstyle:check
+
 build-main:
   extends: .docker-build
+  needs:
+    - lint-main-backend
   variables:
     CONTEXT: ./services
     DOCKERFILE: ./services/main/Dockerfile
@@ -67,8 +75,16 @@ build-registry:
   only:
     - main
 
+lint-workspace-builder-backend:
+  extends: .maven-job
+  script:
+    - cd services/workspace-builder
+    - mvn checkstyle:check
+
 build-workspace-builder:
   extends: .docker-build
+  needs:
+    - lint-workspace-builder-backend
   variables:
     CONTEXT: ./services
     DOCKERFILE: ./services/workspace-builder/Dockerfile

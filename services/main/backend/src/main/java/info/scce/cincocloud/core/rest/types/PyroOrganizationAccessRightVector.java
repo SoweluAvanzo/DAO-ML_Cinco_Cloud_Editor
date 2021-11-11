@@ -9,61 +9,61 @@ import java.util.List;
 
 public class PyroOrganizationAccessRightVector extends RESTBaseImpl {
 
-    private List<PyroOrganizationAccessRightDB> accessRights = new LinkedList<>();
-    private PyroUser user;
-    private PyroOrganization organization;
+  private List<PyroOrganizationAccessRightDB> accessRights = new LinkedList<>();
+  private PyroUser user;
+  private PyroOrganization organization;
 
-    public static PyroOrganizationAccessRightVector fromEntity(
-            final PyroOrganizationAccessRightVectorDB entity,
-            final info.scce.cincocloud.rest.ObjectCache objectCache) {
+  public static PyroOrganizationAccessRightVector fromEntity(
+      final PyroOrganizationAccessRightVectorDB entity,
+      final info.scce.cincocloud.rest.ObjectCache objectCache) {
 
-        if (objectCache.containsRestTo(entity)) {
-            return objectCache.getRestTo(entity);
-        }
-
-        final PyroOrganizationAccessRightVector result;
-        result = new PyroOrganizationAccessRightVector();
-        result.setId(entity.id);
-
-        result.setuser(PyroUser.fromEntity(entity.user, objectCache));
-        result.setorganization(PyroOrganization.fromEntity(entity.organization, objectCache));
-
-        objectCache.putRestTo(entity, result);
-
-        for (PyroOrganizationAccessRightDB ar : entity.accessRights) {
-            result.getaccessRights().add(ar);
-        }
-
-        return result;
+    if (objectCache.containsRestTo(entity)) {
+      return objectCache.getRestTo(entity);
     }
 
-    @JsonProperty("accessRights")
-    public List<PyroOrganizationAccessRightDB> getaccessRights() {
-        return this.accessRights;
+    final PyroOrganizationAccessRightVector result;
+    result = new PyroOrganizationAccessRightVector();
+    result.setId(entity.id);
+
+    result.setuser(PyroUser.fromEntity(entity.user, objectCache));
+    result.setorganization(PyroOrganization.fromEntity(entity.organization, objectCache));
+
+    objectCache.putRestTo(entity, result);
+
+    for (PyroOrganizationAccessRightDB ar : entity.accessRights) {
+      result.getaccessRights().add(ar);
     }
 
-    @JsonProperty("accessRights")
-    public void setaccessRights(final List<PyroOrganizationAccessRightDB> accessRights) {
-        this.accessRights = accessRights;
-    }
+    return result;
+  }
 
-    @JsonProperty("user")
-    public PyroUser getuser() {
-        return this.user;
-    }
+  @JsonProperty("accessRights")
+  public List<PyroOrganizationAccessRightDB> getaccessRights() {
+    return this.accessRights;
+  }
 
-    @JsonProperty("user")
-    public void setuser(final PyroUser user) {
-        this.user = user;
-    }
+  @JsonProperty("accessRights")
+  public void setaccessRights(final List<PyroOrganizationAccessRightDB> accessRights) {
+    this.accessRights = accessRights;
+  }
 
-    @JsonProperty("organization")
-    public PyroOrganization getorganization() {
-        return this.organization;
-    }
+  @JsonProperty("user")
+  public PyroUser getuser() {
+    return this.user;
+  }
 
-    @JsonProperty("organization")
-    public void setorganization(final PyroOrganization organization) {
-        this.organization = organization;
-    }
+  @JsonProperty("user")
+  public void setuser(final PyroUser user) {
+    this.user = user;
+  }
+
+  @JsonProperty("organization")
+  public PyroOrganization getorganization() {
+    return this.organization;
+  }
+
+  @JsonProperty("organization")
+  public void setorganization(final PyroOrganization organization) {
+    this.organization = organization;
+  }
 }

@@ -4,31 +4,31 @@ import info.scce.cincocloud.rest.RESTBaseImpl;
 
 public class PyroProjectDeployment extends RESTBaseImpl {
 
-    private String url;
+  private String url;
 
-    private PyroProjectDeploymentStatus status;
+  private PyroProjectDeploymentStatus status;
 
-    public PyroProjectDeployment() {
-    }
+  public PyroProjectDeployment() {
+  }
 
-    public PyroProjectDeployment(String url, PyroProjectDeploymentStatus status) {
-        this.url = url;
-        this.status = status;
-    }
+  public PyroProjectDeployment(String url, PyroProjectDeploymentStatus status) {
+    this.url = url;
+    this.status = status;
+  }
 
-    public String getUrl() {
-        return url;
-    }
+  public String getUrl() {
+    return url;
+  }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+  public void setUrl(String url) {
+    this.url = url;
+  }
 
-    public PyroProjectDeploymentStatus getStatus() {
-        return status;
-    }
+  public PyroProjectDeploymentStatus getStatus() {
+    return status;
+  }
 
-    public void setStatus(PyroProjectDeploymentStatus status) {
-        this.status = status;
-    }
+  public void setStatus(PyroProjectDeploymentStatus status) {
+    this.status = status;
+  }
 }

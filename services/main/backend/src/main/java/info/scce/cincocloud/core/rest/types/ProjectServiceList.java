@@ -8,27 +8,28 @@ import java.util.List;
 
 @JsonIdentityInfo(generator = JSOGGenerator.class)
 public class ProjectServiceList {
-    private List<String> active = new LinkedList<>();
-    private List<String> disabled = new LinkedList<>();
 
-    @JsonProperty("active")
-    public List<String> getActive() {
-        return this.active;
-    }
+  private List<String> active = new LinkedList<>();
+  private List<String> disabled = new LinkedList<>();
 
-    @JsonProperty("active")
-    public void setActive(final List<String> active) {
-        this.active = active;
-    }
+  @JsonProperty("active")
+  public List<String> getActive() {
+    return this.active;
+  }
 
-    @JsonProperty("disabled")
-    public List<String> getDisabled() {
-        return this.disabled;
-    }
+  @JsonProperty("active")
+  public void setActive(final List<String> active) {
+    this.active = active;
+  }
 
-    @JsonProperty("disabled")
-    public void setDisabled(final List<String> disabled) {
-        this.disabled = disabled;
-    }
+  @JsonProperty("disabled")
+  public List<String> getDisabled() {
+    return this.disabled;
+  }
+
+  @JsonProperty("disabled")
+  public void setDisabled(final List<String> disabled) {
+    this.disabled = disabled;
+  }
 
 }

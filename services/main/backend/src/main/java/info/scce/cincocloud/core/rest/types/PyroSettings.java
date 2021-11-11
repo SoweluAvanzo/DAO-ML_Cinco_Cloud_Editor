@@ -7,45 +7,45 @@ import info.scce.cincocloud.rest.RESTBaseImpl;
 
 public class PyroSettings extends RESTBaseImpl {
 
-    private PyroStyle style;
-    private boolean globallyCreateOrganizations;
+  private PyroStyle style;
+  private boolean globallyCreateOrganizations;
 
-    public static PyroSettings fromEntity(
-            final PyroSettingsDB entity,
-            final ObjectCache objectCache) {
+  public static PyroSettings fromEntity(
+      final PyroSettingsDB entity,
+      final ObjectCache objectCache) {
 
-        if (objectCache.containsRestTo(entity)) {
-            return objectCache.getRestTo(entity);
-        }
-
-        final PyroSettings result;
-        result = new PyroSettings();
-        result.setId(entity.id);
-        result.setstyle(PyroStyle.fromEntity(entity.style, objectCache));
-        result.setgloballyCreateOrganizations(entity.globallyCreateOrganizations);
-
-        objectCache.putRestTo(entity, result);
-
-        return result;
+    if (objectCache.containsRestTo(entity)) {
+      return objectCache.getRestTo(entity);
     }
 
-    @JsonProperty("style")
-    public PyroStyle getstyle() {
-        return this.style;
-    }
+    final PyroSettings result;
+    result = new PyroSettings();
+    result.setId(entity.id);
+    result.setstyle(PyroStyle.fromEntity(entity.style, objectCache));
+    result.setgloballyCreateOrganizations(entity.globallyCreateOrganizations);
 
-    @JsonProperty("style")
-    public void setstyle(final PyroStyle style) {
-        this.style = style;
-    }
+    objectCache.putRestTo(entity, result);
 
-    @JsonProperty("globallyCreateOrganizations")
-    public boolean getgloballyCreateOrganizations() {
-        return this.globallyCreateOrganizations;
-    }
+    return result;
+  }
 
-    @JsonProperty("globallyCreateOrganizations")
-    public void setgloballyCreateOrganizations(final boolean globallyCreateOrganizations) {
-        this.globallyCreateOrganizations = globallyCreateOrganizations;
-    }
+  @JsonProperty("style")
+  public PyroStyle getstyle() {
+    return this.style;
+  }
+
+  @JsonProperty("style")
+  public void setstyle(final PyroStyle style) {
+    this.style = style;
+  }
+
+  @JsonProperty("globallyCreateOrganizations")
+  public boolean getgloballyCreateOrganizations() {
+    return this.globallyCreateOrganizations;
+  }
+
+  @JsonProperty("globallyCreateOrganizations")
+  public void setgloballyCreateOrganizations(final boolean globallyCreateOrganizations) {
+    this.globallyCreateOrganizations = globallyCreateOrganizations;
+  }
 }

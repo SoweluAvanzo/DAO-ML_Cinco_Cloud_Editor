@@ -10,88 +10,88 @@ import java.util.List;
 
 public class PyroUser extends RESTBaseImpl {
 
-    private List<PyroProject> ownedProjects = new java.util.LinkedList<>();
-    private List<PyroSystemRoleDB> systemRoles = new java.util.LinkedList<>();
-    private String username;
-    private String email;
-    private FileReference profilePicture;
+  private List<PyroProject> ownedProjects = new java.util.LinkedList<>();
+  private List<PyroSystemRoleDB> systemRoles = new java.util.LinkedList<>();
+  private String username;
+  private String email;
+  private FileReference profilePicture;
 
-    public static PyroUser fromEntity(final PyroUserDB entity, final ObjectCache objectCache) {
-        
-        if (objectCache.containsRestTo(entity)) {
-            return objectCache.getRestTo(entity);
-        }
-        final PyroUser result;
-        result = new PyroUser();
-        result.setId(entity.id);
+  public static PyroUser fromEntity(final PyroUserDB entity, final ObjectCache objectCache) {
 
-        result.setemail(entity.email);
-        result.setusername(entity.username);
+    if (objectCache.containsRestTo(entity)) {
+      return objectCache.getRestTo(entity);
+    }
+    final PyroUser result;
+    result = new PyroUser();
+    result.setId(entity.id);
 
-        if (entity.profilePicture != null) {
-            result.setprofilePicture(new FileReference(entity.profilePicture));
-        }
+    result.setemail(entity.email);
+    result.setusername(entity.username);
 
-        objectCache.putRestTo(entity, result);
-
-        for (PyroProjectDB p : entity.ownedProjects) {
-            result.getownedProjects().add(PyroProject.fromEntity(p, objectCache));
-        }
-
-        for (PyroSystemRoleDB p : entity.systemRoles) {
-            result.getsystemRoles().add(p);
-        }
-
-        return result;
+    if (entity.profilePicture != null) {
+      result.setprofilePicture(new FileReference(entity.profilePicture));
     }
 
-    @JsonProperty("ownedProjects")
-    public List<PyroProject> getownedProjects() {
-        return this.ownedProjects;
+    objectCache.putRestTo(entity, result);
+
+    for (PyroProjectDB p : entity.ownedProjects) {
+      result.getownedProjects().add(PyroProject.fromEntity(p, objectCache));
     }
 
-    @JsonProperty("ownedProjects")
-    public void setownedProjects(final List<PyroProject> ownedProjects) {
-        this.ownedProjects = ownedProjects;
+    for (PyroSystemRoleDB p : entity.systemRoles) {
+      result.getsystemRoles().add(p);
     }
 
-    @JsonProperty("systemRoles")
-    public List<PyroSystemRoleDB> getsystemRoles() {
-        return this.systemRoles;
-    }
+    return result;
+  }
 
-    @JsonProperty("systemRoles")
-    public void setsystemRoles(final List<PyroSystemRoleDB> systemRoles) {
-        this.systemRoles = systemRoles;
-    }
+  @JsonProperty("ownedProjects")
+  public List<PyroProject> getownedProjects() {
+    return this.ownedProjects;
+  }
 
-    @JsonProperty("username")
-    public String getusername() {
-        return this.username;
-    }
+  @JsonProperty("ownedProjects")
+  public void setownedProjects(final List<PyroProject> ownedProjects) {
+    this.ownedProjects = ownedProjects;
+  }
 
-    @JsonProperty("username")
-    public void setusername(final String username) {
-        this.username = username;
-    }
+  @JsonProperty("systemRoles")
+  public List<PyroSystemRoleDB> getsystemRoles() {
+    return this.systemRoles;
+  }
 
-    @JsonProperty("email")
-    public String getemail() {
-        return this.email;
-    }
+  @JsonProperty("systemRoles")
+  public void setsystemRoles(final List<PyroSystemRoleDB> systemRoles) {
+    this.systemRoles = systemRoles;
+  }
 
-    @JsonProperty("email")
-    public void setemail(final String email) {
-        this.email = email;
-    }
+  @JsonProperty("username")
+  public String getusername() {
+    return this.username;
+  }
 
-    @JsonProperty("profilePicture")
-    public FileReference getprofilePicture() {
-        return this.profilePicture;
-    }
+  @JsonProperty("username")
+  public void setusername(final String username) {
+    this.username = username;
+  }
 
-    @JsonProperty("profilePicture")
-    public void setprofilePicture(final FileReference profilePicture) {
-        this.profilePicture = profilePicture;
-    }
+  @JsonProperty("email")
+  public String getemail() {
+    return this.email;
+  }
+
+  @JsonProperty("email")
+  public void setemail(final String email) {
+    this.email = email;
+  }
+
+  @JsonProperty("profilePicture")
+  public FileReference getprofilePicture() {
+    return this.profilePicture;
+  }
+
+  @JsonProperty("profilePicture")
+  public void setprofilePicture(final FileReference profilePicture) {
+    this.profilePicture = profilePicture;
+  }
 }

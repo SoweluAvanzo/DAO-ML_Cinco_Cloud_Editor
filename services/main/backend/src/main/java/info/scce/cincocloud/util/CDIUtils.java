@@ -4,7 +4,7 @@ import javax.enterprise.inject.spi.CDI;
 
 public class CDIUtils {
 
-    public static <T> T getBean(Class<T> tClass) {
-        return CDI.current().select(tClass).get();
-    }
+  public static <T> T getBean(Class<T> someClass) {
+    return CDI.current().select(someClass).get();
+  }
 }

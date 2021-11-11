@@ -8,113 +8,113 @@ import info.scce.cincocloud.rest.RESTBaseImpl;
 
 public class PyroProject extends RESTBaseImpl {
 
-    private PyroUser owner;
-    private PyroOrganization organization;
-    private PyroWorkspaceImage image;
-    private PyroWorkspaceImage template;
-    private PyroProjectTypeDB type;
-    private String name;
-    private String description;
+  private PyroUser owner;
+  private PyroOrganization organization;
+  private PyroWorkspaceImage image;
+  private PyroWorkspaceImage template;
+  private PyroProjectTypeDB type;
+  private String name;
+  private String description;
 
-    public static PyroProject fromEntity(final PyroProjectDB entity, final ObjectCache objectCache) {
+  public static PyroProject fromEntity(final PyroProjectDB entity, final ObjectCache objectCache) {
 
-        if (objectCache.containsRestTo(entity)) {
-            return objectCache.getRestTo(entity);
-        }
-        final PyroProject result;
-        result = new PyroProject();
-        result.setId(entity.id);
-        result.setType(entity.type);
-        result.setname(entity.name);
-        result.setdescription(entity.description);
+    if (objectCache.containsRestTo(entity)) {
+      return objectCache.getRestTo(entity);
+    }
+    final PyroProject result;
+    result = new PyroProject();
+    result.setId(entity.id);
+    result.setType(entity.type);
+    result.setname(entity.name);
+    result.setdescription(entity.description);
 
-        objectCache.putRestTo(entity, result);
+    objectCache.putRestTo(entity, result);
 
-        if (entity.image != null) {
-            result.setimage(PyroWorkspaceImage.fromEntity(entity.image, objectCache));
-        }
-
-        if (entity.template != null) {
-            result.setTemplate(PyroWorkspaceImage.fromEntity(entity.template, objectCache));
-        }
-
-        if (entity.organization != null) {
-            result.setorganization(PyroOrganization.fromEntity(entity.organization, objectCache));
-        }
-
-        if (entity.owner != null) {
-            result.setowner(PyroUser.fromEntity(entity.owner, objectCache));
-        }
-        return result;
+    if (entity.image != null) {
+      result.setimage(PyroWorkspaceImage.fromEntity(entity.image, objectCache));
     }
 
-    @JsonProperty("owner")
-    public PyroUser getowner() {
-        return this.owner;
+    if (entity.template != null) {
+      result.setTemplate(PyroWorkspaceImage.fromEntity(entity.template, objectCache));
     }
 
-    @JsonProperty("owner")
-    public void setowner(final PyroUser owner) {
-        this.owner = owner;
+    if (entity.organization != null) {
+      result.setorganization(PyroOrganization.fromEntity(entity.organization, objectCache));
     }
 
-    @JsonProperty("organization")
-    public PyroOrganization getorganization() {
-        return this.organization;
+    if (entity.owner != null) {
+      result.setowner(PyroUser.fromEntity(entity.owner, objectCache));
     }
+    return result;
+  }
 
-    @JsonProperty("organization")
-    public void setorganization(final PyroOrganization organization) {
-        this.organization = organization;
-    }
+  @JsonProperty("owner")
+  public PyroUser getowner() {
+    return this.owner;
+  }
 
-    @JsonProperty("image")
-    public PyroWorkspaceImage getimage() {
-        return this.image;
-    }
+  @JsonProperty("owner")
+  public void setowner(final PyroUser owner) {
+    this.owner = owner;
+  }
 
-    @JsonProperty("image")
-    public void setimage(final PyroWorkspaceImage image) {
-        this.image = image;
-    }
+  @JsonProperty("organization")
+  public PyroOrganization getorganization() {
+    return this.organization;
+  }
 
-    @JsonProperty("name")
-    public String getname() {
-        return this.name;
-    }
+  @JsonProperty("organization")
+  public void setorganization(final PyroOrganization organization) {
+    this.organization = organization;
+  }
 
-    @JsonProperty("name")
-    public void setname(final String name) {
-        this.name = name;
-    }
+  @JsonProperty("image")
+  public PyroWorkspaceImage getimage() {
+    return this.image;
+  }
 
-    @JsonProperty("description")
-    public String getdescription() {
-        return this.description;
-    }
+  @JsonProperty("image")
+  public void setimage(final PyroWorkspaceImage image) {
+    this.image = image;
+  }
 
-    @JsonProperty("description")
-    public void setdescription(final String description) {
-        this.description = description;
-    }
+  @JsonProperty("name")
+  public String getname() {
+    return this.name;
+  }
 
-    @JsonProperty("template")
-    public PyroWorkspaceImage getTemplate() {
-        return template;
-    }
+  @JsonProperty("name")
+  public void setname(final String name) {
+    this.name = name;
+  }
 
-    @JsonProperty("template")
-    public void setTemplate(PyroWorkspaceImage template) {
-        this.template = template;
-    }
+  @JsonProperty("description")
+  public String getdescription() {
+    return this.description;
+  }
 
-    @JsonProperty("type")
-    public PyroProjectTypeDB getType() {
-        return type;
-    }
+  @JsonProperty("description")
+  public void setdescription(final String description) {
+    this.description = description;
+  }
 
-    @JsonProperty("type")
-    public void setType(PyroProjectTypeDB type) {
-        this.type = type;
-    }
+  @JsonProperty("template")
+  public PyroWorkspaceImage getTemplate() {
+    return template;
+  }
+
+  @JsonProperty("template")
+  public void setTemplate(PyroWorkspaceImage template) {
+    this.template = template;
+  }
+
+  @JsonProperty("type")
+  public PyroProjectTypeDB getType() {
+    return type;
+  }
+
+  @JsonProperty("type")
+  public void setType(PyroProjectTypeDB type) {
+    this.type = type;
+  }
 }

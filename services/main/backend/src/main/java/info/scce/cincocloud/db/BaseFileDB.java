@@ -6,9 +6,9 @@ import javax.persistence.Entity;
 @Entity()
 public class BaseFileDB extends PanacheEntity {
 
-    public String filename;
-    public String fileExtension;
-    public String path;
-    public String contentType;
+  public String filename;
+  public String fileExtension;
+  public String path;
+  public String contentType;
 }
 

@@ -7,8 +7,8 @@ import javax.persistence.OneToOne;
 @Entity()
 public class PyroSettingsDB extends PanacheEntity {
 
-    @OneToOne(cascade = javax.persistence.CascadeType.ALL)
-    public PyroStyleDB style;
+  @OneToOne(cascade = javax.persistence.CascadeType.ALL)
+  public PyroStyleDB style;
 
-    public boolean globallyCreateOrganizations;
+  public boolean globallyCreateOrganizations;
 }
