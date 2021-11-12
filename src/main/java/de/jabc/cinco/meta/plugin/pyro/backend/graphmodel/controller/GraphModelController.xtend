@@ -13,6 +13,7 @@ import mgl.NodeContainer
 import style.NodeStyle
 import style.Styles
 import mgl.MGLModel
+import mgl.Edge
 
 class GraphModelController extends Generatable {
 	
@@ -28,10 +29,7 @@ class GraphModelController extends Generatable {
 		val modelPackage = g.modelPackage as MGLModel
 		val hasAppearanceProviders = g.hasAppearanceProvider(styles) 
 		val hasChecks = g.hasChecks
-		val primeModels = g.importedPrimeTypes.map[n|n.type]
-			.filter(ModelElement) 	// all primeReferenced elements
-			.map[n|n.graphModels] 	// graphModels of primeReferenced elements
-			.flatten				// as list
+		val primeModels = g.resolveAllPrimeReferencedGraphModels
 			.filter[gr|!gr.equals(g)] // except this one
 			.groupBy[name].entrySet.map[value.get(0)];
 	'''
@@ -154,9 +152,7 @@ class GraphModelController extends Generatable {
 				String primeGraphModelId = null;
 				String primeElementlId = null;
 				
-				«val primeReferences = g.nodes.filter[prime].filter[hasJumpToAnnotation].filter[
-					it.primeReference.type instanceof ModelElement
-				]»
+				«val primeReferences = g.primeReferencedElements.filter[hasJumpToAnnotation].filter(Node)»
 				«FOR n:primeReferences SEPARATOR " else "
 				»if(node instanceof «n.entityFQN») {
 					«{
@@ -174,7 +170,7 @@ class GraphModelController extends Generatable {
 									primeGraphModelId = mec.getId();
 								«ENDIF»
 								graphModelType = «typeRegistryName».getName(mec);
-								elementType = «typeRegistryName».getName(primeNode); «/* TODO: implement TypeRegistry.getName(apiNode) */»
+								elementType = «typeRegistryName».getName(primeNode);
 							}
 						'''
 					}»

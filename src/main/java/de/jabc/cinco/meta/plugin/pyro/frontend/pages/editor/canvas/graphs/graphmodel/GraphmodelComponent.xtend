@@ -976,10 +976,11 @@ class GraphmodelComponent extends Generatable {
 			 		}).then((_){
 			 			//Execute jumpToDefinition
 			 			var elem = findElement(id);
-						«FOR n : g.nodesTopologically.filter[prime].filter[hasJumpToAnnotation] SEPARATOR " else "
+						«FOR n : g.primeReferencedElements.filter(Node).filter[prime].filter[hasJumpToAnnotation] SEPARATOR " else "
 						»if(elem.$type() == "«n.typeName»") {
+							«n.dartFQN» elem_«n.dartClass» = elem as «n.dartFQN»;
 							// check on null-reference
-							if(elem.«n.primeReference.name.escapeDart» != null) {
+							if(elem_«n.dartClass».«n.primeReference.name.escapeDart» != null) {
 								graphService.jumpToPrime('«g.name.lowEscapeDart»','«n.name.lowEscapeDart»',currentGraphModel.id,id).then((m)=>jumpToSC.add(m));
 							}
 						}«

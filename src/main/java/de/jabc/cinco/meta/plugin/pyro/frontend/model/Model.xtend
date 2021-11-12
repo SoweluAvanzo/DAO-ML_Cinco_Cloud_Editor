@@ -905,7 +905,10 @@ class Model extends Generatable {
 		}
 	'''
 	
-	def contentGraphmodel(MGLModel m,Styles styles) '''
+	def contentGraphmodel(MGLModel m,Styles styles) {
+		val ecoreReferencedModels = gc.ecores // TODO: needs to be more precise
+		val primeReferencedModels = m.primeReferencedElements.map[modelPackage].filter(MGLModel).toSet.filter[it !== m]
+		'''
 		import 'core.dart' as core;
 		import 'dispatcher.dart';
 		import 'dart:js' as js;
@@ -913,13 +916,13 @@ class Model extends Generatable {
 		import './«m.modelFile»' as «m.name.lowEscapeDart»;
 		import 'command_graph.dart';
 		«FOR gm:m.graphModels.filter[!isAbstract]»
-			import '../../«gm.commandGraphPath»';
+			import 'package:Test/«gm.commandGraphPath»';
 		«ENDFOR»
-		«FOR pr:gc.ecores»
+		«FOR pr:ecoreReferencedModels»
 			//prime referenced ecore «pr.name»
 			import '«pr.modelFile»' as «pr.name.lowEscapeDart»;
 		«ENDFOR»
-		«FOR pr:m.primeReferencedGraphModels.filter[!m.graphModels.contains(it)].map[modelPackage as MGLModel].toSet»
+		«FOR pr:primeReferencedModels»
 			//prime referenced package «pr.name»
 			import '«pr.modelFile»' as «pr.name.lowEscapeDart»;
 		«ENDFOR»
@@ -954,7 +957,8 @@ class Model extends Generatable {
 				}
 			}
 		«ENDFOR»
-	'''
+		'''
+	} 
 
 	def contentEcore(EPackage g) '''
 		import 'core.dart' as core;

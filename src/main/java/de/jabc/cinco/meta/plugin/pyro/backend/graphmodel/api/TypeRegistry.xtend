@@ -27,14 +27,14 @@ class TypeRegistry extends Generatable {
 	
 	def content(MGLModel modelPackage)
 	{
-		val primeReferencedModels = modelPackage.primeReferencedGraphModels.toSet
+		val primeReferencedModels = modelPackage.resolveAllPrimeReferencedGraphModels
 		val ecoreModels = modelPackage.ecorePrimeRefsModels
 		'''
 		package «modelPackage.apiFQNBase».util;
 		
 		import «dbTypeFQN»;
 		import «commandExecuterFQN»;
-		«FOR graphModel: modelPackage.graphmodels.filter[!isAbstract]»
+		«FOR graphModel: (modelPackage.discreteGraphModels + primeReferencedModels).toSet»
 			import «graphModel.commandExecuterFQN»;
 		«ENDFOR»
 		
@@ -356,7 +356,7 @@ class TypeRegistry extends Generatable {
 			 * GRAPHMODEL-SPECIFIC FUNCTIONS
 			 */
 			
-			«FOR gM: modelPackage.graphmodels.filter[!isAbstract]»
+			«FOR gM: modelPackage.discreteGraphModels»
 				public static graphmodel.IdentifiableElement getDBToApiPrime«gM.commandExecuterVar»(
 					«dbTypeName» e,
 					«gM.commandExecuter» executer,
@@ -366,7 +366,7 @@ class TypeRegistry extends Generatable {
 					«onEcoreReferenceDBToAPI(ecoreModels, '''executer''')»
 					«onPrimeReferencedTypeRegistry(
 						modelPackage,
-						primeReferencedModels,
+						gM.resolveAllPrimeReferencedGraphModels,
 						"getDBToApi",
 						[graphModel | '''«graphModel.commandExecuter»'''],
 						[pm | '''e, «pm.commandExecuter», parent, prev'''],
@@ -386,7 +386,7 @@ class TypeRegistry extends Generatable {
 				) {
 					«onPrimeReferencedTypeRegistry(
 						modelPackage,
-						primeReferencedModels,
+						gM.resolveAllPrimeReferencedGraphModels,
 						"findApiByType",
 						[graphModel | '''«graphModel.commandExecuter»'''],
 						[pm | '''type, id, «pm.commandExecuter», parent, prev'''],

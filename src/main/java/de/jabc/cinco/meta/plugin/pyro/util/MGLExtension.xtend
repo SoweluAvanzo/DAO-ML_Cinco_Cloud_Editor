@@ -712,6 +712,16 @@ class MGLExtension {
 	def getPrimeReferencedElements(MGLModel model) {
 		model.primeRefs.map[referencedElement].toSet
 	}
+	
+	def resolveAllPrimeReferencedGraphModels(MGLModel modelPackage) {
+		val primeReferencedElements = modelPackage.primeReferencedElements
+		primeReferencedElements.map[it.graphModels].flatten.filter[!isAbstract].toSet
+	}
+	
+	def resolveAllPrimeReferencedGraphModels(GraphModel g) {
+		val primeReferencedElements = g.primeReferencedElements
+		primeReferencedElements.map[it.graphModels].flatten.filter[!isAbstract].toSet
+	}
 
 	def getPrimeReferencingElements(Type referenced, Set<MGLModel> referencingSet) {
 		var referencingElements = new HashSet<Node>
