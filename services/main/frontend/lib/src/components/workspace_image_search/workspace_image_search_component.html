@@ -1,28 +1,26 @@
 <div class="search-container">
-  <form (ngSubmit)="$event.preventDefault()">
-    <div class="form-group">
-      <input
-          #search
-          class="form-control"
-          id="search-term"
-          placeholder="Search for an image"
-          type="text"
-          (input)="handleInput(search.value)"
-      >
-    </div>
-    <div class="list-group result-list overflow-auto" *ngIf="results.length > 0" style="max-height: 320px">
-      <div
-          class="list-group-item d-flex flex-row align-items-center cursor-pointer"
-          *ngFor="let image of results"
-          (click)="handleSelect(image)"
-      >
-        <div class="w-100 flex-grow-1">
-          <span>{{getDisplayName(image.imageName)}}</span>
-        </div>
-        <div>
-          <span class="badge badge-dark">{{image.imageVersion}}</span>
-        </div>
+  <div class="form-group">
+    <input
+        #search
+        class="form-control"
+        id="search-term"
+        placeholder="Search for an image"
+        type="text"
+        (input)="handleInput(search.value)"
+    >
+  </div>
+  <div class="list-group result-list overflow-auto" *ngIf="results.length > 0" style="max-height: 320px">
+    <div
+        class="list-group-item d-flex flex-row align-items-center cursor-pointer"
+        *ngFor="let image of results"
+        (click)="handleSelect(image)"
+    >
+      <div class="w-100 flex-grow-1">
+        <span>{{getDisplayName(image.imageName)}}</span>
+      </div>
+      <div>
+        <span class="badge badge-dark">{{image.imageVersion}}</span>
       </div>
     </div>
-  </form>
+  </div>
 </div>
