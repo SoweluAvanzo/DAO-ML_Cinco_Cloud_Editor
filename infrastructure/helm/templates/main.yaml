@@ -46,6 +46,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: main-config
+          env:
+            - name: CINCO_CLOUD_PASSWORD_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: passwordSecret
           securityContext:
             privileged: true
           volumeMounts:
