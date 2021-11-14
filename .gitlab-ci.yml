@@ -28,7 +28,7 @@ stages:
     - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker load < $IMAGE-$VERSION/image.tar.gz
-    - docker tag $CI_REGISTRY_IMAGE/$IMAGE:$VERSION $CI_REGISTRY_IMAGE/$IMAGE:$VERSION-$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE/$IMAGE:$VERSION $CI_REGISTRY_IMAGE/$IMAGE:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION
     - docker push $CI_REGISTRY_IMAGE/$IMAGE:$CI_COMMIT_SHA
 
