@@ -36,7 +36,7 @@ class GraphModelCommandExecuter extends Generatable {
 	
 	def content(GraphModel g,Styles styles) {
 		val modelPackage = g.modelPackage as MGLModel
-		val primeReferencedModels = g.getPrimeReferencedGraphModels
+		val primeReferencedModels = g.resolveAllPrimeReferencedGraphModels
 		
 		'''
 			package info.scce.pyro.core.command;

@@ -694,23 +694,17 @@ class MGLExtension {
 		}
 		return '''«attr.type.name.fuEscapeJava»'''
 	}
-
-	def getPrimeReferencedGraphModels(MGLModel model) {
-		model.getPrimeReferencedElements.filter(GraphModel)
-	}
-	
-	def getPrimeReferencedGraphModels(GraphModel model) {
-		model.getPrimeReferencedElements.filter(GraphModel)
-	}
 	
 	def getPrimeReferencedElements(GraphModel model) {
-		val modelPackage = model.modelPackage as MGLModel
-		val elements = model.elements
-		modelPackage.getPrimeReferencedElements.filter[elements.contains(it)]
+		val primeNodes = model.elements.filter(GraphicalModelElement).filter[isPrime].filter(Node)
+		val allPrimeReferences = primeNodes.map[primeReference].map[it.type].filter(ModelElement).toSet
+		allPrimeReferences 
 	}
 
-	def getPrimeReferencedElements(MGLModel model) {
-		model.primeRefs.map[referencedElement].toSet
+	def getPrimeReferencedElements(MGLModel model) {		
+		val primeNodes = model.elements.filter(GraphicalModelElement).filter[isPrime].filter(Node)
+		val allPrimeReferences = primeNodes.map[primeReference].map[it.type].filter(ModelElement).toSet
+		allPrimeReferences
 	}
 	
 	def resolveAllPrimeReferencedGraphModels(MGLModel modelPackage) {
@@ -769,11 +763,11 @@ class MGLExtension {
 	}
 
 	def getPrimeRefs(GraphModel model) {
-		model.nodes.filter[primeReference !== null].map[primeReference].filter(ReferencedModelElement).toSet
+		model.nodes.filter[isPrime].map[primeReference].filter(ReferencedModelElement).toSet
 	}
 
 	def getEcorePrimeRefs(MGLModel model) {
-		model.nodes.filter[primeReference !== null].map[primeReference].filter(ReferencedEClass).toSet
+		model.nodes.filter[isPrime].map[primeReference].filter(ReferencedEClass).toSet
 	}
 
 	def getEcorePrimeRefsModels(MGLModel model) {
@@ -2866,7 +2860,7 @@ class MGLExtension {
 	
 	def getContainableElementsDefinition(mgl.ContainingElement c) {
 		val possibleContainments = new LinkedList<Type>
-		val containerTypes = c.name.parentTypes(c.MGLModel).filter(mgl.ContainingElement) + #[c]	
+		val containerTypes = (c as ModelElement).resolveSuperTypesAndType.filter(ContainingElement)
 		for(container : containerTypes) {
 			val containments = container.containableElements.map[types].flatten
 			possibleContainments.addAll(containments)
