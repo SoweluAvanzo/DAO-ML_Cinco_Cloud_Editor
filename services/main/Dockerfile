@@ -55,5 +55,6 @@ CMD java \
     -Dkubernetes.namespace="${KUBERNETES_NAMESPACE}" \
     -Dcincocloud.host="${CINCO_CLOUD_HOST}" \
     -Dcincocloud.password.secret="${CINCO_CLOUD_PASSWORD_SECRET}" \
+    -Dcincocloud.archetype.image.tag="${CINCO_CLOUD_ARCHETYPE_IMAGE_TAG}" \
     -Dquarkus.http.port=8000 \
     -jar quarkus-run.jar

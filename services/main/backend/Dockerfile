@@ -34,5 +34,6 @@ CMD java \
     -Dpodman.registry.api.port="${PODAN_REGISTRY_API_PORT}" \
     -Dcincocloud.host="${CINCO_CLOUD_HOST}" \
     -Dcincocloud.password.secret="${CINCO_CLOUD_PASSWORD_SECRET}" \
+    -Dcincocloud.archetype.image.tag="${CINCO_CLOUD_ARCHETYPE_IMAGE_TAG}" \
     -Dkubernetes.namespace="${KUBERNETES_NAMESPACE}" \
     -jar quarkus-run.jar

@@ -60,6 +60,9 @@ public class ProjectDeploymentService {
   @ConfigProperty(name = "cincocloud.host")
   String host;
 
+  @ConfigProperty(name = "cincocloud.archetype.image.tag")
+  String archetypeImageTag;
+
   void startup(@Observes StartupEvent event) {
     client = clientService.createClient();
   }
@@ -166,7 +169,7 @@ public class ProjectDeploymentService {
     final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
     final var persistentVolume = new TheiaK8SPersistentVolume(client, project);
     final var service = new TheiaK8SService(client, project);
-    final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project);
+    final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project, archetypeImageTag);
     final var ingress = new TheiaK8SIngress(client, service, project, host);
 
     final var deployedDeploymentOptional = client.apps().statefulSets().list().getItems().stream()
@@ -307,7 +310,7 @@ public class ProjectDeploymentService {
   private void stopLanguageEditor(PyroProjectDB project) {
     final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
     final var service = new TheiaK8SService(client, project);
-    final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project);
+    final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project, archetypeImageTag);
     final var ingress = new TheiaK8SIngress(client, service, project, host);
 
     client.services().delete(service.getResource());

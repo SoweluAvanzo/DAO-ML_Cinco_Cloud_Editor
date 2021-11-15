@@ -29,6 +29,19 @@
     paths:
       - $IMAGE-$VERSION/image.tar.gz
 
+.deploy-job:
+  image:
+    name: gcr.io/k8s-skaffold/skaffold:v1.27.0
+  script:
+    - kubectl config set-cluster ls5vs024-cluster --server=https://129.217.27.124:16443
+    - kubectl config set clusters.ls5vs024-cluster.certificate-authority-data $CLUSTER_CERT
+    - kubectl config set-credentials ls5vs024-admin --token=$CLUSTER_USER_TOKEN
+    - kubectl config set-context ls5vs024 --user=ls5vs024-admin --cluster=ls5vs024-cluster
+    - kubectl config use-context ls5vs024
+    - kubectl config get-contexts
+    - echo "$PROFILE, $NAMESPACE, $TAG"
+    - skaffold deploy -p $PROFILE -n $NAMESPACE -t $TAG --status-check=true
+
 build-wiki:
   image: 'node:12.18.4'
   cache:
@@ -102,17 +115,17 @@ push-images:
   script:
     - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker load < main-latest/image.tar.gz
-    - docker tag $CI_REGISTRY_IMAGE/main:latest $CI_REGISTRY_IMAGE/main:latest-$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE/main:latest $CI_REGISTRY_IMAGE/main:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/main:latest
-    - docker push $CI_REGISTRY_IMAGE/main:latest-$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/main:$CI_COMMIT_SHA
     - docker load < registry-latest/image.tar.gz
-    - docker tag $CI_REGISTRY_IMAGE/registry:latest $CI_REGISTRY_IMAGE/registry:latest-$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE/registry:latest $CI_REGISTRY_IMAGE/registry:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/registry:latest
-    - docker push $CI_REGISTRY_IMAGE/registry:latest-$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/registry:$CI_COMMIT_SHA
     - docker load < workspace-builder-latest/image.tar.gz
-    - docker tag $CI_REGISTRY_IMAGE/workspace-builder:latest $CI_REGISTRY_IMAGE/workspace-builder:latest-$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE/workspace-builder:latest $CI_REGISTRY_IMAGE/workspace-builder:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/workspace-builder:latest
-    - docker push $CI_REGISTRY_IMAGE/workspace-builder:latest-$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/workspace-builder:$CI_COMMIT_SHA
   only:
     - main
 
@@ -128,5 +141,16 @@ pages:
     paths:
       - public
     expire_in: 1 day
+  only:
+    - main
+
+deploy-testing:
+  extends: .deploy-job
+  needs:
+    - push-images
+  variables:
+    PROFILE: ls5vs024
+    NAMESPACE: default
+    TAG: $CI_COMMIT_SHA
   only:
     - main
