@@ -52,7 +52,14 @@ The registry contains images build by the *Workspace Builder* for generated mode
 Additionally, the Python web service offers a single endpoint for triggering the garbage collection of the registry by the *Main Service*.
 
 **Theia Editor**
-The *Theia Editor* is a framework for IDEs, based on [Eclipse Theia](https://github.com/eclipse-theia/theia). It represents the artifact that can be built by the *Workspace Builder* and deployed by the *Kubernetes API*. Its most basic form for the *Cinco-Cloud*, without specialization for a language, can be found inside the [*Cinco Cloud Archetype*](https://gitlab.com/scce/cinco-cloud-archetype).
+The *Theia Editor* is a framework for IDEs, based on [Eclipse Theia](https://github.com/eclipse-theia/theia).
+It represents the artifact that can be built by the *Workspace Builder* and deployed by the *Kubernetes API*.
+Its most basic form for the *Cinco-Cloud*, without specialization for a language, can be found inside the [*Cinco Cloud Archetype*](https://gitlab.com/scce/cinco-cloud-archetype).
+Each project that is deployed by a user via the CincoCloud frontend corresponds to exactly one Theia-based workspace.
+There are two kinds of editors that can be deployed: for the meta-level, a **Language Editor** is deployed that behaves similar to Cinco in a sense that we can define our graphical languages and write our generators here.
+The other one is a concrete **Model Editor** that uses parts of the Pyro front- and backend and allows graphical modelling.
+In contrast to the language editor, the model editor is deployed together with an additional database, where graphical models are persisted in a serialized form.
+
 
 ## Secrets
 
@@ -71,6 +78,10 @@ In order to pull images from these registries, we need to have the following thr
   Needed by the *workspace builder* and contains the base64 encoded username and password to login to the [Cinco Cloud Archetype Container Registry][cinco-cloud-archetype-container-registry] in order to pull the archetype image.
   The secret is of type `opaque`.
 
+* `cinco-cloud-main-secrets` <br>
+  Secrets as key value pairs  that are solely used by the *main service*.
+  For now, it only contains the secret that is used to hash user passwords.
+  The secret is of type `opaque`.
 
 [cinco-cloud-archetype-container-registry]: https://gitlab.com/scce/cinco-cloud-archetype/container_registry
 [cinco-cloud-container-registry]: https://gitlab.com/scce/cinco-cloud/container_registry
