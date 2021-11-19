@@ -35,8 +35,8 @@ class Controller extends Generatable{
 	def fileNameController() '''controller.js'''
 
 	def contentController(GraphModel g,Styles styles) {
-		val nodes = g.nodesTopologically.filter[!isIsAbstract]
-		val edges = g.edgesTopologically.filter[!isIsAbstract]
+		val nodes = g.nodes.filter[!isIsAbstract]
+		val edges = g.edges.filter[!isIsAbstract]
 		
 
 	'''
@@ -79,7 +79,7 @@ class Controller extends Generatable{
 	    cb_delete_selected,
 	    cb_cursor_moved,
 	    cb_property_update,
-		«FOR elem:g.elements.filter[!isIsAbstract] SEPARATOR ","»
+		«FOR elem:g.nodesAndEdges.filter[!isIsAbstract]  SEPARATOR ","»
 			«IF elem instanceof Node»
 			    cb_create_node_«elem.jsCall(g)»,
 			    cb_remove_node_«elem.jsCall(g)»,
@@ -111,7 +111,7 @@ class Controller extends Generatable{
 		    cb_get_valid_containers:cb_get_valid_containers,
 		    cb_is_valid_container:cb_is_valid_container,
 		    cb_cursor_moved:cb_cursor_moved,
-			«FOR elem:g.elements.filter[!isIsAbstract] SEPARATOR ","»
+			«FOR elem:g.nodesAndEdges.filter[!isIsAbstract] SEPARATOR ","»
 				«IF elem instanceof Node»
 					cb_create_node_«elem.jsCall(g)»:cb_create_node_«elem.jsCall(g)»,
 					cb_remove_node_«elem.jsCall(g)»:cb_remove_node_«elem.jsCall(g)»,
@@ -444,26 +444,26 @@ class Controller extends Generatable{
 				
 			    update_selection(cellView,$paper_«g.jsCall»,$graph_«g.jsCall»);
 			    cb_element_selected(cellView.model.attributes.attrs.id);
-			    «FOR node:nodes»
-			    if(cellView.model.attributes.type=='«node.typeName»'){
-			    	//check if container has changed
-			    	move_node_«node.jsCall(g)»_hook(cellView);
-			    	if(!cellView.model.attributes.attrs.disableResize) {
-			        	$cb_functions_«g.jsCall».cb_resize_node_«node.jsCall(g)»(Math.round(cellView.model.attributes.size.width),Math.round(cellView.model.attributes.size.height),$node_resize_last_direction,cellView.model.attributes.attrs.id);	 	        		
-			    	}
-			    }
-			    «ENDFOR»
-			    «FOR edge:edges»
-			    if(cellView.model.attributes.type=='«edge.typeName»'){
-			    	var source = $graph_«g.jsCall».getCell(cellView.model.attributes.source.id);
-			    	var target = $graph_«g.jsCall».getCell(cellView.model.attributes.target.id);
-			    	reconnect_edge_«edge.jsCall(g)»_hook(cellView);
-			    	$cb_functions_«g.jsCall».cb_update_bendpoint(
-			    		cellView.model.attributes.vertices,
-			    		cellView.model.attributes.attrs.id
-			    	);
-			    }
-			    «ENDFOR»
+				«FOR node:nodes»
+					if(cellView.model.attributes.type=='«node.typeName»'){
+						//check if container has changed
+						move_node_«node.jsCall(g)»_hook(cellView);
+						if(!cellView.model.attributes.attrs.disableResize) {
+					    	$cb_functions_«g.jsCall».cb_resize_node_«node.jsCall(g)»(Math.round(cellView.model.attributes.size.width),Math.round(cellView.model.attributes.size.height),$node_resize_last_direction,cellView.model.attributes.attrs.id);	 	        		
+						}
+					}
+				«ENDFOR»
+				«FOR edge:edges»
+					if(cellView.model.attributes.type=='«edge.typeName»'){
+						var source = $graph_«g.jsCall».getCell(cellView.model.attributes.source.id);
+						var target = $graph_«g.jsCall».getCell(cellView.model.attributes.target.id);
+						reconnect_edge_«edge.jsCall(g)»_hook(cellView);
+						$cb_functions_«g.jsCall».cb_update_bendpoint(
+							cellView.model.attributes.vertices,
+							cellView.model.attributes.attrs.id
+						);
+					}
+				«ENDFOR»
 			     console.log(cellView);
 			     console.log("element clicked");
 			}
@@ -478,31 +478,31 @@ class Controller extends Generatable{
 	    	if(!$_disable_events_«g.jsCall» && cellView.attributes.type!=='pyro.PyroLink' && cellView.attributes.type!=='pyro.GlueLine' ){
 	    		update_selection($paper_«g.jsCall».findViewByModel(cellView),$paper_«g.jsCall»,$graph_«g.jsCall»);
 		        //for each edge
-		        «FOR edge:edges»
-		        if(cellView.attributes.type==='«edge.typeName»') {
-		            var link = $graph_«g.jsCall».getCell(cellView.attributes.id);
-		            var source = link.getSourceElement();
-		            var target = link.getTargetElement();
-		            if(source.id===target.id){
-		            	var p1 = {
-		            		x:source.attributes.position.x,
-		            		y:source.attributes.position.y-source.attributes.size.height
-		            	};
-		                var p2 = {
-		                    x:source.attributes.position.x-source.attributes.size.width,
-		                    y:source.attributes.position.y
-		                };
-		                link.set('vertices', [p1,p2]);
-		            }
-		            refresh_routing_«g.jsCall»();
-		            $cb_functions_«g.jsCall».cb_create_edge_«edge.jsCall(g)»(
-		              source.attributes.attrs.id,
-		              target.attributes.attrs.id,
-		              cellView.attributes.id,
-		              cellView.attributes.vertices
-		            );
-		        }
-		        «ENDFOR»
+				«FOR edge:edges»
+					if(cellView.attributes.type==='«edge.typeName»') {
+					    var link = $graph_«g.jsCall».getCell(cellView.attributes.id);
+					    var source = link.getSourceElement();
+					    var target = link.getTargetElement();
+					    if(source.id===target.id){
+					    	var p1 = {
+					    		x:source.attributes.position.x,
+					    		y:source.attributes.position.y-source.attributes.size.height
+					    	};
+					        var p2 = {
+					            x:source.attributes.position.x-source.attributes.size.width,
+					            y:source.attributes.position.y
+					        };
+					        link.set('vertices', [p1,p2]);
+					    }
+					    refresh_routing_«g.jsCall»();
+					    $cb_functions_«g.jsCall».cb_create_edge_«edge.jsCall(g)»(
+					      source.attributes.attrs.id,
+					      target.attributes.attrs.id,
+					      cellView.attributes.id,
+					      cellView.attributes.vertices
+					    );
+					}
+				«ENDFOR»
 		        console.log(cellView);
 		        console.log("element added");
 	        }
@@ -574,21 +574,21 @@ class Controller extends Generatable{
 	    });
 	    
 	    var disableRemove = [
-	    	«FOR e:g.elements.filter[!removable] SEPARATOR ","»
-	    	'«e.typeName»'
-		    «ENDFOR»
+			«FOR e:g.nodesAndEdges.filter[!isAbstract].filter[!removable] SEPARATOR ","»
+				'«e.typeName»'
+			«ENDFOR»
 	    ];
 		var disableResize = [
-			«FOR e:g.elements.filter(GraphicalModelElement).filter[!resizable] SEPARATOR ","»
+			«FOR e:g.nodesAndEdges.filter[!isAbstract].filter(GraphicalModelElement).filter[!resizable] SEPARATOR ","»
 				'«e.typeName»'
-		    «ENDFOR»
+			«ENDFOR»
 		];
 		var disableEdge = [
 			«FOR e:g.nodes.filter[!isAbstract].filter[!connectable] SEPARATOR ","»
 				'«e.typeName»'
 		    «ENDFOR»
 		];
-	«/*TODO:SAMI*/»
+		
 	    init_event_system($paper_«g.jsCall»,$graph_«g.jsCall»,remove_cascade_node_«g.jsCall»,disableRemove,disableResize,disableEdge,highlight_valid_containers_«g.jsCall»);
 	    
 	    create_«g.jsCall»_map();
@@ -699,7 +699,7 @@ class Controller extends Generatable{
 	    refresh_routing_«g.jsCall»();
 	}
 	
-	function «g.jsCall»_jump(id) { «/* TODO:SAMI: check*/»
+	function «g.jsCall»_jump(id) {
 		jump_to_element(id,$graph_«g.jsCall»,$paper_«g.jsCall»,$cb_functions_«g.jsCall»);
 	}
 	
@@ -726,12 +726,21 @@ class Controller extends Generatable{
 		graph = (typeof graph !== 'undefined') ?  graph : $graph_«g.jsCall»;
 		if(styleArgs!==null) {
 			var elem = findElementById(id,graph);
-			if(cellId!=null&&elem==null){
-			   elem =  graph.getCell(cellId);
+
+			if(cellId!=null&&elem!=null){
+				if(elem.id!=cellId) {
+					// remove dublicate
+					var dublicate = graph.getCell(cellId);
+					remove_element(dublicate, paper)
+				}
+			}
+			else if(cellId!=null&&elem==null){
+				elem =  graph.getCell(cellId);
 			}
 		    if(elem == null) {
-		     return;
+				return;
 		    }
+
 		    paper = (typeof paper !== 'undefined') ?  paper : $paper_«g.jsCall»;
 			var cell = paper.findViewByModel(elem);
 			«FOR node:nodes»
@@ -878,37 +887,40 @@ class Controller extends Generatable{
 		 * @returns {*}
 		 */
 		function create_node_«node.jsCall(g)»(x,y,width,height,id,containerId,styleArgs,information,label«IF node.isPrime»,primeId«ENDIF») {
-		    var elem = null;
-		    if(width != null && height != null) {
-		    	elem = new «node.shapeFQN»({
-		    		position: {
-		    		    x: x,
-		    		    y: y
-		    		},
-		    		size: {
-		    		  	width:width,
-		    		   	height:height
-		    		},
-		    		attrs:{
-		    		    id:id,
-		    		    disableMove:«IF node.movable»false«ELSE»true«ENDIF»,
-		    		    disableResize:«IF node.resizable»false«ELSE»true«ENDIF»
-		    		}
-		    	});
-		    } else {
-			    elem = new «node.shapeFQN»({
-			        position: {
-			            x: x,
-			            y: y
-			        },
-			        attrs:{
-			            id:id,
-			            disableMove:«IF node.movable»false«ELSE»true«ENDIF»,
-			            disableResize:«IF node.resizable»false«ELSE»true«ENDIF»
-			        }
-			    });
-		    }
-		    add_node_internal(elem,$graph_«g.jsCall»,$paper_«g.jsCall»,$map_paper_«g.jsCall»);
+		    var elem = findElementById(id,$graph_«g.jsCall»);
+		    
+			if(elem == null) {
+				if(width != null && height != null) {
+					elem = new «node.shapeFQN»({
+			    		position: {
+			    		    x: x,
+			    		    y: y
+			    		},
+			    		size: {
+			    		  	width:width,
+			    		   	height:height
+			    		},
+			    		attrs:{
+			    		    id:id,
+			    		    disableMove:«IF node.movable»false«ELSE»true«ENDIF»,
+			    		    disableResize:«IF node.resizable»false«ELSE»true«ENDIF»
+			    		}
+			    	});
+				} else {
+					elem = new «node.shapeFQN»({
+				        position: {
+				            x: x,
+				            y: y
+				        },
+				        attrs:{
+				            id:id,
+				            disableMove:«IF node.movable»false«ELSE»true«ENDIF»,
+				            disableResize:«IF node.resizable»false«ELSE»true«ENDIF»
+				        }
+				    });
+				}
+				add_node_internal(elem,$graph_«g.jsCall»,$paper_«g.jsCall»,$map_paper_«g.jsCall»);
+			}
 		    var pos = {x:x,y:y};
 		    if(containerId>-1&&containerId!=$graphmodel_id_«g.jsCall»){
 		    	var parent = findElementById(containerId,$graph_«g.jsCall»);

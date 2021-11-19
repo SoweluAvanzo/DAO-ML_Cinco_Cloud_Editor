@@ -60,7 +60,7 @@ class GraphmodelComponent extends Generatable {
 			  core.Node execCreateNodeType(String type,core.PyroElement primeElement)
 			  {
 			    // for each node type
-				«FOR elem : g.nodesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+				«FOR elem : g.nodes.filter[!isIsAbstract] SEPARATOR " else "
 				»if(type == '«elem.typeName»'){
 					var newNode = new «elem.dartFQN»();
 					«IF elem.prime»
@@ -76,7 +76,7 @@ class GraphmodelComponent extends Generatable {
 			  core.Edge execCreateEdgeType(String type)
 			  {
 			    core.Edge edge;
-			     «FOR elem : g.edgesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+			     «FOR elem : g.edges.filter[!isIsAbstract] SEPARATOR " else "
 			     »if(type == '«elem.typeName»') {
 			     	edge = new «elem.dartFQN»();
 			     }«
@@ -88,7 +88,7 @@ class GraphmodelComponent extends Generatable {
 			  void execCreateEdgeCommandCanvas(CreateEdgeCommand cmd) {
 			      core.ModelElement e = findElement(cmd.delegateId);
 			      
-			      «FOR edge : g.edgesTopologically.filter[!isIsAbstract]»
+			      «FOR edge : g.edges.filter[!isIsAbstract]»
 			      	if(cmd.type=='«edge.typeName»'){
 			      		js.context.callMethod('create_edge_«edge.jsCall(g)»',[«/* TODO:SAMI: jsCalls checken */»
 			      			cmd.sourceId,cmd.targetId,cmd.delegateId,js.JsObject.jsify(cmd.positions),js.JsObject.jsify(e.styleArgs()),e.$information(),e.$label()
@@ -100,7 +100,7 @@ class GraphmodelComponent extends Generatable {
 			  
 			  @override
 			  void execRemoveEdgeCanvas(int id,String type) {
-			  	«FOR edge : g.edgesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+			  	«FOR edge : g.edges.filter[!isIsAbstract] SEPARATOR " else "
 			  	»if(type=='«edge.typeName»'){
 			  		js.context.callMethod('remove_edge_«edge.jsCall(g)»',[
 			  			id
@@ -111,7 +111,7 @@ class GraphmodelComponent extends Generatable {
 			  
 			  @override
 			  void execReconnectEdgeCommandCanvas(ReconnectEdgeCommand cmd) {
-			  	«FOR edge : g.edgesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+			  	«FOR edge : g.edges.filter[!isIsAbstract] SEPARATOR " else "
 			  	»if(cmd.type=='«edge.typeName»'){
 			  		js.context.callMethod('reconnect_edge_«edge.jsCall(g)»',[
 			  			cmd.sourceId,cmd.targetId,cmd.delegateId
@@ -136,16 +136,16 @@ class GraphmodelComponent extends Generatable {
 							parent = (parent as core.Container).container;
 						}
 					}
-					«FOR node : g.nodesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+					«FOR node : g.nodes.filter[!isIsAbstract] SEPARATOR " else "
 					»if(cmd.type=='«node.typeName»'){
 					js.context.callMethod('create_node_«node.jsCall(g)»',[
-						«{
+						«/*{
 							val isElliptic = node.isElliptic(styles)
 							'''
 								x«IF isElliptic»+(cmd.width~/2)«ENDIF»,
 								y«IF isElliptic»+(cmd.height~/2)«ENDIF»
 							'''
-						}»,cmd.width,cmd.height,cmd.delegateId,cmd.containerId,js.JsObject.jsify(e.styleArgs()),e.$information(),e.$label()«IF node.prime»,cmd.primeId«ENDIF»
+						}*/»x,y,cmd.width,cmd.height,cmd.delegateId,cmd.containerId,js.JsObject.jsify(e.styleArgs()),e.$information(),e.$label()«IF node.prime»,cmd.primeId«ENDIF»
 						]);
 						return;
 					}«
@@ -171,15 +171,13 @@ class GraphmodelComponent extends Generatable {
 				 			parent = (parent as core.Container).container;
 				 		}
 					}
-					«FOR node : g.nodesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+					«FOR node : g.nodes.filter[!isIsAbstract] SEPARATOR " else "
 					»if(type=='«node.typeName»'){
 							js.context.callMethod('move_node_«node.jsCall(g)»',[
-							«{
-						val isElliptic = node.isElliptic(styles)
-						'''
-						x«IF isElliptic»+(elem.width~/2)«ENDIF»,
-						y«IF isElliptic»+(elem.height~/2)«ENDIF»'''
-						}»,delegateId,containerId
+								x,
+								y,
+								delegateId,
+								containerId
 							]);
 							return;
 					}«
@@ -197,7 +195,7 @@ class GraphmodelComponent extends Generatable {
 				
 				@override
 				void execRemoveNodeCanvas(int id, String type) {
-					«FOR node : g.nodesTopologically.filter[!isIsAbstract]»
+					«FOR node : g.nodes.filter[!isIsAbstract]»
 						if(type=='«node.typeName»'){
 							js.context.callMethod('remove_node_«node.jsCall(g)»',[
 								id
@@ -209,7 +207,7 @@ class GraphmodelComponent extends Generatable {
 				
 				@override
 				void execResizeNodeCommandCanvas(ResizeNodeCommand cmd) {
-				    «FOR node : g.nodesTopologically.filter[!isIsAbstract]»
+				    «FOR node : g.nodes.filter[!isIsAbstract]»
 				    	if(cmd.type=='«node.typeName»'){
 				    	  js.context.callMethod('resize_node_«node.jsCall(g)»',[
 				    	    cmd.width,cmd.height,cmd.direction,cmd.delegateId
@@ -221,7 +219,7 @@ class GraphmodelComponent extends Generatable {
 				
 				@override
 				void execRotateNodeCommandCanvas(RotateNodeCommand cmd) {
-				    «FOR node : g.nodesTopologically.filter[!isIsAbstract]»
+				    «FOR node : g.nodes.filter[!isIsAbstract]»
 				    	if(cmd.type=='«node.typeName»'){
 				    	  js.context.callMethod('rotate_node_«node.jsCall(g)»',[
 				    	    cmd.angle,cmd.delegateId
@@ -550,7 +548,7 @@ class GraphmodelComponent extends Generatable {
 									var y = content['y'];
 									var userName = senderId;
 	
-									js.JsObject cursorManager = js.context['\$cursor_manager_flowgraphdiagram'];
+									js.JsObject cursorManager = js.context['\$cursor_manager_«g.jsCall»'];
 									cursorManager.callMethod('update_cursor', [senderId, userName, x, y]);  
 								}
 							} else {
@@ -615,45 +613,43 @@ class GraphmodelComponent extends Generatable {
 			  	  	currentGraphModel.merge(cg.currentGraphModel);
 			  	  	graphService.update(currentGraphModel.id);
 			  	  	js.context.callMethod("load_«g.jsCall»",[
-			  	  	     currentGraphModel.width,
-			  	  	     currentGraphModel.height,
-			  	  	     currentGraphModel.scale,
-			  	  	     currentGraphModel.id,
-			  	  	     currentGraphModel.router,
-			  	  	     currentGraphModel.connector,
-			  	  	     //callback afert initialization
-			  	  	     initialized,
-			  	  	     //message callbacks
-			  	  	     cb_element_selected,
-			  	  	     cb_graphmodel_selected,
-			  	  	     cb_update_bendpoint,
-			  	  	     cb_can_move_node,
-			  	  	     cb_can_connect_edge,
-			  	  	     cb_get_valid_targets,
-			  	  	     cb_is_valid_connection,
-			  	  	     cb_get_valid_containers,
-			  	  	     cb_is_valid_container,
-			  	  	     cb_get_custom_actions,
-			  	  	     cb_fire_dbc_actions,
-			  	  	     cb_delete_selected,
-			  	  	     cb_cursor_moved,
-			  	  	     cb_property_persist,
-			  	  	     «FOR elem : g.elements.filter[!isIsAbstract]
-			  	  	     	.filter[!(it instanceof GraphModel)]
-			  	  	     	.filter[!isType]
-			  	  	     SEPARATOR ","»
-			  	  	     	«IF elem instanceof Node»
-			  	  	     		cb_create_node_«elem.jsCall(g)»,
-			  	  	     		cb_remove_node_«elem.jsCall(g)»,
-			  	  	     		cb_move_node_«elem.jsCall(g)»,
-			  	  	     		cb_resize_node_«elem.jsCall(g)»,
-			  	  	     		cb_rotate_node_«elem.jsCall(g)»
-			  	  	     	«ELSEIF elem instanceof Edge»
-			  	  	     		cb_create_edge_«elem.jsCall(g)»,
-			  	  	     		cb_remove_edge_«elem.jsCall(g)»,
-			  	  	     		cb_reconnect_edge_«elem.jsCall(g)»
-			  	  	     	«ENDIF»
-			  	  	     «ENDFOR»
+						currentGraphModel.width,
+						currentGraphModel.height,
+						currentGraphModel.scale,
+						currentGraphModel.id,
+						currentGraphModel.router,
+						currentGraphModel.connector,
+						//callback afert initialization
+						initialized,
+						//message callbacks
+						cb_element_selected,
+						cb_graphmodel_selected,
+						cb_update_bendpoint,
+						cb_can_move_node,
+						cb_can_connect_edge,
+						cb_get_valid_targets,
+						cb_is_valid_connection,
+						cb_get_valid_containers,
+						cb_is_valid_container,
+						cb_get_custom_actions,
+						cb_fire_dbc_actions,
+						cb_delete_selected,
+						cb_cursor_moved,
+						cb_property_persist,
+						«FOR elem:g.nodesAndEdges.filter[!isIsAbstract]  SEPARATOR ","»
+							«IF elem instanceof Node»
+								cb_create_node_«elem.jsCall(g)»,
+								cb_remove_node_«elem.jsCall(g)»,
+								cb_move_node_«elem.jsCall(g)»,
+								cb_resize_node_«elem.jsCall(g)»,
+								cb_rotate_node_«elem.jsCall(g)»
+							«ENDIF»
+							«IF elem instanceof Edge»
+								cb_create_edge_«elem.jsCall(g)»,
+								cb_remove_edge_«elem.jsCall(g)»,
+								cb_reconnect_edge_«elem.jsCall(g)»
+							«ENDIF»
+						«ENDFOR»
 			  		]);
 			   	    «IF g.hasAppearanceProvider(styles)»
 			   	    	graphService.appearances«g.name.fuEscapeDart»(currentGraphModel).then((data){
@@ -767,7 +763,7 @@ class GraphmodelComponent extends Generatable {
 					    elem,
 					    user.id
 					);
-				 	«FOR e : g.nodesTopologically.filter[directlyEditable] SEPARATOR "else "
+				 	«FOR e : g.nodes.filter[directlyEditable] SEPARATOR "else "
 				 	»if(elem.$type() == "«e.typeName»") {
 				 		(elem as «e.dartFQN»).«e.directlyEditableAttribute.name.escapeDart» = value;
 				 	}«
@@ -819,7 +815,7 @@ class GraphmodelComponent extends Generatable {
 						};
 						//connect by edges
 						currentGraphModel.modelElements.where((n)=>n is core.Edge).forEach((e){
-							«FOR edge : g.edgesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+							«FOR edge : g.edges.filter[!isIsAbstract] SEPARATOR " else "
 							»if(e.$type() == "«edge.typeName»"){
 								create_edge_«edge.jsCall(g)»(e);
 							}«
@@ -831,7 +827,7 @@ class GraphmodelComponent extends Generatable {
 				
 				void initContainerDeeply(core.ModelElementContainer container) {
 				    for(var node in container.modelElements) {
-				    	«FOR node : g.nodesTopologically.filter[!isIsAbstract]»
+				    	«FOR node : g.nodes.filter[!isIsAbstract]»
 				    		if(node.$type() == "«node.typeName»"){
 				    		  create_node_«node.name.lowEscapeDart»(node);
 				    		  «IF node instanceof ModelElementContainer»
@@ -1095,7 +1091,7 @@ class GraphmodelComponent extends Generatable {
 				 		switch(type) {
 				 			«{ 
 				 				// resolve type mapping
-				 				val nodes = g.nodesTopologically
+				 				val nodes = g.nodes
 				 				// entry is the type that is referenced, value are the possible creatable nodes
 				 				val possibleMapping = new HashMap<EObject, HashSet<GraphicalModelElement>>
 				 				val nodeTypes = nodes.map[resolveSubTypesAndType]
@@ -1183,7 +1179,7 @@ class GraphmodelComponent extends Generatable {
 						«g.containmentCheck(g.MGLModel, false)»
 						
 						// ...other containers
-						«FOR container : g.nodesTopologically.filter[!isIsAbstract].filter(NodeContainer)»
+						«FOR container : g.nodes.filter[!isIsAbstract].filter(NodeContainer)»
 							«container.containmentCheck(g.MGLModel, true)»
 						«ENDFOR»
 						
@@ -1221,9 +1217,9 @@ class GraphmodelComponent extends Generatable {
 				bool can_connect_source(core.Edge edge,core.Node source,core.Node target) {
 					if(edge.source == null || edge.source.id!=source.id) {
 						//source changed
-						«FOR n : g.nodesTopologically.filter[!isIsAbstract] SEPARATOR "else "
+						«FOR n : g.nodes.filter[!isIsAbstract] SEPARATOR "else "
 						»if(source.$type() == "«n.typeName»"){
-							«FOR edge:g.edgesTopologically SEPARATOR " else "
+							«FOR edge:g.edges SEPARATOR " else "
 							»if(edge == null || edge.$type() == "«edge.typeName»")
 							{
 								«IF !n.parentTypes.filter(Node).map[outgoingEdgeConnections].flatten.filter[containesEdge(edge)].empty»
@@ -1254,9 +1250,9 @@ class GraphmodelComponent extends Generatable {
 				bool can_connect_target(core.Edge edge,core.Node source,core.Node target) {
 					if(edge.target == null || edge.target.id!=target.id){
 						//target changed
-						«FOR n : g.nodesTopologically.filter[!isIsAbstract] SEPARATOR "else "
+						«FOR n : g.nodes.filter[!isIsAbstract] SEPARATOR "else "
 						»if(target.$type() == "«n.typeName»"){
-							«FOR edge:g.edgesTopologically SEPARATOR " else "
+							«FOR edge:g.edges SEPARATOR " else "
 							»if(edge == null || edge.$type() == "«edge.typeName»") {
 								«IF !n.parentTypes.filter(Node).map[incomingEdgeConnections].flatten.filter[containesEdge(edge)].empty»
 									var incoming = target.incoming;
@@ -1286,7 +1282,7 @@ class GraphmodelComponent extends Generatable {
 				dynamic cb_can_connect_edge(int id,int sourceId,int targetId) {
 					var edge = id==-1?null:findElement(id) as core.Edge;
 					List<core.Edge> edgeTypes = id==-1?[
-						«FOR e : g.edgesTopologically.filter[!isAbstract] SEPARATOR ","»
+						«FOR e : g.edges.filter[!isAbstract] SEPARATOR ","»
 							new «e.dartFQN»()
 						«ENDFOR»
 					]:[findElement(id)];
@@ -1326,13 +1322,13 @@ class GraphmodelComponent extends Generatable {
 				
 				void remove_node_cascade(core.Node node) {
 					if(node == null){ return; }
-					«FOR node : g.nodesTopologically.filter[!isIsAbstract]»
+					«FOR node : g.nodes.filter[!isIsAbstract]»
 						else if(node.$type() == "«node.typeName»") { remove_node_cascade_«node.jsCall(g)»(node); }
 					«ENDFOR»
 				}
 				
 				//for each node
-				«FOR node : g.nodesTopologically.filter[!isIsAbstract]»
+				«FOR node : g.nodes.filter[!isIsAbstract]»
 					
 					void create_node_«node.name.lowEscapeDart»(«node.dartFQN» node) {
 						var x = node.x;
@@ -1347,13 +1343,14 @@ class GraphmodelComponent extends Generatable {
 							}
 						}
 					   js.context.callMethod('create_node_«node.jsCall(g)»',
-					   [   
-					   		«{
+					   [   «/*{
 							val isElliptic = node.isElliptic(styles)
 					    	'''
 					    	x«IF isElliptic»+(node.width~/2)«ENDIF»,
 					    	y«IF isElliptic»+(node.height~/2)«ENDIF»,'''
-					    }»
+					    	}*/»
+					    	x,
+					    	y,
 						   	node.width,
 						   	node.height,
 						   	node.id,
@@ -1370,12 +1367,12 @@ class GraphmodelComponent extends Generatable {
 						var containerType =
 						        container != null ? container.$type() : null;
 					
-					    var ccm = commandGraph.sendCreateNodeCommand("«node.typeName»",«{
+					    var ccm = commandGraph.sendCreateNodeCommand("«node.typeName»",«/*{
 		    				val isElliptic = node.isElliptic(styles)
 		    		    	'''
 		    		    	x«IF isElliptic»-(width~/2)«ENDIF»,
 		    		    	y«IF isElliptic»-(height~/2)«ENDIF»'''
-			    		}»,containerId,containerType,width,height,user«IF node.isPrime»,primeId:primeId«ENDIF»);
+			    		}*/»x,y,containerId,containerType,width,height,user«IF node.isPrime»,primeId:primeId«ENDIF»);
 					    startPropagation();
 						graphService.sendMessage(ccm,"«g.name.lowEscapeJava»",currentGraphModel.id).then((m){
 							«'''
@@ -1512,7 +1509,7 @@ class GraphmodelComponent extends Generatable {
 				«ENDFOR»
 				
 				// for each edge
-				«FOR edge : g.edgesTopologically.filter[!isIsAbstract]»
+				«FOR edge : g.edges.filter[!isIsAbstract]»
 					
 					void create_edge_«edge.jsCall(g)»(«edge.dartFQN» edge) {
 					   js.context.callMethod('create_edge_«edge.jsCall(g)»',

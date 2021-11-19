@@ -52,13 +52,13 @@ class ListComponent extends Generatable {
 	  }
 	  void ngAfterViewChecked() {
 	      if(!loaded&&
-	          map.every((MapList m)=>m.values.every((MapListValue mlv)=>querySelector('#wysiwig${mlv.identifier.replaceAll('\.','_')}')!=null))
+	          map.every((MapList m)=>m.values.every((MapListValue mlv)=>querySelector('#wysiwig${mlv.identifier.replaceAll('\.','_').toLowerCase()}')!=null))
 	      )
 	      {
 	          loaded = true;
 	          //trigger
 	          map.forEach((m)=>m.values.forEach((mlv){
-	            js.context.callMethod('build_palette_${mlv.identifier.replaceAll('\.','_')}',[]);
+	            js.context.callMethod('build_palette_${mlv.identifier.replaceAll('\.','_').toLowerCase()}',[]);
 	          }));
 	      }
 	  }

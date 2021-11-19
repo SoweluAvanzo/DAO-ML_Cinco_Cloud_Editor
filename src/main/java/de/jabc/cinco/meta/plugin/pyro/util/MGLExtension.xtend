@@ -98,15 +98,17 @@ class MGLExtension {
 	/**
 	 * see nodes
 	 */
+	@Deprecated
 	def nodesTopologically(GraphModel g) {
-		this.nodes(g)
+		g.nodes
 	}
 
 	/**
 	 * see nodes
 	 */
+	@Deprecated
 	def nodesTopologically(MGLModel g) {
-		this.nodes(g)
+		g.nodes
 	}
 	
 	/**
@@ -136,8 +138,9 @@ class MGLExtension {
 	/**
 	 * see edges
 	 */
+	@Deprecated
 	def edgesTopologically(GraphModel g) {
-		this.edges(g)
+		g.edges
 	}
 
 	/**
@@ -155,8 +158,9 @@ class MGLExtension {
 	/**
 	 * see edges
 	 */
+	@Deprecated
 	def edgesTopologically(MGLModel g) {
-		this.edges(g)
+		g.edges
 	}
 	
 	/**
@@ -213,6 +217,10 @@ class MGLExtension {
 	
 	def elements(ContainingElement g) {
 		g.elementsTopologically.toSet
+	}
+	
+	def nodesAndEdges(GraphModel g) {
+		(g.nodes + g.edges)
 	}
 	
 	/**
@@ -2959,7 +2967,7 @@ class MGLExtension {
 	def dartImplPackage(MGLModel e) '''impl_«e.name.lowEscapeJava»'''
 	def dartImplPackage(EPackage e) '''impl_«e.name.lowEscapeJava»'''
 	
-	def jsCall(ModelElement me, GraphModel g) '''«me.name.lowEscapeDart»_«g.name.lowEscapeDart»'''
+	def jsCall(ModelElement me, GraphModel g) '''«g.name.lowEscapeDart»_«me.name.lowEscapeDart»'''
 	def jsCall(GraphModel g) '''«g.name.lowEscapeDart»'''
 	
 	def lowerType(GraphModel g) '''«g.name.lowEscapeDart»'''
