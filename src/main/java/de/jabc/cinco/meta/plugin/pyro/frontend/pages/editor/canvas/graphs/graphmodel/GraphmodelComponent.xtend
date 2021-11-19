@@ -743,7 +743,7 @@ class GraphmodelComponent extends Generatable {
 					}
 					
 					//check for prime referencable element in same graph and update
-					«FOR pr : g.MGLModel.primeRefs.filter[referencedElement.graphModel.equals(g)] SEPARATOR " else "
+					«FOR pr : g.MGLModel.primeRefs.filter[referencedElement.graphModels.contains(g)] SEPARATOR " else "
 					»if(ie.$type() == "«pr.referencedElement.typeName»") {
 						//update all prime nodes for this element
 						

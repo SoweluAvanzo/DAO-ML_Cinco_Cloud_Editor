@@ -283,7 +283,7 @@ class TypeRegistry extends Generatable {
 				«FOR e:modelPackage.elements.filter[!isAbstract] SEPARATOR " else "
 				»if(e instanceof «e.entityFQN») {
 					«e.entityFQN» en = («e.entityFQN») e;
-					return new «e.apiImplFQN»(en, executer);
+					return new «e.apiImplFQN»(en, executer«IF e.isType»,parent,prev«ENDIF»);
 				}«
 				ENDFOR»
 				return getDBToApiPrime(e, executer, parent, prev);

@@ -64,17 +64,16 @@ class GraphModelFactoryImplementation extends Generatable{
 			        return new «g.apiImplFQN»(newGraph,executer);
 			    }
 			
-				«FOR udt:g.elementsAndTypes.filter(UserDefinedType).filter[!isAbstract]»
+				«FOR udt:g.elements.filter(UserDefinedType).filter[!isAbstract]»
 					
 					public «udt.apiFQN» create«udt.name.fuEscapeJava»() {
 						«udt.entityFQN» entity = new «udt.entityFQN»();
 						entity.persist();
 							«udt.apiFQN» apiEntity = new «udt.apiImplFQN»(
 								entity,
-						    	executer«IF !udt.isType»,
+						    	executer,
 						    	null,
 						    	null
-						    	«ENDIF»
 					    	);
 					    return apiEntity;
 					}

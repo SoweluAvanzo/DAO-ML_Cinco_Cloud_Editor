@@ -48,20 +48,39 @@ class GraphModelElementImplementation extends Generatable {
 				
 				private final CommandExecuter cmdExecuter;
 				
+				«IF me instanceof UserDefinedType»
+					private final graphmodel.IdentifiableElement parent;
+					private final info.scce.pyro.core.graphmodel.IdentifiableElement prev;
+				«ENDIF»
+				
 				public «me.name.fuEscapeJava»Impl(
 					«me.entityFQN» delegate,
-					CommandExecuter cmdExecuter
+					CommandExecuter cmdExecuter«IF me instanceof UserDefinedType»,
+						graphmodel.IdentifiableElement parent,
+						info.scce.pyro.core.graphmodel.IdentifiableElement prev
+					«ENDIF»
 				) {
 					this.delegate = delegate;
 					this.cmdExecuter = cmdExecuter;
+					«IF me instanceof UserDefinedType»
+						this.parent = parent;
+						this.prev = prev;
+					«ENDIF»
 				}
 				
 				public «me.name.fuEscapeJava»Impl(
-					CommandExecuter cmdExecuter
+					CommandExecuter cmdExecuter«IF me instanceof UserDefinedType»,
+						graphmodel.IdentifiableElement parent,
+						info.scce.pyro.core.graphmodel.IdentifiableElement prev
+					«ENDIF»
 				) {
 					this.delegate = new «me.entityFQN»();
 					this.delegate.persist();
 					this.cmdExecuter = cmdExecuter;
+					«IF me instanceof UserDefinedType»
+						this.parent = parent;
+						this.prev = prev;
+					«ENDIF»
 				}
 				
 				@Override

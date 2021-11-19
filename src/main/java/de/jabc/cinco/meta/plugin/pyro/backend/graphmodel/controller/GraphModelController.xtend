@@ -697,10 +697,10 @@ class GraphModelController extends Generatable {
 	        «ENDIF»
 	        
 	        String type = pm.getDelegate().get__type();
-			«FOR e:g.elements.filter[!isIsAbstract] + #[g] SEPARATOR " else "»
+			«FOR e:g.elements.filter[!isIsAbstract] SEPARATOR " else "»
 				if (type.equals("«e.typeName»")){
 					«e.entityFQN» target = «e.entityFQN».findById(pm.getDelegate().getId());
-					«e.apiFQN» targetAPI = new «e.apiImplFQN»(target,executer);
+					«e.apiFQN» targetAPI = new «e.apiImplFQN»(target,executer«IF e.isType»,null,null«ENDIF»);
 					executer.update«e.name.escapeJava»(«IF !e.isType»targetAPI, «ENDIF»(«e.restFQN») pm.getDelegate());
 				}
 			«ENDFOR»

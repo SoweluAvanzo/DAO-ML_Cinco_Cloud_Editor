@@ -755,11 +755,11 @@ class MGLExtension {
 	}
 
 	def getPrimeReferencingElements(MGLModel model, GraphModel refG) {
-		model.primeRefs.filter[referencedElement.graphModel.equals(refG)].toSet
+		model.primeRefs.filter[referencedElement.graphModels.contains(refG)].toSet
 	}
 
 	def getPrimeReferencingElements(GraphModel model, GraphModel refG) {
-		model.primeRefs.filter[referencedElement.graphModel.equals(refG)].toSet
+		model.primeRefs.filter[referencedElement.graphModels.contains(refG)].toSet
 	}
 
 	def getAllPrimeRefs(MGLModel model) {
@@ -779,42 +779,33 @@ class MGLExtension {
 	}
 
 	def getEcorePrimeRefsModels(MGLModel model) {
-		model.ecorePrimeRefs.map[type].map[graphModel].filter[it instanceof EPackage].toList.stream.distinct.collect(
+		model.ecorePrimeRefs.map[type].map[EPackage].filter[it instanceof EPackage].toList.stream.distinct.collect(
 			Collectors.toList()).map[EPackage.cast(it)]
 	}
 
 	def getEcorePrimeRefsElements(MGLModel g, EPackage ecore) {
 		g.ecorePrimeRefs.filter[it.type.EPackage.equals(ecore)]
 	}
-
-	def Iterable<GraphModel> getGraphModel(ModelElement me) {
-		if (me instanceof GraphModel) {
-			return #[me]
-		}
-		if (me.eContainer === null) {
-			return #[]
-		}
-		if (me.eContainer instanceof ModelElement) {
-			val mglModel = me.mglModel
-			return mglModel.graphModels.filter[elements.contains(me)]
-		}
-		return #[]
-	}
-
-	@Deprecated
-	def getGraphModel(EObject me) {
-		if (me instanceof ModelElement) {
-			return me.graphModel
-		}
-		if (me instanceof EClassifier) {
-			return me.EPackage
-		}
-		return null
-	}
 	
 	def getGraphModels(ModelElement me) {
 		val modelPackage = me.modelPackage as MGLModel
-		modelPackage.graphmodels.filter[elements.contains(me)].toSet
+		val allGraphModels = modelPackage.graphmodels
+		val types = me.resolveSuperTypesAndType
+		val result = new HashSet<GraphModel>
+		for(g:allGraphModels) {
+			if(!result.contains(g)) {
+				for(t:types) {
+					if(g.elements.contains(t)) {
+						for(typeOfG:g.resolveSubTypesAndType) {
+							if(!result.contains(typeOfG)) {
+								result.add(typeOfG)
+							}
+						}
+					}
+				}
+			}
+		}
+		result
 	}
 
 	def getReferencedElement(ReferencedModelElement rt) {
@@ -2067,17 +2058,11 @@ class MGLExtension {
 	}
 
 	def String getBestContainerSuperTypeNameAPI(GraphicalModelElement node) {
-		//val type = node.bestContainerSuperType
-		val type = null
-		if(type === null) return "graphmodel.ModelElementContainer"
-		'''«type.apiFQN»'''.toString
+		return "graphmodel.ModelElementContainer"
 	}
 
 	def getBestContainerSuperTypeNameDart(GraphicalModelElement node) {
-		//val type = node.bestContainerSuperType
-		val  type = null
-		if(type === null) return "core.ModelElementContainer"
-		type.name.escapeDart
+		return "core.ModelElementContainer"
 	}
 
 	def boolean isElliptic(ModelElement element, Styles styles) {
@@ -2839,29 +2824,24 @@ class MGLExtension {
 		return ""
 	}
 	
-	def commandExecuterSwitch(ModelElement me, Function<CharSequence, CharSequence> proc) {
-		val m = me.modelPackage as MGLModel
-		m.commandExecuterSwitch(me, proc)
-	}
-	
 	def commandExecuterSwitch(MGLModel m, Function<CharSequence, CharSequence> proc) {
-		m.graphmodels.commandExecuterSwitch(null, proc)
+		m.discreteGraphModels.commandExecuterSwitch(proc)
 	}
 	
-	def commandExecuterSwitch(MGLModel m, ModelElement me, Function<CharSequence, CharSequence> proc) {
-		m.graphmodels.commandExecuterSwitch(me, proc)
+	def commandExecuterSwitch(ModelElement me, Function<CharSequence, CharSequence> proc) {
+		val graphModels = me.graphModels.filter[!isAbstract].toSet
+		commandExecuterSwitch(graphModels, proc)
 	}
 	
-	def commandExecuterSwitch(Iterable<GraphModel> graphModels, ModelElement me, Function<CharSequence, CharSequence> proc) {
-		val graphModelz = graphModels.filter[me === null ? true : it.containableElementsDefinition.contains(me)].filter[!isAbstract]
+	def commandExecuterSwitch(Set<GraphModel> graphModels, Function<CharSequence, CharSequence> proc) {
 		'''
-			«FOR gM:graphModelz SEPARATOR " else "
+			«FOR gM:graphModels SEPARATOR " else "
 			»if(cmdExecuter instanceof «gM.commandExecuter») {
 				«gM.commandExecuter» «gM.commandExecuterVar» = («gM.commandExecuter») cmdExecuter;
 				«proc.apply(gM.commandExecuterVar)»
 			}«
 			ENDFOR»
-			«IF !graphModelz.empty»else
+			«IF !graphModels.empty»else
 				«ENDIF»if(cmdExecuter != null) throw new RuntimeException("GraphModelCommandExecuter can not handle this type!");
 		'''
 	}
@@ -2976,6 +2956,6 @@ class MGLExtension {
 	def shapeFQN(MGLModel m) '''joint.shapes.«m.name.lowEscapeDart»'''
 	
 	def discreteGraphModels(MGLModel m) {
-		return m.graphModels.filter[!isAbstract]
+		return m.graphModels.filter[!isAbstract].toSet
 	}
  }
