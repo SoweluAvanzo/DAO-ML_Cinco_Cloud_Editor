@@ -408,8 +408,11 @@ class MGLExtension {
 	}
 
 	def boolean isModelElement(Attribute attribute) {
-		val modelPackage = attribute.modelPackage as MGLModel
-		modelPackage.elementsAndGraphmodels.exists[name.equals(attribute.name)]
+		if(attribute instanceof ComplexAttribute) {
+			val modelPackage = attribute.modelPackage as MGLModel
+			return modelPackage.elements.filter [!isType].exists[it.equals(attribute.type)]
+		}
+		return false;	
 	}
 
 	/**    ************************************************************************************    */
@@ -2938,7 +2941,7 @@ class MGLExtension {
 	def propertyPackagePath(MGLModel m) '''src/pages/editor/properties/graphs/«m.name.lowEscapeDart»'''
 	
 	def dartFQN(EObject e) '''«e.modelPackage.name.lowEscapeJava».«e.dartClass»'''
-	def dartFQN(ComplexAttribute e) '''«attributeTypeName(e)»'''
+	def dartFQN(ComplexAttribute e) '''«e.type.dartFQN»'''
 	def dartFQN(EObject e, CharSequence alias) '''«alias».«e.dartClass»'''
 	def dispatch dartClass(EObject e) '''«e.name.fuEscapeJava»'''
 	def dispatch dartClass(ComplexAttribute e) '''«e.type.name.fuEscapeJava»'''

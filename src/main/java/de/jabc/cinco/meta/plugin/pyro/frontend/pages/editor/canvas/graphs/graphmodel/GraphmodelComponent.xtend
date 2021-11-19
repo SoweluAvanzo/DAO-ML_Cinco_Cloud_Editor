@@ -1383,7 +1383,7 @@ class GraphmodelComponent extends Generatable {
 									node.y = y;
 									node.id = cmd.delegateId;
 									node.container = container;
-									container.modelElements.add(node);
+									container.addElement(node);
 									«IF node.prime»
 										//prime node -> update element properties
 										var primeElem = cmd.primeElement;
@@ -1460,7 +1460,7 @@ class GraphmodelComponent extends Generatable {
 							if(!container.modelElements.contains(node)){
 								node.container.modelElements.remove(node);
 								node.container = container;
-								container.modelElements.add(node);
+								container.addElement(node);
 								if(container is! core.GraphModel){
 									updateElement(container as core.ModelElement);
 								}
@@ -1548,7 +1548,7 @@ class GraphmodelComponent extends Generatable {
 									var edge = new «edge.dartFQN»();
 									edge.id = cmd.delegateId;
 									edge.container = currentGraphModel;
-									currentGraphModel.modelElements.add(edge);
+									currentGraphModel.addElement(edge);
 									edge.source = source;
 									source.outgoing.add(edge);
 									edge.target = target;

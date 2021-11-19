@@ -39,78 +39,75 @@ class IdentifiableElementPropertyComponent extends Generatable {
 		)
 		class «me.name.fuEscapeDart»PropertyComponent {
 		
-		  @Input()
-		  «me.dartFQN» currentElement;
-		  
-		  @Input()
-		  core.GraphModel currentGraphModel;
-		
-		  final hasChangedSC = new StreamController();
-		  @Output() Stream get hasChanged => hasChangedSC.stream;
-		  
+			@Input()
+			«me.dartFQN» currentElement;
+			
+			@Input()
+			core.GraphModel currentGraphModel;
+			
+			final hasChangedSC = new StreamController();
+			@Output() Stream get hasChanged => hasChangedSC.stream;
 			«FOR file:fileAttributes»
+				
 				FileUploader uploader_«file.name.escapeDart» = new FileUploader({
 					'url': '${BaseService.getUrl()}/files/create'
 					//,
 					//'authToken': BaseService.getAuthToken()
 				},autoUpload:true«IF !file.getFile.value.empty», accept:"«file.getFile.value.join(", ")»"«ENDIF»);
 			«ENDFOR»
-		  
-		  «me.name.fuEscapeDart»PropertyComponent() {
-		  	«FOR file:fileAttributes»
-		  		uploader_«file.name.escapeDart».newFileStream.listen((fr){
-		  			«IF file.isList»
-		  				addList«file.name.escapeDart»(fr.downloadPath);
-		  			«ELSE»
-		  				currentElement.«file.name.escapeDart» = fr.downloadPath;
-		  			«ENDIF»
-		  			hasChangedSC.add(currentElement);
-		  		});
-		  	«ENDFOR»
-		  }
-		  
-		  void valueChanged(dynamic e) {
-		  	hasChangedSC.add(currentElement);
-		  	«IF me instanceof GraphicalModelElement»
-		  		currentElement.$isDirty = false;
-		  	«ENDIF»
-		  }
-		  
-		  //get for enumeration literals
-		  «FOR attr:me.attributesExtended.filter[attributeTypeName.getEnum(g)!==null].filter[!isHidden]»
-			«attr.dartFQN» parse«attr.name»Enum(String e) {
-				switch(e) {
-				  «FOR lit:attr.attributeTypeName.getEnum(g).literals»
-				  	case "«attr.attributeTypeName.fuEscapeDart».«lit.escapeDart»": return «g.name.lowEscapeDart».«attr.attributeTypeName.fuEscapeDart».«lit.escapeDart»;
-				  «ENDFOR»
-				}
-				return «attr.dartFQN».«attr.attributeTypeName.getEnum(g).literals.get(0).escapeDart»;
+			
+			«me.name.fuEscapeDart»PropertyComponent() {
+			  	«FOR file:fileAttributes»
+			  		uploader_«file.name.escapeDart».newFileStream.listen((fr){
+			  			«IF file.isList»
+			  				addList«file.name.escapeDart»(fr.downloadPath);
+			  			«ELSE»
+			  				currentElement.«file.name.escapeDart» = fr.downloadPath;
+			  			«ENDIF»
+			  			hasChangedSC.add(currentElement);
+			  		});
+			  	«ENDFOR»
 			}
-		  «ENDFOR»
-		  
-		  // for each primitive list attribute
-		  «FOR attr : me.attributesExtended.filter[isPrimitive].filter[isList].filter[!isHidden]»
-		  	void addList«attr.name.escapeDart»(dynamic e) {
-		  	  e.preventDefault();
-		  	  currentElement.«attr.name.escapeDart».add(«attr.init(g,'''«g.name.lowEscapeJava».''')»);
-		  	  hasChangedSC.add(currentElement);
-		  	  «IF me instanceof GraphicalModelElement»
-		  	  	currentElement.$isDirty = false;
-	  		  «ENDIF»
-		  	}
-		  	void removeList«attr.name.escapeDart»(int index) {
-		  	  currentElement.«attr.name.escapeDart».removeAt(index);
-		  	  hasChangedSC.add(currentElement);
-		  	  «IF me instanceof GraphicalModelElement»
-		  	  	currentElement.$isDirty = false;
-  	  		  «ENDIF»
-		  	}
-		  «ENDFOR»
-		  
 			
-
+			void valueChanged(dynamic e) {
+			  	hasChangedSC.add(currentElement);
+			  	«IF me instanceof GraphicalModelElement»
+			  		currentElement.$isDirty = false;
+			  	«ENDIF»
+			}
 			
-			«FOR compAttr:me.attributesExtended.filter[isModelElement].filter[!isHidden]»
+			//get for enumeration literals
+			«FOR attr:me.attributesExtended.filter[attributeTypeName.getEnum(g)!==null].filter[!isHidden]»
+				«attr.dartFQN» parse«attr.name»Enum(String e) {
+					switch(e) {
+					  «FOR lit:attr.attributeTypeName.getEnum(g).literals»
+					  	case "«attr.attributeTypeName.fuEscapeDart».«lit.escapeDart»": return «g.name.lowEscapeDart».«attr.attributeTypeName.fuEscapeDart».«lit.escapeDart»;
+					  «ENDFOR»
+					}
+					return «attr.dartFQN».«attr.attributeTypeName.getEnum(g).literals.get(0).escapeDart»;
+				}
+			«ENDFOR»
+			
+			// for each primitive list attribute
+			«FOR attr : me.attributesExtended.filter[isPrimitive].filter[isList].filter[!isHidden]»
+				void addList«attr.name.escapeDart»(dynamic e) {
+				  e.preventDefault();
+				  currentElement.«attr.name.escapeDart».add(«attr.init(g,'''«g.name.lowEscapeJava».''')»);
+				  hasChangedSC.add(currentElement);
+				  «IF me instanceof GraphicalModelElement»
+				  	currentElement.$isDirty = false;
+				  «ENDIF»
+				}
+				void removeList«attr.name.escapeDart»(int index) {
+				  currentElement.«attr.name.escapeDart».removeAt(index);
+				  hasChangedSC.add(currentElement);
+				  «IF me instanceof GraphicalModelElement»
+				  	currentElement.$isDirty = false;
+				  «ENDIF»
+				}
+			«ENDFOR»
+			
+			«FOR compAttr:me.attributesExtended.filter(mgl.ComplexAttribute).filter[it.isModelElement].filter[!isHidden]»
 				List<«compAttr.dartFQN»> get«compAttr.name.escapeDart»Values() => currentGraphModel.allElements().where((n)=>n is «compAttr.dartFQN»).map((n)=>n as «compAttr.dartFQN»).toList();
 				
 				bool is«compAttr.name.lowEscapeDart»Selected(int id) {

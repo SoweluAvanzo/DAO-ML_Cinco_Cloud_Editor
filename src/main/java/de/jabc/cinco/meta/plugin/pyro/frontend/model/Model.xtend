@@ -281,9 +281,9 @@ class Model extends Generatable {
 					if(jsog["a_modelElements"]!=null){
 						for(var v in jsog["a_modelElements"]){
 							if(v.containsKey("@ref")){
-								this.modelElements.add(cache[v['@ref']]);
+								this.addElement(cache[v['@ref']]);
 							} else {
-							  this.modelElements.add(GraphModelDispatcher.dispatch«g.name.escapeDart»ModelElement(cache,v));
+							  this.addElement(GraphModelDispatcher.dispatch«g.name.escapeDart»ModelElement(cache,v));
 							}
 						}
 					}
@@ -475,7 +475,7 @@ class Model extends Generatable {
 						}
 					}
 					//add new
-					modelElements.addAll(elem.modelElements.where((e)=>modelElements.where((m)=>m.id==e.id).isEmpty).toList());
+					addAllElements(elem.modelElements.where((e)=>modelElements.where((m)=>m.id==e.id).isEmpty).toList());
 				}
 			«ENDIF»
 			«IF element instanceof GraphicalModelElement»
@@ -718,6 +718,7 @@ class Model extends Generatable {
 					list.add(this);
 					«IF element.canContain»
 						list.addAll(modelElements.expand((n) => n.allElements()));
+						list.sort((a,b) => a.id.compareTo(b.id));
 					«ENDIF»
 					return list;
 				}

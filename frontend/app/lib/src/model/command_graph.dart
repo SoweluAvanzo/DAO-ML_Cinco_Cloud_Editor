@@ -72,7 +72,7 @@ abstract class CommandGraph {
     }
     //set containment
     newNode.container = mec;
-    mec.modelElements.add(newNode);
+    mec.addElement(newNode);
 
     //set prev element if provided
     if (cmd.element != null) {
@@ -222,7 +222,7 @@ abstract class CommandGraph {
         return;
       }
       node.container = mec;
-      mec.modelElements.add(node);
+      mec.addElement(node);
     }
     if (propagate) {
       // call canvas
@@ -363,7 +363,7 @@ abstract class CommandGraph {
     target.incoming.add(edge);
     // set container
     edge.container = currentGraphModel;
-    currentGraphModel.modelElements.add(edge);
+    currentGraphModel.addElement(edge);
 
     edge.bendingPoints = new List.from(cmd.positions);
 

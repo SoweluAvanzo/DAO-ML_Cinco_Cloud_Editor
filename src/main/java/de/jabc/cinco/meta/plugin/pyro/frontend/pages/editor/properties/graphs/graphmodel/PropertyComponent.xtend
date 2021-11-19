@@ -13,7 +13,7 @@ class PropertyComponent extends Generatable {
 	def fileNamePropertyComponent()'''«propertyComponentFileDart»'''
 	
 	def contentPropertyComponent(GraphModel g) {
-		val propertyElements = g.elementsAndTypes.filter[!isAbstract]
+		val propertyElements = g.propertyElements
 		'''
 		import 'package:angular/angular.dart';
 		import 'dart:async';
@@ -21,9 +21,6 @@ class PropertyComponent extends Generatable {
 		import 'package:«gc.projectName.escapeDart»/src/model/core.dart';
 		
 		import 'package:«gc.projectName.escapeDart»/«g.modelFilePath»' as «g.name.lowEscapeDart»;
-		
-		// the «g.dartFQN» itself
-		import 'package:«gc.projectName.escapeDart»/«g.propertyElementFilePath»';
 		
 		// all elements of the «g.name.lowEscapeDart»
 		«FOR elem: propertyElements»
@@ -42,41 +39,31 @@ class PropertyComponent extends Generatable {
 		    ]
 		)
 		class PropertyComponent {
-		
-		  @Input()
-		  PyroElement currentElement;
-		  
-		  @Input()
-		  GraphModel currentGraphModel;
-		  
-		  final hasChangedSC = new StreamController();
-		  @Output() Stream get hasChanged => hasChangedSC.stream;
-		  «val relatedElements = (g.elementsAndTypes.filter[!isIsAbstract] + #[g]).toSet»
-		  «FOR elem:relatedElements»
-		  	/// checks if the given element is a «elem.dartFQN»
-		  	/// instance.
-		  	bool check«elem.name.fuEscapeDart»(PyroElement element) {
-		  		return element.$type()=='«elem.typeName»';
-		  	}
-		  «ENDFOR»
+			
+			@Input()
+			PyroElement currentElement;
+			
+			@Input()
+			GraphModel currentGraphModel;
+			
+			final hasChangedSC = new StreamController();
+			@Output() Stream get hasChanged => hasChangedSC.stream;
+			«FOR elem:propertyElements»
+				
+				/// checks if the given element is a «elem.dartFQN» instance.
+				bool check«elem.name.fuEscapeDart»(PyroElement element) {
+					return element.$type()=='«elem.typeName»';
+				}
+			«ENDFOR»
 		}
-		
 		'''
 	}
 	
 	def fileNamePropertyComponentTemplate()'''«propertyComponentFileHTML»'''
 	
 	def contentPropertyComponentTemplate(GraphModel g) {
-		val propertyElements = g.elementsAndTypes.filter[!isAbstract]
 		'''
-		<«g.name.lowEscapeDart»-property
-		    *ngIf="check«g.name.fuEscapeDart»(currentElement)"
-		    [currentElement]="currentElement"
-		    [currentGraphModel]="currentGraphModel"
-		    (hasChanged)="hasChangedSC.add($event)"
-		>
-		</«g.name.lowEscapeDart»-property>
-		«FOR elem:propertyElements»
+		«FOR elem:g.propertyElements»
 			<«elem.name.lowEscapeDart»-property
 			    *ngIf="check«elem.name.fuEscapeDart»(currentElement)"
 			    [currentElement]="currentElement"
@@ -85,5 +72,9 @@ class PropertyComponent extends Generatable {
 			></«elem.name.lowEscapeDart»-property>
 		«ENDFOR»
 		'''
+	}
+	
+	def getPropertyElements(GraphModel g) {
+		(g.elements.filter[!isAbstract] + #[g]).toSet
 	}
 }
