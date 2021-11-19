@@ -121,6 +121,17 @@ Install one of them.
 3. Open `http://cinco-cloud` in a Web browser.
    **Please, either use *Chrome* or *Firefox*, as it seems that there is a bug with *Safari* where some resources cannot be loaded properly.**
 
+## (Optional) Enable local SSL
+
+*(Note, that this doesn't work in conjunction with deployed modeleditors at the moment!)*
+
+1. Install [cert-manager].
+
+2. Execute `skaffold dev -p local-ssl`.
+
+3. Open `https://cinco-cloud` in a Web browser.
+
+
 [helm]: https://helm.sh/
 [docker]: https://docs.docker.com/get-docker/
 [skaffold]: https://skaffold.dev/
@@ -129,3 +140,4 @@ Install one of them.
 [cinco-cloud-archetype]: https://gitlab.com/scce/cinco-cloud-archetype
 [cinco-cloud-repository]: https://gitlab.com/scce/cinco-cloud
 [kubectl]: https://kubernetes.io/docs/reference/kubectl/overview/
+[cert-manager]: https://cert-manager.io/docs/installation/helm/#
