@@ -16,13 +16,13 @@ class SearchUserComponent {
   final UserService _userService;
   
   @Input("user")
-  PyroUser currentUser;
+  User currentUser;
   
   final userSelectedSC = new StreamController();
   @Output() Stream get userSelected => userSelectedSC.stream;
   
-  List<PyroUser> result = new List();
-  PyroUser selectedUser;
+  List<User> result = new List();
+  User selectedUser;
   bool found;
   
   SearchUserComponent(this._userService) {
@@ -46,7 +46,7 @@ class SearchUserComponent {
   	result.clear();
   }
   
-  void selectUser(PyroUser user) {
+  void selectUser(User user) {
   	selectedUser = selectedUser != null && user.id == selectedUser.id ? null : user;
     userSelectedSC.add(selectedUser);    
   }

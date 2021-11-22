@@ -5,7 +5,7 @@ import java.time.Instant;
 import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
-@Entity(name = "entity_core_stop_project_pods_task")
+@Entity
 public class StopProjectPodsTaskDB extends PanacheEntity {
 
   @NotNull

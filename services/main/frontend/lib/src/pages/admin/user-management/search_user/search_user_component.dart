@@ -22,7 +22,7 @@ class SearchUserComponent {
   bool searching = false;
   bool notFound = false;
   
-  PyroUser result;
+  User result;
 
   SearchUserComponent(this._userService){
   }

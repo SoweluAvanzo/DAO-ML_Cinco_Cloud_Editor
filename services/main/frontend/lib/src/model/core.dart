@@ -4,20 +4,20 @@ import 'dart:html';
 
 import '../filesupport/fileuploader.dart';
 
-class PyroOrganizationAccessRight {
+class OrganizationAccessRight {
   static final String CREATE_PROJECTS = "CREATE_PROJECTS";
   static final String EDIT_PROJECTS = "EDIT_PROJECTS";
   static final String DELETE_PROJECTS = "DELETE_PROJECTS";
 }
 
-class PyroOrganizationAccessRightVector {
+class OrganizationAccessRightVector {
   int id;
 
-  PyroUser user;
-  PyroOrganization organization;
+  User user;
+  Organization organization;
   List<String> accessRights;
 
-  PyroOrganizationAccessRightVector({Map cache, dynamic jsog}) {
+  OrganizationAccessRightVector({Map cache, dynamic jsog}) {
     accessRights = new List<String>();
 
     if (jsog != null) {
@@ -27,22 +27,22 @@ class PyroOrganizationAccessRightVector {
       if (jsog["organization"].containsKey("@ref")) {
         organization = cache[jsog["organization"]["@ref"]];
       } else {
-        organization = new PyroOrganization(cache: cache, jsog: jsog["organization"]);
+        organization = new Organization(cache: cache, jsog: jsog["organization"]);
       }
 
       if (jsog["user"].containsKey("@ref")) {
         user = cache[jsog["user"]["@ref"]];
       } else {
-        user = new PyroUser(cache: cache, jsog: jsog["user"]);
+        user = new User(cache: cache, jsog: jsog["user"]);
       }
 
       for (var value in jsog["accessRights"]) {
-        if (value == PyroOrganizationAccessRight.CREATE_PROJECTS) {
-          accessRights.add(PyroOrganizationAccessRight.CREATE_PROJECTS);
-        } else if (value == PyroOrganizationAccessRight.EDIT_PROJECTS) {
-          accessRights.add(PyroOrganizationAccessRight.EDIT_PROJECTS);
-        } else if (value == PyroOrganizationAccessRight.DELETE_PROJECTS) {
-          accessRights.add(PyroOrganizationAccessRight.DELETE_PROJECTS);
+        if (value == OrganizationAccessRight.CREATE_PROJECTS) {
+          accessRights.add(OrganizationAccessRight.CREATE_PROJECTS);
+        } else if (value == OrganizationAccessRight.EDIT_PROJECTS) {
+          accessRights.add(OrganizationAccessRight.EDIT_PROJECTS);
+        } else if (value == OrganizationAccessRight.DELETE_PROJECTS) {
+          accessRights.add(OrganizationAccessRight.DELETE_PROJECTS);
         }
       }
     } else {
@@ -51,12 +51,12 @@ class PyroOrganizationAccessRightVector {
     }
   }
 
-  static PyroOrganizationAccessRightVector fromJSON(String s) {
+  static OrganizationAccessRightVector fromJSON(String s) {
     return fromJSOG(cache: new Map(), jsog: jsonDecode(s));
   }
 
-  static PyroOrganizationAccessRightVector fromJSOG({Map cache, dynamic jsog}) {
-    return new PyroOrganizationAccessRightVector(cache: cache, jsog: jsog);
+  static OrganizationAccessRightVector fromJSOG({Map cache, dynamic jsog}) {
+    return new OrganizationAccessRightVector(cache: cache, jsog: jsog);
   }
 
   String toJSON() {
@@ -65,27 +65,27 @@ class PyroOrganizationAccessRightVector {
 
   Map toJSOG(Map cache) {
     Map jsog = new Map();
-    if (cache.containsKey("core.PyroOrganizationAccessRightVector:${id}")) {
-      jsog["@ref"] = cache["core.PyroOrganizationAccessRightVector:${id}"];
+    if (cache.containsKey("core.OrganizationAccessRightVector:${id}")) {
+      jsog["@ref"] = cache["core.OrganizationAccessRightVector:${id}"];
     } else {
-      cache["core.PyroOrganizationAccessRightVector:${id}"] = (cache.length + 1).toString();
-      jsog["@id"] = cache["core.PyroOrganizationAccessRightVector:${id}"];
+      cache["core.OrganizationAccessRightVector:${id}"] = (cache.length + 1).toString();
+      jsog["@id"] = cache["core.OrganizationAccessRightVector:${id}"];
       jsog["id"] = id;
       jsog["user"] = user.toJSOG(cache);
       jsog["organization"] = organization.toJSOG(cache);
       jsog["accessRights"] = accessRights;
-      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroOrganizationAccessRightVector";
+      jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.OrganizationAccessRightVectorTO";
     }
     return jsog;
   }
 
 }
 
-class PyroProjectDeployment {
+class ProjectDeployment {
   String url;
   String status;
 
-  PyroProjectDeployment({Map cache, dynamic jsog}) {
+  ProjectDeployment({Map cache, dynamic jsog}) {
     if (jsog != null) {
       url = jsog["url"];
       status = jsog["status"];
@@ -94,34 +94,34 @@ class PyroProjectDeployment {
     }
   }
 
-  static PyroProjectDeployment fromJSON(String s) {
+  static ProjectDeployment fromJSON(String s) {
     return fromJSOG(new Map(), jsonDecode(s));
   }
 
-  static PyroProjectDeployment fromJSOG(Map cache, dynamic jsog) {
-    return new PyroProjectDeployment(cache: cache, jsog: jsog);
+  static ProjectDeployment fromJSOG(Map cache, dynamic jsog) {
+    return new ProjectDeployment(cache: cache, jsog: jsog);
   }
 }
 
-class PyroSystemRole {
+class UserSystemRole {
   static final String ADMIN = "ADMIN";
   static final String ORGANIZATION_MANAGER = "ORGANIZATION_MANAGER";
 }
 
-class PyroUser {
+class User {
   int id;
   String username;
   String email;
   String emailHash;
   FileReference profilePicture;
 
-  List<PyroProject> ownedProjects;
+  List<Project> ownedProjects;
   List<String> systemRoles;
 
   var knownUsers;
 
-  PyroUser({Map cache, dynamic jsog}) {
-    ownedProjects = new List<PyroProject>();
+  User({Map cache, dynamic jsog}) {
+    ownedProjects = new List<Project>();
     systemRoles = new List<String>();
 
     if (jsog != null) {
@@ -135,7 +135,7 @@ class PyroUser {
         if (value.containsKey("@ref")) {
           ownedProjects.add(cache[value["@ref"]]);
         } else {
-          ownedProjects.add(new PyroProject(cache: cache, jsog: value));
+          ownedProjects.add(new Project(cache: cache, jsog: value));
         }
       }
 
@@ -145,26 +145,26 @@ class PyroUser {
 
 
       for (var value in jsog["systemRoles"]) {
-        if (value == PyroSystemRole.ADMIN) {
-          systemRoles.add(PyroSystemRole.ADMIN);
-        } else if (value == PyroSystemRole.ORGANIZATION_MANAGER) {
-          systemRoles.add(PyroSystemRole.ORGANIZATION_MANAGER);
+        if (value == UserSystemRole.ADMIN) {
+          systemRoles.add(UserSystemRole.ADMIN);
+        } else if (value == UserSystemRole.ORGANIZATION_MANAGER) {
+          systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
         }
       }
     }
     else {
       id = -1;
-      ownedProjects = new List<PyroProject>();
+      ownedProjects = new List<Project>();
       systemRoles = new List<String>();
     }
   }
 
-  static PyroUser fromJSON(String s) {
+  static User fromJSON(String s) {
     return fromJSOG(new Map(), jsonDecode(s));
   }
 
-  static PyroUser fromJSOG(Map cache, dynamic jsog) {
-    return new PyroUser(cache: cache, jsog: jsog);
+  static User fromJSOG(Map cache, dynamic jsog) {
+    return new User(cache: cache, jsog: jsog);
   }
 
   String toJSON() {
@@ -173,11 +173,11 @@ class PyroUser {
 
   Map toJSOG(Map cache) {
     Map jsog = new Map();
-    if (cache.containsKey("core.PyroUser:${id}")) {
-      jsog["@ref"] = cache["core.PyroUser:${id}"];
+    if (cache.containsKey("core.User:${id}")) {
+      jsog["@ref"] = cache["core.User:${id}"];
     } else {
-      cache["core.PyroUser:${id}"] = (cache.length + 1).toString();
-      jsog["@id"] = cache["core.PyroUser:${id}"];
+      cache["core.User:${id}"] = (cache.length + 1).toString();
+      jsog["@id"] = cache["core.User:${id}"];
       jsog["id"] = id;
       jsog["username"] = username;
       jsog["email"] = email;
@@ -186,15 +186,14 @@ class PyroUser {
       if (profilePicture != null) {
         jsog["profilePicture"] = profilePicture.toJSOG(cache);
       }
-      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroUser";
+      jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.UserTO";
     }
     return jsog;
   }
 }
 
-class PyroStyle {
+class Style {
   int id;
-
   String navBgColor;
   String navTextColor;
   String bodyBgColor;
@@ -203,7 +202,7 @@ class PyroStyle {
   String primaryTextColor;
   FileReference logo;
 
-  PyroStyle({Map cache, dynamic jsog}) {
+  Style({Map cache, dynamic jsog}) {
     if (jsog != null) {
       cache[jsog["@id"]] = this;
       id = jsog["id"];
@@ -223,21 +222,21 @@ class PyroStyle {
     }
   }
 
-  static PyroStyle fromJSON(String s) {
-    return PyroStyle.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
+  static Style fromJSON(String s) {
+    return Style.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
   }
 
-  static PyroStyle fromJSOG({Map cache, dynamic jsog}) {
-    return new PyroStyle(cache: cache, jsog: jsog);
+  static Style fromJSOG({Map cache, dynamic jsog}) {
+    return new Style(cache: cache, jsog: jsog);
   }
 
   Map toJSOG(Map cache) {
     Map jsog = new Map();
-    if (cache.containsKey("core.PyroStyle:${id}")) {
-      jsog["@ref"] = cache["core.PyroStyle:${id}"];
+    if (cache.containsKey("core.Style:${id}")) {
+      jsog["@ref"] = cache["core.Style:${id}"];
     } else {
-      cache["core.PyroStyle:${id}"] = (cache.length + 1).toString();
-      jsog['@id'] = cache["core.PyroStyle:${id}"];
+      cache["core.Style:${id}"] = (cache.length + 1).toString();
+      jsog['@id'] = cache["core.Style:${id}"];
       jsog['id'] = id;
 
       jsog['navBgColor'] = navBgColor;
@@ -249,52 +248,52 @@ class PyroStyle {
       if (logo != null) {
         jsog['logo'] = logo.toJSOG(cache);
       }
-      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroStyle";
+      jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.StyleTO";
     }
     return jsog;
   }
 }
 
-class PyroSettings {
+class Settings {
   int id;
-  PyroStyle style;
+  Style style;
   bool globallyCreateOrganizations;
 
-  PyroSettings({Map cache, dynamic jsog}) {
+  Settings({Map cache, dynamic jsog}) {
     if (jsog != null) {
       cache[jsog["@id"]] = this;
       id = jsog["id"];
       globallyCreateOrganizations = jsog["globallyCreateOrganizations"];
 
       if (jsog.containsKey("style")) {
-        style = new PyroStyle(cache: cache, jsog: jsog["style"]);
+        style = new Style(cache: cache, jsog: jsog["style"]);
       }
     } else {
       id = -1;
-      style = new PyroStyle();
+      style = new Style();
       globallyCreateOrganizations = false;
     }
   }
 
-  static PyroSettings fromJSON(String s) {
-    return PyroSettings.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
+  static Settings fromJSON(String s) {
+    return Settings.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
   }
 
-  static PyroSettings fromJSOG({Map cache, dynamic jsog}) {
-    return new PyroSettings(cache: cache, jsog: jsog);
+  static Settings fromJSOG({Map cache, dynamic jsog}) {
+    return new Settings(cache: cache, jsog: jsog);
   }
 
   Map toJSOG(Map cache) {
     Map jsog = new Map();
-    if (cache.containsKey("core.PyroSettings:${id}")) {
-      jsog["@ref"] = cache["core.PyroSettings:${id}"];
+    if (cache.containsKey("core.Settings:${id}")) {
+      jsog["@ref"] = cache["core.Settings:${id}"];
     } else {
-      cache["core.PyroSettings:${id}"] = (cache.length + 1).toString();
-      jsog['@id'] = cache["core.PyroSettings:${id}"];
+      cache["core.Settings:${id}"] = (cache.length + 1).toString();
+      jsog['@id'] = cache["core.Settings:${id}"];
       jsog['id'] = id;
       jsog['style'] = style.toJSOG(cache);
       jsog['globallyCreateOrganizations'] = globallyCreateOrganizations;
-      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroSettings";
+      jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.SettingsTO";
     }
     return jsog;
   }
@@ -325,16 +324,16 @@ class WorkspaceImageBuildResult {
   }
 }
 
-class PyroWorkspaceImage {
+class WorkspaceImage {
   int id;
   String name;
   String imageName;
   String imageVersion;
   bool published;
-  PyroUser user;
-  PyroProject project;
+  User user;
+  Project project;
 
-  PyroWorkspaceImage({Map cache, dynamic jsog}) {
+  WorkspaceImage({Map cache, dynamic jsog}) {
     if (jsog != null) {
       cache[jsog["@id"]] = this;
 
@@ -344,29 +343,29 @@ class PyroWorkspaceImage {
       imageVersion = jsog["imageVersion"];
       published = jsog["published"];
 
-      project = _resolveComplexType(cache, jsog, "project", (c, j) => new PyroProject(cache: c, jsog: j));
-      user = _resolveComplexType(cache, jsog, "user", (c, j) => new PyroUser(cache: c, jsog: j));
+      project = _resolveComplexType(cache, jsog, "project", (c, j) => new Project(cache: c, jsog: j));
+      user = _resolveComplexType(cache, jsog, "user", (c, j) => new User(cache: c, jsog: j));
     } else {
       id = -1;
-      user = new PyroUser();
+      user = new User();
     }
   }
 
-  static PyroWorkspaceImage fromJSON(String s) {
-    return PyroWorkspaceImage.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
+  static WorkspaceImage fromJSON(String s) {
+    return WorkspaceImage.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
   }
 
-  static PyroWorkspaceImage fromJSOG({Map cache, dynamic jsog}) {
-    return new PyroWorkspaceImage(cache: cache, jsog: jsog);
+  static WorkspaceImage fromJSOG({Map cache, dynamic jsog}) {
+    return new WorkspaceImage(cache: cache, jsog: jsog);
   }
 
   Map toJSOG(Map cache) {
     Map jsog = new Map();
-    if (cache.containsKey("core.PyroWorkspaceImage:${id}")) {
-      jsog["@ref"] = cache["core.PyroWorkspaceImage:${id}"];
+    if (cache.containsKey("core.WorkspaceImage:${id}")) {
+      jsog["@ref"] = cache["core.WorkspaceImage:${id}"];
     } else {
-      cache["core.PyroWorkspaceImage:${id}"] = (cache.length + 1).toString();
-      jsog['@id'] = cache["core.PyroWorkspaceImage:${id}"];
+      cache["core.WorkspaceImage:${id}"] = (cache.length + 1).toString();
+      jsog['@id'] = cache["core.WorkspaceImage:${id}"];
       jsog['id'] = id;
       jsog['name'] = name;
       jsog['imageName'] = imageName;
@@ -374,73 +373,73 @@ class PyroWorkspaceImage {
       jsog['published'] = published;
       jsog['user'] = user.toJSOG(cache);
       jsog['project'] = project.toJSOG(cache);
-      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroWorkspaceImage";
+      jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.WorkspaceImageTO";
     }
     return jsog;
   }
 }
 
-class PyroWorkspaceImageBuildJob {
+class WorkspaceImageBuildJob {
 
   int id;
-  PyroProject project;
+  Project project;
   String status;
   DateTime startedAt;
   DateTime finishedAt;
 
-  PyroWorkspaceImageBuildJob({Map cache, dynamic jsog}) {
+  WorkspaceImageBuildJob({Map cache, dynamic jsog}) {
     if (jsog != null) {
       cache[jsog["@id"]] = this;
       id = jsog["id"];
       status = jsog["status"];
       startedAt = jsog["startedAt"] != null ? DateTime.parse(jsog["startedAt"]) : null;
       finishedAt = jsog["finishedAt"] != null ? DateTime.parse(jsog["finishedAt"]) : null;
-      project = _resolveComplexType(cache, jsog, "project", (c, j) => new PyroProject(cache: c, jsog: j));
+      project = _resolveComplexType(cache, jsog, "project", (c, j) => new Project(cache: c, jsog: j));
     } else {
       id = -1;
-      project = new PyroProject();
+      project = new Project();
     }
   }
 
-  static PyroWorkspaceImageBuildJob fromJSON(String s) {
-    return PyroWorkspaceImageBuildJob.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
+  static WorkspaceImageBuildJob fromJSON(String s) {
+    return WorkspaceImageBuildJob.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
   }
 
-  static PyroWorkspaceImageBuildJob fromJSOG({Map cache, dynamic jsog}) {
-    return new PyroWorkspaceImageBuildJob(cache: cache, jsog: jsog);
+  static WorkspaceImageBuildJob fromJSOG({Map cache, dynamic jsog}) {
+    return new WorkspaceImageBuildJob(cache: cache, jsog: jsog);
   }
 
   Map toJSOG(Map cache) {
     Map jsog = new Map();
-    if (cache.containsKey("core.PyroWorkspaceImageBuildJob:${id}")) {
-      jsog["@ref"] = cache["core.PyroWorkspaceImageBuildJob:${id}"];
+    if (cache.containsKey("core.WorkspaceImageBuildJob:${id}")) {
+      jsog["@ref"] = cache["core.WorkspaceImageBuildJob:${id}"];
     } else {
-      cache["core.PyroWorkspaceImageBuildJob:${id}"] = (cache.length + 1).toString();
-      jsog['@id'] = cache["core.PyroWorkspaceImageBuildJob:${id}"];
+      cache["core.WorkspaceImageBuildJob:${id}"] = (cache.length + 1).toString();
+      jsog['@id'] = cache["core.WorkspaceImageBuildJob:${id}"];
       jsog['id'] = id;
       jsog["status"] = status;
       jsog["startedAt"] = startedAt.toIso8601String();
       jsog["finishedAt"] = finishedAt == null ? null : finishedAt.toIso8601String();
       jsog['project'] = project.toJSOG(cache);
-      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroWorkspaceImageBuildJob";
+      jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO";
     }
     return jsog;
   }
 }
 
-class PyroOrganization {
+class Organization {
   int id;
   String name;
   String description;
-  PyroStyle style;
-  List<PyroUser> owners;
-  List<PyroUser> members;
-  List<PyroProject> projects;
+  Style style;
+  List<User> owners;
+  List<User> members;
+  List<Project> projects;
 
-  PyroOrganization({Map cache, dynamic jsog}) {
-    owners = new List<PyroUser>();
-    members = new List<PyroUser>();
-    projects = new List<PyroProject>();
+  Organization({Map cache, dynamic jsog}) {
+    owners = new List<User>();
+    members = new List<User>();
+    projects = new List<Project>();
 
     if (jsog != null) {
       cache[jsog["@id"]] = this;
@@ -453,7 +452,7 @@ class PyroOrganization {
           if (value.containsKey("@ref")) {
             members.add(cache[value["@ref"]]);
           } else {
-            members.add(new PyroUser(cache: cache, jsog: value));
+            members.add(new User(cache: cache, jsog: value));
           }
         }
       }
@@ -463,7 +462,7 @@ class PyroOrganization {
           if (value.containsKey("@ref")) {
             owners.add(cache[value["@ref"]]);
           } else {
-            owners.add(new PyroUser(cache: cache, jsog: value));
+            owners.add(new User(cache: cache, jsog: value));
           }
         }
       }
@@ -473,21 +472,21 @@ class PyroOrganization {
           if (value.containsKey("@ref")) {
             projects.add(cache[value["@ref"]]);
           } else {
-            projects.add(new PyroProject(cache: cache, jsog: value));
+            projects.add(new Project(cache: cache, jsog: value));
           }
         }
       }
 
       if (jsog.containsKey("style")) {
-        style = new PyroStyle(cache: cache, jsog: jsog["style"]);
+        style = new Style(cache: cache, jsog: jsog["style"]);
       }
     } else {
       id = -1;
-      style = new PyroStyle();
+      style = new Style();
     }
   }
 
-  void merge(PyroOrganization other) {
+  void merge(Organization other) {
     id = other.id;
     name = other.name;
 
@@ -504,13 +503,6 @@ class PyroOrganization {
         .where((g) => n.id == g.id)
         .isEmpty);
 
-    //update files
-    projects.forEach((n) {
-      n.merge(other.projects
-          .where((g) => g.id == n.id)
-          .first);
-    });
-
     projects.addAll(other.projects.where((n) =>
     projects
         .where((g) => n.id == g.id)
@@ -525,21 +517,21 @@ class PyroOrganization {
         .isEmpty));
   }
 
-  static PyroOrganization fromJSON(String s) {
-    return PyroOrganization.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
+  static Organization fromJSON(String s) {
+    return Organization.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
   }
 
-  static PyroOrganization fromJSOG({Map cache, dynamic jsog}) {
-    return new PyroOrganization(cache: cache, jsog: jsog);
+  static Organization fromJSOG({Map cache, dynamic jsog}) {
+    return new Organization(cache: cache, jsog: jsog);
   }
 
   Map toJSOG(Map cache) {
     Map jsog = new Map();
-    if (cache.containsKey("core.PyroOrganization:${id}")) {
-      jsog["@ref"] = cache["core.PyroOrganization:${id}"];
+    if (cache.containsKey("core.Organization:${id}")) {
+      jsog["@ref"] = cache["core.Organization:${id}"];
     } else {
-      cache["core.PyroOrganization:${id}"] = (cache.length + 1).toString();
-      jsog['@id'] = cache["core.PyroOrganization:${id}"];
+      cache["core.Organization:${id}"] = (cache.length + 1).toString();
+      jsog['@id'] = cache["core.Organization:${id}"];
       jsog['id'] = id;
       jsog['name'] = name;
       jsog['description'] = description;
@@ -547,21 +539,20 @@ class PyroOrganization {
       jsog['members'] = members.map((n) => n.toJSOG(cache)).toList();
       jsog['projects'] = projects.map((n) => n.toJSOG(cache)).toList();
       jsog['style'] = style.toJSOG(cache);
-      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroOrganization";
+      jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.OrganizationTO";
     }
     return jsog;
   }
 
-  List<PyroUser> get users =>
+  List<User> get users =>
       new List.from(owners)
         ..addAll(members);
 }
 
-class PyroProjectType {
+class ProjectType {
   static final String LANGUAGE_EDITOR = "LANGUAGE_EDITOR";
   static final String MODEL_EDITOR = "MODEL_EDITOR";
 }
-
 
 T _resolveComplexType<T>(Map cache, dynamic jsog, String key, T Function(Map, dynamic) f) {
   if (jsog != null && jsog.containsKey(key) && jsog[key] != null) {
@@ -589,22 +580,17 @@ List<T> _resolveComplexListType<T>(Map cache, dynamic jsog, String key, T Functi
   return items;
 }
 
-
-class PyroProject extends PyroFolder {
+class Project {
   int id;
-  PyroUser owner;
+  User owner;
   String type;
   String name;
   String description;
-  PyroOrganization organization;
-  PyroWorkspaceImage image;
-  PyroWorkspaceImage template;
-  List<PyroFolder> innerFolders;
-  List<PyroFile> files;
+  Organization organization;
+  WorkspaceImage image;
+  WorkspaceImage template;
 
-  PyroProject({Map cache, dynamic jsog}) {
-    innerFolders = new List<PyroFolder>();
-    files = new List<PyroFile>();
+  Project({Map cache, dynamic jsog}) {
     if (jsog != null) {
       cache[jsog["@id"]] = this;
       id = jsog["id"];
@@ -612,51 +598,31 @@ class PyroProject extends PyroFolder {
       name = jsog["name"];
       type = jsog["type"];
 
-      image = _resolveComplexType(cache, jsog, "image", (c, j) => new PyroWorkspaceImage(cache: c, jsog: j));
-      organization = _resolveComplexType(cache, jsog, "organization", (c, j) => new PyroOrganization(cache: c, jsog: j));
-      owner = _resolveComplexType(cache, jsog, "owner", (c, j) => new PyroUser(cache: c, jsog: j));
-      template = _resolveComplexType(cache, jsog, "template", (c, j) => new PyroWorkspaceImage(cache: c, jsog: j));
-
-      if (jsog.containsKey("innerFolders")) {
-        for (var value in jsog["innerFolders"]) {
-          if (value.containsKey("@ref")) {
-            innerFolders.add(cache[value["@ref"]]);
-          } else {
-            innerFolders.add(new PyroFolder(cache: cache, jsog: value));
-          }
-        }
-      }
-
-      if (jsog.containsKey("files")) {
-        for (var value in jsog["files"]) {
-          if (value.containsKey("@ref")) {
-            files.add(cache[value["@ref"]]);
-          }
-        }
-      }
+      image = _resolveComplexType(cache, jsog, "image", (c, j) => new WorkspaceImage(cache: c, jsog: j));
+      organization = _resolveComplexType(cache, jsog, "organization", (c, j) => new Organization(cache: c, jsog: j));
+      owner = _resolveComplexType(cache, jsog, "owner", (c, j) => new User(cache: c, jsog: j));
+      template = _resolveComplexType(cache, jsog, "template", (c, j) => new WorkspaceImage(cache: c, jsog: j));
     }
     else {
       id = -1;
-      innerFolders = new List<PyroFolder>();
-      files = new List<PyroFile>();
     }
   }
 
-  static PyroProject fromJSON(String s) {
-    return PyroProject.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
+  static Project fromJSON(String s) {
+    return Project.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
   }
 
-  static PyroProject fromJSOG({Map cache, dynamic jsog}) {
-    return new PyroProject(cache: cache, jsog: jsog);
+  static Project fromJSOG({Map cache, dynamic jsog}) {
+    return new Project(cache: cache, jsog: jsog);
   }
 
   Map toJSOG(Map cache) {
     Map jsog = new Map();
-    if (cache.containsKey("core.PyroProject:${id}")) {
-      jsog["@ref"] = cache["core.PyroProject:${id}"];
+    if (cache.containsKey("core.Project:${id}")) {
+      jsog["@ref"] = cache["core.Project:${id}"];
     } else {
-      cache["core.PyroProject:${id}"] = (cache.length + 1).toString();
-      jsog['@id'] = cache["core.PyroProject:${id}"];
+      cache["core.Project:${id}"] = (cache.length + 1).toString();
+      jsog['@id'] = cache["core.Project:${id}"];
       jsog['id'] = id;
       jsog['name'] = name;
       if (owner != null) {
@@ -672,170 +638,8 @@ class PyroProject extends PyroFolder {
         jsog['template'] = template.toJSOG(cache);
       }
       jsog['description'] = description;
-      jsog['innerFolders'] = innerFolders.map((n) => n.toJSOG(cache)).toList();
-      jsog['files'] = files.map((n) => n.toJSOG(cache)).toList();
-      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroProject";
+      jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.ProjectTO";
     }
     return jsog;
-  }
-
-  @override
-  String fullPath(PyroFile pf) {
-    if (files
-        .where((f) => f.id == pf.id)
-        .isNotEmpty) {
-      return "";
-    }
-
-    if (innerFolders.isEmpty) {
-      return null;
-    }
-
-    List<String> paths = innerFolders.map((f) => f.fullPath(pf)).where((f) => f != null).toList();
-    if (paths.isEmpty) {
-      return null;
-    }
-    return paths[0] + "/";
-  }
-
-}
-
-class PyroFolder {
-  int id;
-  String name;
-  List<PyroFolder> innerFolders;
-  List<PyroFile> files;
-
-  PyroFolder({Map cache, dynamic jsog}) {
-    innerFolders = new List<PyroFolder>();
-    files = new List<PyroFile>();
-    if (jsog != null) {
-      cache[jsog["@id"]] = this;
-      id = jsog["id"];
-      name = jsog["name"];
-      for (var value in jsog["innerFolders"]) {
-        if (value.containsKey("@ref")) {
-          innerFolders.add(cache[value["@ref"]]);
-        } else {
-          innerFolders.add(new PyroFolder(cache: cache, jsog: value));
-        }
-      }
-      for (var value in jsog["files"]) {
-        if (value.containsKey("@ref")) {
-          files.add(cache[value["@ref"]]);
-        }
-      }
-    }
-    else {
-      id = -1;
-      name = "";
-      innerFolders = new List<PyroFolder>();
-      files = new List<PyroFile>();
-    }
-  }
-
-  Map toJSOG(Map cache) {
-    Map jsog = new Map();
-    if (cache.containsKey("core.PyroFolder:${id}")) {
-      jsog["@ref"] = cache["core.PyroFolder:${id}"];
-    } else {
-      cache["core.PyroFolder:${id}"] = (cache.length + 1).toString();
-      jsog["@id"] = cache["core.PyroFolder:${id}"];
-      jsog['id'] = id;
-      jsog['name'] = name;
-      jsog['innerFolders'] = innerFolders.map((n) => n.toJSOG(cache)).toList();
-      jsog['files'] = files.map((n) => n.toJSOG(cache)).toList();
-      jsog['runtimeType'] = "info.scce.pyro.core.rest.types.PyroFolder";
-    }
-    return jsog;
-  }
-
-  static PyroFolder fromJSON(String s) {
-    return PyroFolder.fromJSOG(new Map(), jsonDecode(s));
-  }
-
-  static PyroFolder fromJSOG(Map cache, dynamic jsog) {
-    return new PyroFolder(cache: cache, jsog: jsog);
-  }
-
-  List<PyroFile> allFiles() {
-    List<PyroFile> gs = new List();
-    gs.addAll(this.files.whereType<PyroFile>().toList());
-    gs.addAll(this.innerFolders.expand((n) => n.allFiles()).toList());
-    return gs;
-  }
-
-  void merge(PyroFolder pp) {
-    id = pp.id;
-    name = pp.name;
-
-    //remove missing files
-    files.removeWhere((n) =>
-    pp.files
-        .where((g) => n.id == g.id)
-        .isEmpty);
-    //remove missing folders
-    innerFolders.removeWhere((n) =>
-    pp.innerFolders
-        .where((g) => n.id == g.id)
-        .isEmpty);
-
-    //update files
-    files.forEach((n) {
-      n.mergeStructure(pp.files
-          .where((g) => g.id == n.id)
-          .first);
-    });
-    //update folders
-    innerFolders.forEach((n) {
-      n.merge(pp.innerFolders
-          .where((g) => g.id == n.id)
-          .first);
-    });
-
-    //add new files
-    files.addAll(pp.files.where((n) =>
-    files
-        .where((g) => n.id == g.id)
-        .isEmpty));
-    //add new folder
-    innerFolders.addAll(pp.innerFolders.where((n) =>
-    innerFolders
-        .where((g) => n.id == g.id)
-        .isEmpty));
-  }
-
-  String fullPath(PyroFile pf) {
-    if (files
-        .where((f) => f.id == pf.id)
-        .isNotEmpty) {
-      return this.name;
-    }
-
-    if (innerFolders.isEmpty) {
-      return null;
-    }
-
-    List<String> paths = innerFolders.map((f) => f.fullPath(pf)).where((f) => f != null).toList();
-    if (paths.isEmpty) {
-      return null;
-    }
-    return this.name + "/" + paths[0];
-  }
-}
-
-abstract class PyroFile {
-  int id;
-  String filename;
-  String extension;
-
-  Map toJSOG(Map cache);
-
-  void mergeStructure(PyroFile pf);
-
-  String $type() => "core.PyroFile";
-
-  String getFullName() {
-    return filename + (extension == null ? "" : "." + extension);
   }
 }

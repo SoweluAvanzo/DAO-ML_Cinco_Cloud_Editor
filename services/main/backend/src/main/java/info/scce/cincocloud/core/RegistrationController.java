@@ -1,9 +1,9 @@
 package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.auth.PBKDF2Encoder;
-import info.scce.cincocloud.core.rest.types.PyroUserRegistration;
-import info.scce.cincocloud.db.PyroSystemRoleDB;
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
+import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.db.UserSystemRole;
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -31,20 +31,20 @@ public class RegistrationController {
   @PermitAll
   public Response registerUser(
       @Context SecurityContext securityContext,
-      @Valid PyroUserRegistration pyroUserRegistration
+      @Valid UserRegistrationInput pyroUserRegistration
   ) {
-    final var emailExists = !PyroUserDB.list("email", pyroUserRegistration.getEmail()).isEmpty();
+    final var emailExists = !UserDB.list("email", pyroUserRegistration.getEmail()).isEmpty();
 
     if (!emailExists) {
-      final var user = PyroUserDB.add(
+      final var user = UserDB.add(
           pyroUserRegistration.getEmail(),
           pyroUserRegistration.getUsername(),
           passwordEncoder.encode(pyroUserRegistration.getPassword())
       );
 
-      if (PyroUserDB.count() == 1) {
-        user.systemRoles.add(PyroSystemRoleDB.ADMIN);
-        user.systemRoles.add(PyroSystemRoleDB.ORGANIZATION_MANAGER);
+      if (UserDB.count() == 1) {
+        user.systemRoles.add(UserSystemRole.ADMIN);
+        user.systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
       }
 
       user.persist();

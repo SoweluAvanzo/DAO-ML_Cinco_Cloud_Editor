@@ -9,8 +9,8 @@ import javax.persistence.OneToOne;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Entity()
-public class PyroWorkspaceImageDB extends PanacheEntity {
+@Entity
+public class WorkspaceImageDB extends PanacheEntity {
 
   @NotBlank
   public String name;
@@ -32,19 +32,19 @@ public class PyroWorkspaceImageDB extends PanacheEntity {
 
   @NotNull
   @ManyToOne
-  public PyroUserDB user;
+  public UserDB user;
 
   @NotNull
   @OneToOne
-  public PyroProjectDB project;
+  public ProjectDB project;
 
-  public static Optional<PyroWorkspaceImageDB> findByImageName(String imageName) {
+  public static Optional<WorkspaceImageDB> findByImageName(String imageName) {
     return find("imageName", imageName).firstResultOptional();
   }
 
   @Override
   public String toString() {
-    return "PyroWorkspaceImageDB{"
+    return "WorkspaceImageDB{"
         + "name='" + name + '\''
         + ", imageName='" + imageName + '\''
         + ", imageVersion='" + imageVersion + '\''

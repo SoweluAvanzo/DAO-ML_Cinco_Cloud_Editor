@@ -10,16 +10,16 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 
-@Entity()
-public class PyroOrganizationAccessRightVectorDB extends PanacheEntity {
+@Entity
+public class OrganizationAccessRightVectorDB extends PanacheEntity {
 
   @ManyToOne(cascade = CascadeType.ALL)
-  public PyroUserDB user;
+  public UserDB user;
 
   @ManyToOne
-  public PyroOrganizationDB organization;
+  public OrganizationDB organization;
 
   @Enumerated(EnumType.STRING)
   @ElementCollection
-  public List<PyroOrganizationAccessRightDB> accessRights = new ArrayList<>();
+  public List<OrganizationAccessRight> accessRights = new ArrayList<>();
 }

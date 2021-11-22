@@ -7,18 +7,18 @@ import 'base_service.dart';
 import '../model/core.dart';
 
 class UserService extends BaseService {
-  PyroUser user;
+  User user;
 
   UserService(Router router) : super(router);
 
-  Future<PyroUser> login(dynamic userJson) async {
+  Future<User> login(dynamic userJson) async {
     //mockup
-    user = PyroUser.fromJSON(userJson);
-    print("[PYRO] login as user ${user.username}");
+    user = User.fromJSON(userJson);
+    print("[CINCO_CLOUD] login as user ${user.username}");
     return new Future.value(user);
   }
 
-  Future<PyroUser> fetchUser() async {
+  Future<User> fetchUser() async {
     String basicAuth = 'Basic ' + base64Encode(utf8.encode('philip:12345'));
     requestHeaders['authorization'] = basicAuth;
     return HttpRequest.request("${getBaseUrl()}/user/current/private",
@@ -26,13 +26,13 @@ class UserService extends BaseService {
             requestHeaders: requestHeaders,
             withCredentials: true)
         .then((response) {
-      return PyroUser.fromJSON(response.responseText);
+      return User.fromJSON(response.responseText);
     }).catchError((e) {
       throw e;
     });
   }
 
-  Future<List<PyroUser>> findUsers() async {
+  Future<List<User>> findUsers() async {
     return HttpRequest.request("${getBaseUrl()}/users",
             method: "GET",
             requestHeaders: requestHeaders,
@@ -42,16 +42,16 @@ class UserService extends BaseService {
         throw new Exception(response.responseText);
       } else {
         var result = jsonDecode(response.responseText);
-        List<PyroUser> users = new List();
+        List<User> users = new List();
         result.forEach((u) {
-          users.add(PyroUser.fromJSOG(new Map(), u));
+          users.add(User.fromJSOG(new Map(), u));
         });
         return users;
       }
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroUser> searchUser(String usernameOrEmail) async {
+  Future<User> searchUser(String usernameOrEmail) async {
     var search = {"usernameOrEmail": usernameOrEmail};
     return HttpRequest.request("${getBaseUrl()}/users/search",
             method: "POST",
@@ -62,13 +62,13 @@ class UserService extends BaseService {
       if (response.responseText == 'None found') {
         throw new Exception(response.responseText);
       } else {
-        PyroUser result =
-            PyroUser.fromJSOG(new Map(), jsonDecode(response.responseText));
+        User result =
+            User.fromJSOG(new Map(), jsonDecode(response.responseText));
         return result;
       }
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
-  Future<PyroUser> addUser(Map map) async {
+  Future<User> addUser(Map map) async {
   	var user = map;
   	return HttpRequest.request("${getBaseUrl()}/register/new/private",
   		method: "POST",
@@ -76,13 +76,13 @@ class UserService extends BaseService {
   		requestHeaders: requestHeaders,
   		withCredentials: true
   	).then((response){
-      	PyroUser result = PyroUser.fromJSOG(new Map(), jsonDecode(response.responseText));
+      	User result = User.fromJSOG(new Map(), jsonDecode(response.responseText));
       	return result;
       
   	}).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroUser> deleteUser(PyroUser user) async {
+  Future<User> deleteUser(User user) async {
     return HttpRequest.request("${getBaseUrl()}/users/${user.id}",
             method: "DELETE",
             requestHeaders: requestHeaders,
@@ -92,65 +92,65 @@ class UserService extends BaseService {
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroUser> addAdminRole(PyroUser user) async {
+  Future<User> addAdminRole(User user) async {
     return HttpRequest.request(
             "${getBaseUrl()}/users/${user.id}/roles/addAdmin",
             method: "POST",
             requestHeaders: requestHeaders,
             withCredentials: true)
         .then((response) {
-      PyroUser result =
-          PyroUser.fromJSOG(new Map(), jsonDecode(response.responseText));
+      User result =
+          User.fromJSOG(new Map(), jsonDecode(response.responseText));
       return result;
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroUser> removeAdminRole(PyroUser user) async {
+  Future<User> removeAdminRole(User user) async {
     return HttpRequest.request(
             "${getBaseUrl()}/users/${user.id}/roles/removeAdmin",
             method: "POST",
             requestHeaders: requestHeaders,
             withCredentials: true)
         .then((response) {
-      PyroUser result =
-          PyroUser.fromJSOG(new Map(), jsonDecode(response.responseText));
+      User result =
+          User.fromJSOG(new Map(), jsonDecode(response.responseText));
       return result;
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroUser> addOrgManagerRole(PyroUser user) async {
+  Future<User> addOrgManagerRole(User user) async {
     return HttpRequest.request(
             "${getBaseUrl()}/users/${user.id}/roles/addOrgManager",
             method: "POST",
             requestHeaders: requestHeaders,
             withCredentials: true)
         .then((response) {
-      PyroUser result =
-          PyroUser.fromJSOG(new Map(), jsonDecode(response.responseText));
+      User result =
+          User.fromJSOG(new Map(), jsonDecode(response.responseText));
       return result;
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroUser> removeOrgManagerRole(PyroUser user) async {
+  Future<User> removeOrgManagerRole(User user) async {
     return HttpRequest.request(
             "${getBaseUrl()}/users/${user.id}/roles/removeOrgManager",
             method: "POST",
             requestHeaders: requestHeaders,
             withCredentials: true)
         .then((response) {
-      PyroUser result =
-          PyroUser.fromJSOG(new Map(), jsonDecode(response.responseText));
+      User result =
+          User.fromJSOG(new Map(), jsonDecode(response.responseText));
       return result;
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroUser> loadUser() async {
+  Future<User> loadUser() async {
     return HttpRequest.request("${getBaseUrl()}/user/current/private",
             method: "GET",
             requestHeaders: requestHeaders,
             withCredentials: true)
         .then((response) {
-      return PyroUser.fromJSON(response.responseText);
+      return User.fromJSON(response.responseText);
     }).catchError((err) {
       if (err is ProgressEvent && err.currentTarget is HttpRequest) {
         HttpRequest request = err.currentTarget;
@@ -158,16 +158,16 @@ class UserService extends BaseService {
           return super.handleProgressEvent(err);
         }
         if (request.status == 400) {
-          window.console.error("[PYRO] BAD REQUEST");
+          window.console.error("[CINCO_CLOUD] BAD REQUEST");
         }
         if (request.status == 500) {
-          window.console.error("[PYRO] SERVER ERROR");
+          window.console.error("[CINCO_CLOUD] SERVER ERROR");
         }
       }
     });
   }
 
-  Future<PyroUser> updateProfile(PyroUser user) async {
+  Future<User> updateProfile(User user) async {
     return HttpRequest.request("${getBaseUrl()}/user/current/update/private",
             method: "PUT",
             sendData: jsonEncode(user.toJSOG(new Map())),

@@ -11,31 +11,31 @@ class OrganizationAccessRightVectorService extends BaseService {
 
   OrganizationAccessRightVectorService(Router router) : super(router);
   
-  Future<List<PyroOrganizationAccessRightVector>> getAll(String orgId) {
+  Future<List<OrganizationAccessRightVector>> getAll(String orgId) {
   	return HttpRequest.request("${getBaseUrl()}/organization/${orgId}/accessRights", method: "GET", requestHeaders: requestHeaders, withCredentials: true)
   	  .then((response){
-  	  	List<PyroOrganizationAccessRightVector> arvs = new List();
+  	  	List<OrganizationAccessRightVector> arvs = new List();
   	  	Map<String, dynamic> cache = new Map();
   	  	jsonDecode(response.responseText).forEach((arv){
-        	arvs.add(PyroOrganizationAccessRightVector.fromJSOG(cache: cache, jsog: arv));
+        	arvs.add(OrganizationAccessRightVector.fromJSOG(cache: cache, jsog: arv));
         });
         return arvs;
       })
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroOrganizationAccessRightVector> getMy(String orgId) {
+  Future<OrganizationAccessRightVector> getMy(String orgId) {
   	return HttpRequest.request("${getBaseUrl()}/organization/${orgId}/accessRights/my", method: "GET", requestHeaders: requestHeaders, withCredentials: true)
   	  .then((response){
-        return PyroOrganizationAccessRightVector.fromJSON(response.responseText);
+        return OrganizationAccessRightVector.fromJSON(response.responseText);
       })
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroOrganizationAccessRightVector> update(PyroOrganizationAccessRightVector arv) {
+  Future<OrganizationAccessRightVector> update(OrganizationAccessRightVector arv) {
   	return HttpRequest.request("${getBaseUrl()}/organization/${arv.organization.id}/accessRights/${arv.id}", method: "PUT", sendData:jsonEncode(arv.toJSOG(new Map())), requestHeaders: requestHeaders, withCredentials: true)
   	  .then((response){
-        return PyroOrganizationAccessRightVector.fromJSON(response.responseText);
+        return OrganizationAccessRightVector.fromJSON(response.responseText);
       })
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }

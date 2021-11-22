@@ -1,27 +1,26 @@
-package info.scce.cincocloud.core.rest.types;
+package info.scce.cincocloud.core.rest.tos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import info.scce.cincocloud.db.PyroSettingsDB;
+import info.scce.cincocloud.db.SettingsDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.rest.RESTBaseImpl;
 
-public class PyroSettings extends RESTBaseImpl {
+public class SettingsTO extends RESTBaseImpl {
 
-  private PyroStyle style;
+  private StyleTO style;
   private boolean globallyCreateOrganizations;
 
-  public static PyroSettings fromEntity(
-      final PyroSettingsDB entity,
-      final ObjectCache objectCache) {
-
+  public static SettingsTO fromEntity(
+      final SettingsDB entity,
+      final ObjectCache objectCache
+  ) {
     if (objectCache.containsRestTo(entity)) {
       return objectCache.getRestTo(entity);
     }
 
-    final PyroSettings result;
-    result = new PyroSettings();
+    final var result = new SettingsTO();
     result.setId(entity.id);
-    result.setstyle(PyroStyle.fromEntity(entity.style, objectCache));
+    result.setstyle(StyleTO.fromEntity(entity.style, objectCache));
     result.setgloballyCreateOrganizations(entity.globallyCreateOrganizations);
 
     objectCache.putRestTo(entity, result);
@@ -30,12 +29,12 @@ public class PyroSettings extends RESTBaseImpl {
   }
 
   @JsonProperty("style")
-  public PyroStyle getstyle() {
+  public StyleTO getstyle() {
     return this.style;
   }
 
   @JsonProperty("style")
-  public void setstyle(final PyroStyle style) {
+  public void setstyle(final StyleTO style) {
     this.style = style;
   }
 

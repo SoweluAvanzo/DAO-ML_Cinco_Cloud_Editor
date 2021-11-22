@@ -33,10 +33,10 @@ class NewProjectComponent {
 
   bool show = false;
   ProjectType projectType = ProjectType.EMPTY;
-  PyroWorkspaceImage selectedImage;
+  WorkspaceImage selectedImage;
 
-  PyroUser user;
-  PyroOrganization organization;
+  User user;
+  Organization organization;
   ProjectService _projectService;
 
   NewProjectComponent(ProjectService this._projectService) {
@@ -48,7 +48,7 @@ class NewProjectComponent {
     });
   }
 
-  void open(PyroUser u, PyroOrganization org) {
+  void open(User u, Organization org) {
     show = true;
     projectType = ProjectType.EMPTY;
     user = u;
@@ -65,7 +65,7 @@ class NewProjectComponent {
     selectedImage = null;
   }
 
-  void selectWorkspaceImage(PyroWorkspaceImage image) {
+  void selectWorkspaceImage(WorkspaceImage image) {
     selectedImage = image;
   }
 

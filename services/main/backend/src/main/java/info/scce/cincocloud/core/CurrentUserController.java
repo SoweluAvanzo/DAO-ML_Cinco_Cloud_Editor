@@ -2,11 +2,11 @@ package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.auth.PBKDF2Encoder;
 import info.scce.cincocloud.auth.TokenUtils;
-import info.scce.cincocloud.core.rest.types.AuthResponse;
-import info.scce.cincocloud.core.rest.types.Login;
-import info.scce.cincocloud.core.rest.types.PyroUser;
+import info.scce.cincocloud.core.rest.inputs.UserLoginInput;
+import info.scce.cincocloud.core.rest.tos.AuthResponseTO;
+import info.scce.cincocloud.core.rest.tos.UserTO;
 import info.scce.cincocloud.db.BaseFileDB;
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 import java.util.Optional;
@@ -52,8 +52,8 @@ public class CurrentUserController {
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes(MediaType.APPLICATION_JSON)
   @PermitAll
-  public Response login(@Valid Login login) {
-    final PyroUserDB subject = PyroUserDB.find("email", login.email).firstResult();
+  public Response login(@Valid UserLoginInput login) {
+    final UserDB subject = UserDB.find("email", login.email).firstResult();
     if (subject != null && subject.password.equals(passwordEncoder.encode(login.password))) {
       final var auth = getAuthResponse(subject);
       if (auth.isPresent()) {
@@ -71,7 +71,7 @@ public class CurrentUserController {
       @Context HttpServletRequest request,
       @Context SecurityContext securityContext
   ) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
     try {
       // remove associated tickets
       TicketRegistrationHandler.removeTicketsOf(subject);
@@ -89,12 +89,12 @@ public class CurrentUserController {
   @Produces(MediaType.APPLICATION_JSON)
   @RolesAllowed("user")
   public Response getCurrentUser(@Context SecurityContext securityContext) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (subject != null) {
-      PyroUser result = objectCache.getRestTo(subject);
+      UserTO result = objectCache.getRestTo(subject);
       if (result == null) {
-        result = PyroUser.fromEntity(subject, objectCache);
+        result = UserTO.fromEntity(subject, objectCache);
       }
       return Response.ok(result).build();
     }
@@ -106,8 +106,8 @@ public class CurrentUserController {
   @Path("update/private")
   @Produces(MediaType.APPLICATION_JSON)
   @RolesAllowed("user")
-  public Response update(@Context SecurityContext securityContext, final PyroUser user) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+  public Response update(@Context SecurityContext securityContext, final UserTO user) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
     if (subject != null) {
       if (user.getemail() == null || user.getemail().trim().equals("")) {
         return Response.status(Response.Status.BAD_REQUEST)
@@ -136,9 +136,9 @@ public class CurrentUserController {
     return Response.status(Response.Status.FORBIDDEN).build();
   }
 
-  private Optional<AuthResponse> getAuthResponse(PyroUserDB subject) {
+  private Optional<AuthResponseTO> getAuthResponse(UserDB subject) {
     try {
-      final var auth = new AuthResponse(
+      final var auth = new AuthResponseTO(
           TokenUtils.generateToken(subject.email, "user", duration, issuer));
       return Optional.of(auth);
     } catch (Exception e) {

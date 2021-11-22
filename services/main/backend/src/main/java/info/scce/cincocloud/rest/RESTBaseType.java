@@ -8,9 +8,9 @@ import info.scce.cincocloud.util.Constants;
 @JsonIdentityInfo(generator = JSOGGenerator.class)
 public interface RESTBaseType {
 
-  @JsonProperty(Constants.PYRO_ID)
+  @JsonProperty(Constants.CINCO_CLOUD_ID_PROPERTY_NAME)
   long getId();
 
-  @JsonProperty(Constants.PYRO_ID)
+  @JsonProperty(Constants.CINCO_CLOUD_ID_PROPERTY_NAME)
   void setId(final long id);
 }

@@ -21,7 +21,7 @@ class CreateUserComponent {
 
   bool notFound = false;
   
-  PyroUser result;
+  User result;
 
   CreateUserComponent(this._userService){
   }

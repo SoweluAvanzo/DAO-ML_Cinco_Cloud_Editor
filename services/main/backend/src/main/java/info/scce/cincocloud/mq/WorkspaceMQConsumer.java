@@ -1,8 +1,8 @@
 package info.scce.cincocloud.mq;
 
-import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.db.PyroWorkspaceImageBuildJobDB;
-import info.scce.cincocloud.db.PyroWorkspaceImageDB;
+import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
+import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 import info.scce.cincocloud.sync.WebSocketMessage;
 import io.smallrye.reactive.messaging.annotations.Blocking;
@@ -36,13 +36,13 @@ public class WorkspaceMQConsumer {
       final var result = DatabindCodec.mapper()
           .readValue(message.toString(), WorkspaceImageBuildResultMessage.class);
 
-      final var buildJob = (PyroWorkspaceImageBuildJobDB) PyroWorkspaceImageBuildJobDB
+      final var buildJob = (WorkspaceImageBuildJobDB) WorkspaceImageBuildJobDB
           .findByIdOptional(result.jobId)
           .orElseThrow(() -> new EntityNotFoundException(
               "The job with the id '" + result.jobId + "' could not be found."));
       buildJob.status = result.success
-          ? PyroWorkspaceImageBuildJobDB.Status.FINISHED_WITH_SUCCESS
-          : PyroWorkspaceImageBuildJobDB.Status.FINISHED_WITH_FAILURE;
+          ? WorkspaceImageBuildJobDB.Status.FINISHED_WITH_SUCCESS
+          : WorkspaceImageBuildJobDB.Status.FINISHED_WITH_FAILURE;
       buildJob.finishedAt = Instant.now();
       buildJob.persist();
 
@@ -51,19 +51,19 @@ public class WorkspaceMQConsumer {
             "Image for project '" + result.projectId + "' could not be build.");
       }
 
-      final var project = (PyroProjectDB) PyroProjectDB.findByIdOptional(result.projectId)
+      final var project = (ProjectDB) ProjectDB.findByIdOptional(result.projectId)
           .orElseThrow(() -> new EntityNotFoundException(
               "The project with the id '" + result.projectId + "' could not be found."));
 
-      final var existingImageOptional = PyroWorkspaceImageDB.findByImageName(result.image);
-      final PyroWorkspaceImageDB image;
+      final var existingImageOptional = WorkspaceImageDB.findByImageName(result.image);
+      final WorkspaceImageDB image;
       if (existingImageOptional.isPresent()) {
         image = existingImageOptional.get();
         image.updatedAt = Instant.now();
         image.persist();
         LOGGER.log(Level.INFO, "Image {0} updated.", new Object[] {image.toString()});
       } else {
-        image = new PyroWorkspaceImageDB();
+        image = new WorkspaceImageDB();
         image.name = result.image;
         image.imageName = result.image;
         image.imageVersion = "latest";

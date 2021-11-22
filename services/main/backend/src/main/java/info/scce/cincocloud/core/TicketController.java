@@ -1,6 +1,6 @@
 package info.scce.cincocloud.core;
 
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.sync.ticket.TicketMessage;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 import javax.annotation.security.RolesAllowed;
@@ -25,7 +25,7 @@ public class TicketController {
   @Path("/")
   @RolesAllowed("user")
   public Response requestTicket(@Context SecurityContext securityContext) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
     if (subject == null) {
       return Response.status(Status.FORBIDDEN).build();
     }

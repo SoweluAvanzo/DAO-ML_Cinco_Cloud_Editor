@@ -1,10 +1,10 @@
 package info.scce.cincocloud.core;
 
-import info.scce.cincocloud.core.rest.types.PyroWorkspaceImageBuildJob;
-import info.scce.cincocloud.db.PyroOrganizationDB;
-import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.db.PyroUserDB;
-import info.scce.cincocloud.db.PyroWorkspaceImageBuildJobDB;
+import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
+import info.scce.cincocloud.db.OrganizationDB;
+import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
@@ -47,8 +47,8 @@ public class WorkspaceImageBuildJobController {
       @QueryParam("page") @DefaultValue("0") final int page,
       @QueryParam("size") @DefaultValue("25") final int size
   ) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
-    final Optional<PyroProjectDB> projectOptional = PyroProjectDB.findByIdOptional(projectId);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final Optional<ProjectDB> projectOptional = ProjectDB.findByIdOptional(projectId);
 
     if (projectOptional.isEmpty()) {
       return Response.status(Response.Status.NOT_FOUND).build();
@@ -56,11 +56,11 @@ public class WorkspaceImageBuildJobController {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    final var jobs = PyroWorkspaceImageBuildJobDB
+    final var jobs = WorkspaceImageBuildJobDB
         .findByProjectId(projectId, Sort.ascending("startedAt"))
         .page(Page.of(page, size)).stream()
         .map(
-            job -> PyroWorkspaceImageBuildJob.fromEntity(job, objectCache)
+            job -> WorkspaceImageBuildJobTO.fromEntity(job, objectCache)
         )
         .collect(Collectors.toList());
 
@@ -75,8 +75,8 @@ public class WorkspaceImageBuildJobController {
       @PathParam("projectId") final Long projectId,
       @PathParam("jobId") final Long jobId
   ) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
-    final Optional<PyroWorkspaceImageBuildJobDB> jobOptional = PyroWorkspaceImageBuildJobDB
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final Optional<WorkspaceImageBuildJobDB> jobOptional = WorkspaceImageBuildJobDB
         .findByIdOptional(jobId);
 
     if (jobOptional.isEmpty()) {
@@ -88,8 +88,8 @@ public class WorkspaceImageBuildJobController {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    if (job.status.equals(PyroWorkspaceImageBuildJobDB.Status.PENDING)
-        || job.status.equals(PyroWorkspaceImageBuildJobDB.Status.BUILDING)) {
+    if (job.status.equals(WorkspaceImageBuildJobDB.Status.PENDING)
+        || job.status.equals(WorkspaceImageBuildJobDB.Status.BUILDING)) {
       return Response.status(Response.Status.BAD_REQUEST).build();
     }
 
@@ -106,8 +106,8 @@ public class WorkspaceImageBuildJobController {
       @PathParam("projectId") final Long projectId,
       @PathParam("jobId") final Long jobId
   ) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
-    final Optional<PyroWorkspaceImageBuildJobDB> jobOptional = PyroWorkspaceImageBuildJobDB
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final Optional<WorkspaceImageBuildJobDB> jobOptional = WorkspaceImageBuildJobDB
         .findByIdOptional(jobId);
 
     if (jobOptional.isEmpty()) {
@@ -119,18 +119,18 @@ public class WorkspaceImageBuildJobController {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    if (!(job.status.equals(PyroWorkspaceImageBuildJobDB.Status.PENDING)
-        || job.status.equals(PyroWorkspaceImageBuildJobDB.Status.BUILDING))) {
+    if (!(job.status.equals(WorkspaceImageBuildJobDB.Status.PENDING)
+        || job.status.equals(WorkspaceImageBuildJobDB.Status.BUILDING))) {
       return Response.status(Response.Status.BAD_REQUEST).build();
     }
 
-    job.status = PyroWorkspaceImageBuildJobDB.Status.ABORTED;
+    job.status = WorkspaceImageBuildJobDB.Status.ABORTED;
     job.persist();
 
     return Response.ok(job).build();
   }
 
-  private boolean isMemberOfOrganization(PyroUserDB user, PyroOrganizationDB organization) {
+  private boolean isMemberOfOrganization(UserDB user, OrganizationDB organization) {
     return organization.members.contains(user) || organization.owners.contains(user);
   }
 }

@@ -1,10 +1,10 @@
-package info.scce.cincocloud.core.rest.types;
+package info.scce.cincocloud.core.rest.inputs;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
-public class PyroUserRegistration {
+public class UserRegistrationInput {
 
   @NotEmpty(message = "The username may not be empty.")
   private String username;

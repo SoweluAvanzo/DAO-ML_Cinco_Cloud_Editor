@@ -10,7 +10,7 @@ class WorkspaceImageService extends BaseService {
 
   WorkspaceImageService(Router router) : super(router);
 
-  Future<List<PyroWorkspaceImage>> search(String query) async {
+  Future<List<WorkspaceImage>> search(String query) async {
     return HttpRequest.request(
         "${getBaseUrl()}/image-registry/search?q=${query}",
         method: "GET",
@@ -21,7 +21,7 @@ class WorkspaceImageService extends BaseService {
         .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<List<PyroWorkspaceImage>> getAll() async {
+  Future<List<WorkspaceImage>> getAll() async {
     return HttpRequest.request(
         "${getBaseUrl()}/image-registry/images",
         method: "GET",
@@ -32,7 +32,7 @@ class WorkspaceImageService extends BaseService {
         .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroWorkspaceImage> update(PyroWorkspaceImage image) async {
+  Future<WorkspaceImage> update(WorkspaceImage image) async {
     return HttpRequest.request(
         "${getBaseUrl()}/image-registry/images/${image.id}",
         sendData: jsonEncode(image.toJSOG(new Map())),
@@ -40,18 +40,18 @@ class WorkspaceImageService extends BaseService {
         requestHeaders: requestHeaders,
         withCredentials: true
     )
-        .then((response) => PyroWorkspaceImage.fromJSON(response.responseText))
+        .then((response) => WorkspaceImage.fromJSON(response.responseText))
         .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  List<PyroWorkspaceImage> transformResponseList(dynamic response) {
-    List<PyroWorkspaceImage> images = new List();
+  List<WorkspaceImage> transformResponseList(dynamic response) {
+    List<WorkspaceImage> images = new List();
     Map<String, dynamic> cache = new Map();
     jsonDecode(response.responseText).forEach((image) {
       if (image.containsKey("@ref")) {
         images.add(cache[image["@ref"]]);
       } else {
-        images.add(PyroWorkspaceImage(cache: cache, jsog: image));
+        images.add(WorkspaceImage(cache: cache, jsog: image));
       }
     });
     return images;

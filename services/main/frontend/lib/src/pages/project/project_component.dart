@@ -31,10 +31,10 @@ import '../../service/user_service.dart';
 )
 class ProjectComponent implements OnActivate, OnDeactivate {
 
-  PyroUser user;
+  User user;
   WebSocket projectWebSocket;
-  PyroProject project;
-  PyroProjectDeployment deployment;
+  Project project;
+  ProjectDeployment deployment;
 
   final ProjectService _projectService;
   final UserService _userService;
@@ -92,16 +92,16 @@ class ProjectComponent implements OnActivate, OnDeactivate {
         );
 
         projectWebSocket.onOpen.listen((e) {
-          window.console.debug("[PYRO] onOpen Project Websocket");
+          window.console.debug("[CINCO_CLOUD] onOpen Project Websocket");
         });
 
         projectWebSocket.onMessage.listen((MessageEvent e) {
-          window.console.debug("[PYRO] onMessage Project Websocket");
+          window.console.debug("[CINCO_CLOUD] onMessage Project Websocket");
 
           var message = jsonDecode(e.data);
           switch(message['event']) {
             case 'project:podDeploymentStatus':
-              deployment = PyroProjectDeployment.fromJSOG(new Map(), message['content']);
+              deployment = ProjectDeployment.fromJSOG(new Map(), message['content']);
               break;
             case 'workspaces:jobs:results':
               var result = WorkspaceImageBuildResult.fromJSOG(new Map(), message['content']);
@@ -115,19 +115,19 @@ class ProjectComponent implements OnActivate, OnDeactivate {
         });
 
         projectWebSocket.onClose.listen((CloseEvent e) {
-          window.console.debug("[PYRO] onClose Project Websocket");
+          window.console.debug("[CINCO_CLOUD] onClose Project Websocket");
           _router.navigate(top_routes.RoutePaths.organization.toUrl(parameters: {'orgId': project.organization.id.toString()}));
         });
 
         projectWebSocket.onError.listen((e) {
           _notificationService.displayMessage("Failed to connect with websocket.", NotificationType.DANGER);
-          window.console.debug("[PYRO] Error on Websocket projectWebSocket: ${e.toString()}");
+          window.console.debug("[CINCO_CLOUD] Error on Websocket projectWebSocket: ${e.toString()}");
         });
       }
     });
   }
 
-  PyroOrganization get organization => project == null ? null : project.organization;
+  Organization get organization => project == null ? null : project.organization;
 
   SafeResourceUrl get editorUrl => _domSanitizationService.bypassSecurityTrustResourceUrl(deployment.url + '?jwt=' + window.localStorage['pyro_token'] + "&projectId=" + project.id.toString());
 }

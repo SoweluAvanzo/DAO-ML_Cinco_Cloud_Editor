@@ -18,10 +18,10 @@ import './add_user/add_user_component.dart';
 class UsersComponent implements OnInit {
   
   @Input("user")
-  PyroUser currentUser;
+  User currentUser;
   
   @Input()
-  PyroOrganization organization;
+  Organization organization;
   
   @ViewChild(AddUserComponent)
   AddUserComponent addUserModal;
@@ -42,7 +42,7 @@ class UsersComponent implements OnInit {
   }
   
   void addMember(dynamic e) {
-    if (e is PyroUser) {
+    if (e is User) {
     	if(organization.members.any((m)=>m.id == e.id) ) {
     		_notificationService.displayMessage("User ${e.username} is already present.", NotificationType.WARNING);
     		addUserModal.close();
@@ -62,7 +62,7 @@ class UsersComponent implements OnInit {
   }
   
   void addOwner(dynamic e) {
-    if (e is PyroUser) {
+    if (e is User) {
     	if(organization.owners.any((m)=>m.id == e.id) ) {
     		_notificationService.displayMessage("User ${e.username} is already present.", NotificationType.WARNING);
     		addUserModal.close();
@@ -81,7 +81,7 @@ class UsersComponent implements OnInit {
     }
   }
   
-  void removeUser(PyroUser user) {
+  void removeUser(User user) {
   	_organizationService.removeUser(organization, user)
   	  .then((org){
   	  	organization.merge(org);

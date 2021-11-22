@@ -12,5 +12,5 @@ import '../../../model/core.dart';
 class ProjectBuildJobStatusBadgeComponent {
 
   @Input()
-  PyroWorkspaceImageBuildJob job;
+  WorkspaceImageBuildJob job;
 }

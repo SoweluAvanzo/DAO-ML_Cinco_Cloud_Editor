@@ -8,8 +8,8 @@ import '../utils/hsl_value.dart';
 
 class StyleService {
 
-  PyroStyle _globalStyle;
-  PyroStyle _style;
+  Style _globalStyle;
+  Style _style;
   String _css;
   
   SettingsService _settingsService;
@@ -20,12 +20,12 @@ class StyleService {
   	}).catchError((e)=>print(e));
   }
   
-  void update(PyroStyle style) {
+  void update(Style style) {
   	_style = style;
   	_updateStyle();
   }
   
-  void updateGlobal(PyroStyle style) {
+  void updateGlobal(Style style) {
   	_globalStyle = style;
   	update(style);
   	window.localStorage["pyroGlobalStyle"] = _css;
@@ -176,5 +176,5 @@ class StyleService {
   	return !(value == null || value.trim() == "") && exp.hasMatch(value);
   }
   
-  PyroStyle get style => _style;
+  Style get style => _style;
 }

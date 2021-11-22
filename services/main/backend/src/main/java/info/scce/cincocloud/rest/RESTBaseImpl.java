@@ -8,22 +8,22 @@ public class RESTBaseImpl implements RESTBaseType {
   private long id;
   private String runtimeType;
 
-  @JsonProperty(Constants.PYRO_ID)
+  @JsonProperty(Constants.CINCO_CLOUD_ID_PROPERTY_NAME)
   public long getId() {
     return this.id;
   }
 
-  @JsonProperty(Constants.PYRO_ID)
+  @JsonProperty(Constants.CINCO_CLOUD_ID_PROPERTY_NAME)
   public void setId(final long id) {
     this.id = id;
   }
 
-  @JsonProperty(Constants.PYRO_RUNTIME_TYPE)
+  @JsonProperty(Constants.CINCO_CLOUD_RUNTIME_TYPE)
   public String getRuntimeType() {
     return this.runtimeType;
   }
 
-  @JsonProperty(Constants.PYRO_RUNTIME_TYPE)
+  @JsonProperty(Constants.CINCO_CLOUD_RUNTIME_TYPE)
   public void setRuntimeType(final String runtimeType) {
     this.runtimeType = runtimeType;
   }

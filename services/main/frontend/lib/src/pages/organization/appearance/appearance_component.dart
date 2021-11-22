@@ -16,12 +16,12 @@ import '../../../pages/shared/style_form/style_form_component.dart';
 )
 class AppearanceComponent implements OnInit, OnDestroy {
   @Input("user")
-  PyroUser currentUser;
+  User currentUser;
 
   @Input()
-  PyroOrganization organization;
+  Organization organization;
 
-  PyroStyle style;
+  Style style;
 
   final OrganizationService _organizationService;
   final StyleService _styleService;
@@ -39,7 +39,7 @@ class AppearanceComponent implements OnInit, OnDestroy {
   void ngOnDestroy() {}
 
   void updatePreview() {
-    PyroOrganization org = new PyroOrganization();
+    Organization org = new Organization();
     org.style = style;
     _styleService.update(org.style);
   }
@@ -50,7 +50,7 @@ class AppearanceComponent implements OnInit, OnDestroy {
   }
 
   void handleStyleUpdated(dynamic e) {
-    if (e is PyroStyle) {
+    if (e is Style) {
       style = e;
       updatePreview();
     }

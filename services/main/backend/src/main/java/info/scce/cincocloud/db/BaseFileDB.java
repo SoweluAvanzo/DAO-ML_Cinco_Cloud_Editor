@@ -3,7 +3,7 @@ package info.scce.cincocloud.db;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import javax.persistence.Entity;
 
-@Entity()
+@Entity
 public class BaseFileDB extends PanacheEntity {
 
   public String filename;

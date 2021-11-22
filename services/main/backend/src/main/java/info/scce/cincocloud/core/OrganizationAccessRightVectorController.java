@@ -1,9 +1,9 @@
 package info.scce.cincocloud.core;
 
-import info.scce.cincocloud.core.rest.types.PyroOrganizationAccessRightVector;
-import info.scce.cincocloud.db.PyroOrganizationAccessRightVectorDB;
-import info.scce.cincocloud.db.PyroOrganizationDB;
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.core.rest.tos.OrganizationAccessRightVectorTO;
+import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
+import info.scce.cincocloud.db.OrganizationDB;
+import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
@@ -36,21 +36,21 @@ public class OrganizationAccessRightVectorController {
   @RolesAllowed("user")
   public Response getAll(@Context SecurityContext securityContext,
       @PathParam("orgId") final long orgId) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (subject != null) {
-      final PyroOrganizationDB org = PyroOrganizationDB.findById(orgId);
+      final OrganizationDB org = OrganizationDB.findById(orgId);
       if (org == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
       if (isOwnerOf(subject, org)) {
-        final List<PyroOrganizationAccessRightVectorDB> result = PyroOrganizationAccessRightVectorDB
+        final List<OrganizationAccessRightVectorDB> result = OrganizationAccessRightVectorDB
             .listAll();
 
-        final List<PyroOrganizationAccessRightVector> arvs = new java.util.ArrayList<>();
-        for (PyroOrganizationAccessRightVectorDB arv : result) {
-          arvs.add(PyroOrganizationAccessRightVector.fromEntity(arv, objectCache));
+        final List<OrganizationAccessRightVectorTO> arvs = new java.util.ArrayList<>();
+        for (OrganizationAccessRightVectorDB arv : result) {
+          arvs.add(OrganizationAccessRightVectorTO.fromEntity(arv, objectCache));
         }
 
         return Response.ok(arvs).build();
@@ -66,18 +66,18 @@ public class OrganizationAccessRightVectorController {
   @RolesAllowed("user")
   public Response get(@Context SecurityContext securityContext,
       @PathParam("orgId") final long orgId) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (subject != null) {
-      final PyroOrganizationDB org = PyroOrganizationDB.findById(orgId);
+      final OrganizationDB org = OrganizationDB.findById(orgId);
       if (org == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
-      final List<PyroOrganizationAccessRightVectorDB> result = PyroOrganizationAccessRightVectorDB
+      final List<OrganizationAccessRightVectorDB> result = OrganizationAccessRightVectorDB
           .list("user = ?1 and organization = ?2", subject, org);
       if (result.size() == 1) {
-        return Response.ok(PyroOrganizationAccessRightVector.fromEntity(result.get(0), objectCache))
+        return Response.ok(OrganizationAccessRightVectorTO.fromEntity(result.get(0), objectCache))
             .build();
       }
     }
@@ -92,16 +92,16 @@ public class OrganizationAccessRightVectorController {
       @Context SecurityContext securityContext,
       @PathParam("orgId") final long orgId,
       @PathParam("arvId") final long arvId,
-      final PyroOrganizationAccessRightVector arv) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+      final OrganizationAccessRightVectorTO arv) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (subject != null) {
-      final PyroOrganizationDB org = PyroOrganizationDB.findById(orgId);
+      final OrganizationDB org = OrganizationDB.findById(orgId);
       if (org == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
-      final PyroOrganizationAccessRightVectorDB arvInDb = PyroOrganizationAccessRightVectorDB
+      final OrganizationAccessRightVectorDB arvInDb = OrganizationAccessRightVectorDB
           .findById(arvId);
       if (arvInDb == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
@@ -111,14 +111,14 @@ public class OrganizationAccessRightVectorController {
       arvInDb.accessRights.addAll(arv.getaccessRights());
       arvInDb.persist();
 
-      return Response.ok(PyroOrganizationAccessRightVector.fromEntity(arvInDb, objectCache))
+      return Response.ok(OrganizationAccessRightVectorTO.fromEntity(arvInDb, objectCache))
           .build();
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
   }
 
-  private boolean isOwnerOf(PyroUserDB user, PyroOrganizationDB org) {
+  private boolean isOwnerOf(UserDB user, OrganizationDB org) {
     return org.owners.contains(user);
   }
 }

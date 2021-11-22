@@ -9,7 +9,7 @@ import '../../../model/core.dart';
     styleUrls: const ['profile_image_component.css'])
 class ProfileImageComponent {
   @Input()
-  PyroUser user;
+  User user;
 
   ProfileImageComponent() {}
 

@@ -24,7 +24,7 @@ import './profile_image/profile_image_component.dart';
       'profile_component.css'
     ])
 class ProfileComponent implements OnInit {
-  PyroUser user;
+  User user;
 
   FileUploader uploader;
 

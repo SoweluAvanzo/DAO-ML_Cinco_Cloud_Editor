@@ -10,39 +10,39 @@ class ProjectService extends BaseService {
 
   ProjectService(Router router) : super(router);
   
-  Future<PyroProject> getById(String projectId) async {
+  Future<Project> getById(String projectId) async {
   	return HttpRequest.request("${getBaseUrl()}/project/${projectId}", method: "GET",requestHeaders: requestHeaders, withCredentials: true).then((response){
-      return PyroProject.fromJSON(response.responseText);
+      return Project.fromJSON(response.responseText);
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroProject> create(String name, String description, PyroOrganization org, PyroWorkspaceImage template, PyroUser user) async {
-    PyroProject pp = new PyroProject();
+  Future<Project> create(String name, String description, Organization org, WorkspaceImage template, User user) async {
+    Project pp = new Project();
     pp.name = name;
     pp.description = description;
     pp.owner = user;
     pp.organization = org;
     pp.template = template;
     return HttpRequest.request("${getBaseUrl()}/project/create/private",sendData:jsonEncode(pp.toJSOG(new Map())),method: "POST",requestHeaders: requestHeaders, withCredentials: true).then((response){
-      var newProject = PyroProject.fromJSON(response.responseText);
+      var newProject = Project.fromJSON(response.responseText);
       newProject.owner=user;
       user.ownedProjects.add(newProject);
-      print("[PYRO] new project ${newProject.name}");
+      print("[CINCO_CLOUD] new project ${newProject.name}");
       return newProject;
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroProjectDeployment> deploy(PyroProject project) async {
+  Future<ProjectDeployment> deploy(Project project) async {
     return HttpRequest.request("${getBaseUrl()}/project/${project.id}/deployments/private",
         method: "POST",
         requestHeaders: requestHeaders,
         withCredentials: true
     ).then((response) {
-      return PyroProjectDeployment.fromJSON(response.responseText);
+      return ProjectDeployment.fromJSON(response.responseText);
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<String> stop(PyroProject project) async {
+  Future<String> stop(Project project) async {
     return HttpRequest.request("${getBaseUrl()}/project/${project.id}/deployments/private",
         method: "DELETE",
         requestHeaders: requestHeaders,
@@ -52,18 +52,18 @@ class ProjectService extends BaseService {
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroProject> update(PyroProject project) async {
+  Future<Project> update(Project project) async {
     return HttpRequest.request("${getBaseUrl()}/project/update/private",sendData:jsonEncode(project.toJSOG(new Map())),method: "POST",requestHeaders: requestHeaders, withCredentials: true).then((response){
-      var newProject = PyroProject.fromJSON(response.responseText);
-      print("[PYRO] update project ${newProject.name}");
+      var newProject = Project.fromJSON(response.responseText);
+      print("[CINCO_CLOUD] update project ${newProject.name}");
       return newProject;
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroUser> remove(PyroProject project, PyroUser user) async {
+  Future<User> remove(Project project, User user) async {
     return HttpRequest.request("${getBaseUrl()}/project/remove/${project.id}/private", method: "GET", requestHeaders: requestHeaders, withCredentials: true).then((response){
       if(user.ownedProjects.contains(project)){
-        print("[PYRO] remove project ${project.name}");
+        print("[CINCO_CLOUD] remove project ${project.name}");
         project.owner = null;
         user.ownedProjects.remove(project);
       }
@@ -71,19 +71,19 @@ class ProjectService extends BaseService {
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroProject> triggerService(String name,PyroProject project,Map map) async {
+  Future<Project> triggerService(String name,Project project,Map map) async {
     return HttpRequest.request("${getBaseUrl()}/service/trigger/${name}/${project.id}/private", sendData:jsonEncode(map),method: "POST", requestHeaders: requestHeaders, withCredentials: true).then((response){
       return project;
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<Map> checkService(PyroProject project) async {
+  Future<Map> checkService(Project project) async {
     return HttpRequest.request("${getBaseUrl()}/service/list/${project.id}/private", method: "GET", requestHeaders: requestHeaders, withCredentials: true).then((response){
       return jsonDecode(response.responseText) as Map;
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroProject> triggerAction(String name,PyroProject project) async {
+  Future<Project> triggerAction(String name,Project project) async {
     return HttpRequest.request("${getBaseUrl()}/service/triggeraction/${name}/${project.id}/private",method: "GET", requestHeaders: requestHeaders, withCredentials: true).then((response){
       return project;
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);

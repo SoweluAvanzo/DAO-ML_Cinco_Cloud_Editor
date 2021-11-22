@@ -1,11 +1,11 @@
 package info.scce.cincocloud.core;
 
-import info.scce.cincocloud.core.rest.types.PyroSettings;
+import info.scce.cincocloud.core.rest.tos.SettingsTO;
 import info.scce.cincocloud.db.BaseFileDB;
-import info.scce.cincocloud.db.PyroSettingsDB;
-import info.scce.cincocloud.db.PyroStyleDB;
-import info.scce.cincocloud.db.PyroSystemRoleDB;
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.db.SettingsDB;
+import info.scce.cincocloud.db.StyleDB;
+import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.db.UserSystemRole;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.List;
 import javax.annotation.security.PermitAll;
@@ -38,19 +38,19 @@ public class SettingsController {
   @Path("/public")
   @PermitAll()
   public Response get() {
-    final List<PyroSettingsDB> result = PyroSettingsDB.findAll().list();
-    return Response.ok(PyroSettings.fromEntity(result.get(0), objectCache)).build();
+    final List<SettingsDB> result = SettingsDB.findAll().list();
+    return Response.ok(SettingsTO.fromEntity(result.get(0), objectCache)).build();
   }
 
   @PUT
   @Path("/")
   @RolesAllowed("user")
-  public Response update(@Context SecurityContext securityContext, final PyroSettings settings) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
-    final PyroSettingsDB settingsInDb = PyroSettingsDB.findById(settings.getId());
+  public Response update(@Context SecurityContext securityContext, final SettingsTO settings) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final SettingsDB settingsInDb = SettingsDB.findById(settings.getId());
 
     if (subject != null && isAdmin(subject) && settingsInDb != null) {
-      final PyroStyleDB style = settingsInDb.style;
+      final StyleDB style = settingsInDb.style;
       style.navBgColor = settings.getstyle().getnavBgColor();
       style.navTextColor = settings.getstyle().getnavTextColor();
       style.bodyBgColor = settings.getstyle().getbodyBgColor();
@@ -65,13 +65,13 @@ public class SettingsController {
       }
 
       settingsInDb.globallyCreateOrganizations = settings.getgloballyCreateOrganizations();
-      return Response.ok(PyroSettings.fromEntity(settingsInDb, objectCache)).build();
+      return Response.ok(SettingsTO.fromEntity(settingsInDb, objectCache)).build();
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
   }
 
-  private boolean isAdmin(PyroUserDB user) {
-    return user.systemRoles.contains(PyroSystemRoleDB.ADMIN);
+  private boolean isAdmin(UserDB user) {
+    return user.systemRoles.contains(UserSystemRole.ADMIN);
   }
 }

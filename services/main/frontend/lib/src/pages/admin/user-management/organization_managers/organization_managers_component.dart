@@ -17,7 +17,7 @@ class OrganizationManagersComponent implements OnInit {
   final UserService _userService;
   final NotificationService _notificationService;
   
-  List<PyroUser> managers = new List();
+  List<User> managers = new List();
   bool showFindUserModal = false;
         
   OrganizationManagersComponent(this._userService, this._notificationService) {
@@ -26,12 +26,12 @@ class OrganizationManagersComponent implements OnInit {
   @override
   void ngOnInit() {  	
 	_userService.findUsers().then((users) {
-		managers = users.where((u) => u.systemRoles.contains(PyroSystemRole.ORGANIZATION_MANAGER)).toList();
+		managers = users.where((u) => u.systemRoles.contains(UserSystemRole.ORGANIZATION_MANAGER)).toList();
 	});  		
   }   
   
   void addOrgManagerRole(dynamic e) {
-  	if (e is PyroUser) {
+  	if (e is User) {
   		_userService.addOrgManagerRole(e).then((u){
   			managers.add(u);
   		}).catchError((err) {
@@ -41,7 +41,7 @@ class OrganizationManagersComponent implements OnInit {
   	showFindUserModal=false;
   }
   
-  void removeOrgManagerRole(PyroUser user) {
+  void removeOrgManagerRole(User user) {
   	_userService.removeOrgManagerRole(user)
   		.then((u){
   			_notificationService.displayMessage("User ${user.username} is no longer an organization manager", NotificationType.SUCCESS);

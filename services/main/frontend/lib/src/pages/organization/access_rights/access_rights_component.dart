@@ -18,10 +18,10 @@ import './access_rights_list/access_rights_list_component.dart';
 class AccessRightsComponent implements OnInit {
   
   @Input("user")
-  PyroUser currentUser;
+  User currentUser;
   
   @Input()
-  PyroOrganization organization;
+  Organization organization;
   
   final OrganizationService _organizationService;
   final UserService _userService;
@@ -29,7 +29,7 @@ class AccessRightsComponent implements OnInit {
   final OrganizationAccessRightVectorService _orgArvService;
   
   String filter = "";
-  Map<int, PyroOrganizationAccessRightVector> orgArvsMap = new Map();
+  Map<int, OrganizationAccessRightVector> orgArvsMap = new Map();
     
   AccessRightsComponent(this._organizationService, this._userService, this._notificationService, this._orgArvService) {
   }
@@ -44,21 +44,21 @@ class AccessRightsComponent implements OnInit {
   }
   
   void updateArv(dynamic e, int userId) {
-  	if (e is PyroOrganizationAccessRightVector) {
+  	if (e is OrganizationAccessRightVector) {
   	  orgArvsMap[userId] = e;
   	}
   }
       
-  String getRoleBadgeClass(PyroUser user) {
+  String getRoleBadgeClass(User user) {
   	return organization.owners.contains(user) ? "badge-primary" : "badge-secondary";
   }
   
-  String getRoleBadgeText(PyroUser user) {
+  String getRoleBadgeText(User user) {
   	return organization.owners.contains(user) ? "Owner" : "Member";
   }
   
-  List<PyroUser> get users {
-  	List<PyroUser> users = organization == null ? [] : []..addAll(organization.owners)..addAll(organization.members);
+  List<User> get users {
+  	List<User> users = organization == null ? [] : []..addAll(organization.owners)..addAll(organization.members);
   	if (filter != "") {
   		users = users.where((u) => u.username.contains(filter) || u.email.contains(filter)).toList();
   	}

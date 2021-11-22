@@ -1,7 +1,7 @@
 package info.scce.cincocloud.core.beans;
 
 import info.scce.cincocloud.core.ProjectDeploymentService;
-import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 import io.quarkus.runtime.StartupEvent;
 import java.time.Instant;
@@ -65,7 +65,7 @@ public class StopProjectPodsTaskBean {
         .filter(t -> now.isAfter(t.getCreatedAt().plusSeconds(POD_IDLE_TIMEOUT)))
         .collect(Collectors.toList())
         .forEach(t -> {
-          final Optional<PyroProjectDB> projectOptional = PyroProjectDB
+          final Optional<ProjectDB> projectOptional = ProjectDB
               .findByIdOptional(t.getProjectId());
           projectOptional.ifPresent(projectDeploymentService::stop);
           t.delete();

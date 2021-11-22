@@ -21,10 +21,10 @@ class AccessRightsListComponent implements OnInit {
   @Output() Stream get updated => _updatedSc.stream;
   
   @Input()
-  PyroUser user;
+  User user;
   
   @Input()
-  PyroOrganizationAccessRightVector accessRights;
+  OrganizationAccessRightVector accessRights;
   
   List<String> availableArs = new List();
   
@@ -35,9 +35,9 @@ class AccessRightsListComponent implements OnInit {
 
   @override
   void ngOnInit() {     
-  	availableArs.add(PyroOrganizationAccessRight.CREATE_PROJECTS);
-  	availableArs.add(PyroOrganizationAccessRight.EDIT_PROJECTS);
-  	availableArs.add(PyroOrganizationAccessRight.DELETE_PROJECTS);
+  	availableArs.add(OrganizationAccessRight.CREATE_PROJECTS);
+  	availableArs.add(OrganizationAccessRight.EDIT_PROJECTS);
+  	availableArs.add(OrganizationAccessRight.DELETE_PROJECTS);
   	for (String ar in accessRights.accessRights) {
 	  availableArs.remove(ar);
   	}

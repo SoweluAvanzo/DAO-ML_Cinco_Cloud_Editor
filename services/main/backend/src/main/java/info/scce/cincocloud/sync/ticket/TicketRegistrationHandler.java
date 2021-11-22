@@ -1,6 +1,6 @@
 package info.scce.cincocloud.sync.ticket;
 
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.db.UserDB;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +20,7 @@ public class TicketRegistrationHandler {
 
   static HashMap<String, Ticket> registeredTickets = new HashMap<>();
 
-  public static TicketMessage createTicket(PyroUserDB user) {
+  public static TicketMessage createTicket(UserDB user) {
     cleanUp();
     synchronized (registeredTickets) {
       String newTicket = java.util.UUID.randomUUID().toString();
@@ -39,7 +39,7 @@ public class TicketRegistrationHandler {
     }
   }
 
-  public static void removeTicketsOf(PyroUserDB user) {
+  public static void removeTicketsOf(UserDB user) {
     if (user == null) {
       return;
     }
@@ -64,10 +64,10 @@ public class TicketRegistrationHandler {
     return false;
   }
 
-  public static PyroUserDB checkGetRelated(String ticketValue) {
+  public static UserDB checkGetRelated(String ticketValue) {
     Ticket ticket = isRegisteredTicket(ticketValue);
     if (ticket != null) {
-      PyroUserDB user = ticket.getUser();
+      UserDB user = ticket.getUser();
       removeTicket(ticketValue);
       return user;
     }

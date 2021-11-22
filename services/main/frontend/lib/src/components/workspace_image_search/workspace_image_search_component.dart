@@ -14,13 +14,13 @@ import '../../service/workspace_image_service.dart';
 )
 class WorkspaceImageSearchComponent {
 
-  final selectImageSC = new StreamController<PyroWorkspaceImage>();
-  @Output() Stream<PyroWorkspaceImage> get selectImage => selectImageSC.stream;
+  final selectImageSC = new StreamController<WorkspaceImage>();
+  @Output() Stream<WorkspaceImage> get selectImage => selectImageSC.stream;
 
   WorkspaceImageService _workspaceImageService;
   Timer _debounce;
 
-  List<PyroWorkspaceImage> results = List();
+  List<WorkspaceImage> results = List();
 
   WorkspaceImageSearchComponent(WorkspaceImageService this._workspaceImageService) {
   }
@@ -38,7 +38,7 @@ class WorkspaceImageSearchComponent {
     }
   }
 
-  void handleSelect(PyroWorkspaceImage image) {
+  void handleSelect(WorkspaceImage image) {
     selectImageSC.add(image);
     results.clear();
   }

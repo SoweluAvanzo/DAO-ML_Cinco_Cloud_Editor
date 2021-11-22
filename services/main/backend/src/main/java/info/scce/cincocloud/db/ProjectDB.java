@@ -14,50 +14,49 @@ import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
-@Entity(name = "entity_core_pyroproject")
-public class PyroProjectDB extends PanacheEntity {
+@Entity
+public class ProjectDB extends PanacheEntity {
 
   public String name;
-
   public String description;
 
   @NotNull
   @Enumerated(EnumType.STRING)
-  public PyroProjectTypeDB type = PyroProjectTypeDB.LANGUAGE_EDITOR;
+  public ProjectType type = ProjectType.LANGUAGE_EDITOR;
 
   /**
    * The image that has been generated from the project. If null, no image has been generated from the project yet.
-   * {@see #type} should be PyroProjectTypeDB.LANGUAGE_EDITOR.
+   * {@see #type} should be ProjectType.LANGUAGE_EDITOR.
    */
   @OneToOne
-  public PyroWorkspaceImageDB image;
+  public WorkspaceImageDB image;
 
   /**
    * The image that was used to create the project. If the property is null, it means we use the theia language editor.
    * If the property is not null, it means we use the pyro model editor. {@see #type} should be
-   * PyroProjectTypeDB.MODEL_EDITOR.
+   * ProjectType.MODEL_EDITOR.
    */
   @OneToOne
-  public PyroWorkspaceImageDB template;
+  public WorkspaceImageDB template;
 
   @ManyToOne
-  @JoinColumn(name = "owner_PyroUserDB_id")
-  public PyroUserDB owner;
+  @JoinColumn(name = "owner_UserDB_id")
+  public UserDB owner;
 
   @ManyToOne
-  @JoinColumn(name = "organization_PyroOrganizationDB_id")
-  public PyroOrganizationDB organization;
+  @JoinColumn(name = "organization_OrganizationDB_id")
+  public OrganizationDB organization;
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "project")
-  public Collection<PyroWorkspaceImageBuildJobDB> buildJobs = new ArrayList<>();
+  public Collection<WorkspaceImageBuildJobDB> buildJobs = new ArrayList<>();
 
   @Transient
   public boolean isLanguageEditor() {
-    return this.type.equals(PyroProjectTypeDB.LANGUAGE_EDITOR);
+    return this.type.equals(ProjectType.LANGUAGE_EDITOR);
   }
 
   @Transient
   public boolean isModelEditor() {
-    return this.type.equals(PyroProjectTypeDB.MODEL_EDITOR);
+    return this.type.equals(ProjectType.MODEL_EDITOR);
   }
 }

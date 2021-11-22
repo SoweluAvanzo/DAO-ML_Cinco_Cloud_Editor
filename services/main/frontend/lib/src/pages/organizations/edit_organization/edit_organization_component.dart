@@ -23,7 +23,7 @@ class EditOrganizationComponent {
 
   OrganizationService _organizationService;
   
-  PyroOrganization organization;
+  Organization organization;
   bool show = false;
   String name;
   String description;
@@ -43,7 +43,7 @@ class EditOrganizationComponent {
   	  });
   }
   
-  void open(PyroOrganization org) {
+  void open(Organization org) {
     organization = org;
     name = org.name;
     description = org.description;

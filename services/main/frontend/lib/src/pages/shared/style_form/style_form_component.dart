@@ -15,7 +15,7 @@ import '../../../service/base_service.dart';
 )
 class StyleFormComponent implements OnInit, OnDestroy {
   @Input("style")
-  PyroStyle style;
+  Style style;
 
   final updatedSC = new StreamController();
   @Output()
@@ -62,7 +62,7 @@ class StyleFormComponent implements OnInit, OnDestroy {
   }
 
   void update() {
-    PyroStyle s = new PyroStyle();
+    Style s = new Style();
     s.navBgColor = navBgColor;
     s.navTextColor = navTextColor;
     s.bodyBgColor = bodyBgColor;

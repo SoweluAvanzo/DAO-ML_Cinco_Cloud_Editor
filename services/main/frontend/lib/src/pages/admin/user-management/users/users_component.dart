@@ -18,7 +18,7 @@ class UsersComponent implements OnInit {
   final UserService _userService;
   final NotificationService _notificationService;
   
-  List<PyroUser> users = new List();
+  List<User> users = new List();
         
   UsersComponent(this._userService, this._notificationService) {
   }
@@ -30,7 +30,7 @@ class UsersComponent implements OnInit {
 	});  		
   }     
   
-  void deleteUser(PyroUser user) {
+  void deleteUser(User user) {
   	_userService.deleteUser(user).then((_) {
   		users.removeWhere((u) => u.id == user.id);
   		_notificationService.displayMessage("User ${user.username} has been deleted.", NotificationType.SUCCESS);

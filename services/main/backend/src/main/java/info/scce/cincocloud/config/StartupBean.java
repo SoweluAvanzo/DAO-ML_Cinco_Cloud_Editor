@@ -1,8 +1,8 @@
 package info.scce.cincocloud.config;
 
-import info.scce.cincocloud.db.PyroSettingsDB;
-import info.scce.cincocloud.db.PyroStyleDB;
+import info.scce.cincocloud.db.SettingsDB;
 import info.scce.cincocloud.db.StopProjectPodsTaskDB;
+import info.scce.cincocloud.db.StyleDB;
 import info.scce.cincocloud.grpc.MainServiceGrpcImpl;
 import info.scce.cincocloud.k8s.K8SClientService;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -53,8 +53,8 @@ public class StartupBean {
 
   private void initSettings() {
     LOGGER.log(Level.INFO, "Init application settings.");
-    if (PyroStyleDB.listAll().isEmpty()) {
-      PyroStyleDB style = new PyroStyleDB();
+    if (StyleDB.listAll().isEmpty()) {
+      StyleDB style = new StyleDB();
       style.navBgColor = "525252";
       style.navTextColor = "afafaf";
       style.bodyBgColor = "313131";
@@ -63,7 +63,7 @@ public class StartupBean {
       style.primaryTextColor = "ffffff";
       style.persist();
 
-      PyroSettingsDB settings = new PyroSettingsDB();
+      SettingsDB settings = new SettingsDB();
       settings.style = style;
       settings.persist();
     }

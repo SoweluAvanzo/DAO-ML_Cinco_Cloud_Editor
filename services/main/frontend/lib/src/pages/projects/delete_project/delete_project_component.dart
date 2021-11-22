@@ -18,10 +18,10 @@ class DeleteProjectComponent {
   @Output() Stream get delete => _delete.stream;
 
   @Input()
-  PyroUser user;
+  User user;
 
   @Input()
-  PyroProject project;
+  Project project;
 
   ProjectService projectService;
 

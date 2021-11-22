@@ -1,10 +1,10 @@
 package info.scce.cincocloud.core;
 
-import info.scce.cincocloud.core.rest.types.PyroUser;
-import info.scce.cincocloud.core.rest.types.PyroUserSearch;
-import info.scce.cincocloud.db.PyroOrganizationDB;
-import info.scce.cincocloud.db.PyroSystemRoleDB;
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.core.rest.inputs.UserSearchInput;
+import info.scce.cincocloud.core.rest.tos.UserTO;
+import info.scce.cincocloud.db.OrganizationDB;
+import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.db.UserSystemRole;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
@@ -43,15 +43,15 @@ public class UsersController {
   @Path("/")
   @RolesAllowed("user")
   public Response getUsers(@Context SecurityContext securityContext) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (subject != null && isAdmin(subject)) {
 
-      final List<PyroUserDB> result = PyroUserDB.listAll();
+      final List<UserDB> result = UserDB.listAll();
 
-      final List<PyroUser> users = new java.util.ArrayList<>();
-      for (PyroUserDB user : result) {
-        users.add(PyroUser.fromEntity(user, objectCache));
+      final List<UserTO> users = new java.util.ArrayList<>();
+      for (UserDB user : result) {
+        users.add(UserTO.fromEntity(user, objectCache));
       }
 
       return Response.ok(users).build();
@@ -67,20 +67,20 @@ public class UsersController {
   @POST
   @Path("/search")
   @RolesAllowed("user")
-  public Response searchUser(@Context SecurityContext securityContext, PyroUserSearch search) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+  public Response searchUser(@Context SecurityContext securityContext, UserSearchInput search) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (subject != null && isAdmin(subject)) {
 
-      final List<PyroUserDB> resultByUsername = PyroUserDB
+      final List<UserDB> resultByUsername = UserDB
           .list("username", search.getusernameOrEmail());
       if (resultByUsername.size() == 1) {
-        return Response.ok(PyroUser.fromEntity(resultByUsername.get(0), objectCache)).build();
+        return Response.ok(UserTO.fromEntity(resultByUsername.get(0), objectCache)).build();
       }
 
-      final List<PyroUserDB> resultByEmail = PyroUserDB.list("email", search.getusernameOrEmail());
+      final List<UserDB> resultByEmail = UserDB.list("email", search.getusernameOrEmail());
       if (resultByEmail.size() == 1) {
-        return Response.ok(PyroUser.fromEntity(resultByEmail.get(0), objectCache)).build();
+        return Response.ok(UserTO.fromEntity(resultByEmail.get(0), objectCache)).build();
       }
 
       return Response.status(
@@ -96,9 +96,9 @@ public class UsersController {
   @RolesAllowed("user")
   public Response delete(@Context SecurityContext securityContext,
       @PathParam("userId") final long userId) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
     if (subject != null && isAdmin(subject)) {
-      final PyroUserDB userToDelete = PyroUserDB.findById(userId);
+      final UserDB userToDelete = UserDB.findById(userId);
       if (subject.equals(userToDelete)) { // an admin should not delete himself
         return Response.status(Response.Status.BAD_REQUEST).build();
       }
@@ -113,20 +113,20 @@ public class UsersController {
   @RolesAllowed("user")
   public Response makeAdmin(@Context SecurityContext securityContext,
       @PathParam("userId") final long userId) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (subject != null && isAdmin(subject)) {
-      final PyroUserDB user = PyroUserDB.findById(userId);
+      final UserDB user = UserDB.findById(userId);
       if (user == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
-      if (!user.systemRoles.contains(PyroSystemRoleDB.ADMIN)) {
-        user.systemRoles.add(PyroSystemRoleDB.ADMIN);
-        user.systemRoles.add(PyroSystemRoleDB.ORGANIZATION_MANAGER);
+      if (!user.systemRoles.contains(UserSystemRole.ADMIN)) {
+        user.systemRoles.add(UserSystemRole.ADMIN);
+        user.systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
       }
 
-      return Response.ok(PyroUser.fromEntity(user, objectCache)).build();
+      return Response.ok(UserTO.fromEntity(user, objectCache)).build();
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
@@ -137,10 +137,10 @@ public class UsersController {
   @RolesAllowed("user")
   public Response makeUser(@Context SecurityContext securityContext,
       @PathParam("userId") final long userId) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (subject != null && isAdmin(subject)) {
-      final PyroUserDB user = PyroUserDB.findById(userId);
+      final UserDB user = UserDB.findById(userId);
       if (user == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
@@ -150,8 +150,8 @@ public class UsersController {
         return Response.status(Response.Status.BAD_REQUEST).build();
       }
 
-      user.systemRoles.remove(PyroSystemRoleDB.ADMIN);
-      return Response.ok(PyroUser.fromEntity(user, objectCache)).build();
+      user.systemRoles.remove(UserSystemRole.ADMIN);
+      return Response.ok(UserTO.fromEntity(user, objectCache)).build();
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
@@ -162,19 +162,19 @@ public class UsersController {
   @RolesAllowed("user")
   public Response addOrgManager(@Context SecurityContext securityContext,
       @PathParam("userId") final long userId) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (subject != null && isAdmin(subject)) {
-      final PyroUserDB user = PyroUserDB.findById(userId);
+      final UserDB user = UserDB.findById(userId);
       if (user == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
-      if (!user.systemRoles.contains(PyroSystemRoleDB.ORGANIZATION_MANAGER)) {
-        user.systemRoles.add(PyroSystemRoleDB.ORGANIZATION_MANAGER);
+      if (!user.systemRoles.contains(UserSystemRole.ORGANIZATION_MANAGER)) {
+        user.systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
       }
 
-      return Response.ok(PyroUser.fromEntity(user, objectCache)).build();
+      return Response.ok(UserTO.fromEntity(user, objectCache)).build();
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
@@ -185,27 +185,27 @@ public class UsersController {
   @RolesAllowed("user")
   public Response removeOrgManager(@Context SecurityContext securityContext,
       @PathParam("userId") final long userId) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (subject != null && isAdmin(subject)) {
-      final PyroUserDB user = PyroUserDB.findById(userId);
+      final UserDB user = UserDB.findById(userId);
       if (user == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
-      user.systemRoles.remove(PyroSystemRoleDB.ORGANIZATION_MANAGER);
-      return Response.ok(PyroUser.fromEntity(user, objectCache)).build();
+      user.systemRoles.remove(UserSystemRole.ORGANIZATION_MANAGER);
+      return Response.ok(UserTO.fromEntity(user, objectCache)).build();
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
   }
 
-  private boolean isAdmin(PyroUserDB user) {
-    return user.systemRoles.contains(PyroSystemRoleDB.ADMIN);
+  private boolean isAdmin(UserDB user) {
+    return user.systemRoles.contains(UserSystemRole.ADMIN);
   }
 
-  public void deleteUser(PyroUserDB user) {
-    List<PyroOrganizationDB> orgs = PyroOrganizationDB.listAll();
+  public void deleteUser(UserDB user) {
+    List<OrganizationDB> orgs = OrganizationDB.listAll();
     orgs.forEach((org) -> {
       if (org.owners.contains(user) || org.members.contains(user)) {
         this.organizationController.removeFromOrganization(user, org);

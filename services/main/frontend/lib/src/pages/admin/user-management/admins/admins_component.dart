@@ -17,7 +17,7 @@ class AdminsComponent implements OnInit {
   final UserService _userService;
   final NotificationService _notificationService;
   
-  List<PyroUser> admins = new List();
+  List<User> admins = new List();
     
   bool showFindUserModal = false;
     
@@ -27,11 +27,11 @@ class AdminsComponent implements OnInit {
   @override
   void ngOnInit() {  	
 	_userService.findUsers().then((users) {
-		admins = users.where((u) => u.systemRoles.contains(PyroSystemRole.ADMIN)).toList();
+		admins = users.where((u) => u.systemRoles.contains(UserSystemRole.ADMIN)).toList();
 	});
   } 
     
-  void removeAdminRole(PyroUser user) {
+  void removeAdminRole(User user) {
   	_userService.removeAdminRole(user)
   		.then((u){
   			_notificationService.displayMessage("User ${user.username} is no longer an admin", NotificationType.SUCCESS);
@@ -43,7 +43,7 @@ class AdminsComponent implements OnInit {
   }
   
   void addAdminRole(dynamic e) {
-    if (e is PyroUser) {
+    if (e is User) {
       _userService.addAdminRole(e).then((n){
         _notificationService.displayMessage("User ${e.username} is now an admin", NotificationType.SUCCESS);
         if (admins.indexWhere((a) => a.username == e.username) == -1) {

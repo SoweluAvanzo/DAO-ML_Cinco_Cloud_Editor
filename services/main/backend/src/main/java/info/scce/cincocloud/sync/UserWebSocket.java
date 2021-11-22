@@ -1,6 +1,6 @@
 package info.scce.cincocloud.sync;
 
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -33,7 +33,7 @@ public class UserWebSocket {
       throws IOException {
     session.setMaxIdleTimeout(3600000);
 
-    final PyroUserDB user = TicketRegistrationHandler.checkGetRelated(ticket);
+    final UserDB user = TicketRegistrationHandler.checkGetRelated(ticket);
     if (user == null) {
       // no valid ticket
       session.close();

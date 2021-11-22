@@ -1,15 +1,15 @@
 package info.scce.cincocloud.sync.ticket;
 
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.db.UserDB;
 import java.util.Calendar;
 import java.util.Date;
 
 public class Ticket {
 
-  private final PyroUserDB user;
+  private final UserDB user;
   private final Date expirationDate;
 
-  public Ticket(PyroUserDB user) {
+  public Ticket(UserDB user) {
     this.user = user;
 
     // setting expiration date
@@ -25,7 +25,7 @@ public class Ticket {
     return currentDate.before(expirationDate);
   }
 
-  public PyroUserDB getUser() {
+  public UserDB getUser() {
     return user;
   }
 }

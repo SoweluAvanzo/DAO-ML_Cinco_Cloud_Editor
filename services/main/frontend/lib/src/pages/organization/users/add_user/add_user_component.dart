@@ -30,8 +30,8 @@ class AddUserComponent {
   OrganizationService _organizationService;
 
   bool show = false;
-  PyroUser user;
-  PyroUser currentUser;
+  User user;
+  User currentUser;
   String selectedRole;
 
   AddUserComponent(this._organizationService) {}
@@ -49,10 +49,10 @@ class AddUserComponent {
   }
 
   selectUser(dynamic e) {
-    user = e is PyroUser ? e : null;
+    user = e is User ? e : null;
   }
 
-  void open(PyroUser user) {
+  void open(User user) {
     currentUser = user;
     user = null;
     selectedRole = OrganizationRole.MEMBER.toString();

@@ -1,6 +1,6 @@
 package info.scce.cincocloud.core;
 
-import info.scce.cincocloud.core.rest.types.FileReference;
+import info.scce.cincocloud.core.rest.tos.FileReferenceTO;
 import info.scce.cincocloud.db.BaseFileDB;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,7 +65,7 @@ public class FileReferenceController {
     reference.contentType = inputPart.getMediaType().toString();
     reference.persist();
 
-    return Response.ok(new FileReference(reference)).build();
+    return Response.ok(new FileReferenceTO(reference)).build();
   }
 
   @GET

@@ -25,7 +25,7 @@ class AdminComponent implements OnInit {
   final UserService _userService;
   final Router _router;
  
-  PyroUser currentUser;
+  User currentUser;
   
   AdminComponent(this._userService, this._router) {
   }
@@ -33,7 +33,7 @@ class AdminComponent implements OnInit {
   @override
   void ngOnInit() {  	
     _userService.fetchUser().then((user) {
-  	  if (!user.systemRoles.contains(PyroSystemRole.ADMIN)) {
+  	  if (!user.systemRoles.contains(UserSystemRole.ADMIN)) {
   	    _router.navigate(top_routes.Routes.organizations.toUrl());
   	  } else {
   	    currentUser = user;

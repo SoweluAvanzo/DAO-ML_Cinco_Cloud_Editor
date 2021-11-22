@@ -1,51 +1,49 @@
-package info.scce.cincocloud.core.rest.types;
+package info.scce.cincocloud.core.rest.tos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import info.scce.cincocloud.db.PyroOrganizationDB;
-import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.db.OrganizationDB;
+import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.rest.RESTBaseImpl;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PyroOrganization extends RESTBaseImpl {
+public class OrganizationTO extends RESTBaseImpl {
 
   private String name;
   private String description;
-  private List<PyroUser> owners = new LinkedList<>();
-  private List<PyroUser> members = new LinkedList<>();
-  private List<PyroProject> projects = new LinkedList<>();
-  private PyroStyle style;
+  private List<UserTO> owners = new LinkedList<>();
+  private List<UserTO> members = new LinkedList<>();
+  private List<ProjectTO> projects = new LinkedList<>();
+  private StyleTO style;
 
-  public static PyroOrganization fromEntity(
-      final PyroOrganizationDB entity,
+  public static OrganizationTO fromEntity(
+      final OrganizationDB entity,
       final ObjectCache objectCache
   ) {
-
     if (objectCache.containsRestTo(entity)) {
       return objectCache.getRestTo(entity);
     }
 
-    final PyroOrganization result;
-    result = new PyroOrganization();
+    final var result = new OrganizationTO();
     result.setId(entity.id);
-
     result.setname(entity.name);
     result.setdescription(entity.description);
-    result.setstyle(PyroStyle.fromEntity(entity.style, objectCache));
+    result.setstyle(StyleTO.fromEntity(entity.style, objectCache));
+
     objectCache.putRestTo(entity, result);
 
-    for (PyroUserDB o : entity.owners) {
-      result.getowners().add(PyroUser.fromEntity(o, objectCache));
+    for (UserDB o : entity.owners) {
+      result.getowners().add(UserTO.fromEntity(o, objectCache));
     }
 
-    for (PyroUserDB m : entity.members) {
-      result.getmembers().add(PyroUser.fromEntity(m, objectCache));
+    for (UserDB m : entity.members) {
+      result.getmembers().add(UserTO.fromEntity(m, objectCache));
     }
 
-    for (PyroProjectDB p : entity.projects) {
-      result.getprojects().add(PyroProject.fromEntity(p, objectCache));
+    for (ProjectDB p : entity.projects) {
+      result.getprojects().add(ProjectTO.fromEntity(p, objectCache));
     }
 
     return result;
@@ -72,42 +70,42 @@ public class PyroOrganization extends RESTBaseImpl {
   }
 
   @JsonProperty("owners")
-  public List<PyroUser> getowners() {
+  public List<UserTO> getowners() {
     return this.owners;
   }
 
   @JsonProperty("owners")
-  public void setowners(final List<PyroUser> owners) {
+  public void setowners(final List<UserTO> owners) {
     this.owners = owners;
   }
 
   @JsonProperty("members")
-  public List<PyroUser> getmembers() {
+  public List<UserTO> getmembers() {
     return this.members;
   }
 
   @JsonProperty("members")
-  public void setmembers(final List<PyroUser> members) {
+  public void setmembers(final List<UserTO> members) {
     this.members = members;
   }
 
   @JsonProperty("projects")
-  public List<PyroProject> getprojects() {
+  public List<ProjectTO> getprojects() {
     return this.projects;
   }
 
   @JsonProperty("projects")
-  public void setprojects(final List<PyroProject> projects) {
+  public void setprojects(final List<ProjectTO> projects) {
     this.projects = projects;
   }
 
   @JsonProperty("style")
-  public PyroStyle getstyle() {
+  public StyleTO getstyle() {
     return this.style;
   }
 
   @JsonProperty("style")
-  public void setstyle(final PyroStyle style) {
+  public void setstyle(final StyleTO style) {
     this.style = style;
   }
 }

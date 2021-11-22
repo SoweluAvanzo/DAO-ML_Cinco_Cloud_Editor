@@ -1,6 +1,6 @@
 package info.scce.cincocloud.k8s.modeleditor;
 
-import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.db.ProjectDB;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolume;
 import io.fabric8.kubernetes.api.model.PersistentVolumeBuilder;
@@ -13,7 +13,7 @@ public class PyroDatabaseK8SPersistentVolume extends PyroK8SResource<PersistentV
 
   private static final String STORAGE = "2Gi";
 
-  public PyroDatabaseK8SPersistentVolume(KubernetesClient client, PyroProjectDB project) {
+  public PyroDatabaseK8SPersistentVolume(KubernetesClient client, ProjectDB project) {
     super(client, project);
     this.resource = build();
   }

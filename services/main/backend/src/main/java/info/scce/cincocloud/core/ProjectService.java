@@ -1,7 +1,7 @@
 package info.scce.cincocloud.core;
 
-import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -20,8 +20,8 @@ public class ProjectService {
   @Inject
   ProjectWebSocket projectWebSocket;
 
-  public void deleteById(PyroUserDB user, final long id, SecurityContext securityContext) {
-    final PyroProjectDB pp = PyroProjectDB.findById(id);
+  public void deleteById(UserDB user, final long id, SecurityContext securityContext) {
+    final ProjectDB pp = ProjectDB.findById(id);
     checkPermission(pp, securityContext);
 
     if (pp.owner.equals(user)) {
@@ -37,8 +37,8 @@ public class ProjectService {
     pp.delete();
   }
 
-  public void checkPermission(PyroProjectDB project, SecurityContext securityContext) {
-    final PyroUserDB user = PyroUserDB.getCurrentUser(securityContext);
+  public void checkPermission(ProjectDB project, SecurityContext securityContext) {
+    final UserDB user = UserDB.getCurrentUser(securityContext);
     boolean isOwner = project.organization.owners.contains(user);
     boolean isMember = project.organization.members.contains(user);
     if (isOwner || isMember) {

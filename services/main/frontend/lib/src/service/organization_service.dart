@@ -11,16 +11,16 @@ class OrganizationService extends BaseService {
 
   OrganizationService(Router router) : super(router);
   
-  Future<List<PyroOrganization>> getAll() {
+  Future<List<Organization>> getAll() {
   	return HttpRequest.request("${getBaseUrl()}/organization", method: "GET", requestHeaders: requestHeaders, withCredentials: true)
   	  .then((response){
-  	    List<PyroOrganization> orgs = new List();
+  	    List<Organization> orgs = new List();
   	    Map<String, dynamic> cache = new Map();
         jsonDecode(response.responseText).forEach((org){
         	if(org.containsKey("@ref")){
 	            orgs.add(cache[org["@ref"]]);
 	        } else {
-	            orgs.add(PyroOrganization(cache: cache, jsog: org));
+	            orgs.add(Organization(cache: cache, jsog: org));
 	        }
         });
         return orgs;
@@ -28,39 +28,39 @@ class OrganizationService extends BaseService {
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroOrganization> getById(String orgId) {
+  Future<Organization> getById(String orgId) {
   	return HttpRequest.request("${getBaseUrl()}/organization/${orgId}", method: "GET", requestHeaders: requestHeaders, withCredentials: true)
   	  .then((response){
-        return PyroOrganization.fromJSON(response.responseText);
+        return Organization.fromJSON(response.responseText);
       })
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<PyroOrganization> create(String name, String description) async {
-    PyroOrganization org = new PyroOrganization();
+  Future<Organization> create(String name, String description) async {
+    Organization org = new Organization();
     org.name = name;
     org.description = description;
             
     return HttpRequest.request("${getBaseUrl()}/organization", sendData:jsonEncode(org.toJSOG(new Map())), method: "POST", requestHeaders: requestHeaders, withCredentials: true)
       .then((response){
-        var newOrg = PyroOrganization.fromJSON(response.responseText);
-        print("[PYRO] new organization ${newOrg.name}");
+        var newOrg = Organization.fromJSON(response.responseText);
+        print("[CINCO_CLOUD] new organization ${newOrg.name}");
         return newOrg;
       })
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroOrganization> update(PyroOrganization org) async {
+  Future<Organization> update(Organization org) async {
   	return HttpRequest.request("${getBaseUrl()}/organization/${org.id}", sendData:jsonEncode(org.toJSOG(new Map())), method: "PUT", requestHeaders: requestHeaders, withCredentials: true)
       .then((response){
-        var updatedOrg = PyroOrganization.fromJSON(response.responseText);
-        print("[PYRO] updated organization ${updatedOrg.name}");
+        var updatedOrg = Organization.fromJSON(response.responseText);
+        print("[CINCO_CLOUD] updated organization ${updatedOrg.name}");
         return updatedOrg;
       })
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroOrganization> delete(PyroOrganization org) async {
+  Future<Organization> delete(Organization org) async {
   	return HttpRequest.request("${getBaseUrl()}/organization/${org.id}", method: "DELETE", requestHeaders: requestHeaders, withCredentials: true)
       .then((response){
         return org;
@@ -68,7 +68,7 @@ class OrganizationService extends BaseService {
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroOrganization> leave(PyroOrganization org) async {
+  Future<Organization> leave(Organization org) async {
   	return HttpRequest.request("${getBaseUrl()}/organization/${org.id}/leave", method: "POST", requestHeaders: requestHeaders, withCredentials: true)
       .then((response){
         return org;
@@ -76,31 +76,31 @@ class OrganizationService extends BaseService {
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroOrganization> addOwner(PyroOrganization org, PyroUser user) async {
+  Future<Organization> addOwner(Organization org, User user) async {
   	return HttpRequest.request("${getBaseUrl()}/organization/${org.id}/addOwner", sendData:jsonEncode(user.toJSOG(new Map())), method: "POST", requestHeaders: requestHeaders, withCredentials: true)
       .then((response){
-        var updatedOrg = PyroOrganization.fromJSON(response.responseText);
-        print("[PYRO] added user ${user.username} as owner of organization ${updatedOrg.name}");
+        var updatedOrg = Organization.fromJSON(response.responseText);
+        print("[CINCO_CLOUD] added user ${user.username} as owner of organization ${updatedOrg.name}");
         return updatedOrg;
       })
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroOrganization> addMember(PyroOrganization org, PyroUser user) async {
+  Future<Organization> addMember(Organization org, User user) async {
   	return HttpRequest.request("${getBaseUrl()}/organization/${org.id}/addMember", sendData:jsonEncode(user.toJSOG(new Map())), method: "POST", requestHeaders: requestHeaders, withCredentials: true)
       .then((response){
-        var updatedOrg = PyroOrganization.fromJSON(response.responseText);
-        print("[PYRO] added user ${user.username} as member of organization ${updatedOrg.name}");
+        var updatedOrg = Organization.fromJSON(response.responseText);
+        print("[CINCO_CLOUD] added user ${user.username} as member of organization ${updatedOrg.name}");
         return updatedOrg;
       })
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
   
-  Future<PyroOrganization> removeUser(PyroOrganization org, PyroUser user) async {
+  Future<Organization> removeUser(Organization org, User user) async {
   	return HttpRequest.request("${getBaseUrl()}/organization/${org.id}/removeUser", sendData:jsonEncode(user.toJSOG(new Map())), method: "POST", requestHeaders: requestHeaders, withCredentials: true)
       .then((response){
-        var updatedOrg = PyroOrganization.fromJSON(response.responseText);
-        print("[PYRO] removed user ${user.username} from organization ${updatedOrg.name}");
+        var updatedOrg = Organization.fromJSON(response.responseText);
+        print("[CINCO_CLOUD] removed user ${user.username} from organization ${updatedOrg.name}");
         return updatedOrg;
       })
       .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);

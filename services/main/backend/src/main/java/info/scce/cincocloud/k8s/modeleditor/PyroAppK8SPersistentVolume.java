@@ -1,6 +1,6 @@
 package info.scce.cincocloud.k8s.modeleditor;
 
-import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.k8s.languageeditor.TheiaK8SResource;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolume;
@@ -14,7 +14,7 @@ public class PyroAppK8SPersistentVolume extends TheiaK8SResource<PersistentVolum
 
   private static final String STORAGE = "2Gi";
 
-  public PyroAppK8SPersistentVolume(KubernetesClient client, PyroProjectDB project) {
+  public PyroAppK8SPersistentVolume(KubernetesClient client, ProjectDB project) {
     super(client, project);
     this.resource = build();
   }

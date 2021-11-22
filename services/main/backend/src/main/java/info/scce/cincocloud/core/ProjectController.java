@@ -1,13 +1,13 @@
 package info.scce.cincocloud.core;
 
-import info.scce.cincocloud.core.rest.types.PyroProject;
-import info.scce.cincocloud.db.PyroOrganizationAccessRightDB;
-import info.scce.cincocloud.db.PyroOrganizationAccessRightVectorDB;
-import info.scce.cincocloud.db.PyroOrganizationDB;
-import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.db.PyroProjectTypeDB;
-import info.scce.cincocloud.db.PyroUserDB;
-import info.scce.cincocloud.db.PyroWorkspaceImageDB;
+import info.scce.cincocloud.core.rest.tos.ProjectTO;
+import info.scce.cincocloud.db.OrganizationAccessRight;
+import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
+import info.scce.cincocloud.db.OrganizationDB;
+import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.db.ProjectType;
+import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.List;
 import java.util.Optional;
@@ -46,33 +46,33 @@ public class ProjectController {
   @POST
   @Path("/create/private")
   @RolesAllowed("user")
-  public Response createProject(@Context SecurityContext securityContext, PyroProject newProject) {
+  public Response createProject(@Context SecurityContext securityContext, ProjectTO newProject) {
 
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     if (newProject.getorganization() == null) {
       return Response.status(Response.Status.BAD_REQUEST).build();
     }
 
-    final PyroOrganizationDB org = PyroOrganizationDB
+    final OrganizationDB org = OrganizationDB
         .findById(newProject.getorganization().getId());
     if (org == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    final Optional<PyroWorkspaceImageDB> imageOptional = Optional
+    final Optional<WorkspaceImageDB> imageOptional = Optional
         .ofNullable(newProject.getTemplate())
-        .map(i -> PyroWorkspaceImageDB.findById(i.getId()));
+        .map(i -> WorkspaceImageDB.findById(i.getId()));
 
     if (imageOptional.isPresent()) {
-      final PyroWorkspaceImageDB image = imageOptional.get();
+      final WorkspaceImageDB image = imageOptional.get();
       if (!image.published && !image.project.owner.equals(subject)) {
         return Response.status(Response.Status.BAD_REQUEST).build();
       }
     }
 
     if (canCreateProject(subject, org)) {
-      final PyroProjectDB pp = createProject(
+      final ProjectDB pp = createProject(
           newProject.getname(),
           newProject.getdescription(),
           subject,
@@ -80,19 +80,19 @@ public class ProjectController {
           imageOptional
       );
 
-      return Response.ok(PyroProject.fromEntity(pp, objectCache)).build();
+      return Response.ok(ProjectTO.fromEntity(pp, objectCache)).build();
     }
     return Response.status(Response.Status.FORBIDDEN).build();
   }
 
-  public PyroProjectDB createProject(
+  public ProjectDB createProject(
       String name,
       String description,
-      PyroUserDB subject,
-      PyroOrganizationDB org,
-      Optional<PyroWorkspaceImageDB> image
+      UserDB subject,
+      OrganizationDB org,
+      Optional<WorkspaceImageDB> image
   ) {
-    final PyroProjectDB pp = new PyroProjectDB();
+    final ProjectDB pp = new ProjectDB();
     pp.owner = subject;
     pp.name = name;
     pp.description = description;
@@ -102,7 +102,7 @@ public class ProjectController {
 
     image.ifPresent(i -> {
       pp.template = i;
-      pp.type = PyroProjectTypeDB.MODEL_EDITOR;
+      pp.type = ProjectType.MODEL_EDITOR;
     });
 
     pp.persist();
@@ -116,10 +116,10 @@ public class ProjectController {
   @Path("/update/private")
   @RolesAllowed("user")
   public Response updateProject(@Context SecurityContext securityContext,
-      PyroProject ownedProject) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
+      ProjectTO ownedProject) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
 
-    final PyroProjectDB pp = PyroProjectDB.findById(ownedProject.getId());
+    final ProjectDB pp = ProjectDB.findById(ownedProject.getId());
     projectService.checkPermission(pp, securityContext);
 
     if (canEditProject(subject, pp)) {
@@ -131,7 +131,7 @@ public class ProjectController {
           || subject.systemRoles.size() > 0
           || pp.owner.equals(subject)
       ) {
-        final PyroUserDB newOwner = PyroUserDB.findById(ownedProject.getowner().getId());
+        final UserDB newOwner = UserDB.findById(ownedProject.getowner().getId());
         if (newOwner == null) {
           return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -145,7 +145,7 @@ public class ProjectController {
         newOwner.persist();
       }
       pp.persist();
-      return Response.ok(PyroProject.fromEntity(pp, objectCache)).build();
+      return Response.ok(ProjectTO.fromEntity(pp, objectCache)).build();
     }
     return Response.status(Response.Status.FORBIDDEN).build();
   }
@@ -155,12 +155,12 @@ public class ProjectController {
   @RolesAllowed("user")
   public Response getProject(@Context SecurityContext securityContext,
       @PathParam("projectId") final long projectId) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
-    final PyroProjectDB project = PyroProjectDB.findById(projectId);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final ProjectDB project = ProjectDB.findById(projectId);
     projectService.checkPermission(project, securityContext);
 
     if (isInOrganization(subject, project.organization)) {
-      return Response.ok(PyroProject.fromEntity(project, objectCache)).build();
+      return Response.ok(ProjectTO.fromEntity(project, objectCache)).build();
     }
     return Response.status(Response.Status.FORBIDDEN).build();
   }
@@ -170,7 +170,7 @@ public class ProjectController {
   @RolesAllowed("user")
   public Response deployProject(@Context SecurityContext securityContext,
       @PathParam("projectId") final long projectId) {
-    final PyroProjectDB project = PyroProjectDB.findById(projectId);
+    final ProjectDB project = ProjectDB.findById(projectId);
     projectService.checkPermission(project, securityContext);
     final var result = projectDeploymentService.deploy(project);
     return Response.ok(result).build();
@@ -181,7 +181,7 @@ public class ProjectController {
   @RolesAllowed("user")
   public Response stopDeployedProject(@Context SecurityContext securityContext,
       @PathParam("projectId") final long projectId) {
-    final PyroProjectDB project = PyroProjectDB.findById(projectId);
+    final ProjectDB project = ProjectDB.findById(projectId);
     projectService.checkPermission(project, securityContext);
     projectDeploymentService.stop(project);
     return Response.status(Response.Status.OK).build();
@@ -192,8 +192,8 @@ public class ProjectController {
   @RolesAllowed("user")
   public Response removeProject(@Context SecurityContext securityContext,
       @PathParam("id") final long id) {
-    final PyroUserDB subject = PyroUserDB.getCurrentUser(securityContext);
-    final PyroProjectDB project = PyroProjectDB.findById(id);
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final ProjectDB project = ProjectDB.findById(id);
     if (canDeleteProject(subject, project)) {
       projectService.deleteById(subject, id, securityContext);
       projectDeploymentService.delete(project);
@@ -203,44 +203,44 @@ public class ProjectController {
   }
 
   private boolean isInOrganization(
-      PyroUserDB user,
-      PyroOrganizationDB org) {
+      UserDB user,
+      OrganizationDB org) {
     return org.members.contains(user) || org.owners.contains(user);
   }
 
   private boolean canCreateProject(
-      PyroUserDB user,
-      PyroOrganizationDB org) {
-    PyroOrganizationAccessRightVectorDB arv = getAccessRightVector(user, org);
-    return arv != null && arv.accessRights.contains(PyroOrganizationAccessRightDB.CREATE_PROJECTS);
+      UserDB user,
+      OrganizationDB org) {
+    OrganizationAccessRightVectorDB arv = getAccessRightVector(user, org);
+    return arv != null && arv.accessRights.contains(OrganizationAccessRight.CREATE_PROJECTS);
   }
 
   private boolean canEditProject(
-      PyroUserDB user,
-      PyroProjectDB project) {
-    PyroOrganizationAccessRightVectorDB arv = getAccessRightVector(user, project);
-    return arv != null && arv.accessRights.contains(PyroOrganizationAccessRightDB.EDIT_PROJECTS);
+      UserDB user,
+      ProjectDB project) {
+    OrganizationAccessRightVectorDB arv = getAccessRightVector(user, project);
+    return arv != null && arv.accessRights.contains(OrganizationAccessRight.EDIT_PROJECTS);
   }
 
   private boolean canDeleteProject(
-      PyroUserDB user,
-      PyroProjectDB project) {
-    PyroOrganizationAccessRightVectorDB arv = getAccessRightVector(user, project);
-    return arv != null && arv.accessRights.contains(PyroOrganizationAccessRightDB.DELETE_PROJECTS);
+      UserDB user,
+      ProjectDB project) {
+    OrganizationAccessRightVectorDB arv = getAccessRightVector(user, project);
+    return arv != null && arv.accessRights.contains(OrganizationAccessRight.DELETE_PROJECTS);
   }
 
-  private PyroOrganizationAccessRightVectorDB getAccessRightVector(
-      PyroUserDB user,
-      PyroProjectDB project
+  private OrganizationAccessRightVectorDB getAccessRightVector(
+      UserDB user,
+      ProjectDB project
   ) {
     return getAccessRightVector(user, project.organization);
   }
 
-  private PyroOrganizationAccessRightVectorDB getAccessRightVector(
-      PyroUserDB user,
-      PyroOrganizationDB org
+  private OrganizationAccessRightVectorDB getAccessRightVector(
+      UserDB user,
+      OrganizationDB org
   ) {
-    final List<PyroOrganizationAccessRightVectorDB> result = PyroOrganizationAccessRightVectorDB
+    final List<OrganizationAccessRightVectorDB> result = OrganizationAccessRightVectorDB
         .list("user = ?1 and organization = ?2", user, org);
     return result.size() == 1 ? result.get(0) : null;
   }

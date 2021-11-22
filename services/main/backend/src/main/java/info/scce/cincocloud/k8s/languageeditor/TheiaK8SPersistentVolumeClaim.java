@@ -1,6 +1,6 @@
 package info.scce.cincocloud.k8s.languageeditor;
 
-import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.db.ProjectDB;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class TheiaK8SPersistentVolumeClaim extends TheiaK8SResource<PersistentVolumeClaim> {
 
-  public TheiaK8SPersistentVolumeClaim(KubernetesClient client, PyroProjectDB project) {
+  public TheiaK8SPersistentVolumeClaim(KubernetesClient client, ProjectDB project) {
     super(client, project);
     this.resource = build();
   }

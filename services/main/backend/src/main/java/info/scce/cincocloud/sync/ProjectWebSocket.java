@@ -1,9 +1,9 @@
 package info.scce.cincocloud.sync;
 
-import info.scce.cincocloud.core.rest.types.PyroProjectDeployment;
-import info.scce.cincocloud.core.rest.types.PyroUser;
-import info.scce.cincocloud.db.PyroUserDB;
+import info.scce.cincocloud.core.rest.tos.ProjectDeploymentTO;
+import info.scce.cincocloud.core.rest.tos.UserTO;
 import info.scce.cincocloud.db.StopProjectPodsTaskDB;
+import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.sync.helper.WorkerThreadHelper;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
@@ -41,7 +41,7 @@ public class ProjectWebSocket {
   // NOTE: rewritten with ticket-system, since Session.getUserPrincipal does only work with cookies
   public void open(final Session session, @PathParam("projectId") long clientId,
       @PathParam("ticket") String ticket) throws IOException {
-    final PyroUserDB user = TicketRegistrationHandler.checkGetRelated(ticket);
+    final UserDB user = TicketRegistrationHandler.checkGetRelated(ticket);
     if (user == null) {
       // no valid ticket
       session.close();
@@ -52,15 +52,15 @@ public class ProjectWebSocket {
     projectRegistry.getCurrentOpenSockets().putIfAbsent(clientId, new HashMap<>());
     projectRegistry.getCurrentOpenSockets().get(clientId).put(user.id, session);
 
-    final List<PyroUser> users = new ArrayList<>();
+    final List<UserTO> users = new ArrayList<>();
 
     // NOTE: added
     WorkerThreadHelper.runWorkerThread(() -> {
       projectRegistry.getCurrentOpenSockets().get(clientId).forEach((key, value) -> {
         try {
           transactionManager.begin();
-          final PyroUserDB u = PyroUserDB.findById(key);
-          users.add(PyroUser.fromEntity(u, objectCache));
+          final UserDB u = UserDB.findById(key);
+          users.add(UserTO.fromEntity(u, objectCache));
           transactionManager.commit();
         } catch (Exception e) {
           e.printStackTrace();
@@ -139,7 +139,7 @@ public class ProjectWebSocket {
 
   public static class Messages {
 
-    public static WebSocketMessage updateUserList(Long senderId, List<PyroUser> users) {
+    public static WebSocketMessage updateUserList(Long senderId, List<UserTO> users) {
       return WebSocketMessage.fromEntity(senderId, "project:updateUserList", users);
     }
 
@@ -147,7 +147,7 @@ public class ProjectWebSocket {
       return WebSocketMessage.fromEntity(senderId, "project:removeUser", idOfUserToRemove);
     }
 
-    public static WebSocketMessage podDeploymentStatus(PyroProjectDeployment deployment) {
+    public static WebSocketMessage podDeploymentStatus(ProjectDeploymentTO deployment) {
       return WebSocketMessage.fromEntity(-1, "project:podDeploymentStatus", deployment);
     }
   }

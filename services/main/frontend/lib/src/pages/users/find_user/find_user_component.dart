@@ -15,7 +15,7 @@ class FindUserComponent implements OnInit {
   Stream get close => closeSC.stream;
 
   @Input()
-  PyroUser user;
+  User user;
 
   bool searching = false;
   bool notFound = false;

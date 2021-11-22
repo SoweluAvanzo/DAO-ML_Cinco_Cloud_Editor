@@ -1,18 +1,18 @@
-package info.scce.cincocloud.core.rest.types;
+package info.scce.cincocloud.core.rest.tos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.db.BaseFileDB;
 
-public class FileReference {
+public class FileReferenceTO {
 
   private long id;
   private String fileName;
   private String contentType;
 
-  public FileReference() {
+  public FileReferenceTO() {
   }
 
-  public FileReference(final BaseFileDB delegate) {
+  public FileReferenceTO(final BaseFileDB delegate) {
     this.setId(delegate.id);
     if (delegate.fileExtension != null) {
       this.setFileName(delegate.filename + "." + delegate.fileExtension);
@@ -52,17 +52,17 @@ public class FileReference {
     this.contentType = contentType;
   }
 
-  @java.lang.Override
-  public boolean equals(final java.lang.Object obj) {
+  @Override
+  public boolean equals(final Object obj) {
     if (this == obj) {
       return true;
     }
 
-    if (!(obj instanceof FileReference)) {
+    if (!(obj instanceof FileReferenceTO)) {
       return false;
     }
 
-    final FileReference that = (FileReference) obj;
+    final FileReferenceTO that = (FileReferenceTO) obj;
     if (this.getId() == -1 && that.getId() == -1) {
       return false;
     }

@@ -1,8 +1,8 @@
 package info.scce.cincocloud.core;
 
-import info.scce.cincocloud.core.rest.types.PyroWorkspaceImage;
-import info.scce.cincocloud.db.PyroUserDB;
-import info.scce.cincocloud.db.PyroWorkspaceImageDB;
+import info.scce.cincocloud.core.rest.tos.WorkspaceImageTO;
+import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.time.Instant;
 import java.util.List;
@@ -39,20 +39,20 @@ public class WorkspaceImageController {
   @Path("/search")
   @RolesAllowed("user")
   public Response search(@Context SecurityContext securityContext, @QueryParam("q") String query) {
-    final var currentUser = PyroUserDB.getCurrentUser(securityContext);
+    final var currentUser = UserDB.getCurrentUser(securityContext);
 
-    final List<PyroWorkspaceImage> images = PyroWorkspaceImageDB.listAll()
+    final List<WorkspaceImageTO> images = WorkspaceImageDB.listAll()
         .stream()
-        .map(image -> (PyroWorkspaceImageDB) image)
+        .map(image -> (WorkspaceImageDB) image)
         .filter(image -> image.published || image.project.owner.equals(currentUser))
-        .map(image -> PyroWorkspaceImage.fromEntity(image, objectCache))
+        .map(image -> WorkspaceImageTO.fromEntity(image, objectCache))
         .collect(Collectors.toList());
 
     if (query == null || query.trim().isEmpty()) {
       return Response.ok(images).build();
     } else {
       final String q = query.toLowerCase();
-      final List<PyroWorkspaceImage> filteredImages = images.stream()
+      final List<WorkspaceImageTO> filteredImages = images.stream()
           .filter(image -> image.name.toLowerCase().contains(q)
               || image.imageName.contains(q)
               || image.user.getusername().toLowerCase().contains(q))
@@ -66,11 +66,11 @@ public class WorkspaceImageController {
   @Path("/images")
   @RolesAllowed("user")
   public Response getAll(@Context SecurityContext securityContext, @QueryParam("q") String query) {
-    final var currentUser = PyroUserDB.getCurrentUser(securityContext);
+    final var currentUser = UserDB.getCurrentUser(securityContext);
 
-    final var images = PyroWorkspaceImageDB.find("user", currentUser).list().stream()
-        .map(i -> (PyroWorkspaceImageDB) i)
-        .map(i -> PyroWorkspaceImage.fromEntity(i, objectCache))
+    final var images = WorkspaceImageDB.find("user", currentUser).list().stream()
+        .map(i -> (WorkspaceImageDB) i)
+        .map(i -> WorkspaceImageTO.fromEntity(i, objectCache))
         .collect(Collectors.toList());
 
     return Response.ok(images).build();
@@ -80,10 +80,10 @@ public class WorkspaceImageController {
   @Path("/images/{imageId}")
   @RolesAllowed("user")
   public Response update(@Context SecurityContext securityContext,
-      @PathParam("imageId") long userId, PyroWorkspaceImage image) {
-    final var currentUser = PyroUserDB.getCurrentUser(securityContext);
+      @PathParam("imageId") long userId, WorkspaceImageTO image) {
+    final var currentUser = UserDB.getCurrentUser(securityContext);
 
-    final var imageInDb = (PyroWorkspaceImageDB) PyroWorkspaceImageDB.findByIdOptional(userId)
+    final var imageInDb = (WorkspaceImageDB) WorkspaceImageDB.findByIdOptional(userId)
         .orElseThrow(() -> new EntityNotFoundException("Image could not be found."));
 
     if (!imageInDb.user.equals(currentUser)) {
@@ -94,6 +94,6 @@ public class WorkspaceImageController {
     imageInDb.published = image.published;
     imageInDb.persist();
 
-    return Response.ok(PyroWorkspaceImage.fromEntity(imageInDb, objectCache)).build();
+    return Response.ok(WorkspaceImageTO.fromEntity(imageInDb, objectCache)).build();
   }
 }

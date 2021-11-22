@@ -23,9 +23,9 @@ import './edit_organization/edit_organization_component.dart';
 )
 class OrganizationsComponent implements OnInit {
 
-  PyroUser currentUser;
-  PyroSettings settings;
-  List<PyroOrganization> organizations = new List();
+  User currentUser;
+  Settings settings;
+  List<Organization> organizations = new List();
   
   final OrganizationService _organizationService;
   final UserService _userService;
@@ -58,7 +58,7 @@ class OrganizationsComponent implements OnInit {
   }
   
   void addOrganization(dynamic e) {
-  	if (e is PyroOrganization) {
+  	if (e is Organization) {
   	  _notificationService.displayMessage("Organization ${e.name} has been created.", NotificationType.SUCCESS);
   	  newOrganizationModal.close();
   	  organizations.add(e);
@@ -66,7 +66,7 @@ class OrganizationsComponent implements OnInit {
   }
   
   void updateOrganization(dynamic e) {
-  	if (e is PyroOrganization) {
+  	if (e is Organization) {
   		_notificationService.displayMessage("Organization ${e.name} has been updated.", NotificationType.SUCCESS);
   		editOrganizationModal.close();
   		int i = organizations.indexWhere((o) => o.id == e.id);
@@ -76,7 +76,7 @@ class OrganizationsComponent implements OnInit {
   	}
   }
   
-  void deleteOrganization(PyroOrganization org) {
+  void deleteOrganization(Organization org) {
   	_organizationService.delete(org)
   		.then((_){
   			_notificationService.displayMessage("Organization ${org.name} has been deleted.", NotificationType.SUCCESS);
@@ -86,7 +86,7 @@ class OrganizationsComponent implements OnInit {
   		});
   }
   
-  void leaveOrganization(PyroOrganization org) {
+  void leaveOrganization(Organization org) {
   	_organizationService.leave(org)
   	  	.then((_){
   			_notificationService.displayMessage("You have left the organization ${org.name}.", NotificationType.SUCCESS);
@@ -96,11 +96,11 @@ class OrganizationsComponent implements OnInit {
   		});
   }
   
-  String getProjectsUrl(PyroOrganization org) {
+  String getProjectsUrl(Organization org) {
   	return top_routes.RoutePaths.organization.toUrl(parameters: {"orgId": org.id.toString()});
   }
     
-  bool get isOrgManager => currentUser != null && currentUser.systemRoles.contains(PyroSystemRole.ORGANIZATION_MANAGER);
+  bool get isOrgManager => currentUser != null && currentUser.systemRoles.contains(UserSystemRole.ORGANIZATION_MANAGER);
   
   bool get canCreateOrganization => isOrgManager || (settings != null && settings.globallyCreateOrganizations);
 }

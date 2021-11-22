@@ -33,3 +33,10 @@ The application is now runnable using `java -jar target/quarkus-app/quarkus-run.
 | Maven Command | Description |
 |---------------|-------------|
 | `./mvnw checkstyle:check` | Execute checkstyle validation |
+
+## Database migrations
+
+Database migrations are done using [Flyway][flyway].
+Migration scripts can be found under `src/main/resources/db/migration`.
+
+[flyway]: https://flywaydb.org/

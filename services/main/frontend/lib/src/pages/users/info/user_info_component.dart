@@ -16,6 +16,6 @@ class UserInfoComponent {
   @Output() Stream get close => closeSC.stream;
 
   @Input()
-  PyroUser user;
+  User user;
 
 }

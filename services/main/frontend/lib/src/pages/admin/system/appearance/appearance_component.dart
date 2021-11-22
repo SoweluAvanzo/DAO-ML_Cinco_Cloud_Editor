@@ -19,9 +19,9 @@ class AppearanceComponent implements OnInit {
   final SettingsService _settingsService;
   final StyleService _styleService;
 
-  PyroUser currentUser;
-  PyroSettings settings;
-  PyroStyle style;
+  User currentUser;
+  Settings settings;
+  Style style;
 
   AppearanceComponent(this._userService, this._notificationService,
       this._settingsService, this._styleService) {}
@@ -39,7 +39,7 @@ class AppearanceComponent implements OnInit {
   }
 
   void handleStyleUpdated(dynamic e) {
-    if (e is PyroStyle) {
+    if (e is Style) {
       style = e;
       update();
     }

@@ -438,8 +438,7 @@ class FileReference {
   String contentType;
 
   String get path => '${BaseService.getUrl()}/files/read/${id}/private';
-  String get downloadPath =>
-      '${BaseService.getUrl()}/files/download/${id}/private';
+  String get downloadPath => '${BaseService.getUrl()}/files/download/${id}/private';
 
   FileReference({jsog}) {
     // default constructor

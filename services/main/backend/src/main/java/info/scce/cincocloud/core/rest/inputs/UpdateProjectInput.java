@@ -1,8 +1,8 @@
-package info.scce.cincocloud.core.rest.types;
+package info.scce.cincocloud.core.rest.inputs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class UpdatePyroProject {
+public class UpdateProjectInput {
 
   private long projectId = -1;
   private long userId = -1;

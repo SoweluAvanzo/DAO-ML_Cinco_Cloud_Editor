@@ -12,8 +12,8 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
-@Entity()
-public class PyroUserDB extends PanacheEntity {
+@Entity
+public class UserDB extends PanacheEntity {
 
   public String username;
   public String email;
@@ -26,27 +26,27 @@ public class PyroUserDB extends PanacheEntity {
 
   @Enumerated(javax.persistence.EnumType.STRING)
   @ElementCollection
-  public Collection<PyroSystemRoleDB> systemRoles = new ArrayList<>();
+  public Collection<UserSystemRole> systemRoles = new ArrayList<>();
 
   @OneToMany(mappedBy = "owner")
-  public Collection<PyroProjectDB> ownedProjects = new ArrayList<>();
+  public Collection<ProjectDB> ownedProjects = new ArrayList<>();
 
   @OneToMany(mappedBy = "user")
-  public Collection<PyroWorkspaceImageDB> images = new ArrayList<>();
+  public Collection<WorkspaceImageDB> images = new ArrayList<>();
 
   @ManyToMany(mappedBy = "owners")
-  public Collection<PyroOrganizationDB> ownedOrganizations = new ArrayList<>();
+  public Collection<OrganizationDB> ownedOrganizations = new ArrayList<>();
 
   @ManyToMany(mappedBy = "members")
-  public Collection<PyroOrganizationDB> memberedOrganizations = new ArrayList<>();
+  public Collection<OrganizationDB> memberedOrganizations = new ArrayList<>();
 
-  public static PyroUserDB add(String email, String username, String password) {
+  public static UserDB add(String email, String username, String password) {
     return add(email, username, password, new LinkedList<>());
   }
 
-  public static PyroUserDB add(String email, String username, String password,
-      Collection<PyroSystemRoleDB> roles) {
-    PyroUserDB user = new PyroUserDB();
+  public static UserDB add(String email, String username, String password,
+      Collection<UserSystemRole> roles) {
+    UserDB user = new UserDB();
     user.email = email;
     user.username = username;
     user.password = password;
@@ -61,8 +61,8 @@ public class PyroUserDB extends PanacheEntity {
     return user;
   }
 
-  public static PyroUserDB getCurrentUser(javax.ws.rs.core.SecurityContext context) {
-    return PyroUserDB.find("email", context.getUserPrincipal().getName()).firstResult();
+  public static UserDB getCurrentUser(javax.ws.rs.core.SecurityContext context) {
+    return UserDB.find("email", context.getUserPrincipal().getName()).firstResult();
   }
 }
 

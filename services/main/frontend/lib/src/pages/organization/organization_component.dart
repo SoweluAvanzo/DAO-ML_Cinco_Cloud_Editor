@@ -22,8 +22,8 @@ import './access_rights/access_rights_component.dart';
 ) 
 class OrganizationComponent implements OnInit, OnActivate, OnDeactivate {
 
-  PyroUser currentUser;
-  PyroOrganization organization;
+  User currentUser;
+  Organization organization;
   
   final Router _router;
   final OrganizationService _organizationService;
@@ -74,7 +74,7 @@ class OrganizationComponent implements OnInit, OnActivate, OnDeactivate {
   	return menuState == state;
   }
   
-  void orgChanged(PyroOrganization organization) {
+  void orgChanged(Organization organization) {
     this.organization = organization;
   }
   

@@ -1,28 +1,28 @@
-package info.scce.cincocloud.core.rest.types;
+package info.scce.cincocloud.core.rest.tos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import info.scce.cincocloud.db.PyroProjectDB;
-import info.scce.cincocloud.db.PyroProjectTypeDB;
+import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.db.ProjectType;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.rest.RESTBaseImpl;
 
-public class PyroProject extends RESTBaseImpl {
+public class ProjectTO extends RESTBaseImpl {
 
-  private PyroUser owner;
-  private PyroOrganization organization;
-  private PyroWorkspaceImage image;
-  private PyroWorkspaceImage template;
-  private PyroProjectTypeDB type;
+  private UserTO owner;
+  private OrganizationTO organization;
+  private WorkspaceImageTO image;
+  private WorkspaceImageTO template;
+  private ProjectType type;
   private String name;
   private String description;
 
-  public static PyroProject fromEntity(final PyroProjectDB entity, final ObjectCache objectCache) {
+  public static ProjectTO fromEntity(final ProjectDB entity, final ObjectCache objectCache) {
 
     if (objectCache.containsRestTo(entity)) {
       return objectCache.getRestTo(entity);
     }
-    final PyroProject result;
-    result = new PyroProject();
+
+    final var result = new ProjectTO();
     result.setId(entity.id);
     result.setType(entity.type);
     result.setname(entity.name);
@@ -31,50 +31,51 @@ public class PyroProject extends RESTBaseImpl {
     objectCache.putRestTo(entity, result);
 
     if (entity.image != null) {
-      result.setimage(PyroWorkspaceImage.fromEntity(entity.image, objectCache));
+      result.setimage(WorkspaceImageTO.fromEntity(entity.image, objectCache));
     }
 
     if (entity.template != null) {
-      result.setTemplate(PyroWorkspaceImage.fromEntity(entity.template, objectCache));
+      result.setTemplate(WorkspaceImageTO.fromEntity(entity.template, objectCache));
     }
 
     if (entity.organization != null) {
-      result.setorganization(PyroOrganization.fromEntity(entity.organization, objectCache));
+      result.setorganization(OrganizationTO.fromEntity(entity.organization, objectCache));
     }
 
     if (entity.owner != null) {
-      result.setowner(PyroUser.fromEntity(entity.owner, objectCache));
+      result.setowner(UserTO.fromEntity(entity.owner, objectCache));
     }
+
     return result;
   }
 
   @JsonProperty("owner")
-  public PyroUser getowner() {
+  public UserTO getowner() {
     return this.owner;
   }
 
   @JsonProperty("owner")
-  public void setowner(final PyroUser owner) {
+  public void setowner(final UserTO owner) {
     this.owner = owner;
   }
 
   @JsonProperty("organization")
-  public PyroOrganization getorganization() {
+  public OrganizationTO getorganization() {
     return this.organization;
   }
 
   @JsonProperty("organization")
-  public void setorganization(final PyroOrganization organization) {
+  public void setorganization(final OrganizationTO organization) {
     this.organization = organization;
   }
 
   @JsonProperty("image")
-  public PyroWorkspaceImage getimage() {
+  public WorkspaceImageTO getimage() {
     return this.image;
   }
 
   @JsonProperty("image")
-  public void setimage(final PyroWorkspaceImage image) {
+  public void setimage(final WorkspaceImageTO image) {
     this.image = image;
   }
 
@@ -99,22 +100,22 @@ public class PyroProject extends RESTBaseImpl {
   }
 
   @JsonProperty("template")
-  public PyroWorkspaceImage getTemplate() {
+  public WorkspaceImageTO getTemplate() {
     return template;
   }
 
   @JsonProperty("template")
-  public void setTemplate(PyroWorkspaceImage template) {
+  public void setTemplate(WorkspaceImageTO template) {
     this.template = template;
   }
 
   @JsonProperty("type")
-  public PyroProjectTypeDB getType() {
+  public ProjectType getType() {
     return type;
   }
 
   @JsonProperty("type")
-  public void setType(PyroProjectTypeDB type) {
+  public void setType(ProjectType type) {
     this.type = type;
   }
 }

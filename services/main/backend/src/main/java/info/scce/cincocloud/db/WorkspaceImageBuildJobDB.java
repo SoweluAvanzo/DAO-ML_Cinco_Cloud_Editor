@@ -15,15 +15,15 @@ import javax.validation.constraints.NotNull;
 
 @Entity
 @NamedQuery(
-    name = "PyroWorkspaceImageBuildJobDB.findByProjectId",
-    query = "select job from PyroWorkspaceImageBuildJobDB job inner join job.project p where p.id = ?1"
+    name = "WorkspaceImageBuildJobDB.findByProjectId",
+    query = "select job from WorkspaceImageBuildJobDB job inner join job.project p where p.id = ?1"
 )
-public class PyroWorkspaceImageBuildJobDB extends PanacheEntity {
+public class WorkspaceImageBuildJobDB extends PanacheEntity {
 
   @NotNull
   @ManyToOne
-  @JoinColumn(name = "project_PyroUserDB_id")
-  public PyroProjectDB project;
+  @JoinColumn(name = "project_UserDB_id")
+  public ProjectDB project;
 
   @Enumerated(EnumType.STRING)
   public Status status = Status.PENDING;
@@ -32,21 +32,21 @@ public class PyroWorkspaceImageBuildJobDB extends PanacheEntity {
 
   public Instant finishedAt;
 
-  public PyroWorkspaceImageBuildJobDB() {
+  public WorkspaceImageBuildJobDB() {
   }
 
-  public PyroWorkspaceImageBuildJobDB(@NotNull PyroProjectDB project, Status status) {
+  public WorkspaceImageBuildJobDB(@NotNull ProjectDB project, Status status) {
     this.project = project;
     this.status = status;
   }
 
-  public static PanacheQuery<PyroWorkspaceImageBuildJobDB> findByProjectId(Long projectId) {
-    return find("#PyroWorkspaceImageBuildJobDB.findByProjectId", projectId);
+  public static PanacheQuery<WorkspaceImageBuildJobDB> findByProjectId(Long projectId) {
+    return find("#WorkspaceImageBuildJobDB.findByProjectId", projectId);
   }
 
-  public static PanacheQuery<PyroWorkspaceImageBuildJobDB> findByProjectId(Long projectId,
+  public static PanacheQuery<WorkspaceImageBuildJobDB> findByProjectId(Long projectId,
       Sort sort) {
-    return find("#PyroWorkspaceImageBuildJobDB.findByProjectId", sort, projectId);
+    return find("#WorkspaceImageBuildJobDB.findByProjectId", sort, projectId);
   }
 
   @Override
@@ -54,10 +54,10 @@ public class PyroWorkspaceImageBuildJobDB extends PanacheEntity {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof PyroWorkspaceImageBuildJobDB)) {
+    if (!(o instanceof WorkspaceImageBuildJobDB)) {
       return false;
     }
-    PyroWorkspaceImageBuildJobDB that = (PyroWorkspaceImageBuildJobDB) o;
+    WorkspaceImageBuildJobDB that = (WorkspaceImageBuildJobDB) o;
     return Objects.equals(project, that.project)
         && status == that.status;
   }

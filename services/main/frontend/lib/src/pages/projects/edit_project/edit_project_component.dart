@@ -28,13 +28,13 @@ class EditProjectComponent implements OnInit {
   @Output() Stream get editedProject => editedProjectSC.stream;
 
   @Input()
-  PyroUser user;
+  User user;
   
   @Input()
-  PyroOrganization organization;
+  Organization organization;
 
   @Input()
-  PyroProject project;
+  Project project;
 
   ProjectService _projectService;
   WorkspaceImageService _workspaceImageService;
@@ -66,7 +66,7 @@ class EditProjectComponent implements OnInit {
     project.description = projectDescription;
         
     int id = int.tryParse(selectedOwnerId);
-    List<PyroUser> allUsers = new List.from(organization.owners)..addAll(organization.members);
+    List<User> allUsers = new List.from(organization.owners)..addAll(organization.members);
     int i = allUsers.indexWhere((u) => u.id == id);
     project.owner = allUsers[i];
     

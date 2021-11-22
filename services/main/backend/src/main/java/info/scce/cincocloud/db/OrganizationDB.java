@@ -11,31 +11,31 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
-@Entity()
-public class PyroOrganizationDB extends PanacheEntity {
+@Entity
+public class OrganizationDB extends PanacheEntity {
 
   public String name;
   public String description;
 
   @OneToOne(cascade = CascadeType.ALL)
-  public PyroStyleDB style;
+  public StyleDB style;
 
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(
-      name = "PyroOrganizationDB_Owners",
-      joinColumns = @JoinColumn(name = "PyroOrganizationDB_id"),
-      inverseJoinColumns = @JoinColumn(name = "PyroUserDB_id")
+      name = "OrganizationDB_owners",
+      joinColumns = @JoinColumn(name = "OrganizationDB_id"),
+      inverseJoinColumns = @JoinColumn(name = "UserDB_id")
   )
-  public Collection<PyroUserDB> owners = new ArrayList<>();
+  public Collection<UserDB> owners = new ArrayList<>();
 
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(
-      name = "PyroOrganizationDB_Members",
-      joinColumns = @JoinColumn(name = "PyroOrganizationDB_id"),
-      inverseJoinColumns = @JoinColumn(name = "PyroUserDB_id")
+      name = "OrganizationDB_members",
+      joinColumns = @JoinColumn(name = "OrganizationDB_id"),
+      inverseJoinColumns = @JoinColumn(name = "UserDB_id")
   )
-  public Collection<PyroUserDB> members = new ArrayList<>();
+  public Collection<UserDB> members = new ArrayList<>();
 
   @OneToMany
-  public Collection<PyroProjectDB> projects = new ArrayList<>();
+  public Collection<ProjectDB> projects = new ArrayList<>();
 }

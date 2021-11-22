@@ -1,6 +1,6 @@
 package info.scce.cincocloud.db;
 
-public enum PyroProjectTypeDB {
+public enum ProjectType {
   LANGUAGE_EDITOR,
   MODEL_EDITOR
 }

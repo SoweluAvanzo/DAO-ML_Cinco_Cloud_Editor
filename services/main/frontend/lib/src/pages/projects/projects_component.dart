@@ -49,18 +49,18 @@ class ProjectsComponent implements OnDestroy, OnInit {
   String editProjectHeader;
 
   bool showEditProjectModal = false;
-  PyroProject editProject = null;
+  Project editProject = null;
   bool showDeleteProjectModal = false;
-  PyroProject deleteProject = null;
+  Project deleteProject = null;
 
   @Input()
-  PyroOrganization organization;
+  Organization organization;
 
   @ViewChild(NewProjectComponent)
   NewProjectComponent newProjectModal;
 
-  PyroUser user;
-  PyroOrganizationAccessRightVector orgArv;
+  User user;
+  OrganizationAccessRightVector orgArv;
 
   final ProjectService projectService;
   final UserService userService;
@@ -109,31 +109,31 @@ class ProjectsComponent implements OnDestroy, OnInit {
         );
 
         this.webSocketCurrentUser.onOpen.listen((e) {
-          window.console.debug("[PYRO] onOpen User Websocket");
+          window.console.debug("[CINCO_CLOUD] onOpen User Websocket");
         });
 
         this.webSocketCurrentUser.onMessage.listen((MessageEvent e) {
-          window.console.debug("[PYRO] onMessage User Websocket");
+          window.console.debug("[CINCO_CLOUD] onMessage User Websocket");
         });
 
         this.webSocketCurrentUser.onClose.listen((CloseEvent e) {
-          window.console.debug("[PYRO] onClose User Websocket");
+          window.console.debug("[CINCO_CLOUD] onClose User Websocket");
         });
 
         this.webSocketCurrentUser.onError.listen((e) {
           notificationService.displayMessage("Failed to connect with websocket.", NotificationType.DANGER);
-          window.console.debug("[PYRO] Error on Websocket webSocketCurrentUser: ${e.toString()}");
+          window.console.debug("[CINCO_CLOUD] Error on Websocket webSocketCurrentUser: ${e.toString()}");
         });
       }
     });
   }
 
-  void showEditProject(PyroProject project) {
+  void showEditProject(Project project) {
     editProject = project;
     showEditProjectModal = true;
   }
 
-  void removeProject(PyroProject project) {
+  void removeProject(Project project) {
     deleteProject = project;
     showDeleteProjectModal = true;
   }
@@ -145,34 +145,34 @@ class ProjectsComponent implements OnDestroy, OnInit {
     notificationService.displayMessage("The project has been deleted.", NotificationType.SUCCESS);
   }
 
-  void openCurrentProject(PyroProject project) {
+  void openCurrentProject(Project project) {
     var projectId = project.id;
     _router.navigate(top_routes.RoutePaths.project.toUrl(parameters: {"projectId": projectId.toString()}));
   }
 
-  void handleNewProject(PyroProject project) {
+  void handleNewProject(Project project) {
   	organization.projects.add(project);
   	newProjectModal.close();
   	notificationService.displayMessage("Project ${project.name} has been created.", NotificationType.SUCCESS);
   }
   
-  void handleProjectEdited(PyroProject project) {
+  void handleProjectEdited(Project project) {
   	notificationService.displayMessage("Project has been edited.", NotificationType.SUCCESS);
   }
 
   bool get canCreate =>
       orgArv != null &&
-      orgArv.accessRights.contains(PyroOrganizationAccessRight.CREATE_PROJECTS);
+      orgArv.accessRights.contains(OrganizationAccessRight.CREATE_PROJECTS);
 
   bool get canEdit =>
       orgArv != null &&
-      orgArv.accessRights.contains(PyroOrganizationAccessRight.EDIT_PROJECTS);
+      orgArv.accessRights.contains(OrganizationAccessRight.EDIT_PROJECTS);
 
   bool get canDelete =>
       orgArv != null &&
-      orgArv.accessRights.contains(PyroOrganizationAccessRight.DELETE_PROJECTS);
+      orgArv.accessRights.contains(OrganizationAccessRight.DELETE_PROJECTS);
 
-  String getProjectBuildJobsUrl(PyroProject project) {
+  String getProjectBuildJobsUrl(Project project) {
     return top_routes.RoutePaths.projectBuildJobs.toUrl(parameters: {"projectId": project.id.toString()});
   }
 }

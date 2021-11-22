@@ -19,8 +19,8 @@ class SettingsComponent implements OnInit {
   final NotificationService _notificationService;
   final SettingsService _settingsService;
  
-  PyroUser currentUser;
-  PyroSettings settings;
+  User currentUser;
+  Settings settings;
   
   SettingsComponent(this._userService, this._settingsService, this._notificationService) {
   }

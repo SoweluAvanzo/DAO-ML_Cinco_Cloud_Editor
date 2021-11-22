@@ -33,9 +33,9 @@ import './project-build-job-status-badge/project_build_job_status_badge_componen
 )
 class ProjectBuildJobsComponent implements OnActivate {
 
-  PyroUser user;
-  PyroProject project;
-  List<PyroWorkspaceImageBuildJob> buildJobs = List();
+  User user;
+  Project project;
+  List<WorkspaceImageBuildJob> buildJobs = List();
 
   int page = 0;
   int size = 15;
@@ -76,7 +76,7 @@ class ProjectBuildJobsComponent implements OnActivate {
     });
   }
 
-  void abortJob(PyroWorkspaceImageBuildJob job) {
+  void abortJob(WorkspaceImageBuildJob job) {
     _buildJobService.abort(project.id, job).then((abortedJob){
       _notificationService.displayMessage("The job has been aborted.", NotificationType.SUCCESS);
       job.status = abortedJob.status;
@@ -85,7 +85,7 @@ class ProjectBuildJobsComponent implements OnActivate {
     });
   }
 
-  void deleteJob(PyroWorkspaceImageBuildJob job) {
+  void deleteJob(WorkspaceImageBuildJob job) {
     _buildJobService.remove(project.id, job).then((deletedJob){
       _notificationService.displayMessage("The job has been deleted.", NotificationType.SUCCESS);
       buildJobs.remove(job);
@@ -94,9 +94,9 @@ class ProjectBuildJobsComponent implements OnActivate {
     });
   }
 
-  String getDurationAsString(PyroWorkspaceImageBuildJob job) {
+  String getDurationAsString(WorkspaceImageBuildJob job) {
     return job.finishedAt.difference(job.startedAt).inMinutes.toString() + "min";
   }
 
-  PyroOrganization get organization => project == null ? null : project.organization;
+  Organization get organization => project == null ? null : project.organization;
 }

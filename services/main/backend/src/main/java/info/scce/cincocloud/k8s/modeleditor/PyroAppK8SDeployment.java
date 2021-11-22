@@ -1,6 +1,6 @@
 package info.scce.cincocloud.k8s.modeleditor;
 
-import info.scce.cincocloud.db.PyroProjectDB;
+import info.scce.cincocloud.db.ProjectDB;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -28,7 +28,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
       PyroAppK8SPersistentVolumeClaim persistentVolumeClaim,
       Service registryService,
       String host,
-      PyroProjectDB project
+      ProjectDB project
   ) {
     super(client, project);
     this.persistentVolumeClaim = persistentVolumeClaim;

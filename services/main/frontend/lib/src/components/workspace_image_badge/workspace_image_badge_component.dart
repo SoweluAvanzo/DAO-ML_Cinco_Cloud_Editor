@@ -10,7 +10,7 @@ import '../../model/core.dart';
 class WorkspaceImageBadgeComponent {
 
   @Input()
-  PyroWorkspaceImage image;
+  WorkspaceImage image;
 
   String get name => image.imageName.split(':')[0];
 }
