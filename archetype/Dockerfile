@@ -11,7 +11,7 @@ RUN /pyro-server/compileFrontend.sh
 FROM docker.io/library/maven:3-adoptopenjdk-11 as pyro-server-builder
 WORKDIR /pyro-server
 # copy frontend into this container
-COPY --from=pyro-server-frontend-builder /pyro-server/webapp/ /pyro-server/webapp/
+COPY --from=pyro-server-frontend-builder /pyro-server/app/ /pyro-server/app/
 COPY ./app /pyro-server/app
 COPY ./compileBackend.sh /pyro-server/compileBackend.sh
 # make outsourced compilation-script executable and execute it
