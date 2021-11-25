@@ -154,16 +154,17 @@ class DataConnector extends Generatable {
 		Edge.multiAttribute("bendingPoints","entity.core.BendingPointDB",null)
 
 		generateAttributes(Edge,e)
-		
 		Edge.generateReferences(e)
-		
 		Edge.createDeleteFunction(e)
 	}
 	
 	private def generateType(UserDefinedType nc) {
 		val mglModel = nc.MGLModel
 		val t = newModel(mglModel.entityFQNBase.toString,nc.name.fuEscapeJava)
+		
 		generateAttributes(t,nc)
+		t.generateReferences(nc)
+		t.createDeleteFunction(nc)
 	}
 	
 	private def generateEnum(Enumeration nc) {
