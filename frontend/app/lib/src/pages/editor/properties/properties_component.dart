@@ -23,19 +23,12 @@ class PropertiesComponent implements OnInit, OnChanges {
   }
   static List<TreeComponent> treeComponents = new List<TreeComponent>();
   
-  @ViewChildren(PropertyComponent) set propComp(content) {
-    if(content is List<PropertyComponent>) {
-      propertyComponents.addAll(content);
-      propertyComponents = propertyComponents.toSet().toList();
-    }
-  }
-  static List<PropertyComponent> propertyComponents = new List<PropertyComponent>();
-  
+  PyroElement currentElement;
   @Input()
   IdentifiableElement currentGraphElement;
-  
   @Input()
   GraphModel currentGraphModel;
+
   @Input()
   PyroUser user;
   @Input()
@@ -46,8 +39,6 @@ class PropertiesComponent implements OnInit, OnChanges {
   
   final hasModalClosedSC = new StreamController();
   @Output() Stream get hasClosed => hasModalClosedSC.stream;
-
-  PyroElement currentElement;
   
   bool show = false;
 
@@ -61,7 +52,6 @@ class PropertiesComponent implements OnInit, OnChanges {
 	if(currentGraphElement!=null) {
       currentElement = currentGraphElement;
     }
-
   }
   
   @override
@@ -78,24 +68,22 @@ class PropertiesComponent implements OnInit, OnChanges {
             			show = true;
             		}
             	}
-            	
             } else {
             	show = false;
             }
-            currentElement=currentGraphElement;
-		}
+            currentElement=changes['currentGraphElement'].currentValue;
+		  }
       if(changes.containsKey('currentGraphModel')) {
-	        if(currentElement!=null) {
-            	if(currentElement is IdentifiableElement) {
-                IdentifiableElement ce = currentElement;
-                if(ce.$isDirty != null && ce.$isDirty) {
-                  _hasChangedValues(ce);
-                  ce.$isDirty = false;
-                }
-            	}
-            	
+        if(currentGraphModel!=null) {
+          if(currentGraphModel is IdentifiableElement) {
+            IdentifiableElement ce = currentGraphModel;
+            if(ce.$isDirty != null && ce.$isDirty) {
+              _hasChangedValues(ce);
+              ce.$isDirty = false;
             }
-	        currentElement=currentGraphModel;
+          }
+        }
+        currentGraphModel=changes['currentGraphModel'].currentValue;
       }
   }
   
@@ -134,36 +122,36 @@ class PropertiesComponent implements OnInit, OnChanges {
     hasPropertiesChangedSC.add(pm);
   }
 
-    /// triggerd if elements are created
-    void hasChanges(TreeNode element)
-    {
-      //todo persist attributes of element recursive
-      if(element.parent!=null){
-        print(element.parent);
-      }
-      PropertyMessage pm = new PropertyMessage(
-          element.root.id,
-          element.root.$type(),
-          element.root,
-          user.id
-      );
-      hasPropertiesChangedSC.add(pm);
+	/// triggerd if elements are created
+  void hasChanges(TreeNode element)
+  {
+    //todo persist attributes of element recursive
+    if(element.parent!=null){
+      print(element.parent);
     }
+    PropertyMessage pm = new PropertyMessage(
+        element.root.id,
+        element.root.$type(),
+        element.root,
+        user.id
+    );
+    hasPropertiesChangedSC.add(pm);
+  }
   
-    /// triggerd if elements are removed
-    void hasRemoved(PyroElement element)
-    {
-      if(currentElement==element){
-        currentElement=currentGraphElement;
-      }
-      PropertyMessage pm = new PropertyMessage(
-          currentGraphModel.id,
-          currentGraphModel.$type(),
-          currentGraphElement,
-          user.id
-      );
-      hasPropertiesChangedSC.add(pm);
+  /// triggerd if elements are removed
+  void hasRemoved(PyroElement element)
+  {
+    if(currentElement==element){
+      currentElement=currentGraphElement;
     }
+    PropertyMessage pm = new PropertyMessage(
+        currentGraphModel.id,
+        currentGraphModel.$type(),
+        currentGraphElement,
+        user.id
+    );
+    hasPropertiesChangedSC.add(pm);
+  }
 
   /// triggered if a new node is selected
   void hasSelection(TreeNode node)
@@ -173,17 +161,19 @@ class PropertiesComponent implements OnInit, OnChanges {
     currentElement = node.delegate;
   }
   
-  static rebuildTrees() {
+  rebuildTrees() {
+    if(!exists(currentGraphModel, currentElement)) {
+      currentElement = currentGraphModel;
+    }
+    // updating treeViews
     for(var t in treeComponents) {
       t.buildTree();
     }
-    for(var p in propertyComponents) {
-      var allElements = p.currentGraphModel.allElements();
-      var e = p.currentElement;
-      var exists = allElements.contains(e);
-      if(!exists) {
-        p.currentElement = p.currentGraphModel;
-      }
-    }
+  }
+
+  static bool exists(GraphModel g, PyroElement e) {
+    var allElements = g.allElements();
+    var exists = allElements.contains(e);
+    return exists;
   }
 }

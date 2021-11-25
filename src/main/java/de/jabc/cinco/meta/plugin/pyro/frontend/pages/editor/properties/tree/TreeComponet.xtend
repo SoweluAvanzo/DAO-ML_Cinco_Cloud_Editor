@@ -43,7 +43,6 @@ class TreeComponet extends Generatable {
 		final hasSelectedSC = new StreamController();
 		@Output() Stream get hasSelected => hasSelectedSC.stream;
 		
-		
 		@Input()
 		IdentifiableElement currentElement;
 		@Input()
@@ -76,18 +75,19 @@ class TreeComponet extends Generatable {
 		}
 		
 		void buildTree() {
-			«FOR g:gc.discreteGraphModels
-			»if(currentGraphModel.$type() == "«g.typeName»"){
-					var newTree = new «g.name.lowEscapeDart»TB.«g.name.fuEscapeDart»TreeBuilder().getTree(currentElement);
-			        if(currentTree == null) {
-			          currentTree = newTree;
-			        } else {
-			          currentTree.root.merge(newTree.root, new Map(), new Set());
-			        }
+			var newTree = null;
+			«FOR g:gc.discreteGraphModels SEPARATOR " else "
+			»if(currentGraphModel.$type() == "«g.typeName»") {
+				newTree = new «g.name.lowEscapeDart»TB.«g.name.fuEscapeDart»TreeBuilder().getTree(currentElement);
 			}«
 			ENDFOR»
+			if(currentTree == null || newTree == null || !currentTree.root.equals(newTree.root)) {
+				currentTree = newTree;
+			} else {
+				currentTree.root.merge(newTree.root, new Map(), new Set());
+			}
 		}
-	
+		
 		void hasNew(TreeNode node)
 		{
 			hasChangedSC.add(node);

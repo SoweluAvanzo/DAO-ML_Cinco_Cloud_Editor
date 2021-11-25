@@ -536,7 +536,9 @@ class Controller extends Generatable{
 	    	if(!$_disable_events_«g.jsCall»){
 		        deselect_all_elements(null,$paper_«g.jsCall»,$graph_«g.jsCall»);
 		        //trigger callback
-		        cb_graphmodel_selected();
+		        if(cellView.attributes.type.substring(0, 5)!=='pyro.'){
+		        	cb_graphmodel_selected();
+		        }
 		        //foreach edge
 				«FOR edge:edges»
 				    if(cellView.attributes.type==='«edge.typeName»'){

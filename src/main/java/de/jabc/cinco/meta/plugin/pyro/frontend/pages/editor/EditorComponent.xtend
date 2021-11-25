@@ -326,9 +326,15 @@ class EditorComponent extends Generatable {
 	  void changedGraph(CompoundCommandMessage ccm)
 	  {
 	  	if(ccm.type == "basic_valid_answer") {
-	  		PropertiesComponent.rebuildTrees();
+	  		var allElements = currentFile.allElements();
+	  		var exists = allElements.contains(selectedElement);
+	  		if(!exists) {
+	  			selectedElement = currentFile;
+	  		}
+	  		for(var p in properties) {
+	  			p.rebuildTrees();
+	  		}
 	  	}
-	    // sendMessage(ccm);
 	  }
 	
 	  void changedProperties(PropertyMessage pm)
