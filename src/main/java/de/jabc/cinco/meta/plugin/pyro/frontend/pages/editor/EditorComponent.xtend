@@ -91,8 +91,14 @@ class EditorComponent extends Generatable {
 	  
 	  @ViewChildren(BsTabsComponent)
 	  List<BsTabsComponent> widgetTabs = new List();
-	  @ViewChildren(PropertiesComponent)
-	  List<PropertiesComponent> properties = new List();
+	  
+	  @ViewChildren(PropertiesComponent) set propertiesComp(content) {
+	  	if(content is List<PropertiesComponent>) {
+	  		properties.addAll(content);
+	  		properties = properties.toSet().toList();
+	  	}
+	  }
+	  static List<PropertiesComponent> properties = new List<PropertiesComponent>();
 	  
 	  List<PyroGraphModelPermissionVector> permissionVectors;
 	
@@ -118,14 +124,12 @@ class EditorComponent extends Generatable {
 	  bool showNav = false;
 	  String mainLayout = "classic";
 	  
-	  
-	  	
 	  EditorComponent(this._editorGridService, this.graphService, this._router, this._userService, this._notificationService, 
 	  				  this._styleService, this._permissionService, this._editorDataService) {
 	    currentLocalSettings = new LocalGraphModelSettings();
 	    permissionVectors = new List();
 
-		fetchGrid(); // TODO: SAMI: THEIA: needed?
+		fetchGrid();
 	  }
 		  
 		@override
@@ -183,7 +187,6 @@ class EditorComponent extends Generatable {
 		@override
 	  	void onActivate(_, RouterState current) async {
 			if(current.queryParameters.containsKey("token")) {
-  	 			// TODO: SAMI: THEIA
 				// window.localStorage[BaseService.tokenKey] = current.queryParameters["token"];
 			} else {
 				print("ERR: no token in URL");
@@ -322,7 +325,10 @@ class EditorComponent extends Generatable {
 	
 	  void changedGraph(CompoundCommandMessage ccm)
 	  {
-	    sendMessage(ccm);
+	  	if(ccm.type == "basic_valid_answer") {
+	  		PropertiesComponent.rebuildTrees();
+	  	}
+	    // sendMessage(ccm);
 	  }
 	
 	  void changedProperties(PropertyMessage pm)
@@ -336,9 +342,6 @@ class EditorComponent extends Generatable {
 	    });
 	  }
 	  
-	  
-	
-	
 	  void selectionChanged(IdentifiableElement element)
 	  {
 	    selectedElement = element;

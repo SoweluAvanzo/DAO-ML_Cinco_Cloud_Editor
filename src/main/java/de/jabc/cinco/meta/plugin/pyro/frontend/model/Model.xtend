@@ -418,9 +418,7 @@ class Model extends Generatable {
 				return elem;
 			}
 			«FOR attr:element.attributesExtended»
-
-				«IF !attr.isPrimitive()»if(this.«attr.name.escapeDart»!=null) {«ENDIF»
-				«IF attr.list»
+				«IF !attr.isPrimitive()»if(this.«attr.name.escapeDart»!=null) {«ENDIF»«IF attr.list»
 					elem.«attr.name.escapeDart» = this.«attr.name.escapeDart».map((n){
 						«FOR sub:attr.attributeTypeName.subTypesAndType(g).filter(ModelElement).filter[!isAbstract] SEPARATOR " else "»
 							if(n is «sub.dartFQN») {
@@ -435,10 +433,7 @@ class Model extends Generatable {
 							elem.«attr.name.escapeDart» = (this.«attr.name.escapeDart» as «sub.dartFQN»).propertyCopy(root:false);
 						}
 					«ENDFOR»
-				«ENDIF»
-				
-				
-				«IF !attr.isPrimitive»}«ENDIF»
+				«ENDIF»«IF !attr.isPrimitive»}«ENDIF»
 			«ENDFOR»
 			return elem;
 		}
@@ -709,19 +704,49 @@ class Model extends Generatable {
 				@override
 				core.ModelElementContainer get container => super.container as «element.getBestContainerSuperTypeNameDart»;
 			«ENDIF»
-			«IF !(element instanceof UserDefinedType)»
-				
-				@override
-				List<core.IdentifiableElement> allElements()
-				{
-					List<core.IdentifiableElement> list = new List();
-					list.add(this);
-					«IF element.canContain»
-						list.addAll(modelElements.expand((n) => n.allElements()));
-						list.sort((a,b) => a.id.compareTo(b.id));
+			
+			@override
+			List<core.IdentifiableElement> allElements()
+			{
+				Set<core.IdentifiableElement> elementSet = new Set();
+				elementSet.add(this);
+				«IF element.canContain»
+					
+					// add contained elements
+					elementSet.addAll(modelElements.expand((n) => n.allElements()));
+				«ENDIF»
+				«{
+					val userDefinedTypes = element.attributesExtended.filter(mgl.ComplexAttribute).filter[it.type instanceof UserDefinedType];
+					'''
+					«IF !userDefinedTypes.empty»
+						// add all contained userDefinedTypes
+						«FOR attr : userDefinedTypes»
+							«{
+								val attributeName = attr.name.escapeDart
+								'''
+									«IF attr.list»
+										if(«attributeName» != null && !«attributeName».isEmpty) {
+											elementSet.addAll(«attributeName».expand((n) => n.allElements()));
+										}
+									«ELSE»
+										if(«attributeName» != null) {
+											elementSet.add(«attributeName»);
+											elementSet.addAll(«attributeName».allElements());
+										}
+									«ENDIF»
+								'''
+							}»
+						«ENDFOR»
 					«ENDIF»
-					return list;
-				}
+					'''
+				}»
+				
+			    List<core.IdentifiableElement> list = new List();
+			    list.addAll(elementSet);
+				list.sort((a,b) => a.id.compareTo(b.id));
+				return list;
+			}
+			«IF !(element instanceof UserDefinedType)»
 				«IF element.hasToExtendContainer»
 					
 					List<core.ModelElement> modelElements;

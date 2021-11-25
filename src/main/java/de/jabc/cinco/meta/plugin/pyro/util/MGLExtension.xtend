@@ -1437,7 +1437,7 @@ class MGLExtension {
 				return element.extends.name
 			}
 			UserDefinedType: {
-				if(element.extends === null || !extendType) return prefix + "IdentifiableElement"
+				if(element.extends === null || !extendType) return prefix + "UserDefinedType"
 
 				return element.extends.name
 			}

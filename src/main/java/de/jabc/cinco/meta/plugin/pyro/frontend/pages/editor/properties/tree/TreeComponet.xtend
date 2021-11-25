@@ -27,7 +27,6 @@ class TreeComponet extends Generatable {
 		import 'package:«gc.projectName.escapeDart»/«g.treeFilePath»' as «g.name.lowEscapeDart»TB;
 	«ENDFOR»
 	
-	
 	@Component(
 	    selector: 'tree',
 	    templateUrl: 'tree_component.html',
@@ -79,7 +78,12 @@ class TreeComponet extends Generatable {
 		void buildTree() {
 			«FOR g:gc.discreteGraphModels
 			»if(currentGraphModel.$type() == "«g.typeName»"){
-					currentTree = new «g.name.lowEscapeDart»TB.«g.name.fuEscapeDart»TreeBuilder().getTree(currentElement);
+					var newTree = new «g.name.lowEscapeDart»TB.«g.name.fuEscapeDart»TreeBuilder().getTree(currentElement);
+			        if(currentTree == null) {
+			          currentTree = newTree;
+			        } else {
+			          currentTree.root.merge(newTree.root, new Map(), new Set());
+			        }
 			}«
 			ENDFOR»
 		}
@@ -95,6 +99,10 @@ class TreeComponet extends Generatable {
 			var delegate = node.delegate;
 			node.delegate = null;
 			hasRemovedSC.add(delegate);
+		}
+		
+		void rebuild() {
+			init();
 		}
 	}
 	'''

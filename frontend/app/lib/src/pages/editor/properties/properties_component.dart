@@ -14,7 +14,23 @@ import 'property/property_component.dart';
     styleUrls: const ['../editor_component.css']
 )
 class PropertiesComponent implements OnInit, OnChanges {
-
+  
+  @ViewChildren(TreeComponent) set treeComp(content) {
+    if(content is List<TreeComponent>) {
+      treeComponents.addAll(content);
+      treeComponents = treeComponents.toSet().toList();
+    }
+  }
+  static List<TreeComponent> treeComponents = new List<TreeComponent>();
+  
+  @ViewChildren(PropertyComponent) set propComp(content) {
+    if(content is List<PropertyComponent>) {
+      propertyComponents.addAll(content);
+      propertyComponents = propertyComponents.toSet().toList();
+    }
+  }
+  static List<PropertyComponent> propertyComponents = new List<PropertyComponent>();
+  
   @Input()
   IdentifiableElement currentGraphElement;
   
@@ -155,5 +171,19 @@ class PropertiesComponent implements OnInit, OnChanges {
     print("selectiont ${node}");
     currentGraphElement = node.root;
     currentElement = node.delegate;
+  }
+  
+  static rebuildTrees() {
+    for(var t in treeComponents) {
+      t.buildTree();
+    }
+    for(var p in propertyComponents) {
+      var allElements = p.currentGraphModel.allElements();
+      var e = p.currentElement;
+      var exists = allElements.contains(e);
+      if(!exists) {
+        p.currentElement = p.currentGraphModel;
+      }
+    }
   }
 }
