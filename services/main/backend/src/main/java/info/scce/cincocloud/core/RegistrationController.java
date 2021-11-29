@@ -31,32 +31,33 @@ public class RegistrationController {
   @PermitAll
   public Response registerUser(
       @Context SecurityContext securityContext,
-      @Valid UserRegistrationInput pyroUserRegistration
+      @Valid UserRegistrationInput userRegistration
   ) {
-    final var emailExists = !UserDB.list("email", pyroUserRegistration.getEmail()).isEmpty();
+    final var emailExists = !UserDB.list("email", userRegistration.getEmail()).isEmpty();
+    final var passwordsAreNotEqual = !userRegistration.getPassword().equals(userRegistration.getPasswordConfirm());
 
-    if (!emailExists) {
-      final var user = UserDB.add(
-          pyroUserRegistration.getEmail(),
-          pyroUserRegistration.getUsername(),
-          passwordEncoder.encode(pyroUserRegistration.getPassword())
-      );
-
-      if (UserDB.count() == 1) {
-        user.systemRoles.add(UserSystemRole.ADMIN);
-        user.systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
-      }
-
-      user.persist();
-
-      // TODO: SAMI: send activation mail
-      // TODO: SAMI: remove this later (for development use)
-      user.isActivated = true;
-
-      return Response.ok("Activation mail send").build();
+    if (emailExists || passwordsAreNotEqual) {
+      return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    return Response.status(Response.Status.FORBIDDEN).build();
+    final var user = UserDB.add(
+        userRegistration.getEmail(),
+        userRegistration.getUsername(),
+        passwordEncoder.encode(userRegistration.getPassword())
+    );
+
+    if (UserDB.count() == 1) {
+      user.systemRoles.add(UserSystemRole.ADMIN);
+      user.systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
+    }
+
+    user.persist();
+
+    // TODO: SAMI: send activation mail
+    // TODO: SAMI: remove this later (for development use)
+    user.isActivated = true;
+
+    return Response.ok("Activation mail send").build();
   }
 }
 

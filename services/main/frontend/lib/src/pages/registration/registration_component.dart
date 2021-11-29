@@ -60,6 +60,7 @@ class RegistrationComponent {
     var data = {
       'username' : username,
       'password' : pw1,
+      'passwordConfirm' : pw2,
       'name' : name,
       'email' : email
     };
