@@ -6,6 +6,8 @@ import javax.validation.constraints.Size;
 
 public class UserRegistrationInput {
 
+  private static final int MIN_PASSWORD_LENGTH = 5;
+
   @NotEmpty(message = "The username may not be empty.")
   private String username;
 
@@ -17,8 +19,12 @@ public class UserRegistrationInput {
   private String name;
 
   @NotEmpty(message = "The password may not be empty.")
-  @Size(min = 5, message = "The password has to be at least five characters long.")
+  @Size(min = MIN_PASSWORD_LENGTH, message = "The password has to be at least five characters long.")
   private String password;
+
+  @NotEmpty(message = "The password confirmation may not be empty.")
+  @Size(min = MIN_PASSWORD_LENGTH, message = "The password confirmation has to be at least five characters long.")
+  private String passwordConfirm;
 
   public String getUsername() {
     return username;
@@ -50,5 +56,13 @@ public class UserRegistrationInput {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public String getPasswordConfirm() {
+    return passwordConfirm;
+  }
+
+  public void setPasswordConfirm(String passwordConfirm) {
+    this.passwordConfirm = passwordConfirm;
   }
 }
