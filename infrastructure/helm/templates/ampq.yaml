@@ -75,6 +75,9 @@ spec:
   storageClassName: manual
   capacity:
     storage: 2Gi
+  claimRef:
+    namespace: {{ .Values.namespace }}
+    name: ampq-pv-claim
   accessModes:
     - ReadWriteMany
   hostPath:
