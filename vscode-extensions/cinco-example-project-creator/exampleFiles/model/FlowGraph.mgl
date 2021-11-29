@@ -3,9 +3,13 @@ import "model/ExternalLibrary.ecore" as externalLibrary
 id info.scce.cinco.product.flowgraph
 stylePath "model/FlowGraph.style"
 
+
+
+
 @primeviewer
 @generatable("info.scce.cinco.product.flowgraph.codegen.Generate","/src-gen/")
 @postCreate("info.scce.cinco.product.flowgraph.hooks.InitializeFlowGraphModel")
+@mcam("check")
 graphModel FlowGraphDiagram {
 	iconPath "icons/FlowGraph.png"
 	diagramExtension "flowgraph"
@@ -51,7 +55,7 @@ node Activity {
 	
 	attr EString as name
 	attr EString as description
-	incomingEdges (*[1,*])
+	incomingEdges ({Transition,LabeledTransition}[1,*])  //TODO: JOEL * is not working 
 	outgoingEdges (LabeledTransition[1,*])
 }
 
@@ -61,7 +65,7 @@ node ExternalActivity {
 	@pvLabel(name)
 	@pvFileExtension("elib")
 	prime externalLibrary.ExternalActivity as activity
-	incomingEdges (*[1,*])
+	incomingEdges ({Transition,LabeledTransition}[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }
 
@@ -69,7 +73,7 @@ node SubFlowGraph {
 	style greenTextRectangle("${subFlowGraph.modelName}")
 	
 	prime this::FlowGraphDiagram as subFlowGraph
-	incomingEdges (*[1,*])
+	incomingEdges ({Transition,LabeledTransition}[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }
 
