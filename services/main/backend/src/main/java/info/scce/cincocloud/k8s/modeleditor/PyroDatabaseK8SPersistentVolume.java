@@ -2,6 +2,7 @@ package info.scce.cincocloud.k8s.modeleditor;
 
 import info.scce.cincocloud.db.ProjectDB;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolume;
 import io.fabric8.kubernetes.api.model.PersistentVolumeBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeSpecBuilder;
@@ -29,6 +30,10 @@ public class PyroDatabaseK8SPersistentVolume extends PyroK8SResource<PersistentV
         .withSpec(new PersistentVolumeSpecBuilder()
             .withStorageClassName("manual")
             .withCapacity(Map.of("storage", Quantity.parse(STORAGE)))
+            .withClaimRef(new ObjectReferenceBuilder()
+                .withNamespace(client.getNamespace())
+                .withName(getProjectName() + "-database-pv-claim")
+                .build())
             .withAccessModes("ReadWriteMany")
             .withHostPath(new HostPathVolumeSourceBuilder()
                 .withPath("/mnt/data/workspaces/" + getProjectName() + "/database")

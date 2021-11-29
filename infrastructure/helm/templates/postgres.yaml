@@ -73,6 +73,9 @@ spec:
   storageClassName: manual
   capacity:
     storage: 10Gi
+  claimRef:
+    namespace: {{ .Values.namespace }}
+    name: postgres-pv-claim
   accessModes:
     - ReadWriteMany
   hostPath:
