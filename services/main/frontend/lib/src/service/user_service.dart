@@ -19,8 +19,6 @@ class UserService extends BaseService {
   }
 
   Future<User> fetchUser() async {
-    String basicAuth = 'Basic ' + base64Encode(utf8.encode('philip:12345'));
-    requestHeaders['authorization'] = basicAuth;
     return HttpRequest.request("${getBaseUrl()}/user/current/private",
             method: "GET",
             requestHeaders: requestHeaders,
