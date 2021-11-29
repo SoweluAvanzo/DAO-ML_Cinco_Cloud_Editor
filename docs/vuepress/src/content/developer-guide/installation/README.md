@@ -75,7 +75,7 @@ Install one of them.
 
 1. Create a deploy token in the [cinco cloud archetype repository][cinco-cloud-archetype] with `read_registry` rights
 
-1. Create a `secrets.yaml` file and add the following secret, for `<USERNAME>` and `<PASSWORD>` base64 encode and enter the credentials from step 4:
+1. In the cinco-cloud repository, create the file `infrastructure/helm/secrets.yaml` and add the following secret, for `<USERNAME>` and `<PASSWORD>` base64 encode and enter the credentials from the previous step:
 
     ```
     apiVersion: v1
@@ -95,8 +95,9 @@ Install one of them.
        `kubectl create secret docker-registry cinco-cloud-archetype-registry-secret --docker-server=registry.gitlab.com --docker-username=<USERNAME> --docker-password=<USERNAME> --dry-run=client -o yaml`
     3. Copy the terminal output in the`secrets.yaml` file
 
-5. Apply the secret to the cluster: `kubectl apply -f secrets.yaml`.
-   Ensure that you separate all secrets in the `secrets.yaml` file with a new line containing `---`.
+5. Ensure that you separate all secrets in the `secrets.yaml` file with a new line containing `---`.
+
+6. Apply the secret to the cluster: `kubectl apply -f infrastructure/helm/secrets.yaml`.
 
 
 ## Run CincoCloud
