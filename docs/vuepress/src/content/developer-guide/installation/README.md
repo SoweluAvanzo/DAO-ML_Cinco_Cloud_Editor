@@ -71,11 +71,15 @@ Install one of them.
         * **Linux and MacOS**: `/etc/hosts`
 
 
-### 3. Create necessary secrets
+### 3. Get the Sources
+
+1. Clone the CincoCloud [repository][cinco-cloud-repository]
+
+### 4. Create necessary secrets
 
 1. Create a deploy token in the [cinco cloud archetype repository][cinco-cloud-archetype] with `read_registry` rights
 
-1. In the cinco-cloud repository, create the file `infrastructure/helm/secrets.yaml` and add the following secret, for `<USERNAME>` and `<PASSWORD>` base64 encode and enter the credentials from the previous step:
+1. In the cinco-cloud directory, create the file `infrastructure/helm/secrets.yaml` and add the following secret, for `<USERNAME>` and `<PASSWORD>` base64 encode and enter the credentials from the previous step:
 
     ```
     apiVersion: v1
@@ -99,10 +103,8 @@ Install one of them.
 
 6. Apply the secret to the cluster: `kubectl apply -f infrastructure/helm/secrets.yaml`.
 
-
 ## Run CincoCloud
 
-1. Clone the CincoCloud [repository][cinco-cloud-repository]
 2. Ensure that the local cluster is running.
   Run `minikube status` and check if the output looks like
       ```
