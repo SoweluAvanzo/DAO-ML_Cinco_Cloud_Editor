@@ -16,6 +16,7 @@ Install the following software:
 - [Helm][helm]
 - [Skaffold][skaffold]
 - [Minikube][minikube]
+- [Kubectl][kubectl]
 
 **On Windows (additionally)**
 
@@ -124,3 +125,4 @@ Install one of them.
 [docker-secret]: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 [cinco-cloud-archetype]: https://gitlab.com/scce/cinco-cloud-archetype
 [cinco-cloud-repository]: https://gitlab.com/scce/cinco-cloud
+[kubectl]: https://kubernetes.io/docs/reference/kubectl/overview/
