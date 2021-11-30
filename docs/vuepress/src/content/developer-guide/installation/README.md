@@ -16,6 +16,7 @@ Install the following software:
 - [Helm][helm]
 - [Skaffold][skaffold]
 - [Minikube][minikube]
+- [Kubectl][kubectl]
 
 **On Windows (additionally)**
 
@@ -70,11 +71,15 @@ Install one of them.
         * **Linux and MacOS**: `/etc/hosts`
 
 
-### 3. Create necessary secrets
+### 3. Get the Sources
+
+1. Clone the CincoCloud [repository][cinco-cloud-repository]
+
+### 4. Create necessary secrets
 
 1. Create a deploy token in the [cinco cloud archetype repository][cinco-cloud-archetype] with `read_registry` rights
 
-1. Create a `secrets.yaml` file and add the following secret, for `<USERNAME>` and `<PASSWORD>` base64 encode and enter the credentials from step 4:
+2. In the cinco-cloud directory, create the file `infrastructure/helm/secrets.yaml` and add the following secret, for `<USERNAME>` and `<PASSWORD>` base64 encode and enter the credentials from the previous step:
 
     ```
     apiVersion: v1
@@ -87,21 +92,20 @@ Install one of them.
       password: <PASSWORD>
     ```
 
-4. Create and apply secrets for the GitLab registry
+3. Create and apply secrets for the GitLab registry
     1. Create a secret for the cinco cloud repository:<br>
        `kubectl create secret docker-registry cinco-cloud-registry-secret --docker-server=registry.gitlab.com --docker-username=<USERNAME> --docker-password=<USERNAME> --dry-run=client -o yaml`
     2. Create a secret for the cinco cloud archetype repository:<br>
        `kubectl create secret docker-registry cinco-cloud-archetype-registry-secret --docker-server=registry.gitlab.com --docker-username=<USERNAME> --docker-password=<USERNAME> --dry-run=client -o yaml`
     3. Copy the terminal output in the`secrets.yaml` file
 
-5. Apply the secret to the cluster: `kubectl apply -f secrets.yaml`.
-   Ensure that you separate all secrets in the `secrets.yaml` file with a new line containing `---`.
+4. Ensure that you separate all secrets in the `secrets.yaml` file with a new line containing `---`.
 
+5. Apply the secret to the cluster: `kubectl apply -f infrastructure/helm/secrets.yaml`.
 
 ## Run CincoCloud
 
-1. Clone the CincoCloud [repository][cinco-cloud-repository]
-2. Ensure that the local cluster is running.
+1. Ensure that the local cluster is running.
   Run `minikube status` and check if the output looks like
       ```
       minikube
@@ -111,10 +115,10 @@ Install one of them.
       apiserver: Running
       kubeconfig: Configured
       ```
-3. In the root of the repository directory, execute `skaffold dev` and wait for all pods to be deployed.
+2. In the root of the repository directory, execute `skaffold dev` and wait for all pods to be deployed.
    All pods listed by `kubectl get pods` should have the status `running`.
    Thanks to skaffold, you can now change the code and skaffold automatically rebuilds and redeploys new images with the changes.
-4. Open `http://cinco-cloud` in a Web browser.
+3. Open `http://cinco-cloud` in a Web browser.
    **Please, either use *Chrome* or *Firefox*, as it seems that there is a bug with *Safari* where some resources cannot be loaded properly.**
 
 [helm]: https://helm.sh/
@@ -124,3 +128,4 @@ Install one of them.
 [docker-secret]: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 [cinco-cloud-archetype]: https://gitlab.com/scce/cinco-cloud-archetype
 [cinco-cloud-repository]: https://gitlab.com/scce/cinco-cloud
+[kubectl]: https://kubernetes.io/docs/reference/kubectl/overview/
