@@ -12,6 +12,7 @@ public class UserTO extends RESTBaseImpl {
 
   private List<ProjectTO> ownedProjects = new java.util.LinkedList<>();
   private List<UserSystemRole> systemRoles = new java.util.LinkedList<>();
+  private String name;
   private String username;
   private String email;
   private FileReferenceTO profilePicture;
@@ -24,6 +25,7 @@ public class UserTO extends RESTBaseImpl {
     final var result = new UserTO();
     result.setId(entity.id);
     result.setemail(entity.email);
+    result.setname(entity.name);
     result.setusername(entity.username);
 
     if (entity.profilePicture != null) {
@@ -61,6 +63,16 @@ public class UserTO extends RESTBaseImpl {
   @JsonProperty("systemRoles")
   public void setsystemRoles(final List<UserSystemRole> systemRoles) {
     this.systemRoles = systemRoles;
+  }
+
+  @JsonProperty("name")
+  public String getname() {
+    return name;
+  }
+
+  @JsonProperty("name")
+  public void setname(String name) {
+    this.name = name;
   }
 
   @JsonProperty("username")

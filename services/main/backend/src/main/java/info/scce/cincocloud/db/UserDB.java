@@ -5,26 +5,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Random;
+import javax.persistence.CascadeType;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.ws.rs.core.SecurityContext;
 
 @Entity
 public class UserDB extends PanacheEntity {
 
+  public String name;
   public String username;
   public String email;
   public String password;
   public String activationKey;
   public boolean isActivated;
 
-  @OneToOne(cascade = javax.persistence.CascadeType.ALL)
+  @OneToOne(cascade = CascadeType.ALL)
   public BaseFileDB profilePicture;
 
-  @Enumerated(javax.persistence.EnumType.STRING)
+  @Enumerated(EnumType.STRING)
   @ElementCollection
   public Collection<UserSystemRole> systemRoles = new ArrayList<>();
 
@@ -40,14 +44,15 @@ public class UserDB extends PanacheEntity {
   @ManyToMany(mappedBy = "members")
   public Collection<OrganizationDB> memberedOrganizations = new ArrayList<>();
 
-  public static UserDB add(String email, String username, String password) {
-    return add(email, username, password, new LinkedList<>());
+  public static UserDB add(String email, String name, String username, String password) {
+    return add(email, name, username, password, new LinkedList<>());
   }
 
-  public static UserDB add(String email, String username, String password,
+  public static UserDB add(String email, String name, String username, String password,
       Collection<UserSystemRole> roles) {
     UserDB user = new UserDB();
     user.email = email;
+    user.name = name;
     user.username = username;
     user.password = password;
     Random random = new Random();
@@ -61,7 +66,7 @@ public class UserDB extends PanacheEntity {
     return user;
   }
 
-  public static UserDB getCurrentUser(javax.ws.rs.core.SecurityContext context) {
+  public static UserDB getCurrentUser(SecurityContext context) {
     return UserDB.find("email", context.getUserPrincipal().getName()).firstResult();
   }
 }

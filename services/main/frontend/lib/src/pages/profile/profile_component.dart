@@ -55,10 +55,11 @@ class ProfileComponent implements OnInit {
     _updateProfile();
   }
 
-  updateUser(dynamic e, String email) {
+  updateUser(dynamic e, String email, String name) {
     e.preventDefault();
 
     user.email = email;
+    user.name = name;
     _updateProfile();
   }
 

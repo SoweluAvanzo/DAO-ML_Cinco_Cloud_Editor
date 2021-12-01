@@ -110,6 +110,7 @@ class UserSystemRole {
 
 class User {
   int id;
+  String name;
   String username;
   String email;
   String emailHash;
@@ -127,6 +128,7 @@ class User {
     if (jsog != null) {
       cache[jsog["@id"]] = this;
       id = jsog["id"];
+      name = jsog["name"];
       username = jsog["username"];
       email = jsog["email"];
       emailHash = jsog["emailHash"];
@@ -179,6 +181,7 @@ class User {
       cache["core.User:${id}"] = (cache.length + 1).toString();
       jsog["@id"] = cache["core.User:${id}"];
       jsog["id"] = id;
+      jsog["name"] = name;
       jsog["username"] = username;
       jsog["email"] = email;
       jsog["emailHash"] = emailHash;

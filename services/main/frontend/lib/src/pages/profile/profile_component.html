@@ -23,14 +23,19 @@
       </div>
     </div>
     <div class="col-9">
-      <form (submit)="updateUser($event, email.value)">
+      <form (submit)="updateUser($event, email.value, name.value)">
+        <div class="form-group">
+          <label>Name</label>
+          <input #name class="form-control" placeholder="Enter your name" required type="text"
+                 value="{{user.name}}">
+        </div>
         <div class="form-group">
           <label>Email</label>
           <input #email class="form-control" placeholder="Enter your email address" required type="text"
                  value="{{user.email}}">
         </div>
         <div class="text-right">
-          <button (click)="updateUser($event, email.value)" class="btn btn-primary" type="submit">Save</button>
+          <button class="btn btn-primary" type="submit">Save</button>
         </div>
       </form>
     </div>
