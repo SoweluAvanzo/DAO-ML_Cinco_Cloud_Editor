@@ -42,6 +42,7 @@ public class RegistrationController {
 
     final var user = UserDB.add(
         userRegistration.getEmail(),
+        userRegistration.getName(),
         userRegistration.getUsername(),
         passwordEncoder.encode(userRegistration.getPassword())
     );

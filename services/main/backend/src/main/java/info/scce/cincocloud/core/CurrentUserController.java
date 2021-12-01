@@ -116,6 +116,7 @@ public class CurrentUserController {
       }
       // update email and hash
       subject.email = user.getemail();
+      subject.name = user.getname();
       if (user.getprofilePicture() != null) {
         final BaseFileDB picture = BaseFileDB.findById(user.getprofilePicture().getId());
         subject.profilePicture = picture;
