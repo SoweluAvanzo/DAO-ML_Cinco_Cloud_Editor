@@ -1,0 +1,23 @@
+.default-job:
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+
+.maven-job:
+  extends: .default-job
+  image: maven:3.8.1-jdk-11
+  cache:
+    paths:
+      - .m2/repository
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+    
+install:
+  extends: .maven-job
+  cache:
+    paths:
+      - ./de.jabc.cinco.meta.plugin.pyro.generator
+  script:
+    - mvn clean install

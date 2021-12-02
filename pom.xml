@@ -153,6 +153,14 @@
 	</build>
 	<repositories>
 		<repository>
+			<id>cinco-meta-snapshot</id>
+			<name>Cinco Snapshot Repository</name>
+			<url>https://ls5download.cs.tu-dortmund.de/repository/cinco-meta-snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
 			<id>maven-public</id>
 			<name>LS5 Public Repository</name>
 			<url>https://ls5svn.cs.tu-dortmund.de/maven-public/</url>
