@@ -558,7 +558,7 @@ class GraphModelCommandExecuter extends Generatable {
 									{
 										// list
 										java.util.List<«attr.apiFQN»> newList = update.get«attr.name.escapeJava»().stream()
-											.map(this::update«attributeTypeName»)
+											.map((n) -> n != null ? this.update«attributeTypeName»(n) : null)
 											.collect(java.util.stream.Collectors.toList());
 										
 										// check if list has changed

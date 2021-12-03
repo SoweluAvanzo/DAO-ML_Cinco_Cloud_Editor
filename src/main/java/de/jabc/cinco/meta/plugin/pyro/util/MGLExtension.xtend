@@ -410,7 +410,7 @@ class MGLExtension {
 	def boolean isModelElement(Attribute attribute) {
 		if(attribute instanceof ComplexAttribute) {
 			val modelPackage = attribute.modelPackage as MGLModel
-			return modelPackage.elements.filter [!isType].exists[it.equals(attribute.type)]
+			return modelPackage.elements.filter[!isType].exists[it.equals(attribute.type)]
 		}
 		return false;	
 	}
@@ -524,6 +524,13 @@ class MGLExtension {
 		null
 	}
 
+	def isColor(Attribute attr) {
+		if (attr instanceof PrimitiveAttribute) {
+			return attr.annotations.exists[name.equals("color")]
+		}
+		false
+	}
+
 	def attributeTypeName(Attribute attr) {
 		if (attr instanceof PrimitiveAttribute) {
 			return attr.type.getName
@@ -543,6 +550,9 @@ class MGLExtension {
 	}
 
 	def htmlType(Attribute attr) {
+		if(attr.isColor) {
+			return '''color'''
+		}
 		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''checkbox'''
 			case "EInt": return '''number'''
@@ -553,6 +563,7 @@ class MGLExtension {
 			case "EFloat": return '''number'''
 			case "EBigDecimal": return '''number'''
 			case "EDouble": return '''number'''
+			case "EDate": return '''date'''
 			default: return '''text'''
 		}
 	}
@@ -1284,7 +1295,7 @@ class MGLExtension {
 			if (attributeTypeName.getEnum(g) !== null) {
 				return '''«prefix»«attributeTypeName».«attributeTypeName.getEnum(g).literals.get(0).escapeDart»'''
 			}
-			if (!defaultValue.nullOrEmpty) {
+			else if (!defaultValue.nullOrEmpty) {
 				return '''«primitiveBolster»«defaultValue»«primitiveBolster»'''
 			}
 			return '''«primitiveBolster»«initValue»«primitiveBolster»'''

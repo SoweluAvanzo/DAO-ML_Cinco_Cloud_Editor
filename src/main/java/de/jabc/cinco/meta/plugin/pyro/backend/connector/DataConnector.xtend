@@ -807,7 +807,7 @@ class DataConnector extends Generatable {
 						val className = t.entityClassName
 						val subTypeAttributeName = superAttributeName.subTypeAttributeName(t)
 						'''
-							if(e instanceof «className») {
+							if(e == null || e instanceof «className») {
 								«subTypeAttributeName».add((«className») e);
 							}
 						'''
@@ -1144,7 +1144,7 @@ class DataConnector extends Generatable {
 					val className = t.getEntityClassName
 					val subTypeAttributeName = superAttributeName.subTypeAttributeName(t)
 					'''
-					if(e instanceof «className») {
+					if(e == null || e instanceof «className») {
 						«subTypeAttributeName».add((«className») e);
 					}
 					'''

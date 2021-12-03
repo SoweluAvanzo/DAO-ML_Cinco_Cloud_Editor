@@ -388,7 +388,7 @@ class Model extends Generatable {
 				«FOR attr : element.attributesExtended»
 					map['«attr.name.escapeJava»']=«attr.name.escapeDart»==null?null:
 						«IF attr.isList»
-							«attr.name.escapeDart».map((n)=>«attr.serialize(g,'''n''')»).toList();
+							«attr.name.escapeDart».map((n)=>n != null ? «attr.serialize(g,'''n''')» : null).toList();
 						«ELSE»
 							«attr.serialize(g,'''«attr.name.escapeDart»''')»;
 						«ENDIF»
@@ -575,27 +575,34 @@ class Model extends Generatable {
 					//add new
 					elem.«attr.name.escapeDart».where((e)=>«attr.name.escapeDart».where((m)=>m.id==e.id).isEmpty).forEach((e)=>«attr.name.escapeDart».add(e));
 				«ELSEIF attr.list && g.elementsAndTypes.map[name].exists[equals(attr.attributeTypeName)]»
+					// adjust new length
+					if(elem.«attr.name.escapeDart».length < «attr.name.escapeDart».length) {
+						«attr.name.escapeDart».removeRange(elem.«attr.name.escapeDart».length, «attr.name.escapeDart».length);
+					}
 					elem.«attr.name.escapeDart».asMap().forEach((idx,b){
-						if(!«attr.name.escapeDart».any((a)=>a.id==b.id)) {
-							if(«attr.name.escapeDart».length>idx && «attr.name.escapeDart»[idx].id==-1) {
-								«attr.name.escapeDart»[idx].id = b.id;
-								«attr.name.escapeDart»[idx].merge(b,cache:cache,structureOnly:structureOnly);
+						if(«attr.name.escapeDart».length>idx && «attr.name.escapeDart»[idx] != null && «attr.name.escapeDart»[idx].id==-1) {
+							// update id of pre-existing element (one with id=-1)
+							«attr.name.escapeDart»[idx].id = b.id;
+							«attr.name.escapeDart»[idx].merge(b,cache:cache,structureOnly:structureOnly);
+						} else {
+							if(idx>=«attr.name.escapeDart».length) {
+								// append element
+								«attr.name.escapeDart».add(b);
 							} else {
-								if(idx>=«attr.name.escapeDart».length) {
-									«attr.name.escapeDart».add(b);
-								} else {
-									«attr.name.escapeDart».insert(idx,b);								
-								}
+								// change/update element
+								«attr.name.escapeDart»[idx] = b;								
 							}
 						}
 					});
-					«attr.name.escapeDart».removeWhere((a) => !elem.«attr.name.escapeDart».any((b)=>b.id==a.id));
-					«attr.name.escapeDart».forEach((a) =>
-					a.merge(
-						elem.«attr.name.escapeDart».where((b)=>b.id==a.id).first,
-						structureOnly:false,
-						cache:cache)
-					);
+					«attr.name.escapeDart».forEach((a) {
+						if(a!=null) {
+							a.merge(
+								elem.«attr.name.escapeDart».where((b)=>b != null && b.id==a.id).first,
+								structureOnly:false,
+								cache:cache
+							);
+						}
+					});
 				«ELSE»
 					«attr.name.escapeDart» = elem.«attr.name.escapeDart»;
 				«ENDIF»
@@ -941,9 +948,9 @@ class Model extends Generatable {
 		
 		import './«m.modelFile»' as «m.name.lowEscapeDart»;
 		import 'command_graph.dart';
-		«FOR g:gc.discreteGraphModels»
-      import 'package:«gc.projectName.escapeDart»/«g.commandGraphPath»';
-    «ENDFOR»
+		«FOR gm:m.discreteGraphModels»
+			import 'package:«gc.projectName.escapeDart»/«gm.commandGraphPath»';
+		«ENDFOR»
 		«FOR pr:ecoreReferencedModels»
 			//prime referenced ecore «pr.name»
 			import '«pr.modelFile»' as «pr.name.lowEscapeDart»;
