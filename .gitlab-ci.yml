@@ -13,6 +13,13 @@
       - .m2/repository
   variables:
     MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+.dart-job:
+  extends: .default-job
+  image: google/dart:2.4.1
+  cache:
+    paths:
+      - /root/.pub-cache
     
 install:
   extends: .maven-job
@@ -21,3 +28,24 @@ install:
       - ./de.jabc.cinco.meta.plugin.pyro.generator
   script:
     - mvn clean install
+  artifacts:
+    expire_in: 1 days
+    paths:
+      - ./de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/*
+
+test-compile-frontend:
+  extends: .dart-job
+  needs:
+    - install
+  script:
+    - cd ./de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/webapp
+    - pub global activate webdev && pub get && /root/.pub-cache/bin/webdev build
+
+test-compile-backend:
+  extends: .maven-job
+  needs:
+    - install
+  script:
+    - cd ./de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/app
+    - mvn clean package -DskipTests
+
