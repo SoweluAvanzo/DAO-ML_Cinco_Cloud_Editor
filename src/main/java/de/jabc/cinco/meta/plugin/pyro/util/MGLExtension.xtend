@@ -50,6 +50,7 @@ import style.Styles
 import java.util.regex.Pattern
 import java.util.ArrayList
 import de.jabc.cinco.meta.core.utils.MGLUtil
+import java.util.function.BiFunction
 
 class MGLExtension {
 
@@ -2358,6 +2359,9 @@ class MGLExtension {
 
 	def HashSet<GraphicalElementContainment> resolvePossibleContainingTypes(ContainingElement container) {
 		var containingTypes = new HashMap<Type, GraphicalElementContainment>
+		/*
+		 * COMMENTED: CINCO does not inherit containments
+		 * 
 		var resolved = new HashSet<GraphicalElementContainment>
 		if (container instanceof ModelElement) {
 			if (container.isExtending && container instanceof ContainingElement) {
@@ -2374,7 +2378,6 @@ class MGLExtension {
 					}
 				}
 			}
-		}
 		// inherited
 		for (value : resolved) {
 			for (type : value.types) {
@@ -2382,6 +2385,7 @@ class MGLExtension {
 				containingTypes.put(key, value)
 			}
 		}
+		*/
 		// own
 		for (value : container.containableElements) {
 			for (type : value.types) {
@@ -2971,5 +2975,73 @@ class MGLExtension {
 	
 	def discreteGraphModels(MGLModel m) {
 		return m.graphModels.filter[!isAbstract].toSet
+	}
+	
+	def containmentCheck(
+		Set<GraphicalElementContainment> containableElements,
+		Function<GraphicalModelElement, CharSequence> typeCheck,
+		CharSequence preCheck,
+		BiFunction<Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck,
+		CharSequence fulfilled
+	) {
+		'''
+			«IF containableElements.empty»
+				// can be contained, without constraint (by the GraphModel)
+				«fulfilled»
+			«ELSE»
+				«{
+					val containedTypes = containableElements
+						.map[types].flatten.toSet
+						.map[resolveSubTypesAndType].flatten.toSet
+						.filter[!isAbstract]							
+					'''
+						// resolved cases for each existing discrete type that can be contained
+						«FOR t : containedTypes»
+							//check if type «t.typeName» can be contained in group
+							if(«typeCheck.apply(t)») {
+								// resolved cases
+								«{
+									val superTypesAndType = t.resolveSuperTypesAndType
+									// identify all rules that can be applied on the given type t
+									val applicableGroups = new HashSet<mgl.GraphicalElementContainment>
+									for(s:superTypesAndType) {
+										val groups = containableElements.filter[cG|
+											cG.types.contains(s)
+										]
+										applicableGroups.addAll(groups)
+									}
+									'''
+										«IF applicableGroups.filter[upperBound>-1].size<=0»
+											// there are only non bounding rules, i.e. no rules that bound.
+											«fulfilled»
+										«ELSE»
+											// calculate each bounding constraint (lazy)
+											«preCheck»
+											«FOR group: applicableGroups.indexed»
+												
+												«{
+													val discreteTypes = group.value.types
+														.map[resolveAllSubTypesAndType]
+														.flatten.filter[!isAbstract].toSet
+													'''
+														«IF !discreteTypes.empty»
+															// calculate rule «group.key»
+															«constraintCheck.apply(discreteTypes, group.value.upperBound)»
+														«ENDIF»
+													'''
+												}»
+											«ENDFOR»
+											
+											// node is of type and inside the bounding constraints
+											«fulfilled»
+										«ENDIF»
+									'''
+								}»
+							}
+						«ENDFOR»
+					'''
+				}»
+			«ENDIF»
+		'''
 	}
  }

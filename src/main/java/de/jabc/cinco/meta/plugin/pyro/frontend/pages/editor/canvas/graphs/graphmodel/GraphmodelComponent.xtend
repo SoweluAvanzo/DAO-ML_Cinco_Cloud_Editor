@@ -1167,6 +1167,7 @@ class GraphmodelComponent extends Generatable {
 					return arr;
 				}
 				
+				// containment-check
 				var container = c as core.ModelElementContainer;
 				if(node.container == null || node.container.id!=container.id) {
 					// switch container to..
@@ -1705,38 +1706,28 @@ class GraphmodelComponent extends Generatable {
 		'''
 			«IF container instanceof GraphModel || !containableElements.empty»
 				«IF isElse»else «ENDIF»if(container.$type() == "«container.typeName»") {
-					«IF containableElements.empty»
-						// can be contained, without constraint (by the GraphModel)
-						return true;
-					«ELSE»
-						«FOR group:containableElements.indexed»
-							«{
-								val containableTypes = group.value.getGroupContainables(g).toSet
+					«{
+						containmentCheck(
+							containableElements,
+							[t| '''node.$type() == "«t.typeName»"'''],
+							'''int groupSize;''',
+							[discreteTypes, upperBound| 
 								'''
-									//check if type can be contained in group
-									if(
-										«FOR containableTypeName: containableTypes SEPARATOR "||"»
-											node.$type() == "«containableTypeName.typeName»"
-										«ENDFOR»
-									) {
-										«IF group.value.upperBound>-1»
-											int group«group.key»Size = 0;
-											«FOR containableType:containableTypes»
-												group«group.key»Size += container.modelElements.where((n)=>n.$type() == "«containableType.typeName»").length;
-											«ENDFOR»
-											if(«IF group.value.upperBound>-1»group«group.key»Size<«group.value.upperBound»«ELSE»true«ENDIF»){
-												// node is of type and inside the bounding constraint
-												return true;
-											}
-										«ELSE»
-											// node is of type, that fits the constraint
-											return true;
-										«ENDIF»
+									groupSize = 0;
+									«FOR t:discreteTypes»
+										groupSize += container.modelElements.where((n)=>n.$type() == "«t.typeName»").length;
+									«ENDFOR»
+									// check bounding constraint
+									if(groupSize>=«upperBound») {
+										// node can not be placed
+										return false;
 									}
 								'''
-							}»
-						«ENDFOR»
-					«ENDIF»
+							],
+							
+							'''return true;'''
+						)
+					}»
 				}
 			«ENDIF»
 		'''

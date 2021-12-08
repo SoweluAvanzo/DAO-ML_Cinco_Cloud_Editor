@@ -1318,42 +1318,27 @@ class Controller extends Generatable{
 	}
 	
 	def containmentCheck(ContainingElement ce, GraphModel g) {
-		val modelPackage = ce.modelPackage as MGLModel
 		val containableElements = ce.resolvePossibleContainingTypes
-		'''
-			«IF containableElements.empty»
-				return true;
-			«ELSE»
-				«FOR group:containableElements.indexed»
-					«{
-						val containableTypes = group.value.getGroupContainables(modelPackage).toSet
-						'''
-							//check if type can be contained in group
-							if(
-								«FOR containableType:containableTypes SEPARATOR "||"»
-									creatableTypeName === '«containableType.typeName»'
-								«ENDFOR»
-							) {
-								«IF group.value.upperBound>-1»
-									var group«group.key»Size = 0;
-									«FOR containableType:containableTypes»
-										group«group.key»Size += getContainedByType(targetNode,'«containableType.typeName»',$graph_«g.jsCall»).length;
-									«ENDFOR»
-									if(«IF group.value.upperBound>-1»group«group.key»Size<«group.value.upperBound»«ELSE»true«ENDIF»){
-										return true;
-									}
-								«ELSE»
-									return true;
-								«ENDIF»
-							}
-						'''
-					}»
-				«ENDFOR»
-				return false;
-			«ENDIF»
+		containmentCheck(
+			containableElements,
+			[t| ''' creatableTypeName === '«t.typeName»' '''],
+			'''var groupSize;''',
+			[discreteTypes, upperBound| 
+				'''
+					groupSize = 0;
+					«FOR t:discreteTypes»
+						groupSize += getContainedByType(targetNode,'«t.typeName»',$graph_«g.jsCall»).length
+					«ENDFOR»
+					// check bounding constraint
+					if(groupSize>=«upperBound») {
+						// node can not be placed
+						return false;
+					}
+				'''
+			],
 			
-
-		'''
+			'''return true;'''
+		)
 	}
 	
 	def edgecreation(GraphModel g)

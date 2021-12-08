@@ -45,15 +45,17 @@ class TypeRegistry extends Generatable {
 			 */
 			
 			public static String getTypeOf(graphmodel.IdentifiableElement e) {
+				if(e == null)
+					return null;
 				«FOR e:modelPackage.elements.filter[!isAbstract] SEPARATOR " else "
-				»if(e instanceof «e.apiFQN») {
+				»if(e.getClass().equals(«e.apiFQN».class)«IF !e.isAbstract» || e.getClass().equals(«e.apiImplFQN».class)«ENDIF») {
 					return "«e.typeName»";
 				}«
 				ENDFOR»
 				«modelPackage.onPrimeReferencedTypeRegistry(
 					primeReferencedModels,
 					"getTypeOf",
-					[pm, pe | '''(e instanceof «pe.apiFQN»)'''],
+					[pm, pe | '''(e.getClass().equals(«pe.apiFQN».class)«IF !pe.isAbstract» || e.getClass().equals(«pe.apiImplFQN».class)«ENDIF»)'''],
 					true
 				)»
 				«/* TODO: ECORE if needed */»
@@ -61,8 +63,10 @@ class TypeRegistry extends Generatable {
 			}
 			
 			public static String getTypeOf(«dbTypeName» e) {
+				if(e == null)
+					return null;
 				«FOR e:modelPackage.elements.filter[!isAbstract] SEPARATOR " else "
-				»if(e instanceof «e.entityFQN») {
+				»if(e.getClass().equals(«e.entityFQN».class)) {
 					return "«e.typeName»";
 				}«
 				ENDFOR»
@@ -70,7 +74,7 @@ class TypeRegistry extends Generatable {
 					modelPackage,
 					primeReferencedModels,
 					"getTypeOf",
-					[pm, pe | '''(e instanceof «pe.entityFQN»)'''],
+					[pm, pe | '''(e.getClass().equals(«pe.entityFQN».class))'''],
 					true
 				)»
 				«/* TODO: ECORE if needed */»
@@ -78,8 +82,10 @@ class TypeRegistry extends Generatable {
 			}
 			
 			public static String getTypeOf(info.scce.pyro.core.graphmodel.IdentifiableElement e) {
+				if(e == null)
+					return null;
 				«FOR e:modelPackage.elements.filter[!isAbstract] SEPARATOR " else "
-				»if(e instanceof «e.restFQN») {
+				»if(e.getClass().equals(«e.restFQN».class)) {
 					return "«e.typeName»";
 				}«
 				ENDFOR»
@@ -87,7 +93,7 @@ class TypeRegistry extends Generatable {
 					modelPackage,
 					primeReferencedModels,
 					"getTypeOf",
-					[pm, pe | '''(e instanceof «pe.restFQN»)'''],
+					[pm, pe | '''(e.getClass().equals(«pe.restFQN».class))'''],
 					true
 				)»
 				«/* TODO: ECORE if needed */»
@@ -95,8 +101,10 @@ class TypeRegistry extends Generatable {
 			}
 
 			public static info.scce.pyro.core.graphmodel.IdentifiableElement getApiToRest(graphmodel.IdentifiableElement e) {
+				if(e == null)
+					return null;
 				«FOR e:modelPackage.elements.filter[!isAbstract] SEPARATOR " else "
-				»if(e instanceof «e.apiFQN») {
+				»if(e.getClass().equals(«e.apiFQN».class)«IF !e.isAbstract» || e.getClass().equals(«e.apiImplFQN».class)«ENDIF») {
 					«e.apiFQN» apiE = («e.apiFQN») e;
 					return getDBToRest(apiE.getDelegate());
 				}«
@@ -105,7 +113,7 @@ class TypeRegistry extends Generatable {
 					modelPackage,
 					primeReferencedModels,
 					"getApiToRest",
-					[pm, pe | '''(e instanceof «pe.apiFQN»)'''],
+					[pm, pe | '''(e.getClass().equals(«pe.apiFQN».class)«IF !pe.isAbstract» || e.getClass().equals(«pe.apiImplFQN».class)«ENDIF»)'''],
 					false
 				)»
 				«/* TODO: ECORE if needed */»
@@ -121,8 +129,10 @@ class TypeRegistry extends Generatable {
 			}
 
 			public static info.scce.pyro.core.graphmodel.IdentifiableElement getDBToRest(«dbTypeName» e, info.scce.pyro.rest.ObjectCache cache, boolean onlyProperties) {
+				if(e == null)
+					return null;
 				«FOR e:modelPackage.elements.filter[!isAbstract] SEPARATOR " else "
-				»if(e instanceof «e.entityFQN») {
+				»if(e.getClass().equals(«e.entityFQN».class)) {
 					«e.entityFQN» en = («e.entityFQN») e;
 					if(onlyProperties) {
 						return «e.restFQN».fromEntityProperties(en, cache);
@@ -139,7 +149,7 @@ class TypeRegistry extends Generatable {
 				«onPrimeReferencedTypeRegistry(modelPackage,
 					primeReferencedModels,
 					"getDBToRest",
-					[pm, pe | '''(e instanceof «pe.apiFQN»)'''],
+					[pm, pe | '''(e.getClass().equals(«pe.apiFQN».class)«IF !pe.isAbstract» || e.getClass().equals(«pe.apiImplFQN».class)«ENDIF»)'''],
 					false,
 					ecoreModels.empty
 				)»
@@ -147,8 +157,10 @@ class TypeRegistry extends Generatable {
 			}
 	
 			public static «dbTypeName» getApiToDB(graphmodel.IdentifiableElement e) {
+				if(e == null)
+					return null;
 				«FOR e:modelPackage.elements.filter[!isAbstract] SEPARATOR " else "
-				»if(e instanceof «e.apiFQN») {
+				»if(e.getClass().equals(«e.apiFQN».class)«IF !e.isAbstract» || e.getClass().equals(«e.apiImplFQN».class)«ENDIF») {
 					«e.apiFQN» apiE = («e.apiFQN») e;
 					return apiE.getDelegate();
 				}«
@@ -157,7 +169,7 @@ class TypeRegistry extends Generatable {
 					modelPackage,
 					primeReferencedModels,
 					"getApiToDB",
-					[pm, pe | '''(e instanceof «pe.apiFQN»)'''],
+					[pm, pe | '''(e.getClass().equals(«pe.apiFQN».class)«IF !pe.isAbstract» || e.getClass().equals(«pe.apiImplFQN».class)«ENDIF»)'''],
 					false
 				)»
 				«/* TODO: ECORE if needed */»
@@ -268,8 +280,8 @@ class TypeRegistry extends Generatable {
 			 */
 			
 			public static graphmodel.IdentifiableElement getDBToApi(
-							«dbTypeName» e,
-							«commandExecuterClass» executer
+				«dbTypeName» e,
+				«commandExecuterClass» executer
 			) {
 				return getDBToApi(e, executer, null, null);
 			}
@@ -280,8 +292,10 @@ class TypeRegistry extends Generatable {
 				graphmodel.IdentifiableElement parent,
 				info.scce.pyro.core.graphmodel.IdentifiableElement prev
 			) {
+				if(e == null)
+					return null;
 				«FOR e:modelPackage.elements.filter[!isAbstract] SEPARATOR " else "
-				»if(e instanceof «e.entityFQN») {
+				»if(e.getClass().equals(«e.entityFQN».class)) {
 					«e.entityFQN» en = («e.entityFQN») e;
 					return new «e.apiImplFQN»(en, executer«IF e.isType»,parent,prev«ENDIF»);
 				}«
@@ -370,7 +384,7 @@ class TypeRegistry extends Generatable {
 						"getDBToApi",
 						[graphModel | '''«graphModel.commandExecuter»'''],
 						[pm | '''e, «pm.commandExecuter», parent, prev'''],
-						[pm, pe | '''(e instanceof «pe.entityFQN»)'''],
+						[pm, pe | '''(e.getClass().equals(«pe.entityFQN».class))'''],
 						true,
 						ecoreModels.empty
 					)»
@@ -459,7 +473,9 @@ class TypeRegistry extends Generatable {
 			»«{
 				val packageRef = '''«ecore.entityFQN»'''
 				'''
-					if(e instanceof «packageRef») {
+					if(e == null)
+						return null;
+					else if(e.getClass().equals(«packageRef».class)) {
 						«packageRef» en = («packageRef») e;
 						return «ecore.restFQN».fromEntity(en, «cache»);
 					}
@@ -467,7 +483,7 @@ class TypeRegistry extends Generatable {
 						«{
 							val packageRefChild = '''«eC.entityFQN»'''
 							'''
-								else if(e instanceof «packageRefChild») {
+								else if(e.getClass().equals(«packageRefChild».class)) {
 									«packageRefChild» en = («packageRefChild») e;
 									if(onlyProperties) {
 										return «eC.restFQN».fromEntityProperties(en, «cache»);
@@ -493,7 +509,9 @@ class TypeRegistry extends Generatable {
 			»«{
 				val packageRef = '''«ecore.entityFQN»'''
 				'''
-					if(e instanceof «packageRef») {
+					if(e == null)
+						return null;
+					else if(e.getClass().equals(«packageRef».class)) {
 						«packageRef» en = («packageRef») e;
 						return new «ecore.apiImplFQN»(en);
 					}
@@ -501,7 +519,7 @@ class TypeRegistry extends Generatable {
 						«{
 							val packageRefChild = '''«eC.entityFQN»'''
 							'''
-								else if(e instanceof «packageRefChild») {
+								else if(e.getClass().equals(«packageRefChild».class)) {
 									«packageRefChild» en = («packageRefChild») e;
 									return new «eC.apiImplFQN»(en);
 								}
