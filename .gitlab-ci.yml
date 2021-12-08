@@ -10,6 +10,7 @@
   services:
     - docker:20.10.6-dind
   cache:
+    key: ${CI_COMMIT_REF_SLUG}
     paths:
       - .m2/repository
   variables:
@@ -66,10 +67,18 @@ lint-main-backend:
     - cd services/main/backend
     - mvn checkstyle:check
 
+install-main-backend:
+  extends: .maven-job
+  needs:
+    - lint-main-backend
+  script:
+    - cd services/main/backend
+    - mvn install -DskipTests
+
 build-main:
   extends: .docker-build
   needs:
-    - lint-main-backend
+    - install-main-backend
   variables:
     CONTEXT: ./services
     DOCKERFILE: ./services/main/Dockerfile
@@ -94,10 +103,18 @@ lint-workspace-builder-backend:
     - cd services/workspace-builder
     - mvn checkstyle:check
 
+install-workspace-builder-backend:
+  extends: .maven-job
+  needs:
+    - lint-workspace-builder-backend
+  script:
+    - cd services/workspace-builder
+    - mvn checkstyle:check
+
 build-workspace-builder:
   extends: .docker-build
   needs:
-    - lint-workspace-builder-backend
+    - install-workspace-builder-backend
   variables:
     CONTEXT: ./services
     DOCKERFILE: ./services/workspace-builder/Dockerfile
