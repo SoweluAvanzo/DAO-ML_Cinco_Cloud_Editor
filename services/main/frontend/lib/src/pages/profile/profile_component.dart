@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:angular/angular.dart';
 import 'package:angular_forms/angular_forms.dart';
 
@@ -24,6 +26,13 @@ import './profile_image/profile_image_component.dart';
       'profile_component.css'
     ])
 class ProfileComponent implements OnInit {
+
+  @ViewChild('oldPassword')
+  InputElement oldPasswordEl;
+
+  @ViewChild('newPassword')
+  InputElement newPasswordEl;
+
   User user;
 
   FileUploader uploader;
@@ -56,21 +65,41 @@ class ProfileComponent implements OnInit {
   }
 
   updateUser(dynamic e, String email, String name) {
-    e.preventDefault();
+    e?.preventDefault();
 
     user.email = email;
     user.name = name;
     _updateProfile();
   }
 
-  _updateProfile() {
-    this._userService.updateProfile(user).then((u) {
+  updatePassword(dynamic e, String oldPassword, String newPasswod) {
+    e?.preventDefault();
+
+    var input = UpdateCurrentUserPasswordInput();
+    input.oldPassword = oldPassword;
+    input.newPassword = newPasswod;
+
+    this._userService.updatePassword(input).then((u) {
       user = u;
-      _notificationService.displayMessage(
-          "Your profile has been updated.", NotificationType.SUCCESS);
+      oldPasswordEl.value = '';
+      newPasswordEl.value = '';
+      _notificationService.displayMessage("Your password has been updated.", NotificationType.SUCCESS);
     }).catchError((_) {
-      _notificationService.displayMessage(
-          "Your profile could not be updated.", NotificationType.DANGER);
+      _notificationService.displayMessage("Your password could not be updated.", NotificationType.DANGER);
+    });
+  }
+
+  _updateProfile() {
+    var input = UpdateCurrentUserInput();
+    input.email = user.email;
+    input.name = user.name;
+    input.profilePicture = user.profilePicture;
+
+    this._userService.updateProfile(input).then((u) {
+      user = u;
+      _notificationService.displayMessage("Your profile has been updated.", NotificationType.SUCCESS);
+    }).catchError((_) {
+      _notificationService.displayMessage("Your profile could not be updated.", NotificationType.DANGER);
     });
   }
 }

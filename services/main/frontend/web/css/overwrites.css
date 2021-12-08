@@ -90,7 +90,8 @@ hr {
 .pyro-panel .pyro-panel-body {
     background: rgba(255,255,255,.1);
 }
-.pyro-panel .pyro-panel-heading {
+.pyro-panel .pyro-panel-heading,
+.pyro-panel .pyro-panel-footer {
     background: rgba(255,255,255,.15);
     border-radius: 0 !important;
 }
