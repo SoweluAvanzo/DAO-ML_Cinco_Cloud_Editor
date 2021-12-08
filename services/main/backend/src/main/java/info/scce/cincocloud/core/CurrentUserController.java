@@ -2,6 +2,8 @@ package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.auth.PBKDF2Encoder;
 import info.scce.cincocloud.auth.TokenUtils;
+import info.scce.cincocloud.core.rest.inputs.UpdateCurrentUserInput;
+import info.scce.cincocloud.core.rest.inputs.UpdateCurrentUserPasswordInput;
 import info.scce.cincocloud.core.rest.inputs.UserLoginInput;
 import info.scce.cincocloud.core.rest.tos.AuthResponseTO;
 import info.scce.cincocloud.core.rest.tos.UserTO;
@@ -9,7 +11,6 @@ import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
-import java.util.Optional;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
@@ -27,6 +28,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -55,10 +57,7 @@ public class CurrentUserController {
   public Response login(@Valid UserLoginInput login) {
     final UserDB subject = UserDB.find("email", login.email).firstResult();
     if (subject != null && subject.password.equals(passwordEncoder.encode(login.password))) {
-      final var auth = getAuthResponse(subject);
-      if (auth.isPresent()) {
-        return Response.ok(auth.get()).build();
-      }
+      return getAuthResponse(subject);
     }
     return Response.status(Response.Status.UNAUTHORIZED).build();
   }
@@ -103,48 +102,65 @@ public class CurrentUserController {
   }
 
   @PUT
-  @Path("update/private")
+  @Path("private")
   @Produces(MediaType.APPLICATION_JSON)
   @RolesAllowed("user")
-  public Response update(@Context SecurityContext securityContext, final UserTO user) {
-    final UserDB subject = UserDB.getCurrentUser(securityContext);
-    if (subject != null) {
-      if (user.getemail() == null || user.getemail().trim().equals("")) {
-        return Response.status(Response.Status.BAD_REQUEST)
-            .entity("email may not be empty")
-            .build();
-      }
-      // update email and hash
-      subject.email = user.getemail();
-      subject.name = user.getname();
-      if (user.getprofilePicture() != null) {
-        final BaseFileDB picture = BaseFileDB.findById(user.getprofilePicture().getId());
-        subject.profilePicture = picture;
-      } else {
-        if (subject.profilePicture != null) {
-          subject.profilePicture.delete();
-        }
-        subject.profilePicture = null;
-      }
-      subject.persist();
-      // get new authentication since credentials could be changed
-      final var auth = getAuthResponse(subject);
-      if (auth.isPresent()) {
-        return Response.ok(auth.get()).build();
-      }
+  public Response update(@Context SecurityContext securityContext, @Valid final UpdateCurrentUserInput input) {
+    final var subject = UserDB.getCurrentUser(securityContext);
+    if (subject == null) {
+      return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    return Response.status(Response.Status.FORBIDDEN).build();
+    // update email and hash
+    subject.email = input.email;
+    subject.name = input.name;
+
+    if (input.profilePicture != null) {
+      subject.profilePicture = BaseFileDB.findById(input.profilePicture.getId());
+    } else {
+      if (subject.profilePicture != null) {
+        subject.profilePicture.delete();
+      }
+      subject.profilePicture = null;
+    }
+
+    subject.persist();
+
+    // get new authentication since credentials could be changed
+    return getAuthResponse(subject);
   }
 
-  private Optional<AuthResponseTO> getAuthResponse(UserDB subject) {
+  @PUT
+  @Path("password/private")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RolesAllowed("user")
+  public Response updatePassword(
+      @Context final SecurityContext securityContext,
+      @Valid final UpdateCurrentUserPasswordInput input
+  ) {
+    final var subject = UserDB.getCurrentUser(securityContext);
+    if (subject == null) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
+    if (!subject.password.equals(passwordEncoder.encode(input.oldPassword))) {
+      return Response.status(Status.BAD_REQUEST).build();
+    }
+
+    subject.password = passwordEncoder.encode(input.newPassword);
+    subject.persist();
+
+    // get new authentication since credentials could be changed
+    return getAuthResponse(subject);
+  }
+
+  private Response getAuthResponse(UserDB subject) {
     try {
-      final var auth = new AuthResponseTO(
-          TokenUtils.generateToken(subject.email, "user", duration, issuer));
-      return Optional.of(auth);
+      final var auth = new AuthResponseTO(TokenUtils.generateToken(subject.email, "user", duration, issuer));
+      return Response.ok(auth).build();
     } catch (Exception e) {
       e.printStackTrace();
-      return Optional.empty();
+      return Response.status(Response.Status.FORBIDDEN).build();
     }
   }
 }

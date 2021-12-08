@@ -165,20 +165,33 @@ class UserService extends BaseService {
     });
   }
 
-  Future<User> updateProfile(User user) async {
-    return HttpRequest.request("${getBaseUrl()}/user/current/update/private",
+  Future<User> updateProfile(UpdateCurrentUserInput input) async {
+    return HttpRequest.request("${getBaseUrl()}/user/current/private",
             method: "PUT",
-            sendData: jsonEncode(user.toJSOG(new Map())),
+            sendData: input.toJSON(),
             requestHeaders: requestHeaders,
-            withCredentials: true)
-        .then((response) {
-      // received new (possibly changed) token
-      window.localStorage['pyro_token'] =
-          jsonDecode(response.responseText)['token'];
-      return loadUser();
-    }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
+            withCredentials: true
+    )
+        .then((response) => _renewAuthToken(response))
+        .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
+  }
+
+  Future<User> updatePassword(UpdateCurrentUserPasswordInput input) async {
+    return HttpRequest.request("${getBaseUrl()}/user/current/password/private",
+        method: "PUT",
+        sendData: input.toJSON(),
+        requestHeaders: requestHeaders,
+        withCredentials: true
+    )
+        .then((response) => _renewAuthToken(response))
+        .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
   // NOTE:ADDED (was missing but empty/unused...deadcode?)
   findUser(String name, String email) {}
+
+  Future<User> _renewAuthToken(dynamic response) {
+    window.localStorage['pyro_token'] = jsonDecode(response.responseText)['token'];
+    return loadUser();
+  }
 }

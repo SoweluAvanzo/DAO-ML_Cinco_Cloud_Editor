@@ -103,6 +103,32 @@ class ProjectDeployment {
   }
 }
 
+class UpdateCurrentUserInput {
+  String name;
+  String email;
+  FileReference profilePicture;
+
+  String toJSON() {
+    var jsog = Map();
+    jsog['name'] = name;
+    jsog['email'] = email;
+    jsog['profilePicture'] = profilePicture?.toJSOG(Map());
+    return jsonEncode(jsog);
+  }
+}
+
+class UpdateCurrentUserPasswordInput {
+  String oldPassword;
+  String newPassword;
+
+  String toJSON() {
+    var jsog = Map();
+    jsog['oldPassword'] = oldPassword;
+    jsog['newPassword'] = newPassword;
+    return jsonEncode(jsog);
+  }
+}
+
 class UserSystemRole {
   static final String ADMIN = "ADMIN";
   static final String ORGANIZATION_MANAGER = "ORGANIZATION_MANAGER";
