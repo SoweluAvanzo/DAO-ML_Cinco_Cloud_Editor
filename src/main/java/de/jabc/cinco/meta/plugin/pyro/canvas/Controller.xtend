@@ -1319,7 +1319,7 @@ class Controller extends Generatable{
 	
 	def containmentCheck(ContainingElement ce, GraphModel g) {
 		val containableElements = ce.resolvePossibleContainingTypes
-		containmentCheck(
+		containmentCheckTemplate(
 			containableElements,
 			[t| ''' creatableTypeName === '«t.typeName»' '''],
 			'''var groupSize;''',
@@ -1343,7 +1343,7 @@ class Controller extends Generatable{
 	
 	def edgecreation(GraphModel g)
 	{
-		val nodes = g.nodesTopologically
+		val nodes = g.nodes
 	
 	'''
 	var sourceNode = $graph_«g.jsCall».getCell($temp_link.attributes.source.id);

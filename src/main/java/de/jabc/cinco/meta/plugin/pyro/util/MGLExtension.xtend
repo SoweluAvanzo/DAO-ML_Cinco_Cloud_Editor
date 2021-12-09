@@ -2977,7 +2977,7 @@ class MGLExtension {
 		return m.graphModels.filter[!isAbstract].toSet
 	}
 	
-	def containmentCheck(
+	def containmentCheckTemplate(
 		Set<GraphicalElementContainment> containableElements,
 		Function<GraphicalModelElement, CharSequence> typeCheck,
 		CharSequence preCheck,

@@ -1707,7 +1707,7 @@ class GraphmodelComponent extends Generatable {
 			«IF container instanceof GraphModel || !containableElements.empty»
 				«IF isElse»else «ENDIF»if(container.$type() == "«container.typeName»") {
 					«{
-						containmentCheck(
+						containmentCheckTemplate(
 							containableElements,
 							[t| '''node.$type() == "«t.typeName»"'''],
 							'''int groupSize;''',
