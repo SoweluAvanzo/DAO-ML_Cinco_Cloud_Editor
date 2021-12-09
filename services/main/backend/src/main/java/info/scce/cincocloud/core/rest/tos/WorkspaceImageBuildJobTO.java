@@ -22,12 +22,15 @@ public class WorkspaceImageBuildJobTO extends RESTBaseImpl {
 
     final var result = new WorkspaceImageBuildJobTO();
     result.setId(entity.id);
-    result.project = ProjectTO.fromEntity(entity.project, objectCache);
     result.startedAt = entity.startedAt;
     result.finishedAt = entity.finishedAt;
     result.status = entity.status;
 
     objectCache.putRestTo(entity, result);
+
+    if (entity.project != null) {
+      result.project = ProjectTO.fromEntity(entity.project, objectCache);
+    }
 
     return result;
   }

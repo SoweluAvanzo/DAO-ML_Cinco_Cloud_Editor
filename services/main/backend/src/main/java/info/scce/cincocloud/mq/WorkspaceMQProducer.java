@@ -16,11 +16,22 @@ public class WorkspaceMQProducer {
   @Inject
   @Channel("workspaces-jobs-queue")
   @OnOverflow(value = OnOverflow.Strategy.NONE)
-  Emitter<WorkspaceImageBuildJobMessage> workspaces;
+  Emitter<WorkspaceImageBuildJobMessage> jobsQueue;
 
-  public void send(WorkspaceImageBuildJobMessage job) {
+  @Inject
+  @Channel("workspaces-jobs-abort-queue")
+  @OnOverflow(value = OnOverflow.Strategy.NONE)
+  Emitter<WorkspaceImageAbortBuildJobMessage> abortJobsQueue;
+
+  public void send(WorkspaceImageBuildJobMessage message) {
     LOGGER.log(Level.INFO, "Send message to workspaces.jobs.queue: {0}",
-        new Object[] {job.toString()});
-    workspaces.send(job);
+        new Object[] {message.toString()});
+    jobsQueue.send(message);
+  }
+
+  public void send(WorkspaceImageAbortBuildJobMessage message) {
+    LOGGER.log(Level.INFO, "Send message to workspaces.jobs.queue: {0}",
+        new Object[] {message.toString()});
+    abortJobsQueue.send(message);
   }
 }
