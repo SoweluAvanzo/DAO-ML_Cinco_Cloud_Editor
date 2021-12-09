@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.ValidationException;
@@ -31,6 +32,11 @@ public class WorkspaceImageBuilder {
   private static final Integer PROCESS_EXIT_SUCCESS_STATUS = 0;
 
   private final Logger logger = LoggerFactory.getLogger(WorkspaceImageBuilder.class);
+
+  /**
+   * Saves if the build process has been aborted by a user.
+   */
+  private final AtomicBoolean aborted = new AtomicBoolean(false);
 
   @Inject
   @GrpcService("main")
@@ -59,12 +65,45 @@ public class WorkspaceImageBuilder {
   @OnOverflow(value = OnOverflow.Strategy.NONE)
   Emitter<BuildResult> buildResultEmitter;
 
-  @Incoming("workspaces-jobs-queue")
-  public CompletionStage<Void> process(Message<JsonObject> message) {
+  /**
+   * The build job that is currently dealt with.
+   */
+  private BuildJob job;
+
+  @Incoming("workspaces-jobs-abort-queue")
+  public CompletionStage<Void> abort(Message<JsonObject> message) {
     logger.info("receive message: {}", message);
 
     return CompletableFuture.runAsync(() -> {
-      final BuildJob job;
+      try {
+        // the process has to be alive to be aborted
+        if (!aborted.get() && job != null) {
+          final var abortMessage = DatabindCodec.mapper().readValue(
+              message.getPayload().toString(), AbortBuildJobMessage.class);
+
+          // only abort the current process if the message is for the build job
+          // that is dealt with in the workspace builder instance
+          if (abortMessage.jobId.equals(job.jobId)) {
+            destroySystemProcesses();
+          }
+        }
+      } catch (Exception e) {
+        logger.error("failed to abort build job.", e);
+      }
+
+      message.ack();
+    });
+  }
+
+  @Incoming("workspaces-jobs-queue")
+  public CompletionStage<Void> build(Message<JsonObject> message) {
+    logger.info("receive message: {}", message);
+
+    // reset worker to initial state
+    job = null;
+    aborted.set(false);
+
+    return CompletableFuture.runAsync(() -> {
       try {
         job = DatabindCodec.mapper().readValue(message.getPayload().toString(), BuildJob.class);
       } catch (JsonProcessingException e) {
@@ -140,12 +179,16 @@ public class WorkspaceImageBuilder {
   private void buildImage(Long projectId, Path sourceDir, String tag) throws Exception {
     logger.info("build image (projectId: {}, archive: {}, tag: {})", projectId, sourceDir, tag);
 
-    final var archetypeRegistryUsername2 = archetypeRegistryUsername.replace("\n", "").replace("\r", "");
-    final var archetypeRegistryPassword2 = archetypeRegistryPassword.replace("\n", "").replace("\r", "");
+    final var registryUsername = archetypeRegistryUsername
+        .replace("\n", "")
+        .replace("\r", "");
 
-    executeCommand(
-        "buildah --storage-driver vfs login -u=" + archetypeRegistryUsername2 + " -p=" + archetypeRegistryPassword2
-            + " " + archetypeRegistryUrl);
+    final var registryPassword = archetypeRegistryPassword
+        .replace("\n", "")
+        .replace("\r", "");
+
+    executeCommand("buildah --storage-driver vfs login -u=" + registryUsername + " -p=" + registryPassword + " "
+        + archetypeRegistryUrl);
     executeCommand("cd " + sourceDir.toString() + " && buildah --storage-driver vfs bud -t " + tag + " .");
     executeCommand("buildah --storage-driver vfs images");
 
@@ -166,6 +209,10 @@ public class WorkspaceImageBuilder {
   private void executeCommand(String command) throws Exception {
     logger.info("execute command: (command: {})", command);
 
+    if (aborted.get()) {
+      throw new Exception("Failed to execute command: " + command + ". Process has already been aborted.");
+    }
+
     final var process = new ProcessBuilder()
         .command("sh", "-c", command)
         .redirectOutput(ProcessBuilder.Redirect.INHERIT)
@@ -177,5 +224,21 @@ public class WorkspaceImageBuilder {
     if (exitValue != PROCESS_EXIT_SUCCESS_STATUS) {
       throw new Exception("Failed to execute command: " + command);
     }
+  }
+
+  private void destroySystemProcesses() {
+    logger.info("forcefully abort build job: {}", job.jobId);
+
+    // delete all buildah related process and child processes that are spawned from it
+    ProcessHandle
+        .allProcesses()
+        .filter(p -> p.info().commandLine().map(c -> c.contains("buildah")).orElse(false))
+        .findFirst()
+        .ifPresent(p -> {
+          p.descendants().forEach(ProcessHandle::destroy);
+          p.destroy();
+        });
+
+    aborted.set(true);
   }
 }

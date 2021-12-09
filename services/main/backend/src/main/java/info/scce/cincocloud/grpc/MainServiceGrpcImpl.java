@@ -91,9 +91,7 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
             );
           });
 
-      return createBuildJob(project).orElseThrow(() -> new StatusRuntimeException(
-          Status.fromCode(Status.Code.INTERNAL).withDescription("failed to create a build job")
-      ));
+      return createBuildJob(project);
     })
         .runSubscriptionOn(Infrastructure.getDefaultExecutor())
         .flatMap(job -> {
@@ -201,14 +199,14 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
         );
   }
 
-  private Optional<WorkspaceImageBuildJobDB> createBuildJob(ProjectDB project) {
+  private WorkspaceImageBuildJobDB createBuildJob(ProjectDB project) {
     final var buildJob = new WorkspaceImageBuildJobDB(
         project,
         WorkspaceImageBuildJobDB.Status.PENDING
     );
     buildJob.startedAt = Instant.now();
     buildJob.persist();
-    return Optional.of(buildJob);
+    return buildJob;
   }
 
   private CincoCloudProtos.BuildJobStatus.Status jobStatusToProtoJobStatus(

@@ -16,7 +16,7 @@ data:
   PODAN_REGISTRY_API_PORT: "8000"
   KUBERNETES_NAMESPACE: {{ .Values.namespace }}
   CINCO_CLOUD_HOST: {{ .Values.ingress.host }}
-  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: "latest-08401f482bb9d57436057f72eb211f04313eb65f"
+  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: "40ebc28d491bffde868319d3c44ed0afa34ed93d"
 ---
 apiVersion: apps/v1
 kind: StatefulSet
