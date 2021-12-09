@@ -16,7 +16,7 @@ class IncomingCheck extends Generatable{
 	
 	def content(GraphModel g)
 	{
-	val nodes = g.nodesTopologically.filter[incomingEdgeConnections.exists[lowerBound >0]]
+	val nodes = g.nodes.filter[incomingEdgeConnections.exists[lowerBound >0]]
 	'''
 	package «g.MGLModel.package».mcam.modules.checks;
 	

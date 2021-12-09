@@ -95,22 +95,6 @@ class MGLExtension {
 		me instanceof NodeContainer && (me as NodeContainer).extends !== null &&
 			!((me as NodeContainer).extends instanceof NodeContainer)
 	}
-
-	/**
-	 * see nodes
-	 */
-	@Deprecated
-	def nodesTopologically(GraphModel g) {
-		g.nodes
-	}
-
-	/**
-	 * see nodes
-	 */
-	@Deprecated
-	def nodesTopologically(MGLModel g) {
-		g.nodes
-	}
 	
 	/**
 	 * Returns all nodes that can be contained by the given GraphModel, topologically
@@ -1042,7 +1026,7 @@ class MGLExtension {
 	def importedPrimeTypes(GraphModel g) {
 		val modelPackage = g.modelPackage as MGLModel
 		val models = modelPackage.importedMGLs
-		val nodes = g.nodesTopologically
+		val nodes = g.nodes
 		val importedPrimeTypes = new java.util.HashSet<ReferencedType>
 		
 		for(m : models) {

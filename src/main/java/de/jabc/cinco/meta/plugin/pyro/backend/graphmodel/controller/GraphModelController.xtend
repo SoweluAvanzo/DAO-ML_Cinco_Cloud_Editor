@@ -742,7 +742,7 @@ class GraphModelController extends Generatable {
 		}
 		
 		private void createNode(String type,Object mec, long x, long y, Long primeId, «g.commandExecuter» executer,SecurityContext securityContext) {
-			«FOR node:g.nodesTopologically.filter(NodeContainer).filter[!isIsAbstract] + #[g] SEPARATOR " else "
+			«FOR node:g.nodes.filter(NodeContainer).filter[!isIsAbstract] + #[g] SEPARATOR " else "
 			»if(mec instanceof «node.apiFQN») {
 				«node.apiFQN» n = («node.apiFQN») mec;
 				«FOR n:node.possibleEmbeddingTypes(g).filter[!isIsAbstract] SEPARATOR " else "»
@@ -782,7 +782,7 @@ class GraphModelController extends Generatable {
 		private graphmodel.Edge createEdge(String type, graphmodel.Node source, graphmodel.Node target, java.util.List<info.scce.pyro.core.graphmodel.BendingPoint> positions, «g.commandExecuter» executer) {
 			graphmodel.Edge edge = null;
 			
-			«FOR source:g.nodesTopologically.filter[!isIsAbstract].filter[!possibleOutgoing.empty] SEPARATOR " else "
+			«FOR source:g.nodes.filter[!isIsAbstract].filter[!possibleOutgoing.empty] SEPARATOR " else "
 			»if(source instanceof «source.apiFQN») {
 				«FOR edge:source.possibleOutgoing.filter[!isIsAbstract] SEPARATOR " else "»
 					if(type.equals("«edge.typeName»")) {
@@ -832,7 +832,7 @@ class GraphModelController extends Generatable {
 						// creating node
 						if(isReOrUndo) {
 							if(cm.getDelegateId()!=0){
-								«FOR e:g.nodesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+								«FOR e:g.nodes.filter[!isIsAbstract] SEPARATOR " else "
 								»if(c.getType().equals("«e.typeName»")) {
 									n = executer.create«e.name.escapeJava»(
 										cm.getX(),
@@ -847,7 +847,7 @@ class GraphModelController extends Generatable {
 								}«
 								ENDFOR»
 							} else {
-								«FOR e:g.nodesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+								«FOR e:g.nodes.filter[!isIsAbstract] SEPARATOR " else "
 								»if(c.getType().equals("«e.typeName»")) {
 									executer.create«e.name.escapeJava»(
 										cm.getX(),

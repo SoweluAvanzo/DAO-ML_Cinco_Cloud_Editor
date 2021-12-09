@@ -93,7 +93,7 @@ class GraphModelCommandExecuter extends Generatable {
 					// for complex props
 					entity.delete();
 				}
-				«FOR e:g.nodesTopologically.filter[!isIsAbstract]»
+				«FOR e:g.nodes.filter[!isIsAbstract]»
 					
 					public «e.apiFQN» create«e.name.escapeJava»(long x, long y, long width, long height, ModelElementContainer mec, «e.restFQN» prev«IF e.prime»,long primeId«ENDIF»){
 						«e.entityFQN» node = new «e.entityFQN»();

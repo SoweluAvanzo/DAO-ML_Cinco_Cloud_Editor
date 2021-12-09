@@ -1445,7 +1445,7 @@ class Controller extends Generatable{
 	
 	def targetCheck(GraphModel g, OutgoingEdgeElementConnection group)
 	'''
-	«FOR possibleTarget:g.nodesTopologically.reachable(g,group).entrySet»
+	«FOR possibleTarget:g.nodes.reachable(g,group).entrySet»
 	if(«FOR sub:possibleTarget.key.name.subTypes(g.modelPackage as MGLModel) + #[possibleTarget.key]SEPARATOR " || "»targetType == '«sub.typeName»'«ENDFOR»)
 	{
 		«FOR incomingGroup:possibleTarget.value.indexed»
