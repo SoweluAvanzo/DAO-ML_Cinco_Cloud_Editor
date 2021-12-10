@@ -17,7 +17,7 @@ COPY ./main/frontend/lib /app/frontend/lib
 RUN pub run build_runner build -o build
 
 #
-# Build the pyro quarkus backend. Move static frontend files to the quarkus resource
+# Build the quarkus backend. Move static frontend files to the quarkus resource
 # folder so that we can build a fat jar that includes the frontend.
 #
 FROM docker.io/library/openjdk:15-jdk-slim as builder-backend
@@ -33,12 +33,10 @@ COPY --from=builder-frontend /app/frontend/build/packages/ /app/main/backend/src
 RUN ./mvnw package -DskipTests
 
 #
-# Build the fat pyro quarkus jar.
+# Run the fat quarkus jar.
 #
-FROM docker.io/library/ubuntu:20.10
+FROM docker.io/library/openjdk:15-jdk-slim
 WORKDIR /app
-RUN apt-get -y update
-RUN apt-get -y install runc buildah openjdk-11-jdk
 COPY --from=builder-backend /app/main/backend/target/quarkus-app/ /app
 EXPOSE 8000 9000
 CMD java \
