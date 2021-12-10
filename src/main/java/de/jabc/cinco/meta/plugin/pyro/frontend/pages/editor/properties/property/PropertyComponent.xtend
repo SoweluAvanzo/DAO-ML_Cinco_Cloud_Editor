@@ -20,7 +20,7 @@ class PropertyComponent extends Generatable {
 		«FOR m:gc.mglModels»
 			import 'package:«gc.projectName.escapeDart»/«m.modelFilePath»' as «m.name.lowEscapeDart»;
 		«ENDFOR»
-		«FOR g:gc.discreteGraphModels»
+		«FOR g:gc.concreteGraphModels»
 			import 'package:«gc.projectName.escapeDart»/«g.propertyFilePath»' as «g.name.lowEscapeDart»Property;
 		«ENDFOR»
 		
@@ -29,7 +29,7 @@ class PropertyComponent extends Generatable {
 		    templateUrl: 'property_component.html',
 		    directives: const [
 			    coreDirectives«
-			    FOR g:gc.discreteGraphModels BEFORE ",\n" SEPARATOR ","»
+			    FOR g:gc.concreteGraphModels BEFORE ",\n" SEPARATOR ","»
 			    	«g.name.lowEscapeDart»Property.PropertyComponent
 			    «ENDFOR»
 		    ]
@@ -44,7 +44,7 @@ class PropertyComponent extends Generatable {
 			final hasChangedSC = new StreamController();
 			@Output() Stream get hasChanged => hasChangedSC.stream;
 			 
-			«FOR g:gc.discreteGraphModels»
+			«FOR g:gc.concreteGraphModels»
 			  /// checks if the given element belongs to
 			  /// the «g.dartFQN»
 			  bool check«g.name.fuEscapeDart»(GraphModel element)
@@ -61,7 +61,7 @@ class PropertyComponent extends Generatable {
 	
 	def contentPropertyComponentTemplate() // TODO:SAMI: this is error-prone, if multiple packages have same named graphModel
 	'''
-		«FOR g:gc.discreteGraphModels»
+		«FOR g:gc.concreteGraphModels»
 			<«g.name.lowEscapeDart»
 			    *ngIf="check«g.name.fuEscapeDart»(currentGraphModel)"
 			    [currentElement]="currentElement"

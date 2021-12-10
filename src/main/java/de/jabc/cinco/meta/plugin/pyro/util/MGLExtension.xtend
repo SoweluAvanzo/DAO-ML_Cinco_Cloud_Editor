@@ -2827,11 +2827,14 @@ class MGLExtension {
 	}
 	
 	def commandExecuterSwitch(MGLModel m, Function<CharSequence, CharSequence> proc) {
-		m.discreteGraphModels.commandExecuterSwitch(proc)
+		m.concreteGraphModels.commandExecuterSwitch(proc)
 	}
 	
 	def commandExecuterSwitch(ModelElement me, Function<CharSequence, CharSequence> proc) {
 		val graphModels = me.graphModels.filter[!isAbstract].toSet
+		if(me instanceof GraphModel) {
+			graphModels.add(me)
+		}
 		commandExecuterSwitch(graphModels, proc)
 	}
 	
@@ -2862,8 +2865,8 @@ class MGLExtension {
 		result
 	}
 	
-	def dispatch firstDiscreteType(GraphModel element) {
- 		// searching for first discrete-type in hierarchy-chain
+	def dispatch firstConcreteType(GraphModel element) {
+ 		// searching for first concrete-type in hierarchy-chain
  		var e = element
  		while(e.isAbstract && e.extends !== null) {
  			e = e.extends
@@ -2871,8 +2874,8 @@ class MGLExtension {
  		return e.isAbstract? null : e
 	}
 	
-	def dispatch firstDiscreteType(Edge element) {
- 		// searching for first discrete-type in hierarchy-chain
+	def dispatch firstConcreteType(Edge element) {
+ 		// searching for first concrete-type in hierarchy-chain
  		var e = element
  		while(e.isAbstract && e.extends !== null) {
  			e = e.extends
@@ -2880,8 +2883,8 @@ class MGLExtension {
  		return e.isAbstract? null : e
 	}
 	
-	def dispatch firstDiscreteType(Node element) {
- 		// searching for first discrete-type in hierarchy-chain
+	def dispatch firstConcreteType(Node element) {
+ 		// searching for first concrete-type in hierarchy-chain
  		var e = element
  		while(e.isAbstract && e.extends !== null) {
  			e = e.extends
@@ -2889,8 +2892,8 @@ class MGLExtension {
  		return e.isAbstract? null : e
 	}
 	
-	def dispatch firstDiscreteType(UserDefinedType element) {
- 		// searching for first discrete-type in hierarchy-chain
+	def dispatch firstConcreteType(UserDefinedType element) {
+ 		// searching for first concrete-type in hierarchy-chain
  		var e = element
  		while(e.isAbstract && e.extends !== null) {
  			e = e.extends
@@ -2957,7 +2960,7 @@ class MGLExtension {
 	def shapeFQN(ModelElement me) '''«(me.modelPackage as MGLModel).shapeFQN».«me.name.fuEscapeDart»'''
 	def shapeFQN(MGLModel m) '''joint.shapes.«m.name.lowEscapeDart»'''
 	
-	def discreteGraphModels(MGLModel m) {
+	def concreteGraphModels(MGLModel m) {
 		return m.graphModels.filter[!isAbstract].toSet
 	}
 	
@@ -2979,50 +2982,49 @@ class MGLExtension {
 						.map[resolveSubTypesAndType].flatten.toSet
 						.filter[!isAbstract]							
 					'''
-						// resolved cases for each existing discrete type that can be contained
-						«FOR t : containedTypes»
-							//check if type «t.typeName» can be contained in group
-							if(«typeCheck.apply(t)») {
-								// resolved cases
-								«{
-									val superTypesAndType = t.resolveSuperTypesAndType
-									// identify all rules that can be applied on the given type t
-									val applicableGroups = new HashSet<mgl.GraphicalElementContainment>
-									for(s:superTypesAndType) {
-										val groups = containableElements.filter[cG|
-											cG.types.contains(s)
-										]
-										applicableGroups.addAll(groups)
-									}
-									'''
-										«IF applicableGroups.filter[upperBound>-1].size<=0»
-											// there are only non bounding rules, i.e. no rules that bound.
-											«fulfilled»
-										«ELSE»
-											// calculate each bounding constraint (lazy)
-											«preCheck»
-											«FOR group: applicableGroups.indexed»
-												
-												«{
-													val discreteTypes = group.value.types
-														.map[resolveAllSubTypesAndType]
-														.flatten.filter[!isAbstract].toSet
-													'''
-														«IF !discreteTypes.empty»
-															// calculate rule «group.key»
-															«constraintCheck.apply(discreteTypes, group.value.upperBound)»
-														«ENDIF»
-													'''
-												}»
-											«ENDFOR»
+						// resolved cases for each existing concrete type that can be contained
+						«FOR t : containedTypes SEPARATOR " else "
+						»if(«typeCheck.apply(t)») { //check if type «t.typeName» can be contained in group
+							// resolved cases
+							«{
+								val superTypesAndType = t.resolveSuperTypesAndType
+								// identify all rules that can be applied on the given type t
+								val applicableGroups = new HashSet<mgl.GraphicalElementContainment>
+								for(s:superTypesAndType) {
+									val groups = containableElements.filter[cG|
+										cG.types.contains(s)
+									]
+									applicableGroups.addAll(groups)
+								}
+								'''
+									«IF applicableGroups.filter[upperBound>-1].size<=0»
+										// there are only non bounding rules, i.e. no rules that bound.
+										«fulfilled»
+									«ELSE»
+										// calculate each bounding constraint (lazy)
+										«preCheck»
+										«FOR group: applicableGroups.indexed»
 											
-											// node is of type and inside the bounding constraints
-											«fulfilled»
-										«ENDIF»
-									'''
-								}»
-							}
-						«ENDFOR»
+											«{
+												val concreteTypes = group.value.types
+													.map[resolveAllSubTypesAndType]
+													.flatten.filter[!isAbstract].toSet
+												'''
+													«IF !concreteTypes.empty»
+														// calculate rule «group.key»
+														«constraintCheck.apply(concreteTypes, group.value.upperBound)»
+													«ENDIF»
+												'''
+											}»
+										«ENDFOR»
+										
+										// node is of type and inside the bounding constraints
+										«fulfilled»
+									«ENDIF»
+								'''
+							}»
+						}«
+						ENDFOR»
 					'''
 				}»
 			«ENDIF»

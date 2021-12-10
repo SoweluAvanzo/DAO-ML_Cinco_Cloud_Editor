@@ -103,7 +103,7 @@ class PropertiesComponent implements OnInit, OnChanges {
     PropertyMessage pm = new PropertyMessage(
         currentGraphModel.id,
         currentGraphModel.$type(),
-        currentGraphElement,
+        element,
         user.id
     );
     hasPropertiesChangedSC.add(pm);

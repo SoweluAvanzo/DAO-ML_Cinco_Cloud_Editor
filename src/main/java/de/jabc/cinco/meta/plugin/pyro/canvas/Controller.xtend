@@ -1323,10 +1323,10 @@ class Controller extends Generatable{
 			containableElements,
 			[t| ''' creatableTypeName === '«t.typeName»' '''],
 			'''var groupSize;''',
-			[discreteTypes, upperBound| 
+			[concreteTypes, upperBound| 
 				'''
 					groupSize = 0;
-					«FOR t:discreteTypes»
+					«FOR t:concreteTypes»
 						groupSize += getContainedByType(targetNode,'«t.typeName»',$graph_«g.jsCall»).length
 					«ENDFOR»
 					// check bounding constraint

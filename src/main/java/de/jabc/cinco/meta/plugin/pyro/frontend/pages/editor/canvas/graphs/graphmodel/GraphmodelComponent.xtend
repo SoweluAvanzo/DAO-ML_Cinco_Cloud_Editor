@@ -26,15 +26,15 @@ class GraphmodelComponent extends Generatable {
 	def fileNameGraphModelCommandGraph(GraphModel graphModel) '''«graphModel.commandGraphFile»'''
 
 	def contentGraphModelCommandGraph(GraphModel g, Styles styles) {
-		val inheritedDiscreteType = g.extends !== null ? g.extends.firstDiscreteType as GraphModel : null
-		val hasDiscreteCommandGraph = inheritedDiscreteType !== null && inheritedDiscreteType !== g
-		val commandGraphName = hasDiscreteCommandGraph ? '''«inheritedDiscreteType.name.fuEscapeDart»CommandGraph''' : '''CommandGraph'''
+		val inheritedConcreteType = g.extends !== null ? g.extends.firstConcreteType as GraphModel : null
+		val hasConcreteCommandGraph = inheritedConcreteType !== null && inheritedConcreteType !== g
+		val commandGraphName = hasConcreteCommandGraph ? '''«inheritedConcreteType.name.fuEscapeDart»CommandGraph''' : '''CommandGraph'''
 		val primeReferencedPackages = g.primeReferencedElements.map[modelPackage].filter(MGLModel).toSet
 		'''
 			import 'package:«gc.projectName.escapeDart»/src/model/core.dart' as core;
 			import 'package:«gc.projectName.escapeDart»/src/model/command.dart';
-			«IF hasDiscreteCommandGraph»
-				import 'package:«gc.projectName.escapeDart»/«inheritedDiscreteType.commandGraphPath»';
+			«IF hasConcreteCommandGraph»
+				import 'package:«gc.projectName.escapeDart»/«inheritedConcreteType.commandGraphPath»';
 			«ELSE»
 				import 'package:«gc.projectName.escapeDart»/src/model/command_graph.dart';
 			«ENDIF»
@@ -1711,10 +1711,10 @@ class GraphmodelComponent extends Generatable {
 							containableElements,
 							[t| '''node.$type() == "«t.typeName»"'''],
 							'''int groupSize;''',
-							[discreteTypes, upperBound| 
+							[concreteTypes, upperBound| 
 								'''
 									groupSize = 0;
-									«FOR t:discreteTypes»
+									«FOR t:concreteTypes»
 										groupSize += container.modelElements.where((n)=>n.$type() == "«t.typeName»").length;
 									«ENDFOR»
 									// check bounding constraint

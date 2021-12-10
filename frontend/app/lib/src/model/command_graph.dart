@@ -41,7 +41,7 @@ abstract class CommandGraph {
 
   IdentifiableElement findElement(id) {
     if (id == currentGraphModel.id) return currentGraphModel;
-    var allElements = currentGraphModel.allElements().where((e) => e is ModelElement);
+    var allElements = currentGraphModel.allElements();
     return allElements.firstWhere((e) => e.id == id, orElse: () => null);
   }
 

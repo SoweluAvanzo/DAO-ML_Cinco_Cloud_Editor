@@ -70,9 +70,12 @@ class Deserializer extends Generatable {
 		{
 		  static core.IdentifiableElement deserialize(dynamic jsog, String packageType, Map cache)
 		  {
-		    //for each package TODO: JOEL
-		    «FOR g:gc.graphMopdels SEPARATOR " else "
-		    »if(packageType == '«g.modelPackage.name.fuEscapeDart»' || packageType == '«g.modelPackage.name.lowEscapeDart»'){
+		  	if(jsog == null) {
+		  		return null;
+		  	}
+		    //for each package
+		    «FOR g:gc.mglModels SEPARATOR " else "
+		    »if(packageType == '«g.modelPackage.name.lowEscapeDart»'){
 		    	return «g.propertyDeserializer».deserialize(jsog,cache);
 		    }«ENDFOR»
 		    return null;

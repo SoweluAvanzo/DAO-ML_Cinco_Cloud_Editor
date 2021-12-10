@@ -686,8 +686,8 @@ class GraphModelController extends Generatable {
 		    «g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 		    info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
 		    «g.apiFactory».eINSTANCE.warmup(executer);
-			
 			«IF g.hasPreSave»
+				
 				{
 					«g.apiImplFQN» element = new «g.apiImplFQN»(graph,executer);
 					«g.getPreChange» hook = new «g.getPreChange»();
@@ -697,13 +697,13 @@ class GraphModelController extends Generatable {
 	        «ENDIF»
 	        
 	        String type = pm.getDelegate().get__type();
-			«FOR e:g.elements.filter[!isIsAbstract] SEPARATOR " else "»
-				if (type.equals("«e.typeName»")){
+			«FOR e:g.elementsAndTypesAndGraphModels.filter[!isIsAbstract] SEPARATOR " else "
+			»if (type.equals("«e.typeName»")){
 					«e.entityFQN» target = «e.entityFQN».findById(pm.getDelegate().getId());
 					«e.apiFQN» targetAPI = new «e.apiImplFQN»(target,executer«IF e.isType»,null,null«ENDIF»);
 					executer.update«e.name.escapeJava»(«IF !e.isType»targetAPI, «ENDIF»(«e.restFQN») pm.getDelegate());
-				}
-			«ENDFOR»
+			}«
+			ENDFOR»
 		    CompoundCommandMessage response = new CompoundCommandMessage();
 			response.setType("basic_valid_answer");
 			CompoundCommand cc = new CompoundCommand();

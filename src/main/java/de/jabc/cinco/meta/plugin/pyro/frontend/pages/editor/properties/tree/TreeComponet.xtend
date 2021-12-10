@@ -23,7 +23,7 @@ class TreeComponet extends Generatable {
 	«FOR m:gc.mglModels»
 		import 'package:«gc.projectName.escapeDart»/«m.modelFilePath»' as «m.name.lowEscapeDart»;
 	«ENDFOR»
-	«FOR g:gc.discreteGraphModels»
+	«FOR g:gc.concreteGraphModels»
 		import 'package:«gc.projectName.escapeDart»/«g.treeFilePath»' as «g.name.lowEscapeDart»TB;
 	«ENDFOR»
 	
@@ -76,7 +76,7 @@ class TreeComponet extends Generatable {
 		
 		void buildTree() {
 			var newTree = null;
-			«FOR g:gc.discreteGraphModels SEPARATOR " else "
+			«FOR g:gc.concreteGraphModels SEPARATOR " else "
 			»if(currentGraphModel.$type() == "«g.typeName»") {
 				newTree = new «g.name.lowEscapeDart»TB.«g.name.fuEscapeDart»TreeBuilder().getTree(currentElement);
 			}«

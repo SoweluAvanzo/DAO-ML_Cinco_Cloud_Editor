@@ -80,7 +80,7 @@ class GeneratorCompound {
 		mglModels.map[it.graphModels].flatten.toSet
 	}
 	
-	def discreteGraphModels() {
+	def concreteGraphModels() {
 		graphMopdels.filter[!isAbstract]
 	}
 }

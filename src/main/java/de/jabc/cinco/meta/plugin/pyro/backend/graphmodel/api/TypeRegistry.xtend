@@ -34,7 +34,7 @@ class TypeRegistry extends Generatable {
 		
 		import «dbTypeFQN»;
 		import «commandExecuterFQN»;
-		«FOR graphModel: (modelPackage.discreteGraphModels + primeReferencedModels).toSet»
+		«FOR graphModel: (modelPackage.concreteGraphModels + primeReferencedModels).toSet»
 			import «graphModel.commandExecuterFQN»;
 		«ENDFOR»
 		
@@ -370,7 +370,7 @@ class TypeRegistry extends Generatable {
 			 * GRAPHMODEL-SPECIFIC FUNCTIONS
 			 */
 			
-			«FOR gM: modelPackage.discreteGraphModels»
+			«FOR gM: modelPackage.concreteGraphModels»
 				public static graphmodel.IdentifiableElement getDBToApiPrime«gM.commandExecuterVar»(
 					«dbTypeName» e,
 					«gM.commandExecuter» executer,

@@ -948,7 +948,7 @@ class Model extends Generatable {
 		
 		import './«m.modelFile»' as «m.name.lowEscapeDart»;
 		import 'command_graph.dart';
-		«FOR gm:m.discreteGraphModels»
+		«FOR gm:m.concreteGraphModels»
 			import 'package:«gc.projectName.escapeDart»/«gm.commandGraphPath»';
 		«ENDFOR»
 		«FOR pr:ecoreReferencedModels»
