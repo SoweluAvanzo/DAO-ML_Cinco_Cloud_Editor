@@ -17,6 +17,8 @@ deploy:
 build:
   tagPolicy:
     gitCommit: { }
+  local:
+    useBuildkit: true
   artifacts:
     - image: registry.gitlab.com/scce/cinco-cloud/main
       context: ./services
