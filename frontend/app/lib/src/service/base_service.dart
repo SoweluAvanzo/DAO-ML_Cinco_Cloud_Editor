@@ -43,9 +43,7 @@ class BaseService {
   }
 
   static String getBase({String protocol: null}) {
-  	if(window.location.protocol.contains("https")) {
-    	return '${protocol == null ? window.location.protocol : protocol+"s"}//${window.location.host}${getBaseHref()}';
-    }
+    if(protocol == 'ws:' && window.location.protocol == 'https:') return 'wss://${window.location.host}${getBaseHref()}';
     return '${protocol == null ? window.location.protocol : protocol}//${window.location.host}${getBaseHref()}';
   }
 
