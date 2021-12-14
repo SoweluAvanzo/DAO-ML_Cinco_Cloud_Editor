@@ -2,6 +2,7 @@ package info.scce.pyro.auth;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Map;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -76,4 +77,12 @@ public class SecurityOverrideFilter implements ContainerRequestFilter {
     		return false;
     	}
     }
+    
+    public static String getWorkspacePath() {
+    	
+    	Map<String, String> env = System.getenv();
+
+    	return env.toString();
+    }
+    
 }
