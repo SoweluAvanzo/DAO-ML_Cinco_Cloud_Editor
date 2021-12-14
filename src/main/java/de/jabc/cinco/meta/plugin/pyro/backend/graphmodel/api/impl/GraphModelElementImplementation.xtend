@@ -870,6 +870,13 @@ class GraphModelElementImplementation extends Generatable {
 					return getIncoming(«incoming.apiFQN».class);
 				}
 			«ENDFOR»
+			«FOR outgoing:possibleOutgoing»
+				
+				@Override
+				public java.util.List<«outgoing.apiFQN»> getOutgoing«outgoing.name.fuEscapeJava»s() {
+					return getOutgoing(«outgoing.apiFQN».class);
+				}
+			«ENDFOR»
 			«FOR source:possibleSources»
 				
 				@Override
@@ -877,35 +884,28 @@ class GraphModelElementImplementation extends Generatable {
 					return getPredecessors(«source.apiFQN».class);
 				}
 			«ENDFOR»
-			«FOR outgoing:possibleOutgoing»
-				
-				@Override
-				public java.util.List<«outgoing.apiFQN»> getOutgoing«outgoing.name.fuEscapeJava»s() {
-					return getOutgoing(«outgoing.apiFQN».class);
-				}
-				«FOR target:outgoing.possibleTargets»«/* TODO: SAMI-FALLBACK: g.resolvePossibleTargets(outgoing).filter[!isAbstract] */»
-					
-					@Override
-					public «outgoing.apiFQN» new«outgoing.name.fuEscapeJava»(«target.apiFQN» target) {
-						«outgoing.apiFQN» cn = null;
-						«commandExecuterSwitch(
-							outgoing,
-							[cmdExecuter|
-								'''
-									cn = «cmdExecuter».create«outgoing.name.fuEscapeJava»(this, target, java.util.Collections.emptyList(), null);
-								'''
-							]
-						)»
-						«outgoing.postCreate("cn",gc)»
-						return cn;
-					}
-				«ENDFOR»
-			«ENDFOR»
 			«FOR target:possibleTargets»
 				
 				@Override
 				public java.util.List<«target.apiFQN»> get«target.name.fuEscapeJava»Successors() {
 					return getSuccessors(«target.apiFQN».class);
+				}
+			«ENDFOR»
+			«FOR outgoing:possibleOutgoing.filter[!isAbstract]»
+				
+				@Override
+				public «outgoing.apiFQN» new«outgoing.name.fuEscapeJava»(graphmodel.Node target) {
+					«outgoing.apiFQN» cn = null;
+					«commandExecuterSwitch(
+						outgoing,
+						[cmdExecuter|
+							'''
+								cn = «cmdExecuter».create«outgoing.name.fuEscapeJava»(this, target, java.util.Collections.emptyList(), null);
+							'''
+						]
+					)»
+					«outgoing.postCreate("cn",gc)»
+					return cn;
 				}
 			«ENDFOR»
 		'''
