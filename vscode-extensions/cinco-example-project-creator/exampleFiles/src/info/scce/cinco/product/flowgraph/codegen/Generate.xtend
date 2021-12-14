@@ -22,6 +22,9 @@ class Generate extends IGenerator<FlowGraphDiagram> {
 			throw new RuntimeException("Model's name must be set.")
 
 		val code = generateCode(model);
+
+		val destFolder = "genFolder/"		
+		createFile("test.txt",destFolder,code.toString);
 		//val targetFile = ResourcesPlugin.workspace.root.getFileForLocation(targetDir.append(model.flowGraphDiagramView.modelName + ".txt"))
 
 		//EclipseFileUtils.writeToFile(targetFile, code)
