@@ -1210,35 +1210,42 @@ class GraphmodelComponent extends Generatable {
 				return re is bool && re == true;
 			}
 		
-			bool can_connect_source(core.Edge edge,core.Node source,core.Node target) {
+			bool can_connect_source(core.Edge edge, core.Node source, core.Node target) {
 				if(edge.source == null || edge.source.id!=source.id) {
-					//source changed
-					«FOR n : g.nodes.filter[!isIsAbstract] SEPARATOR "else "
-					»if(source.$type() == "«n.typeName»"){
-						«FOR edge:g.edges SEPARATOR " else "
-						»if(edge == null || edge.$type() == "«edge.typeName»")
-						{
-							«IF !n.parentTypes.filter(Node).map[outgoingEdgeConnections].flatten.filter[containesEdge(edge)].empty»
-								var outgoing = source.outgoing;
-							«ENDIF»
-							«FOR group:n.parentTypes.filter(Node).map[outgoingEdgeConnections].flatten.filter[containesEdge(edge)].indexed»
-								
-								int groupSize«group.key» = 0;
-								«FOR incomingEdge:group.value.connectingEdges»
-									groupSize«group.key» += outgoing.where((n)=>n.$type() == "«incomingEdge.typeName»").length;
-								«ENDFOR»
-								«IF group.value.connectingEdges.empty»
-									groupSize«group.key» += outgoing.length;
-								«ENDIF»
-									if(«IF group.value.upperBound < 0»true«ELSE»groupSize«group.key»<«group.value.upperBound»«ENDIF»)
-									{
-										return true;
-									}
-							«ENDFOR»
-						}«
-						ENDFOR»
-					}«
-					ENDFOR»
+					// source changed
+					«{
+						val applicableElements = g.nodes.filter[!isIsAbstract].filter[!possibleOutgoing.empty].toSet
+						'''
+							«FOR n : applicableElements SEPARATOR " else "
+							»if(source.$type() == "«n.typeName»") {
+								«{
+									val constraints = n.outgoingEdgeConnections.filter(EdgeElementConnection).toSet
+									connectionCheckTemplate(
+										constraints,
+										[t| '''edge.$type() == "«t.typeName»"'''],
+										'''var groupSize;''',
+										[concreteTypes, upperBound| 
+											'''
+												var outgoing = source.outgoing;
+												groupSize = 0;
+												«FOR t:concreteTypes»
+													groupSize += outgoing.where((n)=>n.$type() == "«t.typeName»").length;
+												«ENDFOR»
+												// check bounding constraint
+												if(groupSize>=«upperBound») {
+													// can not be applied
+													return false;
+												}
+											'''
+										],
+										
+										'''return true;'''
+									)
+								}»
+							}«
+							ENDFOR»
+						'''
+					}»
 				}
 				return false;
 			}
@@ -1246,31 +1253,40 @@ class GraphmodelComponent extends Generatable {
 			bool can_connect_target(core.Edge edge,core.Node source,core.Node target) {
 				if(edge.target == null || edge.target.id!=target.id){
 					//target changed
-					«FOR n : g.nodes.filter[!isIsAbstract] SEPARATOR "else "
-					»if(target.$type() == "«n.typeName»"){
-						«FOR edge:g.edges SEPARATOR " else "
-						»if(edge == null || edge.$type() == "«edge.typeName»") {
-							«IF !n.parentTypes.filter(Node).map[incomingEdgeConnections].flatten.filter[containesEdge(edge)].empty»
-								var incoming = target.incoming;
-							«ENDIF»
-							«FOR group:n.parentTypes.filter(Node).map[incomingEdgeConnections].flatten.filter[containesEdge(edge)].indexed»
-								
-								int groupSize«group.key» = 0;
-								«FOR outgoingEdge:group.value.connectingEdges»
-									groupSize«group.key» += incoming.where((n)=>n.$type() == "«outgoingEdge.typeName»").length;
-								«ENDFOR»
-								«IF group.value.connectingEdges.nullOrEmpty»
-									groupSize«group.key» += incoming.length;
-								«ENDIF»
-								if(«IF group.value.upperBound < 0»true«ELSE»groupSize«group.key»<«group.value.upperBound»«ENDIF»)
-								{
-									return true;
-								}
-							«ENDFOR»
-						}«
-						ENDFOR»
-					}«
-					ENDFOR»
+					«{
+						val applicableElements = g.nodes.filter[!isIsAbstract].filter[!possibleIncoming.empty].toSet
+						'''
+							«FOR n : applicableElements SEPARATOR " else "
+							»if(target.$type() == "«n.typeName»") {
+							
+								«{
+									val constraints = n.outgoingEdgeConnections.filter(EdgeElementConnection).toSet
+									connectionCheckTemplate(
+										constraints,
+										[t| '''edge.$type() == "«t.typeName»"'''],
+										'''var groupSize;''',
+										[concreteTypes, upperBound| 
+											'''
+												var incoming = source.incoming;
+												groupSize = 0;
+												«FOR t:concreteTypes»
+													groupSize += incoming.where((n)=>n.$type() == "«t.typeName»").length;
+												«ENDFOR»
+												// check bounding constraint
+												if(groupSize>=«upperBound») {
+													// can not be applied
+													return false;
+												}
+											'''
+										],
+										
+										'''return true;'''
+									)
+								}»
+							}«
+							ENDFOR»
+						'''
+					}»
 				}
 				return false;
 			}
@@ -1296,15 +1312,8 @@ class GraphmodelComponent extends Generatable {
 				{
 					var targetResult = can_connect_source(e,source,target);
 					var sourceResult = can_connect_target(e,source,target);
-					if(edge==null) {
-						if(targetResult && sourceResult) {
-							return true;
-						}
-					}
-					else {
-						if(targetResult || sourceResult) {
-							return true;
-						}
+					if(targetResult && sourceResult) {
+						return true;
 					}
 				}
 				if(edge == null) {

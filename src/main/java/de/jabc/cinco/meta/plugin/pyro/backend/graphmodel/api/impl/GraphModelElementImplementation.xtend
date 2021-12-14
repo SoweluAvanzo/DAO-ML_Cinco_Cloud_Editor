@@ -858,10 +858,11 @@ class GraphModelElementImplementation extends Generatable {
 	'''
 	
 	def connectedNodeMethods(Node node) {
-		val possibleIncoming = node.possibleIncoming
+		val possibleIncoming = node.resolveSuperTypesAndType.filter(Node).map[possibleIncoming].flatten.toSet
 		val possibleSources = possibleIncoming.map[possibleSources].flatten.toSet
-		val possibleOutgoing = node.possibleOutgoing
+		val possibleOutgoing = node.resolveSuperTypesAndType.filter(Node).map[possibleOutgoing].flatten.toSet
 		val possibleTargets = possibleOutgoing.map[possibleTargets].flatten.toSet
+		val supportedOutgoing = node.possibleOutgoing.filter[!isAbstract]
 		'''
 			«FOR incoming:possibleIncoming»
 				
@@ -891,7 +892,7 @@ class GraphModelElementImplementation extends Generatable {
 					return getSuccessors(«target.apiFQN».class);
 				}
 			«ENDFOR»
-			«FOR outgoing:possibleOutgoing.filter[!isAbstract]»
+			«FOR outgoing:supportedOutgoing»
 				
 				@Override
 				public «outgoing.apiFQN» new«outgoing.name.fuEscapeJava»(graphmodel.Node target) {
@@ -906,6 +907,13 @@ class GraphModelElementImplementation extends Generatable {
 					)»
 					«outgoing.postCreate("cn",gc)»
 					return cn;
+				}
+			«ENDFOR»
+			«FOR outgoing:possibleOutgoing.filter[!isAbstract && !supportedOutgoing.contains(it)]»
+				
+				@Override
+				public «outgoing.apiFQN» new«outgoing.name.fuEscapeJava»(graphmodel.Node target) {
+					throw new RuntimeException("The edge-type '«outgoing.typeName»' is not supported by this type '«node.typeName»'.");
 				}
 			«ENDFOR»
 		'''

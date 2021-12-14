@@ -282,7 +282,7 @@ class MGLExtension {
 	def Set<ModelElement> collectEdges(ModelElement s, Set<ModelElement> cache) {
 		var result = new HashSet<ModelElement>
 		if(s instanceof Node) {
-			val edges = s.possibleIncoming + s.possibleOutgoing
+			val edges = (s.possibleIncoming + s.possibleOutgoing).toSet
 			for(edge : edges) {
 				if(!cache.contains(edge) && !result.contains(edge)) {
 					result.addAll(
@@ -1902,9 +1902,11 @@ class MGLExtension {
 			return this.edges(model).toSet
 		}
 		val subTypesOfDirectOutgoing = directOutgoing.map[n|n.name.subTypes(model)].flatten.filter(Edge)
-		if (node.extends !== null) {
-			return (directOutgoing + subTypesOfDirectOutgoing + node.extends.possibleOutgoing ).toSet
-		}
+		/*
+			if (node.extends !== null) {
+				return (directOutgoing + subTypesOfDirectOutgoing + node.extends.possibleOutgoing ).toSet
+			}
+		*/
 		return (directOutgoing + subTypesOfDirectOutgoing).toSet
 	}
 
@@ -1916,9 +1918,11 @@ class MGLExtension {
 			return this.edges(model).toSet
 		}
 		val subTypesOfDirectIncoming = directIncoming.map[n|n.name.subTypes(model)].flatten.filter(Edge)
-		if (node.extends !== null) {
-			return (directIncoming + subTypesOfDirectIncoming + node.extends.possibleIncoming ).toSet
-		}
+		/*
+			if (node.extends !== null) {
+				return (directIncoming + subTypesOfDirectIncoming + node.extends.possibleIncoming ).toSet
+			}
+		*/
 		return (directIncoming + subTypesOfDirectIncoming).toSet
 	}
 
@@ -2977,60 +2981,121 @@ class MGLExtension {
 	}
 	
 	def containmentCheckTemplate(
-		Set<GraphicalElementContainment> containableElements,
+		Set<GraphicalElementContainment> constraints,
 		Function<GraphicalModelElement, CharSequence> typeCheck,
 		CharSequence preCheck,
 		BiFunction<Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck,
 		CharSequence fulfilled
 	) {
+		constraintCheckTemplate(
+			constraints.filter(mgl.BoundedConstraint).toSet,
+			typeCheck,
+			preCheck,
+			constraintCheck,
+			fulfilled,
+			true
+		)
+	}
+	
+	def connectionCheckTemplate(
+		Set<mgl.EdgeElementConnection> constraints,
+		Function<GraphicalModelElement, CharSequence> typeCheck,
+		CharSequence preCheck,
+		BiFunction<Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck,
+		CharSequence fulfilled
+	) {
+		constraintCheckTemplate(
+			constraints.filter(mgl.BoundedConstraint).toSet,
+			typeCheck,
+			preCheck,
+			constraintCheck,
+			fulfilled,
+			true
+		)
+	}
+	
+	def constraintCheckTemplate(
+		Set<mgl.BoundedConstraint> constraints,
+		Function<GraphicalModelElement, CharSequence> typeCheck,
+		CharSequence preCheck,
+		BiFunction<Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck,
+		CharSequence fulfilled,
+		boolean useElse
+	) {
 		'''
-			«IF containableElements.empty»
-				// can be contained, without constraint (by the GraphModel)
+			«IF constraints.empty»
+				// can be applied, without constraint (by the GraphModel)
 				«fulfilled»
 			«ELSE»
 				«{
-					val containedTypes = containableElements
-						.map[types].flatten.toSet
-						.map[resolveSubTypesAndType].flatten.toSet
-						.filter[!isAbstract]							
+					val applicableElements = new HashSet<GraphicalModelElement>();
+					if(constraints.head instanceof GraphicalElementContainment) {
+						applicableElements.addAll(
+							constraints
+								.map[(it as GraphicalElementContainment).types].flatten.toSet
+								.map[resolveSubTypesAndType].flatten.toSet
+								.filter[!isAbstract]		
+						)
+					} else if(constraints.head instanceof mgl.EdgeElementConnection) {
+						applicableElements.addAll(
+							constraints
+								.map[(it as mgl.EdgeElementConnection).connectingEdges].flatten.toSet
+								.map[resolveSubTypesAndType].flatten.toSet
+								.filter[!isAbstract]		
+						)
+					} else {
+						throw new RuntimeException("A case is missing in method 'applicationCheckTemplate'!");
+					}	
 					'''
 						// resolved cases for each existing concrete type that can be contained
-						«FOR t : containedTypes SEPARATOR " else "
-						»if(«typeCheck.apply(t)») { //check if type «t.typeName» can be contained in group
-							// resolved cases
+						«FOR t : applicableElements SEPARATOR '''«IF typeCheck !== null && useElse» else «ELSE» «ENDIF»'''
+						»«IF typeCheck !== null»if(«typeCheck.apply(t)») «ENDIF»{ //check if type «t.typeName» can be applied in group
 							«{
 								val superTypesAndType = t.resolveSuperTypesAndType
 								// identify all rules that can be applied on the given type t
-								val applicableGroups = new HashSet<mgl.GraphicalElementContainment>
+								val applicableGroups = new HashSet<mgl.BoundedConstraint>
 								for(s:superTypesAndType) {
-									val groups = containableElements.filter[cG|
-										cG.types.contains(s)
+									val groups = constraints.filter[cG|
+										if(cG instanceof GraphicalElementContainment)
+											cG.types.contains(s)
+										else if(cG instanceof mgl.EdgeElementConnection) {
+											cG.connectingEdges.contains(s)
+										} else {
+											false
+										}
 									]
 									applicableGroups.addAll(groups)
 								}
 								'''
-									«IF applicableGroups.filter[upperBound>-1].size<=0»
-										// there are only non bounding rules, i.e. no rules that bound.
-										«fulfilled»
-									«ELSE»
-										// calculate each bounding constraint (lazy)
-										«preCheck»
+									«IF !useElse || applicableGroups.filter[upperBound>-1].size>0»
+										// calculate each bounding constraint («IF useElse»lazy«ELSE»eager«ENDIF»)
+										«IF preCheck !== null»«preCheck»«ENDIF»
 										«FOR group: applicableGroups.indexed»
-											
 											«{
-												val concreteTypes = group.value.types
-													.map[resolveAllSubTypesAndType]
-													.flatten.filter[!isAbstract].toSet
+												val concreteTypes = new HashSet<GraphicalModelElement>();
+												if(group.value instanceof GraphicalElementContainment) {
+													concreteTypes.addAll(
+														(group.value as mgl.GraphicalElementContainment).types
+														.map[resolveAllSubTypesAndType]
+														.flatten.filter[!isAbstract].toSet
+													)
+												} else if(group.value instanceof mgl.EdgeElementConnection) {
+													concreteTypes.addAll(
+														(group.value as mgl.EdgeElementConnection).connectingEdges
+														.map[resolveAllSubTypesAndType]
+														.flatten.filter[!isAbstract].toSet
+													)
+												}
 												'''
 													«IF !concreteTypes.empty»
-														// calculate rule «group.key»
+														// calculate constraint «group.key»
 														«constraintCheck.apply(concreteTypes, group.value.upperBound)»
 													«ENDIF»
 												'''
 											}»
 										«ENDFOR»
-										
-										// node is of type and inside the bounding constraints
+									«ENDIF»
+									«IF fulfilled !== null && fulfilled.length>0»
 										«fulfilled»
 									«ENDIF»
 								'''
