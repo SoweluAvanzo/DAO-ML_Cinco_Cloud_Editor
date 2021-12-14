@@ -158,7 +158,7 @@ class CanvasComponent extends Generatable {
 	  
 	  Map<String,String> getEditorButtons(){
 		«FOR g:gc.concreteGraphModels»
-			if(currentFile!=null && currentFile is «g.dartFQN»){
+			if(currentFile!=null && currentFile.$type() == '«g.typeName»'){
 				«IF g.editorButtons.empty»
 					return new Map<String,String>();
 				«ELSE»
@@ -216,7 +216,7 @@ class CanvasComponent extends Generatable {
 	  	
 	  	bool is«g.name.fuEscapeDart»(){
 	  		if(currentFile!=null){
-	  			return currentFile is «g.dartFQN»;
+	  			return currentFile.$type() == '«g.typeName»';
 	  		}
 	  		return false;
 	  	}
@@ -227,7 +227,7 @@ class CanvasComponent extends Generatable {
 	  	
 	  	bool is«g.name.fuEscapeDart»(){
 	  		if(currentFile!=null){
-	  			return currentFile is «g.dartFQN»;
+	  			return currentFile.$type() == '«g.typeName»';
 	  		}
 	  		return false;
 	  	}
@@ -242,36 +242,39 @@ class CanvasComponent extends Generatable {
 	  
 	  bool hasChecks() {
 	  	if(currentFile!=null){
-			«FOR g:gc.concreteGraphModels.filter[hasChecks(it)]»
-				if(currentFile is «g.dartFQN») {
-					return true;
-				}
-			«ENDFOR»
+			«FOR g:gc.concreteGraphModels.filter[hasChecks(it)] SEPARATOR " else "
+			»if(currentFile.$type() == '«g.typeName»') {
+				return true;
+			}«
+			ENDFOR»
 	  	}
 	  	return false;
 	  }
 	  
 	  bool hasGenerator() {
 	  	if(currentFile!=null){
-			«FOR g:gc.concreteGraphModels.filter[generating]»
-				if(currentFile is «g.dartFQN») {
-					return true;
-				}
-			«ENDFOR»
+			«FOR g:gc.concreteGraphModels.filter[generating] SEPARATOR " else "
+			»if(currentFile.$type() == '«g.typeName»') {
+				return true;
+			}«
+			ENDFOR»
 	    }
 	    return false;
 	  }
 	  
 	  Map<String,String> getGenerators() {
 		Map<String,String> map = new Map<String,String>();
-		«FOR g:gc.concreteGraphModels.filter[generating]»
-			if(currentFile is «g.dartFQN») {
+		
+	  	if(currentFile!=null){
+			«FOR g:gc.concreteGraphModels.filter[generating] SEPARATOR " else "
+			»if(currentFile.$type() == '«g.typeName»') {
 				«FOR a:g.generators.filter[value.length>=3]»
 					map['«a.value.get(0)»'] = '«a.value.get(2)»';
 				«ENDFOR»
 				return map;
-			}
-		«ENDFOR»
+			}«
+			ENDFOR»
+	    }
 	    return map;
 	  }
 	  
@@ -289,22 +292,26 @@ class CanvasComponent extends Generatable {
 	  
 	
 		bool hasIcon() {
-			«FOR g:gc.concreteGraphModels.filter[!iconPath.nullOrEmpty]»
-			    if(currentFile is «g.dartFQN»){
-			      return true;
-			    }
-			«ENDFOR»
+		  	if(currentFile!=null){
+				«FOR g:gc.concreteGraphModels.filter[!iconPath.nullOrEmpty] SEPARATOR " else "
+				»if(currentFile.$type() == '«g.typeName»'){
+				  return true;
+				}«
+				ENDFOR»
+			}
 		    return false;
 		}
 		  
 		String getIcon() {
-		  	  «FOR g:gc.concreteGraphModels.filter[!iconPath.nullOrEmpty]»
-		  	    if(currentFile is «g.dartFQN»){
-		  	      return "«g.iconPath(true)»";
-		  	    }
-		  	  «ENDFOR»
-		  	  return "";
-		}	
+		  	if(currentFile!=null){
+			  	«FOR g:gc.concreteGraphModels.filter[!iconPath.nullOrEmpty] SEPARATOR " else "
+			  	»if(currentFile.$type() == '«g.typeName»'){
+			  		return "«g.iconPath(true)»";
+			  	}«
+			  	ENDFOR»
+		  	}
+		  	return "";
+		}
 		
 		void toggleIsError() {
 			isError = !isError;
@@ -329,27 +336,27 @@ class CanvasComponent extends Generatable {
 		
 		void _updateChecks() {
 			«FOR g:gc.concreteGraphModels»
-			if(«g.name.lowEscapeDart»CanvasComponent!=null) {
-			   	«g.name.lowEscapeDart»CanvasComponent.updateCheckLevel(isError,isWarning,isInfo);
-			}
+				if(«g.name.lowEscapeDart»CanvasComponent!=null) {
+				   	«g.name.lowEscapeDart»CanvasComponent.updateCheckLevel(isError,isWarning,isInfo);
+				}
 			«ENDFOR»
 		}
 		
 		void _updateGluelines() {
 			«FOR g:gc.concreteGraphModels»
-			if(«g.name.lowEscapeDart»CanvasComponent!=null) {
-			   	«g.name.lowEscapeDart»CanvasComponent.updateGlueline(isGluelines);
-			}
+				if(«g.name.lowEscapeDart»CanvasComponent!=null) {
+				   	«g.name.lowEscapeDart»CanvasComponent.updateGlueline(isGluelines);
+				}
 			«ENDFOR»
 		}
 		
 		bool isActiveRouter(String s){
-		      return s==(currentFile as GraphModel).router;
-		  }
+		  return s==(currentFile as GraphModel).router;
+		}
 		
-		  bool isActiveConnector(String s){
-		      return s==(currentFile as GraphModel).connector;
-		  }
+		bool isActiveConnector(String s){
+		  return s==(currentFile as GraphModel).connector;
+		}
 		
 		  void changeRouteLayout(String type,dynamic e)
 		  {
@@ -381,19 +388,19 @@ class CanvasComponent extends Generatable {
 		  	 	_notificationService.displayMessage("A interpreter is still running",NotificationType.WARNING);
 		  	 	return;
 		  	 }
-		  	 if(isModelFile()) {
-				«FOR g:gc.concreteGraphModels.filter[interpreting]»
-					if(currentFile.$type() == '«g.typeName»') {
-						isInterpreting = true;
-					 	HttpRequest.getString("${_graphService.getBaseUrl()}/«g.name.lowEscapeDart»/interpreter/${currentFile.id}/private",withCredentials: true).then((s){
-						   _notificationService.displayMessage("«g.name» ${currentFile.filename} interpreter finished successfully!",NotificationType.SUCCESS);
-						})
-						.catchError((e){
-							_notificationService.displayLongMessage("«g.name» ${currentFile.filename} interpreter failed!",NotificationType.DANGER);
-						})
-						.whenComplete(()=>isInterpreting=false);
-					}
-				«ENDFOR»
+		  	 if(isModelFile() && currentFile != null) {
+				«FOR g:gc.concreteGraphModels.filter[interpreting] SEPARATOR " else "
+				»if(currentFile.$type() == '«g.typeName»') {
+					isInterpreting = true;
+				 	HttpRequest.getString("${_graphService.getBaseUrl()}/«g.name.lowEscapeDart»/interpreter/${currentFile.id}/private",withCredentials: true).then((s){
+					   _notificationService.displayMessage("«g.name» ${currentFile.filename} interpreter finished successfully!",NotificationType.SUCCESS);
+					})
+					.catchError((e){
+						_notificationService.displayLongMessage("«g.name» ${currentFile.filename} interpreter failed!",NotificationType.DANGER);
+					})
+					.whenComplete(()=>isInterpreting=false);
+				}«
+				ENDFOR»
 		  	 }
 		  }
 		  
@@ -405,29 +412,29 @@ class CanvasComponent extends Generatable {
 		  	 	_notificationService.displayMessage("A generator is still running",NotificationType.WARNING);
 		  	 	return;
 		  	 }
-		  	 if(isModelFile()) {
-				«FOR g:gc.concreteGraphModels.filter[generating]»
-					if(currentFile.$type() == '«g.typeName»') {
-						«FOR a:g.generators»
-						«{
-	  	 	  	 	   	val generatorId = '''«IF a.value.length >= 3»'«a.value.get(0)»'«ELSE»null«ENDIF»'''
-	  	 	  	 	   	'''
-							if(name == «generatorId») {
-								isGenerating = true;
-								_graphService.generateGraph(currentFile, name).then((response){
-									var s = response.responseText;
-									_notificationService.displayMessage("«g.name» ${currentFile.filename} generation completed successfully!",NotificationType.SUCCESS);
-								})
-								.catchError((e){
-									_notificationService.displayLongMessage("«g.name» ${currentFile.filename} generation failed!",NotificationType.DANGER);
-								})
-								.whenComplete(()=>isGenerating=false);
-							}
-					    '''}»
-					    «ENDFOR»
-					   	return;
-					}
-				«ENDFOR»
+		  	 if(isModelFile() && currentFile != null) {
+				«FOR g:gc.concreteGraphModels.filter[generating] SEPARATOR " else "
+				»if(currentFile.$type() == '«g.typeName»') {
+					«FOR a:g.generators»
+					«{
+  	 	  	 	   	val generatorId = '''«IF a.value.length >= 3»'«a.value.get(0)»'«ELSE»null«ENDIF»'''
+  	 	  	 	   	'''
+						if(name == «generatorId») {
+							isGenerating = true;
+							_graphService.generateGraph(currentFile, name).then((response){
+								var s = response.responseText;
+								_notificationService.displayMessage("«g.name» ${currentFile.filename} generation completed successfully!",NotificationType.SUCCESS);
+							})
+							.catchError((e){
+								_notificationService.displayLongMessage("«g.name» ${currentFile.filename} generation failed!",NotificationType.DANGER);
+							})
+							.whenComplete(()=>isGenerating=false);
+						}
+				    '''}»
+				    «ENDFOR»
+				   	return;
+				}«
+				ENDFOR»
 			 	_notificationService.displayMessage("No generator annotated for current graphmodel",NotificationType.WARNING);
 			 } else {
 			    _notificationService.displayMessage("No graphmodel present to generate",NotificationType.WARNING);

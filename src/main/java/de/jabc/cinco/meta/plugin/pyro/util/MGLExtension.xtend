@@ -2444,13 +2444,13 @@ class MGLExtension {
 		modelPackage.resolveSubTypesAndType(t)
 	}
 
-	def <T extends Type> List<T> resolveSubTypesAndType(T element) {
+	def <T extends Type> Iterable<T> resolveSubTypesAndType(T element) {
 		val model = element.MGLModel
 		if(model instanceof MGLModel)
 			element.resolveSubTypesAndType(new LinkedList<T>)
 	}
 
-	def <T extends Type> List<T> resolveSubTypesAndType(Iterable<T> elements) {
+	def <T extends Type> Iterable<T> resolveSubTypesAndType(Iterable<T> elements) {
 		var result = new LinkedList<T>
 		for (element : elements) {
 			var resolved = element.resolveSubTypesAndType(new LinkedList<T>)
@@ -2468,7 +2468,7 @@ class MGLExtension {
 			throw new RuntimeException("GraphModel is Package is Deprecated!")
 	}
 	
-	def <T extends Type> List<T> resolveAllSubTypesAndType(T element) {
+	def <T extends Type> Iterable<T> resolveAllSubTypesAndType(T element) {
 		element.resolveSubTypesAndType(
 			new LinkedList<T>,
 			[e|false],
@@ -2476,15 +2476,15 @@ class MGLExtension {
 		)
 	}
 	
-	private def <T extends Type> List<T> resolveSubTypesAndType(MGLModel g, T element) {
+	private def <T extends Type> Iterable<T> resolveSubTypesAndType(MGLModel g, T element) {
 		element.resolveSubTypesAndType(new LinkedList<T>)
 	}
 
-	private def <T extends EClassifier> List<T> resolveSubTypesAndType(EPackage g, T element) {
+	private def <T extends EClassifier> Iterable<T> resolveSubTypesAndType(EPackage g, T element) {
 		element.resolveSubTypesAndType(new LinkedList<T>)
 	}
 
-	def <T extends Type> List<T> resolveSubTypesAndType(T e, List<T> cached) {
+	def <T extends Type> Iterable<T> resolveSubTypesAndType(T e, List<T> cached) {
 		e.resolveSubTypesAndType(
 			cached,
 			[element|element.isAbstractType],
@@ -2492,7 +2492,7 @@ class MGLExtension {
 		)
 	}
 
-	def <T extends EClassifier> List<T> resolveSubTypesAndType(T e, List<T> cached) {
+	def <T extends EClassifier> Iterable<T> resolveSubTypesAndType(T e, List<T> cached) {
 		e.resolveSubTypesAndType(
 			cached,
 			[element|element.abstract],
@@ -2500,7 +2500,7 @@ class MGLExtension {
 		)
 	}
 
-	def <G, T> List<T> resolveSubTypesAndType(T element, List<T> cached, Function<T, Boolean> filterAway,
+	def <G, T> Iterable<T> resolveSubTypesAndType(T element, List<T> cached, Function<T, Boolean> filterAway,
 		Function<T, Iterable<T>> getSubTypes) {
 		if (cached.contains(element))
 			return cached;
@@ -2518,11 +2518,11 @@ class MGLExtension {
 		return cachedSubTypes
 	}
 
-	def List<EClass> resolveSuperTypesAndType(EPackage g, EClass element) {
+	def Iterable<EClass> resolveSuperTypesAndType(EPackage g, EClass element) {
 		g.resolveSuperTypesAndType(element, new LinkedList<EClass>, true)
 	}
 
-	private def List<EClass> resolveSuperTypesAndType(EPackage g, EClass element, List<EClass> cached,
+	private def Iterable<EClass> resolveSuperTypesAndType(EPackage g, EClass element, List<EClass> cached,
 		boolean withAbstract) {
 		if (cached.contains(element))
 			return cached;
@@ -2901,6 +2901,18 @@ class MGLExtension {
  		return e.isAbstract? null : e
 	}
 	
+	/**
+	 * Returns a set without extending types.
+	 * Useful for nested type-if-branches
+	 */
+	def filterSubClasses(Iterable<ModelElement> types) {
+		return types.filter[
+			!it.resolveSuperTypes.exists[
+				types.contains(it)
+			]
+		]
+	}
+	
 	// FRONTEND // TODO:SAMI: search for all, and fix if wrong
 	def propertyDeserializer(GraphModel g)'''«(g.modelPackage as MGLModel).propertyDeserializer»'''
 	def propertyDeserializer(MGLModel g)'''«g.name.fuEscapeDart»PropertyDeserializer'''
@@ -3028,6 +3040,32 @@ class MGLExtension {
 					'''
 				}»
 			«ENDIF»
+		'''
+	}
+	
+	def CharSequence typeInstanceSwitchTemplate(CharSequence typeVariableName, Iterable<ModelElement> types, Function<ModelElement, CharSequence> procedure, Function<ModelElement, CharSequence> instanceCheck) {
+							
+		val relevantTypes = types.filterSubClasses
+		'''
+			«FOR type:relevantTypes SEPARATOR " else "
+			»if(«typeVariableName» instanceof «instanceCheck.apply(type)») {
+				«val subTypes = type.resolveSubTypesAndType.filter[!it.equals(type)]»
+				«{
+					typeVariableName.typeInstanceSwitchTemplate(
+						subTypes,
+						procedure,
+						instanceCheck
+					)
+				}»
+				«IF !subTypes.empty»
+					else {
+						«procedure.apply(type)»
+					}
+				«ELSE»
+					«procedure.apply(type)»
+				«ENDIF»
+			}«
+			ENDFOR»
 		'''
 	}
  }

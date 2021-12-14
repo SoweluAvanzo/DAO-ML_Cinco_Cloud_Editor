@@ -279,39 +279,56 @@ class GraphModelCommandExecuter extends Generatable {
 					public void set«e.name.fuEscapeJava»Container(«e.entityFQN» edge, «dbTypeName» container) {
 						«{
 							val possibleContainer = e.resolvePossibleContainer + #[g]
-							'''
-								«FOR container:possibleContainer SEPARATOR " else "
-								»if(container instanceof «container.entityFQN») {
-									«container.entityFQN» containerDB = («container.entityFQN») container;
-									containerDB.addModelElements(edge);
-									edge.setContainer(container);
-									container.persist();
-								}«
-								ENDFOR»
-							'''
+							
+							'''container'''.typeInstanceSwitchTemplate(
+								possibleContainer,
+								[container|
+									'''
+										«container.entityFQN» containerDB = («container.entityFQN») container;
+										containerDB.addModelElements(edge);
+										edge.setContainer(container);
+										container.persist();
+									'''
+								],
+								[type|'''«type.entityFQN»''']
+							)
 						}»
 					}
 					
 					public void set«e.name.fuEscapeJava»DBSource(«e.entityFQN» edge, Node source) {
-						«FOR source:e.resolvePossibleSources SEPARATOR " else "
-						»if(source instanceof «source.apiFQN») {
-							«source.entityFQN» o = («source.entityFQN») ((«source.apiFQN») source).getDelegate();
-							edge.setSource(o);
-							o.addOutgoing(edge);
-							o.persist();
-						}«
-						ENDFOR»
+						«{
+							val possibleTypes = e.resolvePossibleSources.filter(ModelElement)
+							'''source'''.typeInstanceSwitchTemplate(
+								possibleTypes,
+								[type|
+									'''
+										«type.entityFQN» o = («type.entityFQN») ((«type.apiFQN») source).getDelegate();
+										edge.setSource(o);
+										o.addOutgoing(edge);
+										o.persist();
+									'''
+								],
+								[type|'''«type.apiFQN»''']
+							)
+						}»
 					}
 					
 					public void set«e.name.fuEscapeJava»DBTarget(«e.entityFQN» edge, Node target) {
-						«FOR target:e.resolvePossibleTargets SEPARATOR " else "
-						»if(target instanceof «target.apiFQN») {
-							«target.entityFQN» o = («target.entityFQN») ((«target.apiFQN») target).getDelegate();
-							edge.setTarget(o);
-							o.addIncoming(edge);
-							o.persist();
-						}«
-						ENDFOR»
+						«{
+							val possibleTypes = e.resolvePossibleTargets.filter(ModelElement)
+							'''target'''.typeInstanceSwitchTemplate(
+								possibleTypes,
+								[type|
+									'''
+										«type.entityFQN» o = («type.entityFQN») ((«type.apiFQN») target).getDelegate();
+										edge.setTarget(o);
+										o.addIncoming(edge);
+										o.persist();
+									'''
+								],
+								[type|'''«type.apiFQN»''']
+							)
+						}»
 					}
 				«ENDFOR»
 		
@@ -320,29 +337,43 @@ class GraphModelCommandExecuter extends Generatable {
 			    	«dbTypeName» e = TypeRegistry.getApiToDB(graphModel);
 			    	
 			    	// switch edge types
-			    	«FOR e:g.edges.filter[!isIsAbstract] SEPARATOR " else "
-			    	»if(edge instanceof «e.entityFQN») {
-			    		«e.entityFQN» edgeDB = («e.entityFQN») edge;
-			    		set«e.name.escapeJava»DBSource(edgeDB, source);
-			    		set«e.name.escapeJava»DBTarget(edgeDB, target);
-			    		set«e.name.fuEscapeJava»Container(edgeDB, e);
-			    		bendingPoints.forEach( p -> {
-			    			entity.core.BendingPointDB bp = new entity.core.BendingPointDB();
-			    			bp.x = p.getx();
-			    			bp.y = p.gety();
-			    			bp.persist();
-			    			edgeDB.bendingPoints.add(bp);
-			    		});
-			    	}«
-			    	ENDFOR»
+			    	«{
+						val possibleTypes = g.edges.filter[!isIsAbstract].filter(ModelElement)
+						'''edge'''.typeInstanceSwitchTemplate(
+							possibleTypes,
+							[e|
+								'''
+									«e.entityFQN» edgeDB = («e.entityFQN») edge;
+									set«e.name.escapeJava»DBSource(edgeDB, source);
+									set«e.name.escapeJava»DBTarget(edgeDB, target);
+									set«e.name.fuEscapeJava»Container(edgeDB, e);
+									bendingPoints.forEach( p -> {
+										entity.core.BendingPointDB bp = new entity.core.BendingPointDB();
+										bp.x = p.getx();
+										bp.y = p.gety();
+										bp.persist();
+										edgeDB.bendingPoints.add(bp);
+									});
+								'''
+							],
+							[type|'''«type.entityFQN»''']
+						)
+					}»
 			    }
 			    
 			    public void updateIdentifiableElement(IdentifiableElement entity, info.scce.pyro.core.graphmodel.IdentifiableElement prev) {
-				    «FOR e:g.elementsAndTypesAndGraphModels.filter[!isAbstract] SEPARATOR " else "
-				    »if(entity instanceof «e.apiFQN») {
-				    	update«e.name.fuEscapeJava»Properties((«e.apiFQN») entity, («e.restFQN») prev);
-				    }«
-				    ENDFOR»
+			    	«{
+						val possibleTypes = g.elementsAndTypesAndGraphModels.filter[!isAbstract]
+						'''entity'''.typeInstanceSwitchTemplate(
+							possibleTypes,
+							[e|
+								'''
+									«IF e instanceof GraphModel && !e.equals(g)»this.get«e.commandExecuter»().«ENDIF»update«e.name.fuEscapeJava»Properties((«e.apiFQN») entity, («e.restFQN») prev);
+								'''
+							],
+							[type|'''«type.apiFQN»''']
+						)
+					}»
 			    }
 				«FOR e:g.elementsAndTypesAndGraphModels.filter[!isAbstract]»
 					
@@ -662,11 +693,18 @@ class GraphModelCommandExecuter extends Generatable {
 				@Override
 				public void updateAppearance() {
 					super.getAllModelElements().forEach((element)->{
-						«FOR e:g.elements.filter[!isIsAbstract].filter[!isType].filter[hasAppearanceProvider(styles)] SEPARATOR "else "
-						»if(element instanceof «e.apiFQN») {
-							updateAppearanceProvider«e.name.escapeJava»((«e.apiFQN») element);
-						}«
-						ENDFOR»
+						«{
+							val possibleTypes = g.elements.filter[!isIsAbstract].filter[!isType].filter[hasAppearanceProvider(styles)]
+							'''element'''.typeInstanceSwitchTemplate(
+								possibleTypes,
+								[e|
+									'''
+										updateAppearanceProvider«e.name.escapeJava»((«e.apiFQN») element);
+									'''
+								],
+								[type|'''«type.apiFQN»''']
+							)
+						}»
 					});
 				}
 		
@@ -682,11 +720,18 @@ class GraphModelCommandExecuter extends Generatable {
 					
 					«IF e.isAbstract»
 						public void remove«e.name.escapeJava»(«dbTypeName» entity) {
-							«FOR t:g.elements.filter(UserDefinedType).filter[!isIsAbstract] SEPARATOR " else "
-							»if(entity instanceof «t.entityFQN») {
-								remove«t.name.escapeJava»((«t.entityFQN») entity);
-							}«
-							ENDFOR»
+							«{
+								val possibleTypes = g.elements.filter(UserDefinedType).filter[!isIsAbstract].filter(ModelElement)
+								'''entity'''.typeInstanceSwitchTemplate(
+									possibleTypes,
+									[t|
+										'''
+											remove«t.name.escapeJava»((«t.entityFQN») entity);
+										'''
+									],
+									[type|'''«type.entityFQN»''']
+								)
+							}»
 						}
 					«ELSE»
 						public void remove«e.name.escapeJava»(«e.entityFQN» entity){
