@@ -298,7 +298,7 @@ class GraphModelController extends Generatable {
 							«FOR f:staticGenerationFiles.entrySet»
 								staticResourecURLs.put("«f.key»",new String[]{
 									«FOR file:f.value SEPARATOR ","»
-										"«file.absolutePath.suffix(f.key)»"
+										"«file.absolutePath»"
 									«ENDFOR»
 									});
 							«ENDFOR»
