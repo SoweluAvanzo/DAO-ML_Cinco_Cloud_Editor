@@ -79,10 +79,16 @@ public class SecurityOverrideFilter implements ContainerRequestFilter {
     }
     
     public static String getWorkspacePath() {
-    	
+    	String workspace = "";
     	Map<String, String> env = System.getenv();
-
-    	return env.toString();
+    	String [] argsList = env.get("MAVEN_CMD_LINE_ARGS").split(" ");
+    	for(String s : argsList) {
+    		if(s.contains("-DworkspacePath")) {
+    			String[] result = s.split("=");
+    			workspace = result[1];
+    		}
+    	}
+    	return workspace;
     }
     
 }

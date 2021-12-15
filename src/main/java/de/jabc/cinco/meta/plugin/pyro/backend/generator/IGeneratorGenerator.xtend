@@ -59,29 +59,30 @@ class IGeneratorGenerator extends Generatable {
 			//get generation base folder
 			//String generationBaseFolder = basePath;
 
-			String workspacePath = SecurityOverrideFilter.getWorkspacePath();
-			String generationBaseFolder = workspacePath + basePath;
-			File dir = new File(generationBaseFolder);
+			String homeDirectory = System.getProperty("user.home");  // TODO
+			String workspaceStringPath = SecurityOverrideFilter.getWorkspacePath();				
+			Path workspaceAbsolutePath = Paths.get(homeDirectory, workspaceStringPath);
+		    Path generationBaseFolderPath = Paths.get(workspaceAbsolutePath.toString(), basePath);
+			File dir = new File(generationBaseFolderPath.toString());
 			if (!dir.exists()) {
-				dir.mkdir();
+				dir.mkdirs();
 			}
 			
 			for (GeneratedFile f : files) {
-				String genDirName = generationBaseFolder + f.getPath();
-				File genDir = new File(genDirName);
+				Path genDirPath = Paths.get(generationBaseFolderPath.toString() , f.getPath());
+				File genDir = new File(genDirPath.toString());
 				if (!genDir.exists()) {
-					genDir.mkdir();
+					genDir.mkdirs();
 				}
-				String fileName = genDirName + f.getFilename();
-				File file = new File(fileName);
+				Path path = Paths.get(genDirPath.toString(), f.getFilename());
+				File file = new File(path.toString());
 				if (file.exists() && !file.isDirectory()) {
 					file.delete();
 				}
-				Path path = Paths.get(fileName).normalize();
 				java.nio.file.Files.writeString(path, f.getContent());
 			}
 			
-			Path staticResourcePath = Paths.get(generationBaseFolder, staticResourceBase).normalize();
+			Path staticResourcePath = Paths.get(generationBaseFolderPath.toString(), staticResourceBase).normalize();
 			File staticResourcesDest = new File(staticResourcePath.toString());
 			if (!staticResourcesDest.exists() || !staticResourcesDest.isDirectory()) {
 				staticResourcesDest.mkdirs();
@@ -97,9 +98,7 @@ class IGeneratorGenerator extends Generatable {
 					// f.delete();
 					// }
 					try {
-						Path copyDest = Paths
-							.get(staticResourcesDest.toString(), suffix(f.toString(), staticResource.getKey()))
-							normalize();
+						Path copyDest = Paths.get(staticResourcesDest.toString(), suffix(f.toString(), staticResource.getKey())).normalize();
 						File fileTocopy = new File(copyDest.toString());
 						if (!fileTocopy.getParentFile().exists()) {
 									fileTocopy.getParentFile().mkdirs();
