@@ -163,10 +163,9 @@
 	
 	<repositories>
 		<repository>
-			<id>vulturius-webdav</id>
-			<name>jABC Repository</name>
-			<url>https://vulturius.cs.tu-dortmund.de/maven</url>
-			<layout>default</layout>
+			<id>cinco-meta-snapshot</id>
+			<name>Cinco Snapshot Repository</name>
+			<url>https://ls5download.cs.tu-dortmund.de/repository/cinco-meta-snapshot</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
