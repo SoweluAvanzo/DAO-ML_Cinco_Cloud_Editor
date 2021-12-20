@@ -56,14 +56,17 @@ class IGeneratorGenerator extends Generatable {
 			this.fileController = fileController;
 			
 			generate(graphModel);
-			//get generation base folder
-			//String generationBaseFolder = basePath;
+		//get generation base folder
+		//String generationBaseFolder = basePath;
+		//String homeDirectory = System.getProperty("user.home");  // TODO
+		String workspaceAbsolutePath = SecurityOverrideFilter.getWorkspacePath();				
+	   //Path workspaceAbsolutePath = Paths.get(homeDirectory, workspaceStringPath);
+		
+		Path workspaceAbsolutePath = Paths.get(workspaceStringPath);
 
-			String homeDirectory = System.getProperty("user.home");  // TODO
-			String workspaceStringPath = SecurityOverrideFilter.getWorkspacePath();				
-			Path workspaceAbsolutePath = Paths.get(homeDirectory, workspaceStringPath);
-		    Path generationBaseFolderPath = Paths.get(workspaceAbsolutePath.toString(), basePath);
-			File dir = new File(generationBaseFolderPath.toString());
+		Path generationBaseFolderPath = Paths.get(workspaceAbsolutePath.toString(), basePath);
+		//String generationBaseFolder = workspaceAbsolutePath.toString() + basePath;
+		File dir = new File(generationBaseFolderPath.toString());
 			if (!dir.exists()) {
 				dir.mkdirs();
 			}
