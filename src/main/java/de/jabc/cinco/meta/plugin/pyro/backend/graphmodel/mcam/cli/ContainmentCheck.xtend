@@ -16,7 +16,7 @@ class ContainmentCheck extends Generatable{
 	
 	def content(GraphModel g)
 	{
-	val nodes = g.nodesTopologically.filter(NodeContainer).filter[containableElements.exists[lowerBound>0]]
+	val nodes = g.nodes.filter(NodeContainer).filter[containableElements.exists[lowerBound>0]]
 	'''
 	package «g.MGLModel.package».mcam.modules.checks;
 	

@@ -96,7 +96,7 @@ class GraphModelElementInterface extends Generatable {
 	
 	def embeddedEdges(GraphModel g)
 	'''
-	«FOR edge:g.edgesTopologically»
+	«FOR edge:g.edges»
 		public java.util.List<«edge.name.fuEscapeJava»> get«edge.name.fuEscapeJava»s();
 	«ENDFOR»
 	'''
@@ -106,19 +106,17 @@ class GraphModelElementInterface extends Generatable {
 		«FOR incoming:node.possibleIncoming»
 			«'''incoming«incoming.name.fuEscapeJava»s'''.toString.getMethod('''java.util.List<«incoming.name.fuEscapeJava»>''')»
 		«ENDFOR»
+		«FOR outgoing:node.possibleOutgoing»
+			«'''outgoing«outgoing.name.fuEscapeJava»s'''.toString.getMethod('''java.util.List<«outgoing.name.fuEscapeJava»>''')»
+		«ENDFOR»
 		«FOR source:node.possibleIncoming.map[possibleSources].flatten.toSet»
 			«'''«source.name.fuEscapeJava»Predecessors'''.toString.getMethod('''java.util.List<«source.name.fuEscapeJava»>''')»
 		«ENDFOR»
-		«FOR outgoing:node.possibleOutgoing»
-			«'''outgoing«outgoing.name.fuEscapeJava»s'''.toString.getMethod('''java.util.List<«outgoing.name.fuEscapeJava»>''')»
-			«IF !outgoing.isIsAbstract»
-				«FOR target:outgoing.possibleTargets»
-					public «outgoing.name.fuEscapeJava» new«outgoing.name.fuEscapeJava»(«target.name.fuEscapeJava» target);
-				«ENDFOR»
-			«ENDIF»
-		«ENDFOR»
 		«FOR target:node.possibleOutgoing.map[possibleTargets].flatten.toSet»
 			«'''«target.name.fuEscapeJava»Successors'''.toString.getMethod('''java.util.List<«target.name.fuEscapeJava»>''')»
+		«ENDFOR»
+		«FOR outgoing:node.possibleOutgoing.filter[!isAbstract]»
+			public «outgoing.apiFQN» new«outgoing.name.fuEscapeJava»(graphmodel.Node target);
 		«ENDFOR»
 	'''
 	

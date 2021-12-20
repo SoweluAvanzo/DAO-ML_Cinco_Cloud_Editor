@@ -79,4 +79,8 @@ class GeneratorCompound {
 	def getGraphMopdels() {
 		mglModels.map[it.graphModels].flatten.toSet
 	}
+	
+	def concreteGraphModels() {
+		graphMopdels.filter[!isAbstract]
+	}
 }

@@ -38,7 +38,7 @@ class GraphModelElementImplementation extends Generatable {
 			import «modelPackage.typeRegistryFQN»;
 			import «dbTypeFQN»;
 			import «commandExecuterFQN»;
-			«FOR g: modelPackage.graphModels»
+			«FOR g: modelPackage.graphModels.filter[!isAbstract]»
 				import «g.commandExecuterFQN»;
 			«ENDFOR»
 			
@@ -56,8 +56,8 @@ class GraphModelElementImplementation extends Generatable {
 				public «me.name.fuEscapeJava»Impl(
 					«me.entityFQN» delegate,
 					CommandExecuter cmdExecuter«IF me instanceof UserDefinedType»,
-					graphmodel.IdentifiableElement parent,
-					info.scce.pyro.core.graphmodel.IdentifiableElement prev
+						graphmodel.IdentifiableElement parent,
+						info.scce.pyro.core.graphmodel.IdentifiableElement prev
 					«ENDIF»
 				) {
 					this.delegate = delegate;
@@ -70,8 +70,8 @@ class GraphModelElementImplementation extends Generatable {
 				
 				public «me.name.fuEscapeJava»Impl(
 					CommandExecuter cmdExecuter«IF me instanceof UserDefinedType»,
-					graphmodel.IdentifiableElement parent,
-					info.scce.pyro.core.graphmodel.IdentifiableElement prev
+						graphmodel.IdentifiableElement parent,
+						info.scce.pyro.core.graphmodel.IdentifiableElement prev
 					«ENDIF»
 				) {
 					this.delegate = new «me.entityFQN»();
@@ -162,17 +162,20 @@ class GraphModelElementImplementation extends Generatable {
 					
 					«me.embeddedEdges»
 				«ENDIF»
-				«/* TODO: currently just a workaround */»
-				public «me.apiFQN» get«me.name.fuEscapeJava»View() {
-					return this;
-				}
-				«/* TODO: currently just a workaround */»
+				«FOR t : me.resolveSuperTypesAndType»
+					@Override
+					public «t.apiFQN» get«t.name.fuEscapeJava»View() {
+						return this;
+					}
+					
+				«ENDFOR»
+				@Override
 				public «me.apiFQN» eClass() {
 					return this;
 				}
 				«IF me instanceof GraphicalModelElement»
 					
-					@Override «/* TODO: modelpackage should be the graphModel */»
+					@Override
 					public «coreAPIFQN("GraphModel")» getRootElement() {
 						«coreAPIFQN("ModelElementContainer")» container = this.getContainer();
 						if(container instanceof «coreAPIFQN("GraphModel")»){
@@ -633,18 +636,19 @@ class GraphModelElementImplementation extends Generatable {
 					}
 				«ENDIF»
 				«FOR attr:me.attributesExtended»
-					
-					@Override«val returnType = '''«IF attr.isList»java.util.List<«ENDIF»«IF !attr.isPrimitive»«modelPackage.apiFQN».«ENDIF»«attr.javaType(modelPackage)»«IF attr.isList»>«ENDIF»'''»«{
-						if(attr.name.fuEscapeJava == "Name" && !returnType.equals("String"))
+					«val rawType = '''«attr.javaType(modelPackage)»'''»
+					«val attributeType = '''«IF attr.isList»java.util.List<«ENDIF»«rawType»«IF attr.isList»>«ENDIF»'''»«{
+						if(attr.name.fuEscapeJava == "Name" && !attributeType.equals("String"))
 							throw new RuntimeException("attribute \"name\" is predefined as \"String\" by cinco")
 					}»
-					public «returnType» «IF attr.type.equals("EBoolean")»is«ELSE»get«ENDIF»«attr.name.fuEscapeJava»() {
+					@Override
+					public «attributeType» «IF attr.isPrimitive && attr.attributeTypeName.equals("EBoolean")»is«ELSE»get«ENDIF»«attr.name.fuEscapeJava»() {
 						«IF attr.isPrimitive»
-							«IF attr.type.getEnum(modelPackage)!==null»
+							«IF attr.attributeTypeName.getEnum(modelPackage)!==null»
 								«IF attr.list»
 									return this.delegate.«attr.name.escapeJava».stream().map((n)->{
 										«{  
-											val e = attr.type.getEnum(modelPackage) '''
+											val e = attr.attributeTypeName.getEnum(modelPackage) '''
 											switch (n){
 												«e.literals.map['''case «it.toUnderScoreCase.escapeJava»: return «e.apiFQN».«it.toUnderScoreCase.fuEscapeJava»;'''].join("\n")»
 											}
@@ -653,7 +657,7 @@ class GraphModelElementImplementation extends Generatable {
 									}).collect(java.util.stream.Collectors.toList());
 								«ELSE»
 									«{  
-										val e = attr.type.getEnum(modelPackage) '''
+										val e = attr.attributeTypeName.getEnum(modelPackage) '''
 										switch (this.delegate.«attr.name.escapeJava»){
 											«e.literals.map['''case «it.toUnderScoreCase.escapeJava»: return «e.apiFQN».«it.toUnderScoreCase.fuEscapeJava»;'''].join("\n")»
 										}
@@ -669,12 +673,12 @@ class GraphModelElementImplementation extends Generatable {
 							«ENDIF»
 							«IF attr.isList»
 									java.util.Collection<«dbTypeName»> entityList = this.delegate.get«attr.name.fuEscapeJava»();
-									return («returnType») entityList.stream().map(n -> {
-										return («modelPackage.apiFQN».«attr.javaType(modelPackage)») «typeRegistry».getDBToApi(n, this.cmdExecuter«IF !attr.isModelElement», this, prev«ENDIF»);
+									return («attributeType») entityList.stream().map(n -> {
+										return («rawType») «typeRegistry».getDBToApi(n, this.cmdExecuter);
 									}).collect(java.util.stream.Collectors.toList());
 							«ELSE»
 									«dbTypeName» attribute = this.delegate.get«attr.name.fuEscapeJava»();
-									return («returnType») «typeRegistry».getDBToApi(attribute, this.cmdExecuter«IF !attr.isModelElement», this, prev«ENDIF»);
+									return («attributeType») «typeRegistry».getDBToApi(attribute, this.cmdExecuter);
 							«ENDIF»
 						«ENDIF»
 					}
@@ -700,16 +704,16 @@ class GraphModelElementImplementation extends Generatable {
 					«ENDIF»
 					
 					@Override
-					public void set«attr.name.fuEscapeJava»(«IF attr.isList»java.util.List<«ENDIF»«IF !attr.isPrimitive»«modelPackage.apiFQN».«ENDIF»«attr.javaType(modelPackage)»«IF attr.isList»>«ENDIF» attr) {
+					public void set«attr.name.fuEscapeJava»(«attributeType» attr) {
 						«IF !me.isType»
 							«me.restFQN» prev = «me.restFQN».fromEntityProperties(this.delegate,new info.scce.pyro.rest.ObjectCache());
 						«ENDIF»
 						«IF attr.isPrimitive»
-							«IF attr.type.getEnum(modelPackage)!==null»
+							«IF attr.attributeTypeName.getEnum(modelPackage)!==null»
 								«IF attr.list»
 									this.delegate.«attr.name.escapeJava» = attr.stream().map(n -> {
 										«{  
-											val e = attr.type.getEnum(modelPackage) '''
+											val e = attr.attributeTypeName.getEnum(modelPackage) '''
 											switch (n){
 												«e.literals.map['''case «it.toUnderScoreCase.fuEscapeJava»: return «e.entityFQN».«it.toUnderScoreCase.escapeJava»;'''].join("\n")»
 											}
@@ -718,7 +722,7 @@ class GraphModelElementImplementation extends Generatable {
 									}).collect(java.util.stream.Collectors.toList());
 								«ELSE»
 									«{  
-										val e = attr.type.getEnum(modelPackage) '''
+										val e = attr.attributeTypeName.getEnum(modelPackage) '''
 										switch (attr){
 											«e.literals.map['''case «it.toUnderScoreCase.escapeJava»: this.delegate.«attr.name.escapeJava» = «e.entityFQN».«it.toUnderScoreCase.escapeJava»;break;'''].join("\n")»
 										}
@@ -821,7 +825,7 @@ class GraphModelElementImplementation extends Generatable {
 	}
 	
 	def primitiveGETConverter(Attribute attribute, String string) {
-		return switch(attribute.type) {
+		return switch(attribute.attributeTypeName) {
 			case "EInt":'''«IF attribute.list»«string».stream().map(n->Math.toIntExact(n)).collect(java.util.stream.Collectors.toList())«ELSE»Math.toIntExact(«string»)«ENDIF»'''
 			case "EBigInteger":'''«IF attribute.list»«string».stream().map(n->Math.toIntExact(n)).collect(java.util.stream.Collectors.toList())«ELSE»Math.toIntExact(«string»)«ENDIF»'''
 			case "ELong":'''«IF attribute.list»«string».stream().map(n->Math.toIntExact(n)).collect(java.util.stream.Collectors.toList())«ELSE»Math.toIntExact(«string»)«ENDIF»'''
@@ -832,7 +836,7 @@ class GraphModelElementImplementation extends Generatable {
 	}
 	
 	def primitiveSETConverter(Attribute attribute, String string) {
-		return switch(attribute.type) {
+		return switch(attribute.attributeTypeName) {
 			case "EInt":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''
 			case "EBigInteger":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''
 			case "ELong":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''
@@ -854,16 +858,24 @@ class GraphModelElementImplementation extends Generatable {
 	'''
 	
 	def connectedNodeMethods(Node node) {
-		val possibleIncoming = node.possibleIncoming
+		val possibleIncoming = node.resolveSuperTypesAndType.filter(Node).map[possibleIncoming].flatten.toSet
 		val possibleSources = possibleIncoming.map[possibleSources].flatten.toSet
-		val possibleOutgoing = node.possibleOutgoing
+		val possibleOutgoing = node.resolveSuperTypesAndType.filter(Node).map[possibleOutgoing].flatten.toSet
 		val possibleTargets = possibleOutgoing.map[possibleTargets].flatten.toSet
+		val supportedOutgoing = node.possibleOutgoing.filter[!isAbstract]
 		'''
 			«FOR incoming:possibleIncoming»
 				
 				@Override
 				public java.util.List<«incoming.apiFQN»> getIncoming«incoming.name.fuEscapeJava»s() {
 					return getIncoming(«incoming.apiFQN».class);
+				}
+			«ENDFOR»
+			«FOR outgoing:possibleOutgoing»
+				
+				@Override
+				public java.util.List<«outgoing.apiFQN»> getOutgoing«outgoing.name.fuEscapeJava»s() {
+					return getOutgoing(«outgoing.apiFQN».class);
 				}
 			«ENDFOR»
 			«FOR source:possibleSources»
@@ -873,30 +885,6 @@ class GraphModelElementImplementation extends Generatable {
 					return getPredecessors(«source.apiFQN».class);
 				}
 			«ENDFOR»
-			«FOR outgoing:possibleOutgoing»
-				
-				@Override
-				public java.util.List<«outgoing.apiFQN»> getOutgoing«outgoing.name.fuEscapeJava»s() {
-					return getOutgoing(«outgoing.apiFQN».class);
-				}
-				«FOR target:outgoing.possibleTargets»«/* TODO: SAMI-FALLBACK: g.resolvePossibleTargets(outgoing).filter[!isAbstract] */»
-					
-					@Override
-					public «outgoing.apiFQN» new«outgoing.name.fuEscapeJava»(«target.apiFQN» target) {
-						«outgoing.apiFQN» cn = null;
-						«commandExecuterSwitch(
-							outgoing,
-							[cmdExecuter|
-								'''
-									cn = «cmdExecuter».create«outgoing.name.fuEscapeJava»(this, target, java.util.Collections.emptyList(), null);
-								'''
-							]
-						)»
-						«outgoing.postCreate("cn",gc)»
-						return cn;
-					}
-				«ENDFOR»
-			«ENDFOR»
 			«FOR target:possibleTargets»
 				
 				@Override
@@ -904,14 +892,46 @@ class GraphModelElementImplementation extends Generatable {
 					return getSuccessors(«target.apiFQN».class);
 				}
 			«ENDFOR»
+			«FOR outgoing:supportedOutgoing»
+				
+				@Override
+				public «outgoing.apiFQN» new«outgoing.name.fuEscapeJava»(graphmodel.Node target) {
+					«outgoing.apiFQN» cn = null;
+					«commandExecuterSwitch(
+						outgoing,
+						[cmdExecuter|
+							'''
+								cn = «cmdExecuter».create«outgoing.name.fuEscapeJava»(this, target, java.util.Collections.emptyList(), null);
+							'''
+						]
+					)»
+					«outgoing.postCreate("cn",gc)»
+					return cn;
+				}
+			«ENDFOR»
+			«FOR outgoing:possibleOutgoing.filter[!isAbstract && !supportedOutgoing.contains(it)]»
+				
+				@Override
+				public «outgoing.apiFQN» new«outgoing.name.fuEscapeJava»(graphmodel.Node target) {
+					throw new RuntimeException("The edge-type '«outgoing.typeName»' is not supported by this type '«node.typeName»'.");
+				}
+			«ENDFOR»
 		'''
 	}
 	
 	
-	def embeddedNodeMethods(ContainingElement ce,Styles styles) {
+	def embeddedNodeMethods(ModelElement ce,Styles styles) {
 		val g = ce.modelPackage as MGLModel
+		val superTypes = ce.resolveSuperTypesAndType
+		val containedTypes = new java.util.HashSet
+		
+		for(s:superTypes) {
+			val  directContainedTypes = (s as ContainingElement).possibleEmbeddingTypes(g)
+			containedTypes += directContainedTypes.map[it.resolveAllSubTypesAndType].flatten.toSet	
+		}
+		
 		'''
-			«FOR em:ce.possibleEmbeddingTypes(g)»
+			«FOR em:containedTypes»
 				«IF !em.isIsAbstract»
 					«IF em.isPrime»
 						

@@ -94,7 +94,7 @@ class GraphModelPropertyGenerator extends Generatable {
 		    public void setmessageType(final String messageType) {
 		        this.messageType = messageType;
 		    }
-			«FOR g:gc.graphMopdels»
+			«FOR g:gc.graphMopdels.filter[!isAbstract]»
 				
 				public static GraphModelProperty fromEntity(final «g.entityFQN» entity) {
 				

@@ -1,6 +1,6 @@
 package org.eclipse.emf.ecore;
 
-public interface EObject extends graphmodel.IdentifiableElement // TODO: SAMI: or PyroElement?
+public interface EObject extends graphmodel.IdentifiableElement
 {
   EObject eContainer();
   String getId();

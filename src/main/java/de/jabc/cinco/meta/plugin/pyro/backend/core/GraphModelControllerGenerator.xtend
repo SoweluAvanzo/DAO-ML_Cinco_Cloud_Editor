@@ -26,7 +26,7 @@ class GraphModelControllerGenerator extends Generatable {
 		import java.util.Arrays;
 		import java.util.HashMap;
 		import javax.ws.rs.core.SecurityContext;
-		«FOR gm:gc.graphMopdels»
+		«FOR gm:gc.graphMopdels.filter[!isAbstract]»
 			import «gm.controllerFQN»;
 		«ENDFOR»
 		
@@ -42,7 +42,7 @@ class GraphModelControllerGenerator extends Generatable {
 		
 		    @javax.inject.Inject
 		    GraphModelWebSocket graphModelWebSocket;
-			«FOR gm:gc.graphMopdels»
+			«FOR gm:gc.graphMopdels.filter[!isAbstract]»
 				
 				@javax.inject.Inject
 				«gm.controllerName» «gm.name.lowEscapeJava»Controller;
@@ -64,7 +64,7 @@ class GraphModelControllerGenerator extends Generatable {
 		        
 				HashMap<String, String> extensions = new HashMap<>();
 				// <graphModelName, graphModelFileExtension>
-				«FOR g:gc.graphMopdels»
+				«FOR g:gc.graphMopdels.filter[!isAbstract]»
 					extensions.put("«g.name.escapeDart»", "«g.fileExtension»");
 				«ENDFOR»
 
@@ -77,7 +77,7 @@ class GraphModelControllerGenerator extends Generatable {
 		    public Response updateGraphModel(@javax.ws.rs.core.Context SecurityContext securityContext, info.scce.pyro.core.graphmodel.GraphModel graphModel) {
 		        final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
 		        //find graphmodel
-		        «FOR g:gc.graphMopdels»
+		        «FOR g:gc.graphMopdels.filter[!isAbstract]»
 		        {
 		            final Optional<«g.entityFQN»> opt = «g.entityFQN».findByIdOptional(graphModel.getId());
 		            if(opt.isPresent()) {

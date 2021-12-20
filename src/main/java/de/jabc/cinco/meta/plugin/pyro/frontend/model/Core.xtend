@@ -59,7 +59,41 @@ class Core extends Generatable {
 		  
 		  String $label();
 		  
+		}
+		
+		abstract class UserDefinedType implements IdentifiableElement{
+		  int id;
+		  bool $isDirty;
+		  List<ModelElement> modelElements;
+		
+		  List<IdentifiableElement> allElements()
+		  {
+		  	List<IdentifiableElement> list = new List();
+		  	list.add(this);
+		  	list.addAll(modelElements.expand((n) => n.allElements()));
+		  	list.sort((a,b) => a.id.compareTo(b.id));
+		  	return list;
+		  }
 		  
+		  void addElement(IdentifiableElement e)
+		  {
+		    var existing = null;
+		    for(var m in modelElements) {
+		      if(m.id == e.id) {
+		        existing = m;
+		        break;
+		      }
+		    }
+		    if(existing==null) {
+		      modelElements.add(e);
+		    }
+		  }
+		  
+		  void addAllElements(List<IdentifiableElement> elementList) {
+		  	for(var e in elementList) {
+		  		addElement(e);
+		  	}
+		  }
 		}
 		
 		abstract class ModelElementContainer implements IdentifiableElement{
@@ -68,10 +102,31 @@ class Core extends Generatable {
 		
 		  List<IdentifiableElement> allElements()
 		  {
-		      List<IdentifiableElement> list = new List();
-		      list.add(this);
-		      list.addAll(modelElements.expand((n) => n.allElements()));
-		      return list;
+		  	List<IdentifiableElement> list = new List();
+		  	list.add(this);
+		  	list.addAll(modelElements.expand((n) => n.allElements()));
+		  	list.sort((a,b) => a.id.compareTo(b.id));
+		  	return list;
+		  }
+		  
+		  void addElement(IdentifiableElement e)
+		  {
+			var existing = null;
+			for(var m in modelElements) {
+			  if(m.id == e.id) {
+			    existing = m;
+			    break;
+			  }
+			}
+			if(existing==null) {
+			  modelElements.add(e);
+			}
+		  }
+		  
+		  void addAllElements(List<IdentifiableElement> elementList) {
+		  	for(var e in elementList) {
+		  		addElement(e);
+		  	}
 		  }
 		  
 		  GraphModel getRootElememt();
@@ -108,6 +163,26 @@ class Core extends Generatable {
 		
 		  @override
 		  GraphModel getRootElememt() => container.getRootElememt();
+		  
+		  void addElement(IdentifiableElement e)
+		  {
+			var existing = null;
+			for(var m in modelElements) {
+			  if(m.id == e.id) {
+			    existing = m;
+			    break;
+			  }
+			}
+			if(existing==null) {
+			  modelElements.add(e);
+			}
+		  }
+		  
+		  void addAllElements(List<IdentifiableElement> elementList) {
+		  	for(var e in elementList) {
+		  		addElement(e);
+		  	}
+		  }
 		}
 		
 		abstract class Edge implements ModelElement {
@@ -134,7 +209,14 @@ class Core extends Generatable {
 		  String connector;
 		  List<ModelElement> modelElements;
 		  GlobalGraphModelSettings globalGraphModelSettings;
-		
+		  
+		  @override
+		  GraphModel getRootElememt() => this;
+		  
+		  String $lower_type();
+		  
+		  String $displayName();
+		  
 		  void mergeStructure(PyroFile ie)
 		  {
 		  	var gm = ie as GraphModel;
@@ -146,13 +228,26 @@ class Core extends Generatable {
 		    connector = gm.connector;
 		    isPublic = gm.isPublic;
 		  }
-		
-		  @override
-		  GraphModel getRootElememt() => this;
 		  
-		  String $lower_type();
+		  void addElement(IdentifiableElement e)
+		  {
+			var existing = null;
+			for(var m in modelElements) {
+			  if(m.id == e.id) {
+			    existing = m;
+			    break;
+			  }
+			}
+			if(existing==null) {
+			  modelElements.add(e);
+			}
+		  }
 		  
-		  String $displayName();
+		  void addAllElements(List<IdentifiableElement> elementList) {
+		  	for(var e in elementList) {
+		  		addElement(e);
+		  	}
+		  }
 		}
 		
 		class BendingPoint implements PyroElement{

@@ -1368,7 +1368,7 @@ function constraint_element_view(g,highlight_valid_targets,highlight_valid_conta
 
 
 function update_element_internal(cellId,id,styleAgs,information,label,graph){
-    if(cellId!=null){
+    if(id<0){ // id over cellId
         var element = graph.getCell(cellId);
         element.attributes.attrs.id = id;
         element.attributes.attrs.styleArgs = styleAgs;
@@ -1571,10 +1571,23 @@ function move_node_internal(x,y,id,containerId,graph)
 function remove_node_internal(id,graph,paper)
 {
     var node = findElementById(id,graph);
-    paper.findViewByModel(node).removeCheckMessages();
-    paper.findViewByModel(node).removeInformationMessages();
-    node.remove({disconnectLinks:true});
+    remove_element(node, paper);
+}
 
+function remove_element(elem, paper) {
+    try{
+        paper.findViewByModel(elem).removeCheckMessages();
+    } catch(e) {}
+    try{
+        paper.findViewByModel(elem).removeInformationMessages();
+    } catch(e) {}
+    try{
+        elem.remove({disconnectLinks:true});
+    } catch(e) {
+        try{
+            edge.remove();
+        } catch(e) {}
+    }
 }
 
 function resize_node_internal(width,height,direction,id,graph,paper)

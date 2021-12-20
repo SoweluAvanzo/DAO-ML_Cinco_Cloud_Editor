@@ -19,7 +19,7 @@ class PaletteComponent extends Generatable {
 	«FOR g:gc.mglModels»
 		import 'package:«gc.projectName.escapeDart»/«g.modelFilePath»' as «g.name.lowEscapeDart»;
 	«ENDFOR»
-	«FOR g:gc.graphMopdels»
+	«FOR g:gc.concreteGraphModels»
 		import 'package:«gc.projectName.escapeDart»/«g.paletteBuilderPath»';
 	«ENDFOR»
 	
@@ -58,7 +58,7 @@ class PaletteComponent extends Generatable {
 	  void buildList() {
 	  	if(currentGraphModel!=null)
 	  	{
-	  		«FOR g:gc.graphMopdels SEPARATOR " else "
+	  		«FOR g:gc.concreteGraphModels SEPARATOR " else "
 	  		»if(is«g.name.fuEscapeDart»(currentGraphModel)) {
 	  			map = «g.name.fuEscapeDart»PaletteBuilder.build(currentGraphModel);
 	  			//canEdit = GraphModelPermissionUtils.canUpdate("«g.name.toUnderScoreCase»", permissionVectors);
@@ -70,7 +70,7 @@ class PaletteComponent extends Generatable {
 	    }
 	  }
 	  
-	  «FOR g:gc.graphMopdels»
+	  «FOR g:gc.concreteGraphModels»
 	  	/// check graph model type
 	  	bool is«g.name.fuEscapeDart»(GraphModel graph) {
 	  		return graph.$type()=='«g.typeName»';

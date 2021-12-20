@@ -11,7 +11,7 @@ class PaletteBuilder extends Generatable {
 		super(gc)
 	}
 	
-	def fileNamePaletteBuilder() '''«paletteBuilderFile»'''
+	def fileNamePaletteBuilder(GraphModel g) '''«g.paletteBuilderFile»'''
 	
 	def contentPaletteBuilder(GraphModel g) '''
 	

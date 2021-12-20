@@ -13,6 +13,7 @@ import mgl.NodeContainer
 import style.NodeStyle
 import style.Styles
 import mgl.MGLModel
+import mgl.Edge
 
 class GraphModelController extends Generatable {
 	
@@ -28,10 +29,7 @@ class GraphModelController extends Generatable {
 		val modelPackage = g.modelPackage as MGLModel
 		val hasAppearanceProviders = g.hasAppearanceProvider(styles) 
 		val hasChecks = g.hasChecks
-		val primeModels = g.importedPrimeTypes.map[n|n.type]
-			.filter(ModelElement) 	// all primeReferenced elements
-			.map[n|n.graphModels] 	// graphModels of primeReferenced elements
-			.flatten				// as list
+		val primeModels = g.resolveAllPrimeReferencedGraphModels
 			.filter[gr|!gr.equals(g)] // except this one
 			.groupBy[name].entrySet.map[value.get(0)];
 	'''
@@ -154,9 +152,7 @@ class GraphModelController extends Generatable {
 				String primeGraphModelId = null;
 				String primeElementlId = null;
 				
-				«val primeReferences = g.nodes.filter[prime].filter[hasJumpToAnnotation].filter[
-					it.primeReference.type instanceof ModelElement
-				]»
+				«val primeReferences = g.primeReferencedElements.filter[hasJumpToAnnotation].filter(Node)»
 				«FOR n:primeReferences SEPARATOR " else "
 				»if(node instanceof «n.entityFQN») {
 					«{
@@ -174,7 +170,7 @@ class GraphModelController extends Generatable {
 									primeGraphModelId = mec.getId();
 								«ENDIF»
 								graphModelType = «typeRegistryName».getName(mec);
-								elementType = «typeRegistryName».getName(primeNode); «/* TODO: implement TypeRegistry.getName(apiNode) */»
+								elementType = «typeRegistryName».getName(primeNode);
 							}
 						'''
 					}»
@@ -690,8 +686,8 @@ class GraphModelController extends Generatable {
 		    «g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 		    info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
 		    «g.apiFactory».eINSTANCE.warmup(executer);
-			
 			«IF g.hasPreSave»
+				
 				{
 					«g.apiImplFQN» element = new «g.apiImplFQN»(graph,executer);
 					«g.getPreChange» hook = new «g.getPreChange»();
@@ -701,13 +697,13 @@ class GraphModelController extends Generatable {
 	        «ENDIF»
 	        
 	        String type = pm.getDelegate().get__type();
-			«FOR e:g.elements.filter[!isIsAbstract] + #[g] SEPARATOR " else "»
-				if (type.equals("«e.typeName»")){
+			«FOR e:g.elementsAndTypesAndGraphModels.filter[!isIsAbstract] SEPARATOR " else "
+			»if (type.equals("«e.typeName»")){
 					«e.entityFQN» target = «e.entityFQN».findById(pm.getDelegate().getId());
-					«e.apiFQN» targetAPI = new «e.apiImplFQN»(target,executer);
-					executer.update«e.name.escapeJava»(targetAPI, («e.restFQN») pm.getDelegate());
-				}
-			«ENDFOR»
+					«e.apiFQN» targetAPI = new «e.apiImplFQN»(target,executer«IF e.isType»,null,null«ENDIF»);
+					executer.update«e.name.escapeJava»(«IF !e.isType»targetAPI, «ENDIF»(«e.restFQN») pm.getDelegate());
+			}«
+			ENDFOR»
 		    CompoundCommandMessage response = new CompoundCommandMessage();
 			response.setType("basic_valid_answer");
 			CompoundCommand cc = new CompoundCommand();
@@ -746,7 +742,7 @@ class GraphModelController extends Generatable {
 		}
 		
 		private void createNode(String type,Object mec, long x, long y, Long primeId, «g.commandExecuter» executer,SecurityContext securityContext) {
-			«FOR node:g.nodesTopologically.filter(NodeContainer).filter[!isIsAbstract] + #[g] SEPARATOR " else "
+			«FOR node:g.nodes.filter(NodeContainer).filter[!isIsAbstract] + #[g] SEPARATOR " else "
 			»if(mec instanceof «node.apiFQN») {
 				«node.apiFQN» n = («node.apiFQN») mec;
 				«FOR n:node.possibleEmbeddingTypes(g).filter[!isIsAbstract] SEPARATOR " else "»
@@ -786,7 +782,7 @@ class GraphModelController extends Generatable {
 		private graphmodel.Edge createEdge(String type, graphmodel.Node source, graphmodel.Node target, java.util.List<info.scce.pyro.core.graphmodel.BendingPoint> positions, «g.commandExecuter» executer) {
 			graphmodel.Edge edge = null;
 			
-			«FOR source:g.nodesTopologically.filter[!isIsAbstract].filter[!possibleOutgoing.empty] SEPARATOR " else "
+			«FOR source:g.nodes.filter[!isIsAbstract].filter[!possibleOutgoing.empty] SEPARATOR " else "
 			»if(source instanceof «source.apiFQN») {
 				«FOR edge:source.possibleOutgoing.filter[!isIsAbstract] SEPARATOR " else "»
 					if(type.equals("«edge.typeName»")) {
@@ -836,7 +832,7 @@ class GraphModelController extends Generatable {
 						// creating node
 						if(isReOrUndo) {
 							if(cm.getDelegateId()!=0){
-								«FOR e:g.nodesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+								«FOR e:g.nodes.filter[!isIsAbstract] SEPARATOR " else "
 								»if(c.getType().equals("«e.typeName»")) {
 									n = executer.create«e.name.escapeJava»(
 										cm.getX(),
@@ -851,7 +847,7 @@ class GraphModelController extends Generatable {
 								}«
 								ENDFOR»
 							} else {
-								«FOR e:g.nodesTopologically.filter[!isIsAbstract] SEPARATOR " else "
+								«FOR e:g.nodes.filter[!isIsAbstract] SEPARATOR " else "
 								»if(c.getType().equals("«e.typeName»")) {
 									executer.create«e.name.escapeJava»(
 										cm.getX(),
@@ -1008,7 +1004,9 @@ class GraphModelController extends Generatable {
 						«FOR e:g.elementsAndGraphmodels.filter[!isIsAbstract] SEPARATOR " else " 
 						»if(ce instanceof «e.apiFQN») {
 							executer.update«e.name.fuEscapeJava»(
-								(«e.apiFQN») ce,
+								«IF !e.isType»
+									(«e.apiFQN») ce,
+								«ENDIF»
 								(«e.restFQN») cm.getElement()
 							);
 						}«

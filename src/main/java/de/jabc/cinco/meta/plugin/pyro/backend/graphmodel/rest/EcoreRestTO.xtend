@@ -239,7 +239,7 @@ class EcoreRestTO extends Generatable{
 				public static «p.name.fuEscapeJava» fromEntity(final «dbTypeName» dbEntity, info.scce.pyro.rest.ObjectCache objectCache) {
 					«IF p.isAbstract»
 						«{
-							var types = pack.resolveSubTypesAndType
+							var types = p.resolveSubTypesAndType
 							'''
 								«FOR type:types SEPARATOR " else "
 								»if(dbEntity instanceof «type.entityFQN») {

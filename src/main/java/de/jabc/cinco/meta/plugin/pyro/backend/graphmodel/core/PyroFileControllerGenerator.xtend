@@ -55,7 +55,7 @@ class PyroFileControllerGenerator extends Generatable {
 		    FileController fileController;
 		
 
-			«FOR g:gc.mglModels.map[graphModels].flatten»
+			«FOR g:gc.mglModels.map[graphModels].flatten.filter[!isAbstract]»
 				
 				@javax.ws.rs.GET
 				@javax.ws.rs.Path("export/«g.fileExtension.lowEscapeJava»/{id}")
@@ -87,9 +87,7 @@ class PyroFileControllerGenerator extends Generatable {
 					        .header("Content-Disposition", "attachment; filename=" + graph.filename + "." + graph.extension)
 					        .build();
 				}
-			    		«ENDFOR»
-			
-		    
+			«ENDFOR»
 			
 			public void checkPermission(SecurityContext securityContext) {
 				graphModelController.checkPermission(securityContext);

@@ -150,7 +150,6 @@ class GraphmodelTree extends Generatable {
 		«FOR attr:gme.attributesExtended.filter[!isPrimitive].filter[!isModelElement].filter[list]»
 			«val subTypes = (attr as ComplexAttribute).getType().resolveSubTypesAndType»
 			class «gme.name.fuEscapeJava»«attr.name.fuEscapeDart»TreeListNode extends TreeNode {
-				List<«attr.dartFQN»> delegate;
 				String name;
 							
 				«gme.name.fuEscapeJava»«attr.name.fuEscapeDart»TreeListNode(
@@ -259,6 +258,7 @@ class GraphmodelTree extends Generatable {
 		import 'package:«gc.projectName.escapeDart»/src/model/core.dart';
 		import 'package:«gc.projectName.escapeDart»/src/model/tree_view.dart';
 		
+		«val relatedElements = (g.elements + #[g]).toSet»
 		class «g.name.fuEscapeDart»TreeBuilder
 		{
 			Tree getTree(IdentifiableElement element)
@@ -268,22 +268,10 @@ class GraphmodelTree extends Generatable {
 				//for every type
 				if(element!=null) {
 					//instanceofs
-					if(element.$type() == "«g.typeName»"){
-						tree.root = new «g.name.fuEscapeDart»TreeNode(element,element);
-					}
-					«val elements = g.elements.toList»
-					«FOR elem : elements»
-						«IF elem.isIsAbstract»
-							«FOR subType:elem.name.subTypes(g).filter[!elements.contains(it)]»
-								if(element.$type() == '«subType.typeName»'){
-									tree.root = new «subType.name.fuEscapeDart»TreeNode(element,element);
-								}
-							«ENDFOR»
-						«ELSE»
-							if(element.$type() == '«elem.typeName»'){
-								tree.root = new «elem.name.fuEscapeDart»TreeNode(element,element);
-							}
-						«ENDIF»
+					«FOR elem : relatedElements.filter[!isAbstract]»
+						if(element.$type() == '«elem.typeName»'){
+							tree.root = new «elem.name.fuEscapeDart»TreeNode(element,element);
+						}
 					«ENDFOR»
 				}
 				return tree;
@@ -291,10 +279,6 @@ class GraphmodelTree extends Generatable {
 		}
 		
 		/// node, edge, container, graphmodel type
-		«g.elementProperties(g)»
-		
-		«g.elements.filter[!it.isIsAbstract].map[elementProperties(g)].join("\n")»
-		
-		«g.MGLModel.types.filter(UserDefinedType).filter[!it.abstractType].map[elementProperties(g)].join("\n")»
+		«relatedElements.filter[!it.isIsAbstract].map[elementProperties(g)].join("\n")»
 	'''
 }

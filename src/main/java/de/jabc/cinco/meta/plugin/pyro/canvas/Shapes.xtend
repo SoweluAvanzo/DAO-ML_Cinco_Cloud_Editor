@@ -740,9 +740,9 @@ class Shapes extends Generatable {
 	'''
 	«modelPackage.shapeFQN» = {};
 	
-	«modelPackage.nodesTopologically.filter[!isIsAbstract].map[createNode(styles)].join("\n")»
+	«modelPackage.nodes.filter[!isIsAbstract].map[createNode(styles)].join("\n")»
 	
-	«modelPackage.edgesTopologically.filter[!isIsAbstract].map[createEdge(styles)].join("\n")»
+	«modelPackage.edges.filter[!isIsAbstract].map[createEdge(styles)].join("\n")»
 	
 	'''
 }
