@@ -14,7 +14,6 @@ import mgl.GraphicalModelElement
 import mgl.MGLModel
 import mgl.ModelElement
 import mgl.Node
-import mgl.NodeContainer
 import mgl.UserDefinedType
 import style.AbstractShape
 import style.BooleanEnum
@@ -37,7 +36,7 @@ class GraphModelCommandExecuter extends Generatable {
 	
 	def content(GraphModel g,Styles styles) {
 		val modelPackage = g.modelPackage as MGLModel
-		val primeReferencedModels = g.getPrimeReferencedGraphModels
+		val primeReferencedModels = g.resolveAllPrimeReferencedGraphModels
 		
 		'''
 			package info.scce.pyro.core.command;
@@ -91,10 +90,10 @@ class GraphModelCommandExecuter extends Generatable {
 				}
 				
 				public void remove«g.name.escapeJava»(«g.apiFQN» entity){
-					//for complex props
+					// for complex props
 					entity.delete();
 				}
-				«FOR e:g.nodesTopologically.filter[!isIsAbstract]»
+				«FOR e:g.nodes.filter[!isIsAbstract]»
 					
 					public «e.apiFQN» create«e.name.escapeJava»(long x, long y, long width, long height, ModelElementContainer mec, «e.restFQN» prev«IF e.prime»,long primeId«ENDIF»){
 						«e.entityFQN» node = new «e.entityFQN»();
@@ -215,7 +214,7 @@ class GraphModelCommandExecuter extends Generatable {
 						);
 					}
 				«ENDFOR»
-				«FOR e:g.edgesTopologically.filter[!isIsAbstract]»
+				«FOR e:g.edges.filter[!isAbstract]»
 					
 					public «e.apiFQN» create«e.name.escapeJava»(Node source, Node target, java.util.List<BendingPoint> positions, «e.restFQN» prev){
 						«e.entityFQN» edge = new «e.entityFQN»();
@@ -280,39 +279,56 @@ class GraphModelCommandExecuter extends Generatable {
 					public void set«e.name.fuEscapeJava»Container(«e.entityFQN» edge, «dbTypeName» container) {
 						«{
 							val possibleContainer = e.resolvePossibleContainer + #[g]
-							'''
-								«FOR container:possibleContainer SEPARATOR " else "
-								»if(container instanceof «container.entityFQN») {
-									«container.entityFQN» containerDB = («container.entityFQN») container;
-									containerDB.addModelElements(edge);
-									edge.setContainer(container);
-									container.persist();
-								}«
-								ENDFOR»
-							'''
+							
+							'''container'''.typeInstanceSwitchTemplate(
+								possibleContainer,
+								[container|
+									'''
+										«container.entityFQN» containerDB = («container.entityFQN») container;
+										containerDB.addModelElements(edge);
+										edge.setContainer(container);
+										container.persist();
+									'''
+								],
+								[type|'''«type.entityFQN»''']
+							)
 						}»
 					}
 					
 					public void set«e.name.fuEscapeJava»DBSource(«e.entityFQN» edge, Node source) {
-						«FOR source:e.resolvePossibleSources SEPARATOR " else "
-						»if(source instanceof «source.apiFQN») {
-							«source.entityFQN» o = («source.entityFQN») ((«source.apiFQN») source).getDelegate();
-							edge.setSource(o);
-							o.addOutgoing(edge);
-							o.persist();
-						}«
-						ENDFOR»
+						«{
+							val possibleTypes = e.resolvePossibleSources.filter(ModelElement)
+							'''source'''.typeInstanceSwitchTemplate(
+								possibleTypes,
+								[type|
+									'''
+										«type.entityFQN» o = («type.entityFQN») ((«type.apiFQN») source).getDelegate();
+										edge.setSource(o);
+										o.addOutgoing(edge);
+										o.persist();
+									'''
+								],
+								[type|'''«type.apiFQN»''']
+							)
+						}»
 					}
 					
 					public void set«e.name.fuEscapeJava»DBTarget(«e.entityFQN» edge, Node target) {
-						«FOR target:e.resolvePossibleTargets SEPARATOR " else "
-						»if(target instanceof «target.apiFQN») {
-							«target.entityFQN» o = («target.entityFQN») ((«target.apiFQN») target).getDelegate();
-							edge.setTarget(o);
-							o.addIncoming(edge);
-							o.persist();
-						}«
-						ENDFOR»
+						«{
+							val possibleTypes = e.resolvePossibleTargets.filter(ModelElement)
+							'''target'''.typeInstanceSwitchTemplate(
+								possibleTypes,
+								[type|
+									'''
+										«type.entityFQN» o = («type.entityFQN») ((«type.apiFQN») target).getDelegate();
+										edge.setTarget(o);
+										o.addIncoming(edge);
+										o.persist();
+									'''
+								],
+								[type|'''«type.apiFQN»''']
+							)
+						}»
 					}
 				«ENDFOR»
 		
@@ -321,33 +337,46 @@ class GraphModelCommandExecuter extends Generatable {
 			    	«dbTypeName» e = TypeRegistry.getApiToDB(graphModel);
 			    	
 			    	// switch edge types
-			    	«FOR e:g.edgesTopologically.filter[!isIsAbstract] SEPARATOR " else "
-			    	»if(edge instanceof «e.entityFQN») {
-			    		«e.entityFQN» edgeDB = («e.entityFQN») edge;
-			    		set«e.name.escapeJava»DBSource(edgeDB, source);
-			    		set«e.name.escapeJava»DBTarget(edgeDB, target);
-			    		set«e.name.fuEscapeJava»Container(edgeDB, e);
-			    		bendingPoints.forEach( p -> {
-			    			entity.core.BendingPointDB bp = new entity.core.BendingPointDB();
-			    			bp.x = p.getx();
-			    			bp.y = p.gety();
-			    			bp.persist();
-			    			edgeDB.bendingPoints.add(bp);
-			    		});
-			    	}«
-			    	ENDFOR»
+			    	«{
+						val possibleTypes = g.edges.filter[!isIsAbstract].filter(ModelElement)
+						'''edge'''.typeInstanceSwitchTemplate(
+							possibleTypes,
+							[e|
+								'''
+									«e.entityFQN» edgeDB = («e.entityFQN») edge;
+									set«e.name.escapeJava»DBSource(edgeDB, source);
+									set«e.name.escapeJava»DBTarget(edgeDB, target);
+									set«e.name.fuEscapeJava»Container(edgeDB, e);
+									bendingPoints.forEach( p -> {
+										entity.core.BendingPointDB bp = new entity.core.BendingPointDB();
+										bp.x = p.getx();
+										bp.y = p.gety();
+										bp.persist();
+										edgeDB.bendingPoints.add(bp);
+									});
+								'''
+							],
+							[type|'''«type.entityFQN»''']
+						)
+					}»
 			    }
 			    
 			    public void updateIdentifiableElement(IdentifiableElement entity, info.scce.pyro.core.graphmodel.IdentifiableElement prev) {
-				    «FOR e:g.elements.filter[!isIsAbstract]+#[g]»
-				    	if(entity instanceof «e.apiFQN») {
-				    		update«e.name.fuEscapeJava»Properties((«e.apiFQN») entity,(«e.restFQN»)prev);
-				    		return;
-				    	}
-				    «ENDFOR»
+			    	«{
+						val possibleTypes = g.elementsAndTypesAndGraphModels.filter[!isAbstract]
+						'''entity'''.typeInstanceSwitchTemplate(
+							possibleTypes,
+							[e|
+								'''
+									«IF e instanceof GraphModel && !e.equals(g)»this.get«e.commandExecuter»().«ENDIF»update«e.name.fuEscapeJava»Properties((«e.apiFQN») entity, («e.restFQN») prev);
+								'''
+							],
+							[type|'''«type.apiFQN»''']
+						)
+					}»
 			    }
-		
-				«FOR e:g.elements.filter[!isIsAbstract]+#[g]»
+				«FOR e:g.elementsAndTypesAndGraphModels.filter[!isAbstract]»
+					
 					public void update«e.name.fuEscapeJava»Properties(«e.apiFQN» entity, «e.restFQN» prev) {
 						super.updatePropertiesReNew(
 							TypeRegistry.getTypeOf(entity),
@@ -358,20 +387,27 @@ class GraphModelCommandExecuter extends Generatable {
 							prev
 						);
 					}
-					
 				«ENDFOR»
+				
 				//FOR NODE EDGE GRAPHMODEL TYPE
-				«FOR e:g.elementsAndTypesAndGraphModels»
+				«FOR e:g.elementsAndTypesAndGraphModels»«val subTypes = e.resolveSubTypesAndType.filter[!isAbstract].filter[!(it.equals(e))].toSet»
+					// update method for type «e.typeName»
 					«IF !e.isType»
 						public «e.apiFQN» update«e.name.fuEscapeJava»(«e.restFQN» update){
 							«{
-								val superTypes = e.resolveConcreteSuperTypes
 								'''
-									«IF !superTypes.empty»
+									«IF !subTypes.empty»
 										// handle subTypes
-										«FOR superType:superTypes SEPARATOR " else "
-										»if(update.get__type().equals("«superType.typeName»")) {
-											return («e.apiFQN») update«superType.name.fuEscapeJava»((«superType.restFQN») update);
+										«FOR subType:subTypes SEPARATOR " else "
+										»if(update.get__type().equals("«subType.typeName»")) {
+											«IF subType instanceof GraphModel»
+												// handling of graphModel-subType will be delegated to
+												// graphModels CommandExecuter's update-method
+												return («e.apiFQN») this.get«subType.commandExecuter»()
+													.update«subType.name.fuEscapeJava»((«subType.restFQN») update);
+											«ELSE»
+												return («e.apiFQN») update«subType.name.fuEscapeJava»((«subType.restFQN») update);
+											«ENDIF»
 										}«
 										ENDFOR»
 										
@@ -391,13 +427,19 @@ class GraphModelCommandExecuter extends Generatable {
 					«ENDIF»
 					public «e.apiFQN» update«e.name.fuEscapeJava»(«IF !e.isType»«e.apiFQN» apiEntity, «ENDIF»«e.restFQN» update){
 						«{
-							val superTypes = e.resolveConcreteSuperTypes
 							'''
-								«IF !superTypes.empty»
+								«IF !subTypes.empty»
 									// handle subTypes
-									«FOR superType:superTypes SEPARATOR " else "
-									»if(update.get__type().equals("«superType.typeName»")) {
-										return («e.apiFQN») update«superType.name.fuEscapeJava»(«IF !e.isType»(«superType.apiFQN») apiEntity, «ENDIF»(«superType.restFQN») update, true);
+									«FOR subType:subTypes SEPARATOR " else "
+									»if(update.get__type().equals("«subType.typeName»")) {
+										«IF subType instanceof GraphModel»
+											// handling of graphModel-subType will be delegated to
+											// graphModels CommandExecuter's update-method
+											return («e.apiFQN») this.get«subType.commandExecuter»()
+												.update«subType.name.fuEscapeJava»(«IF !e.isType»(«subType.apiFQN») apiEntity, «ENDIF»(«subType.restFQN») update, true);
+										«ELSE»
+											return («e.apiFQN») update«subType.name.fuEscapeJava»(«IF !e.isType»(«subType.apiFQN») apiEntity, «ENDIF»(«subType.restFQN») update, true);
+										«ENDIF»
 									}«
 									ENDFOR»
 									
@@ -415,13 +457,19 @@ class GraphModelCommandExecuter extends Generatable {
 					«IF !e.isAbstract»
 						public «e.apiFQN» update«e.name.fuEscapeJava»(«IF !e.isType»«e.apiFQN» apiEntity, «ENDIF»«e.restFQN» update, boolean propagate){
 							«{
-								val superTypes = e.resolveConcreteSuperTypes
 								'''
-									«IF !superTypes.empty»
+									«IF !subTypes.empty»
 										// handle subTypes
-										«FOR superType:superTypes SEPARATOR " else "
-										»if(update.get__type().equals("«superType.typeName»")) {
-											return («e.apiFQN») update«superType.name.fuEscapeJava»(«IF !e.isType»(«superType.apiFQN») apiEntity, «ENDIF»(«superType.restFQN») update, propagate);
+										«FOR subType:subTypes SEPARATOR " else "
+										»if(update.get__type().equals("«subType.typeName»")) {
+											«IF subType instanceof GraphModel»
+												// handling of graphModel-subType will be delegated to
+												// graphModels CommandExecuter's update-method
+												return («e.apiFQN») this.get«subType.commandExecuter»()
+													.update«subType.name.fuEscapeJava»(«IF !e.isType»(«subType.apiFQN») apiEntity, «ENDIF»(«subType.restFQN») update, propagate);
+											«ELSE»
+												return («e.apiFQN») update«subType.name.fuEscapeJava»(«IF !e.isType»(«subType.apiFQN») apiEntity, «ENDIF»(«subType.restFQN») update, propagate);
+											«ENDIF»
 										}«
 										ENDFOR»
 										
@@ -432,6 +480,11 @@ class GraphModelCommandExecuter extends Generatable {
 							«IF e.isType»
 								«e.apiFQN» apiEntity = null;
 								«e.entityFQN» dbEntity = «e.entityFQN».findById(update.getId());
+								«e.restFQN» prev = «e.restFQN».fromEntityProperties(
+									dbEntity,
+									new info.scce.pyro.rest.ObjectCache()
+								);
+								
 								if(dbEntity == null) {
 									// create new entity, if not existent (only for UserDefinedTypes)
 									dbEntity = new «e.entityFQN»();
@@ -444,11 +497,11 @@ class GraphModelCommandExecuter extends Generatable {
 								}
 							«ELSE»
 								«e.entityFQN» dbEntity = («e.entityFQN») apiEntity.getDelegate();
+								«e.restFQN» prev = «e.restFQN».fromEntityProperties(
+									dbEntity,
+									new info.scce.pyro.rest.ObjectCache()
+								);
 							«ENDIF»
-							«e.restFQN» prev = «e.restFQN».fromEntityProperties(
-								dbEntity,
-								new info.scce.pyro.rest.ObjectCache()
-							);
 							
 							«IF e.isType»
 								«'''dbEntity'''.setDefault(e,false)»
@@ -456,13 +509,13 @@ class GraphModelCommandExecuter extends Generatable {
 						
 							//for primitive prop
 							«FOR attr:e.attributesExtended.filter[isPrimitive]»
-								«IF attr.type.getEnum(modelPackage) !== null»
+								«IF attr.attributeTypeName.getEnum(modelPackage) !== null»
 									//for enums
 									«IF attr.list»
 										if(update.get«attr.name.escapeJava»() != null) {
 											java.util.List<«attr.entityFQN»> newList = update.get«attr.name.escapeJava»().stream().map( n -> {
 												«{
-													val en = attr.type.getEnum(modelPackage)
+													val en = attr.attributeTypeName.getEnum(modelPackage)
 													'''
 														switch (n.getliteral()){
 															«en.literals.map[
@@ -488,7 +541,7 @@ class GraphModelCommandExecuter extends Generatable {
 											update.get«attr.name.escapeJava»() != null
 										) {
 											«{
-												val en = attr.type.getEnum(modelPackage) '''
+												val en = attr.attributeTypeName.getEnum(modelPackage) '''
 												String e = update.get«attr.name.escapeJava»().getliteral();
 												«attr.entityFQN» newValue = null;
 												switch (e){
@@ -512,7 +565,7 @@ class GraphModelCommandExecuter extends Generatable {
 										«IF attr.isList»
 											isDifferent(dbEntity.«attr.name.escapeJava», update.get«attr.name.escapeJava»())
 										«ELSE»
-											«IF attr.type == "EString"»
+											«IF attr.attributeTypeName == "EString"»
 												dbEntity.«attr.name.escapeJava» != null &&
 												!dbEntity.«attr.name.escapeJava».equals(update.get«attr.name.escapeJava»())
 												||
@@ -529,13 +582,15 @@ class GraphModelCommandExecuter extends Generatable {
 								«ENDIF»
 							«ENDFOR»
 							
-							//for complex prop
+							// for complex prop
 							«FOR attr:e.attributesExtended.filter[!isPrimitive]»
+								«val attributeType = (attr as ComplexAttribute).type»
+								«val attributeTypeName = attributeType.name.fuEscapeJava»
 								«IF attr.list»
 									{
 										// list
 										java.util.List<«attr.apiFQN»> newList = update.get«attr.name.escapeJava»().stream()
-											.map(this::update«attr.type.fuEscapeJava»)
+											.map((n) -> n != null ? this.update«attributeTypeName»(n) : null)
 											.collect(java.util.stream.Collectors.toList());
 										
 										// check if list has changed
@@ -555,12 +610,12 @@ class GraphModelCommandExecuter extends Generatable {
 											);
 										«ELSE»
 											//update user defined type
-											«dbTypeName» new«attr.name.fuEscapeJava» = («dbTypeName») update«attr.type.fuEscapeJava»(update.get«attr.name.escapeJava»()).getDelegate();
+											«dbTypeName» new«attr.name.fuEscapeJava» = («dbTypeName») update«attributeTypeName»(update.get«attr.name.escapeJava»()).getDelegate();
 										«ENDIF»
 										
 										if(!new«attr.name.fuEscapeJava».equals(dbEntity.get«attr.name.fuEscapeJava»())) {
 											// update new value
-											dbEntity.set«attr.name.fuEscapeJava»(new«attr.name.fuEscapeJava»«IF (attr as ComplexAttribute).type instanceof UserDefinedType», true«ENDIF»);
+											dbEntity.set«attr.name.fuEscapeJava»(new«attr.name.fuEscapeJava»«IF attributeType instanceof UserDefinedType», true«ENDIF»);
 											«e.triggerPostAttributeChangedHook(attr)»
 										}
 									} else if(dbEntity.get«attr.name.fuEscapeJava»() != null) {
@@ -572,20 +627,21 @@ class GraphModelCommandExecuter extends Generatable {
 								
 							«ENDFOR»
 							
+							// persist changes
 							dbEntity.persist();
 							
-							«IF !e.isType»
-								if(propagate) {
-									super.updateProperties(
-										TypeRegistry.getTypeOf(dbEntity),
-										«e.restFQN».fromEntityProperties(
-											dbEntity,
-											new info.scce.pyro.rest.ObjectCache()
-										),
-										prev
-									);
-								}
-							«ENDIF»
+							if(propagate) {
+								// collect changes for websocket-multiuser-propagation
+								super.updateProperties(
+									TypeRegistry.getTypeOf(dbEntity),
+									«e.restFQN».fromEntityProperties(
+										dbEntity,
+										new info.scce.pyro.rest.ObjectCache()
+									),
+									prev
+								);
+							}
+							
 							return apiEntity;
 						}
 						
@@ -637,11 +693,18 @@ class GraphModelCommandExecuter extends Generatable {
 				@Override
 				public void updateAppearance() {
 					super.getAllModelElements().forEach((element)->{
-						«FOR e:g.elements.filter[!isIsAbstract].filter[hasAppearanceProvider(styles)] SEPARATOR "else "
-						»if(element instanceof «e.apiFQN») {
-							updateAppearanceProvider«e.name.escapeJava»((«e.apiFQN») element);
-						}«
-						ENDFOR»
+						«{
+							val possibleTypes = g.elements.filter[!isIsAbstract].filter[!isType].filter[hasAppearanceProvider(styles)]
+							'''element'''.typeInstanceSwitchTemplate(
+								possibleTypes,
+								[e|
+									'''
+										updateAppearanceProvider«e.name.escapeJava»((«e.apiFQN») element);
+									'''
+								],
+								[type|'''«type.apiFQN»''']
+							)
+						}»
 					});
 				}
 		
@@ -657,16 +720,23 @@ class GraphModelCommandExecuter extends Generatable {
 					
 					«IF e.isAbstract»
 						public void remove«e.name.escapeJava»(«dbTypeName» entity) {
-							«FOR t:g.elements.filter(UserDefinedType).filter[!isIsAbstract] SEPARATOR " else "
-							»if(entity instanceof «t.entityFQN») {
-								remove«t.name.escapeJava»((«t.entityFQN») entity);
-							}«
-							ENDFOR»
+							«{
+								val possibleTypes = g.elements.filter(UserDefinedType).filter[!isIsAbstract].filter(ModelElement)
+								'''entity'''.typeInstanceSwitchTemplate(
+									possibleTypes,
+									[t|
+										'''
+											remove«t.name.escapeJava»((«t.entityFQN») entity);
+										'''
+									],
+									[type|'''«type.entityFQN»''']
+								)
+							}»
 						}
 					«ELSE»
 						public void remove«e.name.escapeJava»(«e.entityFQN» entity){
 							//for enums
-							«FOR attr:e.attributes.filter[isPrimitive].filter[type.getEnum(modelPackage)!==null]»
+							«FOR attr:e.attributes.filter[isPrimitive].filter[attributeTypeName.getEnum(modelPackage)!==null]»
 								if(entity.«attr.name.escapeJava»!=null){
 									«IF attr.list»
 										entity.«attr.name.escapeJava».clear();
@@ -682,13 +752,13 @@ class GraphModelCommandExecuter extends Generatable {
 										entity.get«attr.name.fuEscapeJava»().stream()
 											.map(«attr.entityFQN».class::cast)
 											.map((n) -> («attr.apiFQN») TypeRegistry.getDBToApi(n, this))
-											.forEach(this::remove«attr.type.fuEscapeJava»);
+											.forEach(this::remove«attr.attributeTypeName.fuEscapeJava»);
 									}
 								«ELSE»
 									if(entity.get«attr.name.fuEscapeJava»() != null) {
 										«dbTypeName» cp«attr.name.escapeJava» = entity.get«attr.name.fuEscapeJava»();
-										«g.apiFQN».«attr.type.fuEscapeJava» apiEntity = («g.apiFQN».«attr.type.fuEscapeJava») TypeRegistry.getDBToApi(cp«attr.name.escapeJava», this);
-										remove«attr.type.fuEscapeJava»(apiEntity);
+										«attr.apiFQN» apiEntity = («attr.apiFQN») TypeRegistry.getDBToApi(cp«attr.name.escapeJava», this);
+										remove«attr.attributeTypeName.fuEscapeJava»(apiEntity);
 									}
 								«ENDIF»
 							«ENDFOR»
@@ -696,22 +766,32 @@ class GraphModelCommandExecuter extends Generatable {
 						}
 					«ENDIF»
 				«ENDFOR»
-				«FOR pm:primeReferencedModels»
-					«IF !pm.apiFQN.toString.equals(g.apiFQN.toString)»
-						
-						public «pm.commandExecuter» get«pm.commandExecuter»() {
-							return new «pm.commandExecuter»(
-								this.batch,
-								this.graphModelWebSocket,
-								this.highlightings,
-								this.objectCache
-							);
-						}
-					«ENDIF»
-				«ENDFOR»
+				
 				public «g.commandExecuter» get«g.commandExecuter»() {
 					return this;
 				}
+				«
+					val otherModels = (primeReferencedModels + g.resolveSubTypesAndType).filter[!(it.equals(g))].toSet
+				»
+				«IF !otherModels.empty»
+					/* 
+					 * All primeReferenced Models or concrete SubTypes have their own CommandExecuter,
+					 * that will be resolved and referenced for further handling
+					 */
+					«FOR pm: otherModels»
+						«IF !pm.apiFQN.toString.equals(g.apiFQN.toString)»
+							
+							public «pm.commandExecuter» get«pm.commandExecuter»() {
+								return new «pm.commandExecuter»(
+									this.batch,
+									this.graphModelWebSocket,
+									this.highlightings,
+									this.objectCache
+								);
+							}
+						«ENDIF»
+					«ENDFOR»
+				«ENDIF»
 				
 				public <T> boolean isDifferent(java.util.Collection<T> a, java.util.Collection<T> b) {
 					java.util.Set<?> aH = a.stream().collect(java.util.stream.Collectors.toSet());
@@ -762,10 +842,10 @@ class GraphModelCommandExecuter extends Generatable {
 			«FOR attr:t.attributesExtended.filter[isPrimitive]»
 				«IF attr.list»
 				«ELSE»
-					«IF attr.type.getEnum(t.modelPackage as MGLModel)!==null»
+					«IF attr.attributeTypeName.getEnum(t.modelPackage as MGLModel)!==null»
 						«s».«attr.name.escapeJava» = «attr.getEnumDefault(useExecuter)»;
 					«ELSE»
-						«s».«attr.name.escapeJava» = «attr.type.getPrimitiveDefault(attr)»;
+						«s».«attr.name.escapeJava» = «attr.attributeTypeName.getPrimitiveDefault(attr)»;
 					«ENDIF»
 				«ENDIF»
 			«ENDFOR»
@@ -799,7 +879,7 @@ class GraphModelCommandExecuter extends Generatable {
 	}
 	
 	def getEnumDefault(Attribute attr, boolean useExecuter)
-	'''«attr.entityFQN».«attr.type.getEnum(attr.modelPackage as MGLModel).literals.get(0).toUnderScoreCase»'''
+	'''«attr.entityFQN».«attr.attributeTypeName.getEnum(attr.modelPackage as MGLModel).literals.get(0).toUnderScoreCase»'''
 	
 	def Map<AbstractShape,CharSequence> collectMarkupCSSTags(AbstractShape shape,String prefix,int i,String ref){
 		val l = new LinkedHashMap

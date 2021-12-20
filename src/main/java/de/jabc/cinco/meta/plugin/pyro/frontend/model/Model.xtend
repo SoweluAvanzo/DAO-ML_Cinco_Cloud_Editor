@@ -281,9 +281,9 @@ class Model extends Generatable {
 					if(jsog["a_modelElements"]!=null){
 						for(var v in jsog["a_modelElements"]){
 							if(v.containsKey("@ref")){
-								this.modelElements.add(cache[v['@ref']]);
+								this.addElement(cache[v['@ref']]);
 							} else {
-							  this.modelElements.add(GraphModelDispatcher.dispatch«g.name.escapeDart»ModelElement(cache,v));
+							  this.addElement(GraphModelDispatcher.dispatch«g.name.escapeDart»ModelElement(cache,v));
 							}
 						}
 					}
@@ -305,8 +305,8 @@ class Model extends Generatable {
 						«IF attr.isPrimitive»
 							«attr.primitiveDartType(g)» value«attr.name.escapeDart»;
 							if (jsogObj != null) {
-								«IF attr.type.getEnum(g)!==null»
-									value«attr.name.escapeDart» = «attr.type.fuEscapeDart»Parser.fromJSOG(jsogObj);
+								«IF attr.attributeTypeName.getEnum(g)!==null»
+									value«attr.name.escapeDart» = «attr.attributeTypeName.fuEscapeDart»Parser.fromJSOG(jsogObj);
 								«ELSE»
 									value«attr.name.escapeDart» = jsogObj«attr.deserialize(g)»;
 								«ENDIF»
@@ -317,7 +317,7 @@ class Model extends Generatable {
 								this.«attr.name.escapeDart» = value«attr.name.escapeDart»;
 							«ENDIF»
 						«ELSE»
-							«attr.complexDartType.fuEscapeDart» value«attr.name.escapeDart»;
+							«attr.complexDartType» value«attr.name.escapeDart»;
 							String jsogId;
 							if (jsogObj.containsKey('@ref')) {
 								jsogId = jsogObj['@ref'];
@@ -328,7 +328,7 @@ class Model extends Generatable {
 								value«attr.name.escapeDart» = cache[jsogId];
 							} else {
 								if (jsogObj != null) {
-									«val subTypes = attr.type.subTypesAndType(g).toList»
+									«val subTypes = attr.attributeTypeName.subTypesAndType(g).toList»
 									«FOR subType : subTypes»										
 										«IF subType instanceof ModelElement && (subType as ModelElement).isIsAbstract»
 											«FOR subSubType : subType.name.subTypes(g).filter[!subTypes.contains(it)]»
@@ -388,7 +388,7 @@ class Model extends Generatable {
 				«FOR attr : element.attributesExtended»
 					map['«attr.name.escapeJava»']=«attr.name.escapeDart»==null?null:
 						«IF attr.isList»
-							«attr.name.escapeDart».map((n)=>«attr.serialize(g,'''n''')»).toList();
+							«attr.name.escapeDart».map((n)=>n != null ? «attr.serialize(g,'''n''')» : null).toList();
 						«ELSE»
 							«attr.serialize(g,'''«attr.name.escapeDart»''')»;
 						«ENDIF»
@@ -418,11 +418,9 @@ class Model extends Generatable {
 				return elem;
 			}
 			«FOR attr:element.attributesExtended»
-
-				«IF !attr.isPrimitive()»if(this.«attr.name.escapeDart»!=null) {«ENDIF»
-				«IF attr.list»
+				«IF !attr.isPrimitive()»if(this.«attr.name.escapeDart»!=null) {«ENDIF»«IF attr.list»
 					elem.«attr.name.escapeDart» = this.«attr.name.escapeDart».map((n){
-						«FOR sub:attr.type.subTypesAndType(g).filter(ModelElement).filter[!isAbstract] SEPARATOR " else "»
+						«FOR sub:attr.attributeTypeName.subTypesAndType(g).filter(ModelElement).filter[!isAbstract] SEPARATOR " else "»
 							if(n is «sub.dartFQN») {
 								return (n as «sub.dartFQN»).propertyCopy(root:false);
 							}
@@ -430,15 +428,12 @@ class Model extends Generatable {
 						return null;
 					}).cast<«IF attr.isPrimitive»«attr.primitiveDartType(g)»«ELSE»«attr.complexDartType»«ENDIF»>();
 				«ELSE»
-					«FOR sub:attr.type.subTypesAndType(g).filter(ModelElement).filter[!isAbstract] SEPARATOR " else "»
+					«FOR sub:attr.attributeTypeName.subTypesAndType(g).filter(ModelElement).filter[!isAbstract] SEPARATOR " else "»
 						if(this.«attr.name.escapeDart» is «sub.dartFQN») {
 							elem.«attr.name.escapeDart» = (this.«attr.name.escapeDart» as «sub.dartFQN»).propertyCopy(root:false);
 						}
 					«ENDFOR»
-				«ENDIF»
-				
-				
-				«IF !attr.isPrimitive»}«ENDIF»
+				«ENDIF»«IF !attr.isPrimitive»}«ENDIF»
 			«ENDFOR»
 			return elem;
 		}
@@ -475,7 +470,7 @@ class Model extends Generatable {
 						}
 					}
 					//add new
-					modelElements.addAll(elem.modelElements.where((e)=>modelElements.where((m)=>m.id==e.id).isEmpty).toList());
+					addAllElements(elem.modelElements.where((e)=>modelElements.where((m)=>m.id==e.id).isEmpty).toList());
 				}
 			«ENDIF»
 			«IF element instanceof GraphicalModelElement»
@@ -558,7 +553,7 @@ class Model extends Generatable {
 				}
 			«ENDIF»
 			«FOR attr : element.attributesExtended»
-				«IF !attr.list && g.elementsAndTypes.map[name].exists[equals(attr.type)]»
+				«IF !attr.list && g.elementsAndTypes.map[name].exists[equals(attr.attributeTypeName)]»
 					if(«attr.name.escapeDart»!=null && elem.«attr.name.escapeDart»!=null){
 						if(!cache.containsKey("${«attr.name.escapeDart».id}")){
 							«attr.name.escapeDart».merge(elem.«attr.name.escapeDart»,cache:cache,structureOnly:structureOnly);
@@ -568,7 +563,7 @@ class Model extends Generatable {
 					} else {
 						«attr.name.escapeDart» = elem.«attr.name.escapeDart»;
 					}
-				«ELSEIF !attr.list && g.elementsAndTypes.map[name].exists[equals(attr.type)]»
+				«ELSEIF !attr.list && g.elementsAndTypes.map[name].exists[equals(attr.attributeTypeName)]»
 					//remove missing
 					«attr.name.escapeDart».removeWhere((m)=>elem.«attr.name.escapeDart».where((e)=>m.id==e.id).isEmpty);
 					//merge known
@@ -579,28 +574,35 @@ class Model extends Generatable {
 					}
 					//add new
 					elem.«attr.name.escapeDart».where((e)=>«attr.name.escapeDart».where((m)=>m.id==e.id).isEmpty).forEach((e)=>«attr.name.escapeDart».add(e));
-				«ELSEIF attr.list && g.elementsAndTypes.map[name].exists[equals(attr.type)]»
+				«ELSEIF attr.list && g.elementsAndTypes.map[name].exists[equals(attr.attributeTypeName)]»
+					// adjust new length
+					if(elem.«attr.name.escapeDart».length < «attr.name.escapeDart».length) {
+						«attr.name.escapeDart».removeRange(elem.«attr.name.escapeDart».length, «attr.name.escapeDart».length);
+					}
 					elem.«attr.name.escapeDart».asMap().forEach((idx,b){
-						if(!«attr.name.escapeDart».any((a)=>a.id==b.id)) {
-							if(«attr.name.escapeDart».length>idx && «attr.name.escapeDart»[idx].id==-1) {
-								«attr.name.escapeDart»[idx].id = b.id;
-								«attr.name.escapeDart»[idx].merge(b,cache:cache,structureOnly:structureOnly);
+						if(«attr.name.escapeDart».length>idx && «attr.name.escapeDart»[idx] != null && «attr.name.escapeDart»[idx].id==-1) {
+							// update id of pre-existing element (one with id=-1)
+							«attr.name.escapeDart»[idx].id = b.id;
+							«attr.name.escapeDart»[idx].merge(b,cache:cache,structureOnly:structureOnly);
+						} else {
+							if(idx>=«attr.name.escapeDart».length) {
+								// append element
+								«attr.name.escapeDart».add(b);
 							} else {
-								if(idx>=«attr.name.escapeDart».length) {
-									«attr.name.escapeDart».add(b);
-								} else {
-									«attr.name.escapeDart».insert(idx,b);								
-								}
+								// change/update element
+								«attr.name.escapeDart»[idx] = b;								
 							}
 						}
 					});
-					«attr.name.escapeDart».removeWhere((a) => !elem.«attr.name.escapeDart».any((b)=>b.id==a.id));
-					«attr.name.escapeDart».forEach((a) =>
-					a.merge(
-						elem.«attr.name.escapeDart».where((b)=>b.id==a.id).first,
-						structureOnly:false,
-						cache:cache)
-					);
+					«attr.name.escapeDart».forEach((a) {
+						if(a!=null) {
+							a.merge(
+								elem.«attr.name.escapeDart».where((b)=>b != null && b.id==a.id).first,
+								structureOnly:false,
+								cache:cache
+							);
+						}
+					});
 				«ELSE»
 					«attr.name.escapeDart» = elem.«attr.name.escapeDart»;
 				«ENDIF»
@@ -643,15 +645,16 @@ class Model extends Generatable {
 	}
 
 	def pyroElementAttributeDeclaration(ModelElement element, MGLModel g) '''
-		 «IF element instanceof GraphModel»
-			«element.name.fuEscapeDart»CommandGraph commandGraph;
+		«IF element instanceof GraphModel»
+			CommandGraph commandGraph;
+					 	
 			int width;
 			int height;
 			double scale;
 			String router;
 			String connector;
 			bool isPublic;
-	    «ENDIF»
+		«ENDIF»
 	    «IF element instanceof Node»
 	    	«IF element.prime»
 		    	«{
@@ -664,7 +667,7 @@ class Model extends Generatable {
 			«IF attr.list»List<«ENDIF»«attr.primitiveDartType(g)»«IF attr.list»>«ENDIF» «attr.name.escapeDart» = «IF attr.list»[]«ELSE»«attr.primitiveDefaultDart»«ENDIF»;
 		«ENDFOR»
 		«FOR attr : element.attributesExtended.filter[!isPrimitive]»
-			«IF attr.list»List<«ENDIF»«attr.complexDartType.fuEscapeDart»«IF attr.list»>«ENDIF» «attr.name.escapeDart»;
+			«IF attr.list»List<«ENDIF»«attr.complexDartType»«IF attr.list»>«ENDIF» «attr.name.escapeDart»;
 		«ENDFOR»
 	'''
 
@@ -708,18 +711,49 @@ class Model extends Generatable {
 				@override
 				core.ModelElementContainer get container => super.container as «element.getBestContainerSuperTypeNameDart»;
 			«ENDIF»
-			«IF !(element instanceof UserDefinedType)»
-				
-				@override
-				List<core.IdentifiableElement> allElements()
-				{
-					List<core.IdentifiableElement> list = new List();
-					list.add(this);
-					«IF element.canContain»
-						list.addAll(modelElements.expand((n) => n.allElements()));
+			
+			@override
+			List<core.IdentifiableElement> allElements()
+			{
+				Set<core.IdentifiableElement> elementSet = new Set();
+				elementSet.add(this);
+				«IF element.canContain»
+					
+					// add contained elements
+					elementSet.addAll(modelElements.expand((n) => n.allElements()));
+				«ENDIF»
+				«{
+					val userDefinedTypes = element.attributesExtended.filter(mgl.ComplexAttribute).filter[it.type instanceof UserDefinedType];
+					'''
+					«IF !userDefinedTypes.empty»
+						// add all contained userDefinedTypes
+						«FOR attr : userDefinedTypes»
+							«{
+								val attributeName = attr.name.escapeDart
+								'''
+									«IF attr.list»
+										if(«attributeName» != null && !«attributeName».isEmpty) {
+											elementSet.addAll(«attributeName».expand((n) => n.allElements()));
+										}
+									«ELSE»
+										if(«attributeName» != null) {
+											elementSet.add(«attributeName»);
+											elementSet.addAll(«attributeName».allElements());
+										}
+									«ENDIF»
+								'''
+							}»
+						«ENDFOR»
 					«ENDIF»
-					return list;
-				}
+					'''
+				}»
+				
+			    List<core.IdentifiableElement> list = new List();
+			    list.addAll(elementSet);
+				list.sort((a,b) => a.id.compareTo(b.id));
+				return list;
+			}
+			«IF !(element instanceof UserDefinedType)»
 				«IF element.hasToExtendContainer»
 					
 					List<core.ModelElement> modelElements;
@@ -743,7 +777,7 @@ class Model extends Generatable {
 				«IF attr.list»List<«ENDIF»«attr.primitiveDartType(g)»«IF attr.list»>«ENDIF» «attr.name.escapeDart»«IF attr.list» = new List()«ENDIF»;
 			«ENDFOR»
 			«FOR attr : element.eContents.filter(EReference)»
-				«IF attr.list»List<«ENDIF»«attr.complexDartType.fuEscapeDart»«IF attr.list»>«ENDIF» «attr.name.escapeDart»«IF attr.list» = new List()«ENDIF»;
+				«IF attr.list»List<«ENDIF»«attr.complexDartType»«IF attr.list»>«ENDIF» «attr.name.escapeDart»«IF attr.list» = new List()«ENDIF»;
 			«ENDFOR»
 			
 			«IF !element.abstract»
@@ -794,7 +828,7 @@ class Model extends Generatable {
 											this.«attr.name.escapeDart» = value«attr.name.escapeDart»;
 										«ENDIF»
 									«ELSE»
-										«attr.complexDartType.fuEscapeDart» value«attr.name.escapeDart»;
+										«attr.complexDartType» value«attr.name.escapeDart»;
 										String jsogId;
 										if (jsogObj.containsKey('@ref')) {
 											jsogId = jsogObj['@ref'];
@@ -890,9 +924,9 @@ class Model extends Generatable {
 						if(this.«attr.name.escapeDart»!=null) {
 							elem.«attr.name.escapeDart» = this.«attr.name.escapeDart»
 							«IF attr.list»
-								.map((n) => n.propertyCopy(root:false) as «attr.complexDartType.fuEscapeDart»).toList();
+								.map((n) => n.propertyCopy(root:false) as «attr.complexDartType»).toList();
 							«ELSE»
-								.propertyCopy(root:false) as «attr.complexDartType.fuEscapeDart»;
+								.propertyCopy(root:false) as «attr.complexDartType»;
 							«ENDIF»
 						}
 					«ENDFOR»
@@ -904,20 +938,24 @@ class Model extends Generatable {
 		}
 	'''
 	
-	def contentGraphmodel(MGLModel m,Styles styles) '''
+	def contentGraphmodel(MGLModel m,Styles styles) {
+		val ecoreReferencedModels = gc.ecores // TODO: needs to be more precise
+		val primeReferencedModels = m.primeReferencedElements.map[modelPackage].filter(MGLModel).toSet.filter[it !== m]
+		'''
 		import 'core.dart' as core;
 		import 'dispatcher.dart';
 		import 'dart:js' as js;
 		
 		import './«m.modelFile»' as «m.name.lowEscapeDart»;
-		«FOR gm:m.graphModels»
-			import '../../«gm.commandGraphPath»';
+		import 'command_graph.dart';
+		«FOR gm:m.concreteGraphModels»
+			import 'package:«gc.projectName.escapeDart»/«gm.commandGraphPath»';
 		«ENDFOR»
-		«FOR pr:gc.ecores»
+		«FOR pr:ecoreReferencedModels»
 			//prime referenced ecore «pr.name»
 			import '«pr.modelFile»' as «pr.name.lowEscapeDart»;
 		«ENDFOR»
-		«FOR pr:m.primeReferencedGraphModels.filter[!m.graphModels.contains(it)].map[modelPackage as MGLModel].toSet»
+		«FOR pr:primeReferencedModels»
 			//prime referenced package «pr.name»
 			import '«pr.modelFile»' as «pr.name.lowEscapeDart»;
 		«ENDFOR»
@@ -952,7 +990,8 @@ class Model extends Generatable {
 				}
 			}
 		«ENDFOR»
-	'''
+		'''
+	} 
 
 	def contentEcore(EPackage g) '''
 		import 'core.dart' as core;

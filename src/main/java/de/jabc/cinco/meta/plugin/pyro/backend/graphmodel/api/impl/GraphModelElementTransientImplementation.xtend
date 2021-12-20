@@ -78,8 +78,8 @@ class GraphModelElementTransientImplementation extends Generatable {
 					«ENDIF»
 					this.id = org.apache.commons.lang3.RandomStringUtils.random(10, true, false);
 					«FOR attr:me.attributesExtended.filter[isPrimitive]»
-						«IF attr.type.getEnum(g)!==null»
-							this.«attr.name.escapeJava» = «attr.type.getEnum(g).literals.get(0).toUnderScoreCase»;
+						«IF attr.attributeTypeName.getEnum(g)!==null»
+							this.«attr.name.escapeJava» = «attr.attributeTypeName.getEnum(g).literals.get(0).toUnderScoreCase»;
 						«ELSE»
 							this.«attr.name.escapeJava» = «attr.getPrimitiveDefault»;
 						«ENDIF»
@@ -399,7 +399,7 @@ class GraphModelElementTransientImplementation extends Generatable {
 				«FOR attr:me.attributesExtended»
 					
 					@Override
-					public «IF attr.isList»java.util.List<«ENDIF»«IF !attr.isPrimitive»«g.apiFQN».«ENDIF»«attr.javaType(g)»«IF attr.isList»>«ENDIF» «IF attr.type.equals("EBoolean")»is«ELSE»get«ENDIF»«attr.name.fuEscapeJava»() {
+					public «IF attr.isList»java.util.List<«ENDIF»«IF !attr.isPrimitive»«g.apiFQN».«ENDIF»«attr.javaType(g)»«IF attr.isList»>«ENDIF» «IF attr.attributeTypeName.equals("EBoolean")»is«ELSE»get«ENDIF»«attr.name.fuEscapeJava»() {
 						return «attr.name.escapeJava»;
 					}
 					
@@ -433,7 +433,7 @@ class GraphModelElementTransientImplementation extends Generatable {
 	}
 	
 	def primitiveGETConverter(Attribute attribute, String string) {
-		return switch(attribute.type) {
+		return switch(attribute.attributeTypeName) {
 			case "EInt":'''«IF attribute.list»«string».stream().map(n->Math.toIntExact(n)).collect(java.util.stream.Collectors.toList())«ELSE»Math.toIntExact(«string»)«ENDIF»'''
 			case "EBigInteger":'''«IF attribute.list»«string».stream().map(n->Math.toIntExact(n)).collect(java.util.stream.Collectors.toList())«ELSE»Math.toIntExact(«string»)«ENDIF»'''
 			case "ELong":'''«IF attribute.list»«string».stream().map(n->Math.toIntExact(n)).collect(java.util.stream.Collectors.toList())«ELSE»Math.toIntExact(«string»)«ENDIF»'''
@@ -444,7 +444,7 @@ class GraphModelElementTransientImplementation extends Generatable {
 	}
 	
 	def primitiveSETConverter(Attribute attribute, String string) {
-		return switch(attribute.type) {
+		return switch(attribute.attributeTypeName) {
 			case "EInt":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''
 			case "EBigInteger":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''
 			case "ELong":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''

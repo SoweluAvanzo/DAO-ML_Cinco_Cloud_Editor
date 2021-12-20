@@ -148,7 +148,7 @@ class EcoreModelView extends EditorViewPlugin {
 					«{
 						val subTypes = cl.resolveSubTypesAndType.filter[!equals(cl)]
 						'''
-							«IF !subTypes.empty»// switching to discrete subTypes of «cl.name.fuEscapeJava»«ENDIF»
+							«IF !subTypes.empty»// switching to concrete subTypes of «cl.name.fuEscapeJava»«ENDIF»
 							«FOR type : subTypes»
 								else if(e instanceof «type.entityFQN») {
 									return buildResponse«type.name.fuEscapeJava»(e, cache);

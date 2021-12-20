@@ -154,16 +154,17 @@ class DataConnector extends Generatable {
 		Edge.multiAttribute("bendingPoints","entity.core.BendingPointDB",null)
 
 		generateAttributes(Edge,e)
-		
 		Edge.generateReferences(e)
-		
 		Edge.createDeleteFunction(e)
 	}
 	
 	private def generateType(UserDefinedType nc) {
 		val mglModel = nc.MGLModel
 		val t = newModel(mglModel.entityFQNBase.toString,nc.name.fuEscapeJava)
+		
 		generateAttributes(t,nc)
+		t.generateReferences(nc)
+		t.createDeleteFunction(nc)
 	}
 	
 	private def generateEnum(Enumeration nc) {
@@ -205,7 +206,7 @@ class DataConnector extends Generatable {
 	
 	private def generatePrimitiveAttribute(Model m, Attribute attribute) {
 		val mglModel = attribute.MGLModel
-		if(getEnum(attribute.type,mglModel)!==null){
+		if(getEnum(attribute.attributeTypeName,mglModel)!==null){
 			// is enum
 			if(attribute.isList) {
 				m.multiEnumAttribute(attribute.name.escapeJava, attribute.entityFQN)
@@ -215,9 +216,9 @@ class DataConnector extends Generatable {
 		} else {
 			// no enum
 			if(attribute.isList) {
-				m.multiPrimitiveAttribute(attribute.name.escapeJava, attribute.type.getPrimitveObjectTypeLiteral)
+				m.multiPrimitiveAttribute(attribute.name.escapeJava, attribute.attributeTypeName.getPrimitveObjectTypeLiteral)
 			} else {
-				m.singlePrimitiveAttribute(attribute.name.escapeJava, attribute.type.getPrimitveTypeLiteral)
+				m.singlePrimitiveAttribute(attribute.name.escapeJava, attribute.attributeTypeName.getPrimitveTypeLiteral)
 			}
 		}		
 	}
@@ -269,7 +270,7 @@ class DataConnector extends Generatable {
 		Type.createDeleteFunction(g, type)
 	}
 	
-	private def getReferences(EClass type, EPackage g, List<EClass> superTypes) {
+	private def getReferences(EClass type, EPackage g, Iterable<EClass> superTypes) {
 		val references = new LinkedList<EReference>
 		superTypes.forEach[ superType |
 			// resolve references
@@ -279,7 +280,7 @@ class DataConnector extends Generatable {
 		return references
 	}
 	
-	private def getAttributes(EClass type, EPackage g, List<EClass> superTypes) {
+	private def getAttributes(EClass type, EPackage g, Iterable<EClass> superTypes) {
 		val attributes =  new LinkedList<EAttribute>
 		superTypes.forEach[ superType |
 			// resolve attributes
@@ -675,7 +676,7 @@ class DataConnector extends Generatable {
 		])
 	}
 	
-	private def <T extends Type> writeMultiAttributeCode(Model m, String superAttributeName, List<T> resolvedTypes, String mappedBy) {
+	private def <T extends Type> writeMultiAttributeCode(Model m, String superAttributeName, Iterable<T> resolvedTypes, String mappedBy) {
 		if(mappedBy !== null) {
 			// if mappedBy is defined, a bidirectional-mapping can be build on the object-graph,
 			// while having a parent-directed mapping from the child in the db-model
@@ -718,7 +719,7 @@ class DataConnector extends Generatable {
 		)
 	}
 	
-	private def <T extends Type> writeMultiAttributeFunctions(Model m, CharSequence functionName, CharSequence superAttributeName, List<T> types) {
+	private def <T extends Type> writeMultiAttributeFunctions(Model m, CharSequence functionName, CharSequence superAttributeName, Iterable<T> types) {
 		val subTypeAttributeNames = types.map[superAttributeName.subTypeAttributeName(it)];
 		
 		// GET (ALL)
@@ -806,7 +807,7 @@ class DataConnector extends Generatable {
 						val className = t.entityClassName
 						val subTypeAttributeName = superAttributeName.subTypeAttributeName(t)
 						'''
-							if(e instanceof «className») {
+							if(e == null || e instanceof «className») {
 								«subTypeAttributeName».add((«className») e);
 							}
 						'''
@@ -1143,7 +1144,7 @@ class DataConnector extends Generatable {
 					val className = t.getEntityClassName
 					val subTypeAttributeName = superAttributeName.subTypeAttributeName(t)
 					'''
-					if(e instanceof «className») {
+					if(e == null || e instanceof «className») {
 						«subTypeAttributeName».add((«className») e);
 					}
 					'''

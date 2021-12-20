@@ -61,7 +61,7 @@ class GraphModelInterpreter extends Generatable{
 			    	java.util.List<graphmodel.ModelElement> waitingList = getInitialElements(g);
 			    	while(!waitingList.isEmpty()) {
 						graphmodel.ModelElement current = waitingList.get(0);
-						«FOR n:g.nodesTopologically + g.edgesTopologically»
+						«FOR n:g.nodes + g.edges»
 							if(current instanceof «n.apiFQN») {
 								«n.apiFQN» e = («n.apiFQN») current;
 								if(canExecute«n.name.fuEscapeJava»(e,g)) {
@@ -76,7 +76,7 @@ class GraphModelInterpreter extends Generatable{
 			    
 			    public abstract <T extends graphmodel.ModelElement> java.util.List<T> getInitialElements(«g.apiFQN» g);
 			    
-				«FOR n:g.elements»
+				«FOR n:g.elementsAndTypesAndGraphModels»
 					
 					public void execute«n.name.fuEscapeJava»(«n.apiFQN» element,«g.apiFQN» graph) {}
 					

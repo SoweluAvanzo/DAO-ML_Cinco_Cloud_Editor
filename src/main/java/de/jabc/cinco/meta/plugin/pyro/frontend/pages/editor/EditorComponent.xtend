@@ -53,7 +53,7 @@ class EditorComponent extends Generatable {
 	import 'package:«gc.projectName.escapeDart»/src/service/graph_service.dart';
 	import 'package:«gc.projectName.escapeDart»/src/view/tree_view.dart';
 	
-	«FOR g:gc.graphMopdels»
+	«FOR g:gc.concreteGraphModels»
 		import 'package:«gc.projectName.escapeDart»/«g.commandGraphPath»';
 	«ENDFOR»
 	
@@ -91,8 +91,14 @@ class EditorComponent extends Generatable {
 	  
 	  @ViewChildren(BsTabsComponent)
 	  List<BsTabsComponent> widgetTabs = new List();
-	  @ViewChildren(PropertiesComponent)
-	  List<PropertiesComponent> properties = new List();
+	  
+	  @ViewChildren(PropertiesComponent) set propertiesComp(content) {
+	  	if(content is List<PropertiesComponent>) {
+	  		properties.addAll(content);
+	  		properties = properties.toSet().toList();
+	  	}
+	  }
+	  static List<PropertiesComponent> properties = new List<PropertiesComponent>();
 	  
 	  List<PyroGraphModelPermissionVector> permissionVectors;
 	
@@ -118,14 +124,12 @@ class EditorComponent extends Generatable {
 	  bool showNav = false;
 	  String mainLayout = "classic";
 	  
-	  
-	  	
 	  EditorComponent(this._editorGridService, this.graphService, this._router, this._userService, this._notificationService, 
 	  				  this._styleService, this._permissionService, this._editorDataService) {
 	    currentLocalSettings = new LocalGraphModelSettings();
 	    permissionVectors = new List();
 
-		fetchGrid(); // TODO: SAMI: THEIA: needed?
+		fetchGrid();
 	  }
 		  
 		@override
@@ -183,7 +187,6 @@ class EditorComponent extends Generatable {
 		@override
 	  	void onActivate(_, RouterState current) async {
 			if(current.queryParameters.containsKey("token")) {
-  	 			// TODO: SAMI: THEIA
 				// window.localStorage[BaseService.tokenKey] = current.queryParameters["token"];
 			} else {
 				print("ERR: no token in URL");
@@ -208,7 +211,7 @@ class EditorComponent extends Generatable {
 				_editorDataService.user = u;
 				document.title = "editor";
 				«FOR m : gc.mglModels»
-					«FOR g:m.graphModels SEPARATOR " else "
+					«FOR g:m.concreteGraphModels SEPARATOR " else "
 					»if(ext == "«g.fileExtension»") {
 						graphService.loadGraph«g.name.fuEscapeDart»(modelId).then((g) {
 							this.currentFile = g;
@@ -322,7 +325,16 @@ class EditorComponent extends Generatable {
 	
 	  void changedGraph(CompoundCommandMessage ccm)
 	  {
-	    sendMessage(ccm);
+	  	if(ccm.type == "basic_valid_answer") {
+	  		var allElements = currentFile.allElements();
+	  		var exists = allElements.contains(selectedElement);
+	  		if(!exists) {
+	  			selectedElement = currentFile;
+	  		}
+	  		for(var p in properties) {
+	  			p.rebuildTrees();
+	  		}
+	  	}
 	  }
 	
 	  void changedProperties(PropertyMessage pm)
@@ -336,9 +348,6 @@ class EditorComponent extends Generatable {
 	    });
 	  }
 	  
-	  
-	
-	
 	  void selectionChanged(IdentifiableElement element)
 	  {
 	    selectedElement = element;
@@ -386,12 +395,12 @@ class EditorComponent extends Generatable {
 	
 	  void receiveGraphModelUpdate(CompoundCommandMessage message)
 	  {
-		  «FOR g:gc.graphMopdels»
-		      if(this.currentFile.$lower_type() == '«g.lowerType»') {
+		  «FOR g:gc.concreteGraphModels SEPARATOR " else "
+		  »if(this.currentFile.$lower_type() == '«g.lowerType»') {
 		        «g.name.fuEscapeDart»CommandGraph cg = new «g.name.fuEscapeDart»CommandGraph(this.currentFile,new List());
 		        cg.receiveCommand(message);
-		      }
-		  «ENDFOR»
+		  }«
+		  ENDFOR»
 	  }
 	
 	  void receivePropertyUpdate(PropertyMessage message)

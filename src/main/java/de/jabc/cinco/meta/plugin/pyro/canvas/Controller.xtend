@@ -35,8 +35,8 @@ class Controller extends Generatable{
 	def fileNameController() '''controller.js'''
 
 	def contentController(GraphModel g,Styles styles) {
-		val nodes = g.nodesTopologically.filter[!isIsAbstract]
-		val edges = g.edgesTopologically.filter[!isIsAbstract]
+		val nodes = g.nodes.filter[!isIsAbstract]
+		val edges = g.edges.filter[!isIsAbstract]
 		
 
 	'''
@@ -79,7 +79,7 @@ class Controller extends Generatable{
 	    cb_delete_selected,
 	    cb_cursor_moved,
 	    cb_property_update,
-		«FOR elem:g.elements.filter[!isIsAbstract] SEPARATOR ","»
+		«FOR elem:g.nodesAndEdges.filter[!isIsAbstract]  SEPARATOR ","»
 			«IF elem instanceof Node»
 			    cb_create_node_«elem.jsCall(g)»,
 			    cb_remove_node_«elem.jsCall(g)»,
@@ -111,7 +111,7 @@ class Controller extends Generatable{
 		    cb_get_valid_containers:cb_get_valid_containers,
 		    cb_is_valid_container:cb_is_valid_container,
 		    cb_cursor_moved:cb_cursor_moved,
-			«FOR elem:g.elements.filter[!isIsAbstract] SEPARATOR ","»
+			«FOR elem:g.nodesAndEdges.filter[!isIsAbstract] SEPARATOR ","»
 				«IF elem instanceof Node»
 					cb_create_node_«elem.jsCall(g)»:cb_create_node_«elem.jsCall(g)»,
 					cb_remove_node_«elem.jsCall(g)»:cb_remove_node_«elem.jsCall(g)»,
@@ -444,26 +444,26 @@ class Controller extends Generatable{
 				
 			    update_selection(cellView,$paper_«g.jsCall»,$graph_«g.jsCall»);
 			    cb_element_selected(cellView.model.attributes.attrs.id);
-			    «FOR node:nodes»
-			    if(cellView.model.attributes.type=='«node.typeName»'){
-			    	//check if container has changed
-			    	move_node_«node.jsCall(g)»_hook(cellView);
-			    	if(!cellView.model.attributes.attrs.disableResize) {
-			        	$cb_functions_«g.jsCall».cb_resize_node_«node.jsCall(g)»(Math.round(cellView.model.attributes.size.width),Math.round(cellView.model.attributes.size.height),$node_resize_last_direction,cellView.model.attributes.attrs.id);	 	        		
-			    	}
-			    }
-			    «ENDFOR»
-			    «FOR edge:edges»
-			    if(cellView.model.attributes.type=='«edge.typeName»'){
-			    	var source = $graph_«g.jsCall».getCell(cellView.model.attributes.source.id);
-			    	var target = $graph_«g.jsCall».getCell(cellView.model.attributes.target.id);
-			    	reconnect_edge_«edge.jsCall(g)»_hook(cellView);
-			    	$cb_functions_«g.jsCall».cb_update_bendpoint(
-			    		cellView.model.attributes.vertices,
-			    		cellView.model.attributes.attrs.id
-			    	);
-			    }
-			    «ENDFOR»
+				«FOR node:nodes»
+					if(cellView.model.attributes.type=='«node.typeName»'){
+						//check if container has changed
+						move_node_«node.jsCall(g)»_hook(cellView);
+						if(!cellView.model.attributes.attrs.disableResize) {
+					    	$cb_functions_«g.jsCall».cb_resize_node_«node.jsCall(g)»(Math.round(cellView.model.attributes.size.width),Math.round(cellView.model.attributes.size.height),$node_resize_last_direction,cellView.model.attributes.attrs.id);	 	        		
+						}
+					}
+				«ENDFOR»
+				«FOR edge:edges»
+					if(cellView.model.attributes.type=='«edge.typeName»'){
+						var source = $graph_«g.jsCall».getCell(cellView.model.attributes.source.id);
+						var target = $graph_«g.jsCall».getCell(cellView.model.attributes.target.id);
+						reconnect_edge_«edge.jsCall(g)»_hook(cellView);
+						$cb_functions_«g.jsCall».cb_update_bendpoint(
+							cellView.model.attributes.vertices,
+							cellView.model.attributes.attrs.id
+						);
+					}
+				«ENDFOR»
 			     console.log(cellView);
 			     console.log("element clicked");
 			}
@@ -478,31 +478,31 @@ class Controller extends Generatable{
 	    	if(!$_disable_events_«g.jsCall» && cellView.attributes.type!=='pyro.PyroLink' && cellView.attributes.type!=='pyro.GlueLine' ){
 	    		update_selection($paper_«g.jsCall».findViewByModel(cellView),$paper_«g.jsCall»,$graph_«g.jsCall»);
 		        //for each edge
-		        «FOR edge:edges»
-		        if(cellView.attributes.type==='«edge.typeName»') {
-		            var link = $graph_«g.jsCall».getCell(cellView.attributes.id);
-		            var source = link.getSourceElement();
-		            var target = link.getTargetElement();
-		            if(source.id===target.id){
-		            	var p1 = {
-		            		x:source.attributes.position.x,
-		            		y:source.attributes.position.y-source.attributes.size.height
-		            	};
-		                var p2 = {
-		                    x:source.attributes.position.x-source.attributes.size.width,
-		                    y:source.attributes.position.y
-		                };
-		                link.set('vertices', [p1,p2]);
-		            }
-		            refresh_routing_«g.jsCall»();
-		            $cb_functions_«g.jsCall».cb_create_edge_«edge.jsCall(g)»(
-		              source.attributes.attrs.id,
-		              target.attributes.attrs.id,
-		              cellView.attributes.id,
-		              cellView.attributes.vertices
-		            );
-		        }
-		        «ENDFOR»
+				«FOR edge:edges»
+					if(cellView.attributes.type==='«edge.typeName»') {
+					    var link = $graph_«g.jsCall».getCell(cellView.attributes.id);
+					    var source = link.getSourceElement();
+					    var target = link.getTargetElement();
+					    if(source.id===target.id){
+					    	var p1 = {
+					    		x:source.attributes.position.x,
+					    		y:source.attributes.position.y-source.attributes.size.height
+					    	};
+					        var p2 = {
+					            x:source.attributes.position.x-source.attributes.size.width,
+					            y:source.attributes.position.y
+					        };
+					        link.set('vertices', [p1,p2]);
+					    }
+					    refresh_routing_«g.jsCall»();
+					    $cb_functions_«g.jsCall».cb_create_edge_«edge.jsCall(g)»(
+					      source.attributes.attrs.id,
+					      target.attributes.attrs.id,
+					      cellView.attributes.id,
+					      cellView.attributes.vertices
+					    );
+					}
+				«ENDFOR»
 		        console.log(cellView);
 		        console.log("element added");
 	        }
@@ -536,7 +536,9 @@ class Controller extends Generatable{
 	    	if(!$_disable_events_«g.jsCall»){
 		        deselect_all_elements(null,$paper_«g.jsCall»,$graph_«g.jsCall»);
 		        //trigger callback
-		        cb_graphmodel_selected();
+		        if(cellView.attributes.type.substring(0, 5)!=='pyro.'){
+		        	cb_graphmodel_selected();
+		        }
 		        //foreach edge
 				«FOR edge:edges»
 				    if(cellView.attributes.type==='«edge.typeName»'){
@@ -574,21 +576,21 @@ class Controller extends Generatable{
 	    });
 	    
 	    var disableRemove = [
-	    	«FOR e:g.elements.filter[!removable] SEPARATOR ","»
-	    	'«e.typeName»'
-		    «ENDFOR»
+			«FOR e:g.nodesAndEdges.filter[!isAbstract].filter[!removable] SEPARATOR ","»
+				'«e.typeName»'
+			«ENDFOR»
 	    ];
 		var disableResize = [
-			«FOR e:g.elements.filter(GraphicalModelElement).filter[!resizable] SEPARATOR ","»
+			«FOR e:g.nodesAndEdges.filter[!isAbstract].filter(GraphicalModelElement).filter[!resizable] SEPARATOR ","»
 				'«e.typeName»'
-		    «ENDFOR»
+			«ENDFOR»
 		];
 		var disableEdge = [
 			«FOR e:g.nodes.filter[!isAbstract].filter[!connectable] SEPARATOR ","»
 				'«e.typeName»'
 		    «ENDFOR»
 		];
-	«/*TODO:SAMI*/»
+		
 	    init_event_system($paper_«g.jsCall»,$graph_«g.jsCall»,remove_cascade_node_«g.jsCall»,disableRemove,disableResize,disableEdge,highlight_valid_containers_«g.jsCall»);
 	    
 	    create_«g.jsCall»_map();
@@ -699,7 +701,7 @@ class Controller extends Generatable{
 	    refresh_routing_«g.jsCall»();
 	}
 	
-	function «g.jsCall»_jump(id) { «/* TODO:SAMI: check*/»
+	function «g.jsCall»_jump(id) {
 		jump_to_element(id,$graph_«g.jsCall»,$paper_«g.jsCall»,$cb_functions_«g.jsCall»);
 	}
 	
@@ -726,12 +728,21 @@ class Controller extends Generatable{
 		graph = (typeof graph !== 'undefined') ?  graph : $graph_«g.jsCall»;
 		if(styleArgs!==null) {
 			var elem = findElementById(id,graph);
-			if(cellId!=null&&elem==null){
-			   elem =  graph.getCell(cellId);
+
+			if(cellId!=null&&elem!=null){
+				if(elem.id!=cellId) {
+					// remove dublicate
+					var dublicate = graph.getCell(cellId);
+					remove_element(dublicate, paper)
+				}
+			}
+			else if(cellId!=null&&elem==null){
+				elem =  graph.getCell(cellId);
 			}
 		    if(elem == null) {
-		     return;
+				return;
 		    }
+
 		    paper = (typeof paper !== 'undefined') ?  paper : $paper_«g.jsCall»;
 			var cell = paper.findViewByModel(elem);
 			«FOR node:nodes»
@@ -878,37 +889,40 @@ class Controller extends Generatable{
 		 * @returns {*}
 		 */
 		function create_node_«node.jsCall(g)»(x,y,width,height,id,containerId,styleArgs,information,label«IF node.isPrime»,primeId«ENDIF») {
-		    var elem = null;
-		    if(width != null && height != null) {
-		    	elem = new «node.shapeFQN»({
-		    		position: {
-		    		    x: x,
-		    		    y: y
-		    		},
-		    		size: {
-		    		  	width:width,
-		    		   	height:height
-		    		},
-		    		attrs:{
-		    		    id:id,
-		    		    disableMove:«IF node.movable»false«ELSE»true«ENDIF»,
-		    		    disableResize:«IF node.resizable»false«ELSE»true«ENDIF»
-		    		}
-		    	});
-		    } else {
-			    elem = new «node.shapeFQN»({
-			        position: {
-			            x: x,
-			            y: y
-			        },
-			        attrs:{
-			            id:id,
-			            disableMove:«IF node.movable»false«ELSE»true«ENDIF»,
-			            disableResize:«IF node.resizable»false«ELSE»true«ENDIF»
-			        }
-			    });
-		    }
-		    add_node_internal(elem,$graph_«g.jsCall»,$paper_«g.jsCall»,$map_paper_«g.jsCall»);
+		    var elem = findElementById(id,$graph_«g.jsCall»);
+		    
+			if(elem == null) {
+				if(width != null && height != null) {
+					elem = new «node.shapeFQN»({
+			    		position: {
+			    		    x: x,
+			    		    y: y
+			    		},
+			    		size: {
+			    		  	width:width,
+			    		   	height:height
+			    		},
+			    		attrs:{
+			    		    id:id,
+			    		    disableMove:«IF node.movable»false«ELSE»true«ENDIF»,
+			    		    disableResize:«IF node.resizable»false«ELSE»true«ENDIF»
+			    		}
+			    	});
+				} else {
+					elem = new «node.shapeFQN»({
+				        position: {
+				            x: x,
+				            y: y
+				        },
+				        attrs:{
+				            id:id,
+				            disableMove:«IF node.movable»false«ELSE»true«ENDIF»,
+				            disableResize:«IF node.resizable»false«ELSE»true«ENDIF»
+				        }
+				    });
+				}
+				add_node_internal(elem,$graph_«g.jsCall»,$paper_«g.jsCall»,$map_paper_«g.jsCall»);
+			}
 		    var pos = {x:x,y:y};
 		    if(containerId>-1&&containerId!=$graphmodel_id_«g.jsCall»){
 		    	var parent = findElementById(containerId,$graph_«g.jsCall»);
@@ -1304,99 +1318,157 @@ class Controller extends Generatable{
 	}
 	
 	def containmentCheck(ContainingElement ce, GraphModel g) {
-		val modelPackage = ce.modelPackage as MGLModel
 		val containableElements = ce.resolvePossibleContainingTypes
-		'''
-			«IF containableElements.empty»
-				return true;
-			«ELSE»
-				«FOR group:containableElements.indexed»
-					«{
-						val containableTypes = group.value.getGroupContainables(modelPackage).toSet
-						'''
-							//check if type can be contained in group
-							if(
-								«FOR containableType:containableTypes SEPARATOR "||"»
-									creatableTypeName === '«containableType.typeName»'
-								«ENDFOR»
-							) {
-								«IF group.value.upperBound>-1»
-									var group«group.key»Size = 0;
-									«FOR containableType:containableTypes»
-										group«group.key»Size += getContainedByType(targetNode,'«containableType.typeName»',$graph_«g.jsCall»).length;
-									«ENDFOR»
-									if(«IF group.value.upperBound>-1»group«group.key»Size<«group.value.upperBound»«ELSE»true«ENDIF»){
-										return true;
-									}
-								«ELSE»
-									return true;
-								«ENDIF»
-							}
-						'''
-					}»
-				«ENDFOR»
-				return false;
-			«ENDIF»
+		containmentCheckTemplate(
+			containableElements,
+			[t| ''' creatableTypeName === '«t.typeName»' '''],
+			'''var groupSize;''',
+			[concreteTypes, upperBound| 
+				'''
+					groupSize = 0;
+					«FOR t:concreteTypes»
+						groupSize += getContainedByType(targetNode,'«t.typeName»',$graph_«g.jsCall»).length
+					«ENDFOR»
+					// check bounding constraint
+					if(groupSize>=«upperBound») {
+						// node can not be placed
+						return false;
+					}
+				'''
+			],
 			
-
-		'''
+			'''return true;'''
+		)
 	}
 	
 	def edgecreation(GraphModel g)
 	{
-		val nodes = g.nodesTopologically
+		val nodes = g.nodes
 	
-	'''
-	var sourceNode = $graph_«g.jsCall».getCell($temp_link.attributes.source.id);
-	var sourceType = sourceNode.attributes.type;
-	var targetNode = $graph_«g.jsCall».getCell(views[views.length-1].model.id);
-	var targetType = targetNode.attributes.type;
-	var outgoing = getOutgoing(sourceNode,$graph_«g.jsCall»);
-	var incoming = getIncoming(targetNode,$graph_«g.jsCall»);
-	//create the correct link
-	var possibleEdges = {};
-	//get possible edges
-	//depends on cardinallity
-	«FOR source:nodes.filter[!isAbstract]»
-	if(sourceType == '«source.typeName»')
-	{
-		«FOR group:source.parentTypes.filter(Node).map[outgoingEdgeConnections].flatten.indexed»
-		//check bound group condition
-		var groupSize«group.key» = 0;
-			«FOR outgoingEdge:group.value.connectingEdges.map[subTypesAndType(it.name,g.modelPackage as MGLModel)].flatten»
-			groupSize«group.key» += filterEdgesByType(outgoing,'«outgoingEdge.typeName»').length;
-			«ENDFOR»
-			«IF group.value.connectingEdges.nullOrEmpty»
-				groupSize«group.key» += outgoing.length;
-			«ENDIF»
-		//check cardinality
-		if(«IF group.value.upperBound < 0»true«ELSE»groupSize«group.key»<«group.value.upperBound»«ENDIF»)
-		{
-		   «g.targetCheck(group.value)»
-		}
-		«ENDFOR»
-	}
-	«ENDFOR»
-	var possibleEdgeSize = Object.keys(possibleEdges).length;
-	if(possibleEdgeSize==1)
-	{
-		//only one edge can be created
-		//so, create it
-		$temp_link_multi = $temp_link;
-		create_edge(targetNode,possibleEdges[Object.keys(possibleEdges)[0]].type,$paper_«g.jsCall»,$graph_«g.jsCall»,$map_paper_«g.jsCall»);
-	}
-	else if(possibleEdgeSize>1)
-	{
-		//multiple edge types possible
-		//show menu
-		create_edge_menu(targetNode,possibleEdges,evt.clientX,evt.clientY+$(document).scrollTop(),$paper_«g.jsCall»,$graph_«g.jsCall»);
-	}
-	'''
-	
+		'''
+			var sourceNode = $graph_«g.jsCall».getCell($temp_link.attributes.source.id);
+			var sourceType = sourceNode.attributes.type;
+			var targetNode = $graph_«g.jsCall».getCell(views[views.length-1].model.id);
+			var targetType = targetNode.attributes.type;
+			var outgoing = getOutgoing(sourceNode,$graph_«g.jsCall»);
+			var incoming = getIncoming(targetNode,$graph_«g.jsCall»);
+			//create the correct link
+			var possibleEdges = {};
+			var hypotheticalEdges = [];
+			var markedEdges = [];
+			
+			«FOR source:nodes.filter[!isAbstract] SEPARATOR " else "
+			»if(sourceType == '«source.typeName»')
+			{
+				«{
+					val constraintsOutgoing = source.outgoingEdgeConnections.filter(mgl.BoundedConstraint).toSet
+					val possibleOutgoing = source.possibleOutgoing.filter[!isAbstract]
+					constraintCheckTemplate(
+						constraintsOutgoing,
+						null,
+						null,
+						[concreteTypesEdgeOutgoing, upperBoundEdgeOutgoing| 
+							'''
+								«IF upperBoundEdgeOutgoing > -1»
+									var groupSizeOutgoing = 0;
+									«FOR t:concreteTypesEdgeOutgoing»
+										groupSizeOutgoing += filterEdgesByType(outgoing,'«t.typeName»').length;
+									«ENDFOR»
+								«ENDIF»
+								«IF upperBoundEdgeOutgoing > -1»if(groupSizeOutgoing<«upperBoundEdgeOutgoing») {«ENDIF»«{
+									val possibleTargets = concreteTypesEdgeOutgoing.filter(Edge).filter[!isAbstract].map[possibleTargets].flatten.filter[!isAbstract].toSet
+									'''
+										«FOR target:possibleTargets SEPARATOR " else "
+										»if(targetType == '«target.typeName»') {
+											«{
+												val possibleEdges = target.possibleIncoming.filter[!isAbstract].filter[possibleOutgoing.contains(it)]
+												'''
+													«{
+														val constraintsIncoming = source.incomingEdgeConnections.filter(mgl.BoundedConstraint).toSet
+														constraintCheckTemplate(
+															constraintsIncoming,
+															null,
+															null,
+															[concreteTypesEdgeIncoming, upperBoundEdgeIncoming| 
+																'''
+																	«IF upperBoundEdgeIncoming > -1»
+																		var groupSizeIncoming = 0;
+																		«FOR t:concreteTypesEdgeIncoming»
+																			groupSizeIncoming += filterEdgesByType(incoming,'«t.typeName»').length;
+																		«ENDFOR»
+																		// check bounding constraint
+																		if(groupSizeIncoming<«upperBoundEdgeIncoming») {
+																			// edges can not be applied
+																			«FOR e: concreteTypesEdgeIncoming»
+																				markedEdges.push('«e.typeName»');
+																			«ENDFOR»
+																		}
+																	«ELSE»
+																		// => unbounded constraint
+																	«ENDIF»
+																'''
+															],
+															'''
+																// identify the hypothetical edges
+																«FOR e:possibleEdges»
+																	hypotheticalEdges.push('«e.typeName»');
+																«ENDFOR»
+															''',
+															false
+														)
+													}»
+												'''
+											}»
+										}«
+										ENDFOR»
+									'''
+								}»«IF upperBoundEdgeOutgoing > -1»}«ENDIF»
+							'''
+						],
+						null,
+						false
+					)
+				}»
+			}«
+			ENDFOR»
+			
+			// add non-marked edges to possibleEdges
+			«{
+																		
+				val createableEdge = g.edges.filter[creatabel]
+				'''
+					«FOR e : createableEdge»
+						if(hypotheticalEdges.indexOf('«e.typeName»')>-1 && markedEdges.indexOf('«e.typeName»')<=-1) {
+							// Edge '«e.typeName»'
+							var link = new «e.shapeFQN»({
+							    source: { id: sourceNode.attributes.id }, target: { id: targetNode.attributes.id }
+							});
+							possibleEdges['«e.typeName»'] = {
+								name: '«e.typeName»',
+								type: link
+							};
+						}
+					«ENDFOR»
+				'''
+			}»
+			
+			var possibleEdgeSize = hypotheticalEdges.length;
+			if(possibleEdgeSize==1) {
+				//only one edge can be created
+				//so, create it
+				$temp_link_multi = $temp_link;
+				create_edge(targetNode,possibleEdges[Object.keys(possibleEdges)[0]].type,$paper_«g.jsCall»,$graph_«g.jsCall»,$map_paper_«g.jsCall»);
+			}
+			else if(possibleEdgeSize>1) {
+				//multiple edge types possible
+				//show menu
+				create_edge_menu(targetNode,possibleEdges,evt.clientX,evt.clientY+$(document).scrollTop(),$paper_«g.jsCall»,$graph_«g.jsCall»);
+			}
+		'''
 	}
 	
 	def reachable(Iterable<Node> sources, GraphModel g, OutgoingEdgeElementConnection connection){
-		val edges = g.edgesTopologically
+		val edges = g.edges
 		val result = new HashMap<Node,Set<IncomingEdgeElementConnection>>();
 		for(node:sources) {
 			val possibleEdgeConnections = new LinkedList
@@ -1444,37 +1516,6 @@ class Controller extends Generatable{
 		});
 	'''
 	
-	def targetCheck(GraphModel g, OutgoingEdgeElementConnection group)
-	'''
-	«FOR possibleTarget:g.nodesTopologically.reachable(g,group).entrySet»
-	if(«FOR sub:possibleTarget.key.name.subTypes(g.modelPackage as MGLModel) + #[possibleTarget.key]SEPARATOR " || "»targetType == '«sub.typeName»'«ENDFOR»)
-	{
-		«FOR incomingGroup:possibleTarget.value.indexed»
-		
-			var incommingGroupSize«incomingGroup.key» = 0;
-			«FOR incomingEdge:incomingGroup.value.connectingEdges.map[subTypesAndType(it.name,g)].flatten»
-			incommingGroupSize«incomingGroup.key» += filterEdgesByType(incoming,'«incomingEdge.typeName»').length;
-			«ENDFOR»
-			«IF incomingGroup.value.connectingEdges.nullOrEmpty»
-			incommingGroupSize«incomingGroup.key» += incoming.length;
-    		«ENDIF»
-			if(«IF incomingGroup.value.upperBound < 0»true«ELSE»incommingGroupSize«incomingGroup.key»<«incomingGroup.value.upperBound»«ENDIF»)
-			{
-				«g.possibleEdges(group,incomingGroup.value).filter[creatabel].flatMap[resolveSubTypesAndType(it)].indexed.map[n|'''
-					var link«n.key» = new «n.value.shapeFQN»({
-					    source: { id: sourceNode.attributes.id }, target: { id: targetNode.attributes.id }
-					});
-					possibleEdges['«n.value.typeName»'] = {
-						name: '«n.value.typeName»',
-						type: link«n.key»
-					};
-				'''].join»
-			}
-		«ENDFOR»
-	}
-	«ENDFOR»
-	'''
-	
 	def Map<Integer,Edge> indexed(List<Edge> edges) {
 		val result = new HashMap
 		edges.forEach[e,i|result.put(i,e)]
@@ -1483,7 +1524,7 @@ class Controller extends Generatable{
 	
 	def Iterable<Edge> possibleEdges(GraphModel g,OutgoingEdgeElementConnection outgoing, IncomingEdgeElementConnection incoming) {
 		if(outgoing.connectingEdges.empty && incoming.connectingEdges.empty) {
-			return g.edgesTopologically
+			return g.edges
 		}
 		if(outgoing.connectingEdges.empty && !incoming.connectingEdges.empty) {
 			return incoming.connectingEdges.map[name.subTypesAndType(g).filter(Edge)].flatten

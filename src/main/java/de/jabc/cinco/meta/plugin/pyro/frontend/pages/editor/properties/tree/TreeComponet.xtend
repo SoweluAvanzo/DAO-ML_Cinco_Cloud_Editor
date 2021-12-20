@@ -23,10 +23,9 @@ class TreeComponet extends Generatable {
 	«FOR m:gc.mglModels»
 		import 'package:«gc.projectName.escapeDart»/«m.modelFilePath»' as «m.name.lowEscapeDart»;
 	«ENDFOR»
-	«FOR g:gc.graphMopdels»
+	«FOR g:gc.concreteGraphModels»
 		import 'package:«gc.projectName.escapeDart»/«g.treeFilePath»' as «g.name.lowEscapeDart»TB;
 	«ENDFOR»
-	
 	
 	@Component(
 	    selector: 'tree',
@@ -43,7 +42,6 @@ class TreeComponet extends Generatable {
 		
 		final hasSelectedSC = new StreamController();
 		@Output() Stream get hasSelected => hasSelectedSC.stream;
-		
 		
 		@Input()
 		IdentifiableElement currentElement;
@@ -77,13 +75,19 @@ class TreeComponet extends Generatable {
 		}
 		
 		void buildTree() {
-			«FOR g:gc.graphMopdels»
-				if(currentGraphModel is «g.dartFQN»){
-					currentTree = new «g.name.lowEscapeDart»TB.«g.name.fuEscapeDart»TreeBuilder().getTree(currentElement);
-				}
-			«ENDFOR»
+			var newTree = null;
+			«FOR g:gc.concreteGraphModels SEPARATOR " else "
+			»if(currentGraphModel.$type() == "«g.typeName»") {
+				newTree = new «g.name.lowEscapeDart»TB.«g.name.fuEscapeDart»TreeBuilder().getTree(currentElement);
+			}«
+			ENDFOR»
+			if(currentTree == null || newTree == null || !currentTree.root.equals(newTree.root)) {
+				currentTree = newTree;
+			} else {
+				currentTree.root.merge(newTree.root, new Map(), new Set());
+			}
 		}
-	
+		
 		void hasNew(TreeNode node)
 		{
 			hasChangedSC.add(node);
@@ -95,6 +99,10 @@ class TreeComponet extends Generatable {
 			var delegate = node.delegate;
 			node.delegate = null;
 			hasRemovedSC.add(delegate);
+		}
+		
+		void rebuild() {
+			init();
 		}
 	}
 	'''
