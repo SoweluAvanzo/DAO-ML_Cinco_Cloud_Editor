@@ -16,16 +16,23 @@ class IGeneratorGenerator extends Generatable {
 	'''
 	package de.jabc.cinco.meta.plugin.generator.runtime;
 	
-	import entity.core.*;
-	import graphmodel.*;
+		import entity.core.*;
+		import graphmodel.*;
+		
+		import java.io.*;
+		import java.nio.charset.StandardCharsets;
+		import java.nio.file.Path;
+		import java.nio.file.Paths;
+		import java.nio.file.StandardCopyOption;
+		import java.util.LinkedList;
+		import java.util.List;
+		import java.util.Map;
+		import java.util.Optional;
+		import info.scce.pyro.auth.SecurityOverrideFilter;
 	
-	import java.io.*;
-	import java.nio.charset.StandardCharsets;
-	import java.util.LinkedList;
-	import java.util.List;
-	import java.util.Optional;
+		import org.apache.commons.io.FileUtils;
 	
-	import org.apache.commons.io.FileUtils;
+		import com.google.common.io.Files;
 	
 	
 	/**
@@ -49,17 +56,66 @@ class IGeneratorGenerator extends Generatable {
 			this.fileController = fileController;
 			
 			generate(graphModel);
-			//get generation base folder
-			String generationBaseFolder = basePath;
+		//get generation base folder
+		//String generationBaseFolder = basePath;
+		//String homeDirectory = System.getProperty("user.home");  // TODO
+		String workspaceAbsolutePath = SecurityOverrideFilter.getWorkspacePath();				
+	   //Path workspaceAbsolutePath = Paths.get(homeDirectory, workspaceStringPath);
+		
+		Path workspaceAbsolutePath = Paths.get(workspaceStringPath);
 
+		Path generationBaseFolderPath = Paths.get(workspaceAbsolutePath.toString(), basePath);
+		//String generationBaseFolder = workspaceAbsolutePath.toString() + basePath;
+		File dir = new File(generationBaseFolderPath.toString());
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+			
+			for (GeneratedFile f : files) {
+				Path genDirPath = Paths.get(generationBaseFolderPath.toString() , f.getPath());
+				File genDir = new File(genDirPath.toString());
+				if (!genDir.exists()) {
+					genDir.mkdirs();
+				}
+				Path path = Paths.get(genDirPath.toString(), f.getFilename());
+				File file = new File(path.toString());
+				if (file.exists() && !file.isDirectory()) {
+					file.delete();
+				}
+				java.nio.file.Files.writeString(path, f.getContent());
+			}
+			
+			Path staticResourcePath = Paths.get(generationBaseFolderPath.toString(), staticResourceBase).normalize();
+			File staticResourcesDest = new File(staticResourcePath.toString());
+			if (!staticResourcesDest.exists() || !staticResourcesDest.isDirectory()) {
+				staticResourcesDest.mkdirs();
+			}
 			//copy and overwrite with static resources
-			for(java.util.Map.Entry<String,String[]> staticResource:staticResources.entrySet())
-			{
-				//TODO transfer files to theia
+			for (java.util.Map.Entry<String, String[]> staticResource : staticResources.entrySet()) {
+			
+				String[] fileEntries = staticResource.getValue();
+				for (String fileEntry : fileEntries) {
+					Path p = Paths.get(fileEntry).normalize();
+					File f = new File(p.toString());
+					// if (f.exists() && !f.isDirectory()) {
+					// f.delete();
+					// }
+					try {
+						Path copyDest = Paths.get(staticResourcesDest.toString(), suffix(f.toString(), staticResource.getKey())).normalize();
+						File fileTocopy = new File(copyDest.toString());
+						if (!fileTocopy.getParentFile().exists()) {
+									fileTocopy.getParentFile().mkdirs();
+						}
+						java.nio.file.Files.copy(f.toPath(), fileTocopy.toPath().normalize(),
+										StandardCopyOption.REPLACE_EXISTING);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+			
+				}
+			
 			}
 		}
-	
-	
 		
 «««	    public final File generateFilesTemporal(T graphModel) throws IOException {
 «««	        generate(graphModel);
@@ -85,6 +141,10 @@ class IGeneratorGenerator extends Generatable {
 «««	    }
 	
 	    protected abstract void generate(T graphModel);
+	    
+	    protected String suffix(String absolutPath, String resourceFolder) {
+	    		return absolutPath.substring(absolutPath.lastIndexOf(resourceFolder) + resourceFolder.length() + 1);
+	    }
 	
 	    protected final void createFile(String filename,String content) {
 	        createFile(filename,"",content);
