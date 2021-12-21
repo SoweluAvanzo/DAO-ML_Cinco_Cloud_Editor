@@ -236,14 +236,6 @@ class Generator extends FileGenerator {
 						gen3.content()
 			)
 		}
-		{
-			val path = businessBasePath+"de/jabc/cinco/meta/plugin/generator/runtime/"
-			val gen0 = new IGeneratorGenerator(gc)
-			generateJavaFile(path,
-						gen0.filename(),
-						gen0.content()
-			)
-		}
 		
 		//create ecore rest TOs
 		{
