@@ -1979,10 +1979,8 @@ class MGLExtension {
 					containingElements += gm
 				}
 			}
-
-			containingElements += element.containingElements
 			containingElements += MGLUtil.allSuperTypes(element).map[(it as GraphicalModelElement).containingElements].flatten
-			containingElements += MGLUtil.subTypes(element).map[(it as GraphicalModelElement).containingElements].flatten
+			containingElements += element.resolveSubTypesAndType.map[(it as GraphicalModelElement).containingElements].flatten
 		}
 		containingElements
 	}

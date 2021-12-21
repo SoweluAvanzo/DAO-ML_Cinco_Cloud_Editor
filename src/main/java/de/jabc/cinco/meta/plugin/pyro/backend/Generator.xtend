@@ -8,7 +8,6 @@ import de.jabc.cinco.meta.plugin.pyro.backend.core.GraphModelControllerGenerator
 import de.jabc.cinco.meta.plugin.pyro.backend.core.InitializeSettingsBean
 import de.jabc.cinco.meta.plugin.pyro.backend.core.ProjectService
 import de.jabc.cinco.meta.plugin.pyro.backend.core.rest.GraphModelPropertyGenerator
-import de.jabc.cinco.meta.plugin.pyro.backend.generator.IGeneratorGenerator
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.EcoreElementImplementation
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.EcoreElementInterface
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.GraphModelElementInterface
@@ -234,14 +233,6 @@ class Generator extends FileGenerator {
 			generateJavaFile(path,
 						gen3.fileName(),
 						gen3.content()
-			)
-		}
-		{
-			val path = businessBasePath+"de/jabc/cinco/meta/plugin/generator/runtime/"
-			val gen0 = new IGeneratorGenerator(gc)
-			generateJavaFile(path,
-						gen0.filename(),
-						gen0.content()
 			)
 		}
 		
