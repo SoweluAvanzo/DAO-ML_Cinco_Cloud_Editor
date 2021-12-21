@@ -8,7 +8,6 @@ import de.jabc.cinco.meta.plugin.pyro.backend.core.GraphModelControllerGenerator
 import de.jabc.cinco.meta.plugin.pyro.backend.core.InitializeSettingsBean
 import de.jabc.cinco.meta.plugin.pyro.backend.core.ProjectService
 import de.jabc.cinco.meta.plugin.pyro.backend.core.rest.GraphModelPropertyGenerator
-import de.jabc.cinco.meta.plugin.pyro.backend.generator.IGeneratorGenerator
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.EcoreElementImplementation
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.EcoreElementInterface
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.GraphModelElementInterface
