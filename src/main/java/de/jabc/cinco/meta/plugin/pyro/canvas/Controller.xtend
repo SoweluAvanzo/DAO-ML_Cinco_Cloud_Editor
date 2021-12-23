@@ -1318,7 +1318,7 @@ class Controller extends Generatable{
 	}
 	
 	def containmentCheck(ContainingElement ce, GraphModel g) {
-		val containableElements = ce.resolvePossibleContainingTypes
+		val containableElements = ce.resolvePossibleContainingTypes.filter(mgl.BoundedConstraint).toSet
 		containmentCheckTemplate(
 			containableElements,
 			[t| ''' creatableTypeName === '«t.typeName»' '''],
@@ -1361,9 +1361,11 @@ class Controller extends Generatable{
 			»if(sourceType == '«source.typeName»')
 			{
 				«{
-					val constraintsOutgoing = source.outgoingEdgeConnections.filter(mgl.BoundedConstraint).toSet
+					val constraintsOutgoing =  new java.util.HashSet<mgl.BoundedConstraint>();
+					constraintsOutgoing += source.outgoingEdgeConnections.filter(mgl.BoundedConstraint).toSet
+					constraintsOutgoing += source.outgoingWildcards.filter(mgl.BoundedConstraint).toSet
 					val possibleOutgoing = source.possibleOutgoing.filter[!isAbstract]
-					constraintCheckTemplate(
+					connectionCheckTemplate(
 						constraintsOutgoing,
 						null,
 						null,
@@ -1379,13 +1381,14 @@ class Controller extends Generatable{
 									val possibleTargets = concreteTypesEdgeOutgoing.filter(Edge).filter[!isAbstract].map[possibleTargets].flatten.filter[!isAbstract].toSet
 									'''
 										«FOR target:possibleTargets SEPARATOR " else "
-										»if(targetType == '«target.typeName»') {
+ 										»if(targetType == '«target.typeName»') {
 											«{
 												val possibleEdges = target.possibleIncoming.filter[!isAbstract].filter[possibleOutgoing.contains(it)]
 												'''
 													«{
 														val constraintsIncoming = source.incomingEdgeConnections.filter(mgl.BoundedConstraint).toSet
-														constraintCheckTemplate(
+														constraintsIncoming += source.incomingWildcards.filter(mgl.BoundedConstraint).toSet
+														connectionCheckTemplate(
 															constraintsIncoming,
 															null,
 															null,
@@ -1413,8 +1416,7 @@ class Controller extends Generatable{
 																«FOR e:possibleEdges»
 																	hypotheticalEdges.push('«e.typeName»');
 																«ENDFOR»
-															''',
-															false
+															'''
 														)
 													}»
 												'''
@@ -1425,8 +1427,7 @@ class Controller extends Generatable{
 								}»«IF upperBoundEdgeOutgoing > -1»}«ENDIF»
 							'''
 						],
-						null,
-						false
+						null
 					)
 				}»
 			}«

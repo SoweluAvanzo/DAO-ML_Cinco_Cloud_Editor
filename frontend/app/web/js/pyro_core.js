@@ -1571,7 +1571,9 @@ function move_node_internal(x,y,id,containerId,graph)
 function remove_node_internal(id,graph,paper)
 {
     var node = findElementById(id,graph);
-    remove_element(node, paper);
+	if(node != null) {
+	    remove_element(node, paper);
+	}
 }
 
 function remove_element(elem, paper) {
@@ -1605,7 +1607,9 @@ function rotate_node_internal(angle,id,graph)
 function remove_edge_internal(id,graph)
 {
     var edge = findElementById(id,graph);
-    edge.remove();
+	if(edge != null) {
+    	edge.remove();
+	}
 }
 
 function reconnect_edge_internal(sourceId,targetId,id,graph)
@@ -1754,4 +1758,3 @@ function downloadContent(filename, text) {
     pom.remove();
 
 }
-

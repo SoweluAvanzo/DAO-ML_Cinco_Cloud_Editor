@@ -1219,23 +1219,28 @@ class GraphmodelComponent extends Generatable {
 							«FOR n : applicableElements SEPARATOR " else "
 							»if(source.$type() == "«n.typeName»") {
 								«{
-									val constraints = n.outgoingEdgeConnections.filter(EdgeElementConnection).toSet
+									val constraints = n.outgoingEdgeConnections.filter(mgl.BoundedConstraint).toSet
 									connectionCheckTemplate(
 										constraints,
 										[t| '''edge.$type() == "«t.typeName»"'''],
-										'''var groupSize;''',
+										'''
+											var groupSize;
+											var outgoing;
+										''',
 										[concreteTypes, upperBound| 
 											'''
-												var outgoing = source.outgoing;
-												groupSize = 0;
-												«FOR t:concreteTypes»
-													groupSize += outgoing.where((n)=>n.$type() == "«t.typeName»").length;
-												«ENDFOR»
-												// check bounding constraint
-												if(groupSize>=«upperBound») {
-													// can not be applied
-													return false;
-												}
+												«IF upperBound>-1»
+													outgoing = source.outgoing;
+													groupSize = 0;
+													«FOR t:concreteTypes»
+														groupSize += outgoing.where((n)=>n.$type() == "«t.typeName»").length;
+													«ENDFOR»
+													// check bounding constraint
+													if(groupSize>=«upperBound») {
+														// can not be applied
+														return false;
+													}
+												«ENDIF»
 											'''
 										],
 										
@@ -1249,7 +1254,7 @@ class GraphmodelComponent extends Generatable {
 				}
 				return false;
 			}
-			
+
 			bool can_connect_target(core.Edge edge,core.Node source,core.Node target) {
 				if(edge.target == null || edge.target.id!=target.id){
 					//target changed
@@ -1260,23 +1265,28 @@ class GraphmodelComponent extends Generatable {
 							»if(target.$type() == "«n.typeName»") {
 							
 								«{
-									val constraints = n.outgoingEdgeConnections.filter(EdgeElementConnection).toSet
+									val constraints = n.outgoingEdgeConnections.filter(mgl.BoundedConstraint).toSet
 									connectionCheckTemplate(
 										constraints,
 										[t| '''edge.$type() == "«t.typeName»"'''],
-										'''var groupSize;''',
+										'''
+											var groupSize;
+											var incoming;
+										''',
 										[concreteTypes, upperBound| 
 											'''
-												var incoming = source.incoming;
-												groupSize = 0;
-												«FOR t:concreteTypes»
-													groupSize += incoming.where((n)=>n.$type() == "«t.typeName»").length;
-												«ENDFOR»
-												// check bounding constraint
-												if(groupSize>=«upperBound») {
-													// can not be applied
-													return false;
-												}
+												«IF upperBound>-1»
+													incoming = source.incoming;
+													groupSize = 0;
+													«FOR t:concreteTypes»
+														groupSize += incoming.where((n)=>n.$type() == "«t.typeName»").length;
+													«ENDFOR»
+													// check bounding constraint
+													if(groupSize>=«upperBound») {
+														// can not be applied
+														return false;
+													}
+												«ENDIF»
 											'''
 										],
 										
@@ -1711,7 +1721,7 @@ class GraphmodelComponent extends Generatable {
 	'''
 
 	def containmentCheck(ContainingElement container, MGLModel g, boolean isElse) {
-		val containableElements = container.resolvePossibleContainingTypes
+		val containableElements = container.resolvePossibleContainingTypes.filter(mgl.BoundedConstraint).toSet
 		'''
 			«IF container instanceof GraphModel || !containableElements.empty»
 				«IF isElse»else «ENDIF»if(container.$type() == "«container.typeName»") {
@@ -1722,15 +1732,17 @@ class GraphmodelComponent extends Generatable {
 							'''int groupSize;''',
 							[concreteTypes, upperBound| 
 								'''
-									groupSize = 0;
-									«FOR t:concreteTypes»
-										groupSize += container.modelElements.where((n)=>n.$type() == "«t.typeName»").length;
-									«ENDFOR»
-									// check bounding constraint
-									if(groupSize>=«upperBound») {
-										// node can not be placed
-										return false;
-									}
+									«IF upperBound>-1»
+										groupSize = 0;
+										«FOR t:concreteTypes»
+											groupSize += container.modelElements.where((n)=>n.$type() == "«t.typeName»").length;
+										«ENDFOR»
+										// check bounding constraint
+										if(groupSize>=«upperBound») {
+											// node can not be placed
+											return false;
+										}
+									«ENDIF»
 								'''
 							],
 							

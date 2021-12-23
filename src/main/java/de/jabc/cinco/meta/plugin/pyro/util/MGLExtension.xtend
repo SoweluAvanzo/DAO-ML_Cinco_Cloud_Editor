@@ -2979,46 +2979,50 @@ class MGLExtension {
 	}
 	
 	def containmentCheckTemplate(
-		Set<GraphicalElementContainment> constraints,
+		Set<mgl.BoundedConstraint> constraints,
 		Function<GraphicalModelElement, CharSequence> typeCheck,
 		CharSequence preCheck,
 		BiFunction<Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck,
 		CharSequence fulfilled
 	) {
 		constraintCheckTemplate(
-			constraints.filter(mgl.BoundedConstraint).toSet,
+			constraints,
 			typeCheck,
 			preCheck,
 			constraintCheck,
 			fulfilled,
+			true,
 			true
 		)
 	}
 	
 	def connectionCheckTemplate(
-		Set<mgl.EdgeElementConnection> constraints,
+		Set<mgl.BoundedConstraint> constraints,
 		Function<GraphicalModelElement, CharSequence> typeCheck,
 		CharSequence preCheck,
 		BiFunction<Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck,
 		CharSequence fulfilled
 	) {
 		constraintCheckTemplate(
-			constraints.filter(mgl.BoundedConstraint).toSet,
+			constraints,
 			typeCheck,
 			preCheck,
 			constraintCheck,
 			fulfilled,
-			true
+			true,
+			false
 		)
 	}
 	
+	// TODO: SAMI - can be more optimized
 	def constraintCheckTemplate(
 		Set<mgl.BoundedConstraint> constraints,
 		Function<GraphicalModelElement, CharSequence> typeCheck,
 		CharSequence preCheck,
 		BiFunction<Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck,
 		CharSequence fulfilled,
-		boolean useElse
+		boolean useElse,
+		boolean containmentCheck // Two modes: containmentCheck and edgeConnectionCheck (Because of wildcard)
 	) {
 		'''
 			«IF constraints.empty»
@@ -3027,7 +3031,17 @@ class MGLExtension {
 			«ELSE»
 				«{
 					val applicableElements = new HashSet<GraphicalModelElement>();
-					if(constraints.head instanceof GraphicalElementContainment) {
+					if(constraints.filter(mgl.Wildcard).length>0) {
+						if(containmentCheck) {
+							applicableElements.addAll(
+								constraints.head.eContainer.MGLModel.elements.filter(Node)
+							)
+						} else {
+							applicableElements.addAll(
+								constraints.head.eContainer.MGLModel.elements.filter(Edge)
+							)
+						}
+					} else if(constraints.head instanceof GraphicalElementContainment) {
 						applicableElements.addAll(
 							constraints
 								.map[(it as GraphicalElementContainment).types].flatten.toSet
@@ -3054,7 +3068,9 @@ class MGLExtension {
 								val applicableGroups = new HashSet<mgl.BoundedConstraint>
 								for(s:superTypesAndType) {
 									val groups = constraints.filter[cG|
-										if(cG instanceof GraphicalElementContainment)
+										if(cG instanceof mgl.Wildcard) {
+											true
+										} else if(cG instanceof GraphicalElementContainment)
 											cG.types.contains(s)
 										else if(cG instanceof mgl.EdgeElementConnection) {
 											cG.connectingEdges.contains(s)
@@ -3065,34 +3081,42 @@ class MGLExtension {
 									applicableGroups.addAll(groups)
 								}
 								'''
-									«IF !useElse || applicableGroups.filter[upperBound>-1].size>0»
-										// calculate each bounding constraint («IF useElse»lazy«ELSE»eager«ENDIF»)
-										«IF preCheck !== null»«preCheck»«ENDIF»
-										«FOR group: applicableGroups.indexed»
-											«{
-												val concreteTypes = new HashSet<GraphicalModelElement>();
-												if(group.value instanceof GraphicalElementContainment) {
+									// calculate each bounding constraint («IF useElse»lazy«ELSE»eager«ENDIF»)
+									«IF preCheck !== null»«preCheck»«ENDIF»
+									«FOR group: applicableGroups.indexed»
+										«{
+											val concreteTypes = new HashSet<GraphicalModelElement>();
+											if(group.value instanceof mgl.Wildcard) {
+												if(containmentCheck) {
 													concreteTypes.addAll(
-														(group.value as mgl.GraphicalElementContainment).types
-														.map[resolveAllSubTypesAndType]
-														.flatten.filter[!isAbstract].toSet
+														group.value.eContainer.MGLModel.elements.filter(Node)
 													)
-												} else if(group.value instanceof mgl.EdgeElementConnection) {
+												} else {
 													concreteTypes.addAll(
-														(group.value as mgl.EdgeElementConnection).connectingEdges
-														.map[resolveAllSubTypesAndType]
-														.flatten.filter[!isAbstract].toSet
+														group.value.eContainer.MGLModel.elements.filter(Edge)
 													)
 												}
-												'''
-													«IF !concreteTypes.empty»
-														// calculate constraint «group.key»
-														«constraintCheck.apply(concreteTypes, group.value.upperBound)»
-													«ENDIF»
-												'''
-											}»
-										«ENDFOR»
-									«ENDIF»
+											} else if(group.value instanceof GraphicalElementContainment) {
+												concreteTypes.addAll(
+													(group.value as mgl.GraphicalElementContainment).types
+													.map[resolveAllSubTypesAndType]
+													.flatten.filter[!isAbstract].toSet
+												)
+											} else if(group.value instanceof mgl.EdgeElementConnection) {
+												concreteTypes.addAll(
+													(group.value as mgl.EdgeElementConnection).connectingEdges
+													.map[resolveAllSubTypesAndType]
+													.flatten.filter[!isAbstract].toSet
+												)
+											}
+											'''
+												«IF !concreteTypes.empty»
+													// calculate constraint «group.key»
+													«constraintCheck.apply(concreteTypes, group.value.upperBound)»
+												«ENDIF»
+											'''
+										}»
+									«ENDFOR»
 									«IF fulfilled !== null && fulfilled.length>0»
 										«fulfilled»
 									«ENDIF»
@@ -3106,24 +3130,44 @@ class MGLExtension {
 		'''
 	}
 	
-	def CharSequence typeInstanceSwitchTemplate(CharSequence typeVariableName, Iterable<ModelElement> types, Function<ModelElement, CharSequence> procedure, Function<ModelElement, CharSequence> instanceCheck) {
-							
-		val relevantTypes = types.filterSubClasses
+	/**
+	 * flat := true - subtypes will be resolved and if-else-block will be flat (e.g. Entity-Classes)
+	 * flat := false - instances inherit types, thus will be nested in if-else-blocks (e.g. Api-Classes)
+	 */
+	def CharSequence typeInstanceSwitchTemplate(
+		CharSequence typeVariableName,
+		Iterable<ModelElement> types,
+		Function<ModelElement,
+		CharSequence> procedure,
+		Function<ModelElement,
+		CharSequence> instanceCheck,
+		boolean flat
+	) {
+		val relevantTypes = new HashSet<ModelElement>()
+		if(!flat)
+			relevantTypes += types.filterSubClasses
+		else
+			relevantTypes += types.map[resolveSubTypesAndType].flatten
 		'''
 			«FOR type:relevantTypes SEPARATOR " else "
 			»if(«typeVariableName» instanceof «instanceCheck.apply(type)») {
-				«val subTypes = type.resolveSubTypesAndType.filter[!it.equals(type)]»
-				«{
-					typeVariableName.typeInstanceSwitchTemplate(
-						subTypes,
-						procedure,
-						instanceCheck
-					)
-				}»
-				«IF !subTypes.empty»
-					else {
+				«IF !flat»
+					«val subTypes = type.resolveSubTypesAndType.filter[!it.equals(type)]»
+					«{
+						typeVariableName.typeInstanceSwitchTemplate(
+							subTypes,
+							procedure,
+							instanceCheck,
+							flat
+						)
+					}»				
+					«IF !subTypes.empty»
+						else {
+							«procedure.apply(type)»
+						}
+					«ELSE»
 						«procedure.apply(type)»
-					}
+					«ENDIF»
 				«ELSE»
 					«procedure.apply(type)»
 				«ENDIF»
