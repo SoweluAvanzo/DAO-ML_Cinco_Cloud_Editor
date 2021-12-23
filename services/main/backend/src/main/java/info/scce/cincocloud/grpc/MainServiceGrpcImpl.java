@@ -2,12 +2,16 @@ package info.scce.cincocloud.grpc;
 
 import com.google.protobuf.ByteString;
 import info.scce.cincocloud.config.VertxService;
+import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.mq.WorkspaceImageBuildJobMessage;
 import info.scce.cincocloud.mq.WorkspaceMQProducer;
 import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.proto.MutinyMainServiceGrpc;
+import info.scce.cincocloud.rest.ObjectCache;
+import info.scce.cincocloud.sync.ProjectWebSocket;
+import info.scce.cincocloud.sync.ProjectWebSocket.Messages;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.smallrye.mutiny.Uni;
@@ -17,7 +21,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
@@ -39,6 +42,12 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
 
   @Inject
   VertxService vertxService;
+
+  @Inject
+  ProjectWebSocket projectWebSocket;
+
+  @Inject
+  ObjectCache objectCache;
 
   @Override
   @Transactional
@@ -189,6 +198,8 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
           );
       job.status = protoJobStatusToJobStatus(request.getStatus());
       job.persist();
+      final var buildJob = WorkspaceImageBuildJobTO.fromEntity(job, objectCache);
+      projectWebSocket.send(job.project.id, Messages.updateBuildJobStatus(buildJob));
       return job;
     })
         .runSubscriptionOn(Infrastructure.getDefaultExecutor())

@@ -16,7 +16,9 @@
       </div>
     </div>
 
-    <iframe [src]="editorUrl" *ngIf="deployment != null && deployment.status == 'READY'" class="border-0 h-100 w-100"></iframe>
+    <ng-container *ngIf="editorUrl != null && deployment.status == 'READY'">
+      <iframe [src]="editorUrl" class="border-0 h-100 w-100"></iframe>
+    </ng-container>
 
     <div class="container mt-3" *ngIf="deployment != null && deployment.status == 'FAILED'">
       <div class="alert alert-danger">

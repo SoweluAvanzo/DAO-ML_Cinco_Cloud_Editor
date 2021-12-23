@@ -45,7 +45,7 @@ import '../main/route_paths.dart';
       RoutePaths,
       Routes
     ])
-class ProjectsComponent implements OnDestroy, OnInit {
+class ProjectsComponent implements OnInit {
   String editProjectHeader;
 
   bool showEditProjectModal = false;
@@ -69,8 +69,6 @@ class ProjectsComponent implements OnDestroy, OnInit {
   final OrganizationAccessRightVectorService _orgArvService;
   final Router _router;
 
-  WebSocket webSocketCurrentUser;
-
   ProjectsComponent(
       this.projectService,
       this.userService,
@@ -85,47 +83,10 @@ class ProjectsComponent implements OnDestroy, OnInit {
   void ngOnInit() {
     userService.loadUser().then((u) {
       user = u;
-      activateWebSocket();
       _orgArvService.getMy("${organization.id}").then((arv) {
         orgArv = arv;
       });
     }).catchError((_) => _router.navigate(RoutePaths.login.toUrl()));
-  }
-
-  @override
-  void ngOnDestroy() {
-    if (this.webSocketCurrentUser != null
-        && this.webSocketCurrentUser.readyState == WebSocket.OPEN) {
-      window.console.debug("Closing Websocket webSocketCurrentUser");
-      this.webSocketCurrentUser.close();
-    }
-  }
-
-  void activateWebSocket() {
-    BaseService.getTicket().then((ticket) {
-      if (this.user != null && this.webSocketCurrentUser == null) {
-        this.webSocketCurrentUser = new WebSocket(
-            '${userService.getBaseUrl(protocol: 'ws:')}/ws/user/${ticket}/private'
-        );
-
-        this.webSocketCurrentUser.onOpen.listen((e) {
-          window.console.debug("[CINCO_CLOUD] onOpen User Websocket");
-        });
-
-        this.webSocketCurrentUser.onMessage.listen((MessageEvent e) {
-          window.console.debug("[CINCO_CLOUD] onMessage User Websocket");
-        });
-
-        this.webSocketCurrentUser.onClose.listen((CloseEvent e) {
-          window.console.debug("[CINCO_CLOUD] onClose User Websocket");
-        });
-
-        this.webSocketCurrentUser.onError.listen((e) {
-          notificationService.displayMessage("Failed to connect with websocket.", NotificationType.DANGER);
-          window.console.debug("[CINCO_CLOUD] Error on Websocket webSocketCurrentUser: ${e.toString()}");
-        });
-      }
-    });
   }
 
   void showEditProject(Project project) {
