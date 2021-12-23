@@ -4,6 +4,7 @@ import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.sync.ticket.TicketMessage;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 import javax.annotation.security.RolesAllowed;
+import javax.enterprise.context.RequestScoped;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -19,6 +20,7 @@ import javax.ws.rs.core.SecurityContext;
 @Path("/ticket")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@RequestScoped
 public class TicketController {
 
   @GET

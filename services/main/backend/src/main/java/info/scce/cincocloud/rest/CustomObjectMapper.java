@@ -1,21 +1,33 @@
 package info.scce.cincocloud.rest;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import info.scce.cincocloud.util.Constants;
-import io.quarkus.jackson.ObjectMapperCustomizer;
+import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import javax.inject.Singleton;
 
-@Singleton
-public class RegisterCustomModuleCustomizer implements ObjectMapperCustomizer {
+public class CustomObjectMapper {
 
-  public void customize(ObjectMapper mapper) {
+  @Singleton
+  public ObjectMapper objectMapper() {
+    final var mapper = new ObjectMapper();
     mapper.findAndRegisterModules();
+
+    final var module = new SimpleModule();
+    module.addSerializer(Instant.class, new Iso8601InstantSerializer());
+    mapper.registerModule(module);
 
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
     mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
@@ -23,14 +35,31 @@ public class RegisterCustomModuleCustomizer implements ObjectMapperCustomizer {
     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
     PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator
         .builder()
         .allowIfBaseType(RESTBaseType.class)
         .build();
+
     mapper.activateDefaultTypingAsProperty(ptv, ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT,
         Constants.CINCO_CLOUD_RUNTIME_TYPE);
 
     mapper.setFilterProvider(new SimpleFilterProvider()
         .addFilter("CincoCloud_Selective_Filter", new CincoCloudSelectiveRestFilter()));
+
+    return mapper;
+  }
+
+  private static class Iso8601InstantSerializer extends JsonSerializer<Instant> {
+
+    private final DateTimeFormatter df = DateTimeFormatter
+        .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'")
+        .withZone(ZoneId.systemDefault());
+
+    @Override
+    public void serialize(Instant value, JsonGenerator gen, SerializerProvider serializers)
+        throws IOException {
+      gen.writeString(df.format(value));
+    }
   }
 }

@@ -4,6 +4,8 @@ import 'dart:html';
 import 'dart:convert';
 import 'package:angular_router/angular_router.dart';
 
+import 'package:CincoCloud/src/sync/messages.dart';
+import 'package:CincoCloud/src/service/project_web_socket_factory_service.dart';
 import '../../routes.dart' as top_routes;
 import '../../model/core.dart';
 import '../../components/workspace_image_badge/workspace_image_badge_component.dart';
@@ -35,19 +37,22 @@ class ProjectComponent implements OnActivate, OnDeactivate {
   WebSocket projectWebSocket;
   Project project;
   ProjectDeployment deployment;
+  SafeResourceUrl editorUrl;
 
   final ProjectService _projectService;
   final UserService _userService;
   final DomSanitizationService _domSanitizationService;
   final NotificationService _notificationService;
   final Router _router;
+  final ProjectWebSocketFactoryService _projectWebSocketFactory;
 
   ProjectComponent(
       this._projectService,
       this._userService,
       this._notificationService,
       this._domSanitizationService,
-      this._router) {
+      this._router,
+      this._projectWebSocketFactory) {
   }
 
   @override
@@ -62,6 +67,8 @@ class ProjectComponent implements OnActivate, OnDeactivate {
         activateWebSocket().then((_) {
           _projectService.deploy(project).then((d) {
             deployment = d;
+            var url = deployment.url + '?jwt=' + window.localStorage['pyro_token'] + "&projectId=" + project.id.toString();
+            editorUrl = _domSanitizationService.bypassSecurityTrustResourceUrl(url);
             window.console.log("deploy project");
           }).catchError((err) {
             window.console.log(err);
@@ -85,49 +92,34 @@ class ProjectComponent implements OnActivate, OnDeactivate {
   }
 
   Future<dynamic> activateWebSocket() async {
-    return BaseService.getTicket().then((ticket) {
-      if (user != null && projectWebSocket == null) {
-        projectWebSocket = new WebSocket(
-            '${_userService.getBaseUrl(protocol: 'ws:')}/ws/project/${project.id}/${ticket}/private'
-        );
+    return _projectWebSocketFactory.create(project.id).then((socket) {
+      projectWebSocket = socket;
 
-        projectWebSocket.onOpen.listen((e) {
-          window.console.debug("[CINCO_CLOUD] onOpen Project Websocket");
-        });
+      projectWebSocket.onMessage.listen((MessageEvent e) {
+        window.console.debug("[CINCO_CLOUD] onMessage Project Websocket");
 
-        projectWebSocket.onMessage.listen((MessageEvent e) {
-          window.console.debug("[CINCO_CLOUD] onMessage Project Websocket");
+        var message = WebSocketMessage.fromJSON(e.data);
+        switch(message.event) {
+          case WebSocketEvents.UPDATE_POD_DEPLOYMENT_STATUS:
+            deployment = ProjectDeployment.fromJSOG(new Map(), message.content);
+            break;
+          case WebSocketEvents.UPDATE_BUILD_JOB_STATUS:
+            var job = WorkspaceImageBuildJob.fromJSOG(cache: Map(), jsog: message.content);
+            if (job.status == 'FINISHED_WITH_SUCCESS') {
+              _notificationService.displayMessage("Image has been build successfully.", NotificationType.SUCCESS);
+            } else if (job.status == 'FINISHED_WITH_FAILURE') {
+              _notificationService.displayMessage("Image could not be build.", NotificationType.DANGER);
+            }
+            break;
+        }
+      });
 
-          var message = jsonDecode(e.data);
-          switch(message['event']) {
-            case 'project:podDeploymentStatus':
-              deployment = ProjectDeployment.fromJSOG(new Map(), message['content']);
-              break;
-            case 'workspaces:jobs:results':
-              var result = WorkspaceImageBuildResult.fromJSOG(new Map(), message['content']);
-              if (result.success) {
-                _notificationService.displayMessage("Image ${result.image} has been build successfully.", NotificationType.SUCCESS);
-              } else {
-                _notificationService.displayMessage("Image ${result.image} could not be build: ${result.message}", NotificationType.DANGER);
-              }
-              break;
-          }
-        });
-
-        projectWebSocket.onClose.listen((CloseEvent e) {
-          window.console.debug("[CINCO_CLOUD] onClose Project Websocket");
-          _router.navigate(top_routes.RoutePaths.organization.toUrl(parameters: {'orgId': project.organization.id.toString()}));
-        });
-
-        projectWebSocket.onError.listen((e) {
-          _notificationService.displayMessage("Failed to connect with websocket.", NotificationType.DANGER);
-          window.console.debug("[CINCO_CLOUD] Error on Websocket projectWebSocket: ${e.toString()}");
-        });
-      }
+      projectWebSocket.onError.listen((e) {
+        _notificationService.displayMessage("Failed to connect with websocket.", NotificationType.DANGER);
+        window.console.debug("[CINCO_CLOUD] Error on Websocket projectWebSocket: ${e.toString()}");
+      });
     });
   }
 
   Organization get organization => project == null ? null : project.organization;
-
-  SafeResourceUrl get editorUrl => _domSanitizationService.bypassSecurityTrustResourceUrl(deployment.url + '?jwt=' + window.localStorage['pyro_token'] + "&projectId=" + project.id.toString());
 }

@@ -47,4 +47,13 @@ public class WebSocketMessage {
   public void setContent(Object content) {
     this.content = content;
   }
+
+  @Override
+  public String toString() {
+    return "WebSocketMessage{"
+        + "senderId=" + senderId
+        + ", event='" + event + '\''
+        + ", content=" + content
+        + '}';
+  }
 }

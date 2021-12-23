@@ -3,6 +3,8 @@ import 'dart:html';
 import 'dart:convert';
 import 'package:angular_router/angular_router.dart';
 import 'package:ng_bootstrap/ng_bootstrap.dart';
+import 'package:CincoCloud/src/service/project_web_socket_factory_service.dart';
+import 'package:CincoCloud/src/sync/messages.dart';
 import '../../routes.dart' as top_routes;
 import '../../model/core.dart';
 import '../shared/navigation/navigation_component.dart';
@@ -31,11 +33,12 @@ import './project-build-job-status-badge/project_build_job_status_badge_componen
     ],
     pipes: [commonPipes]
 )
-class ProjectBuildJobsComponent implements OnActivate {
+class ProjectBuildJobsComponent implements OnActivate, OnDeactivate {
 
   User user;
   Project project;
   List<WorkspaceImageBuildJob> buildJobs = List();
+  WebSocket projectWebSocket;
 
   int page = 0;
   int size = 15;
@@ -44,12 +47,14 @@ class ProjectBuildJobsComponent implements OnActivate {
   final UserService _userService;
   final WorkspaceImageBuildJobService _buildJobService;
   final NotificationService _notificationService;
+  final ProjectWebSocketFactoryService _projectWebSocketFactory;
 
   ProjectBuildJobsComponent(
       this._projectService,
       this._userService,
       this._buildJobService,
-      this._notificationService) {
+      this._notificationService,
+      this._projectWebSocketFactory) {
   }
 
   @override
@@ -60,6 +65,8 @@ class ProjectBuildJobsComponent implements OnActivate {
 
       _projectService.getById(projectId).then((p) {
         project = p;
+
+        activateWebSocket();
 
         document.title = "Cinco Cloud | " + project.name;
 
@@ -73,6 +80,37 @@ class ProjectBuildJobsComponent implements OnActivate {
       });
     }).catchError((err){
       window.console.log(err);
+    });
+  }
+
+  @override
+  void onDeactivate(RouterState current, _) {
+    projectWebSocket?.close();
+  }
+
+  void activateWebSocket() {
+    _projectWebSocketFactory.create(project.id).then((socket) {
+      projectWebSocket = socket;
+
+      projectWebSocket.onMessage.listen((MessageEvent e) {
+        window.console.debug("[CINCO_CLOUD] onMessage Project Websocket");
+
+        var message = WebSocketMessage.fromJSON(e.data);
+        switch(message.event) {
+          case WebSocketEvents.UPDATE_BUILD_JOB_STATUS:
+            var job = WorkspaceImageBuildJob.fromJSOG(cache: Map(), jsog: message.content);
+            var i = buildJobs.indexWhere((j) => j.id == job.id);
+            if (i > -1) {
+              buildJobs[i] = job;
+            } else {
+              buildJobs.insert(0, job);
+              if (buildJobs.length > size) {
+                buildJobs.removeLast();
+              }
+            }
+            break;
+        }
+      });
     });
   }
 

@@ -2,10 +2,7 @@ package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
-import info.scce.cincocloud.sync.ProjectWebSocket;
-import java.util.Collections;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import info.scce.cincocloud.sync.ProjectRegistry;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -18,23 +15,22 @@ import javax.ws.rs.core.SecurityContext;
 public class ProjectService {
 
   @Inject
-  ProjectWebSocket projectWebSocket;
+  ProjectRegistry projectRegistry;
 
   public void deleteById(UserDB user, final long id, SecurityContext securityContext) {
-    final ProjectDB pp = ProjectDB.findById(id);
-    checkPermission(pp, securityContext);
+    final ProjectDB project = ProjectDB.findById(id);
+    checkPermission(project, securityContext);
 
-    if (pp.owner.equals(user)) {
-      pp.owner.ownedProjects.remove(pp);
-      pp.owner = null;
-      projectWebSocket.updateUserList(pp.id, Collections.emptyList());
-    } else {
-      projectWebSocket.updateUserList(pp.id, Stream.of(pp.owner.id).collect(Collectors.toList()));
+    if (project.owner.equals(user)) {
+      project.owner.ownedProjects.remove(project);
+      project.owner = null;
     }
 
+    projectRegistry.closeSessions(project.id);
+
     // remove project from organization
-    pp.organization.projects.remove(pp);
-    pp.delete();
+    project.organization.projects.remove(project);
+    project.delete();
   }
 
   public void checkPermission(ProjectDB project, SecurityContext securityContext) {
