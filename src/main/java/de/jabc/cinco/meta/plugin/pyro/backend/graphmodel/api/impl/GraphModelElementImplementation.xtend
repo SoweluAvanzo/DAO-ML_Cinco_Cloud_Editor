@@ -204,6 +204,9 @@ class GraphModelElementImplementation extends Generatable {
 									'''
 										«cmdExecuter».remove«me.name.fuEscapeJava»(this);
 									'''									
+								],
+								[g|
+									g.elements.contains(me)
 								]
 							)»
 							this.delegate.delete();
@@ -344,6 +347,9 @@ class GraphModelElementImplementation extends Generatable {
 											«cmdExecuter».remove«me.name.fuEscapeJava»(this);
 										«ENDIF»
 									'''									
+								],
+								[g|
+									g.elements.contains(me)
 								]
 							)»
 							this.delegate.delete();
@@ -757,12 +763,19 @@ class GraphModelElementImplementation extends Generatable {
 						«ENDIF»
 						
 						// commandExecuter
-						«commandExecuterSwitch(me,
-						[cmdExecuter|
-						'''
-							«cmdExecuter».update«IF me instanceof UserDefinedType»IdentifiableElement«ELSE»«me.name.escapeJava»Properties«ENDIF»(this«IF me instanceof UserDefinedType».parent«ENDIF»,prev);
-						'''
-						])»
+						«
+							commandExecuterSwitch(
+								me,
+								[cmdExecuter|
+								'''
+									«cmdExecuter».update«IF me instanceof UserDefinedType»IdentifiableElement«ELSE»«me.name.escapeJava»Properties«ENDIF»(this«IF me instanceof UserDefinedType».parent«ENDIF»,prev);
+								'''
+								],
+								[g|
+									g.elementsAndTypesAndGraphModels.contains(me)
+								]
+							)
+						»
 						
 						// persist
 						this.delegate.persist();
@@ -903,6 +916,9 @@ class GraphModelElementImplementation extends Generatable {
 							'''
 								cn = «cmdExecuter».create«outgoing.name.fuEscapeJava»(this, target, java.util.Collections.emptyList(), null);
 							'''
+						],
+						[g|
+							g.elements.contains(outgoing)
 						]
 					)»
 					«outgoing.postCreate("cn",gc)»
@@ -964,6 +980,9 @@ class GraphModelElementImplementation extends Generatable {
 											primeId
 										);
 									'''									
+								],
+								[gm|
+									gm.elements.contains(em)
 								]
 							)»
 							«em.postCreate("cn",gc)»
@@ -992,6 +1011,9 @@ class GraphModelElementImplementation extends Generatable {
 											primeId
 										);
 									'''									
+								],
+								[gm|
+									gm.elements.contains(em)
 								]
 							)» 
 							«em.postCreate("cn",gc)»
@@ -1007,6 +1029,9 @@ class GraphModelElementImplementation extends Generatable {
 									'''
 										cn = «cmdExecuter».create«em.name.fuEscapeJava»(x,y,new Long(width),new Long(height),this,null);
 									'''									
+								],
+								[gm|
+									gm.elements.contains(em)
 								]
 							)» 
 							«em.postCreate("cn",gc)»

@@ -290,7 +290,8 @@ class GraphModelCommandExecuter extends Generatable {
 										container.persist();
 									'''
 								],
-								[type|'''«type.entityFQN»''']
+								[type|'''«type.entityFQN»'''],
+								true
 							)
 						}»
 					}
@@ -308,7 +309,8 @@ class GraphModelCommandExecuter extends Generatable {
 										o.persist();
 									'''
 								],
-								[type|'''«type.apiFQN»''']
+								[type|'''«type.apiFQN»'''],
+								false
 							)
 						}»
 					}
@@ -326,38 +328,51 @@ class GraphModelCommandExecuter extends Generatable {
 										o.persist();
 									'''
 								],
-								[type|'''«type.apiFQN»''']
+								[type|'''«type.apiFQN»'''],
+								false
 							)
 						}»
 					}
 				«ENDFOR»
 		
 			    public void setEdgeDBComponents(«dbTypeName» edge, Node source, Node target, java.util.List<BendingPoint> bendingPoints) {
-			    	graphmodel.GraphModel graphModel = source.getRootElement();
-			    	«dbTypeName» e = TypeRegistry.getApiToDB(graphModel);
-			    	
-			    	// switch edge types
 			    	«{
-						val possibleTypes = g.edges.filter[!isIsAbstract].filter(ModelElement)
-						'''edge'''.typeInstanceSwitchTemplate(
-							possibleTypes,
-							[e|
-								'''
-									«e.entityFQN» edgeDB = («e.entityFQN») edge;
-									set«e.name.escapeJava»DBSource(edgeDB, source);
-									set«e.name.escapeJava»DBTarget(edgeDB, target);
-									set«e.name.fuEscapeJava»Container(edgeDB, e);
-									bendingPoints.forEach( p -> {
-										entity.core.BendingPointDB bp = new entity.core.BendingPointDB();
-										bp.x = p.getx();
-										bp.y = p.gety();
-										bp.persist();
-										edgeDB.bendingPoints.add(bp);
-									});
-								'''
-							],
-							[type|'''«type.entityFQN»''']
-						)
+						val possibleTypes = g.edges.map[resolveSubTypesAndType].flatten.toSet.filter[!isAbstract].filter(ModelElement)
+						'''
+							«IF !possibleTypes.empty»
+								graphmodel.GraphModel graphModel = source.getRootElement();
+								«dbTypeName» e = TypeRegistry.getApiToDB(graphModel);
+								
+								// switch edge types
+								«{
+								'''edge'''.typeInstanceSwitchTemplate(
+									possibleTypes,
+									[e|
+										'''
+											«e.entityFQN» edgeDB = («e.entityFQN») edge;
+											set«e.name.escapeJava»DBSource(edgeDB, source);
+											set«e.name.escapeJava»DBTarget(edgeDB, target);
+											set«e.name.fuEscapeJava»Container(edgeDB, e);
+											bendingPoints.forEach( p -> {
+												entity.core.BendingPointDB bp = new entity.core.BendingPointDB();
+												bp.x = p.getx();
+												bp.y = p.gety();
+												bp.persist();
+												edgeDB.bendingPoints.add(bp);
+											});
+										'''
+									],
+									[type|'''«type.entityFQN»'''],
+									true
+								)	
+								}»
+								else {
+									throw new RuntimeException("Type not found!");
+								}
+							«ELSE»
+								throw new RuntimeException("No Type specified!");
+							«ENDIF»
+						'''
 					}»
 			    }
 			    
@@ -371,7 +386,8 @@ class GraphModelCommandExecuter extends Generatable {
 									«IF e instanceof GraphModel && !e.equals(g)»this.get«e.commandExecuter»().«ENDIF»update«e.name.fuEscapeJava»Properties((«e.apiFQN») entity, («e.restFQN») prev);
 								'''
 							],
-							[type|'''«type.apiFQN»''']
+							[type|'''«type.apiFQN»'''],
+							false
 						)
 					}»
 			    }
@@ -702,7 +718,8 @@ class GraphModelCommandExecuter extends Generatable {
 										updateAppearanceProvider«e.name.escapeJava»((«e.apiFQN») element);
 									'''
 								],
-								[type|'''«type.apiFQN»''']
+								[type|'''«type.apiFQN»'''],
+								false
 							)
 						}»
 					});
@@ -717,8 +734,8 @@ class GraphModelCommandExecuter extends Generatable {
 							remove«e.name.escapeJava»((«e.entityFQN») entity);
 						«ENDIF»
 					}
-					
 					«IF e.isAbstract»
+						
 						public void remove«e.name.escapeJava»(«dbTypeName» entity) {
 							«{
 								val possibleTypes = g.elements.filter(UserDefinedType).filter[!isIsAbstract].filter(ModelElement)
@@ -729,11 +746,13 @@ class GraphModelCommandExecuter extends Generatable {
 											remove«t.name.escapeJava»((«t.entityFQN») entity);
 										'''
 									],
-									[type|'''«type.entityFQN»''']
+									[type|'''«type.entityFQN»'''],
+									true
 								)
 							}»
 						}
 					«ELSE»
+						
 						public void remove«e.name.escapeJava»(«e.entityFQN» entity){
 							//for enums
 							«FOR attr:e.attributes.filter[isPrimitive].filter[attributeTypeName.getEnum(modelPackage)!==null]»
