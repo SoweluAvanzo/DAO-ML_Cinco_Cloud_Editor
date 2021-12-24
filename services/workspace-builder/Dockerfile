@@ -12,7 +12,7 @@ RUN ls -all
 RUN cd /app/workspace-builder && ./mvnw clean install package -DskipTests
 RUN cd /app/workspace-builder/target && ls -all
 
-FROM docker.io/library/ubuntu:20.10
+FROM docker.io/library/ubuntu:21.10
 WORKDIR /app
 RUN apt-get -y update
 RUN apt-get -y install runc buildah openjdk-11-jdk
