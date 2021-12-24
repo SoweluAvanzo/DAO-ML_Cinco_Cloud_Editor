@@ -247,8 +247,8 @@ class MGLExtension {
 	def Set<ModelElement> collectTypes(ModelElement e, Set<ModelElement> cache) {
 		var result = new HashSet<ModelElement>
 		val subTypes = e.resolveAllSubTypesAndType;
-		val superTypesAndType = e.resolveSuperTypesAndType.filter(ModelElement)
-		val superAndSubTypes = subTypes + superTypesAndType
+		// val superTypesAndType = e.resolveSuperTypesAndType.filter(ModelElement)
+		val superAndSubTypes = subTypes // + superTypesAndType
 		
 		for(s : superAndSubTypes) {
 			if(!cache.contains(s) && !result.contains(s)) {
@@ -1856,42 +1856,12 @@ class MGLExtension {
 	}
 
 	def Set<GraphicalModelElement> possibleEmbeddingTypes(ContainingElement ce, MGLModel g) {
-		val directContainable = ce.containableElements.map[types].flatten
-		val subTypesOfDirectContainable = directContainable.map[n|n.name.subTypes(g)].flatten.filter(
-			GraphicalModelElement)
-		if (ce instanceof NodeContainer) {
-			if (ce.extends !== null) {
-				if (ce.extends instanceof NodeContainer) {
-					return (directContainable + subTypesOfDirectContainable +
-						(ce.extends as NodeContainer).possibleEmbeddingTypes(g)).toSet
-				}
-			}
-		}
-		if (directContainable.empty) {
-			return g.nodes.filter(GraphicalModelElement).toSet
-		}
-
+		val directContainable =
+			ce.getContainmentWildcards().length>0?
+			g.elements.filter(Node):
+			ce.containableElements.map[types].flatten
+		val subTypesOfDirectContainable = directContainable.map[n|n.name.subTypes(g)].flatten.filter(GraphicalModelElement)
 		return (directContainable + subTypesOfDirectContainable).toSet
-	}
-
-	def Iterable<GraphicalElementContainment> allContainableElement(ContainingElement ce, GraphModel g) {
-		val containable = ce.containableElements
-		if (ce instanceof NodeContainer) {
-			if (ce.extends !== null) {
-				if (ce.extends instanceof NodeContainer) {
-					containable += (ce.extends as NodeContainer).allContainableElement(g)
-				}
-			}
-		}
-
-		return containable
-	}
-
-	def Iterable<Edge> parentEgdes(Edge e) {
-		if (e.extends !== null) {
-			return #[e] + parentEgdes(e.extends)
-		}
-		return #[e]
 	}
 
 	def Set<Edge> possibleOutgoing(Node node) {
@@ -2283,7 +2253,10 @@ class MGLExtension {
 		mglModel.graphmodels.forEach[g|
 			g.elements.filter(ContainingElement).forEach[container|
 				if(!possibleContainer.contains(container)) {
-					val containableTypes = container.resolvePossibleContainingTypes.map[it.types].flatten.filter(Node)
+					val containableTypes = container.resolvePossibleContainingTypes.map[
+						it instanceof GraphicalElementContainment? it.types
+						: it instanceof mgl.Wildcard ? it.eContainer.MGLModel.nodes
+					].flatten.filter(Node)
 					containableTypes.forEach[n|
 						// container of contained Element n is also container of edge
 						possibleContainer.addAll(
@@ -2312,7 +2285,10 @@ class MGLExtension {
 		mglModel.graphmodels.forEach[g|
 			g.elements.filter(ContainingElement).forEach[container|
 				if(!possibleContainer.contains(container)) {
-					val containableTypes = container.resolvePossibleContainingTypes.map[it.types].flatten.filter(Node)
+					val containableTypes = container.resolvePossibleContainingTypes.map[
+						it instanceof GraphicalElementContainment? it.types
+						: it instanceof mgl.Wildcard ? it.eContainer.MGLModel.nodes
+					].flatten.filter(Node)
 					containableTypes.forEach[n|
 						if(
 							types.exists[t|
@@ -2343,8 +2319,8 @@ class MGLExtension {
 		possibleContainer.map[ModelElement.cast(it)].toSet.filter[!isAbstract]
 	}
 
-	def HashSet<GraphicalElementContainment> resolvePossibleContainingTypes(ContainingElement container) {
-		var containingTypes = new HashMap<Type, GraphicalElementContainment>
+	def HashSet<mgl.BoundedConstraint> resolvePossibleContainingTypes(ContainingElement container) {
+		var containingTypes = new HashSet<mgl.BoundedConstraint>
 		/*
 		 * COMMENTED: CINCO does not inherit containments
 		 * 
@@ -2373,13 +2349,8 @@ class MGLExtension {
 		}
 		*/
 		// own
-		for (value : container.containableElements) {
-			for (type : value.types) {
-				val key = type
-				containingTypes.put(key, value)
-			}
-		}
-		return new HashSet<GraphicalElementContainment>(containingTypes.values)
+		containingTypes += container.containmentWildcards + container.containableElements
+		return containingTypes
 	}
 
 	def HashSet<Type> resolvePrimeReferences(Iterable<MGLModel> graphModels) {
@@ -2828,43 +2799,38 @@ class MGLExtension {
 		return ""
 	}
 	
-	def commandExecuterSwitch(MGLModel m, Function<CharSequence, CharSequence> proc) {
-		m.concreteGraphModels.commandExecuterSwitch(proc)
+	def commandExecuterSwitch(MGLModel m, Function<CharSequence, CharSequence> proc, Function<GraphModel, Boolean> filter) {
+		m.concreteGraphModels.commandExecuterSwitch(proc, filter)
 	}
 	
-	def commandExecuterSwitch(ModelElement me, Function<CharSequence, CharSequence> proc) {
+	def commandExecuterSwitch(ModelElement me, Function<CharSequence, CharSequence> proc, Function<GraphModel, Boolean> filter) {
 		val graphModels = me.graphModels.filter[!isAbstract].toSet
 		if(me instanceof GraphModel) {
 			graphModels.add(me)
 		}
-		commandExecuterSwitch(graphModels, proc)
+		commandExecuterSwitch(graphModels, proc, filter)
 	}
 	
-	def commandExecuterSwitch(Set<GraphModel> graphModels, Function<CharSequence, CharSequence> proc) {
+	def commandExecuterSwitch(Set<GraphModel> graphModels, Function<CharSequence, CharSequence> proc, Function<GraphModel, Boolean> filter) {
+		val gMs = graphModels.filter[filter.apply(it)]
 		'''
-			«FOR gM:graphModels SEPARATOR " else "
+			«FOR gM:gMs SEPARATOR " else "
 			»if(cmdExecuter instanceof «gM.commandExecuter») {
 				«gM.commandExecuter» «gM.commandExecuterVar» = («gM.commandExecuter») cmdExecuter;
 				«proc.apply(gM.commandExecuterVar)»
 			}«
 			ENDFOR»
-			«IF !graphModels.empty»else
+			«IF !gMs.empty»else
 				«ENDIF»if(cmdExecuter != null) throw new RuntimeException("GraphModelCommandExecuter can not handle this type!");
 		'''
 	}
 	
-	def getContainableElementsDefinition(mgl.ContainingElement c) {
-		val possibleContainments = new LinkedList<Type>
-		val containerTypes = (c as ModelElement).resolveSuperTypesAndType.filter(ContainingElement)
-		for(container : containerTypes) {
-			val containments = container.containableElements.map[types].flatten
-			possibleContainments.addAll(containments)
-		}
-		var result = possibleContainments.stream.distinct.collect(Collectors.toList).filter(Type).toSet
+	def getContainableElementsDBDefinition(mgl.ContainingElement c) {
+		val possibleContainments = c.possibleEmbeddingTypes((c as ModelElement).mglModel)
 		if(c instanceof GraphModel) {
-			result += c.elements.filter(Edge) // edges are always part of the modelElements, since they are used to render the set
+			possibleContainments += c.elements.filter(Edge) // edges are always part of the modelElements, since they are used to render the set
 		}
-		result
+		possibleContainments
 	}
 	
 	def dispatch firstConcreteType(GraphModel element) {
@@ -3137,10 +3103,8 @@ class MGLExtension {
 	def CharSequence typeInstanceSwitchTemplate(
 		CharSequence typeVariableName,
 		Iterable<ModelElement> types,
-		Function<ModelElement,
-		CharSequence> procedure,
-		Function<ModelElement,
-		CharSequence> instanceCheck,
+		Function<ModelElement, CharSequence> procedure,
+		Function<ModelElement, CharSequence> instanceCheck,
 		boolean flat
 	) {
 		val relevantTypes = new HashSet<ModelElement>()

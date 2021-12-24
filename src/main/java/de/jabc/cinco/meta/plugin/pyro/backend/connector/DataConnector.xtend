@@ -101,7 +101,7 @@ class DataConnector extends Generatable {
 		GraphModel.singlePrimitiveAttribute("filename","String")
 		GraphModel.singlePrimitiveAttribute("extension","String")
 		
-		val possibleModelElements = g.containableElementsDefinition
+		val possibleModelElements = g.containableElementsDBDefinition
 		val nodesAndEdges = possibleModelElements.filter[it instanceof Node || it instanceof Edge]
 		
 		GraphModel.createMultiAttribute(nodesAndEdges, "modelElements", "container_"+g.name.fuEscapeJava);
@@ -137,7 +137,7 @@ class DataConnector extends Generatable {
 	private def generateContainer(NodeContainer nc) {
 		val Container = nc.generateNode
 		
-		var possibleContainments = nc.containableElementsDefinition
+		var possibleContainments = nc.getContainableElementsDBDefinition
 		Container.createMultiAttribute(possibleContainments, "modelElements", "container_"+nc.name.fuEscapeJava);
 	}
 	

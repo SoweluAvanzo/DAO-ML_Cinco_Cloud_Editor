@@ -308,11 +308,16 @@ class TypeRegistry extends Generatable {
 				long id,
 				«commandExecuterClass» cmdExecuter
 			) {
-				«modelPackage.commandExecuterSwitch([cmdExecuter|
+				«modelPackage.commandExecuterSwitch(
+					[cmdExecuter|
 					'''
 						return findApiByType(type, id, «cmdExecuter», null, null);
 					'''
-				])»
+					],
+					[g|
+						true
+					]
+				)»
 				return null;
 			}
 			
@@ -343,11 +348,16 @@ class TypeRegistry extends Generatable {
 				graphmodel.IdentifiableElement parent,
 				info.scce.pyro.core.graphmodel.IdentifiableElement prev
 			) {
-				«modelPackage.commandExecuterSwitch([cmdExecuter|
+				«modelPackage.commandExecuterSwitch(
+					[cmdExecuter|
 					'''
 						return getDBToApiPrime«cmdExecuter»(e, «cmdExecuter», parent, prev);
 					'''
-				])»
+					],
+					[g|
+						true
+					]
+				)»
 				return null;
 			}
 			
@@ -358,11 +368,16 @@ class TypeRegistry extends Generatable {
 				graphmodel.IdentifiableElement parent,
 				info.scce.pyro.core.graphmodel.IdentifiableElement prev
 			) {
-				«modelPackage.commandExecuterSwitch([cmdExecuter|
-					'''
-						return findApiByTypePrime«cmdExecuter»(type, id, «cmdExecuter», parent, prev);
-					'''
-				])»
+				«modelPackage.commandExecuterSwitch(
+					[cmdExecuter|
+						'''
+							return findApiByTypePrime«cmdExecuter»(type, id, «cmdExecuter», parent, prev);
+						'''
+					],
+					[g|
+						true
+					]
+				)»
 				return null;
 			}
 			

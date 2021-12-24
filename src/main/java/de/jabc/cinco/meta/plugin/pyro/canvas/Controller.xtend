@@ -1325,15 +1325,17 @@ class Controller extends Generatable{
 			'''var groupSize;''',
 			[concreteTypes, upperBound| 
 				'''
-					groupSize = 0;
-					«FOR t:concreteTypes»
-						groupSize += getContainedByType(targetNode,'«t.typeName»',$graph_«g.jsCall»).length
-					«ENDFOR»
-					// check bounding constraint
-					if(groupSize>=«upperBound») {
-						// node can not be placed
-						return false;
-					}
+					«IF upperBound>-1»
+						groupSize = 0;
+						«FOR t:concreteTypes»
+							groupSize += getContainedByType(targetNode,'«t.typeName»',$graph_«g.jsCall»).length
+						«ENDFOR»
+						// check bounding constraint
+						if(groupSize>=«upperBound») {
+							// node can not be placed
+							return false;
+						}
+					«ENDIF»
 				'''
 			],
 			

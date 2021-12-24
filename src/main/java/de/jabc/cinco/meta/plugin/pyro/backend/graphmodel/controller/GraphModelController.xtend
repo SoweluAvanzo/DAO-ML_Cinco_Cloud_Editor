@@ -742,21 +742,34 @@ class GraphModelController extends Generatable {
 		}
 		
 		private void createNode(String type,Object mec, long x, long y, Long primeId, «g.commandExecuter» executer,SecurityContext securityContext) {
-			«FOR node:g.nodes.filter(NodeContainer).filter[!isIsAbstract] + #[g] SEPARATOR " else "
-			»if(mec instanceof «node.apiFQN») {
-				«node.apiFQN» n = («node.apiFQN») mec;
-				«FOR n:node.possibleEmbeddingTypes(g).filter[!isIsAbstract] SEPARATOR " else "»
-					if(type.equals("«n.typeName»")) {
-						n.new«n.name.fuEscapeJava»(
-						«IF n.isPrime»
-							primeId,
-						«ENDIF»
-						(int)x,
-						(int)y);
-					}
-				«ENDFOR»
-			}«
-			ENDFOR»
+			«{
+				val containers = (g.nodes.filter(NodeContainer).filter[!isIsAbstract] + #[g]).toSet.filter(ModelElement)
+				'''mec'''.typeInstanceSwitchTemplate(
+					containers,
+					[container|
+						val containableElements = (container as mgl.ContainingElement).possibleEmbeddingTypes(g).filter[!isAbstract]
+						'''
+							«IF !containableElements.isEmpty»
+								«container.apiFQN» n = («container.apiFQN») mec;
+								«FOR n:containableElements SEPARATOR " else "
+								»if(type.equals("«n.typeName»")) {
+									n.new«n.name.fuEscapeJava»(
+									«IF n.isPrime»
+										primeId,
+									«ENDIF»
+									(int)x,
+									(int)y);
+								}«
+								ENDFOR»
+							«ELSE»
+								// no containable elements
+							«ENDIF»
+						'''
+					],
+					[type|'''«type.apiFQN»'''],
+					false
+				)
+			}»
 		}
 		
 		private void addBendingPoints(«dbTypeName» delegate, java.util.List<info.scce.pyro.core.graphmodel.BendingPoint> positions) {
@@ -782,21 +795,34 @@ class GraphModelController extends Generatable {
 		private graphmodel.Edge createEdge(String type, graphmodel.Node source, graphmodel.Node target, java.util.List<info.scce.pyro.core.graphmodel.BendingPoint> positions, «g.commandExecuter» executer) {
 			graphmodel.Edge edge = null;
 			
-			«FOR source:g.nodes.filter[!isIsAbstract].filter[!possibleOutgoing.empty] SEPARATOR " else "
-			»if(source instanceof «source.apiFQN») {
-				«FOR edge:source.possibleOutgoing.filter[!isIsAbstract] SEPARATOR " else "»
-					if(type.equals("«edge.typeName»")) {
-						if(
-							«FOR target:edge.possibleTargets.filter[!isIsAbstract] SEPARATOR "\n|| "
-							»target instanceof «target.apiFQN»«
-							ENDFOR»
-						) {
-							edge = executer.create«edge.name.fuEscapeJava»(source, target, positions, null);
-						}
-					}
-				«ENDFOR»
-			}«
-			ENDFOR»
+			«{
+				val sources = g.nodes.filter[!isAbstract].filter[!possibleOutgoing.empty].filter(ModelElement)
+				'''source'''.typeInstanceSwitchTemplate(
+					sources,
+					[source|
+						val edges = (source as Node).possibleOutgoing.filter[!isIsAbstract]
+						'''
+							«IF !edges.isEmpty»
+								«FOR edge:edges SEPARATOR " else "
+								»if(type.equals("«edge.typeName»")) {
+									if(
+										«FOR target:edge.possibleTargets.filter[!isIsAbstract] SEPARATOR "\n|| "
+										»target instanceof «target.apiFQN»«
+										ENDFOR»
+									) {
+										edge = executer.create«edge.name.fuEscapeJava»(source, target, positions, null);
+									}
+								}«
+								ENDFOR»
+							«ELSE»
+								// no connectable elements
+							«ENDIF»
+						'''
+					],
+					[type|'''«type.apiFQN»'''],
+					false
+				)
+			}»
 			
 			return edge;
 		}
@@ -980,12 +1006,20 @@ class GraphModelController extends Generatable {
 						graphmodel.Edge ce = (graphmodel.Edge) «typeRegistryName».findApiByType(c.getType(), delegateId, executer);
 						
 						// updated edge
-						«FOR e:g.edgesTopologically.filter[!isIsAbstract] SEPARATOR " else " 
-						»if(ce instanceof «e.apiFQN») {
-							«e.apiFQN» apiEdge = («e.apiFQN») ce;
-							executer.update«e.name.escapeJava»(apiEdge, cm.getPositions());
-						}«
-						ENDFOR»
+						«{
+							'''ce'''.typeInstanceSwitchTemplate(
+								g.edges.filter[!isIsAbstract].filter(ModelElement),
+								[e|
+									'''	
+										«e.apiFQN» apiEdge = («e.apiFQN») ce;
+										executer.update«e.name.escapeJava»(apiEdge, cm.getPositions());
+									'''
+								],
+								[type| '''«type.apiFQN»'''],
+								false
+							)
+						
+						}»
 						
 						// persist update
 						«dbTypeName» edge = «typeRegistryName».getApiToDB(ce); 
@@ -1001,16 +1035,24 @@ class GraphModelController extends Generatable {
 						graphmodel.IdentifiableElement ce = «typeRegistryName».findApiByType(c.getType(), delegateId, executer);
 						
 						// update element
-						«FOR e:g.elementsAndGraphmodels.filter[!isIsAbstract] SEPARATOR " else " 
-						»if(ce instanceof «e.apiFQN») {
-							executer.update«e.name.fuEscapeJava»(
-								«IF !e.isType»
-									(«e.apiFQN») ce,
-								«ENDIF»
-								(«e.restFQN») cm.getElement()
-							);
-						}«
-						ENDFOR»
+						«{
+							'''ce'''.typeInstanceSwitchTemplate(
+								g.elementsAndGraphmodels.filter[!isIsAbstract].filter(ModelElement),
+								[e|
+									'''	
+										executer.update«e.name.fuEscapeJava»(
+											«IF !e.isType»
+												(«e.apiFQN») ce,
+											«ENDIF»
+											(«e.restFQN») cm.getElement()
+										);
+									'''
+								],
+								[type| '''«type.apiFQN»'''],
+								false
+							)
+						
+						}»
 					}
 		            else {
 						return Response.status(Response.Status.BAD_REQUEST).build();

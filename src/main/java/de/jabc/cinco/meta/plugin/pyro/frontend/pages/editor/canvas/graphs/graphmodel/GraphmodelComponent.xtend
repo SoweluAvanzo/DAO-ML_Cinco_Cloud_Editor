@@ -1175,9 +1175,14 @@ class GraphmodelComponent extends Generatable {
 					«g.containmentCheck(g.MGLModel, false)»
 					
 					// ...other containers
-					«FOR container : g.nodes.filter[!isIsAbstract].filter(NodeContainer)»
-						«container.containmentCheck(g.MGLModel, true)»
-					«ENDFOR»
+					«{
+						val containers = g.elements.filter[!isIsAbstract].filter(NodeContainer)
+						'''
+							«FOR container : containers»
+								«container.containmentCheck(g.MGLModel, true)»
+							«ENDFOR»
+						'''
+					}»
 					
 					// cannot switch to other container
 					var arr = js.JsArray();
