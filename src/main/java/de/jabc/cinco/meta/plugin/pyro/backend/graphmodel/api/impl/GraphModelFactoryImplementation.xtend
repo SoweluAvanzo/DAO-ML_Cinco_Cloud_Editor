@@ -52,13 +52,24 @@ class GraphModelFactoryImplementation extends Generatable{
 			        newGraph.extension = "«g.fileExtension»";
 			        «new GraphModelCommandExecuter(gc).setDefault('''newGraph''', g, true)»
 			        newGraph.persist();
+			        «IF g.containsPostCreateHook»
 			        
-			        «IF (g as ModelElement).hasPostCreateHook»
-			        	
-			        	«(g as ModelElement).postCreateHook» ca = new «(g as ModelElement).postCreateHook»();
-			        	ca.init(executer);
-			        	«g.apiFQN» newGraphApi = («g.apiFQN») «typeRegistryName».getDBToApi(newGraph, executer);
-			        	ca.postCreate(newGraphApi);
+			        	«{
+							val postCreateHooks = g.resolvePostCreate
+							'''
+								«IF !postCreateHooks.empty»
+									// postMoveHooks
+									«g.apiFQN» newGraphApi = («g.apiFQN») «typeRegistryName».getDBToApi(newGraph, executer);
+									«FOR anno:postCreateHooks»
+										{
+											«anno» ca = new «anno»();
+											ca.init(executer);
+											ca.postCreate(newGraphApi);
+										}
+									«ENDFOR»
+								«ENDIF»
+							'''
+						}»
 			        «ENDIF»
 			        
 			        return new «g.apiImplFQN»(newGraph,executer);

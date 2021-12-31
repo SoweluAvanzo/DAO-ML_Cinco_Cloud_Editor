@@ -991,7 +991,7 @@ class GraphmodelComponent extends Generatable {
 						} else {
 							selectionChangedSC.add(currentGraphModel);
 						}
-						«IF g.hasPostSelect»
+						«IF g.containsPostSelect»
 							graphService.triggerPostSelectFor«g.name.escapeDart»(id, currentGraphModel,"«g.typeName»",highlightings).then((m){
 								«'''
 									«'''
@@ -1009,7 +1009,7 @@ class GraphmodelComponent extends Generatable {
 						} else {
 							selectionChangedSC.add(newSelection);
 						}
-						«FOR e : g.elements.filter[hasPostSelect]»
+						«FOR e : g.elements.filter[containsPostSelect]»
 							if(newSelection.$type() == "«e.typeName»") {
 								graphService.triggerPostSelectFor«g.name.escapeDart»(id, currentGraphModel,"«e.typeName»",highlightings).then((m){
 										«'''
@@ -1050,17 +1050,17 @@ class GraphmodelComponent extends Generatable {
 			 }
 			 
 			 void cb_graphmodel_selected() {
-			 currentSelection = null;
-			 selectionChangedSC.add(currentGraphModel);
-			 «IF g.hasPostSelect»
-			 	graphService.triggerPostSelectFor«g.name.escapeDart»(id, currentGraphModel,"«g.typeName»",highlightings).then((m){
-			 		«'''
+			 	currentSelection = null;
+			 	selectionChangedSC.add(currentGraphModel);
+			 	«IF g.containsPostSelect»
+			 		graphService.triggerPostSelectFor«g.name.escapeDart»(id, currentGraphModel,"«g.typeName»",highlightings).then((m){
+			 			«'''
 							«'''
 								commandGraph.receiveCommand(m,forceExecute: true);
 							'''.checkCommand("basic_valid_answer",false)»
 						'''.propagation»
 			 		});
-			 «ENDIF»
+			 	«ENDIF»
 			 }
 			 
 			 void updateElement(core.ModelElement elem,{String cellId}) {

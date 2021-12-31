@@ -481,7 +481,7 @@ class GraphModelElementImplementation extends Generatable {
 					
 					@Override
 					public void moveTo(graphmodel.ModelElementContainer container,int x, int y) {
-						«IF me.hasPostMove»
+						«IF me.containsPostMove»
 							// pre move
 							graphmodel.ModelElementContainer preContainer = this.getContainer();
 							int preX = this.getX();
@@ -505,15 +505,23 @@ class GraphModelElementImplementation extends Generatable {
 						this.changeContainer(newContainer);
 						this.delegate.x = x;
 						this.delegate.y = y;
-						
-						// postMove
-						«FOR pM:me.resolvePostMove»
-							{
-								«pM» hook = new «pM»();
-								hook.init(cmdExecuter);
-								hook.postMove(this,preContainer,container,x,y,x-preX,y-preY);	
-							}	
-						«ENDFOR»
+						«{
+							val postMove = me.resolvePostMove
+							'''
+								«IF !postMove.empty»
+									
+									// postMoveHooks
+									«FOR pM:postMove»
+										{
+											//post move
+											«pM» hook = new «pM»();
+											hook.init(cmdExecuter);
+											hook.postMove(this,preContainer,container,x,y,x-preX,y-preY);	
+										}	
+									«ENDFOR»
+								«ENDIF»
+							'''
+						}»
 						
 						// persist
 						oldContainer.persist();
@@ -779,16 +787,26 @@ class GraphModelElementImplementation extends Generatable {
 						
 						// persist
 						this.delegate.persist();
-						«IF me.hasPostAttributeValueChange»
+						«IF me.containsPostAttributeValueChange»
 							
-							//property change hook
-							org.eclipse.emf.ecore.EStructuralFeature esf = new org.eclipse.emf.ecore.EStructuralFeature();
-							esf.setName("«attr.name»");
-							«me.postAttributeValueChange» hook = new «me.postAttributeValueChange»();
-							hook.init(cmdExecuter);
-							if(hook.canHandleChange(this,esf)) {
-								hook.handleChange(this,esf);
-							}
+							// Trigger postAttributeValueChangeHook
+							«{
+								val postAttributeValueChangeHooks = me.resolvePostAttributeValueChange
+								'''
+									org.eclipse.emf.ecore.EStructuralFeature esf = new org.eclipse.emf.ecore.EStructuralFeature();
+									esf.setName("«attr.name»");
+									«FOR anno:postAttributeValueChangeHooks.indexed»
+										{
+											//property change hook «anno.key»
+											«anno.value» hook = new «anno.value»();
+											hook.init(cmdExecuter);
+											if(hook.canHandleChange(this,esf)) {
+												hook.handleChange(this,esf);
+											}
+										}
+									«ENDFOR»
+								'''
+							}»
 						«ENDIF»
 					}
 				«ENDFOR»

@@ -692,7 +692,7 @@ class GraphModelCommandExecuter extends Generatable {
 						«ENDIF»
 					«ENDIF»
 				«ENDFOR»
-				«IF g.containsPostAttributeValueChange»
+				«IF g.graphModelContainsPostAttributeValueChange»
 					public <T extends graphmodel.IdentifiableElement>  void triggerPostAttributeChange(T element, String name, de.jabc.cinco.meta.runtime.action.CincoPostAttributeChangeHook<T> hook) {
 						//property change hook
 						{
@@ -1021,7 +1021,7 @@ class GraphModelCommandExecuter extends Generatable {
 	
 	def triggerPostAttributeChangedHook(ModelElement e, Attribute attr)
 	'''
-		«IF e.hasPostAttributeValueChange»
+		«IF e.containsPostAttributeValueChange»
 			«{
 				// PostAttributeValueChange - Hook
 				val hooks = e.resolvePostAttributeValueChange
