@@ -20,5 +20,4 @@ public class TreeViewRest {
     public void setlayer(final List<TreeViewNodeRest> layer) {
         this.layer = layer;
     }
-
 }

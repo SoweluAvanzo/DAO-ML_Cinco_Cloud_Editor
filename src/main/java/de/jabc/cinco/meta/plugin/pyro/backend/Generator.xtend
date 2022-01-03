@@ -272,7 +272,6 @@ class Generator extends FileGenerator {
 					p.restController.filename,
 					p.restController.content
 				)
-				
 			]
 		}
 		

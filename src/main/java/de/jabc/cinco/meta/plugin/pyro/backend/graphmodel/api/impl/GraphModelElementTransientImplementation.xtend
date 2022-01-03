@@ -456,7 +456,7 @@ class GraphModelElementTransientImplementation extends Generatable {
 	
 	def embeddedEdges(MGLModel g)
 	'''
-		«FOR edge:g.edgesTopologically»
+		«FOR edge:g.edges»
 			
 			@Override
 			public java.util.List<«edge.apiFQN»> get«edge.name.fuEscapeJava»s() {
