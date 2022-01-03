@@ -892,97 +892,169 @@ class MGLExtension {
 		(attr.annotations.exists[name.equals("readOnly")])
 	}
 
-	def hasPostCreateHook(ModelElement me) {
-		me.hasHook("postCreate")
-	}
-
 	def hasJumpToAnnotation(ModelElement me) {
 		me.hasAnnotation("jumpToPrime", true)
-	}
-
-	def getPostCreateHook(ModelElement me) {
-		me.getHookFQN("postCreate")
-	}
-
-	def hasPostDeleteHook(ModelElement me) {
-		me.hasHook("postDelete")
-	}
-
-	def getPostDeleteHook(ModelElement me) {
-		me.getHookFQN("postDelete")
-	}
-
-	def hasPreDeleteHook(ModelElement me) {
-		me.hasHook("preDelete")
-	}
-
-	def getPreDeleteHook(ModelElement me) {
-		me.getHookFQN("preDelete")
-	}
-
-	def getEditorButtons(GraphModel g) {
-		g.annotations.filter[name.equals("pyroEditorButton")]
-	}
-
-	def hasPostMove(ModelElement me) {
-		me.hasHook("postMove")
-	}
-
-	def getPostMoveHook(ModelElement me) {
-		me.getHookFQN("postMove")
-	}
-
-	def hasPostResize(ModelElement me) {
-		me.hasHook("postResize")
-	}
-
-	def getPostResizeHook(ModelElement me) {
-		me.getHookFQN("postResize")
-	}
-
-	def hasPostSelect(ModelElement me) {
-		me.hasHook("postSelect")
-	}
-
-	def getPostSelectHook(ModelElement me) {
-		me.getHookFQN("postSelect")
-	}
-
-	def hasPostAttributeValueChange(ModelElement me) {
-		me.hasHook("postAttributeChange")
-	}
-
-	def getPostAttributeValueChange(ModelElement me) {
-		me.getHookFQN("postAttributeChange")
-	}
-
-	def hasPreSave(ModelElement me) {
-		me.hasHook("preSave")
-	}
-
-	def getPreChange(ModelElement me) {
-		me.getHookFQN("preSave")
 	}
 
 	def hasAnnotation(ModelElement me, String annotation) {
 		me.hasAnnotation(annotation, false)
 	}
 
+	def getEditorButtons(GraphModel g) {
+		g.annotations.filter[name.equals("pyroEditorButton")]
+	}
+
+	def hasPreSaveHook(ModelElement me) {
+		me.hasHook("preSave")
+	}
+
+	def hasPostCreateHook(ModelElement me) {
+		me.hasHook("postCreate")
+	}
+
+	def hasPostDeleteHook(ModelElement me) {
+		me.hasHook("postDelete")
+	}
+
+	def hasPreDeleteHook(ModelElement me) {
+		me.hasHook("preDelete")
+	}
+
+	def hasPostMove(ModelElement me) {
+		me.hasHook("postMove")
+	}
+
+	def hasPostResize(ModelElement me) {
+		me.hasHook("postResize")
+	}
+
+	def hasPostSelect(ModelElement me) {
+		me.hasHook("postSelect")
+	}
+
+	def hasPostAttributeValueChange(ModelElement me) {
+		me.hasHook("postAttributeChange")
+	}
+
+	def hasCustomAction(ModelElement me) {
+		me.hasHook("contextMenuAction")
+	}
+
+	def hasDoubleClickAction(ModelElement me) {
+		me.hasHook("doubleClickAction")
+	}
+
 	def hasAnnotation(ModelElement me, String annotation, boolean includeAbstract) {
 		(me.annotations.exists[name.equals(annotation)]) && (!me.isIsAbstract || includeAbstract)
 	}
 
-	def hasHook(ModelElement me, String hook) {
-		(me.annotations.exists[name.equals(hook) && !value.nullOrEmpty])
+	def containsCustomAction(ModelElement me) {
+		me.containsHook("contextMenuAction")
 	}
 
-	def containsPostAttributeValueChange(GraphModel g) {
-		g.containsHook("postAttributeChange")
+	def containsDoubleClickAction(ModelElement me) {
+		me.containsHook("doubleClickAction")
 	}
 
-	def containsHook(GraphModel g, String hook) {
-		val modelElements = g.elementsAndTypes
+	def containsPreSaveHook(ModelElement me) {
+		me.containsHook("preSave")
+	}
+
+	def containsPostCreateHook(ModelElement me) {
+		me.containsHook("postCreate")
+	}
+
+	def containsPostDeleteHook(ModelElement me) {
+		me.containsHook("postDelete")
+	}
+
+	def containsPreDeleteHook(ModelElement me) {
+		me.containsHook("preDelete")
+	}
+
+	def containsPostMove(ModelElement me) {
+		me.containsHook("postMove")
+	}
+
+	def containsPostResize(ModelElement me) {
+		me.containsHook("postResize")
+	}
+
+	def containsPostSelect(ModelElement me) {
+		me.containsHook("postSelect")
+	}
+
+	def containsPostAttributeValueChange(ModelElement me) {
+		me.containsHook("postAttributeChange")
+	}
+	
+	def boolean containsHook(ModelElement me, String hook) {
+		(me.annotations.exists[
+			name.equals(hook)
+			&& !value.nullOrEmpty
+		])
+		||
+		(
+			me.isExtending?
+			me.extend.hasHook(hook) :
+			false
+		)
+	}
+
+	def graphModelContainsHook(GraphModel g, String hook) {
+		val modelElements = g.elementsAndTypesAndGraphModels.filter[!isAbstract]
 		modelElements.exists[it.hasHook(hook)]
+	}
+
+	def boolean hasHook(ModelElement me, String hook) {
+		(me.annotations.exists[
+			name.equals(hook)
+			&& !value.nullOrEmpty
+		])
+	}
+
+	def getCustomAction(ModelElement me) {
+		me.getHookFQN("contextMenuAction")
+	}
+
+	def getDoubleClickAction(ModelElement me) {
+		me.getHookFQN("doubleClickAction")
+	}
+
+	def getPreSaveHook(ModelElement me) {
+		me.getHookFQN("preSave")
+	}
+
+	def getPostCreateHook(ModelElement me) {
+		me.getHookFQN("postCreate")
+	}
+
+	def getPostDeleteHook(ModelElement me) {
+		me.getHookFQN("postDelete")
+	}
+
+	def getPreDeleteHook(ModelElement me) {
+		me.getHookFQN("preDelete")
+	}
+
+	def getPostMoveHook(ModelElement me) {
+		me.getHookFQN("postMove")
+	}
+
+	def getPostResizeHook(ModelElement me) {
+		me.getHookFQN("postResize")
+	}
+
+	def getPostSelectHook(ModelElement me) {
+		me.getHookFQN("postSelect")
+	}
+
+	def getPostAttributeValueChange(ModelElement me) {
+		me.getHookFQN("postAttributeChange")
+	}
+
+	def graphModelContainsPostAttributeValueChange(GraphModel g) {
+		g.graphModelContainsHook("postAttributeChange")
 	}
 
 	def getHookFQN(ModelElement me, String hook) {
@@ -1133,22 +1205,6 @@ class MGLExtension {
 
 	def getAdminUsers(CincoProduct product) {
 		product.annotations.filter[name.equals("pyroClosedRegistration")].map[value].flatten
-	}
-
-	def hasCustomAction(ModelElement gme) {
-		(gme.annotations.exists[name.equals("contextMenuAction") && !value.empty])
-	}
-
-	def getCustomAction(ModelElement gme) {
-		(gme.annotations.filter[name.equals("contextMenuAction") && !value.empty])
-	}
-
-	def hasDoubleClickAction(ModelElement gme) {
-		(gme.annotations.exists[name.equals("doubleClickAction") && !value.empty])
-	}
-
-	def getDoubleClickAction(ModelElement gme) {
-		(gme.annotations.filter[name.equals("doubleClickAction") && !value.empty])
 	}
 
 	def isCreatable(GraphModel it) {
@@ -1909,15 +1965,18 @@ class MGLExtension {
 	}
 
 	def Iterable<Attribute> attributesExtended(ModelElement me) {
-		val attrs = new LinkedList
+		val attrs = new LinkedList<Attribute>
 		attrs += me.attributes
 		if (me.isExtending) {
+			var newAttrs = new LinkedList<Attribute>
 			switch (me) {
-				Node: attrs += me.extends.attributesExtended
-				GraphModel: attrs += me.extends.attributesExtended
-				Edge: attrs += me.extends.attributesExtended
-				UserDefinedType: attrs += me.extends.attributesExtended
+				Node: newAttrs += me.extends.attributesExtended
+				GraphModel: newAttrs += me.extends.attributesExtended
+				Edge: newAttrs += me.extends.attributesExtended
+				UserDefinedType: newAttrs += me.extends.attributesExtended
 			}
+			newAttrs.removeIf[attrs.filter(EObject).containsAttribute(it)]
+			attrs += newAttrs
 		}
 		attrs
 	}
@@ -1925,15 +1984,31 @@ class MGLExtension {
 	def Iterable<EAttribute> attributesExtended(EClass me) {
 		val attrs = new LinkedList<EAttribute>
 		attrs += me.eContents.filter(EAttribute)
-		attrs += me.ESuperTypes.map[attributesExtended].flatten
+		attrs += me.ESuperTypes.map[attributesExtended
+			.filter[!attrs.filter(EObject).containsAttribute(it)]
+		].flatten
 		attrs
 	}
 
 	def Iterable<EReference> referencesExtended(EClass me) {
-		val attrs = new LinkedList
+		val attrs = new LinkedList<EReference>
 		attrs += me.eContents.filter(EReference)
-		attrs += me.ESuperTypes.map[referencesExtended].flatten
+		attrs += me.ESuperTypes.map[referencesExtended
+			.filter[!attrs.filter(EObject).containsAttribute(it)]
+		].flatten
 		attrs
+	}
+	
+	def containsAttribute(Iterable<EObject> attrs, EObject attr) {
+		val newAttrName = attr.name
+		var marked = false
+		for(oldAttr : attrs) {
+			val oldAttrName = oldAttr.name
+			if(newAttrName.equals(oldAttrName)) {
+				marked = true
+			}
+		}
+		marked
 	}
 	
 	/**
@@ -2123,11 +2198,19 @@ class MGLExtension {
 	 * RECURSIVE-TYPE-RESOLVER
 	 */
 	/**
+	 * Resolves the hasPostSelect annotations of the element and it's superTypes to a list.
+	 * The list is ordered from the "oldest" to the "youngest" inherited annotation.
+	 */
+	def resolvePostSelect(ModelElement e) {
+		e.resolveByFunc([t|t.postSelectHook], [hasPostSelect], String)
+	}
+	
+	/**
 	 * Resolves the customAction annotations of the element and it's superTypes to a list.
 	 * The list is ordered from the "oldest" to the "youngest" inherited annotation.
 	 */
 	def resolveCustomActions(ModelElement e) {
-		e.resolveByFunc([t|t.customAction], [hasCustomAction], Annotation)
+		e.resolveByFunc([t|t.customAction], [hasCustomAction], String)
 	}
 
 	/**
@@ -2135,7 +2218,7 @@ class MGLExtension {
 	 * The list is ordered from the "oldest" to the "youngest" inherited annotation.
 	 */
 	def resolveDoubleClickActions(ModelElement e) {
-		e.resolveByFunc([doubleClickAction], [hasDoubleClickAction], Annotation)
+		e.resolveByFunc([doubleClickAction], [hasDoubleClickAction], String)
 	}
 
 	/**
@@ -2152,6 +2235,14 @@ class MGLExtension {
 	 */
 	def resolvePostResize(ModelElement e) {
 		e.resolveByFunc([postResizeHook], [hasPostResize], String)
+	}
+
+	/**
+	 * Resolves the preSaveHook annotations of the element and it's superTypes to a list.
+	 * The list is ordered from the "oldest" to the "youngest" inherited annotation.
+	 */
+	def resolvePreSave(ModelElement e) {
+		e.resolveByFunc([preSaveHook], [hasPreSaveHook], String)
 	}
 
 	/**

@@ -13,7 +13,6 @@ import mgl.NodeContainer
 import style.NodeStyle
 import style.Styles
 import mgl.MGLModel
-import mgl.Edge
 
 class GraphModelController extends Generatable {
 	
@@ -32,6 +31,7 @@ class GraphModelController extends Generatable {
 		val primeModels = g.resolveAllPrimeReferencedGraphModels
 			.filter[gr|!gr.equals(g)] // except this one
 			.groupBy[name].entrySet.map[value.get(0)];
+		val hookableElements = (g.elementsAndGraphmodels + #[g]).filter[!isAbstract]
 	'''
 	package info.scce.pyro.core;
 	
@@ -100,13 +100,28 @@ class GraphModelController extends Generatable {
 		    newGraph.extension = "«g.fileExtension»";
 	        newGraph.persist();
 
-			«IF (g as ModelElement).hasPostCreateHook»
-				«g.apiFactory».eINSTANCE.warmup(executer);
-				«g.apiFQN» ce = new «g.apiImplFQN»(newGraph,executer);
-				«(g as ModelElement).postCreateHook» ca = new «(g as ModelElement).postCreateHook»();
-				ca.init(executer);
-				«g.apiFQN» newGraphApi = («g.apiFQN») «typeRegistryName».getDBToApi(newGraph, executer);
-				ca.postCreate(newGraphApi);
+			«IF g.containsPostCreateHook»
+				// Trigger postCreateHooks
+				«{
+					val postCreateHooks = g.resolvePostCreate
+					'''
+						«g.apiFactory».eINSTANCE.warmup(executer);
+						«g.apiFQN» ce = new «g.apiImplFQN»(newGraph,executer);
+						«FOR anno:postCreateHooks.indexed»
+							«{
+								'''
+									{
+										// PostCreateHook «anno.key»
+										«anno.value» ca = new «anno.value»();
+										ca.init(executer);
+										ca.postCreate(ce);	
+									}
+								'''
+							}»
+						«ENDFOR»
+					'''
+				}»
+				
 			«ENDIF»
 			return Response.ok(«g.restFQN».fromEntity(newGraph,new info.scce.pyro.rest.ObjectCache())).build();
 
@@ -318,8 +333,8 @@ class GraphModelController extends Generatable {
 				return Response.status(Response.Status.EXPECTATION_FAILED).build();
 			}
 		«ENDIF»
-		
 		«IF g.interpreting»
+			
 			«/* TODO: SAMI: interpreterId analog to generators, maybe? */»
 			@javax.ws.rs.GET
 			@javax.ws.rs.Path("interpreter/{id}/private")
@@ -337,13 +352,13 @@ class GraphModelController extends Generatable {
 				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
 				«g.apiFactory».eINSTANCE.warmup(executer);
 				«g.apiFQN» cgraph = new «g.apiImplFQN»(graph,executer);
-				
 				«FOR gen:g.interperters»
+					
 					«gen.value.get(0)» interpreter = new «gen.value.get(0)»();
 					interpreter.init(executer);
 					interpreter.runInterpreter(cgraph);
 				«ENDFOR»
-					
+				
 				return javax.ws.rs.core.Response.ok(null).build();
 			}
 		«ENDIF»
@@ -358,87 +373,96 @@ class GraphModelController extends Generatable {
 				return Response.status(Response.Status.BAD_REQUEST).build();
 			}
 			java.util.Map<String,String> map = new java.util.HashMap<>();
+			«{
+				val elements = hookableElements.filter[containsCustomAction]
+				'''
+					«IF elements.length>0»
+									
+						«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
+						info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
+						«g.apiFactory».eINSTANCE.warmup(executer);
+						«dbTypeName» e = «typeRegistryName».findById(elementId);
+						
+						«FOR e:elements SEPARATOR " else "
+						»if(e instanceof «e.entityFQN») {
+							«e.entityFQN» dbEntity = («e.entityFQN») e;
+							«e.apiFQN» ce = new «e.apiImplFQN»(dbEntity,executer);
+							«{
+								val customActions = e.resolveCustomActions
+								'''
+									«FOR anno:customActions.indexed»
+										«{
+											'''
+												{
+													// customAction «anno.key»
+													«anno.value» ca = new «anno.value»();
+													ca.init(executer);
+													if(ca.canExecute(ce)){
+														map.put("«anno.value»",ca.getName());
+													}
+												}
+											'''
+										}»
+									«ENDFOR»
+								'''
+							}»
+						}«
+						ENDFOR»
+					«ENDIF»
+				'''
+			}»
 			
-			«IF g.elementsAndGraphmodels.exists[hasCustomAction]»
-				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
-				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(executer);
-				«dbTypeName» e = «typeRegistryName».findById(elementId);
-				
-				«FOR e:(g.elements.filter[!isIsAbstract]+#[g]).filter[hasCustomAction] SEPARATOR " else "
-				»if(e instanceof «e.entityFQN») {
-					«e.entityFQN» dbEntity = («e.entityFQN») e;
-					«e.apiFQN» ce = new «e.apiImplFQN»(dbEntity,executer);
-					«{
-						val customActions = e.resolveCustomActions
-						var i = -1
-						'''
-							«FOR anno:customActions»
-								«{
-									i=i+1
-									'''
-										// customAction «i»
-										«anno.value.get(0)» ca«i» = new «anno.value.get(0)»();
-										ca«i».init(executer);
-										if(ca«i».canExecute(ce)){
-											map.put("«anno.value.get(0)»",ca«i».getName());
-										}
-									'''
-								}»
-							«ENDFOR»
-						'''
-					}»
-				}«
-				ENDFOR»
-				
-			«ENDIF»
 			return Response.ok(map).build();
 		}
-		
 		«FOR ai:g.editorButtons.indexed»
-		«{
-			val a = ai.value
-			'''
-			@javax.ws.rs.POST
-			@javax.ws.rs.Path("{id}/button/«a.value.get(1).escapeJava»/trigger/private")
-			@javax.annotation.security.RolesAllowed("user")
-			public Response triggerButtonActions«ai.key»(@javax.ws.rs.core.Context SecurityContext securityContext,@javax.ws.rs.PathParam("id") long id, info.scce.pyro.core.command.types.Action action) {
-				
-				final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
-				final «g.entityFQN» graph = «g.entityFQN».findById(id);
-				if (graph == null) {
-					return Response.status(Response.Status.BAD_REQUEST).build();
-				}
-				
-				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
-				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(executer);
-				«dbTypeName» elem = «typeRegistryName».findById(elementId);
-								
-				factoryWarmup(pyroProject,user,executer);
-				«g.apiFQN».«g.name.fuEscapeJava» ce = new «g.apiImplFQN».«g.name.fuEscapeJava»Impl(graph,executer);
-				«a.value.get(0)» ca = new «a.value.get(0)»();
-				ca.init(executer);
-				ca.execute(ce);
-				
-				«IF hasAppearanceProviders»
-				executer.updateAppearance();
-				«ENDIF»
-				
-				//propagate
-				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
-				propagateChange(id, user.id, response.getEntity());
-				return response;
-			}
-			'''
-		}»
-		
+			
+			«{
+				val a = ai.value
+				'''
+					@javax.ws.rs.POST
+					@javax.ws.rs.Path("{id}/button/«a.value.get(1).escapeJava»/trigger/private")
+					@javax.annotation.security.RolesAllowed("user")
+					public Response triggerButtonActions«ai.key»(@javax.ws.rs.core.Context SecurityContext securityContext,@javax.ws.rs.PathParam("id") long id, info.scce.pyro.core.command.types.Action action) {
+						
+						final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
+						final «g.entityFQN» graph = «g.entityFQN».findById(id);
+						if (graph == null) {
+							return Response.status(Response.Status.BAD_REQUEST).build();
+						}
+						
+						«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
+						info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
+						«g.apiFactory».eINSTANCE.warmup(executer);
+						«dbTypeName» elem = «typeRegistryName».findById(elementId);
+										
+						factoryWarmup(pyroProject,user,executer);
+						«g.apiFQN» ce = new «g.apiImplFQN»(graph,executer);
+						«a.value.get(0)» ca = new «a.value.get(0)»();
+						ca.init(executer);
+						ca.execute(ce);
+						
+						«IF hasAppearanceProviders»
+							executer.updateAppearance();
+						«ENDIF»
+						
+						//propagate
+						Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
+						propagateChange(id, user.id, response.getEntity());
+						return response;
+					}
+				'''
+			}»
 		«ENDFOR»
 		
 		@javax.ws.rs.POST
 		@javax.ws.rs.Path("customaction/{id}/{elementId}/trigger/private")
 		@javax.annotation.security.RolesAllowed("user")
-		public Response triggerCustomActions(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") long id,@javax.ws.rs.PathParam("elementId") long elementId,info.scce.pyro.core.command.types.Action action) {
+		public Response triggerCustomActions(
+			@javax.ws.rs.core.Context SecurityContext securityContext,
+			@javax.ws.rs.PathParam("id") long id,
+			@javax.ws.rs.PathParam("elementId") long elementId,
+			info.scce.pyro.core.command.types.Action action
+		) {
 			final «g.entityFQN» graph = «g.entityFQN».findById(id);
 			if (graph == null) {
 				return Response.status(Response.Status.BAD_REQUEST).build();
@@ -448,32 +472,36 @@ class GraphModelController extends Generatable {
 			«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,action.getHighlightings());
 			info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
 			«g.apiFactory».eINSTANCE.warmup(executer);
-			
-			«IF g.elementsAndGraphmodels.exists[hasCustomAction]»
-				«dbTypeName» e = «typeRegistryName».findById(elementId);
-				
-				«FOR e:(g.elements.filter[!isIsAbstract]+#[g]).filter[hasCustomAction] SEPARATOR " else "
-				»if(e instanceof «e.entityFQN») {
-					«e.entityFQN» dbEntity = («e.entityFQN») e;
-					«e.apiFQN» ce = new «e.apiImplFQN»(dbEntity,executer);
-					«FOR anno:e.resolveCustomActions SEPARATOR " else "
-					»if(action.getFqn().equals("«anno.value.get(0)»")) {
-						«anno.value.get(0)» ca = new «anno.value.get(0)»();
-						ca.init(executer);
-						ca.execute(ce);
-					}«
-					ENDFOR»
-					«IF hasAppearanceProviders»
-						executer.updateAppearance();
+			«{
+				val elements = hookableElements.filter[containsCustomAction]
+				'''
+					«IF elements.length>0»
+						
+						«dbTypeName» e = «typeRegistryName».findById(elementId);
+						«FOR e:elements SEPARATOR " else "
+						»if(e instanceof «e.entityFQN») {
+							«e.entityFQN» dbEntity = («e.entityFQN») e;
+							«e.apiFQN» ce = new «e.apiImplFQN»(dbEntity,executer);
+							«FOR anno:e.resolveCustomActions SEPARATOR " else "
+							»if(action.getFqn().equals("«anno»")) {
+								«anno» ca = new «anno»();
+								ca.init(executer);
+								ca.execute(ce);
+							}«
+							ENDFOR»
+						}«
+						ENDFOR»
 					«ENDIF»
-				}«
-				ENDFOR»
+				'''
+			}»
+			«IF hasAppearanceProviders»
 				
+				executer.updateAppearance();
 			«ENDIF»
+			
 			Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
 			return response;
 		}
-		
 
 		@javax.ws.rs.POST
 		@javax.ws.rs.Path("{id}/psaction/{elementId}/trigger/private")
@@ -489,34 +517,53 @@ class GraphModelController extends Generatable {
 			«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,action.getHighlightings());
 			info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
 			«g.apiFactory».eINSTANCE.warmup(executer);
-
+			«{
+				val elements = hookableElements.filter[containsPostSelect]
 			
-			«IF g.elementsAndGraphmodels.exists[hasPostSelect]»
-				boolean hasExecuted = false;
-				String typeName = action.getFqn();
-				«FOR e:(g.elements.filter[!isIsAbstract]+#[g]).filter[hasPostSelect] SEPARATOR " else "
-				»if("«e.typeName»".equals(typeName)) {
-					«dbTypeName» elem = «typeRegistryName».findByType(typeName, elementId);
-					«e.entityFQN» e = («e.entityFQN»)elem;
-					«e.apiFQN» ce = new «e.apiImplFQN»(e,executer);
-					{
-						«e.postSelectHook» ca = new «e.postSelectHook»();
-						ca.init(executer);
-						ca.postSelect(ce);
-					}
-				}«
-				ENDFOR»
-				
-				«IF hasAppearanceProviders»
-					executer.updateAppearance();
-				«ENDIF»
-				
-				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
-				//propagate
-				propagateChange(id, user.id, response.getEntity());
-			«ELSE»
-				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
-			«ENDIF»
+				'''
+					
+					«IF elements.length>0»
+						boolean hasExecuted = false;
+						String typeName = action.getFqn();
+						«FOR e:elements SEPARATOR " else "
+						»«{
+							val postSelectHooks = e.resolvePostSelect
+							'''
+								«IF !postSelectHooks.empty»
+									if("«e.typeName»".equals(typeName)) {
+										«dbTypeName» elem = «typeRegistryName».findByType(typeName, elementId);
+										«e.entityFQN» e = («e.entityFQN»)elem;
+										«e.apiFQN» ce = new «e.apiImplFQN»(e,executer);
+										«FOR anno:postSelectHooks.indexed»
+											«{
+												'''
+													{
+														// postSelectHook «anno.key»
+														«anno.value» ca = new «anno.value»();
+														ca.init(executer);
+														ca.postSelect(ce);
+													}
+												'''
+											}»
+										«ENDFOR»
+									}
+								«ENDIF»
+							'''
+						}»«
+						ENDFOR»
+						«IF hasAppearanceProviders»
+							
+							executer.updateAppearance();
+						«ENDIF»
+						
+						Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
+						//propagate
+						propagateChange(id, user.id, response.getEntity());
+					«ELSE»
+						Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
+					«ENDIF»
+				'''
+			}»
 			return response;
 		}
 		
@@ -535,49 +582,53 @@ class GraphModelController extends Generatable {
 			info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
 			«g.apiFactory».eINSTANCE.warmup(executer);
 			boolean hasExecuted = false;
-			
-			«IF g.elementsAndGraphmodels.exists[hasDoubleClickAction]»
-				«dbTypeName» e = «typeRegistryName».findById(elementId);
-				
-				«FOR e:(g.elements.filter[!isIsAbstract]+#[g]).filter[hasDoubleClickAction] SEPARATOR " else "
-				»if(e instanceof «e.entityFQN») {
-					«e.entityFQN» dbEntity = («e.entityFQN») e;
-					«e.apiFQN» ce = new «e.apiImplFQN»(dbEntity,executer);
-					«{
-						val doubleClickActions = e.resolveDoubleClickActions
-						var i=-1
-						'''
-							«FOR anno:doubleClickActions»
-								«{
-									i=i+1
-									'''
-										// doubleClickAction «i»
-										«anno.value.get(0)» ca«i» = new «anno.value.get(0)»();
-										ca«i».init(executer);
-										if(ca«i».canExecute(ce)){
-											ca«i».execute(ce);
-											hasExecuted = true;
-										}
-									'''
-								}»
-							«ENDFOR»
-						'''
-					}»
-					«IF hasAppearanceProviders»
-						executer.updateAppearance();
+			«{
+				val elements = hookableElements.filter[containsDoubleClickAction]
+				'''
+					
+					«IF elements.length>0»
+						«dbTypeName» e = «typeRegistryName».findById(elementId);	
+						«FOR e:elements SEPARATOR " else "
+						»if(e instanceof «e.entityFQN») {
+							«e.entityFQN» dbEntity = («e.entityFQN») e;
+							«e.apiFQN» ce = new «e.apiImplFQN»(dbEntity,executer);
+							«{
+								val doubleClickActions = e.resolveDoubleClickActions
+								'''
+									«FOR anno:doubleClickActions.indexed»
+										«{
+											'''
+												{
+													// doubleClickAction «anno.key»
+													«anno.value» ca = new «anno.value»();
+													ca.init(executer);
+													if(ca.canExecute(ce)){
+														ca.execute(ce);
+														hasExecuted = true;
+													}
+												}
+											'''
+										}»
+									«ENDFOR»
+								'''
+							}»
+						}«
+						ENDFOR»
+						«IF hasAppearanceProviders»
+							
+							executer.updateAppearance();
+						«ENDIF»
+						
+						Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
+						if(hasExecuted){
+							//propagate
+							propagateChange(id, user.id, response.getEntity());
+						}
+					«ELSE»
+						Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
 					«ENDIF»
-				}«
-				ENDFOR»
-				
-				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
-				if(hasExecuted){
-					//propagate
-					propagateChange(id, user.id, response.getEntity());
-				}
-			«ELSE»
-				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
-			«ENDIF»
-			
+				'''
+			}»
 			return response;
 		}
 		
@@ -592,7 +643,6 @@ class GraphModelController extends Generatable {
 			if(gm==null){
 				return Response.status(Response.Status.NOT_FOUND).build();
 			}
-			
 			
 			boolean succeeded = removeGraphModel(user, gm, false);
 			if (!succeeded) {
@@ -616,37 +666,31 @@ class GraphModelController extends Generatable {
 			return Response.ok("OK").build();
 		}
 		
-
-		
 		public boolean removeGraphModel(entity.core.PyroUserDB user,«g.entityFQN» gm) {
 			return removeGraphModel(user, gm, true);
 		}
 		
 		public boolean removeGraphModel(entity.core.PyroUserDB user, «g.entityFQN» gm, boolean delete) {
-			
 			// delete
 			if(delete)
 				gm.delete();
-			
 			return true;
 		}
 		
 		private void removeContainer(«g.apiFQN» graph) {
 			graph.delete();
 		}
-
+		
 		@javax.ws.rs.POST
 		@javax.ws.rs.Path("message/{graphModelId}/private")
 		@javax.annotation.security.RolesAllowed("user")
 		public Response receiveMessage(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("graphModelId") long graphModelId, Message m) {
 		    final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
-
 		    final «g.entityFQN» graph = «g.entityFQN».findById(graphModelId);
 		    if(user==null||graph==null){
 		        return Response.status(Response.Status.BAD_REQUEST).build();
 		    }
-		
-		
+		    
 		    if(m instanceof CompoundCommandMessage){
 		        Response response = executeCommand((CompoundCommandMessage) m, user, graph, securityContext);
 				if(response.getStatus()==200){
@@ -674,7 +718,6 @@ class GraphModelController extends Generatable {
 				}
 				return response;
 			}
-		
 		    return Response.status(Response.Status.BAD_REQUEST).build();
 		}
 
@@ -686,14 +729,27 @@ class GraphModelController extends Generatable {
 		    «g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
 		    info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
 		    «g.apiFactory».eINSTANCE.warmup(executer);
-			«IF g.hasPreSave»
-				
-				{
-					«g.apiImplFQN» element = new «g.apiImplFQN»(graph,executer);
-					«g.getPreChange» hook = new «g.getPreChange»();
-					hook.init(executer);
-					hook.preSave(element);
-				}
+			«IF g.containsPreSaveHook»
+			
+				// Trigger preSaveHooks
+				«{
+					val preSaveHooks = g.resolvePreSave
+					'''
+						«g.apiImplFQN» element = new «g.apiImplFQN»(graph,executer);
+						«FOR anno:preSaveHooks.indexed»
+							«{
+								'''
+									{
+										// preSave «anno.key»
+										«anno.value» hook = new «anno.value»();
+										hook.init(executer);
+										hook.preSave(element);
+									}
+								'''
+							}»
+						«ENDFOR»
+					'''
+				}»
 	        «ENDIF»
 	        
 	        String type = pm.getDelegate().get__type();
@@ -712,11 +768,11 @@ class GraphModelController extends Generatable {
 			response.setGraphModelId(graph.id);
 			response.setSenderId(user.id);
 			response.setHighlightings(executer.getHighlightings());
-			
 			«IF hasAppearanceProviders»
-				executer.updateAppearance();
 				
+				executer.updateAppearance();
 			«ENDIF»
+			
 			return Response.ok(response).build();
 		}
 		
@@ -836,13 +892,24 @@ class GraphModelController extends Generatable {
 	        //execute command
 	        try{
 	        	boolean isReOrUndo = ccm.getType().contains("redo")||ccm.getType().contains("undo");
-				«IF g.hasPreSave»
-					{
-						«g.apiImplFQN» element = new «g.apiImplFQN»(graph,executer);
-						«g.getPreChange» hook = new «g.getPreChange»();
-						hook.init(executer);
-						hook.preSave(element);
-					}
+				«IF g.containsPreSaveHook»
+					
+					// Trigger preSaveHooks
+					«{
+						val preSaveHooks = g.resolvePreSave
+						'''
+							«g.apiImplFQN» element = new «g.apiImplFQN»(graph,executer);
+							«FOR anno:preSaveHooks.indexed»
+								{
+									// preSave «anno.key»
+									«anno.value» hook = new «anno.value»();
+									hook.init(executer);
+									hook.preSave(element);
+								}
+							«ENDFOR»
+						'''
+					}»
+					
 		        «ENDIF»
 		        for(Command c:ccm.getCmd().getQueue()){
 

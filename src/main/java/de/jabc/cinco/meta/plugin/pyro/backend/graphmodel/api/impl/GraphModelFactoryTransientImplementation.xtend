@@ -38,13 +38,25 @@ class GraphModelFactoryTransientImplementation extends Generatable{
 		    
 		    public «g.apiFQN» create«g.name.fuEscapeJava»() {
 		    	«g.apiFQN» ce = new «g.apiImplFQN»();
-		        «IF (g as ModelElement).hasPostCreateHook»
-		        
-		        	«g.postCreateHook» ca = new «g.postCreateHook»();
-		        	ca.init(executer);
-		        	ca.postCreate(ce);
-		        	
+		    	«IF g.containsPostCreateHook»
+		    	
+		        	«{
+						val postCreateHooks = g.resolvePostCreate
+						'''
+							«IF !postCreateHooks.empty»
+								// postMoveHooks
+								«FOR anno:postCreateHooks»
+									{
+										«anno» ca = new «anno»();
+										ca.init(executer);
+										ca.postCreate(ce);
+									}
+								«ENDFOR»
+							«ENDIF»
+						'''
+					}»
 		        «ENDIF»
+		       	
 		        return ce;
 		    }
 			«FOR udt:g.elementsAndTypes.filter(UserDefinedType).filter[!isAbstract]»

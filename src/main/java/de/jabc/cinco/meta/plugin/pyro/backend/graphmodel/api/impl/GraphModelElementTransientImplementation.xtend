@@ -271,7 +271,7 @@ class GraphModelElementTransientImplementation extends Generatable {
 					
 					@Override
 					public void moveTo(graphmodel.ModelElementContainer container,int x, int y) {
-						«IF me.hasPostMove»
+						«IF me.containsPostMove»
 							graphmodel.ModelElementContainer preContainer = this.getContainer();
 							int preX = this.getX();
 							int preY = this.getY();
