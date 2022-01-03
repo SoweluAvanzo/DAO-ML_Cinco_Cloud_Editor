@@ -2202,7 +2202,7 @@ class MGLExtension {
 	 * The list is ordered from the "oldest" to the "youngest" inherited annotation.
 	 */
 	def resolvePostSelect(ModelElement e) {
-		e.resolveByFunc([t|t.postSelectHook], [hasPostSelect], Annotation)
+		e.resolveByFunc([t|t.postSelectHook], [hasPostSelect], String)
 	}
 	
 	/**

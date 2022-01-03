@@ -526,28 +526,30 @@ class GraphModelController extends Generatable {
 						boolean hasExecuted = false;
 						String typeName = action.getFqn();
 						«FOR e:elements SEPARATOR " else "
-						»if("«e.typeName»".equals(typeName)) {
-							«{
-								val postSelectHooks = g.resolvePostSelect
-								'''
-									«dbTypeName» elem = «typeRegistryName».findByType(typeName, elementId);
-									«e.entityFQN» e = («e.entityFQN»)elem;
-									«e.apiFQN» ce = new «e.apiImplFQN»(e,executer);
-									«FOR anno:postSelectHooks.indexed»
-										«{
-											'''
-												{
-													// postSelectHook «anno.key»
-													«anno.value.value.get(0)» ca = new «anno.value.value.get(0)»();
-													ca.init(executer);
-													ca.postSelect(ce);
-												}
-											'''
-										}»
-									«ENDFOR»
-								'''
-							}»
-						}«
+						»«{
+							val postSelectHooks = e.resolvePostSelect
+							'''
+								«IF !postSelectHooks.empty»
+									if("«e.typeName»".equals(typeName)) {
+										«dbTypeName» elem = «typeRegistryName».findByType(typeName, elementId);
+										«e.entityFQN» e = («e.entityFQN»)elem;
+										«e.apiFQN» ce = new «e.apiImplFQN»(e,executer);
+										«FOR anno:postSelectHooks.indexed»
+											«{
+												'''
+													{
+														// postSelectHook «anno.key»
+														«anno.value» ca = new «anno.value»();
+														ca.init(executer);
+														ca.postSelect(ce);
+													}
+												'''
+											}»
+										«ENDFOR»
+									}
+								«ENDIF»
+							'''
+						}»«
 						ENDFOR»
 						«IF hasAppearanceProviders»
 							
