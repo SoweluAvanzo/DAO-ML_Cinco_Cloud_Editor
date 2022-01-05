@@ -16,7 +16,7 @@ class EcoreModelView extends EditorViewPlugin {
 		pc = new PluginComponent
 		pc.tab = "Ecore"
 		pc.key = "plugin_ecore"
-		pc.fetchURL = "ecoreview/read/private"
+		pc.fetchURL = "ecoreview/read/'+currentFile.$type()+'/private"
 	}
 	
 	override getPluginComponent() {
@@ -53,9 +53,9 @@ class EcoreModelView extends EditorViewPlugin {
 				«ENDFOR»
 		
 			    @javax.ws.rs.GET
-			    @javax.ws.rs.Path("read/{id}/private")
-			    @javax.annotation.security.RolesAllowed("user")
-			    public Response load(@javax.ws.rs.core.Context SecurityContext securityContext) {
+			    @javax.ws.rs.Path("read/{typeName}/private")
+			    @javax.annotation.security.RolesAllowed("user")«/* TODO: SAMI - make ecore-fetching type-dependent */»
+			    public Response load(@javax.ws.rs.core.Context SecurityContext securityContext,  @javax.ws.rs.PathParam("typeName") final String graphModelType) {
 					
 			    	TreeViewRest tvr = new TreeViewRest();
 			    	tvr.setlayer(new LinkedList<>());
