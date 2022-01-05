@@ -381,6 +381,24 @@ class TypeRegistry extends Generatable {
 				return null;
 			}
 			
+			public static String[] getPrimeModels(String graphModelType) {
+				«FOR g:modelPackage.graphmodels SEPARATOR " else "
+				»if("«g.typeName»".equals(graphModelType)) {
+					«{
+						val primeModels = g.resolveAllPrimeReferencedGraphModels
+						'''
+							return new String[] {
+								«FOR p:primeModels SEPARATOR ","»
+									"«p.typeName»"«
+								ENDFOR»
+							};
+						'''
+					}»
+				}«
+				ENDFOR»
+				return new String[0];
+			}
+			
 			/**
 			 * GRAPHMODEL-SPECIFIC FUNCTIONS
 			 */

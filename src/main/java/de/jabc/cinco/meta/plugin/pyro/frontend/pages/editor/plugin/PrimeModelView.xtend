@@ -1,4 +1,4 @@
-package de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.controller
+package de.jabc.cinco.meta.plugin.pyro.frontend.pages.editor.plugin
 
 import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import de.jabc.cinco.meta.plugin.pyro.util.EditorViewPlugin
@@ -14,7 +14,7 @@ class PrimeModelView extends EditorViewPlugin {
 		pc = new PluginComponent
 		pc.tab = "Prime"
 		pc.key = "plugin_prime"
-		pc.fetchURL = "primeview/read/private"
+		pc.fetchURL = "primeview/read/'+currentFile.$type()+'/private"
 	}
 	
 	override getPluginComponent() {	
@@ -52,34 +52,35 @@ class PrimeModelView extends EditorViewPlugin {
 			@javax.enterprise.context.RequestScoped
 			public class PrimeRestController {
 			
-			    @javax.inject.Inject
-			    private info.scce.pyro.rest.ObjectCache objectCache;
-			    
-			    private static final String LIST_TYPE = "[]";
-			
-			    @javax.ws.rs.POST
-			    @javax.ws.rs.Path("/read/private")
-			    public Response load(@javax.ws.rs.core.Context SecurityContext securityContext, final String[] typeNames) {
+				@javax.inject.Inject
+				private info.scce.pyro.rest.ObjectCache objectCache;
+				
+				private static final String LIST_TYPE = "[]";
+				
+				@javax.ws.rs.GET
+				@javax.ws.rs.Path("/read/{typeName}/private")
+			    public Response load(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("typeName") final String graphModelType) {
 			    	TreeViewRest tvr = new TreeViewRest();
-			    	tvr.setlayer(new LinkedList<>());
-			    	
-			    	for(String typeName : typeNames) {
-				    	«FOR g:graphModels SEPARATOR " else "
-				    	»if("«g.typeName»".equals(typeName)) {
-				    		final java.util.List<«g.entityFQN»> modelList = «g.entityFQN».listAll();
-				    		tvr.getlayer().addAll(
-				    			buildResponse(modelList)
-				    		);
-				    	}«
-				    	ENDFOR»«IF !graphModels.empty» else «ENDIF»{
+					tvr.setlayer(new LinkedList<>());
+			    	String[] typeNames = getPrimeTypes(graphModelType);
+					
+					for(String typeName : typeNames) {
+						«FOR g:graphModels SEPARATOR " else "
+						»if("«g.typeName»".equals(typeName)) {
+							final java.util.List<«g.entityFQN»> modelList = «g.entityFQN».listAll();
+							tvr.getlayer().addAll(
+								buildResponse(modelList)
+							);
+						}«
+						ENDFOR»«IF !graphModels.empty» else «ENDIF»{
 							throw new WebApplicationException("An unknown type-error occured, while building TreeViewNodeRest!");
 						}
-			    	}
-			    	«IF !graphModels.empty»
-			    		return Response.ok(tvr).build();
-			        «ENDIF»
-			    }
-			    
+					}
+					«IF !graphModels.empty»
+						return Response.ok(tvr).build();
+					«ENDIF»
+				}
+				
 				private <T extends PanacheEntity> List<TreeViewNodeRest> buildResponse(java.util.List<T> list) {
 					java.util.Map<PanacheEntity,TreeViewNodeRest> cache = new java.util.HashMap<>();
 					return list.stream().map(n -> 
@@ -169,7 +170,7 @@ class PrimeModelView extends EditorViewPlugin {
 											PanacheEntity type_«t.name.escapeJava» = ((«e.entityFQN») e).get«t.name.fuEscapeJava»();
 											if(type_«t.name.escapeJava» != null) {
 												restChildren.add(
-													buildResponse(type_«t.name.escapeJava», cache, "«t.name.escapeDart»")
+													buildResponse(type_«t.name.escapeJava», cache, "«t.name.escapeDart»: ")
 												);
 											}
 										«ELSE»
@@ -210,14 +211,15 @@ class PrimeModelView extends EditorViewPlugin {
 										«IF hasName»
 											label = ((«e.entityFQN») e).name;
 											label = (label == null || label.isEmpty()) ?
-												"ID: "+((«e.entityFQN») e).id.toString()
+												"[" + ((«e.entityFQN») e).id.toString() + "]" // ID
 												: label;
 										«ELSE»
-											label = "ID: "+((«e.entityFQN») e).id.toString();
+											label = " [" + ((«e.entityFQN») e).id.toString() + "]";
 										«ENDIF»
 									'''
 								}»
 							«ENDIF»
+							label += " («e.typeName»)";
 							typeName = "«e.typeName»";
 							iconPath = null;
 						}«
@@ -241,6 +243,15 @@ class PrimeModelView extends EditorViewPlugin {
 						this.iconPath = iconPath;
 					}
 				}
+				
+				public String[] getPrimeTypes(String graphModelType) {
+			    	«FOR g:graphModels SEPARATOR " else "
+			    	»if("«g.typeName»".equals(graphModelType)) {
+			    		return «g.MGLModel.typeRegistryFQN».getPrimeModels(graphModelType);
+			    	}«
+			    	ENDFOR»
+			    	return new String[0];
+			    }
 			}
 		'''	
 	}
