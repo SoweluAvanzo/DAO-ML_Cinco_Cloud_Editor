@@ -64,23 +64,22 @@ class ProjectService extends Generatable {
 					final entity.core.PyroEditorWidgetDB propsWidget = editorLayoutService.createWidget(grid, propsItem, "Properties", "properties");
 					
 					// palette
-					final entity.core.PyroEditorGridItemDB paletteItem = editorLayoutService.createGridArea(grid, 9L, 0L, 3L, 3L);				
+					final entity.core.PyroEditorGridItemDB paletteItem = editorLayoutService.createGridArea(grid, 9L, 0L, 3L, 6L);				
 					final entity.core.PyroEditorWidgetDB paletteWidget = editorLayoutService.createWidget(grid, paletteItem, "Palette", "palette");
 					
 					// checks
-					final entity.core.PyroEditorGridItemDB checksItem = editorLayoutService.createGridArea(grid, 9L, 3L, 3L, 3L);				
+					final entity.core.PyroEditorGridItemDB checksItem = editorLayoutService.createGridArea(grid, 9L, 6L, 3L, 3L);				
 					final entity.core.PyroEditorWidgetDB checksWidget = editorLayoutService.createWidget(grid, checksItem, "Checks", "checks");
 					
-					// command history, not visible by default
-					final entity.core.PyroEditorWidgetDB cmdHistoryWidget = editorLayoutService.createWidget(grid, null, "Command History", "command_history");
-					grid.availableWidgets.add(cmdHistoryWidget);
+					// map
+					final entity.core.PyroEditorGridItemDB mapItem = editorLayoutService.createGridArea(grid, 0L, 6L, 3L, 3L);	
+					final entity.core.PyroEditorWidgetDB mapWidget = editorLayoutService.createWidget(grid, mapItem, "Map", "map");
 					
-					// add widgets for registered plugins
-					// plugins aren't assigned a position and are not visible by default
-					«FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
-						final entity.core.PyroEditorWidgetDB plugin_«pc.key»Widget = editorLayoutService.createWidget(grid, null, "«pc.tab»", "«pc.key»");
-						grid.availableWidgets.add(plugin_«pc.key»Widget);
-					«ENDFOR»
+					// cmd history
+					final entity.core.PyroEditorGridItemDB cmdHistoryItem = editorLayoutService.createGridArea(grid, 9L, 9L, 3L, 3L);	
+					final entity.core.PyroEditorWidgetDB cmdHistoryWidget = editorLayoutService.createWidget(grid, cmdHistoryItem, "Command History", "command_history");
+					«linkPlugins»
+					
 					grid.persist();
 				«ENDIF»
 
@@ -113,4 +112,20 @@ class ProjectService extends Generatable {
 		}
 		
 	'''
+	
+	def linkPlugins() {
+		val plugins = eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent].indexed
+		'''
+			«IF !plugins.empty»
+				
+				// add widgets for registered plugins
+				«FOR pc:plugins»
+					
+					// «pc.value.key»
+					final entity.core.PyroEditorGridItemDB plugin_«pc.value.key»Item = editorLayoutService.createGridArea(grid, «(pc.key % 4) * 3»L, «9 + Math.floorDiv(pc.key, 4) * 3»L, 3L, 3L);
+					final entity.core.PyroEditorWidgetDB plugin_«pc.value.key»Widget = editorLayoutService.createWidget(grid, plugin_«pc.value.key»Item, "«pc.value.tab»", "«pc.value.key»");
+				«ENDFOR»
+			«ENDIF»
+		'''
+	}
 }

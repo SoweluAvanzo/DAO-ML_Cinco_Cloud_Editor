@@ -114,23 +114,31 @@ class EditorLayoutService extends Generatable {
 					link(grid, createGridArea(grid, 3L, 0L, 9L, 9L), widgetMap.get("canvas"));
 					break;
 				case COMPLETE:
-					link(grid, createGridArea(grid, 0L, 3L, 3L, 3L), widgetMap.get("map"));
 					link(grid, createGridArea(grid, 3L, 0L, 6L, 6L), widgetMap.get("canvas"));
 					link(grid, createGridArea(grid, 3L, 6L, 6L, 3L), widgetMap.get("properties"));
 					link(grid, createGridArea(grid, 9L, 0L, 3L, 6L), widgetMap.get("palette"));
+					link(grid, createGridArea(grid, 0L, 0L, 3L, 3L), widgetMap.get("map"));
 					link(grid, createGridArea(grid, 9L, 6L, 3L, 3L), widgetMap.get("checks"));
-					link(grid, createGridArea(grid, 0L, 6L, 3L, 3L), widgetMap.get("command_history"));
-					«var i = 0»
-					«FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
-						link(grid, createGridArea(grid, «(i % 4) * 3»L, «9 + Math.floorDiv(i, 4) * 3»L, 3L, 3L), widgetMap.get("«pc.key»"));
-						«{i = i + 1; ""}»
-					«ENDFOR»
+					link(grid, createGridArea(grid, 0L, 3L, 3L, 3L), widgetMap.get("command_history"));
+					«linkPlugins»
 					break;
 				default:
 					break;
 			}
 		}
 	}
-	
 	'''
+	
+	def linkPlugins() {
+		val plugins = eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent].indexed
+		'''
+			«IF !plugins.empty»
+				
+				// plugins
+				«FOR pc:plugins»
+					link(grid, createGridArea(grid, «(pc.key % 4) * 3»L, «9 + Math.floorDiv(pc.key, 4) * 3»L, 3L, 3L), widgetMap.get("«pc.value.key»"));
+				«ENDFOR»
+			«ENDIF»
+		'''
+	}
 }
