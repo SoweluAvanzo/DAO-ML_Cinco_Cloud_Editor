@@ -10,7 +10,6 @@ import java.util.List;
 public class TreeViewNodeRest extends info.scce.pyro.rest.RESTBaseImpl
 {
 
-
     private String __type;
 
     @com.fasterxml.jackson.annotation.JsonProperty("__type")
@@ -58,7 +57,6 @@ public class TreeViewNodeRest extends info.scce.pyro.rest.RESTBaseImpl
     public void setisClickable(final boolean isClickable) {
         this.isClickable = isClickable;
     }
-
 
     private boolean isDoubleClickable;
 
@@ -111,9 +109,15 @@ public class TreeViewNodeRest extends info.scce.pyro.rest.RESTBaseImpl
             return objectCache.getRestTo(entity);
         }
         final TreeViewNodeRest result = new TreeViewNodeRest();
-        objectCache.putRestTo(entity, result);
-        result.setId(entity.id);
-
+        if(entity != null) {
+        	// container node like a list should not be cached and has an entity that is null
+            objectCache.putRestTo(entity, result);
+            result.setId(entity.id);
+        } else {
+        	// node is just a container, no entity
+        	result.setId(-1);
+        }        
+        
         result.set__type(type);
         result.seticonpath(iconpath);
         result.setlabel(label);

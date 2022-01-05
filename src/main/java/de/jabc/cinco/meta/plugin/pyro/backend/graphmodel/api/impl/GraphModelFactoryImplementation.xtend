@@ -6,7 +6,6 @@ import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import mgl.GraphModel
 import mgl.MGLModel
 import mgl.UserDefinedType
-import mgl.ModelElement
 
 class GraphModelFactoryImplementation extends Generatable{
 	

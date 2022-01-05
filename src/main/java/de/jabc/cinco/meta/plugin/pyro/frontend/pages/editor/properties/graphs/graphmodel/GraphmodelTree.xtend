@@ -5,7 +5,6 @@ import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import mgl.ComplexAttribute
 import mgl.GraphModel
 import mgl.ModelElement
-import mgl.UserDefinedType
 
 class GraphmodelTree extends Generatable {
 

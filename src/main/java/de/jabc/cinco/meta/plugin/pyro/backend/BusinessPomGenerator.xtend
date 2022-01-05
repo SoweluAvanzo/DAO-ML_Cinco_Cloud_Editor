@@ -64,14 +64,14 @@ class BusinessPomGenerator extends Generatable{
 	            <groupId>io.quarkus</groupId>
 	            <artifactId>quarkus-smallrye-jwt</artifactId>
 	        </dependency>
-            <dependency>
-                <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-rest-client</artifactId>
-            </dependency>
-            <dependency>
-                <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-rest-client-jackson</artifactId>
-            </dependency>
+			<dependency>
+			    <groupId>io.quarkus</groupId>
+			    <artifactId>quarkus-rest-client</artifactId>
+			</dependency>
+			<dependency>
+			    <groupId>io.quarkus</groupId>
+			    <artifactId>quarkus-rest-client-jackson</artifactId>
+			</dependency>
 	        <dependency>
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>org.eclipse.xtend.lib</artifactId>

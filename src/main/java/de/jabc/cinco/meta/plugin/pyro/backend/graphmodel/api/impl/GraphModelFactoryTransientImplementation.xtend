@@ -2,7 +2,6 @@ package de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.impl
 
 import de.jabc.cinco.meta.plugin.pyro.util.Generatable
 import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
-import mgl.ModelElement
 import mgl.UserDefinedType
 import mgl.GraphModel
 

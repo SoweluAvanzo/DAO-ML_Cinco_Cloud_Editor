@@ -5,7 +5,6 @@ import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import java.util.HashSet
 import java.util.LinkedList
 import java.util.List
-import java.util.Set
 import mgl.Attribute
 import mgl.ComplexAttribute
 import mgl.ContainingElement
@@ -34,13 +33,6 @@ class DataConnector extends Generatable {
 	
 	new(GeneratorCompound gc) {
 		super(gc)
-	}
-	
-	// DEPRECATED-INHERITANCE
-	private def newModel(String fqn, String name, String inherits) {
-		val m = new Model(fqn, name, inherits)
-		models.add(m)
-		m
 	}
 	
 	private def newModel(String fqn,String name) {
