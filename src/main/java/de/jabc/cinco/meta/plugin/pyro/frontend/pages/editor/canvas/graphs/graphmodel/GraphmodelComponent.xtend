@@ -763,7 +763,7 @@ class GraphmodelComponent extends Generatable {
 			 		(elem as «e.dartFQN»).«e.directlyEditableAttribute.name.escapeDart» = value;
 			 	}«
 			 	ENDFOR»
-				graphService.sendMessage(pm,"«g.name.lowEscapeDart»",currentGraphModel.id).then((m){
+				graphService.sendMessage(pm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 					«'''
 			  	    if (m is CompoundCommandMessage) {
 			  	    	executeCommands(m,true);
@@ -775,7 +775,7 @@ class GraphmodelComponent extends Generatable {
 			void undo() {
 				var ccm = commandGraph.undo(user);
 				if(ccm != null && !ccm.cmd.queue.isEmpty) {
-				  graphService.sendMessage(ccm,"«g.name.lowEscapeJava»",currentGraphModel.id).then((m) {
+				  graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m) {
 				«'''
 			  	    «'''
 			  	      commandGraph.receiveCommand(m);
@@ -788,7 +788,7 @@ class GraphmodelComponent extends Generatable {
 			void redo() {
 				var ccm = commandGraph.redo(user);
 			  	if(ccm!=null && !ccm.cmd.queue.isEmpty) {
-				    graphService.sendMessage(ccm,"«g.name.lowEscapeJava»",currentGraphModel.id).then((m) {
+				    graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m) {
 						«'''
 					      	«'''
 					        commandGraph.receiveCommand(m);
@@ -838,7 +838,13 @@ class GraphmodelComponent extends Generatable {
 			  if(id==currentGraphModel.id){
 			   return currentGraphModel;
 			  }
-			  return currentGraphModel.allElements().firstWhere((n)=>n.id==id, orElse: () => null);
+			  var elements = currentGraphModel.allElements();
+		      for(var e in elements) {
+		        if(e.id == id) {
+		          return e;
+		        }
+		      }
+		      return null; 
 			 }
 			 
 			 void cb_get_custom_actions(int id,int x,int y,int canvasX, int canvasY) {
@@ -901,7 +907,7 @@ class GraphmodelComponent extends Generatable {
 			 		«'''
 				 	 	var container = findElement(node.container.id) as core.ModelElementContainer;
 				 	 	var ccm = commandGraph.sendRemoveNodeCommand(node.id,user);
-				 	 	graphService.sendMessage(ccm,"«g.name.lowEscapeDart»",currentGraphModel.id).then((m){
+				 	 	graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 				 	 		if(m is CompoundCommandMessage){
 				 	 			if(m.type=='basic_valid_answer'){
 				 	 			 	selectionChangedSC.add(currentGraphModel);
@@ -930,7 +936,7 @@ class GraphmodelComponent extends Generatable {
 							edge.$type(),
 							user
 						);
-						graphService.sendMessage(ccm,"«g.name.lowEscapeDart»",currentGraphModel.id).then((m){
+						graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 							if(m is CompoundCommandMessage){
 							  if(m.type=='basic_valid_answer'){
 							  	«'''
@@ -968,17 +974,26 @@ class GraphmodelComponent extends Generatable {
 			 	 			»
 			 	 		'''.propagation»
 			 		}).then((_){
-			 			//Execute jumpToDefinition
-			 			var elem = findElement(id);
-						«FOR n : g.primeReferencedElements.filter(Node).filter[prime].filter[hasJumpToAnnotation] SEPARATOR " else "
-						»if(elem.$type() == "«n.typeName»") {
-							«n.dartFQN» elem_«n.dartClass» = elem as «n.dartFQN»;
-							// check on null-reference
-							if(elem_«n.dartClass».«n.primeReference.name.escapeDart» != null) {
-								graphService.jumpToPrime('«g.name.lowEscapeDart»','«n.name.lowEscapeDart»',currentGraphModel.id,id).then((m)=>jumpToSC.add(m));
-							}
-						}«
-						ENDFOR»
+			 			«{
+			 				val jumpablePrimeNodes = g.nodes.filter[prime].filter[hasJumpToAnnotation];
+			 				'''
+								«IF !jumpablePrimeNodes.empty»
+									//Execute jumpToDefinition
+									var elem = findElement(id);
+									if(
+										elem != null &&
+										(«FOR p:jumpablePrimeNodes SEPARATOR "|| "
+										»elem.$type() == "«p.typeName»"
+										«ENDFOR»)
+									) {
+										Map m = new Map();
+										m['primeNode'] = elem;
+										m['graphModel'] = currentGraphModel;
+										jumpToSC.add(m);
+									}
+								«ENDIF»
+			 				'''
+			 			}»
 			 		});
 			 	});
 			 }
@@ -1394,7 +1409,7 @@ class GraphmodelComponent extends Generatable {
 	    		    	y«IF isElliptic»-(height~/2)«ENDIF»'''
 		    		}*/»x,y,containerId,containerType,width,height,user«IF node.isPrime»,primeId:primeId«ENDIF»);
 				    startPropagation();
-					graphService.sendMessage(ccm,"«g.name.lowEscapeJava»",currentGraphModel.id).then((m){
+					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 						«'''
 							var cmd = m.cmd.queue.first;
 							if(cmd is CreateNodeCommand){
@@ -1453,7 +1468,7 @@ class GraphmodelComponent extends Generatable {
 					var container = findElement(node.container.id) as core.ModelElementContainer;
 					var ccm = commandGraph.sendRemoveNodeCommand(id,user);
 					startPropagation();
-					graphService.sendMessage(ccm,"«g.name.lowEscapeJava»",currentGraphModel.id).then((m){
+					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 						selectionChangedSC.add(currentGraphModel);
 						node.container = null;
 						«'''
@@ -1475,7 +1490,7 @@ class GraphmodelComponent extends Generatable {
 					}
 					var ccm = commandGraph.sendMoveNodeCommand(id, x, y, containerId, user);
 					startPropagation();
-					graphService.sendMessage(ccm,"«g.name.lowEscapeJava»",currentGraphModel.id).then((m){
+					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 					«'''
 						if(!container.modelElements.contains(node)){
 							node.container.modelElements.remove(node);
@@ -1500,7 +1515,7 @@ class GraphmodelComponent extends Generatable {
 						if(node.width!=width||node.height!=height) {
 							startPropagation();
 							var ccm = commandGraph.sendResizeNodeCommand(id,width,height,direction,user);
-							graphService.sendMessage(ccm,"«g.name.lowEscapeDart»",currentGraphModel.id).then((m){
+							graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 								«'''
 									node.width = width;
 									node.height = height;
@@ -1517,7 +1532,7 @@ class GraphmodelComponent extends Generatable {
 					var node = findElement(id) as core.Node;
 				   	var ccm =commandGraph.sendRotateNodeCommand(id,angle,user);
 					startPropagation();
-				   	graphService.sendMessage(ccm,"«g.name.lowEscapeJava»",currentGraphModel.id).then((m){
+				   	graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 						«'''
 				    		node.angle = angle;
 				    		updateElement(node);
@@ -1561,7 +1576,7 @@ class GraphmodelComponent extends Generatable {
 					}
 				   	var ccm = commandGraph.sendCreateEdgeCommand("«edge.typeName»",targetId,sourceId,target.$type(),source.$type(),currentBendpoints,user);
 					startPropagation();
-					graphService.sendMessage(ccm,"«g.name.lowEscapeJava»",currentGraphModel.id).then((m){
+					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 						«'''
 							var cmd = m.cmd.queue.first;
 							if(cmd is CreateEdgeCommand){
@@ -1591,7 +1606,7 @@ class GraphmodelComponent extends Generatable {
 					var edge = findElement(id) as core.Edge;
 					var ccm = commandGraph.sendRemoveEdgeCommand(id,edge.source.id,edge.target.id,edge.source.$type(),edge.target.$type(),"«edge.typeName»",user);
 					startPropagation();
-					graphService.sendMessage(ccm,"«g.name.lowEscapeDart»",currentGraphModel.id).then((m){
+					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 				   		«'''
 				    		selectionChangedSC.add(currentGraphModel);
 				    		var source = edge.source;
@@ -1617,7 +1632,7 @@ class GraphmodelComponent extends Generatable {
 					if(edge.source.id!=sourceId||edge.target.id!=targetId) {
 					   	var ccm = commandGraph.sendReconnectEdgeCommand(id,sourceId,targetId,user);
 						startPropagation();
-					 	graphService.sendMessage(ccm,"«g.name.lowEscapeDart»",currentGraphModel.id).then((m){
+					 	graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 					 	 		«'''
 					    			if(edge.target != target){
 					    				edge.target.incoming.remove(edge);
@@ -1656,7 +1671,7 @@ class GraphmodelComponent extends Generatable {
 					}
 					var ccm = commandGraph.sendUpdateBendPointCommand(id,currentBendpoints,new List.from(edge.bendingPoints),user);
 					startPropagation();
-					graphService.sendMessage(ccm,"«g.name.lowEscapeDart»",currentGraphModel.id).then((m){
+					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 					   	  	«'''
 				 	    		edge.bendingPoints = new List();
 				 	    		positions.forEach((p){

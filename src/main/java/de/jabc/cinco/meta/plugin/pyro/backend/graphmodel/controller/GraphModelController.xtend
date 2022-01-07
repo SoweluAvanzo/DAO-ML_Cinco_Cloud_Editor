@@ -57,7 +57,7 @@ class GraphModelController extends Generatable {
 	«ENDFOR»
 	
 	@javax.transaction.Transactional
-	@javax.ws.rs.Path("/«g.name.lowEscapeJava»")
+	@javax.ws.rs.Path("/«g.restEndpoint»")
 	@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 	@javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.APPLICATION_JSON)
 	@javax.enterprise.context.RequestScoped
