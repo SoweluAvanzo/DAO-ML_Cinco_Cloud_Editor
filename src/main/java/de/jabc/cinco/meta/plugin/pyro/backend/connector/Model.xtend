@@ -68,9 +68,9 @@ class Model  {
 		attributes.append('''
 			
 			«IF aggregation»
-				@javax.persistence.OneToOne(cascade=javax.persistence.CascadeType.ALL)
+				@javax.persistence.OneToOne(cascade=javax.persistence.CascadeType.ALL, fetch=javax.persistence.FetchType.LAZY)
 			«ELSE»
-				@javax.persistence.ManyToOne(cascade=javax.persistence.CascadeType.ALL)
+				@javax.persistence.ManyToOne(cascade=javax.persistence.CascadeType.ALL, fetch=javax.persistence.FetchType.LAZY)
 				@javax.persistence.JoinColumn(
 					nullable=true«IF joinColumn»,«/* Column-name is: name of the attribute, name of the DB-class and "id" */»
 					name = "«name»_«type.substring(type.lastIndexOf('.')+1)»_id"
@@ -101,7 +101,7 @@ class Model  {
 					inverseJoinColumns = { @javax.persistence.JoinColumn(name = "«inverseJoinColumn»") }
 				)
 			«ENDIF»
-			@javax.persistence.OneToMany
+			@javax.persistence.OneToMany(fetch=javax.persistence.FetchType.LAZY)
 			public java.util.Collection<«type»> «name» = new java.util.ArrayList<>();
 		''')
 	}
@@ -109,7 +109,7 @@ class Model  {
 	def multiAttribute(String name, String type, String mapped) {
 		attributes.append('''
 			
-			@javax.persistence.OneToMany«IF !mapped.nullOrEmpty»(mappedBy="«mapped»")«ENDIF»
+			@javax.persistence.OneToMany«IF !mapped.nullOrEmpty»(mappedBy="«mapped»", fetch=javax.persistence.FetchType.LAZY)«ENDIF»
 			public java.util.Collection<«type»> «name» = new java.util.ArrayList<>();
 		''')
 	}
