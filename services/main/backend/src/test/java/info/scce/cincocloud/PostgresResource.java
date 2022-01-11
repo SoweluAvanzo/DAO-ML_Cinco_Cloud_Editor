@@ -8,22 +8,22 @@ import org.testcontainers.junit.jupiter.Container;
 
 public class PostgresResource implements QuarkusTestResourceLifecycleManager {
 
-    @Container
-    static PostgreSQLContainer<?> database = new PostgreSQLContainer<>("postgres:13-alpine")
-            .withDatabaseName("quarkus_test")
-            .withUsername("quarkus_test")
-            .withPassword("quarkus_test");
+  @Container
+  static PostgreSQLContainer<?> database = new PostgreSQLContainer<>("postgres:13-alpine")
+      .withDatabaseName("quarkus_test")
+      .withUsername("quarkus_test")
+      .withPassword("quarkus_test");
 
-    @Override
-    public Map<String, String> start() {
-        database.start();
-        return Collections.singletonMap(
-                "quarkus.datasource.jdbc.url", database.getJdbcUrl()
-        );
-    }
+  @Override
+  public Map<String, String> start() {
+    database.start();
+    return Collections.singletonMap(
+        "quarkus.datasource.jdbc.url", database.getJdbcUrl()
+    );
+  }
 
-    @Override
-    public void stop() {
-        database.stop();
-    }
+  @Override
+  public void stop() {
+    database.stop();
+  }
 }

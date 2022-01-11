@@ -2,7 +2,6 @@ package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.core.rest.inputs.UserSearchInput;
 import info.scce.cincocloud.core.rest.tos.UserTO;
-import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
 import info.scce.cincocloud.rest.ObjectCache;
@@ -28,10 +27,10 @@ import javax.ws.rs.core.SecurityContext;
 @Produces(MediaType.APPLICATION_JSON)
 @Transactional
 @RequestScoped
-public class UsersController {
+public class UserController {
 
   @Inject
-  OrganizationController organizationController;
+  UserService userService;
 
   @Inject
   ObjectCache objectCache;
@@ -45,7 +44,7 @@ public class UsersController {
   public Response getUsers(@Context SecurityContext securityContext) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
 
-    if (subject != null && isAdmin(subject)) {
+    if (subject != null && subject.isAdmin()) {
 
       final List<UserDB> result = UserDB.listAll();
 
@@ -57,8 +56,7 @@ public class UsersController {
       return Response.ok(users).build();
     }
 
-    return Response.status(
-        Response.Status.FORBIDDEN).build();
+    return Response.status(Response.Status.FORBIDDEN).build();
   }
 
   /**
@@ -70,7 +68,7 @@ public class UsersController {
   public Response searchUser(@Context SecurityContext securityContext, UserSearchInput search) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
 
-    if (subject != null && isAdmin(subject)) {
+    if (subject != null && subject.isAdmin()) {
 
       final List<UserDB> resultByUsername = UserDB
           .list("username", search.getusernameOrEmail());
@@ -83,12 +81,10 @@ public class UsersController {
         return Response.ok(UserTO.fromEntity(resultByEmail.get(0), objectCache)).build();
       }
 
-      return Response.status(
-          Response.Status.NOT_FOUND).build();
+      return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    return Response.status(
-        Response.Status.FORBIDDEN).build();
+    return Response.status(Response.Status.FORBIDDEN).build();
   }
 
   @DELETE
@@ -97,12 +93,12 @@ public class UsersController {
   public Response delete(@Context SecurityContext securityContext,
       @PathParam("userId") final long userId) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
-    if (subject != null && isAdmin(subject)) {
+    if (subject != null && subject.isAdmin()) {
       final UserDB userToDelete = UserDB.findById(userId);
       if (subject.equals(userToDelete)) { // an admin should not delete himself
         return Response.status(Response.Status.BAD_REQUEST).build();
       }
-      deleteUser(userToDelete);
+      userService.deleteUser(userToDelete);
       return Response.ok().build();
     }
     return Response.status(Response.Status.FORBIDDEN).build();
@@ -115,13 +111,13 @@ public class UsersController {
       @PathParam("userId") final long userId) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
 
-    if (subject != null && isAdmin(subject)) {
+    if (subject != null && subject.isAdmin()) {
       final UserDB user = UserDB.findById(userId);
       if (user == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
-      if (!user.systemRoles.contains(UserSystemRole.ADMIN)) {
+      if (!user.isAdmin()) {
         user.systemRoles.add(UserSystemRole.ADMIN);
         user.systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
       }
@@ -139,14 +135,14 @@ public class UsersController {
       @PathParam("userId") final long userId) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
 
-    if (subject != null && isAdmin(subject)) {
+    if (subject != null && subject.isAdmin()) {
       final UserDB user = UserDB.findById(userId);
       if (user == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
       // an admin should not remove his own admin rights
-      if (isAdmin(user) && user.id.equals(subject.id)) {
+      if (user.isAdmin() && user.id.equals(subject.id)) {
         return Response.status(Response.Status.BAD_REQUEST).build();
       }
 
@@ -164,7 +160,7 @@ public class UsersController {
       @PathParam("userId") final long userId) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
 
-    if (subject != null && isAdmin(subject)) {
+    if (subject != null && subject.isAdmin()) {
       final UserDB user = UserDB.findById(userId);
       if (user == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
@@ -187,7 +183,7 @@ public class UsersController {
       @PathParam("userId") final long userId) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
 
-    if (subject != null && isAdmin(subject)) {
+    if (subject != null && subject.isAdmin()) {
       final UserDB user = UserDB.findById(userId);
       if (user == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
@@ -198,19 +194,5 @@ public class UsersController {
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
-  }
-
-  private boolean isAdmin(UserDB user) {
-    return user.systemRoles.contains(UserSystemRole.ADMIN);
-  }
-
-  public void deleteUser(UserDB user) {
-    List<OrganizationDB> orgs = OrganizationDB.listAll();
-    orgs.forEach((org) -> {
-      if (org.owners.contains(user) || org.members.contains(user)) {
-        this.organizationController.removeFromOrganization(user, org);
-      }
-    });
-    user.delete();
   }
 }

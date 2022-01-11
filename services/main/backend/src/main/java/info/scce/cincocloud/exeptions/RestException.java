@@ -7,6 +7,11 @@ public class RestException extends RuntimeException {
   private Status status;
 
   public RestException() {
+    this(Status.BAD_REQUEST);
+  }
+
+  public RestException(String message) {
+    this(Status.BAD_REQUEST, message);
   }
 
   public RestException(Status status) {

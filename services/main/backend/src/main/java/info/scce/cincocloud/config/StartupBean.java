@@ -1,18 +1,13 @@
 package info.scce.cincocloud.config;
 
 import info.scce.cincocloud.db.SettingsDB;
-import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 import info.scce.cincocloud.db.StyleDB;
 import info.scce.cincocloud.grpc.MainServiceGrpcImpl;
-import info.scce.cincocloud.k8s.K8SClientService;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
@@ -33,19 +28,15 @@ public class StartupBean {
   @Inject
   MainServiceGrpcImpl mainServiceGrpc;
 
-  @Inject
-  K8SClientService clientService;
-
   @Transactional
   public void startup(@Observes StartupEvent event) throws Exception {
     initDataDirectory();
     initSettings();
-    removeDanglingPods();
   }
 
   private void initDataDirectory() throws IOException {
     final var dir = Path.of(dataDirectory);
-    LOGGER.log(Level.INFO, "Init directory: " + dir.toAbsolutePath().toString());
+    LOGGER.log(Level.INFO, "Init directory: " + dir.toAbsolutePath());
     if (!Files.exists(dir)) {
       Files.createDirectories(dir);
     }
@@ -67,21 +58,5 @@ public class StartupBean {
       settings.style = style;
       settings.persist();
     }
-  }
-
-  private void removeDanglingPods() {
-    LOGGER.log(Level.INFO, "Remove dangling pods.");
-    final KubernetesClient client = clientService.createClient();
-    client.apps().statefulSets().list().getItems().stream()
-        .filter(s -> s.getMetadata().getName().startsWith("project"))
-        .map(s -> s.getMetadata().getLabels().get("project"))
-        .filter(Objects::nonNull)
-        .map(Long::valueOf)
-        .forEach(id -> {
-          final var task = new StopProjectPodsTaskDB();
-          task.setProjectId(id);
-          task.setCreatedAt(Instant.now());
-          task.persist();
-        });
   }
 }
