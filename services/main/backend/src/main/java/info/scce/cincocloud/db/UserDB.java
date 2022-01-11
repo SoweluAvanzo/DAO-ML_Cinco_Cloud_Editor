@@ -13,6 +13,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import javax.ws.rs.core.SecurityContext;
 
 @Entity
@@ -69,5 +70,9 @@ public class UserDB extends PanacheEntity {
   public static UserDB getCurrentUser(SecurityContext context) {
     return UserDB.find("email", context.getUserPrincipal().getName()).firstResult();
   }
-}
 
+  @Transient
+  public boolean isAdmin() {
+    return systemRoles.contains(UserSystemRole.ADMIN);
+  }
+}

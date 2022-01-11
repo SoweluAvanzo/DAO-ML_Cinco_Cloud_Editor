@@ -5,7 +5,6 @@ import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.SettingsDB;
 import info.scce.cincocloud.db.StyleDB;
 import info.scce.cincocloud.db.UserDB;
-import info.scce.cincocloud.db.UserSystemRole;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.List;
 import javax.annotation.security.PermitAll;
@@ -30,7 +29,6 @@ import javax.ws.rs.core.SecurityContext;
 @RequestScoped
 public class SettingsController {
 
-
   @Inject
   ObjectCache objectCache;
 
@@ -49,7 +47,7 @@ public class SettingsController {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
     final SettingsDB settingsInDb = SettingsDB.findById(settings.getId());
 
-    if (subject != null && isAdmin(subject) && settingsInDb != null) {
+    if (subject != null && subject.isAdmin() && settingsInDb != null) {
       final StyleDB style = settingsInDb.style;
       style.navBgColor = settings.getstyle().getnavBgColor();
       style.navTextColor = settings.getstyle().getnavTextColor();
@@ -69,9 +67,5 @@ public class SettingsController {
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
-  }
-
-  private boolean isAdmin(UserDB user) {
-    return user.systemRoles.contains(UserSystemRole.ADMIN);
   }
 }
