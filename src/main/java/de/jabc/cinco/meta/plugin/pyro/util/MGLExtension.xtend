@@ -2828,6 +2828,10 @@ class MGLExtension {
 			'''«packageId».«e.name.fuEscapeDart»'''
 		}
 	}
+	
+	def restEndpoint(GraphModel g) {
+		'''«g.typeName.toString.replace('.', "_").toLowerCase»'''
+	}
 
 	def jarFilename(String path) {
 		if (path.contains("/")) {

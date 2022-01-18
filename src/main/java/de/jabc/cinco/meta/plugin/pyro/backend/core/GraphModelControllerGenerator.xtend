@@ -65,7 +65,7 @@ class GraphModelControllerGenerator extends Generatable {
 				HashMap<String, String> extensions = new HashMap<>();
 				// <graphModelName, graphModelFileExtension>
 				«FOR g:gc.graphMopdels.filter[!isAbstract]»
-					extensions.put("«g.name.escapeDart»", "«g.fileExtension»");
+					extensions.put("«g.typeName»", "«g.fileExtension»");
 				«ENDFOR»
 
 				return Response.ok(extensions).build();

@@ -1367,25 +1367,24 @@ function constraint_element_view(g,highlight_valid_targets,highlight_valid_conta
  */
 
 
-function update_element_internal(cellId,id,styleAgs,information,label,graph){
+function update_element_internal(cellId,id,styleArgs,information,label,graph){
+    var element;
     if(id<0){ // id over cellId
-        var element = graph.getCell(cellId);
-        element.attributes.attrs.id = id;
-        element.attributes.attrs.styleArgs = styleAgs;
-        element.attributes.attrs.information = information;
-        element.attributes.attrs.label = label;
+        element = graph.getCell(cellId);
+    } else {
+        element = findElementById(id,graph);
     }
-    else {
-        var element = findElementById(id,graph);
-        element.attributes.attrs.id = id;
-        element.attributes.attrs.styleArgs = styleAgs;
-        element.attributes.attrs.information = information;
-        element.attributes.attrs.label = label;
+    if(element != null) {
+        _update_element_internal(element, id, styleArgs, information, label);
     }
-
-
 }
 
+function _update_element_internal(element, id, styleArgs, information, label) {
+    element.attributes.attrs.id = id;
+    element.attributes.attrs.styleArgs = styleArgs;
+    element.attributes.attrs.information = information;
+    element.attributes.attrs.label = label;
+}
 
 function update_node_highlight_internal(cell,shape,
                                         background_r,background_g,background_b,

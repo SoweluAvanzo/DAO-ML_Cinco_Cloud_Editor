@@ -259,6 +259,19 @@ class Controller extends Generatable{
 			zoom_paper($paper_«g.jsCall»,evt,x,y,delta);
 		});
 		
+		$paper_«g.jsCall».on('blank:pointerclick',function () {
+			var node_menu = $('#pyro_node_menu');
+			if(node_menu !== null) {
+				node_menu.remove();
+			}
+		});
+		$paper_«g.jsCall».on('cell:pointerclick',function () {
+			var node_menu = $('#pyro_node_menu');
+			if(node_menu !== null) {
+				node_menu.remove();
+			}
+		});
+		
 		(function() {
 			/**
 			 * emit the cursor position of the user on the paper
@@ -397,6 +410,11 @@ class Controller extends Generatable{
 		* Activate double click action
 		*/
 		$paper_«g.jsCall».on('blank:pointerdblclick', function(evt,x,y){
+			var node_menu = $('#pyro_node_menu');
+			if(node_menu !== null) {
+				node_menu.remove();
+			}
+			
 			//fetch ca for element
 			cb_fire_dbc_actions($graphmodel_id_«g.jsCall»);
 			console.log("graphmodel double clicked");
@@ -419,6 +437,11 @@ class Controller extends Generatable{
 	     * Activate double click action
 	     */
 	    $paper_«g.jsCall».on('cell:pointerdblclick', function(cellView,evt,x,y){
+	    	var node_menu = $('#pyro_node_menu');
+			if(node_menu !== null) {
+				node_menu.remove();
+			}
+	    	
 	    	//fetch ca for element
 	    	cb_fire_dbc_actions(cellView.model.attributes.attrs.id);
 	    });
@@ -636,6 +659,9 @@ class Controller extends Generatable{
 		var validTargets = $cb_functions_«g.jsCall».cb_get_valid_targets(cell.model.attributes.attrs.id);
 		validTargets.forEach(function(vt){
 			var elem = findElementById(vt,$graph_«g.jsCall»);
+			if(elem == null) {
+				return;
+			}
 			var cellView = $paper_«g.jsCall».findViewByModel(elem);
 			highlight_cell_valid_target(cellView);
 		});
@@ -645,6 +671,9 @@ class Controller extends Generatable{
 		var validContainers = $cb_functions_«g.jsCall».cb_get_valid_containers(id,type);
 		validContainers.forEach(function(vt){
 			var elem = findElementById(vt,$graph_«g.jsCall»);
+			if(elem == null) {
+				return;
+			}
 			var cellView = $paper_«g.jsCall».findViewByModel(elem);
 			highlight_cell_valid_target(cellView);
 		});
@@ -656,7 +685,7 @@ class Controller extends Generatable{
 		checkResults.forEach(function(e) {
 	        var elem = findElementById(e['id'],$graph_«g.jsCall»);
 	        if(elem == null) {
-	         return;
+	        	return;
 	        }
 	        var cell = $paper_«g.jsCall».findViewByModel(elem);
 			highlight_cell_check(cell,e['level'],e['errors'],$graph_«g.jsCall»);
@@ -729,14 +758,14 @@ class Controller extends Generatable{
 		if(styleArgs!==null) {
 			var elem = findElementById(id,graph);
 
-			if(cellId!=null&&elem!=null){
+			if(cellId!=null && elem!=null){
 				if(elem.id!=cellId) {
 					// remove dublicate
 					var dublicate = graph.getCell(cellId);
 					remove_element(dublicate, paper)
 				}
 			}
-			else if(cellId!=null&&elem==null){
+			else if(cellId!=null && elem==null){
 				elem =  graph.getCell(cellId);
 			}
 		    if(elem == null) {
@@ -774,6 +803,9 @@ class Controller extends Generatable{
 			foreground_r,foreground_g,foreground_b
 	) {
 		var elem = findElementById(id,$graph_«g.jsCall»);
+		if(elem == null) {
+			return;
+		}
 		var cell = $paper_«g.jsCall».findViewByModel(elem);
 		«FOR node:nodes.filter[styling(styles)!==null]»
 			«{
@@ -816,6 +848,9 @@ class Controller extends Generatable{
 		imagePath
 	) {
 		var elem = findElementById(id,$graph_«g.jsCall»);
+		if(elem == null) {
+			return;
+		}
 		var cell = $paper_«g.jsCall».findViewByModel(elem);
 		«FOR node:nodes.filter[!styling(styles).appearanceProvider.nullOrEmpty]»
 			«{
@@ -926,6 +961,9 @@ class Controller extends Generatable{
 		    var pos = {x:x,y:y};
 		    if(containerId>-1&&containerId!=$graphmodel_id_«g.jsCall»){
 		    	var parent = findElementById(containerId,$graph_«g.jsCall»);
+		    	if(parent == null) {
+					return;
+				}
 		    	parent.embed(elem);
 		    	pos.x -= parent.position().x;
 		    	pos.y -= parent.position().y;
@@ -969,6 +1007,9 @@ class Controller extends Generatable{
 			    	{
 			    		//embed the node in the precontainer
 				    	var parentCell = findElementById(preContainerId,$graph_«g.jsCall»);
+				    	if(parentCell == null) {
+				    		return;
+				    	}
 				    	parentCell.embed(elem.model);
 				    	//move back
 				    	elem.model.position(preX,preY,{ parentRealtive: true });
@@ -1078,7 +1119,10 @@ class Controller extends Generatable{
 		function create_edge_«edge.jsCall(g)»(sourceId,targetId,id,positions,styleArgs,information,label) {
 		    var sourceN = findElementById(sourceId,$graph_«g.jsCall»);
 		    var targetN = findElementById(targetId,$graph_«g.jsCall»);
-		
+			if(sourceN == null || targetN == null) {
+				return;
+			}
+			
 		    var link = new «edge.shapeFQN»({
 		        attrs:{
 		            id:id,

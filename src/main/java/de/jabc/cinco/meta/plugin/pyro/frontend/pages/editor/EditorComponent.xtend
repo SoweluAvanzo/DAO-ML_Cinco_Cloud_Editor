@@ -366,8 +366,19 @@ class EditorComponent extends Generatable {
 	    print(value.name);
 	  }
 	  
-	  void jumpToPrime(Map map) {
-	  	 //TODO Open File by ID
+	  void jumpToPrime(Map m) {
+		IdentifiableElement primeNode = m['primeNode'];
+		GraphModel parentGraphModel = m['graphModel'];
+		if(primeNode != null && parentGraphModel != null) {
+		  graphService.jumpToPrime(
+		    parentGraphModel.$lower_type(),
+		    primeNode.$type(),
+		    parentGraphModel.id,
+		    primeNode.id
+		  ).then((m) {
+		    print("TODO_JUMP_TO_PRIME:\n${m}");
+		  });
+		}
 	  }
 	
 	  void receiveMessage(String json)
@@ -390,7 +401,7 @@ class EditorComponent extends Generatable {
 	
 	  Future<Message> sendMessage(Message message) async
 	  {
-	      return graphService.sendMessage(message,currentFile.$lower_type(),currentFile.id);
+	      return graphService.sendMessage(message,currentFile.$type(),currentFile.id);
 	  }
 	
 	  void receiveGraphModelUpdate(CompoundCommandMessage message)

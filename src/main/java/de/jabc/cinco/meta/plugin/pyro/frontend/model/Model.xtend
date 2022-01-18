@@ -10,7 +10,6 @@ import mgl.GraphicalModelElement
 import mgl.MGLModel
 import mgl.ModelElement
 import mgl.Node
-import mgl.NodeContainer
 import mgl.UserDefinedType
 import org.eclipse.emf.ecore.EAttribute
 import org.eclipse.emf.ecore.EClass
@@ -38,45 +37,43 @@ class Model extends Generatable {
 		«FOR p:gc.ecores»
 			import '«p.modelFile»' as «p.dartImplPackage»;
 		«ENDFOR»
-		«/* TODO: SAMI: rename to ModelPackageDispatcher */»
+		
 		class GraphModelDispatcher {
 			
 			static core.PyroElement dispatchElement(Map<String, dynamic> jsog,Map cache) {
-				«FOR g:gc.mglModels»
-					«FOR e:g.elements.filter[!isIsAbstract] SEPARATOR " else "
-					»if(jsog["runtimeType"]=='«e.restFQN»'){
+			  	var type = jsog["runtimeType"];
+				«FOR e:gc.mglModels.map[elements].flatten.toSet.filter[!isAbstract] SEPARATOR " else "
+				»if(type == '«e.restFQN»'){
 						return «e.dartImplClass».fromJSOG(jsog,cache);
-					}«
-					ENDFOR»
-				«ENDFOR»
+				}«
+				ENDFOR»
 				return dispatchEcoreElement(cache,jsog);
 			}
 			
 			static core.PyroElement dispatchEcoreElement(Map cache,dynamic jsog) {
-				«FOR g:gc.ecores»
-					«FOR e:g.elements.filter[!abstract] SEPARATOR " else "
-					»if(jsog["__type"]=='«e.typeName»'){
+			  	var type = jsog["__type"];
+				«FOR e:gc.ecores.map[elements].flatten.toSet.filter[!abstract] SEPARATOR " else "
+				»if(type == '«e.typeName»'){
 						return «e.dartImplClass».fromJSOG(jsog,cache);
-					}«
-					ENDFOR»
-				«ENDFOR»
-				throw new Exception("Unkown element ${jsog['runtimeType']}");
+				}«
+				ENDFOR»
+				throw new Exception("Unkown element ${type}");
 			}
 		  	
 			static core.PyroModelFile dispatchEcorePackage(Map cache,dynamic jsog) {
+			  	var type = jsog["__type"];
 		  		«FOR g:gc.ecores SEPARATOR " else "
-		  		»if(jsog["__type"]=='«g.name.fuEscapeDart»'
-		  			|| jsog["__type"]=='«g.typeName»'
-		  		){
+		  		»if(type == '«g.name.fuEscapeDart»' || type == '«g.typeName»'){
 		  			return «g.dartImplClass».fromJSOG(jsog,cache);
 		  		}«
 		  		ENDFOR»
-				throw new Exception("Unkown dispatching type ${jsog["__type"]}");
+				throw new Exception("Unkown dispatching type ${type}");
 			}
 			
 			static core.PyroModelFile dispatch(Map cache,dynamic jsog){
-				«FOR g:gc.graphMopdels.filter[!abstract] SEPARATOR " else "
-				»if(jsog["__type"]=='«g.typeName»'){
+			  	var type = jsog["__type"];
+				«FOR g:gc.concreteGraphModels.map[resolveSubTypesAndType].flatten.toSet SEPARATOR " else "
+				»if(type == '«g.typeName»'){
 				  return «g.dartImplClass».fromJSOG(jsog,cache);
 				}«
 				ENDFOR»
@@ -87,23 +84,23 @@ class Model extends Generatable {
 				static core.ModelElementContainer dispatch«g.name.escapeDart»ModelElementContainer(
 				  	Map cache,dynamic jsog
 				  ){
-				  	«FOR e:g.elements.filter(NodeContainer).map[resolveSubTypesAndType].flatten.toSet.filter[!isIsAbstract] SEPARATOR " else "
-				  	»if(jsog["__type"]=='«e.typeName»'){
+				  	var type = jsog["__type"];
+				  	«FOR e:g.elementsAndGraphmodels.filter(ContainingElement).map[resolveSubTypesAndType].flatten.toSet SEPARATOR " else "
+				  	»if(type == '«e.typeName»'){
 				  		return «e.dartImplClass».fromJSOG(jsog,cache);
-				  	}
-				  	«ENDFOR»
-					«/* TODO:SAMI: fallback to other packages */»
-				  	throw new Exception("Unkown modelelement type ${jsog["__type"]}");
+				  	}«
+				  	ENDFOR»
+				  	throw new Exception("Unkown modelelement type ${type}");
 				}
 				
 				static core.ModelElement dispatch«g.name.escapeDart»ModelElement(Map cache,dynamic jsog){
-					«FOR e:g.elementsAndTypes.filter(GraphicalModelElement).map[resolveSubTypesAndType].flatten.toSet.filter[!isIsAbstract] SEPARATOR " else "
-					»if(jsog["__type"]=='«e.typeName»'){
+				  	var type = jsog["__type"];
+					«FOR e:g.elementsAndTypes.filter(GraphicalModelElement).map[resolveSubTypesAndType].flatten.toSet SEPARATOR " else "
+					»if(type == '«e.typeName»'){
 						return «e.dartImplClass».fromJSOG(jsog,cache);
 					}«
 					ENDFOR»
-					«/* TODO:SAMI: fallback to other packages */»
-					throw new Exception("Unkown modelelement type ${jsog["__type"]}");
+					throw new Exception("Unkown modelelement type ${type}");
 				}
 		    «ENDFOR»
 		}

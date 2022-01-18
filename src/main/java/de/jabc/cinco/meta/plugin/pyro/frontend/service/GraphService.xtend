@@ -57,34 +57,37 @@ class GraphService extends Generatable {
 			 }
 			 
 			 Future<Message> sendMessage(Message m,String graphModelType,int graphModelId) async{
-			    print("[SEND] message ${m}");
-			    return html.HttpRequest.request("${getBaseUrl()}/${graphModelType}/message/${graphModelId.toString()}/private",
-			    	sendData:m.toJSON(),
-			    	method: "POST",
-			    	requestHeaders: requestHeaders,
-			    	withCredentials: true
-			    ).then((response){
-			      var p = Message.fromJSON(response.responseText);
-			      print("[PYRO] send command ${p.messageType}");
-			      return p;
-			    }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
+				var graphModelEndpoint = getGraphModelEndpoint(graphModelType);
+				print("[SEND] message ${m}");
+				return html.HttpRequest.request("${getBaseUrl()}/${graphModelEndpoint}/message/${graphModelId.toString()}/private",
+					sendData:m.toJSON(),
+					method: "POST",
+					requestHeaders: requestHeaders,
+					withCredentials: true
+				).then((response){
+				  var p = Message.fromJSON(response.responseText);
+				  print("[PYRO] send command ${p.messageType}");
+				  return p;
+				}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 			 }
 			 
 			Future<Map> jumpToPrime(String graphModelType,String elementType,int graphModelId,int elementId) async{
-		      print("[SEND] jump to prime message");
-		      return html.HttpRequest.request("${getBaseUrl()}/${graphModelType}/jumpto/${graphModelId.toString()}/${elementId.toString()}/private",
+			 var graphModelEndpoint = getGraphModelEndpoint(graphModelType);
+			 print("[SEND] jump to prime message");
+			 return html.HttpRequest.request("${getBaseUrl()}/${graphModelEndpoint}/jumpto/${graphModelId.toString()}/${elementId.toString()}/private",
 			      	method: "GET",
 			      	requestHeaders: requestHeaders,
 			 		withCredentials: true
-				).then((response){
+			 ).then((response){
 			      Map m = jsonDecode(response.responseText);
 			      return m;
-			    }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
+			 }).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 			}
 		
 			
 		  Future<dynamic> removeGraph(GraphModel graph) async {
-		    return html.HttpRequest.request("${getBaseUrl()}/${graph.$lower_type()}/remove/${graph.id}/private",
+		  	var graphModelEndpoint = getGraphModelEndpoint(graph.$type());
+		    return html.HttpRequest.request("${getBaseUrl()}/${graphModelEndpoint}/remove/${graph.id}/private",
 		    	method: "GET",
 		    	requestHeaders: requestHeaders,
 		    	withCredentials: true
@@ -94,8 +97,9 @@ class GraphService extends Generatable {
 		  }
 		
 		  Future<dynamic> generateGraph(GraphModel graph, String generatorId) async {
+		  	var graphModelEndpoint = getGraphModelEndpoint(graph.$type());
 		    return html.HttpRequest.request(
-		        "${getBaseUrl()}/${graph.$lower_type()}/generate/${graph.id}/${generatorId}/private",
+		        "${getBaseUrl()}/${graphModelEndpoint}/generate/${graph.id}/${generatorId}/private",
 		        method: "GET",
 		        requestHeaders: requestHeaders,
 		        withCredentials: true);
@@ -116,7 +120,7 @@ class GraphService extends Generatable {
 			
 			Future<dynamic> loadCommandGraph(GraphModel graph,List<HighlightCommand> highlightings) async{
 				if(graph == null) throw new Error();
-				«FOR g : gc.concreteGraphModels SEPARATOR " else "»if(graph.$lower_type() == "«g.name.lowEscapeDart»") {
+				«FOR g : gc.concreteGraphModels SEPARATOR " else "»if(graph.$type() == "«g.typeName»") {
 					return loadCommandGraph«g.name.fuEscapeDart»(graph, highlightings);
 				}«ENDFOR»
 				      throw new Error();
@@ -132,9 +136,8 @@ class GraphService extends Generatable {
 								 */
 								
 								«IF g.hasAppearanceProvider(styles)»
-									
 									Future<String> appearances«g.name.fuEscapeDart»(«g.dartFQN» graph) async{
-										return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/appearance/${graph.id}/private",
+										return html.HttpRequest.request("${getBaseUrl()}/«g.restEndpoint»/appearance/${graph.id}/private",
 											method: "GET",
 											requestHeaders: requestHeaders,
 											withCredentials: true
@@ -143,6 +146,7 @@ class GraphService extends Generatable {
 											return response.responseText;
 										}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 									}
+									
 								«ENDIF»
 								Future<Message> executeGraphmodelButton«g.name.escapeDart»(int id,«g.dartFQN» graph,String key,List<HighlightCommand> highlightings) async {
 									var data = {
@@ -150,7 +154,7 @@ class GraphService extends Generatable {
 										'highlightings':highlightings.map((n)=>n.toJSOG()).toList(),
 										'runtimeType':'info.scce.pyro.core.command.types.Action'
 										 };
-									return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/${graph.id}/button/${key}/${id}/trigger/private",
+									return html.HttpRequest.request("${getBaseUrl()}/«g.restEndpoint»/${graph.id}/button/${key}/${id}/trigger/private",
 										sendData:jsonEncode(data),
 										method: "POST",
 										requestHeaders: requestHeaders,
@@ -166,7 +170,7 @@ class GraphService extends Generatable {
 								  	'highlightings':highlightings.map((n)=>n.toJSOG()).toList(),
 								  	'runtimeType':'info.scce.pyro.core.command.types.Action'
 								  };
-								  return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/${graph.id}/psaction/${id}/trigger/private",
+								  return html.HttpRequest.request("${getBaseUrl()}/«g.restEndpoint»/${graph.id}/psaction/${id}/trigger/private",
 								  	  	  	sendData:jsonEncode(data),
 								  	  	  	method: "POST",
 								  	  	  	requestHeaders: requestHeaders,
@@ -180,7 +184,7 @@ class GraphService extends Generatable {
 								    var data = {
 								        'filename':graph.filename
 								    };
-								    return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/create/private",
+								    return html.HttpRequest.request("${getBaseUrl()}/«g.restEndpoint»/create/private",
 									    	sendData:jsonEncode(data),
 									    	method: "POST",
 									  requestHeaders: requestHeaders,
@@ -195,7 +199,7 @@ class GraphService extends Generatable {
 								}
 								
 								Future<Map<String,String>> fetchCustomActionsFor«g.name.escapeDart»(int id,«g.dartFQN» graph) async {
-								    return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/customaction/${graph.id}/${id}/fetch/private",
+								    return html.HttpRequest.request("${getBaseUrl()}/«g.restEndpoint»/customaction/${graph.id}/${id}/fetch/private",
 								    	method: "GET",
 								    	requestHeaders: requestHeaders,
 										withCredentials: true
@@ -214,7 +218,7 @@ class GraphService extends Generatable {
 								  		'highlightings':highlightings.map((n)=>n.toJSOG()).toList(),
 								  		'runtimeType':'info.scce.pyro.core.command.types.Action'
 								  		};
-								  	return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/customaction/${graph.id}/${id}/trigger/private",
+								  	return html.HttpRequest.request("${getBaseUrl()}/«g.restEndpoint»/customaction/${graph.id}/${id}/trigger/private",
 								  		sendData:jsonEncode(data),
 								  		method: "POST",
 								  		requestHeaders: requestHeaders,
@@ -230,7 +234,7 @@ class GraphService extends Generatable {
 										'highlightings':highlightings.map((n)=>n.toJSOG()).toList(),
 										'runtimeType':'info.scce.pyro.core.command.types.Action'
 									};
-									return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/dbaction/${graph.id}/${id}/trigger/private",
+									return html.HttpRequest.request("${getBaseUrl()}/«g.restEndpoint»/dbaction/${graph.id}/${id}/trigger/private",
 										sendData:jsonEncode(data),
 										method: "POST",
 										requestHeaders: requestHeaders,
@@ -241,7 +245,7 @@ class GraphService extends Generatable {
 								}
 								
 								Future<«g.name.lowEscapeDart»CG.«g.name.fuEscapeDart»CommandGraph> loadCommandGraph«g.name.fuEscapeDart»(«g.dartFQN» graph,List<HighlightCommand> highlightings) async{
-									return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/read/${graph.id}/private",
+									return html.HttpRequest.request("${getBaseUrl()}/«g.restEndpoint»/read/${graph.id}/private",
 									  	method: "GET",
 									  	requestHeaders: requestHeaders,
 									withCredentials: true
@@ -254,7 +258,7 @@ class GraphService extends Generatable {
 									}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 								}
 								Future<«g.dartFQN»> loadGraph«g.name.fuEscapeDart»(int id) async{
-									return html.HttpRequest.request("${getBaseUrl()}/«g.name.lowEscapeDart»/read/${id}/private",
+									return html.HttpRequest.request("${getBaseUrl()}/«g.restEndpoint»/read/${id}/private",
 									  	method: "GET",
 									  	requestHeaders: requestHeaders,
 									withCredentials: true
@@ -285,7 +289,11 @@ class GraphService extends Generatable {
 				       return newEcore;
 				}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 				}
-			«ENDFOR»	
+			«ENDFOR»
+			
+			String getGraphModelEndpoint(String graphModelType) {
+				return graphModelType.replaceAll( "." , "_" ).toLowerCase();
+			}
 		}
 	'''
 
