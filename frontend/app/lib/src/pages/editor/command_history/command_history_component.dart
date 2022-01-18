@@ -51,18 +51,19 @@ class CommandHistoryComponent implements OnInit, OnDestroy {
   void handleOnMessage(MessageEvent e) {  
     var data = jsonDecode(e.data);
     var content = data['content'];
+    var messageType = content['messageType'];
     
-    if (data['event'] == '' && content['messageType']!='graphmodel') {
+	if (data['event'] == '' && messageType=='command') {
       List<Command> cmds = List.from(content['cmd']['queue'].map((c) => CommandPropertyDeserializer.deserialize(c, new Map())));
-	  if (content["type"].startsWith("undo")) {
-	    if (commandHistory.length > cmds.length) {
-	   	  commandHistory.replaceRange(0, cmds.length, []);
-	    } else {
-	      commandHistory.clear();
-	    }
-	  } else {
-	    commandHistory.insertAll(0, cmds);
-	  }
+      if (content["type"].startsWith("undo")) {
+        if (commandHistory.length > cmds.length) {
+          commandHistory.replaceRange(0, cmds.length, []);
+        } else {
+          commandHistory.clear();
+        }
+      } else {
+        commandHistory.insertAll(0, cmds);
+      }
     }
   }
   
