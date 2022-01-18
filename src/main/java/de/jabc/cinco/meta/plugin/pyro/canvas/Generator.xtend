@@ -54,7 +54,7 @@ class Generator extends FileGenerator {
 			gc.mglModels.forEach[m|{
 				//web.asset.js.graphmodel.controller
 				val path = "web/js/"+m.name.lowEscapeDart+"/"
-				m.graphModels.forEach[g|
+				m.concreteGraphModels.forEach[g|
 					val gen = new Controller(gc)
 					val styles = CincoUtil.getStyles(g)
 					generateFile(path + '''«g.name.lowEscapeDart»''',
