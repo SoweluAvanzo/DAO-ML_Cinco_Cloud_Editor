@@ -1,3 +1,4 @@
+ARG ARCHETYPE_IMAGE_TAG=latest
 # STEP 1: build the pyro server
 # --------------------------------
 FROM docker.io/google/dart:2.4.1 as pyro-server-frontend-builder
@@ -22,7 +23,7 @@ RUN /pyro-server/compileBackend.sh
 
 # STEP 2: integrate
 # --------------------------------
-FROM registry.gitlab.com/scce/cinco-cloud-archetype/archetype:latest as cinco-cloud-archetype
+FROM registry.gitlab.com/scce/cinco-cloud-archetype/archetype:${ARCHETYPE_IMAGE_TAG} as cinco-cloud-archetype
 # set baseHref path for static resources of frontend
 ENV PYRO_SUBPATH=/
 # integrate pyro-server into cinco-cloud-archetype
