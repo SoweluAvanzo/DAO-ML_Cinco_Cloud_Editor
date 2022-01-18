@@ -10,7 +10,6 @@ import { inject, injectable } from 'inversify';
 import * as querystring from 'querystring';
 
 import { isDebugging } from './debugHandler';
-import { RequestOptions } from 'http';
 
 const LOG_NAME = '[CINCO-AUTHENTICATOR] ';
 
@@ -96,7 +95,7 @@ async function validateJWT(jwt: any, projectId: any, res: any): Promise<boolean>
     return new Promise<boolean>((resolve, reject) => {
         // connect to master app and check jwt-token:
         // http://cinco-cloud/api/user/current/private
-        const options = applyHttpsOptions({
+        const options = {
             hostname: getCincoCloudHost(),
             port: getCincoCloudPort(),
             path: getCincoCloudPath(projectId),
@@ -105,7 +104,7 @@ async function validateJWT(jwt: any, projectId: any, res: any): Promise<boolean>
                 'Authorization': 'Bearer ' + jwt,
                 'Content-Type': 'application/json'
             }
-        });
+        };
         const request = http.get(options, (response: http.IncomingMessage) => {
             if (response.statusCode === 200) {
                 return resolve(true);
@@ -118,17 +117,6 @@ async function validateJWT(jwt: any, projectId: any, res: any): Promise<boolean>
             return resolve(false);
         });
     });
-}
-
-function applyHttpsOptions(options: RequestOptions): RequestOptions {
-    if (process.env.USE_SSL === 'true') {
-        return { ...options, ...{
-                protocol: 'https:',
-                agent: https.globalAgent
-            }};
-    } else {
-        return options;
-    }
 }
 
 function block(res: any): void {
