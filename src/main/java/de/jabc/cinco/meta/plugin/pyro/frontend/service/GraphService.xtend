@@ -292,7 +292,7 @@ class GraphService extends Generatable {
 			«ENDFOR»
 			
 			String getGraphModelEndpoint(String graphModelType) {
-				return graphModelType.replaceAll('\\.', '.').toLowerCase();
+				return graphModelType.replaceAll( "." , "_" ).toLowerCase();
 			}
 		}
 	'''
