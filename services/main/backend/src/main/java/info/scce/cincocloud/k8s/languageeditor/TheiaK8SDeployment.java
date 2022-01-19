@@ -3,6 +3,7 @@ package info.scce.cincocloud.k8s.languageeditor;
 import info.scce.cincocloud.db.ProjectDB;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
@@ -21,16 +22,19 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
 
   private final TheiaK8SPersistentVolumeClaim persistentVolumeClaim;
   private final String archetypeImageTag;
+  private final boolean useSsl;
 
   public TheiaK8SDeployment(
       KubernetesClient client,
       TheiaK8SPersistentVolumeClaim persistentVolumeClaim,
       ProjectDB project,
-      String archetypeImageTag
+      String archetypeImageTag,
+      boolean useSsl
   ) {
     super(client, project);
     this.persistentVolumeClaim = persistentVolumeClaim;
     this.archetypeImageTag = archetypeImageTag;
+    this.useSsl = useSsl;
     this.resource = build();
   }
 
@@ -84,6 +88,10 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                             new EnvVarBuilder()
                                 .withName("CINCO_CLOUD_PORT")
                                 .withValue("8000")
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("USE_SSL")
+                                .withValue(String.valueOf(useSsl))
                                 .build()
                         )
                         .build())

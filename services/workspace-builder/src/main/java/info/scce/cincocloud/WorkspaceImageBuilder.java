@@ -57,6 +57,9 @@ public class WorkspaceImageBuilder {
   @ConfigProperty(name = "cincocloud.archetype.registry.password")
   String archetypeRegistryPassword;
 
+  @ConfigProperty(name = "cincocloud.archetype.image.tag")
+  String archetypeImageTag;
+
   @Inject
   Validator validator;
 
@@ -189,7 +192,7 @@ public class WorkspaceImageBuilder {
 
     executeCommand("buildah --storage-driver vfs login -u=" + registryUsername + " -p=" + registryPassword + " "
         + archetypeRegistryUrl);
-    executeCommand("cd " + sourceDir.toString() + " && buildah --storage-driver vfs bud -t " + tag + " .");
+    executeCommand("cd " + sourceDir.toString() + " && buildah --storage-driver vfs bud --build-arg ARCHETYPE_IMAGE_TAG=" + archetypeImageTag + " -t " + tag + " .");
     executeCommand("buildah --storage-driver vfs images");
 
     logger.info("push image to registry (projectId: {}, tag: {})", projectId, tag);

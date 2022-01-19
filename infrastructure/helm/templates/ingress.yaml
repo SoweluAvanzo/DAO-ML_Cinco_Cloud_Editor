@@ -6,7 +6,20 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    {{- if and (ne .Values.serverTier "local") (ne .Values.serverTier "local-ssl") }}
+    cert-manager.io/issuer: "letsencrypt-{{ .Values.serverTier }}"
+    {{- end }}
 spec:
+  {{- if ne .Values.serverTier "local" }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      {{- if eq .Values.serverTier "local-ssl" }}
+      secretName: "cinco-cloud-local-ca-cert-secret"
+      {{- else }}
+      secretName: "letsencrypt-secret-{{ .Values.serverTier }}"
+      {{- end }}
+  {{- end }}
   rules:
     - host: {{ .Values.ingress.host }}
       http:

@@ -28,4 +28,5 @@ CMD java \
     -Dcincocloud.archetype.registry.url="${ARCHETYPE_REGISTRY_URL}" \
     -Dcincocloud.archetype.registry.username="${ARCHETYPE_REGISTRY_USERNAME}" \
     -Dcincocloud.archetype.registry.password="${ARCHETYPE_REGISTRY_PASSWORD}" \
+    -Dcincocloud.archetype.image.tag="${CINCO_CLOUD_ARCHETYPE_IMAGE_TAG}" \
     -jar quarkus-run.jar

@@ -23,17 +23,21 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
 
   private final String host;
 
+  private final boolean useSsl;
+
   public PyroAppK8SDeployment(
       KubernetesClient client,
       PyroAppK8SPersistentVolumeClaim persistentVolumeClaim,
       Service registryService,
       String host,
+      boolean useSsl,
       ProjectDB project
   ) {
     super(client, project);
     this.persistentVolumeClaim = persistentVolumeClaim;
     this.registryService = registryService;
     this.host = host;
+    this.useSsl = useSsl;
     this.resource = build();
   }
 
@@ -70,7 +74,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                         .withContainerPort(3000)
                         .build(),
                     new ContainerPortBuilder()
-                        .withContainerPort(80)
+                        .withContainerPort(useSsl ? 443 : 80)
                         .build()
                 )
                 .withVolumeMounts(new VolumeMountBuilder()
@@ -108,11 +112,15 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                         .build(),
                     new EnvVarBuilder()
                         .withName("PYRO_PORT")
-                        .withValue("80")
+                        .withValue(String.valueOf(useSsl ? 443 : 80))
                         .build(),
                     new EnvVarBuilder()
                         .withName("PYRO_SUBPATH")
                         .withValue("/workspaces/" + getProjectName() + "/pyro/")
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("USE_SSL")
+                        .withValue(String.valueOf(useSsl))
                         .build()
                 )
                 .build()
