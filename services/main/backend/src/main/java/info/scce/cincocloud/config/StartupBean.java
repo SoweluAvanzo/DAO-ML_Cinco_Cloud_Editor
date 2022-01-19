@@ -55,6 +55,7 @@ public class StartupBean {
       style.persist();
 
       SettingsDB settings = new SettingsDB();
+      settings.globallyCreateOrganizations = true;
       settings.style = style;
       settings.persist();
     }

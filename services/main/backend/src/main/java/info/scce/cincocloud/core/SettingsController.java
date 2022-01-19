@@ -56,8 +56,7 @@ public class SettingsController {
       style.primaryBgColor = settings.getstyle().getprimaryBgColor();
       style.primaryTextColor = settings.getstyle().getprimaryTextColor();
       if (settings.getstyle().getlogo() != null) {
-        final BaseFileDB logo = BaseFileDB.findById(settings.getstyle().getlogo().getId());
-        style.logo = logo;
+        style.logo = BaseFileDB.findById(settings.getstyle().getlogo().getId());
       } else {
         style.logo = null;
       }
