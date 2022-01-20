@@ -509,7 +509,8 @@ class EditorComponent extends Generatable {
 		            (selectionChanged)="selectionChanged($event)"
 		            (selectionChangedModal)="selectionChangedModal($event)"
 		            (hasChanged)="changedGraph($event)"
-		                (jumpTo)="jumpToPrime($event)"
+		            (jumpTo)="jumpToPrime($event)"
+		            (changeLayout)="changeGridLayout($event)"
 		          ></pyro-canvas>
 			</div>
 		</div>
@@ -572,6 +573,7 @@ class EditorComponent extends Generatable {
 							    (selectionChangedModal)="selectionChangedModal($event)"
 							    (hasChanged)="changedGraph($event)"
 							    (jumpTo)="jumpToPrime($event)"
+							    (changeLayout)="changeGridLayout($event)"
 							  ></pyro-canvas>
 							</ng-container>
 				            
