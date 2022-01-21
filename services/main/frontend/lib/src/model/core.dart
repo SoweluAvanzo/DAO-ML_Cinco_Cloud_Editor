@@ -287,12 +287,14 @@ class Settings {
   int id;
   Style style;
   bool globallyCreateOrganizations;
+  bool allowPublicUserRegistration;
 
   Settings({Map cache, dynamic jsog}) {
     if (jsog != null) {
       cache[jsog["@id"]] = this;
       id = jsog["id"];
       globallyCreateOrganizations = jsog["globallyCreateOrganizations"];
+      allowPublicUserRegistration = jsog["allowPublicUserRegistration"];
 
       if (jsog.containsKey("style")) {
         style = new Style(cache: cache, jsog: jsog["style"]);
@@ -300,7 +302,8 @@ class Settings {
     } else {
       id = -1;
       style = new Style();
-      globallyCreateOrganizations = false;
+      globallyCreateOrganizations = true;
+      allowPublicUserRegistration = true;
     }
   }
 
@@ -322,6 +325,7 @@ class Settings {
       jsog['id'] = id;
       jsog['style'] = style.toJSOG(cache);
       jsog['globallyCreateOrganizations'] = globallyCreateOrganizations;
+      jsog['allowPublicUserRegistration'] = allowPublicUserRegistration;
       jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.SettingsTO";
     }
     return jsog;

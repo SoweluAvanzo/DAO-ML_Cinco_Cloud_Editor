@@ -18,7 +18,7 @@
               <li class="nav-item">
                 <a [routerLink]="RoutePaths.login.toUrl()" class="nav-link org-nav-text-color">Login</a>
               </li>
-              <li class="nav-item">
+              <li class="nav-item" *ngIf="showRegistrationLink">
                 <a [routerLink]="RoutePaths.registration.toUrl()" class="nav-link org-nav-text-color">Register</a>
               </li>
             </ul>

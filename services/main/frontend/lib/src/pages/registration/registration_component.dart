@@ -1,3 +1,5 @@
+import 'package:CincoCloud/src/service/settings_service.dart';
+import 'package:CincoCloud/src/model/core.dart';
 import 'package:angular/angular.dart';
 import 'dart:async';
 import 'package:angular_forms/angular_forms.dart';
@@ -15,7 +17,7 @@ import '../../service/base_service.dart';
   templateUrl: 'registration_component.html',
   exports: const [RoutePaths, Routes]
 )
-class RegistrationComponent {
+class RegistrationComponent implements OnInit {
 
   bool pending = false;
   bool registrationConfirmed = false;
@@ -23,12 +25,18 @@ class RegistrationComponent {
   bool pwNotEqual = false;
   bool notFilled = false;
   bool passwordToShort = false;
+  Settings settings = null;
   final Router _router;
+  final SettingsService _settingsService;
   BaseService _baseService;
 
-  RegistrationComponent(Router this._router)
-  {
+  RegistrationComponent(this._router, this._settingsService) {
   	_baseService = new BaseService(_router);
+  }
+
+  @override
+  void ngOnInit() {
+    _settingsService.get().then((s) => settings = s);
   }
 
   void register(String name, String email,String username,String pw1,String pw2,dynamic e)
@@ -69,8 +77,10 @@ class RegistrationComponent {
     }).catchError((_){
       registrationInvalid = true;
     }).whenComplete(()=>pending=false);
+  }
 
-
+  bool get allowRegistration {
+    return settings != null && settings.allowPublicUserRegistration;
   }
 }
 

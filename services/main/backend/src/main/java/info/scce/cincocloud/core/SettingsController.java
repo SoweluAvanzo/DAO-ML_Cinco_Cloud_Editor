@@ -62,6 +62,7 @@ public class SettingsController {
       }
 
       settingsInDb.globallyCreateOrganizations = settings.getgloballyCreateOrganizations();
+      settingsInDb.allowPublicUserRegistration = settings.getallowPublicUserRegistration();
       return Response.ok(SettingsTO.fromEntity(settingsInDb, objectCache)).build();
     }
 

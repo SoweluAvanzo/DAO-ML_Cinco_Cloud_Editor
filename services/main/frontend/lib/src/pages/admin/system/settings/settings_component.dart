@@ -47,7 +47,11 @@ class SettingsComponent implements OnInit {
   		});
   }
   
-  void handleChanged(bool e) {
+  void handleGloballyCreateOrganizationsChanged(bool e) {
   	settings.globallyCreateOrganizations = e;
+  }
+
+  void handleAllowPublicUserRegistrationChanged(bool e) {
+    settings.allowPublicUserRegistration = e;
   }
 }
