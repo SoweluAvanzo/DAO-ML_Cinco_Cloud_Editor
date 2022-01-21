@@ -3,10 +3,12 @@
     <img class="logo d-block w-100" src="img/cinco-logo.png">
     <p class="lead">
       <a [routerLink]="RoutePaths.login.toUrl()" class="btn btn-block btn-primary btn-lg m-auto">Login</a>
-      <div class="text-muted my-1">
-        <small>or</small>
-      </div>
-      <a [routerLink]="RoutePaths.registration.toUrl()" class="btn btn-block btn-dark btn-lg m-auto">Register</a>
+      <ng-container *ngIf="showRegistrationLink">
+        <div class="text-muted my-1">
+          <small>or</small>
+        </div>
+        <a [routerLink]="RoutePaths.registration.toUrl()" class="btn btn-block btn-dark btn-lg m-auto">Register</a>
+      </ng-container>
     </p>
   </div>
 </div>

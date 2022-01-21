@@ -11,5 +11,7 @@ public class SettingsDB extends PanacheEntity {
   @OneToOne(cascade = CascadeType.ALL)
   public StyleDB style;
 
-  public boolean globallyCreateOrganizations;
+  public boolean globallyCreateOrganizations = true;
+
+  public boolean allowPublicUserRegistration = true;
 }

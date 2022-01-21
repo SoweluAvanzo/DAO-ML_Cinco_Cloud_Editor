@@ -9,6 +9,7 @@ public class SettingsTO extends RESTBaseImpl {
 
   private StyleTO style;
   private boolean globallyCreateOrganizations;
+  private boolean allowPublicUserRegistration;
 
   public static SettingsTO fromEntity(
       final SettingsDB entity,
@@ -22,6 +23,7 @@ public class SettingsTO extends RESTBaseImpl {
     result.setId(entity.id);
     result.setstyle(StyleTO.fromEntity(entity.style, objectCache));
     result.setgloballyCreateOrganizations(entity.globallyCreateOrganizations);
+    result.setallowPublicUserRegistration(entity.allowPublicUserRegistration);
 
     objectCache.putRestTo(entity, result);
 
@@ -46,5 +48,15 @@ public class SettingsTO extends RESTBaseImpl {
   @JsonProperty("globallyCreateOrganizations")
   public void setgloballyCreateOrganizations(final boolean globallyCreateOrganizations) {
     this.globallyCreateOrganizations = globallyCreateOrganizations;
+  }
+
+  @JsonProperty("allowPublicUserRegistration")
+  public boolean getallowPublicUserRegistration() {
+    return allowPublicUserRegistration;
+  }
+
+  @JsonProperty("allowPublicUserRegistration")
+  public void setallowPublicUserRegistration(final boolean allowPublicUserRegistration) {
+    this.allowPublicUserRegistration = allowPublicUserRegistration;
   }
 }

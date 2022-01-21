@@ -4,8 +4,10 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.Is.is;
 
 import info.scce.cincocloud.AbstractCincoCloudTest;
+import info.scce.cincocloud.db.SettingsDB;
 import io.quarkus.test.junit.QuarkusTest;
 import java.util.Map;
+import javax.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,6 +33,18 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .then()
         .statusCode(200)
         .body(is("Activation mail send"));
+  }
+
+  @Test
+  public void register_registrationIsDisabled_403() {
+    disablePublicUserRegistration();
+    given()
+        .when()
+        .body(createUserJson("test", "test@test.de", "test", "123456"))
+        .headers(defaultHeaders)
+        .post("/api/register/new/public")
+        .then()
+        .statusCode(403);
   }
 
   @Test
@@ -88,6 +102,13 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .post("/api/register/new/public")
         .then()
         .statusCode(400);
+  }
+
+  @Transactional
+  public void disablePublicUserRegistration() {
+    var settings = (SettingsDB) SettingsDB.findAll().list().get(0);
+    settings.allowPublicUserRegistration = false;
+    settings.persistAndFlush();
   }
 
   private String createUserJson(String username, String email, String name, String password) {

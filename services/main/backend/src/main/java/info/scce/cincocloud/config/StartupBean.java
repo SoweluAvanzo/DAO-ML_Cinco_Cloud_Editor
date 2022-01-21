@@ -56,6 +56,7 @@ public class StartupBean {
 
       SettingsDB settings = new SettingsDB();
       settings.globallyCreateOrganizations = true;
+      settings.allowPublicUserRegistration = true;
       settings.style = style;
       settings.persist();
     }

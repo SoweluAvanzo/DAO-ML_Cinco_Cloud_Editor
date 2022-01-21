@@ -3,6 +3,7 @@ package info.scce.cincocloud;
 import info.scce.cincocloud.core.RegistrationService;
 import info.scce.cincocloud.core.UserService;
 import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
+import info.scce.cincocloud.db.SettingsDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -20,7 +21,12 @@ public abstract class AbstractCincoCloudTest {
   UserService userService;
 
   @Transactional
-  protected void reset() {
+  public void reset() {
+    final var settings = (SettingsDB) SettingsDB.findAll().list().get(0);
+    settings.allowPublicUserRegistration = true;
+    settings.globallyCreateOrganizations = true;
+    settings.persist();
+
     UserDB.findAll().list().stream()
         .map(u -> (UserDB) u)
         .filter(u -> !u.systemRoles.contains(UserSystemRole.ADMIN))

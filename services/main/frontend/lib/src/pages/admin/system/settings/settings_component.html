@@ -19,7 +19,23 @@
       </p>
     </div>
     <div>
-      <toggle-button (changed)="handleChanged($event)" [enabled]="settings.globallyCreateOrganizations">
+      <toggle-button
+          (changed)="handleGloballyCreateOrganizationsChanged($event)"
+          [enabled]="settings.globallyCreateOrganizations">
+      </toggle-button>
+    </div>
+  </div>
+  <div class="list-group-item pyro-list-entry d-flex flex-row">
+    <div class="w-100 mr-3">
+      <strong>Allow user registration</strong>
+      <p class="mb-0 text-muted">
+        When disabled, the registration is not possible for new users.
+      </p>
+    </div>
+    <div>
+      <toggle-button
+          (changed)="handleAllowPublicUserRegistrationChanged($event)"
+          [enabled]="settings.allowPublicUserRegistration">
       </toggle-button>
     </div>
   </div>

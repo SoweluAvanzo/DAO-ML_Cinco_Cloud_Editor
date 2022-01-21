@@ -28,7 +28,7 @@ public class CustomObjectMapperTest {
         .toInstant();
 
     final var test = new TestInstantClass();
-    test.instant =Instant.now(Clock.fixed(instant, ZoneOffset.systemDefault()));
+    test.instant = Instant.now(Clock.fixed(instant, ZoneOffset.systemDefault()));
 
     final var formattedString = objectMapper.writeValueAsString(test);
     final var expectedFormattedString = "{\"instant\":\"2069-04-20T01:02:03." + expectedDigits + "Z\"}";
