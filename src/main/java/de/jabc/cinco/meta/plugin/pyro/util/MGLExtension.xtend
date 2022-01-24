@@ -702,8 +702,16 @@ class MGLExtension {
 		return '''«attr.type.name.fuEscapeJava»'''
 	}
 	
+	def getPrimeNodes(GraphModel model) {
+		model.nodes.filter[isPrime]
+	}
+	
+	def getJumpablePrimeNodes(GraphModel model) {
+		model.primeNodes.filter[hasJumpToAnnotation]
+	}
+	
 	def getPrimeReferencedElements(GraphModel model) {
-		val primeNodes = model.elements.filter(GraphicalModelElement).filter[isPrime].filter(Node)
+		val primeNodes = model.primeNodes
 		val allPrimeReferences = primeNodes.map[primeReference].map[it.type].filter(ModelElement).toSet
 		allPrimeReferences 
 	}

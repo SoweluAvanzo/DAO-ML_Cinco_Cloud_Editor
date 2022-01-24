@@ -18,17 +18,15 @@ class CanvasComponent extends Generatable {
 	import 'package:angular_forms/angular_forms.dart';
 	import 'dart:async';
 	import 'dart:html';
-	import 'dart:convert';
 	import 'package:angular/src/security/dom_sanitization_service.dart';
 	import 'package:ng_bootstrap/ng_bootstrap.dart';
 	
 	import 'package:«gc.projectName.escapeDart»/src/model/core.dart';
 	import 'package:«gc.projectName.escapeDart»/src/model/message.dart';
-	import 'package:«gc.projectName.escapeDart»/src/service/base_service.dart';
+	import 'package:«gc.projectName.escapeDart»/src/utils/redirect_stack.dart';
 	import 'package:«gc.projectName.escapeDart»/src/service/notification_service.dart';
 	import 'package:«gc.projectName.escapeDart»/src/utils/graph_model_permission_utils.dart';
 	import 'package:«gc.projectName.escapeDart»/src/service/graph_service.dart';
-	import 'dart:js' as js;
 	
 	«FOR g:gc.mglModels»
 		import 'package:«gc.projectName.escapeDart»/«g.modelFilePath»' as «g.name.lowEscapeDart»;
@@ -85,6 +83,8 @@ class CanvasComponent extends Generatable {
 	  @Input()
 	  GraphModel currentFile;
 	  @Input()
+	  RedirectionStack redirectionStack;
+	  @Input()
 	  List<PyroGraphModelPermissionVector> permissionVectors = new List();
 	  @Input()
 	  LocalGraphModelSettings currentLocalSettings;
@@ -125,12 +125,11 @@ class CanvasComponent extends Generatable {
 	  @override
 	  ngOnChanges(Map<String, SimpleChange> changes) {
 	  	  this._graphService.canvasComponent = this;
-	      
-	      «FOR g:gc.concreteGraphModels»
-	      if(is«g.name.fuEscapeDart»()){
+	      «FOR g:gc.concreteGraphModels SEPARATOR " else "
+	      »if(is«g.name.fuEscapeDart»()){
 	        canEdit = GraphModelPermissionUtils.canUpdate("«g.name.toUnderScoreCase»", permissionVectors);
-	      }
-      	  «ENDFOR»
+	      }«
+	      ENDFOR»
 	  }
 	  
 	  void executeCommands(CompoundCommandMessage m,bool forceExecute) {
@@ -160,8 +159,9 @@ class CanvasComponent extends Generatable {
 	  }
 	  
 	  Map<String,String> getEditorButtons(){
-		«FOR g:gc.concreteGraphModels»
-			if(currentFile!=null && currentFile.$type() == '«g.typeName»'){
+	  	if(currentFile != null) {
+			«FOR g:gc.concreteGraphModels SEPARATOR " else "
+			»if(currentFile.$type() == '«g.typeName»'){
 				«IF g.editorButtons.empty»
 					return new Map<String,String>();
 				«ELSE»
@@ -171,8 +171,9 @@ class CanvasComponent extends Generatable {
 					«ENDFOR»
 					return m;
 				«ENDIF»
-			}
-		«ENDFOR»
+			}«
+			ENDFOR»
+	  	}
 	  }
 	  
 	  void updateScaleFactorStr(String s,bool persist) {
@@ -212,36 +213,35 @@ class CanvasComponent extends Generatable {
 				}
 			«ENDFOR»
 		}
-		  
-	  
-	  // for each graph model
-	  «FOR g:gc.concreteGraphModels»
-	  	
-	  	bool is«g.name.fuEscapeDart»(){
-	  		if(currentFile!=null){
-	  			return currentFile.$type() == '«g.typeName»';
-	  		}
-	  		return false;
-	  	}
-	  «ENDFOR»
-	  
-	  // for each ecore model
-	  «FOR g:gc.ecores»
-	  	
-	  	bool is«g.name.fuEscapeDart»(){
-	  		if(currentFile!=null){
-	  			return currentFile.$type() == '«g.typeName»';
-	  		}
-	  		return false;
-	  	}
-	  «ENDFOR»
-	  
-	  bool isModelFile() {
-	  	if(currentFile!=null){
-	      return currentFile is GraphModel;
-	    }
-	    return false;
-	  }
+		
+		// for each graph model
+		«FOR g:gc.concreteGraphModels»
+		
+			bool is«g.name.fuEscapeDart»(){
+				if(currentFile!=null){
+					return currentFile.$type() == '«g.typeName»';
+				}
+				return false;
+			}
+  		«ENDFOR»
+		
+		// for each ecore model
+		«FOR g:gc.ecores»
+			
+			bool is«g.name.fuEscapeDart»(){
+				if(currentFile!=null){
+					return currentFile.$type() == '«g.typeName»';
+				}
+				return false;
+			}
+		«ENDFOR»
+		
+		bool isModelFile() {
+			if(currentFile!=null){
+				return currentFile is GraphModel;
+			}
+			return false;
+		}
 	  
 	  bool hasChecks() {
 	  	if(currentFile!=null){
@@ -411,17 +411,17 @@ class CanvasComponent extends Generatable {
 		  	 if(e != null) {
 		  	 	e.preventDefault();
 		  	 }
-		  	 if(isGenerating) {
-		  	 	_notificationService.displayMessage("A generator is still running",NotificationType.WARNING);
-		  	 	return;
-		  	 }
-		  	 if(isModelFile() && currentFile != null) {
+			 if(isGenerating) {
+			 	_notificationService.displayMessage("A generator is still running",NotificationType.WARNING);
+			 	return;
+			 }
+			 if(isModelFile() && currentFile != null) {
 				«FOR g:gc.concreteGraphModels.filter[generating] SEPARATOR " else "
 				»if(currentFile.$type() == '«g.typeName»') {
 					«FOR a:g.generators»
 					«{
-  	 	  	 	   	val generatorId = '''«IF a.value.length >= 3»'«a.value.get(0)»'«ELSE»null«ENDIF»'''
-  	 	  	 	   	'''
+				   	val generatorId = '''«IF a.value.length >= 3»'«a.value.get(0)»'«ELSE»null«ENDIF»'''
+				   	'''
 						if(name == «generatorId») {
 							isGenerating = true;
 							_graphService.generateGraph(currentFile, name).then((response){
@@ -443,6 +443,37 @@ class CanvasComponent extends Generatable {
 			    _notificationService.displayMessage("No graphmodel present to generate",NotificationType.WARNING);
 			 }
 		  }
+		  
+		bool canJumpForward() {
+			return redirectionStack.canForwardOnRedirectStack() != null;
+		}
+		
+		bool canJumpBackwards() {
+			return redirectionStack.canBackwardsOnRedirectStack() != null;
+		}
+		
+		void jumpBackwards() {
+			if(!canJumpBackwards()) {
+				return;
+			}
+			var location = redirectionStack.backwardsOnRedirectStack();
+			navigateOnStack(location);
+		}
+		
+		void jumpForward() {
+			if(!canJumpForward()) {
+				return;
+			}
+			var location = redirectionStack.forwardOnRedirectStack();
+			navigateOnStack(location);
+		}
+		
+		dynamic navigateOnStack(dynamic location) {
+			jumpToSC.add({
+				"type": "navigation",
+				"location": location,
+			});
+		}
 	}
 	'''
 	
@@ -555,6 +586,12 @@ class CanvasComponent extends Generatable {
   			   		<button type="button" (click)="toggleGluelines()" [class.active]="isGluelines" class="btn btn-sm btn-outline-secondary" data-toggle="tooltip" data-placement="bottom" title="Toggle the glue lines on canvas">
   			   			<i class="fas fa-ruler-combined"></i>
   			   		</button>
+  			   		<button type="button" (click)="jumpBackwards()" [class.disabled]="!canJumpBackwards()" [class.active]="!canJumpBackwards()" class="btn btn-sm btn-outline-primary" data-toggle="tooltip" data-placement="bottom" title="jump to previous model">
+						<i class="fas fa-angle-left"></i>
+					</button>
+					<button type="button" (click)="jumpForward()" [class.disabled]="!canJumpForward()" [class.active]="!canJumpForward()" class="btn btn-sm btn-outline-primary" data-toggle="tooltip" data-placement="bottom" title="jump to next model">
+						<i class="fas fa-angle-right"></i>
+					</button>
   			   </div>
   			  <div *ngIf="getEditorButtons().isNotEmpty" class="btn-group btn-group-sm mr-2">
    			  	<button *ngFor="let b of getEditorButtons().entries" type="button" class="btn" (click)="executeGraphmodelButton(b.value)">

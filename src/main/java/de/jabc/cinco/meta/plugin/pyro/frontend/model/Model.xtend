@@ -394,14 +394,6 @@ class Model extends Generatable {
 			return map;
 		}
 		
-		@override
-		String $type()=>"«element.typeName»";
-		«IF element instanceof GraphModel»
-			
-			@override
-			String $lower_type()=>"«element.lowerType»";
-		«ENDIF»
-		
 		static «element.name» fromJSOG(dynamic jsog, Map cache)
 		{
 			return new «element.dartFQN»(jsog: jsog,cache: cache);
@@ -616,7 +608,6 @@ class Model extends Generatable {
 			    }
 			}
 		«ENDIF»
-		
 	'''
 	
 	def getStyleArgs(ModelElement element) {
@@ -673,8 +664,21 @@ class Model extends Generatable {
 	'''
 		«IF element.isIsAbstract»abstract «ENDIF»class «element.name.fuEscapeDart» extends «element.extending("core.")»«IF element.hasToExtendContainer» implements core.Container«ENDIF»
 		{
+			@override
+			String $displayName() =>"«element.displayName»";
 			«element.pyroElementAttributeDeclaration(g)»
 			«IF !element.isIsAbstract»
+				@override
+				String $type()=>"«element.typeName»";
+				«IF element instanceof GraphModel»
+					
+					@override
+					String $extension()=>"«element.fileExtension»";
+					
+					
+					@override
+					String $lower_type()=>"«element.lowerType»";
+				«ENDIF»
 				
 				«element.name.fuEscapeDart»({Map cache, dynamic jsog}) {
 					«element.pyroElementConstr(g,styles)»
@@ -682,9 +686,6 @@ class Model extends Generatable {
 				
 				«element.pyroElementFromJSOG(g)»
 			«ENDIF»
-			
-			@override
-			String $displayName() =>"«element.displayName»";
 			«IF element instanceof GraphicalModelElement»
 				
 				@override

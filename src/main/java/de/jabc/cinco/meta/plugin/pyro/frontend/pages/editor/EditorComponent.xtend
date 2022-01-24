@@ -29,10 +29,7 @@ class EditorComponent extends Generatable {
 	import 'package:ng_bootstrap/ng_bootstrap.dart';
 	import 'dart:html';
 	import 'dart:async';
-	import 'dart:convert';
-	import 'dart:js';
-	
-	import 'package:«gc.projectName.escapeDart»/src/routes.dart' as top_routes;
+	import 'dart:js' as js;
 	
 	import 'package:«gc.projectName.escapeDart»/src/model/core.dart';
 	import 'package:«gc.projectName.escapeDart»/src/service/user_service.dart';
@@ -52,6 +49,7 @@ class EditorComponent extends Generatable {
 	import 'package:«gc.projectName.escapeDart»/src/pages/editor/check/check_component.dart';
 	import 'package:«gc.projectName.escapeDart»/src/service/graph_service.dart';
 	import 'package:«gc.projectName.escapeDart»/src/view/tree_view.dart';
+	import 'package:«gc.projectName.escapeDart»/src/utils/redirect_stack.dart';
 	
 	«FOR g:gc.concreteGraphModels»
 		import 'package:«gc.projectName.escapeDart»/«g.commandGraphPath»';
@@ -85,6 +83,7 @@ class EditorComponent extends Generatable {
 	
 	  PyroUser user;
 	  List<PyroUser> activeUsers = new List();
+	  String token = null;
 	  
 	  PyroEditorGrid grid;
 	  Map<int, PyroEditorGridItem> gridItemMap = new Map();
@@ -101,16 +100,12 @@ class EditorComponent extends Generatable {
 	  static List<PropertiesComponent> properties = new List<PropertiesComponent>();
 	  
 	  List<PyroGraphModelPermissionVector> permissionVectors;
-	
+	  RedirectionStack redirectionStack = new RedirectionStack();
 	  GraphModel currentFile = null;
-	
 	  IdentifiableElement selectedElement = null;
 	  IdentifiableElement selectedElementModal = null;
-	
 	  LocalGraphModelSettings currentLocalSettings;
-	  	  
 	  int fullscreenWidgetId;
-	  
 	  final GraphService graphService;
 	  final UserService _userService;
 	  final NotificationService _notificationService;
@@ -119,7 +114,6 @@ class EditorComponent extends Generatable {
 	  final Router _router;
 	  final EditorGridService _editorGridService;
 	  final EditorDataService _editorDataService;
-	  
 	  String selected = null;
 	  bool showNav = false;
 	  String mainLayout = "classic";
@@ -186,8 +180,10 @@ class EditorComponent extends Generatable {
 	  
 		@override
 	  	void onActivate(_, RouterState current) async {
+	  		token = null;
 			if(current.queryParameters.containsKey("token")) {
 				// window.localStorage[BaseService.tokenKey] = current.queryParameters["token"];
+				token = current.queryParameters["token"];
 			} else {
 				print("ERR: no token in URL");
 				return;
@@ -199,28 +195,28 @@ class EditorComponent extends Generatable {
 				print("ERR: no modelId in URL");
 				return;
 			}
-			String ext = null;
+			String typeOrExtension = null;
 			if(current.queryParameters.containsKey("ext")) {
-				ext = current.queryParameters["ext"];
+				typeOrExtension = current.queryParameters["ext"];
 			} else {
-				print("ERR: no extension in URL");
+				print("ERR: no extension/type in URL");
 				return;
 			}
 			_userService.loadUser().then((u){
 				user = u;
 				_editorDataService.user = u;
 				document.title = "editor";
-				«FOR m : gc.mglModels»
-					«FOR g:m.concreteGraphModels SEPARATOR " else "
-					»if(ext == "«g.fileExtension»") {
-						graphService.loadGraph«g.name.fuEscapeDart»(modelId).then((g) {
-							this.currentFile = g;
-							this.selectedElement = g;
-							this.selectedElementModal = g;
-						}).catchError((_){});
-					}«
-					ENDFOR»
-				«ENDFOR»	     	     
+		      	redirectionStack.initReditionStack(typeOrExtension, modelId);
+				this.loadGraphModel(typeOrExtension, modelId);     	     
+			}).catchError((_){});
+		}
+		
+		Future<dynamic> loadGraphModel(String typeOrExtension, int modelId) {
+			return graphService.loadGraphModel(typeOrExtension, modelId).then((g) {
+				this.currentFile = g;
+				this.selectedElement = g;
+				this.selectedElementModal = g;
+				document.title = "editor - " + g.$displayName();
 			}).catchError((_){});
 		}
 	  
@@ -367,18 +363,57 @@ class EditorComponent extends Generatable {
 	  }
 	  
 	  void jumpToPrime(Map m) {
-		IdentifiableElement primeNode = m['primeNode'];
-		GraphModel parentGraphModel = m['graphModel'];
-		if(primeNode != null && parentGraphModel != null) {
-		  graphService.jumpToPrime(
-		    parentGraphModel.$lower_type(),
-		    primeNode.$type(),
-		    parentGraphModel.id,
-		    primeNode.id
-		  ).then((m) {
-		    print("TODO_JUMP_TO_PRIME:\n${m}");
-		  });
+		if(m['type'] == "navigation") {
+		  var location = m['location'];
+		  var modelType = location['type'];
+		  var modelId = location['id'];
+		  preGraphModelSwitched();
+		  this.loadGraphModel(modelType, modelId).then((_) => postGraphModelSwitched());
+		} else if(m['type'] == "jumpToPrime"){
+		  IdentifiableElement primeNode = m['primeNode'];
+		  GraphModel parentGraphModel = m['graphModel'];
+		  if(primeNode != null && parentGraphModel != null) {
+		    graphService.jumpToPrime(
+		      parentGraphModel.$type(),
+		      primeNode.$type(),
+		      parentGraphModel.id,
+		      primeNode.id
+		    ).then((m) {
+		      print("jumping to prime:\n${m}");
+		      int modelId = int.parse(m['graphmodel_id']);
+		      String modelType = m['graphmodel_type'];
+		      int elementId = int.parse(m['element_id']);
+		      String elementType = m['element_type'];
+		      preGraphModelSwitched();
+		      redirectionStack.pushToRedirectStack(modelType, modelId);
+		      this.loadGraphModel(modelType, modelId).then((_) {
+		        postGraphModelSwitched();
+		        // TODO: focus and highlight element here with elementId and elementType
+		        // Also put those information on the RedirectStack (pushToRedirectStack),
+		        // so that it could be triggered on forward and backward navigation, too
+		      });
+		    });
+		  }
 		}
+	  }
+	  
+	  void preGraphModelSwitched() {
+	  	blockInteraction();
+	  }
+	  
+	  void postGraphModelSwitched() {
+	  	fetchGrid();
+	  	unblockInteraction();
+	  }
+	  
+	  void blockInteraction() {
+	  	var functionCall = 'start_propagation_'+ this.currentFile.$lower_type();
+	  	js.context.callMethod(functionCall);
+	  }
+	  
+	  void unblockInteraction() {
+	  	var functionCall = 'end_propagation_'+ this.currentFile.$lower_type();
+	  	js.context.callMethod(functionCall);
 	  }
 	
 	  void receiveMessage(String json)
@@ -503,6 +538,7 @@ class EditorComponent extends Generatable {
 		    	    style="overflow: hidden"
 		        	#canvas
 		        	[user]="user"
+					[redirectionStack]="redirectionStack"
 		            [currentFile]="currentFile"
 		            [currentLocalSettings]="currentLocalSettings"
 		            [permissionVectors]="permissionVectors"
@@ -567,6 +603,7 @@ class EditorComponent extends Generatable {
 								#canvas
 								[user]="user"
 							    [currentFile]="currentFile"
+								[redirectionStack]="redirectionStack"
 							    [currentLocalSettings]="currentLocalSettings"
 							    [permissionVectors]="permissionVectors"
 							    (selectionChanged)="selectionChanged($event)"
