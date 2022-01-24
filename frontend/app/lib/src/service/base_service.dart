@@ -72,6 +72,24 @@ class BaseService {
       });
     }
   }
+  
+  Future<dynamic> loadModel(String ext, int id, String token) async {
+    window.localStorage['pyro_redirect'] = window.location.href;
+    String path = getBaseHref() + "/editor/${id}";
+    String fragment = "";
+    return _router.navigate(
+      path,
+      NavigationParams(
+          fragment: fragment,
+          queryParameters: {
+            "ext": ext,
+            "token": token
+          },
+          reload: false,
+          replace: false,
+        )
+    );
+  }
 
   /**
    * requesting a onetime-ticket from an authorized login,

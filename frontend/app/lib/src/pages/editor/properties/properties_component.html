@@ -29,7 +29,7 @@
 	        </div>
 	    </div>
 	</div>
-	<div *ngIf="isModal && show && currentGraphElement != null" class="modal d-block show fade in" tabindex="-1" role="dialog" aria-labelledby="createEntryLabel">
+	<div *ngIf="canShowModal()" class="modal d-block show fade in" tabindex="-1" role="dialog" aria-labelledby="createEntryLabel">
 	    <div class="modal-dialog" role="document">
 	        <div class="modal-content">
 	            <div class="modal-header">

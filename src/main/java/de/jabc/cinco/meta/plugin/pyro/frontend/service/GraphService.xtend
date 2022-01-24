@@ -125,6 +125,22 @@ class GraphService extends Generatable {
 				}«ENDFOR»
 				      throw new Error();
 			}
+			
+			/**
+			 * load the model by either the type or the fileExtension.
+			 * Occurence of graphModels is sorted by typeName (packageName + ModelName).
+			 */
+			Future<dynamic> loadGraphModel(String typeOrExtension, int modelId) {
+				«FOR g : gc.concreteGraphModels SEPARATOR " else "
+				»if(
+					typeOrExtension == "«g.fileExtension»"
+					|| typeOrExtension == "«g.typeName»"
+				) {
+					return loadGraph«g.name.fuEscapeDart»(modelId);
+				}«
+				ENDFOR»
+		    	throw new Error();
+			}
 			«FOR m : gc.mglModels»
 					«{
 						val styles = CincoUtil.getStyles(m)
@@ -267,7 +283,7 @@ class GraphService extends Generatable {
 										return «g.dartFQN».fromJSOG(jsonDecode(response.responseText),new Map<String, dynamic>());
 									}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 								}
-							«ENDFOR»
+							«ENDFOR»«/* TODO: These methods shouldn't be generated on the name ob the GraphModel. It should be derived from the FQN */»
 						'''
 					}»
 			«ENDFOR»
