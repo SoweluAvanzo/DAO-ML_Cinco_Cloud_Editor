@@ -989,6 +989,7 @@ class GraphmodelComponent extends Generatable {
 										Map m = new Map();
 										m['primeNode'] = elem;
 										m['graphModel'] = currentGraphModel;
+										m['type'] = 'jumpToPrime';
 										jumpToSC.add(m);
 									}
 								«ENDIF»

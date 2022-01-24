@@ -145,47 +145,41 @@ class GraphModelController extends Generatable {
 			@javax.ws.rs.Path("jumpto/{id}/{elementid}/private")
 			@javax.annotation.security.RolesAllowed("user")
 			public Response load(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") long id, @javax.ws.rs.PathParam("elementid") long elementId) {
-				
-				final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
-														
+				final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);					
 				final «g.entityFQN» graph = «g.entityFQN».findById(id);
-				if (graph == null) {
-					return Response.status(Response.Status.BAD_REQUEST).build();
-				}
-				
 				final «dbTypeName» node = «typeRegistryName».findById(elementId);
-				
-				if(node == null) {
+				if (user == null || graph == null || node == null) {
 					return Response.status(Response.Status.BAD_REQUEST).build();
 				}
 				
 				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
-				
-				
 				String graphModelType = null;
 				String elementType = null;
 				String primeGraphModelId = null;
 				String primeElementlId = null;
 				
-				«val primeReferences = g.primeReferencedElements.filter[hasJumpToAnnotation].filter(Node)»
-				«FOR n:primeReferences SEPARATOR " else "
+				«FOR n:g.jumpablePrimeNodes SEPARATOR " else "
 				»if(node instanceof «n.entityFQN») {
 					«{
-						val primeNode = (n as Node).primeReference
-						val refType = primeNode.type
+						val referencedElement = n.primeReference
+						val refType = referencedElement.type
 						'''
 							final «n.apiFQN» apiNode = («n.apiFQN») «typeRegistryName».getDBToApi(node,executer);
-							«refType.apiFQN» primeNode = apiNode.get«n.primeReference.name.fuEscapeJava»();
-							if(primeNode != null) {
-								primeElementlId = primeNode.getId();
+							«refType.apiFQN» referencedElement = apiNode.get«n.primeReference.name.fuEscapeJava»();
+							if(referencedElement != null) {
+								primeElementlId = referencedElement.getId();
 								«IF refType instanceof GraphModel»
+									graphmodel.ModelElementContainer mec = referencedElement;
 									primeGraphModelId = primeElementlId;
+								«ELSEIF n.ecorePrime»
+									org.eclipse.emf.ecore.EObject mec = referencedElement.eContainer();
+									primeGraphModelId = mec.getId();
 								«ELSE»
-									graphmodel.ModelElementContainer mec = primeNode.getRootElement();
+									graphmodel.ModelElementContainer mec = referencedElement.getRootElement();
 									primeGraphModelId = mec.getId();
 								«ENDIF»
-								graphModelType = «typeRegistryName».getName(mec);
-								elementType = «typeRegistryName».getName(primeNode);
+								graphModelType = «typeRegistryName».getTypeOf(mec);
+								elementType = «typeRegistryName».getTypeOf(referencedElement);
 							}
 						'''
 					}»

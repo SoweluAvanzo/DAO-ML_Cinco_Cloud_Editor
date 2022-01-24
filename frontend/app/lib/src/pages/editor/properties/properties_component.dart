@@ -42,49 +42,52 @@ class PropertiesComponent implements OnInit, OnChanges {
   
   bool show = false;
 
-  PropertiesComponent()
-  {
-  }
+  PropertiesComponent() {}
 
   @override
-  void ngOnInit()
-  {
-	if(currentGraphElement!=null) {
+  void ngOnInit() {
+    resetState();
+    if(currentGraphElement!=null) {
       currentElement = currentGraphElement;
     }
+  }
+
+  void resetState() {
+    show = false;
   }
   
   @override
   ngOnChanges(Map<String, SimpleChange> changes) {
-      if(changes.containsKey('currentGraphElement')) {
-            if(currentElement!=null) {
-            	if(currentElement is IdentifiableElement) {
-                IdentifiableElement ce = currentElement;
-            		if(ce.$isDirty != null && ce.$isDirty) {
-            			_hasChangedValues(ce);
-            			ce.$isDirty = false;
-            		}
-            		if(isModal) {
-            			show = true;
-            		}
-            	}
-            } else {
-            	show = false;
-            }
-            currentElement=changes['currentGraphElement'].currentValue;
-		  }
-      if(changes.containsKey('currentGraphModel')) {
-        if(currentGraphModel!=null) {
-          if(currentGraphModel is IdentifiableElement) {
-            IdentifiableElement ce = currentGraphModel;
-            if(ce.$isDirty != null && ce.$isDirty) {
-              _hasChangedValues(ce);
-              ce.$isDirty = false;
-            }
+    resetState();
+    if(changes.containsKey('currentGraphElement')) {
+      if(currentElement!=null) {
+        if(currentElement is IdentifiableElement) {
+          IdentifiableElement ce = currentElement;
+          if(ce.$isDirty != null && ce.$isDirty) {
+            _hasChangedValues(ce);
+            ce.$isDirty = false;
+          }
+          if(isModal) {
+            show = false;
           }
         }
-        currentGraphModel=changes['currentGraphModel'].currentValue;
+      } else {
+        show = false;
       }
+      currentElement=changes['currentGraphElement'].currentValue;
+    }
+    if(changes.containsKey('currentGraphModel')) {
+      if(currentGraphModel!=null) {
+        if(currentGraphModel is IdentifiableElement) {
+          IdentifiableElement ce = currentGraphModel;
+          if(ce.$isDirty != null && ce.$isDirty) {
+            _hasChangedValues(ce);
+            ce.$isDirty = false;
+          }
+        }
+      }
+      currentGraphModel=changes['currentGraphModel'].currentValue;
+    }
   }
   
   void close() {
@@ -93,7 +96,10 @@ class PropertiesComponent implements OnInit, OnChanges {
   
   void showModal() {
   	show = true;
-  	
+  }
+	
+  bool canShowModal() {
+    return isModal && show && (currentGraphElement != null);
   }
 
   ///triggered if an element is edited

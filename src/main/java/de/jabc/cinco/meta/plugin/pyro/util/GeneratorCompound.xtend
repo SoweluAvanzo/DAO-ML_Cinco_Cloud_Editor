@@ -77,7 +77,7 @@ class GeneratorCompound {
 
 	// TODO:SAMI: refactor name after migration
 	def getGraphMopdels() {
-		mglModels.map[it.graphModels].flatten.toSet
+		mglModels.map[it.graphModels].flatten.toSet.sortBy[g| mglExtension.typeName(g).toString]
 	}
 	
 	def concreteGraphModels() {

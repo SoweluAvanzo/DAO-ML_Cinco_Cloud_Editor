@@ -637,11 +637,15 @@ class Controller extends Generatable{
 	
 	
 	function start_propagation_«g.jsCall»() {
-	    block_user_interaction($paper_«g.jsCall»);
+		if($paper_«g.jsCall» != null) {
+	    	block_user_interaction($paper_«g.jsCall»);
+	    }
 	    $_disable_events_«g.jsCall» = true;
 	}
 	function end_propagation_«g.jsCall»() {
-	    unblock_user_interaction($paper_«g.jsCall»);
+		if($paper_«g.jsCall» != null) {
+			unblock_user_interaction($paper_«g.jsCall»);
+		}
 	    $_disable_events_«g.jsCall» = false;
 	}
 	

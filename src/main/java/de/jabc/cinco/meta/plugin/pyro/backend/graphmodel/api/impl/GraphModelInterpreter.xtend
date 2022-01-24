@@ -75,13 +75,17 @@ class GraphModelInterpreter extends Generatable{
 			    }
 			    
 			    public abstract <T extends graphmodel.ModelElement> java.util.List<T> getInitialElements(«g.apiFQN» g);
-			    
 				«FOR n:g.elementsAndTypesAndGraphModels»
 					
 					public void execute«n.name.fuEscapeJava»(«n.apiFQN» element,«g.apiFQN» graph) {}
 					
 					public boolean canExecute«n.name.fuEscapeJava»(«n.apiFQN» e,«g.apiFQN» g) {
-						return «IF n.isExtending»canExecute«n.extendingModelType.name.fuEscapeJava»(e,g)«ELSE»true«ENDIF»;
+						return «
+							IF n.isExtending && g.elementsAndTypesAndGraphModels.contains(n.extendingModelType)
+								»canExecute«n.extendingModelType.name.fuEscapeJava»(e,g)«
+								ELSE
+								»true«
+							ENDIF»;
 					}
 					
 					public <T extends graphmodel.ModelElement> java.util.List<T> nextElementsAfter«n.name.fuEscapeJava»(«n.apiFQN» element,«g.apiFQN» graph) {

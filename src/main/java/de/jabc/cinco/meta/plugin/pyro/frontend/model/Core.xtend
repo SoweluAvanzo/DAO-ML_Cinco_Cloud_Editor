@@ -215,6 +215,8 @@ class Core extends Generatable {
 		  
 		  String $lower_type();
 		  
+		  String $extension();
+		  
 		  String $displayName();
 		  
 		  void mergeStructure(PyroFile ie)
