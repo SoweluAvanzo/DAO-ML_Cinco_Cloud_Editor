@@ -41,6 +41,7 @@ class EcoreElementImplementation extends Generatable {
 				public «me.name.fuEscapeJava»Impl(
 				) {
 					this.delegate = new «me.entityFQN»();
+					this.delegate.persist();
 				}
 				
 				public «me.apiFQN» eClass() {
