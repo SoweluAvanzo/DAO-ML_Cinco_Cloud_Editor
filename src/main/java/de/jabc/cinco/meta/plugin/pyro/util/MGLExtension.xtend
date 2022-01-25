@@ -731,9 +731,14 @@ class MGLExtension {
 	
 	def resolveAllPrimeReferencedGraphModels(GraphModel g) {
 		val primeReferencedElements = g.primeReferencedElements
-		primeReferencedElements.map[it.graphModels].flatten
-			.map[it.resolveAllSubTypesAndType].flatten
-			.filter[!isAbstract].toSet
+		primeReferencedElements.map[
+			it.graphModels
+		].flatten.toSet
+			.map[
+				it.resolveAllSubTypesAndType
+			].flatten
+			.filter[!isAbstract]
+			.toSet
 	}
 
 	def getPrimeReferencingElements(Type referenced, Set<MGLModel> referencingSet) {
@@ -816,7 +821,7 @@ class MGLExtension {
 				}
 			}
 		}
-		result
+		result + (me instanceof GraphModel? me.resolveSubTypesAndType : #[])
 	}
 
 	def getReferencedElement(ReferencedModelElement rt) {
