@@ -690,8 +690,8 @@ class DataConnector extends Generatable {
 		val subTypeAttributeType = element.entityClassName
 		
 		// create mapping
-		val joinColumn = '''parent_«m.name.lowEscapeJava»db_id'''
-		val inverseJoinColumn = '''child_«element.name.lowEscapeJava»db_id'''
+		val joinColumn = '''p_«m.name.lowEscapeJava»_id'''
+		val inverseJoinColumn = '''c_«element.name.lowEscapeJava»_id'''
 		
 		m.multiAttributeJoinTable(
 			subTypeAttributeName,
@@ -1034,8 +1034,8 @@ class DataConnector extends Generatable {
 		val subTypeAttributeType = element.getEntityClassName
 		
 		// create mapping
-		val joinColumn = '''parent_«m.name.lowEscapeJava»db_id'''
-		val inverseJoinColumn = '''child_«element.name.lowEscapeJava»db_id'''
+		val joinColumn = '''p_«m.name.lowEscapeJava»_id'''
+		val inverseJoinColumn = '''c_«element.name.lowEscapeJava»_id'''
 		
 		m.multiAttributeJoinTable(
 			subTypeAttributeName,

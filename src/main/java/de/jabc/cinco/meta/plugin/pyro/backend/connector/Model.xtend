@@ -14,6 +14,8 @@ class Model  {
 	String name = ""
 	String entityName = ""
 	List<String> literals = new LinkedList;
+	List<String> joinTables = new java.util.LinkedList<String>();
+	
 	/* 
 	 * TODO: SAMI: remove sometime later, since inheritance is not the credo of this whole approach.
 	 * Correlated locations are marked with "DEPRECATED-INHERITANCE".
@@ -91,7 +93,7 @@ class Model  {
 	
 	def multiAttributeJoinTable(String name, String type, String joinColumn, String inverseJoinColumn) {
 		// create entityName for the use-case: "e.g. several packages have different elements with same name"
-		val joinTableName = escaper.lowEscapeJava(entityName+"_"+name).replaceAll("\\.", "_")
+		val joinTableName = name.createJoinTableName
 		attributes.append('''
 			
 			«IF joinTableName !== null»
@@ -232,6 +234,12 @@ class Model  {
 				}
 			'''
 		)	
+	}
+	
+	def createJoinTableName(String name) {
+		val index = joinTables.length;
+		joinTables.add(name);
+		escaper.lowEscapeJava(entityName+"_joinTable_"+index).replaceAll("\\.", "_");
 	}
 }
 
