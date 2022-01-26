@@ -2031,33 +2031,24 @@ class MGLExtension {
 	/**
 	 * TODO: Alternated FROM MGLEcoreGenerator
 	 */
-	private def allContainingElements(GraphicalModelElement element) {
+	def HashSet<ContainingElement> allContainingElements(GraphicalModelElement element) {
 		val containingElements = new HashSet<ContainingElement>
 		if(element !== null){
-			var graphModels = element.mglModel.graphModels
-			for (gm : graphModels) {
-				val containable = gm.allContainmentConstraints
-				if (containable.exists[(types.contains(element)||types.empty) && upperBound !== 0] || gm.containableElements.empty) {
-					containingElements += gm
+			var allContainingElements = element.mglModel.elements.filter(ContainingElement)
+			for (c : allContainingElements) {
+				val containmentConstraints = c.allContainmentConstraints
+				if (containmentConstraints.exists[(types.contains(element)||types.empty) && upperBound !== 0] || c.containableElements.empty) {
+					containingElements += c
 				}
 			}
-			containingElements += MGLUtil.allSuperTypes(element).map[(it as GraphicalModelElement).containingElements].flatten
-			containingElements += element.resolveSubTypesAndType.map[(it as GraphicalModelElement).containingElements].flatten
+			// add superType Container
+			val superTypes = element.resolveSuperTypes.filter(GraphicalModelElement)
+			val superTypeContainments = superTypes.map[
+				it.allContainingElements
+			].flatten.toSet
+			containingElements += superTypeContainments
 		}
-		containingElements
-	}
-	
-	/**
-	 * TODO: Alternated FROM MGLEcoreGenerator
-	 */
-	private def containingElements(GraphicalModelElement element){
-		val elementsGraphModel = element.graphModels
-		val result = new HashSet<ContainingElement>
-		for(g : elementsGraphModel) {
-			val cE = MGLUtil.getContainingElements(g).filter[allContainmentConstraints.exists[types.contains(element) && upperBound !== 0]]
-			result.addAll(cE)
-		}
-		return result
+		return containingElements
 	}
 	
 	/**
