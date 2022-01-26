@@ -364,11 +364,13 @@ class EditorComponent extends Generatable {
 	  
 	  void jumpToPrime(Map m) {
 		if(m['type'] == "navigation") {
-		  var location = m['location'];
-		  var modelType = location['type'];
-		  var modelId = location['id'];
-		  preGraphModelSwitched();
-		  this.loadGraphModel(modelType, modelId).then((_) => postGraphModelSwitched());
+			var location = m['location'];
+			var modelType = location['type'];
+			if(graphService.isGraphModel(modelType)) {
+				var modelId = location['id'];
+				preGraphModelSwitched();
+				this.loadGraphModel(modelType, modelId).then((_) => postGraphModelSwitched());
+			}
 		} else if(m['type'] == "jumpToPrime"){
 		  IdentifiableElement primeNode = m['primeNode'];
 		  GraphModel parentGraphModel = m['graphModel'];
@@ -379,19 +381,21 @@ class EditorComponent extends Generatable {
 		      parentGraphModel.id,
 		      primeNode.id
 		    ).then((m) {
-		      print("jumping to prime:\n${m}");
-		      int modelId = int.parse(m['graphmodel_id']);
-		      String modelType = m['graphmodel_type'];
-		      int elementId = int.parse(m['element_id']);
-		      String elementType = m['element_type'];
-		      preGraphModelSwitched();
-		      redirectionStack.pushToRedirectStack(modelType, modelId);
-		      this.loadGraphModel(modelType, modelId).then((_) {
-		        postGraphModelSwitched();
-		        // TODO: focus and highlight element here with elementId and elementType
-		        // Also put those information on the RedirectStack (pushToRedirectStack),
-		        // so that it could be triggered on forward and backward navigation, too
-		      });
+			  	String modelType = m['graphmodel_type'];
+		    	if(graphService.isGraphModel(modelType)) {
+			    	int modelId = int.parse(m['graphmodel_id']);
+				  	int elementId = int.parse(m['element_id']);
+				  	String elementType = m['element_type'];
+				  	print("jumping to prime:\n${m}");
+				  	preGraphModelSwitched();
+				  	redirectionStack.pushToRedirectStack(modelType, modelId);
+				  	this.loadGraphModel(modelType, modelId).then((_) {
+				  		postGraphModelSwitched();
+				  		// TODO: focus and highlight element here with elementId and elementType
+				  		// Also put those information on the RedirectStack (pushToRedirectStack),
+				  		// so that it could be triggered on forward and backward navigation, too
+				  	});
+		  		}
 		    });
 		  }
 		}

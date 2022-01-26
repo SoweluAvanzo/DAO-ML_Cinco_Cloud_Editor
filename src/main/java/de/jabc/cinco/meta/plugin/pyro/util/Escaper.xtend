@@ -4,6 +4,10 @@ import java.util.LinkedList
 import org.apache.commons.lang3.RandomStringUtils
 
 class Escaper {
+	def escapeJavaDart(String s) {
+		s.escapeJava.escapeDart
+	}
+	
 	def escapeDart(String s){
 		var s1 = s.replaceAll(" ","_")
 		s1 = s1.replaceAll("-","_")

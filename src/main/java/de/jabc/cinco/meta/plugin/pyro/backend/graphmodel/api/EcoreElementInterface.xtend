@@ -29,6 +29,7 @@ class EcoreElementInterface extends Generatable {
 	'''
 	
 	def content(ENamedElement me, EPackage g) {
+		val eContainer = me instanceof EPackage ? me : me.eContainer
 		'''
 			package «g.apiFQNBase»;
 			
@@ -39,6 +40,8 @@ class EcoreElementInterface extends Generatable {
 				// Mandatory
 				public «dbTypeName» getDelegate();
 				public void delete();
+				public «eContainer.apiFQN» getContainer();
+				public void setContainer(«eContainer.apiFQN» c);
 				«IF me instanceof EPackage»
 					public void setExtension(String extension);
 					public void setFilename(String filename);

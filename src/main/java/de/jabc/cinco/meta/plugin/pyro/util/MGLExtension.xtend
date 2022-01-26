@@ -84,7 +84,7 @@ class MGLExtension {
 	}
 
 	static def String[] primitiveETypes() { // Needed to get EReal, EDate and EDateTime
-		return #["EString", "EBoolean", "EInt", "EDouble", "EShort", "ELong", "EBigInteger", "EFloat", "EBigDecimal",
+		return #["EString", "EBoolean", "EInt", "EDouble", "EShort", "ELong", "EBigInteger", "EFloat", "EFloatObject", "EBigDecimal",
 			"EReal", "EByte", "EChar", "EDate", "EDateTime"]
 	}
 
@@ -546,6 +546,7 @@ class MGLExtension {
 			case "EByte": return '''number'''
 			case "EShort": return '''number'''
 			case "EFloat": return '''number'''
+			case "EFloatObject": return '''number'''
 			case "EBigDecimal": return '''number'''
 			case "EDouble": return '''number'''
 			case "EDate": return '''date'''
@@ -608,6 +609,12 @@ class MGLExtension {
 				return '''int'''
 			}
 			case "EFloat": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			case "EFloatObject": {
 				if (attr.list) {
 					return '''Double'''
 				}
@@ -679,6 +686,12 @@ class MGLExtension {
 				return '''int'''
 			}
 			case "EFloat": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			case "EFloatObject": {
 				if (attr.list) {
 					return '''Double'''
 				}
@@ -1386,6 +1399,7 @@ class MGLExtension {
 			case "EByte": return '''0'''
 			case "EShort": return '''0'''
 			case "EFloat": return '''0.0'''
+			case "EFloatObject": return '''0.0'''
 			case "EReal": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
@@ -1404,6 +1418,7 @@ class MGLExtension {
 			case "EByte": return '''0'''
 			case "EShort": return '''0'''
 			case "EFloat": return '''0.0'''
+			case "EFloatObject": return '''0.0'''
 			case "EReal": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
@@ -1588,6 +1603,7 @@ class MGLExtension {
 			case "EByte": return '''int'''
 			case "EShort": return '''int'''
 			case "EFloat": return '''double'''
+			case "EFloatObject": return '''double'''
 			case "EReal": return '''double'''
 			case "EBigDecimal": return '''double'''
 			case "EDouble": return '''double'''
@@ -1607,6 +1623,7 @@ class MGLExtension {
 			case "EByte": return '''int'''
 			case "EShort": return '''int'''
 			case "EFloat": return '''double'''
+			case "EFloatObject": return '''double'''
 			case "EReal": return '''double'''
 			case "EBigDecimal": return '''double'''
 			case "EDouble": return '''double'''
@@ -1631,6 +1648,7 @@ class MGLExtension {
 				case "EByte": return '''java.util.List<Integer>'''
 				case "EShort": return '''java.util.List<Integer>'''
 				case "EFloat": return '''java.util.List<Double>'''
+				case "EFloatObject": return '''java.util.List<Double>'''
 				case "EReal": return '''java.util.List<Double>'''
 				case "EBigDecimal": return '''java.util.List<Double>'''
 				default: return '''java.util.List<String>'''
@@ -1644,6 +1662,7 @@ class MGLExtension {
 			case "EByte": return '''int'''
 			case "EShort": return '''int'''
 			case "EFloat": return '''double'''
+			case "EFloatObject": return '''double'''
 			case "EReal": return '''double'''
 			case "EBigDecimal": return '''double'''
 			case "EDouble": return '''double'''
@@ -1676,6 +1695,7 @@ class MGLExtension {
 				case "EByte": return '''«s»'''
 				case "EShort": return '''«s»'''
 				case "EFloat": return '''«s»'''
+				case "EFloatObject": return '''«s»'''
 				case "EReal": return '''«s»'''
 				case "EBigDecimal": return '''«s»'''
 				case "EDouble": return '''«s»'''
@@ -1703,6 +1723,7 @@ class MGLExtension {
 				case "EShort": return '''«s»'''
 				case "EDouble": return '''«s»'''
 				case "EFloat": return '''«s»'''
+				case "EFloatObject": return '''«s»'''
 				case "EReal": return '''«s»'''
 				case "EBigDecimal": return '''«s»'''
 				default: return '''«s»'''
@@ -1727,6 +1748,7 @@ class MGLExtension {
 				case "EShort": return ''''''
 				case "EDouble": return ''''''
 				case "EFloat": return ''''''
+				case "EFloatObject": return ''''''
 				case "EReal": return ''''''
 				case "EBigDecimal": return ''''''
 				default: return '''.toString()'''
@@ -1747,6 +1769,7 @@ class MGLExtension {
 				case "EShort": return ''''''
 				case "EDouble": return ''''''
 				case "EFloat": return ''''''
+				case "EFloatObject": return ''''''
 				case "EReal": return ''''''
 				case "EBigDecimal": return ''''''
 				default: return '''.toString()'''
@@ -2175,10 +2198,11 @@ class MGLExtension {
 		ce.isIsAbstract
 	}
 
-	def dispatch boolean isAbstract(EClassifier e) {
+	def dispatch boolean isAbstract(ENamedElement e) {
 		switch (e) {
 			EClass: e.abstract
 			EReference: e.getEReferenceType().abstract
+			EPackage: false
 			default: false
 		}
 	}
@@ -2511,7 +2535,7 @@ class MGLExtension {
 	}
 
 	
-	def <G extends EObject, T extends EObject> resolveSubTypesAndType(T t) {
+	def <T extends EObject> resolveSubTypesAndType(T t) {
 		val modelPackage = t.modelPackage
 		modelPackage.resolveSubTypesAndType(t)
 	}
@@ -2535,7 +2559,7 @@ class MGLExtension {
 		if (g instanceof MGLModel)
 			return resolveSubTypesAndType(g as MGLModel, t as Type)
 		else if (g instanceof EPackage)
-			return resolveSubTypesAndType(g as EPackage, t as EClassifier)
+			return resolveSubTypesAndType(g as EPackage, t as ENamedElement)
 		else if (g instanceof GraphModel)
 			throw new RuntimeException("GraphModel is Package is Deprecated!")
 	}
@@ -2552,7 +2576,7 @@ class MGLExtension {
 		element.resolveSubTypesAndType(new LinkedList<T>)
 	}
 
-	private def <T extends EClassifier> Iterable<T> resolveSubTypesAndType(EPackage g, T element) {
+	private def <T extends ENamedElement> Iterable<T> resolveSubTypesAndType(EPackage g, T element) {
 		element.resolveSubTypesAndType(new LinkedList<T>)
 	}
 
@@ -2564,7 +2588,7 @@ class MGLExtension {
 		)
 	}
 
-	def <T extends EClassifier> Iterable<T> resolveSubTypesAndType(T e, List<T> cached) {
+	def <T extends ENamedElement> Iterable<T> resolveSubTypesAndType(T e, List<T> cached) {
 		e.resolveSubTypesAndType(
 			cached,
 			[element|element.abstract],
@@ -2572,7 +2596,7 @@ class MGLExtension {
 		)
 	}
 
-	def <G, T> Iterable<T> resolveSubTypesAndType(T element, List<T> cached, Function<T, Boolean> filterAway,
+	def <T> Iterable<T> resolveSubTypesAndType(T element, List<T> cached, Function<T, Boolean> filterAway,
 		Function<T, Iterable<T>> getSubTypes) {
 		if (cached.contains(element))
 			return cached;
@@ -2584,8 +2608,7 @@ class MGLExtension {
 		// resolve subTypes further recursively
 		val subTypes = getSubTypes.apply(element)
 		for (subType : subTypes) {
-			cachedSubTypes = subType.resolveSubTypesAndType(cachedSubTypes.toList, filterAway,
-				getSubTypes) as LinkedList<T>
+			cachedSubTypes = subType.resolveSubTypesAndType(cachedSubTypes.toList, filterAway, getSubTypes) as LinkedList<T>
 		}
 		return cachedSubTypes
 	}
@@ -2629,6 +2652,7 @@ class MGLExtension {
 			case "ELong": "long"
 			case "EDouble": "double"
 			case "EFloat": "double"
+			case "EFloatObject": "double"
 			case "EBigDecimal": "double"
 			case "EReal": "double"
 			// case "EDate": "java.time.LocalDate" // TODO: SAMI: make date available...edge case String -> Date (Entity -> Api)
@@ -2647,6 +2671,7 @@ class MGLExtension {
 			case "ELong": "Long"
 			case "EDouble": "Double"
 			case "EFloat": "Double"
+			case "EFloatObject": "Double"
 			case "EBigDecimal": "Double"
 			case "EReal": "Double"
 			// case "EDate": "java.time.LocalDate" // TODO: SAMI: make date available...edge case String -> Date (Entity -> Api)
@@ -2675,6 +2700,7 @@ class MGLExtension {
 			case "EInt": return '''0L'''
 			case "EByte": return '''0L'''
 			case "EFloat": return '''0.0'''
+			case "EFloatObject": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
 			case "EString": return '''""'''
@@ -2697,6 +2723,7 @@ class MGLExtension {
 			case "EInt": return '''0'''
 			case "EByte": return '''0'''
 			case "EFloat": return '''0.0'''
+			case "EFloatObject": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
 			case "EString": return '''"«attr.defaultValue»"'''

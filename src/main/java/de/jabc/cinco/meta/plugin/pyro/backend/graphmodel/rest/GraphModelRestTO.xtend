@@ -82,18 +82,22 @@ class GraphModelRestTO extends Generatable{
 				«IF t instanceof Node»
 					«IF t.prime»
 						«{
-							val refElem = t.primeReference.type
+							val primeReference = t.primeReference
+							val refElem = primeReference.type
+							val primeVar = primeReference.name.escapeJava
+							val primeElementName = primeReference.name.escapeJavaDart
+							val primeKey = '''b_«primeElementName»'''
 							'''
-								protected «refElem.restFQN» «t.primeReference.name.escapeJava»;
+								protected «refElem.restFQN» «primeVar»;
 								
-								@com.fasterxml.jackson.annotation.JsonProperty("b_«t.primeReference.name.escapeJava»")
-								public «refElem.restFQN» get«t.primeReference.name.escapeJava»() {
-								    return this.«t.primeReference.name.escapeJava»;
+								@com.fasterxml.jackson.annotation.JsonProperty("«primeKey»")
+								public «refElem.restFQN» get«primeVar»() {
+								    return this.«primeVar»;
 								}
 								
-								@com.fasterxml.jackson.annotation.JsonProperty("«t.primeReference.name.escapeJava»")
-								public void set«t.primeReference.name.escapeJava»(final «refElem.restFQN» «t.primeReference.name.escapeJava») {
-								    this.«t.primeReference.name.escapeJava» = «t.primeReference.name.escapeJava»;
+								@com.fasterxml.jackson.annotation.JsonProperty("«primeElementName»")
+								public void set«primeVar»(final «refElem.restFQN» «primeVar») {
+								    this.«primeVar» = «primeVar»;
 								}
 							'''
 						}»
@@ -452,8 +456,9 @@ class GraphModelRestTO extends Generatable{
 				«IF t.prime»
 				«{
 					val refElem = t.primeReference.type
+					val primeName = t.primeReference.name.escapeJava;
 					'''
-						result.set«t.primeReference.name.escapeJava»(
+						result.set«primeName»(
 							«refElem.restFQN».fromEntityProperties(
 								entity.get«t.primeReference.name.fuEscapeJava»(), objectCache
 							)
@@ -515,22 +520,23 @@ class GraphModelRestTO extends Generatable{
 	{
 		val refElem = t.primeReference.type
 		val refGraph = refElem.MGLModel
+		val primeName = t.primeReference.name.escapeJava;
 		val sameGraphModelType = refGraph.name.equals(g.name)
 		'''
-		if(entity.get«t.primeReference.name.escapeJava»()!=null) {
+		if(entity.get«primeName»()!=null) {
 			
 			«IF sameGraphModelType»
-				if(info.scce.pyro.core.graphmodel.Node.getRootGraphModel(entity.get«t.primeReference.name.escapeJava»()).equals(info.scce.pyro.core.graphmodel.Node.getRootGraphModel(entity))){
-					result.set«t.primeReference.name.escapeJava»(
+				if(info.scce.pyro.core.graphmodel.Node.getRootGraphModel(entity.get«primeName»()).equals(info.scce.pyro.core.graphmodel.Node.getRootGraphModel(entity))){
+					result.set«primeName»(
 						info.scce.pyro.«refGraph.name.lowEscapeJava».rest.«refElem.name.fuEscapeJava».fromEntity«IF onlyProperties»Properties«ENDIF»(
-							entity.get«t.primeReference.name.escapeJava»(),objectCache
+							entity.get«primeName»(),objectCache
 						)
 					);
 				} else {
 			«ENDIF»
-			result.set«t.primeReference.name.escapeJava»(
+			result.set«primeName»(
 				info.scce.pyro.«refGraph.name.lowEscapeJava».rest.«refElem.name.fuEscapeJava».fromEntityProperties(
-					entity.get«t.primeReference.name.escapeJava»(),
+					entity.get«primeName»(),
 					objectCache
 				)
 			);

@@ -4,6 +4,7 @@ import java.util.LinkedList
 import java.util.List
 import java.util.concurrent.Callable
 import de.jabc.cinco.meta.plugin.pyro.util.Escaper
+import org.eclipse.emf.ecore.EObject
 
 class Model  {
 	public static val escaper = new Escaper
@@ -13,6 +14,7 @@ class Model  {
 	String fqn = ""
 	String name = ""
 	String entityName = ""
+	public EObject type = null
 	List<String> literals = new LinkedList;
 	List<String> joinTables = new java.util.LinkedList<String>();
 	
@@ -27,18 +29,10 @@ class Model  {
 	StringBuilder attributes = new StringBuilder
 	StringBuilder functions = new StringBuilder
 	
-	// DEPRECATED-INHERITANCE
-	new(String fqn, String name, String inherits) {
+	new(String fqn, String name, EObject element) {
 		this.fqn = fqn
 		this.name = name
-		// create entityName for the use-case: "e.g. several packages have different elements with same name"
-		this.entityName = escaper.lowEscapeJava(fqn+"_"+name).replaceAll("\\.", "_")
-		this.inherits = inherits
-	}
-	
-	new(String fqn,String name) {
-		this.fqn = fqn
-		this.name = name
+		this.type = element
 		// create entityName for the use-case: "e.g. several packages have different elements with same name"
 		this.entityName = escaper.lowEscapeJava(fqn+"_"+name).replaceAll("\\.", "_")
 	}
