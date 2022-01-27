@@ -141,8 +141,8 @@ class Model extends Generatable {
 				this.y = 0;
 			«ENDIF»
 			«IF element instanceof GraphModel»
-				this.width = 1000;
-				this.height = 600;
+				this.width = 10000;
+				this.height = 10000;
 				this.scale = 1.0;
 				this.router = null;
 				this.connector = 'normal';

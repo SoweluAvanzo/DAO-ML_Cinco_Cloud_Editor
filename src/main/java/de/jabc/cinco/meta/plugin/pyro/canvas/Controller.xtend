@@ -200,6 +200,7 @@ class Controller extends Generatable{
 	    $paper_«g.jsCall».options.markAvailable = true;
 	    $paper_«g.jsCall».options.restrictTranslate=false;
 	    $paper_«g.jsCall».options.drawGrid= { name: 'mesh', args: { color: 'black' }};
+	    adjustDimensions($paper_«g.jsCall»);
 		$paper_«g.jsCall».scale(scale);
 		$paper_«g.jsCall».options.defaultConnectionPoint = {
 		    name: 'boundary',
@@ -1354,6 +1355,10 @@ class Controller extends Generatable{
 	       	 }
 	    }
 	}
+	
+	$(window).resize(function() {
+		adjustDimensions($paper_«g.jsCall»); // TODO: SAMI - responsive
+	});
 	'''
 	}
 	
