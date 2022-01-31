@@ -657,7 +657,7 @@ class Controller extends Generatable{
 	    $map_paper_«g.jsCall» = null;
 	    $graph_«g.jsCall» = null;
 	    $('#paper_«g.jsCall»').empty();
-	    $('#paper_map_«g.jsCall»').empty();
+	    $('#paper_map').empty();
 	}
 	
 	function highlight_valid_targets_«g.jsCall»(cell) {
@@ -707,19 +707,19 @@ class Controller extends Generatable{
 	
 	
 	function create_«g.jsCall»_map() {
-		var map = $('#paper_map_«g.jsCall»');
+		var map = $('#paper_map');
 		if(map.length && $graph_«g.jsCall») {
 			//create map
 			$map_paper_«g.jsCall» = new joint.dia.Paper({
 			    el: map,
-			    width: 300,
-			    height: 300,
+			    width: 100,
+			    height: 100,
 			    model: $graph_«g.jsCall»,
 			    gridSize: 1,
 			    interactive:false
 			});
 			$graph_«g.jsCall».resetCells($graph_«g.jsCall».getCells());
-			$map_paper_«g.jsCall».scaleContentToFit();
+			adjustMapDimensions($map_paper_«g.jsCall»);
 			$rebuild_map_fun = function rebuild_«g.jsCall»_map_rect() {
 			};
 		}
@@ -1356,8 +1356,17 @@ class Controller extends Generatable{
 	    }
 	}
 	
-	$(window).resize(function() {
-		adjustDimensions($paper_«g.jsCall»); // TODO: SAMI - responsive
+	$(window).resize(function(e) {
+		if(e != null && e.target != null && e.target.getElementsByTagName) { // widgets are resized
+			if(e.target.getElementsByTagName('map').length>0) {
+				adjustMapDimensions($map_paper_«g.jsCall»);
+			} else if(e.target.getElementsByTagName('pyro-canvas').length>0) {
+				adjustDimensions($paper_«g.jsCall»);
+			}
+		} else { // window is resized
+			adjustMapDimensions($map_paper_«g.jsCall»);
+			adjustDimensions($paper_«g.jsCall»);
+		}
 	});
 	'''
 	}

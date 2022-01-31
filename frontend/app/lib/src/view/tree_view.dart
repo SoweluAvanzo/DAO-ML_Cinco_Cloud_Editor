@@ -10,23 +10,23 @@ import 'package:angular_router/angular_router.dart';
     selector: 'tree-view',
     styleUrls: const ['tree_view.css'],
     template:'''
-<div class="card pyro-panel">
-    <div class="card-header pyro-panel-heading">
-        <strong>{{name}}</strong> <a href style="color: white;" (click)="load(\$event)"><i class="fas fa-sync-alt"></i></a>
-    </div>
-    <div class="card-body pyro-panel-body" style="max-width: inherit;
-    overflow-x: scroll;">
-      <ul *ngIf="treeView!=null" style="LIST-STYLE-TYPE: none;">
-          <li *ngFor="let entry of treeView.layer" style="white-space: nowrap;">
-              <tree-view-node
-                  [node]="entry"
-                  (click)="fireClick(\$event)"
-                  (doubleClick)="fireDoubleClick(\$event)"
-              ></tree-view-node>
-          </li>
-      </ul>
-    </div>
-</div>
+		<div class="card pyro-panel" style="height: 100%">
+		    <div class="card-header pyro-panel-heading">
+		        <strong>{{name}}</strong> <a href style="color: white;" (click)="load(\$event)"><i class="fas fa-sync-alt"></i></a>
+		    </div>
+		    <div class="card-body pyro-panel-body" style="max-width: inherit;
+		    overflow-x: scroll;">
+		      <ul *ngIf="treeView!=null" style="LIST-STYLE-TYPE: none;">
+		          <li *ngFor="let entry of treeView.layer" style="white-space: nowrap;">
+		              <tree-view-node
+		                  [node]="entry"
+		                  (click)="fireClick(\$event)"
+		                  (doubleClick)="fireDoubleClick(\$event)"
+		              ></tree-view-node>
+		          </li>
+		      </ul>
+		    </div>
+		</div>
     ''',
     directives: const [coreDirectives,TreeViewNodeComponent]
 )
