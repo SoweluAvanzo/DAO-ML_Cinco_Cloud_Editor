@@ -75,6 +75,9 @@ class CanvasComponent extends Generatable {
 	  final jumpToSC = new StreamController();
 	  @Output() Stream get jumpTo => jumpToSC.stream;
 	  
+	  final changeLayoutSC = new StreamController();
+	  @Output() Stream get changeLayout => changeLayoutSC.stream;
+	  
 	  @Input()
 	  PyroUser user;
 	  @Input()
@@ -495,6 +498,16 @@ class CanvasComponent extends Generatable {
     <div class="card-header d-flex flex-row align-items-center pyro-panel-heading">
 
 		<template [ngIf]="isModelFile()">
+		    <bs-dropdown class="mr-2">
+        		<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="tooltip" data-placement="bottom" title="Choose to change view mode">View</button>
+        		<bs-dropdown-menu>
+          			<h6 class="dropdown-header">Layout</h6>
+          			<li><a class="dropdown-item"  (click)="changeLayoutSC.add('DEFAULT')">Default</a></li>
+          			<li><a class="dropdown-item"  (click)="changeLayoutSC.add('MINIMAL')">Minimal</a></li>
+          			<li><a class="dropdown-item"  (click)="changeLayoutSC.add('MAXIMUM_CANVAS')">Maximum Canvas</a></li>
+          			<li><a class="dropdown-item"  (click)="changeLayoutSC.add('COMPLETE')">Complete</a></li>
+       			 </bs-dropdown-menu>
+      		</bs-dropdown>
 			<bs-dropdown class="mr-2">
 			    <button type="button" class="btn btn-sm dropdown-toggle" >
 			      Export
