@@ -84,7 +84,7 @@ class MGLExtension {
 	}
 
 	static def String[] primitiveETypes() { // Needed to get EReal, EDate and EDateTime
-		return #["EString", "EBoolean", "EInt", "EDouble", "EShort", "ELong", "EBigInteger", "EFloat", "EBigDecimal",
+		return #["EString", "EBoolean", "EInt", "EDouble", "EShort", "ELong", "EBigInteger", "EFloat", "EFloatObject", "EBigDecimal",
 			"EReal", "EByte", "EChar", "EDate", "EDateTime"]
 	}
 
@@ -546,6 +546,7 @@ class MGLExtension {
 			case "EByte": return '''number'''
 			case "EShort": return '''number'''
 			case "EFloat": return '''number'''
+			case "EFloatObject": return '''number'''
 			case "EBigDecimal": return '''number'''
 			case "EDouble": return '''number'''
 			case "EDate": return '''date'''
@@ -608,6 +609,12 @@ class MGLExtension {
 				return '''int'''
 			}
 			case "EFloat": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			case "EFloatObject": {
 				if (attr.list) {
 					return '''Double'''
 				}
@@ -684,6 +691,12 @@ class MGLExtension {
 				}
 				return '''double'''
 			}
+			case "EFloatObject": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
 			case "EBigDecimal": {
 				if (attr.list) {
 					return '''Double'''
@@ -731,9 +744,14 @@ class MGLExtension {
 	
 	def resolveAllPrimeReferencedGraphModels(GraphModel g) {
 		val primeReferencedElements = g.primeReferencedElements
-		primeReferencedElements.map[it.graphModels].flatten
-			.map[it.resolveAllSubTypesAndType].flatten
-			.filter[!isAbstract].toSet
+		primeReferencedElements.map[
+			it.graphModels
+		].flatten.toSet
+			.map[
+				it.resolveAllSubTypesAndType
+			].flatten
+			.filter[!isAbstract]
+			.toSet
 	}
 
 	def getPrimeReferencingElements(Type referenced, Set<MGLModel> referencingSet) {
@@ -816,7 +834,7 @@ class MGLExtension {
 				}
 			}
 		}
-		result
+		result + (me instanceof GraphModel? me.resolveSubTypesAndType : #[])
 	}
 
 	def getReferencedElement(ReferencedModelElement rt) {
@@ -1381,6 +1399,7 @@ class MGLExtension {
 			case "EByte": return '''0'''
 			case "EShort": return '''0'''
 			case "EFloat": return '''0.0'''
+			case "EFloatObject": return '''0.0'''
 			case "EReal": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
@@ -1399,6 +1418,7 @@ class MGLExtension {
 			case "EByte": return '''0'''
 			case "EShort": return '''0'''
 			case "EFloat": return '''0.0'''
+			case "EFloatObject": return '''0.0'''
 			case "EReal": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
@@ -1583,6 +1603,7 @@ class MGLExtension {
 			case "EByte": return '''int'''
 			case "EShort": return '''int'''
 			case "EFloat": return '''double'''
+			case "EFloatObject": return '''double'''
 			case "EReal": return '''double'''
 			case "EBigDecimal": return '''double'''
 			case "EDouble": return '''double'''
@@ -1602,6 +1623,7 @@ class MGLExtension {
 			case "EByte": return '''int'''
 			case "EShort": return '''int'''
 			case "EFloat": return '''double'''
+			case "EFloatObject": return '''double'''
 			case "EReal": return '''double'''
 			case "EBigDecimal": return '''double'''
 			case "EDouble": return '''double'''
@@ -1626,6 +1648,7 @@ class MGLExtension {
 				case "EByte": return '''java.util.List<Integer>'''
 				case "EShort": return '''java.util.List<Integer>'''
 				case "EFloat": return '''java.util.List<Double>'''
+				case "EFloatObject": return '''java.util.List<Double>'''
 				case "EReal": return '''java.util.List<Double>'''
 				case "EBigDecimal": return '''java.util.List<Double>'''
 				default: return '''java.util.List<String>'''
@@ -1639,6 +1662,7 @@ class MGLExtension {
 			case "EByte": return '''int'''
 			case "EShort": return '''int'''
 			case "EFloat": return '''double'''
+			case "EFloatObject": return '''double'''
 			case "EReal": return '''double'''
 			case "EBigDecimal": return '''double'''
 			case "EDouble": return '''double'''
@@ -1671,6 +1695,7 @@ class MGLExtension {
 				case "EByte": return '''«s»'''
 				case "EShort": return '''«s»'''
 				case "EFloat": return '''«s»'''
+				case "EFloatObject": return '''«s»'''
 				case "EReal": return '''«s»'''
 				case "EBigDecimal": return '''«s»'''
 				case "EDouble": return '''«s»'''
@@ -1698,6 +1723,7 @@ class MGLExtension {
 				case "EShort": return '''«s»'''
 				case "EDouble": return '''«s»'''
 				case "EFloat": return '''«s»'''
+				case "EFloatObject": return '''«s»'''
 				case "EReal": return '''«s»'''
 				case "EBigDecimal": return '''«s»'''
 				default: return '''«s»'''
@@ -1722,6 +1748,7 @@ class MGLExtension {
 				case "EShort": return ''''''
 				case "EDouble": return ''''''
 				case "EFloat": return ''''''
+				case "EFloatObject": return ''''''
 				case "EReal": return ''''''
 				case "EBigDecimal": return ''''''
 				default: return '''.toString()'''
@@ -1742,6 +1769,7 @@ class MGLExtension {
 				case "EShort": return ''''''
 				case "EDouble": return ''''''
 				case "EFloat": return ''''''
+				case "EFloatObject": return ''''''
 				case "EReal": return ''''''
 				case "EBigDecimal": return ''''''
 				default: return '''.toString()'''
@@ -2026,33 +2054,24 @@ class MGLExtension {
 	/**
 	 * TODO: Alternated FROM MGLEcoreGenerator
 	 */
-	private def allContainingElements(GraphicalModelElement element) {
+	def HashSet<ContainingElement> allContainingElements(GraphicalModelElement element) {
 		val containingElements = new HashSet<ContainingElement>
 		if(element !== null){
-			var graphModels = element.mglModel.graphModels
-			for (gm : graphModels) {
-				val containable = gm.allContainmentConstraints
-				if (containable.exists[(types.contains(element)||types.empty) && upperBound !== 0] || gm.containableElements.empty) {
-					containingElements += gm
+			var allContainingElements = element.mglModel.elements.filter(ContainingElement)
+			for (c : allContainingElements) {
+				val containmentConstraints = c.allContainmentConstraints
+				if (containmentConstraints.exists[(types.contains(element)||types.empty) && upperBound !== 0] || c.containableElements.empty) {
+					containingElements += c
 				}
 			}
-			containingElements += MGLUtil.allSuperTypes(element).map[(it as GraphicalModelElement).containingElements].flatten
-			containingElements += element.resolveSubTypesAndType.map[(it as GraphicalModelElement).containingElements].flatten
+			// add superType Container
+			val superTypes = element.resolveSuperTypes.filter(GraphicalModelElement)
+			val superTypeContainments = superTypes.map[
+				it.allContainingElements
+			].flatten.toSet
+			containingElements += superTypeContainments
 		}
-		containingElements
-	}
-	
-	/**
-	 * TODO: Alternated FROM MGLEcoreGenerator
-	 */
-	private def containingElements(GraphicalModelElement element){
-		val elementsGraphModel = element.graphModels
-		val result = new HashSet<ContainingElement>
-		for(g : elementsGraphModel) {
-			val cE = MGLUtil.getContainingElements(g).filter[allContainmentConstraints.exists[types.contains(element) && upperBound !== 0]]
-			result.addAll(cE)
-		}
-		return result
+		return containingElements
 	}
 	
 	/**
@@ -2179,10 +2198,11 @@ class MGLExtension {
 		ce.isIsAbstract
 	}
 
-	def dispatch boolean isAbstract(EClassifier e) {
+	def dispatch boolean isAbstract(ENamedElement e) {
 		switch (e) {
 			EClass: e.abstract
 			EReference: e.getEReferenceType().abstract
+			EPackage: false
 			default: false
 		}
 	}
@@ -2515,7 +2535,7 @@ class MGLExtension {
 	}
 
 	
-	def <G extends EObject, T extends EObject> resolveSubTypesAndType(T t) {
+	def <T extends EObject> resolveSubTypesAndType(T t) {
 		val modelPackage = t.modelPackage
 		modelPackage.resolveSubTypesAndType(t)
 	}
@@ -2539,7 +2559,7 @@ class MGLExtension {
 		if (g instanceof MGLModel)
 			return resolveSubTypesAndType(g as MGLModel, t as Type)
 		else if (g instanceof EPackage)
-			return resolveSubTypesAndType(g as EPackage, t as EClassifier)
+			return resolveSubTypesAndType(g as EPackage, t as ENamedElement)
 		else if (g instanceof GraphModel)
 			throw new RuntimeException("GraphModel is Package is Deprecated!")
 	}
@@ -2556,7 +2576,7 @@ class MGLExtension {
 		element.resolveSubTypesAndType(new LinkedList<T>)
 	}
 
-	private def <T extends EClassifier> Iterable<T> resolveSubTypesAndType(EPackage g, T element) {
+	private def <T extends ENamedElement> Iterable<T> resolveSubTypesAndType(EPackage g, T element) {
 		element.resolveSubTypesAndType(new LinkedList<T>)
 	}
 
@@ -2568,7 +2588,7 @@ class MGLExtension {
 		)
 	}
 
-	def <T extends EClassifier> Iterable<T> resolveSubTypesAndType(T e, List<T> cached) {
+	def <T extends ENamedElement> Iterable<T> resolveSubTypesAndType(T e, List<T> cached) {
 		e.resolveSubTypesAndType(
 			cached,
 			[element|element.abstract],
@@ -2576,7 +2596,7 @@ class MGLExtension {
 		)
 	}
 
-	def <G, T> Iterable<T> resolveSubTypesAndType(T element, List<T> cached, Function<T, Boolean> filterAway,
+	def <T> Iterable<T> resolveSubTypesAndType(T element, List<T> cached, Function<T, Boolean> filterAway,
 		Function<T, Iterable<T>> getSubTypes) {
 		if (cached.contains(element))
 			return cached;
@@ -2588,8 +2608,7 @@ class MGLExtension {
 		// resolve subTypes further recursively
 		val subTypes = getSubTypes.apply(element)
 		for (subType : subTypes) {
-			cachedSubTypes = subType.resolveSubTypesAndType(cachedSubTypes.toList, filterAway,
-				getSubTypes) as LinkedList<T>
+			cachedSubTypes = subType.resolveSubTypesAndType(cachedSubTypes.toList, filterAway, getSubTypes) as LinkedList<T>
 		}
 		return cachedSubTypes
 	}
@@ -2633,6 +2652,7 @@ class MGLExtension {
 			case "ELong": "long"
 			case "EDouble": "double"
 			case "EFloat": "double"
+			case "EFloatObject": "double"
 			case "EBigDecimal": "double"
 			case "EReal": "double"
 			// case "EDate": "java.time.LocalDate" // TODO: SAMI: make date available...edge case String -> Date (Entity -> Api)
@@ -2651,6 +2671,7 @@ class MGLExtension {
 			case "ELong": "Long"
 			case "EDouble": "Double"
 			case "EFloat": "Double"
+			case "EFloatObject": "Double"
 			case "EBigDecimal": "Double"
 			case "EReal": "Double"
 			// case "EDate": "java.time.LocalDate" // TODO: SAMI: make date available...edge case String -> Date (Entity -> Api)
@@ -2679,6 +2700,7 @@ class MGLExtension {
 			case "EInt": return '''0L'''
 			case "EByte": return '''0L'''
 			case "EFloat": return '''0.0'''
+			case "EFloatObject": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
 			case "EString": return '''""'''
@@ -2701,6 +2723,7 @@ class MGLExtension {
 			case "EInt": return '''0'''
 			case "EByte": return '''0'''
 			case "EFloat": return '''0.0'''
+			case "EFloatObject": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
 			case "EString": return '''"«attr.defaultValue»"'''

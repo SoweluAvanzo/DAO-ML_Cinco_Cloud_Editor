@@ -24,8 +24,10 @@ class EcoreElementImplementation extends Generatable {
 	
 	def content(ENamedElement me, EPackage g)
 	{
+		val eContainer = me instanceof EPackage ? me : me.eContainer
 		'''
 			package «g.apiImplFQNBase»;
+			import org.eclipse.emf.ecore.EObject;
 			import «dbTypeFQN»;
 			
 			public class «me.name.fuEscapeJava»Impl implements «me.apiFQN» {
@@ -41,6 +43,12 @@ class EcoreElementImplementation extends Generatable {
 				public «me.name.fuEscapeJava»Impl(
 				) {
 					this.delegate = new «me.entityFQN»();
+					this.delegate.persist();
+				}
+				
+				@Override
+				public String getType() {
+					return "«me.typeName»";
 				}
 				
 				public «me.apiFQN» eClass() {
@@ -98,9 +106,28 @@ class EcoreElementImplementation extends Generatable {
 					return this.delegate;
 				}
 				
+				«{
+					val cEntityFQN = eContainer.entityFQN
+					val cApiImplFQN = eContainer.apiImplFQN
+					val cApiFQN = eContainer.apiFQN
+					'''
+						@Override
+						public «cApiFQN» getContainer() {
+							«cEntityFQN» container = («cEntityFQN») this.delegate.getContainer();
+							return new «cApiImplFQN»(container);
+						}
+						
+						@Override
+						public void setContainer(«cApiFQN» c) {
+							«cEntityFQN» cDelegate = («cEntityFQN») c.getDelegate();
+							this.delegate.setContainer(cDelegate);
+						}
+					'''
+				}»
+				
 				@Override
-			    public org.eclipse.emf.ecore.EObject eContainer() {
-			        return null;
+			    public EObject eContainer() {
+			        return (EObject) this.getContainer();
 			    }
 				
 				@Override

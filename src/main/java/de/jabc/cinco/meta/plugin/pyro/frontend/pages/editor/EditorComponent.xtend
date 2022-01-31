@@ -35,6 +35,7 @@ class EditorComponent extends Generatable {
 	import 'package:«gc.projectName.escapeDart»/src/service/user_service.dart';
 	import 'package:«gc.projectName.escapeDart»/src/pages/editor/canvas/canvas_component.dart';
 	import 'package:«gc.projectName.escapeDart»/src/pages/editor/properties/properties_component.dart';
+	import 'package:«gc.projectName.escapeDart»/src/pages/editor/map/map_component.dart';
 	import 'package:«gc.projectName.escapeDart»/src/pages/editor/palette/list/list_view.dart';
 	import 'package:«gc.projectName.escapeDart»/src/pages/editor/palette/palette_component.dart';
 	import 'package:«gc.projectName.escapeDart»/src/pages/editor/command_history/command_history_component.dart';
@@ -74,67 +75,113 @@ class EditorComponent extends Generatable {
 	      PaletteComponent,
 	      CheckComponent,
 	      CommandHistoryComponent,
+	      MapComponent,
 	      bsDirectives,
 	      EditorTabsDropzoneComponent,
 	      EditorTabsDraggableComponent
 	    ]
 	)
-	class EditorComponent implements OnActivate, OnDeactivate, AfterViewInit, AfterViewChecked {
-	
-	  PyroUser user;
-	  List<PyroUser> activeUsers = new List();
-	  String token = null;
-	  
-	  PyroEditorGrid grid;
-	  Map<int, PyroEditorGridItem> gridItemMap = new Map();
-	  
-	  @ViewChildren(BsTabsComponent)
-	  List<BsTabsComponent> widgetTabs = new List();
-	  
-	  @ViewChildren(PropertiesComponent) set propertiesComp(content) {
-	  	if(content is List<PropertiesComponent>) {
-	  		properties.addAll(content);
-	  		properties = properties.toSet().toList();
-	  	}
-	  }
-	  static List<PropertiesComponent> properties = new List<PropertiesComponent>();
-	  
-	  List<PyroGraphModelPermissionVector> permissionVectors;
-	  RedirectionStack redirectionStack = new RedirectionStack();
-	  GraphModel currentFile = null;
-	  IdentifiableElement selectedElement = null;
-	  IdentifiableElement selectedElementModal = null;
-	  LocalGraphModelSettings currentLocalSettings;
-	  int fullscreenWidgetId;
-	  final GraphService graphService;
-	  final UserService _userService;
-	  final NotificationService _notificationService;
-	  final GraphModelPermissionVectorService _permissionService;
-	  final StyleService _styleService;
-	  final Router _router;
-	  final EditorGridService _editorGridService;
-	  final EditorDataService _editorDataService;
-	  String selected = null;
-	  bool showNav = false;
-	  String mainLayout = "classic";
-	  
-	  EditorComponent(this._editorGridService, this.graphService, this._router, this._userService, this._notificationService, 
-	  				  this._styleService, this._permissionService, this._editorDataService) {
-	    currentLocalSettings = new LocalGraphModelSettings();
-	    permissionVectors = new List();
-
-		fetchGrid();
-	  }
-		  
+	class EditorComponent implements OnActivate, OnDeactivate {
+	    PyroUser user;
+	    List<PyroUser> activeUsers = new List();
+	    String token = null;
+	    
+	    PyroEditorGrid grid;
+	    Map<int, PyroEditorGridItem> gridItemMap = new Map();
+	    
+	    @ViewChildren(BsTabsComponent)
+	    List<BsTabsComponent> widgetTabs = new List();
+	    
+	    @ViewChildren(PropertiesComponent) set propertiesComp(content) {
+	    	if(content is List<PropertiesComponent>) {
+	    		properties.addAll(content);
+	    		properties = properties.toSet().toList();
+	    	}
+	    }
+	    static List<PropertiesComponent> properties = new List<PropertiesComponent>();
+	    
+	    List<PyroGraphModelPermissionVector> permissionVectors;
+	    RedirectionStack redirectionStack = new RedirectionStack();
+	    GraphModel currentFile = null;
+	    IdentifiableElement selectedElement = null;
+	    IdentifiableElement selectedElementModal = null;
+	    LocalGraphModelSettings currentLocalSettings;
+	    int fullscreenWidgetId;
+	    final GraphService graphService;
+	    final UserService _userService;
+	    final NotificationService _notificationService;
+	    final GraphModelPermissionVectorService _permissionService;
+	    final StyleService _styleService;
+	    final Router _router;
+	    final EditorGridService _editorGridService;
+	    final EditorDataService _editorDataService;
+	    String selected = null;
+	    bool showNav = false;
+	    String mainLayout = "classic";
+	    
+	    EditorComponent(this._editorGridService, this.graphService, this._router, this._userService, this._notificationService, 
+	    				    this._styleService, this._permissionService, this._editorDataService) {
+	    	currentLocalSettings = new LocalGraphModelSettings();
+	    	permissionVectors = new List();
+	    }
+	    
 		@override
-		void ngAfterViewInit() {	
+		void onActivate(_, RouterState current) async {
+			token = null;
+			if(current.queryParameters.containsKey("token")) {
+			    // window.localStorage[BaseService.tokenKey] = current.queryParameters["token"];
+			    token = current.queryParameters["token"];
+			} else {
+			    print("ERR: no token in URL");
+			    return;
+			}
+			int modelId = 0;
+			if(current.parameters.containsKey("modelId")) {
+			    modelId = int.tryParse(current.parameters["modelId"]);
+			} else {
+			    print("ERR: no modelId in URL");
+			    return;
+			}
+			String typeOrExtension = null;
+			if(current.queryParameters.containsKey("ext")) {
+			    typeOrExtension = current.queryParameters["ext"];
+			} else {
+			    print("ERR: no extension/type in URL");
+			    return;
+			}
+			_userService.loadUser().then((u){
+			    user = u;
+			    _editorDataService.user = u;
+			    document.title = "editor";
+			            redirectionStack.initReditionStack(typeOrExtension, modelId);
+			    this.loadGraphModel(typeOrExtension, modelId);         	         
+			}).catchError((_){});
+		}
+	    
+	    @override
+	    void onDeactivate(_, RouterState next) async {
+	    	_styleService.handleOnDeactivate(next);
+	    }
+		
+		Future<dynamic> loadGraphModel(String typeOrExtension, int modelId) {
+			return graphService.loadGraphModel(typeOrExtension, modelId).then((g) {
+				this.currentFile = g;
+				this.selectedElement = g;
+				this.selectedElementModal = g;
+				document.title = "editor - " + g.$displayName();
+			}).catchError((_){}).then((_) => postGraphModelSwitched());
+		}
+		
+		void initializeEditor() {
+	  	fetchGrid();
 			var timer = new Timer.periodic(const Duration(milliseconds: 100), (Timer t){
 				if (grid != null && mainLayout=='classic') {
 					initializeGrid(t);
+					reinitGrid();
 				}
-			});   
+			}); 
 		}
-
+	
 		void fetchGrid() {
 			this._editorGridService.get().then((g) {
 				this.updateGrid(g);
@@ -164,298 +211,240 @@ class EditorComponent extends Generatable {
 						}
 					}
 				});
-												
 				_editorGridService.update(grid).then((g) {
 					updateGrid(g);
 				});
 			}); 
 		}
 	    
-		@override
-		void ngAfterViewChecked() {
-			if (grid != null) {
-				document.dispatchEvent(new CustomEvent("editor:grid-reinit", detail: grid.toJSOG(new Map())));
-			}
-		}
-	  
-		@override
-	  	void onActivate(_, RouterState current) async {
-	  		token = null;
-			if(current.queryParameters.containsKey("token")) {
-				// window.localStorage[BaseService.tokenKey] = current.queryParameters["token"];
-				token = current.queryParameters["token"];
+	    void selectView(dynamic e,String view) {
+			e.preventDefault();
+			if(selected==view) {
+				selected = null;
+				window.localStorage['PYRO_EDITOR_SELECTED'] = null;
 			} else {
-				print("ERR: no token in URL");
-				return;
+				window.localStorage['PYRO_EDITOR_SELECTED'] = view;
+				selected = view;
 			}
-			int modelId = 0;
-			if(current.parameters.containsKey("modelId")) {
-				modelId = int.tryParse(current.parameters["modelId"]);
-			} else {
-				print("ERR: no modelId in URL");
-				return;
+	    }
+	    
+	    void toggleNav() {
+	    	showNav = !showNav;
+	    	window.localStorage['PYRO_EDITOR_SHOW_NAV'] = showNav?'true':'false';
+	    }
+	    
+	    void changedMainLayout(layout) {
+			mainLayout = layout;
+			window.localStorage['PYRO_EDITOR_MAIN_LAYOUT'] = layout;
+			initializeEditor();
+	    }
+	    
+	    bool get isGraphModel => currentFile is GraphModel;
+	    
+	    void toggleFullscreen(int id) {
+	    	fullscreenWidgetId = fullscreenWidgetId != null ? null : id;
+	    }
+	    
+	    bool isFullscreen(int id) {
+	    	return fullscreenWidgetId == id;
+	    }
+	    
+	    bool showWidget(int id) {
+	    	return fullscreenWidgetId == null || fullscreenWidgetId == id;
+	    }
+	    
+	    updateGrid(PyroEditorGrid g) {
+	        _editorDataService.grid = g;
+	        gridItemMap.clear();
+	        _editorDataService.grid.items.forEach((item){
+	            gridItemMap[item.id] = item;
+	        });
+	        grid = _editorDataService.grid;
+	        
+	        // set new active tab after moving tabs
+	        widgetTabs.forEach((widgetTab) {
+	        	bool hasActiveTab = widgetTab.tabs.fold(true, (acc, val) => acc && val.active);
+	        	if (!hasActiveTab) {
+	        		widgetTab.setSelected(widgetTab.tabs[0]);
+	        	}
+	        });
+	    }
+	    
+	    createWidgetArea(PyroEditorWidget widget) {
+	        _editorGridService.createArea(grid.id).then((area) {
+	            moveWidget({
+	                'widgetId': widget.id,
+	                'toAreaId': area.id,
+	                'fromAreaId': null
+	            });
+	        });
+	    }
+	
+	    removeWidget(dynamic e, PyroEditorGridItem area, PyroEditorWidget widget) {
+	        if (e != null) e.preventDefault();     
+	        _editorGridService.removeWidget(grid.id, widget.id).then((g){
+	            updateGrid(g);
+	        });
+	    }
+	    
+	    removeWidgetArea(dynamic e, PyroEditorGridItem area) {
+	    	e.preventDefault();        
+	    	_editorGridService.removeArea(grid.id, area.id).then((g){
+	    		updateGrid(g);
+	    	});
+	    }
+	    
+	    moveWidget(dynamic data) {
+	    	if (data['toAreaId'] == data['fromAreaId']) {
+	    	    return;
+	    	}
+	        _editorGridService.moveWidget(grid.id, data['widgetId'], data['toAreaId']).then((g) => updateGrid(g));
+	    }
+	    
+	    Object trackByWidgetId(_, dynamic o) => o is PyroEditorWidget ? o.id : o;
+	    
+	    Object trackByWidgetAreaId(_, dynamic o) => o is PyroEditorGridItem ? o.id : o;
+	
+	    void changeStructure(dynamic e) {}
+	
+	    void changedGraph(CompoundCommandMessage ccm) {
+			if(ccm.type == "basic_valid_answer") {
+				var allElements = currentFile.allElements();
+				var exists = allElements.contains(selectedElement);
+				if(!exists) {
+					selectedElement = currentFile;
+				}
+				for(var p in properties) {
+					p.rebuildTrees();
+				}
 			}
-			String typeOrExtension = null;
-			if(current.queryParameters.containsKey("ext")) {
-				typeOrExtension = current.queryParameters["ext"];
-			} else {
-				print("ERR: no extension/type in URL");
-				return;
-			}
-			_userService.loadUser().then((u){
-				user = u;
-				_editorDataService.user = u;
-				document.title = "editor";
-		      	redirectionStack.initReditionStack(typeOrExtension, modelId);
-				this.loadGraphModel(typeOrExtension, modelId);     	     
-			}).catchError((_){});
+	    }
+	
+		void changedProperties(PropertyMessage pm) {
+			this.graphService.canvasComponent.updateProperties(pm.delegate);
+			sendMessage(pm).then((m){
+			if (m is CompoundCommandMessage) {
+			         this.graphService.canvasComponent.executeCommands(m,true);
+			         graphService.update(currentFile.id);
+			     }
+			});
 		}
 		
-		Future<dynamic> loadGraphModel(String typeOrExtension, int modelId) {
-			return graphService.loadGraphModel(typeOrExtension, modelId).then((g) {
-				this.currentFile = g;
-				this.selectedElement = g;
-				this.selectedElementModal = g;
-				document.title = "editor - " + g.$displayName();
-			}).catchError((_){});
+		void selectionChanged(IdentifiableElement element) {
+			selectedElement = element;
 		}
-	  
-	  void selectView(dynamic e,String view) {
-		e.preventDefault();
-		if(selected==view) {
-			selected = null;
-			window.localStorage['PYRO_EDITOR_SELECTED'] = null;
-		} else {
-			window.localStorage['PYRO_EDITOR_SELECTED'] = view;
-			selected = view;
+		
+		void selectionChangedModal(IdentifiableElement element) {
+			selectedElementModal = element;
+			if(element != null) {
+				properties.forEach((n)=>n.showModal());         
+			}
 		}
-	  }
-	  void toggleNav() {
-	  	showNav = !showNav;
-	  	window.localStorage['PYRO_EDITOR_SHOW_NAV'] = showNav?'true':'false';
-	  }
-	  void changedMainLayout(layout) {
-		mainLayout = layout;
-		window.localStorage['PYRO_EDITOR_MAIN_LAYOUT'] = layout;
-		ngAfterViewInit();
-	  }
-	  
-	  @override
-	  void onDeactivate(_, RouterState next) async {
-	  	_styleService.handleOnDeactivate(next);
-	  }
-	  
-	  bool get isGraphModel => currentFile is GraphModel;
-	  	  
-	  void toggleFullscreen(int id) {
-	  	fullscreenWidgetId = fullscreenWidgetId != null ? null : id;
-	  }
-	  
-	  bool isFullscreen(int id) {
-	  	return fullscreenWidgetId == id;
-	  }
-	  
-	  bool showWidget(int id) {
-	  	return fullscreenWidgetId == null || fullscreenWidgetId == id;
-	  }
-	  
+		
+		void currentDragging(MapListValue value) {
+			print(value.name);
+		}
 
-	  updateGrid(PyroEditorGrid g) {
-	    _editorDataService.grid = g;
-	    gridItemMap.clear();
-	    _editorDataService.grid.items.forEach((item){
-	      gridItemMap[item.id] = item;
-	    });
-	    grid = _editorDataService.grid;
-	    
-	    // set new active tab after moving tabs
-	    widgetTabs.forEach((widgetTab) {
-	    	bool hasActiveTab = widgetTab.tabs.fold(true, (acc, val) => acc && val.active);
-	    	if (!hasActiveTab) {
-	    		widgetTab.setSelected(widgetTab.tabs[0]);
-	    	}
-	    });
-	  }
-	  
-	  createWidgetArea(PyroEditorWidget widget) {
-	    _editorGridService.createArea(grid.id).then((area) {
-	      moveWidget({
-	        'widgetId': widget.id,
-	        'toAreaId': area.id,
-	        'fromAreaId': null
-	      });
-	    });
-	  }
-	
-	  removeWidget(dynamic e, PyroEditorGridItem area, PyroEditorWidget widget) {
-	    if (e != null) e.preventDefault();   
-	    _editorGridService.removeWidget(grid.id, widget.id).then((g){
-	      updateGrid(g);
-	    });
-	  }
-	  
-	  removeWidgetArea(dynamic e, PyroEditorGridItem area) {
-	      e.preventDefault();    
-	      _editorGridService.removeArea(grid.id, area.id).then((g){
-	        updateGrid(g);
-	      });
-	    }
-	    
-	  moveWidget(dynamic data) {
-	  	if (data['toAreaId'] == data['fromAreaId']) {
-	  	  return;
-	  	}
-	  
-	    _editorGridService.moveWidget(grid.id, data['widgetId'], data['toAreaId']).then((g) {
-	      updateGrid(g);
-	    });
-	  }
-	  
-	  Object trackByWidgetId(_, dynamic o) => o is PyroEditorWidget ? o.id : o;
-	  
-	  Object trackByWidgetAreaId(_, dynamic o) => o is PyroEditorGridItem ? o.id : o;
-	
-	  void changeStructure(dynamic e)
-	  {
-	  }
-	
-	  void changedGraph(CompoundCommandMessage ccm)
-	  {
-	  	if(ccm.type == "basic_valid_answer") {
-	  		var allElements = currentFile.allElements();
-	  		var exists = allElements.contains(selectedElement);
-	  		if(!exists) {
-	  			selectedElement = currentFile;
-	  		}
-	  		for(var p in properties) {
-	  			p.rebuildTrees();
-	  		}
-	  	}
-	  }
-	
-	  void changedProperties(PropertyMessage pm)
-	  {
-	  	this.graphService.canvasComponent.updateProperties(pm.delegate);
-	    sendMessage(pm).then((m){
-	    if (m is CompoundCommandMessage) {
-	         this.graphService.canvasComponent.executeCommands(m,true);
-	         graphService.update(currentFile.id);
-	       }
-	    });
-	  }
-	  
-	  void selectionChanged(IdentifiableElement element)
-	  {
-	    selectedElement = element;
-	  }
-	  
-	  void selectionChangedModal(IdentifiableElement element)
-	  {
-	     selectedElementModal = element;
-	     if(element != null) {
-	       	properties.forEach((n)=>n.showModal());     
-	     }
-	  }
-	  
-	  void currentDragging(MapListValue value)
-	  {
-	    print(value.name);
-	  }
-	  
-	  void jumpToPrime(Map m) {
-		if(m['type'] == "navigation") {
-		  var location = m['location'];
-		  var modelType = location['type'];
-		  var modelId = location['id'];
-		  preGraphModelSwitched();
-		  this.loadGraphModel(modelType, modelId).then((_) => postGraphModelSwitched());
-		} else if(m['type'] == "jumpToPrime"){
-		  IdentifiableElement primeNode = m['primeNode'];
-		  GraphModel parentGraphModel = m['graphModel'];
-		  if(primeNode != null && parentGraphModel != null) {
-		    graphService.jumpToPrime(
-		      parentGraphModel.$type(),
-		      primeNode.$type(),
-		      parentGraphModel.id,
-		      primeNode.id
-		    ).then((m) {
-		      print("jumping to prime:\n${m}");
-		      int modelId = int.parse(m['graphmodel_id']);
-		      String modelType = m['graphmodel_type'];
-		      int elementId = int.parse(m['element_id']);
-		      String elementType = m['element_type'];
-		      preGraphModelSwitched();
-		      redirectionStack.pushToRedirectStack(modelType, modelId);
-		      this.loadGraphModel(modelType, modelId).then((_) {
-		        postGraphModelSwitched();
-		        // TODO: focus and highlight element here with elementId and elementType
-		        // Also put those information on the RedirectStack (pushToRedirectStack),
-		        // so that it could be triggered on forward and backward navigation, too
-		      });
-		    });
-		  }
+		void jumpToPrime(Map m) {
+			if(m['type'] == "navigation") {
+				var location = m['location'];
+				var modelType = location['type'];
+				if(graphService.isGraphModel(modelType)) {
+					var modelId = location['id'];
+		            preGraphModelSwitched();
+					this.loadGraphModel(modelType, modelId);
+				}
+			} else if(m['type'] == "jumpToPrime"){
+			    IdentifiableElement primeNode = m['primeNode'];
+			    GraphModel parentGraphModel = m['graphModel'];
+			    if(primeNode != null && parentGraphModel != null) {
+			        graphService.jumpToPrime(
+			            parentGraphModel.$type(),
+			            primeNode.$type(),
+			            parentGraphModel.id,
+			            primeNode.id
+			        ).then((m) {
+				    	String modelType = m['graphmodel_type'];
+			        	if(graphService.isGraphModel(modelType)) {
+				        	int modelId = int.parse(m['graphmodel_id']);
+					    	int elementId = int.parse(m['element_id']);
+					    	String elementType = m['element_type'];
+					    	print("jumping to prime:\n${m}");
+		                    preGraphModelSwitched();
+					    	redirectionStack.pushToRedirectStack(modelType, modelId);
+					    	this.loadGraphModel(modelType, modelId).then((_) {
+					    		// TODO: focus and highlight element here with elementId and elementType
+					    		// Also put those information on the RedirectStack (pushToRedirectStack),
+					    		// so that it could be triggered on forward and backward navigation, too
+					    	});
+			    		}
+			        });
+			    }
+			}
 		}
-	  }
-	  
-	  void preGraphModelSwitched() {
-	  	blockInteraction();
-	  }
-	  
-	  void postGraphModelSwitched() {
-	  	fetchGrid();
-	  	unblockInteraction();
-	  }
-	  
-	  void blockInteraction() {
-	  	var functionCall = 'start_propagation_'+ this.currentFile.$lower_type();
-	  	js.context.callMethod(functionCall);
-	  }
-	  
-	  void unblockInteraction() {
-	  	var functionCall = 'end_propagation_'+ this.currentFile.$lower_type();
-	  	js.context.callMethod(functionCall);
-	  }
-	
-	  void receiveMessage(String json)
-	  {
-	    Message message = Message.fromJSON(json);
-	    _notificationService.displayMessage("Update",NotificationType.INFO);
-	    if(message is CompoundCommandMessage) {
-	      receiveGraphModelUpdate(message);
-	    }
-	    if(message is PropertyMessage) {
-	      receivePropertyUpdate(message);
-	    }
-	  }
-	  
-	  changeGridLayout(String layout) {
-		_editorGridService.setLayout(grid.id, layout).then((grid) {
-		  updateGrid(grid);
-		});
-	  }
-	
-	  Future<Message> sendMessage(Message message) async
-	  {
-	      return graphService.sendMessage(message,currentFile.$type(),currentFile.id);
-	  }
-	
-	  void receiveGraphModelUpdate(CompoundCommandMessage message)
-	  {
-		  «FOR g:gc.concreteGraphModels SEPARATOR " else "
-		  »if(this.currentFile.$lower_type() == '«g.lowerType»') {
-		        «g.name.fuEscapeDart»CommandGraph cg = new «g.name.fuEscapeDart»CommandGraph(this.currentFile,new List());
-		        cg.receiveCommand(message);
-		  }«
-		  ENDFOR»
-	  }
-	
-	  void receivePropertyUpdate(PropertyMessage message)
-	  {
-	        IdentifiableElement ie = this.currentFile.allElements().where((n)=>n.id==message.delegate.id).first;
-	        if(ie != null) {
-	          ie.merge(message.delegate,structureOnly:true);
+
+		void preGraphModelSwitched() {
+			blockInteraction();
+		}
+		
+		void postGraphModelSwitched() {
+		    initializeEditor();
+			unblockInteraction();
+		}
+		
+		void reinitGrid() {
+		    if (grid != null) {
+		        document.dispatchEvent(new CustomEvent("editor:grid-reinit", detail: grid.toJSOG(new Map())));
+		    }
+		}
+		
+		void blockInteraction() {
+			var functionCall = 'start_propagation_'+ this.currentFile.$lower_type();
+			js.context.callMethod(functionCall);
+		}
+		
+		void unblockInteraction() {
+			var functionCall = 'end_propagation_'+ this.currentFile.$lower_type();
+			js.context.callMethod(functionCall);
+		}
+		
+	    void receiveMessage(String json)
+	    {
+	        Message message = Message.fromJSON(json);
+	        _notificationService.displayMessage("Update",NotificationType.INFO);
+	        if(message is CompoundCommandMessage) {
+	            receiveGraphModelUpdate(message);
 	        }
-	  }
+	        if(message is PropertyMessage) {
+	            receivePropertyUpdate(message);
+	        }
+	    }
+	    
+	    changeGridLayout(String layout) {
+			_editorGridService.setLayout(grid.id, layout).then((grid) {
+			    updateGrid(grid);
+			});
+	    }
+	
+	    Future<Message> sendMessage(Message message) async {
+	    	return graphService.sendMessage(message,currentFile.$type(),currentFile.id);
+	    }
+	
+	    void receiveGraphModelUpdate(CompoundCommandMessage message) {
+		    «FOR g:gc.concreteGraphModels SEPARATOR " else "
+		    »if(this.currentFile.$type() == '«g.typeName»') {
+		    	«g.name.fuEscapeDart»CommandGraph cg = new «g.name.fuEscapeDart»CommandGraph(this.currentFile,new List());
+		    	cg.receiveCommand(message);
+		    }«
+		    ENDFOR»
+	    }
+	
+	    void receivePropertyUpdate(PropertyMessage message) {
+			IdentifiableElement ie = this.currentFile.allElements().where((n)=>n.id==message.delegate.id).first;
+			if(ie != null) {
+			    ie.merge(message.delegate,structureOnly:true);
+			}
+	    }
 	}
 	
 	'''
@@ -472,9 +461,9 @@ class EditorComponent extends Generatable {
 		    (hasClosed)="selectionChangedModal(null)"
 		>
 		</properties>
-		<div class="row" *ngIf="grid != null&&mainLayout=='micro'" style="margin-right:0">
+		<div class="row" *ngIf="grid != null && mainLayout=='micro'" style="margin-right:0">
 			<div [style.width.px]="selected==null?'39':'265'" style="padding-right: 0;">
-				<div class="row">
+				<div class="row" style="height: 100%">
 					<button id="menu-button" (click)="toggleNav()" class="btn btn-primary" style="width: 36px;height: 32px;margin-left: 34px;margin-top: 0px;"><i class="fas fa-list-ul _ngcontent-hvg-13"></i></button>
 			        <div id="scroll-menu" [style.top.px]="showNav?100:31" >
 			          <ul class="nav nav-tabs left-tabs sideways-tabs" style="margin-top:50px;">
@@ -489,6 +478,9 @@ class EditorComponent extends Generatable {
 					            <li *ngIf="widget.key=='command_history'" class="nav-item">
 					              <a class="nav-link" [class.active]="selected=='comman-history'" title="Show Command History" href (click)="selectView($event,'comman-history')">History</a>
 					            </li>
+					            <li *ngIf="widget.key=='map'" class="nav-item">
+					              <a class="nav-link" [class.active]="selected=='map'" title="Show Map" href (click)="selectView($event,'map')">Map</a>
+					            </li>
 							    «FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
 							        <li *ngIf="widget.key=='«pc.key»'" class="nav-item">
 							          <a class="nav-link" [class.active]="selected=='«pc.tab»'" title="Show «pc.tab»" href (click)="selectView($event,'«pc.tab»')">«pc.tab»</a>
@@ -501,22 +493,24 @@ class EditorComponent extends Generatable {
 		
 			        <div class="pyro-micor-menu" style="height: 100%;padding-left:0;width:210px;border: #57747b 2px solid;" *ngIf="selected!=null">
 			        	<h5 style="margin-top: 7px;margin-bottom:5px;text-align: center;">{{selected}}</h5>
-				          <palette class="d-flex flex-column h-100"
-								*ngIf="selected=='palette'&&isGraphModel"
+			        		<palette class="d-flex flex-column h-100"
+								*ngIf="selected=='palette' && isGraphModel"
 						        [currentGraphModel]="currentFile"
 						        [permissionVectors]="permissionVectors"
 						        (dragged)="currentDragging($event)"
 					        ></palette>
-					      <check
-		                	*ngIf="selected=='check'&&isGraphModel"
-		            	    class="d-flex flex-column h-100"
-		                    [currentGraphModel]="currentFile"
-		                  ></check>
-		                   <command-history
-			            	    class="d-flex flex-column h-100"
-			            	    (reverted)="graphService.canvasComponent.undo()"
-			                	*ngIf="isGraphModel&&selected=='comman-history'"
-			                ></command-history>
+					        <check class="d-flex flex-column h-100"
+					        	*ngIf="selected=='check' && isGraphModel"
+						        [currentGraphModel]="currentFile"
+					        ></check>
+					        <command-history class="d-flex flex-column h-100"
+					        	*ngIf="selected=='comman-history' && isGraphModel"
+						        (reverted)="graphService.canvasComponent.undo()"
+					        ></command-history>
+					        <map class="d-flex flex-column h-100"
+			            		*ngIf="selected=='map' && isGraphModel"
+			            		[currentGraphModel]="currentFile"
+			            	></map>
 							«FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
 									<tree-view
 									    *ngIf="selected=='«pc.tab»'&&isGraphModel"
@@ -526,6 +520,7 @@ class EditorComponent extends Generatable {
 										[fetchUrl]="'«pc.fetchURL»'"
 										[clickUrl]="'«pc.clickURL»'"
 										[dbClickUrl]="'«pc.dbClickURL»'"
+										style="height: 100%;"
 										>
 									</tree-view>
 							«ENDFOR»
@@ -591,11 +586,11 @@ class EditorComponent extends Generatable {
 					    </bs-tabs>
 					</editor-tabs-dropzone>
 						
-					  <bs-tab-content [for]="tabs">
+					  <bs-tab-content [for]="tabs" style="height: 100%;">
 					    <ng-container *ngFor="let widget of widgetArea.visibleWidgets; trackBy: trackByWidgetId">
 					      <template bs-tab-panel [name]="widget.key">
 					       
-					       <div [ngSwitch]="widget.key">
+					       <div [ngSwitch]="widget.key" style="height: 100%;">
 							<ng-container *ngSwitchCase="'canvas'">
 							  <pyro-canvas
 							    class="d-flex flex-column h-100" 
@@ -644,14 +639,20 @@ class EditorComponent extends Generatable {
 				            </ng-container>
 				            
 				            <ng-container *ngSwitchCase="'command_history'">
-					              <command-history
-				            	    class="d-flex flex-column h-100"
+					              <command-history class="d-flex flex-column h-100"
 				            	    (reverted)="graphService.canvasComponent.undo()"
 				                	*ngIf="isGraphModel"
 				                ></command-history>
 				            </ng-container>
 				            
+				            <ng-container *ngSwitchCase="'map'">
+				            	<map class="d-flex flex-column h-100"
+				            		*ngIf="isGraphModel"
+				            		[currentGraphModel]="currentFile"
+				            	></map>
+				            </ng-container>
 							«FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
+								
 								<ng-container *ngSwitchCase="'«pc.key»'">
 								    <tree-view
 								        *ngIf="isGraphModel"
@@ -661,6 +662,7 @@ class EditorComponent extends Generatable {
 										[fetchUrl]="'«pc.fetchURL»'"
 										[clickUrl]="'«pc.clickURL»'"
 										[dbClickUrl]="'«pc.dbClickURL»'"
+										style="height: 100%;"
 									>
 									</tree-view>
 								</ng-container>

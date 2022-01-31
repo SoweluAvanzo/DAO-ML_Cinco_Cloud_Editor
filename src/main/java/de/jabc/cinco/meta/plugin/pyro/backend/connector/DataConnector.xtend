@@ -26,6 +26,7 @@ import org.eclipse.emf.ecore.EEnumLiteral
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EPackage
 import org.eclipse.emf.ecore.EReference
+import org.eclipse.emf.ecore.ENamedElement
 
 class DataConnector extends Generatable {
 	
@@ -35,8 +36,14 @@ class DataConnector extends Generatable {
 		super(gc)
 	}
 	
+	private def newModel(CharSequence fqn, String name, EObject element) {
+		val m = new Model(fqn.toString, name.fuEscapeJava, element)
+		models.add(m)
+		m
+	}
+	
 	private def newModel(String fqn,String name) {
-		val m = new Model(fqn,name)
+		val m = new Model(fqn,name, null)
 		models.add(m)
 		m
 	}
@@ -83,7 +90,7 @@ class DataConnector extends Generatable {
 	}
 	
 	private def generateGraphModel(GraphModel g) {
-		val GraphModel = newModel(g.modelPackage.entityFQNBase.toString,g.name.fuEscapeJava)
+		val GraphModel = newModel(g.modelPackage.entityFQNBase, g.name, g)
 		GraphModel.singlePrimitiveAttribute("router","String")
 		GraphModel.singlePrimitiveAttribute("connector","String")
 		GraphModel.singlePrimitiveAttribute("width","long")
@@ -104,7 +111,7 @@ class DataConnector extends Generatable {
 	
 	private def generateNode(Node n) {
 		val mglModel = n.MGLModel
-		val Node = newModel(mglModel.entityFQNBase.toString,n.name.fuEscapeJava)
+		val Node = newModel(mglModel.entityFQNBase, n.name, n)
 		Node.singlePrimitiveAttribute("x","long")
 		Node.singlePrimitiveAttribute("y","long")
 		Node.singlePrimitiveAttribute("width","long")
@@ -135,7 +142,7 @@ class DataConnector extends Generatable {
 	
 	private def generateEdge(Edge e) {
 		val mglModel = e.MGLModel
-		val Edge = newModel(mglModel.entityFQNBase.toString,e.name.fuEscapeJava)
+		val Edge = newModel(mglModel.entityFQNBase, e.name, e)
 		
 		val possibleContainer = e.resolvePossibleContainer.map[Type.cast(it)]
 		val possibleSource = e.possibleSources
@@ -152,7 +159,7 @@ class DataConnector extends Generatable {
 	
 	private def generateType(UserDefinedType nc) {
 		val mglModel = nc.MGLModel
-		val t = newModel(mglModel.entityFQNBase.toString,nc.name.fuEscapeJava)
+		val t = newModel(mglModel.entityFQNBase.toString, nc.name, nc)
 		
 		generateAttributes(t,nc)
 		t.generateReferences(nc)
@@ -161,7 +168,7 @@ class DataConnector extends Generatable {
 	
 	private def generateEnum(Enumeration nc) {
 		val mglModel = nc.MGLModel
-		val t = newModel(mglModel.entityFQNBase.toString,nc.name.fuEscapeJava)
+		val t = newModel(mglModel.entityFQNBase, nc.name, nc)
 		nc.literals.forEach[t.enumLiteral(it.toUnderScoreCase.escapeJava)]
 	}
 	
@@ -225,22 +232,23 @@ class DataConnector extends Generatable {
 	}
 	
 	private def generateEcore(EPackage g) {
-		val GraphModel = newModel(g.modelPackage.entityFQNBase.toString, g.name.fuEscapeJava)
-		GraphModel.singlePrimitiveAttribute("filename","String")
-		GraphModel.singlePrimitiveAttribute("extension","String")
-		GraphModel.singlePrimitiveAttribute("name","String")
+		val EPackage = newModel(g.modelPackage.entityFQNBase, g.name, g)
+		EPackage.singlePrimitiveAttribute("filename","String")
+		EPackage.singlePrimitiveAttribute("extension","String")
+		EPackage.singlePrimitiveAttribute("name","String")
+		EPackage.createSingleAttribute(g, g, null, "container")
 		
 		// create complex dataTypeLists for EPackage-Entity
 		val types = g.EClassifiers
 		types.forEach[ type |
 			if(type instanceof EEnum)
-				GraphModel.multiEnumAttribute(type.name.lowEscapeJava, type.entityFQN.toString)
+				EPackage.multiEnumAttribute(type.name.lowEscapeJava, type.entityFQN.toString)
 			else
-				GraphModel.createMultiAttribute(g, type, type.name.escapeJava, null)
+				EPackage.createMultiAttribute(g, type, type.name.escapeJava, null)
 		]
 		
 		// create delete function
-		GraphModel.createDeleteFunction(g, g)
+		EPackage.createDeleteFunction(g, g)
 		
 		// create for non-abstract types an entity
 		types.filter(EClass).filter[!abstract].forEach[g.generateEcore(it)]
@@ -250,11 +258,12 @@ class DataConnector extends Generatable {
 	}
 	
 	private def generateEcore(EPackage g, EClass type) {
-		val Type = newModel(g.modelPackage.entityFQNBase.toString,type.name.fuEscapeJava)
+		val Type = newModel(g.modelPackage.entityFQNBase, type.name, type)
 		
 		val superTypes = g.resolveSuperTypesAndType(type)
 		val attributes =  type.getAttributes(g, superTypes)
 		val references = type.getReferences(g, superTypes)
+		Type.createSingleAttribute(type, g, g, "container")
 		
 		attributes.forEach[ attr | Type.generateEcorePrimitive(g, attr)]
 		references.forEach[ attr | Type.generateEcoreReference(type, g, attr)]
@@ -690,8 +699,8 @@ class DataConnector extends Generatable {
 		val subTypeAttributeType = element.entityClassName
 		
 		// create mapping
-		val joinColumn = '''parent_«m.name.lowEscapeJava»db_id'''
-		val inverseJoinColumn = '''child_«element.name.lowEscapeJava»db_id'''
+		val joinColumn = '''p_«m.name.lowEscapeJava»_id'''
+		val inverseJoinColumn = '''c_«element.name.lowEscapeJava»_id'''
 		
 		m.multiAttributeJoinTable(
 			subTypeAttributeName,
@@ -888,7 +897,7 @@ class DataConnector extends Generatable {
 	/**
 	 * Convenience Function
 	 */
-	private def <T extends EClassifier> createSingleAttribute(Model m, EObject me, EPackage g, T possibleAttributeType, String superAttributeName) {
+	private def <T extends ENamedElement> createSingleAttribute(Model m, EObject me, EPackage g, T possibleAttributeType, String superAttributeName) {
 		m.createSingleAttribute(me, g, possibleAttributeType, superAttributeName, false);
 	}
 	
@@ -903,9 +912,9 @@ class DataConnector extends Generatable {
 	 * @param superAttributeName the name of the attribute inside the mgl
 	 * @param joinColumn decides if a joinColumn will be generated
 	 */
-	private def <T extends EClassifier> createSingleAttribute(Model m, EObject me, EPackage g, T possibleAttributeType, String superAttributeName, boolean joinColumn) {
+	private def <T extends ENamedElement> createSingleAttribute(Model m, EObject me, EPackage g, T possibleAttributeType, String superAttributeName, boolean joinColumn) {
 		// resolve subTypes
-		val resolvedTypes = possibleAttributeType.resolveSubTypesAndType.filter(EClassifier).toList
+		val resolvedTypes = possibleAttributeType === null? #[] : possibleAttributeType.resolveSubTypesAndType.filter(ENamedElement).toList
 		// create Attributes + Functions
 		m.writeSingleAttributeCode(g, superAttributeName, resolvedTypes, joinColumn)
 	}
@@ -936,14 +945,14 @@ class DataConnector extends Generatable {
 	 * EPACKAGE-ENTITY WRITE FUNCTION-MODEL
 	 */
 	
-	private def <T extends EClassifier> writeSingleAttributeCode(Model m, EPackage g, String superAttributeName, List<T> resolvedTypes, boolean joinColumn) {
+	private def <T extends ENamedElement> writeSingleAttributeCode(Model m, EPackage g, String superAttributeName, List<T> resolvedTypes, boolean joinColumn) {
 		resolvedTypes.forEach[ t | 
 			m.writeSingleAttribute(g, t, superAttributeName, joinColumn)
 		]
 		m.writeSingleAttributeFunctions(g, superAttributeName.fuEscapeJava, superAttributeName, resolvedTypes);
 	}
 	
-	private def <T extends EClassifier> void writeSingleAttribute(Model m, EPackage g, T element, String superAttributeName, boolean joinColumn) {
+	private def <T extends ENamedElement> void writeSingleAttribute(Model m, EPackage g, T element, String superAttributeName, boolean joinColumn) {
 		val subTypeAttributeName = superAttributeName.subTypeAttributeName(element)
 		val subTypeAttributeType = element.getEntityClassName
 		m.singleAttribute(
@@ -954,7 +963,7 @@ class DataConnector extends Generatable {
 		)
 	}
 		
-	private def <T extends EClassifier> writeSingleAttributeFunctions(Model m, EPackage g, CharSequence functionName, CharSequence superAttributeName, List<T> types) {
+	private def <T extends ENamedElement> writeSingleAttributeFunctions(Model m, EPackage g, CharSequence functionName, CharSequence superAttributeName, List<T> types) {
 		val subTypeAttributeNames = types.map[superAttributeName.subTypeAttributeName(it)];
 		// GETTER
 		m.createGetter(Model.dbType, functionName, [
@@ -1034,8 +1043,8 @@ class DataConnector extends Generatable {
 		val subTypeAttributeType = element.getEntityClassName
 		
 		// create mapping
-		val joinColumn = '''parent_«m.name.lowEscapeJava»db_id'''
-		val inverseJoinColumn = '''child_«element.name.lowEscapeJava»db_id'''
+		val joinColumn = '''p_«m.name.lowEscapeJava»_id'''
+		val inverseJoinColumn = '''c_«element.name.lowEscapeJava»_id'''
 		
 		m.multiAttributeJoinTable(
 			subTypeAttributeName,
@@ -1055,7 +1064,7 @@ class DataConnector extends Generatable {
 		)
 	}
 	
-	private def <T extends EClassifier> writeMultiAttributeFunctions(Model m, EPackage g, CharSequence functionName, CharSequence superAttributeName, List<T> types) {
+	private def <T extends ENamedElement> writeMultiAttributeFunctions(Model m, EPackage g, CharSequence functionName, CharSequence superAttributeName, List<T> types) {
 		val subTypeAttributeNames = types.map[superAttributeName.subTypeAttributeName(it)];
 		
 		// GET (ALL)
@@ -1138,6 +1147,9 @@ class DataConnector extends Generatable {
 					'''
 					if(e == null || e instanceof «className») {
 						«subTypeAttributeName».add((«className») e);
+						«IF m.type instanceof EPackage»
+							((«className») e).setContainer(this);
+						«ENDIF»
 					}
 					'''
 				}»«
@@ -1147,7 +1159,7 @@ class DataConnector extends Generatable {
 		// REMOVE
 		m.createCollectionRemove(functionName, '''«Model.dbType» e''', [
 			'''
-				return remove«functionName»(e, false);
+				return remove«functionName»(e, «IF m.type instanceof EPackage»true«ELSE»false«ENDIF»);
 			'''
 		])
 		m.createCollectionRemove(functionName, '''«Model.dbType» e, boolean delete''', [
@@ -1167,7 +1179,10 @@ class DataConnector extends Generatable {
 								boolean result = «subTypeAttributeName».remove(definitiveEntity);
 								if(delete && result) {
 									definitiveEntity.delete();
+								}«IF m.type instanceof EPackage» else {
+									definitiveEntity.setContainer(null);
 								}
+								«ENDIF»
 								return result;
 							}
 						}
@@ -1356,7 +1371,7 @@ class DataConnector extends Generatable {
 		attributeName.subTypeAttributeName(subType.name.fuEscapeJava)
 	}
 	
-	private def String subTypeAttributeName(CharSequence attributeName, EClassifier subType) {
+	private def String subTypeAttributeName(CharSequence attributeName, ENamedElement subType) {
 		attributeName.subTypeAttributeName(subType.name.fuEscapeJava)
 	}
 	
@@ -1368,7 +1383,7 @@ class DataConnector extends Generatable {
 		'''«t.entityFQN»'''
 	}
 	
-	private def String getEntityClassName(EClassifier t) {
+	private def String getEntityClassName(ENamedElement t) {
 		'''«t.entityFQN»'''
 	}
 }

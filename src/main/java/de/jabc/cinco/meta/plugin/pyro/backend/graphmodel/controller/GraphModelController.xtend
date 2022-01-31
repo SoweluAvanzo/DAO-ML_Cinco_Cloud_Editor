@@ -168,18 +168,22 @@ class GraphModelController extends Generatable {
 							«refType.apiFQN» referencedElement = apiNode.get«n.primeReference.name.fuEscapeJava»();
 							if(referencedElement != null) {
 								primeElementlId = referencedElement.getId();
-								«IF refType instanceof GraphModel»
-									graphmodel.ModelElementContainer mec = referencedElement;
-									primeGraphModelId = primeElementlId;
-								«ELSEIF n.ecorePrime»
+								«IF n.ecorePrime»
 									org.eclipse.emf.ecore.EObject mec = referencedElement.eContainer();
 									primeGraphModelId = mec.getId();
+									graphModelType = mec.getType();
+									elementType = referencedElement.getType();
 								«ELSE»
-									graphmodel.ModelElementContainer mec = referencedElement.getRootElement();
-									primeGraphModelId = mec.getId();
+									«IF refType instanceof GraphModel»
+										graphmodel.ModelElementContainer mec = referencedElement;
+										primeGraphModelId = primeElementlId;
+									«ELSE»
+										graphmodel.ModelElementContainer mec = referencedElement.getRootElement();
+										primeGraphModelId = mec.getId();
+									«ENDIF»
+									graphModelType = «typeRegistryName».getTypeOf(mec);
+									elementType = «typeRegistryName».getTypeOf(referencedElement);
 								«ENDIF»
-								graphModelType = «typeRegistryName».getTypeOf(mec);
-								elementType = «typeRegistryName».getTypeOf(referencedElement);
 							}
 						'''
 					}»

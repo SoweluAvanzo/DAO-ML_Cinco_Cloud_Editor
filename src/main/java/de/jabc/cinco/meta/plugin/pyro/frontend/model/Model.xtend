@@ -141,8 +141,8 @@ class Model extends Generatable {
 				this.y = 0;
 			«ENDIF»
 			«IF element instanceof GraphModel»
-				this.width = 1000;
-				this.height = 600;
+				this.width = 10000;
+				this.height = 10000;
 				this.scale = 1.0;
 				this.router = null;
 				this.connector = 'normal';
@@ -247,29 +247,35 @@ class Model extends Generatable {
 					}
 				}
 				«IF element.isPrime»
-					if(jsog.containsKey("b_«element.primeReference.name.escapeDart»")){
-						if(jsog["b_«element.primeReference.name.escapeDart»"]!=null){
-							if(jsog["b_«element.primeReference.name.escapeDart»"].containsKey("@ref")){
-								this.«element.primeReference.name.escapeDart» = cache[jsog["b_«element.primeReference.name.escapeDart»"]["@ref"]];
-							} else {
-								«{
-									var primeRef = element.primeReference.type
-									var primeName = element.primeReference.name.escapeDart
-									var primePack = primeRef.modelPackage
-									'''
-										this.«primeName» =
-										«IF primeRef instanceof ContainingElement»
-											GraphModelDispatcher.dispatch«primePack.name.escapeDart»ModelElementContainer(cache,jsog["b_«primeName»"]);
-										«ELSEIF primePack instanceof EPackage»
-											GraphModelDispatcher.dispatchEcoreElement(cache,jsog["b_«primeName»"]);
-										«ELSE»
-											GraphModelDispatcher.dispatch«primePack.name.escapeDart»ModelElement(cache,jsog["b_«primeName»"]);
-										«ENDIF»
-									'''
-								}»
+					«{
+						val primeName = element.primeReference.name.escapeJavaDart
+						val primeKey = '''b_«primeName»'''
+						'''
+							if(jsog.containsKey("«primeKey»")){
+								if(jsog["«primeKey»"]!=null){
+									if(jsog["«primeKey»"].containsKey("@ref")){
+										this.«primeName» = cache[jsog["«primeKey»"]["@ref"]];
+									} else {
+										«{
+											var primeRef = element.primeReference.type
+											var primePack = primeRef.modelPackage
+											var primePackName = primePack === null ? null : primePack.name.escapeDart
+											'''
+												this.«primeName» =
+												«IF primeRef instanceof ContainingElement»
+													GraphModelDispatcher.dispatch«primePackName»ModelElementContainer(cache,jsog["«primeKey»"]);
+												«ELSEIF primePack instanceof EPackage»
+													GraphModelDispatcher.dispatchEcoreElement(cache,jsog["«primeKey»"]);
+												«ELSE»
+													GraphModelDispatcher.dispatch«primePackName»ModelElement(cache,jsog["«primeKey»"]);
+												«ENDIF»
+											'''
+										}»
+									}
+								}
 							}
-						}
-					}
+						'''
+					}»
 				«ENDIF»
 		  	«ENDIF»  
 			«IF element instanceof ContainingElement»
@@ -506,20 +512,24 @@ class Model extends Generatable {
 					outgoing.addAll(elem.outgoing.where((e)=>outgoing.where((m)=>m.id==e.id).isEmpty).toList());
 				}
 				«IF element.prime»
-					
-					if(!structureOnly){
-						if(elem != null && elem.«element.primeReference.name.escapeDart» == null) {
-							«element.primeReference.name.escapeDart» = elem.«element.primeReference.name.escapeDart»;
-						} else if(«element.primeReference.name.escapeDart» != null){
-							if(cache.containsKey("${«element.primeReference.name.escapeDart».id}")){
-								«element.primeReference.name.escapeDart» = cache["${«element.primeReference.name.escapeDart».id}"];
-							} else {
-								«element.primeReference.name.escapeDart».merge(elem.«element.primeReference.name.escapeDart», cache: cache, structureOnly: structureOnly);
+					«{
+						val primeElementName = element.primeReference.name.escapeJavaDart
+						'''
+							if(!structureOnly){
+								if(elem != null && elem.«primeElementName» == null) {
+									«primeElementName» = elem.«primeElementName»;
+								} else if(«primeElementName» != null){
+									if(cache.containsKey("${«primeElementName».id}")){
+										«primeElementName» = cache["${«primeElementName».id}"];
+									} else {
+										«primeElementName».merge(elem.«primeElementName», cache: cache, structureOnly: structureOnly);
+									}
+								} else {
+									«primeElementName» = elem.«primeElementName»;
+								}
 							}
-						} else {
-							«element.primeReference.name.escapeDart» = elem.«element.primeReference.name.escapeDart»;
-						}
-					}
+						'''
+					}»
 				«ENDIF»
 			«ENDIF»
 			«IF element instanceof Edge»
@@ -647,7 +657,8 @@ class Model extends Generatable {
 	    	«IF element.prime»
 		    	«{
 		    		val refElem = element.primeReference.type
-		    		'''«refElem.dartFQN» «element.primeReference.name.escapeDart»;'''
+		    		val primeElementName = element.primeReference.name.escapeJavaDart
+		    		'''«refElem.dartFQN» «primeElementName»;'''
 		    	}»
 	    	«ENDIF»
 	    «ENDIF»
@@ -767,14 +778,19 @@ class Model extends Generatable {
 		}
 	'''}
 	
-	def pyroElementClass(EClass element, EPackage g) '''
+	def pyroElementClass(EClass element, EPackage g) {
+		
+		val ownAttributes = element.eContents.filter(EAttribute)
+		val ownReferences = element.eContents.filter(EReference)
+		val allAttributes = (element.attributesExtended + element.referencesExtended).sortBy[name]
+		'''
 		«IF element.abstract»abstract «ENDIF»class «element.name.fuEscapeDart» extends «element.extending("core.")» {
 			
 			//attributes
-			«FOR attr : element.eContents.filter(EAttribute)»
+			«FOR attr : ownAttributes»
 				«IF attr.list»List<«ENDIF»«attr.primitiveDartType(g)»«IF attr.list»>«ENDIF» «attr.name.escapeDart»«IF attr.list» = new List()«ENDIF»;
 			«ENDFOR»
-			«FOR attr : element.eContents.filter(EReference)»
+			«FOR attr : ownReferences»
 				«IF attr.list»List<«ENDIF»«attr.complexDartType»«IF attr.list»>«ENDIF» «attr.name.escapeDart»«IF attr.list» = new List()«ENDIF»;
 			«ENDFOR»
 			
@@ -786,14 +802,13 @@ class Model extends Generatable {
 					// default constructor
 					if (jsog == null) {
 						this.id = -1;
-					«FOR attr : element.eContents.filter(EStructuralFeature)»
-						«attr.name.escapeDart» =
-						«IF attr.list»
-							new List();
-						«ELSE»
-							«attr.init»;
-						«ENDIF»
-					«ENDFOR»
+						«FOR attr : allAttributes»
+							«attr.name.escapeDart» = «IF attr.list
+								»new List()«
+								ELSE
+								»«attr.init»«
+								ENDIF»;
+						«ENDFOR»
 					}
 					// from jsog
 					else {
@@ -802,65 +817,20 @@ class Model extends Generatable {
 						
 						this.id = jsog['id'];
 						// properties
-						«FOR attr : element.eContents.filter(EStructuralFeature).sortBy[name]»
+						«FOR attr : allAttributes»
 							if (jsog.containsKey("«attr.name.escapeDart»")) {
 								«IF attr.list»
 									this.«attr.name.escapeDart» = new List();
-									for(var jsogObj in jsog["«attr.name.escapeDart»"]) {
+									if(jsog["«attr.name.escapeDart»"] != null) {
+										for(var jsogObj in jsog["«attr.name.escapeDart»"]) {
+											«attr.handleAttribute(g)»
+										}
+									}
 								«ELSE»
 									var jsogObj = jsog["«attr.name.escapeDart»"];
+									«attr.handleAttribute(g)»
 								«ENDIF»
-								if (jsogObj != null) {
-									«IF attr.isPrimitive»
-										«attr.primitiveDartType(g)» value«attr.name.escapeDart»;
-										if (jsogObj != null) {
-											«IF attr.EType.name.getEnum(g)!==null»
-												value«attr.name.escapeDart» = «attr.EType.name.fuEscapeDart»Parser.fromJSOG(jsogObj as Map<String, dynamic>);
-											«ELSE»
-												value«attr.name.escapeDart» = jsogObj«attr.deserialize(g)» as «attr.primitiveDartType(g)»;
-											«ENDIF»
-										}
-										«IF attr.list»
-											this.«attr.name.escapeDart».add(value«attr.name.escapeDart»);
-										«ELSE»
-											this.«attr.name.escapeDart» = value«attr.name.escapeDart»;
-										«ENDIF»
-									«ELSE»
-										«attr.complexDartType» value«attr.name.escapeDart»;
-										String jsogId;
-										if (jsogObj.containsKey('@ref')) {
-											jsogId = jsogObj['@ref'];
-										} else {
-											jsogId = jsogObj['@id'];
-										}
-										if (cache.containsKey(jsogId)) {
-											value«attr.name.escapeDart» = cache[jsogId];
-										} else {
-											if (jsogObj != null) {
-												«{
-													val subTypes = attr.EType.resolveSubTypesAndType
-													'''
-														«FOR subType : subTypes SEPARATOR " else "
-														»if (jsogObj['__type'] == "«subType.typeName»") {
-															value«attr.name.escapeDart» =
-																new «subType.dartFQN»(cache: cache, jsog: jsogObj);
-														}«
-														ENDFOR»
-													'''
-												}»
-												«»
-												
-											}
-										}
-										«IF attr.list»
-											this.«attr.name.escapeDart».add(value«attr.name.escapeDart»);
-										«ELSE»
-											this.«attr.name.escapeDart» = value«attr.name.escapeDart»;
-										«ENDIF»
-									«ENDIF»
-								}
 							}
-							«IF attr.list»}«ENDIF»
 						«ENDFOR»
 					}
 				}
@@ -879,7 +849,7 @@ class Model extends Generatable {
 						map['runtimeType']="«element.restFQN»";
 						map['id']=id;
 						cache["«element.typeName»:${id}"]=map;
-						«FOR attr : element.eContents.filter(EStructuralFeature)»
+						«FOR attr : allAttributes»
 							map['«attr.name.escapeDart»']=«attr.name.escapeDart»==null?null:
 							«IF attr.isList»
 								«attr.name.escapeDart».map((n)=>«attr.serialize(g,'''n''')»).toList();
@@ -903,7 +873,7 @@ class Model extends Generatable {
 						cache = new Map();
 					}
 					cache["«element.typeName»:${id}"]=this;
-					«FOR attr : element.eContents.filter(EStructuralFeature)»
+					«FOR attr : allAttributes»
 						«attr.name.escapeDart» = elem.«attr.name.escapeDart»;
 					«ENDFOR»
 				}
@@ -915,10 +885,10 @@ class Model extends Generatable {
 					if(!root) {
 						return elem;
 					}
-					«FOR attr:element.eContents.filter(EAttribute)»
+					«FOR attr:ownAttributes»
 						elem.«attr.name.escapeDart» = this.«attr.name.escapeDart»;
 					«ENDFOR»
-					«FOR attr : element.eContents.filter(EReference)»
+					«FOR attr : ownReferences»
 						if(this.«attr.name.escapeDart»!=null) {
 							elem.«attr.name.escapeDart» = this.«attr.name.escapeDart»
 							«IF attr.list»
@@ -934,7 +904,8 @@ class Model extends Generatable {
 				Map toJSOG(Map cache);
 			«ENDIF»
 		}
-	'''
+		'''
+	}
 	
 	def contentGraphmodel(MGLModel m,Styles styles) {
 		val ecoreReferencedModels = gc.ecores // TODO: needs to be more precise
@@ -1103,4 +1074,58 @@ class Model extends Generatable {
 			}
 		«ENDFOR»
 	'''
+	
+	def handleAttribute(EStructuralFeature attr, EPackage g) {
+		'''
+			if (jsogObj != null) {
+				«IF attr.isPrimitive»
+					«attr.primitiveDartType(g)» value«attr.name.escapeDart»;
+					if (jsogObj != null) {
+						«IF attr.EType.name.getEnum(g)!==null»
+							value«attr.name.escapeDart» = «attr.EType.name.fuEscapeDart»Parser.fromJSOG(jsogObj as Map<String, dynamic>);
+						«ELSE»
+							value«attr.name.escapeDart» = jsogObj«attr.deserialize(g)» as «attr.primitiveDartType(g)»;
+						«ENDIF»
+					}
+					«IF attr.list»
+						this.«attr.name.escapeDart».add(value«attr.name.escapeDart»);
+					«ELSE»
+						this.«attr.name.escapeDart» = value«attr.name.escapeDart»;
+					«ENDIF»
+				«ELSE»
+					«attr.complexDartType» value«attr.name.escapeDart»;
+					String jsogId;
+					if (jsogObj.containsKey('@ref')) {
+						jsogId = jsogObj['@ref'];
+					} else {
+						jsogId = jsogObj['@id'];
+					}
+					if (cache.containsKey(jsogId)) {
+						value«attr.name.escapeDart» = cache[jsogId];
+					} else {
+						if (jsogObj != null) {
+							«{
+								val subTypes = attr.EType.resolveSubTypesAndType
+								'''
+									«FOR subType : subTypes SEPARATOR " else "
+									»if (jsogObj['__type'] == "«subType.typeName»") {
+										value«attr.name.escapeDart» =
+											new «subType.dartFQN»(cache: cache, jsog: jsogObj);
+									}«
+									ENDFOR»
+								'''
+							}»
+							«»
+							
+						}
+					}
+					«IF attr.list»
+						this.«attr.name.escapeDart».add(value«attr.name.escapeDart»);
+					«ELSE»
+						this.«attr.name.escapeDart» = value«attr.name.escapeDart»;
+					«ENDIF»
+				«ENDIF»
+			}
+		'''
+	}
 }

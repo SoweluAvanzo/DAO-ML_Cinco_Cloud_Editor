@@ -141,6 +141,22 @@ class GraphService extends Generatable {
 				ENDFOR»
 		    	throw new Error();
 			}
+			
+			/**
+			 * checks if the given type or fileExtension is related to a GraphModel.
+			 * Occurence of graphModels is sorted by typeName (packageName + ModelName).
+			 */
+			bool isGraphModel(String typeOrExtension) {
+				«FOR g : gc.concreteGraphModels SEPARATOR " else "
+				»if(
+					typeOrExtension == "«g.fileExtension»"
+					|| typeOrExtension == "«g.typeName»"
+				) {
+					return true;
+				}«
+				ENDFOR»
+		    	return false;
+			}
 			«FOR m : gc.mglModels»
 					«{
 						val styles = CincoUtil.getStyles(m)

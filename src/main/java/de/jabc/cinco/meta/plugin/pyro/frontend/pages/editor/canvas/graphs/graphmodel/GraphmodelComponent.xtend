@@ -87,7 +87,9 @@ class GraphmodelComponent extends Generatable {
 			  @override
 			  void execCreateEdgeCommandCanvas(CreateEdgeCommand cmd) {
 			      core.ModelElement e = findElement(cmd.delegateId);
-			      
+			      if(e == null) {
+			      	return;
+			      }
 			      «FOR edge : g.edges.filter[!isIsAbstract]»
 			      	if(cmd.type=='«edge.typeName»'){
 			      		js.context.callMethod('create_edge_«edge.jsCall(g)»',[
@@ -159,7 +161,7 @@ class GraphmodelComponent extends Generatable {
 				}
 				
 				void _moveNodeCanvas(String type,int delegateId, int containerId, int x, int y) {
-				var elem = findElement(delegateId) as core.Node;
+					var elem = findElement(delegateId) as core.Node;
 				 	if(elem == null) {
 				 		return;
 				 	}
@@ -836,7 +838,7 @@ class GraphmodelComponent extends Generatable {
 			
 			 core.IdentifiableElement findElement(int id) {
 			  if(id==currentGraphModel.id){
-			   return currentGraphModel;
+			  	return currentGraphModel;
 			  }
 			  var elements = currentGraphModel.allElements();
 		      for(var e in elements) {
@@ -906,6 +908,9 @@ class GraphmodelComponent extends Generatable {
 			 		var node = currentSelection as core.Node;
 			 		«'''
 				 	 	var container = findElement(node.container.id) as core.ModelElementContainer;
+				 	 	if(container == null) {
+				 	 		return;
+				 	 	}
 				 	 	var ccm = commandGraph.sendRemoveNodeCommand(node.id,user);
 				 	 	graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 				 	 		if(m is CompoundCommandMessage){
@@ -1466,6 +1471,9 @@ class GraphmodelComponent extends Generatable {
 				
 				void cb_remove_node_«node.jsCall(g)»(int id) {
 					var node = findElement(id) as «node.dartFQN»;
+					if(node == null) {
+						return;
+					}
 					var container = findElement(node.container.id) as core.ModelElementContainer;
 					var ccm = commandGraph.sendRemoveNodeCommand(id,user);
 					startPropagation();
@@ -1513,7 +1521,7 @@ class GraphmodelComponent extends Generatable {
 				void cb_resize_node_«node.jsCall(g)»(int width,int height,String direction,int id) {
 					«IF node.resizable»
 						var node = findElement(id) as core.Node;
-						if(node.width!=width||node.height!=height) {
+						if(node != null && node.width!=width||node.height!=height) {
 							startPropagation();
 							var ccm = commandGraph.sendResizeNodeCommand(id,width,height,direction,user);
 							graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
@@ -1531,16 +1539,18 @@ class GraphmodelComponent extends Generatable {
 					
 				void cb_rotate_node_«node.jsCall(g)»(int angle,int id) {
 					var node = findElement(id) as core.Node;
-				   	var ccm =commandGraph.sendRotateNodeCommand(id,angle,user);
-					startPropagation();
-				   	graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
-						«'''
-				    		node.angle = angle;
-				    		updateElement(node);
-				    		commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
-				    		commandGraph.storeCommand(m.cmd);
-					  	'''.checkCommand("basic_valid_answer")»
-					}).whenComplete(()=>endPropagation());
+					if(node != null) {
+					   	var ccm =commandGraph.sendRotateNodeCommand(id,angle,user);
+						startPropagation();
+					   	graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
+							«'''
+					    		node.angle = angle;
+					    		updateElement(node);
+					    		commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
+					    		commandGraph.storeCommand(m.cmd);
+						  	'''.checkCommand("basic_valid_answer")»
+						}).whenComplete(()=>endPropagation());
+					}
 				}
 			«ENDFOR»
 			
@@ -1605,6 +1615,9 @@ class GraphmodelComponent extends Generatable {
 				
 				void cb_remove_edge_«edge.jsCall(g)»(int id) {
 					var edge = findElement(id) as core.Edge;
+					if(edge == null) {
+						return;
+					}
 					var ccm = commandGraph.sendRemoveEdgeCommand(id,edge.source.id,edge.target.id,edge.source.$type(),edge.target.$type(),"«edge.typeName»",user);
 					startPropagation();
 					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
@@ -1628,6 +1641,9 @@ class GraphmodelComponent extends Generatable {
 				
 				void cb_reconnect_edge_«edge.jsCall(g)»(int sourceId,int targetId,int id) {
 					var edge = findElement(id) as core.Edge;
+					if(edge == null) {
+						return;
+					}
 					var source = findElement(sourceId) as core.Node;
 					var target = findElement(targetId) as core.Node;
 					if(edge.source.id!=sourceId||edge.target.id!=targetId) {
@@ -1658,7 +1674,9 @@ class GraphmodelComponent extends Generatable {
 		
 			void cb_update_bendpoint(List positions,int id) {
 				var edge = findElement(id) as core.Edge;
-				
+				if(edge == null) {
+					return;
+				}
 				//check if update is present
 				if(check_bendpoint_update(edge,positions)) {
 					var currentBendpoints = new List<core.BendingPoint>();
