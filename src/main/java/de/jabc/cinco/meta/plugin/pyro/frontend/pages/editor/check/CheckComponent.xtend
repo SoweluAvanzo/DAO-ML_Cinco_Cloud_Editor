@@ -100,17 +100,17 @@ class CheckComponent extends Generatable {
 		   }
 		   
 		   void triggerMap(GraphModel g) {
-		   	if(loading || g == null) {
-		   		return;
-		   	}
-		   	loading = true;
-			«FOR g : gc.graphMopdels.filter[it.hasChecks]»
-				if(g.$type() == "«g.typeName»"){
-				 //read checks for «g.name.escapeDart»
-				 checkResults.clear();
-				 _checkService.read("«g.name.lowEscapeDart»",g).then((cr){checkResults=cr==null?[]:cr.results;}).whenComplete((){loading=false;});
-				}
-			«ENDFOR»
+			if(loading || g == null) {
+				return;
+			}
+			loading = true;
+			«FOR g : gc.graphMopdels.filter[it.hasChecks] SEPARATOR " else "
+			»if(g.$type() == "«g.typeName»"){
+				//read checks for «g.name.escapeDart»
+				checkResults.clear();
+				_checkService.read(g).then((cr){checkResults=cr==null?[]:cr.results;}).whenComplete((){loading=false;});
+			}«
+			ENDFOR»
 		  }
 		
 			updateChecks() {

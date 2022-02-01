@@ -1757,6 +1757,11 @@ function downloadContent(filename, text) {
     pom.remove();
 }
 
+function reAdjustDimensions(paper, paperMap) {
+    adjustDimensions(paper);
+    adjustMapDimensions(paperMap);
+}
+
 function adjustDimensions(paper) {
     if(paper == null)
         return;

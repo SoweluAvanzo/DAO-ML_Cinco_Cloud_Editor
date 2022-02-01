@@ -128,6 +128,8 @@ class EditorComponent extends Generatable {
 		@override
 		void onActivate(_, RouterState current) async {
 			token = null;
+			int modelId = 0;
+			String typeOrExtension = null;
 			if(current.queryParameters.containsKey("token")) {
 			    // window.localStorage[BaseService.tokenKey] = current.queryParameters["token"];
 			    token = current.queryParameters["token"];
@@ -135,14 +137,12 @@ class EditorComponent extends Generatable {
 			    print("ERR: no token in URL");
 			    return;
 			}
-			int modelId = 0;
 			if(current.parameters.containsKey("modelId")) {
 			    modelId = int.tryParse(current.parameters["modelId"]);
 			} else {
 			    print("ERR: no modelId in URL");
 			    return;
 			}
-			String typeOrExtension = null;
 			if(current.queryParameters.containsKey("ext")) {
 			    typeOrExtension = current.queryParameters["ext"];
 			} else {
@@ -173,17 +173,24 @@ class EditorComponent extends Generatable {
 		}
 		
 		void initializeEditor() {
-	  	fetchGrid();
-			var timer = new Timer.periodic(const Duration(milliseconds: 100), (Timer t){
-				if (grid != null && mainLayout=='classic') {
-					initializeGrid(t);
-					reinitGrid();
-				}
-			}); 
+			if(mainLayout == 'classic') {
+			  grid = null;
+			  fetchGrid();
+			  var t = new Timer.periodic(const Duration(milliseconds: 100), (Timer t){
+			    if (grid != null) {
+			      initializeGrid(t);
+			      reinitGrid();
+			      if(this.currentFile != null) {
+			        var functionCall = 'reaAdjustDimensions_'+ this.currentFile.$lower_type();
+			        js.context.callMethod(functionCall);
+			      }
+			    }
+			  });
+			}
 		}
 	
-		void fetchGrid() {
-			this._editorGridService.get().then((g) {
+		Future<dynamic> fetchGrid() {
+			return this._editorGridService.get().then((g) {
 				this.updateGrid(g);
 			});
 		}
@@ -214,7 +221,7 @@ class EditorComponent extends Generatable {
 				_editorGridService.update(grid).then((g) {
 					updateGrid(g);
 				});
-			}); 
+			});
 		}
 	    
 	    void selectView(dynamic e,String view) {
@@ -263,12 +270,16 @@ class EditorComponent extends Generatable {
 	        
 	        // set new active tab after moving tabs
 	        widgetTabs.forEach((widgetTab) {
-	        	bool hasActiveTab = widgetTab.tabs.fold(true, (acc, val) => acc && val.active);
-	        	if (!hasActiveTab) {
-	        		widgetTab.setSelected(widgetTab.tabs[0]);
-	        	}
+				bool hasActiveTab = widgetTab.tabs.fold(true, (acc, val) => acc && val.active);
+				if (!hasActiveTab) {
+					widgetTab.setSelected(widgetTab.tabs[0]);
+				}
 	        });
 	    }
+	    
+		void reinitGrid() {
+		  document.dispatchEvent(new CustomEvent("editor:grid-reinit", detail: grid.toJSOG(new Map())));
+		}
 	    
 	    createWidgetArea(PyroEditorWidget widget) {
 	        _editorGridService.createArea(grid.id).then((area) {
@@ -367,17 +378,17 @@ class EditorComponent extends Generatable {
 				    	String modelType = m['graphmodel_type'];
 			        	if(graphService.isGraphModel(modelType)) {
 				        	int modelId = int.parse(m['graphmodel_id']);
-					    	int elementId = int.parse(m['element_id']);
-					    	String elementType = m['element_type'];
-					    	print("jumping to prime:\n${m}");
-		                    preGraphModelSwitched();
-					    	redirectionStack.pushToRedirectStack(modelType, modelId);
-					    	this.loadGraphModel(modelType, modelId).then((_) {
-					    		// TODO: focus and highlight element here with elementId and elementType
-					    		// Also put those information on the RedirectStack (pushToRedirectStack),
-					    		// so that it could be triggered on forward and backward navigation, too
-					    	});
-			    		}
+	                int elementId = int.parse(m['element_id']);
+	                String elementType = m['element_type'];
+	                print("jumping to prime:\n${m}");
+	                        preGraphModelSwitched();
+	                redirectionStack.pushToRedirectStack(modelType, modelId);
+	                this.loadGraphModel(modelType, modelId).then((_) {
+	                  // TODO: focus and highlight element here with elementId and elementType
+	                  // Also put those information on the RedirectStack (pushToRedirectStack),
+	                  // so that it could be triggered on forward and backward navigation, too
+	                });
+	              }
 			        });
 			    }
 			}
@@ -392,12 +403,6 @@ class EditorComponent extends Generatable {
 			unblockInteraction();
 		}
 		
-		void reinitGrid() {
-		    if (grid != null) {
-		        document.dispatchEvent(new CustomEvent("editor:grid-reinit", detail: grid.toJSOG(new Map())));
-		    }
-		}
-		
 		void blockInteraction() {
 			var functionCall = 'start_propagation_'+ this.currentFile.$lower_type();
 			js.context.callMethod(functionCall);
@@ -408,8 +413,7 @@ class EditorComponent extends Generatable {
 			js.context.callMethod(functionCall);
 		}
 		
-	    void receiveMessage(String json)
-	    {
+	    void receiveMessage(String json) {
 	        Message message = Message.fromJSON(json);
 	        _notificationService.displayMessage("Update",NotificationType.INFO);
 	        if(message is CompoundCommandMessage) {

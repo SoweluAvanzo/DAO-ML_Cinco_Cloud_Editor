@@ -694,10 +694,10 @@ class GraphmodelComponent extends Generatable {
 			 «IF g.hasChecks»
 			 	
 			 	void fetchChecks() {
-			 		  checkService.read("«g.name.lowEscapeDart»",currentGraphModel).then((crs){
-			 		  	CheckResults filteredCRS = CheckResults.filterChecks(CheckResults.copy(crs),isError,isWarning,isInfo);
-			 		  	refreshChecks(filteredCRS);
-			 		  });
+			 		checkService.read(currentGraphModel).then((crs){
+			 			CheckResults filteredCRS = CheckResults.filterChecks(CheckResults.copy(crs),isError,isWarning,isInfo);
+			 			refreshChecks(filteredCRS);
+			 		});
 			 	}
 			 «ENDIF»
 			 

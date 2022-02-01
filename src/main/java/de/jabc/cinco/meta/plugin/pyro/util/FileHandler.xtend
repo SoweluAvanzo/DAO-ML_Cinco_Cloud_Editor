@@ -38,8 +38,10 @@ class FileHandler {
 		for(f:folders) {
 			if(!found){
 				val path = getSourcePath(pivot, f, pathXtend, pathJava)
-				copyFile(pivot,'''«f»/«path»''',target,false, projectLocation)
-				found=true
+				if(path !== null) {
+					copyFile(pivot,'''«f»/«path»''',target,false, projectLocation)
+					found=true
+				}
 			}
 		}
 		return found
