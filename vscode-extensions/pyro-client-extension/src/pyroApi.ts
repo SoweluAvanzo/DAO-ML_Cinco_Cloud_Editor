@@ -14,18 +14,18 @@ export abstract class PyroApi {
 		PyroEditorProvider.logging("REQUESTING:\n"+options.path);
 		return new Promise((resolve, reject) => {
 			const httpOptions = this.applyHttpsOptions(options);
-			const req = http.request(httpOptions,(response: http.IncomingMessage) => {
+			const req = https.request(httpOptions,(response: http.IncomingMessage) => {
 					if (response.statusCode != 200) {
 						PyroEditorProvider.logging('REQUEST FAILED:\n'+httpOptions.hostname+'\n'+httpOptions.path+'\n'+httpOptions.port);
 						PyroEditorProvider.logging('CODE: '+response.statusCode+" | MESSAGE: "+response.statusMessage);
 						reject(new Error(response.statusMessage));
 					}
 					const chunks:any[] = [];
-					response.on('data', (chunk) => {
+					response.on('data', (chunk: string) => {
 						PyroEditorProvider.logging('RESPONSE-RECEIVED:\n'+chunk);
 						chunks.push(chunk);
 					});
-					response.on('error',(e)=>PyroEditorProvider.logging("Process-Error:\n"+e));
+					response.on('error',(e: string)=>PyroEditorProvider.logging("Process-Error:\n"+e));
 					response.on('end', () => {
 						const result = Buffer.concat(chunks).toString();
 						PyroEditorProvider.logging("Process-Ended");
@@ -48,7 +48,7 @@ export abstract class PyroApi {
 		const options = this.applyHttpsOptions({
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
-			path: PYRO_SUBPATH+'/api/'+modelType?.toLowerCase()+'/create/private',
+			path: PYRO_SUBPATH+'/api/'+PyroApi.getRestEndpoint(modelType)+'/create/private',
 			method: 'POST',
 			'headers': {
 				'Authorization': token,
@@ -64,7 +64,7 @@ export abstract class PyroApi {
 		const options = this.applyHttpsOptions({
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
-			path: PYRO_SUBPATH+'/api/'+modelType?.toLowerCase()+'/remove/'+id+'/private',
+			path: PYRO_SUBPATH+'/api/'+PyroApi.getRestEndpoint(modelType)+'/remove/'+id+'/private',
 			method: 'GET',
 			'headers': {
 				'Authorization': token,
@@ -100,7 +100,7 @@ export abstract class PyroApi {
 		}
 		return result;
 	}
-
+	
 	public static applyHttpsOptions(options: http.RequestOptions): http.RequestOptions {
 		if (process.env.USE_SSL === 'true') {
 			return { ...options, ...{
@@ -110,5 +110,11 @@ export abstract class PyroApi {
 		} else {
 			return options;
 		}
+	}
+
+	public static getRestEndpoint(modelType: string | undefined) {
+		if(!modelType)
+			throw new Error("ModelType missing!");
+		return modelType.replace(".", "_").toLowerCase();
 	}
 }
