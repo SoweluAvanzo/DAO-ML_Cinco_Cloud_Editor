@@ -1356,6 +1356,10 @@ class Controller extends Generatable{
 	    }
 	}
 	
+	function reaAdjustDimensions_«g.jsCall»() {
+	    reAdjustDimensions($paper_«g.jsCall», $map_paper_«g.jsCall»);
+	}
+	
 	$(window).resize(function(e) {
 		if(e != null && e.target != null && e.target.getElementsByTagName) { // widgets are resized
 			if(e.target.getElementsByTagName('map').length>0) {
@@ -1364,8 +1368,7 @@ class Controller extends Generatable{
 				adjustDimensions($paper_«g.jsCall»);
 			}
 		} else { // window is resized
-			adjustMapDimensions($map_paper_«g.jsCall»);
-			adjustDimensions($paper_«g.jsCall»);
+			reaAdjustDimensions_«g.jsCall»();
 		}
 	});
 	'''

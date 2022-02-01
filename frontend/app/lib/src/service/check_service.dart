@@ -37,9 +37,10 @@ class CheckService extends BaseService {
     return checkListeners[id].stream;
   }
 
-  Future<CheckResults> read(String type,GraphModel gm) async {
+  Future<CheckResults> read(GraphModel gm) async {
+	var endpoint = getGraphModelEndpoint(gm.$type());
     return HttpRequest.request(
-	    	"${getBaseUrl()}/${type}/checks/${gm.id.toString()}/private",
+	    	"${getBaseUrl()}/${endpoint}/checks/${gm.id.toString()}/private",
 	    	method: "GET",
 	        requestHeaders: requestHeaders,
 	        withCredentials: true

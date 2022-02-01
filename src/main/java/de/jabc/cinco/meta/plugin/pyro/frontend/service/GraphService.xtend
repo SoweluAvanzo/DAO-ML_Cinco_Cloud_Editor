@@ -322,10 +322,6 @@ class GraphService extends Generatable {
 				}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
 				}
 			«ENDFOR»
-			
-			String getGraphModelEndpoint(String graphModelType) {
-				return graphModelType.replaceAll( "." , "_" ).toLowerCase();
-			}
 		}
 	'''
 
