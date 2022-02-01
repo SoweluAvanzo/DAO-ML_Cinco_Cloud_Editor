@@ -1,7 +1,6 @@
 package info.scce.cincocloud.config;
 
 import info.scce.cincocloud.db.SettingsDB;
-import info.scce.cincocloud.db.StyleDB;
 import info.scce.cincocloud.grpc.MainServiceGrpcImpl;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
@@ -44,20 +43,10 @@ public class StartupBean {
 
   private void initSettings() {
     LOGGER.log(Level.INFO, "Init application settings.");
-    if (StyleDB.listAll().isEmpty()) {
-      StyleDB style = new StyleDB();
-      style.navBgColor = "525252";
-      style.navTextColor = "afafaf";
-      style.bodyBgColor = "313131";
-      style.bodyTextColor = "ffffff";
-      style.primaryBgColor = "007bff";
-      style.primaryTextColor = "ffffff";
-      style.persist();
-
-      SettingsDB settings = new SettingsDB();
+    if (SettingsDB.listAll().isEmpty()) {
+      final var settings = new SettingsDB();
       settings.globallyCreateOrganizations = true;
       settings.allowPublicUserRegistration = true;
-      settings.style = style;
       settings.persist();
     }
   }

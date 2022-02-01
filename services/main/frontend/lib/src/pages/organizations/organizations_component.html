@@ -20,8 +20,8 @@
   <div *ngIf="organizations.length > 0" class="list-group">
     <div *ngFor="let org of organizations; let i = $index" class="list-group-item pyro-list-entry d-flex flex-row">
       <div class="mr-3">
-        <img *ngIf="org.style.logo != null" src="{{org.style.logo.downloadPath}}" style="width: 60px; height: auto;">
-        <div *ngIf="org.style.logo == null" style="height: 40px; width: 60px; background: rgba(0,0,0,.1)"></div>
+        <img *ngIf="org.logo != null" src="{{org.logo.downloadPath}}" style="width: 60px; height: auto;">
+        <div *ngIf="org.logo == null" style="height: 40px; width: 60px; background: rgba(0,0,0,.1)"></div>
       </div>
       <div class="w-100">
         <a [routerLink]="getProjectsUrl(org)" class="org-body-text-color">

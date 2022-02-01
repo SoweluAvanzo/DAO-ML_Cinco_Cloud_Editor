@@ -2,7 +2,6 @@ import 'package:angular/angular.dart';
 import 'package:angular_router/angular_router.dart';
 
 import '../../../routes.dart' as top_routes;
-import '../../../service/style_service.dart';
 import '../../../pages/profile/profile_image/profile_image_component.dart';
 import '../../../model/core.dart';
 
@@ -16,20 +15,13 @@ import '../../../model/core.dart';
 )
 class NavigationComponent {
 
-  final StyleService _styleService;
-  
   @Input("user")
   User currentUser;
 
   @Input("organization")
   Organization currentOrganization;
-  
-  NavigationComponent(this._styleService) {
-  }
-  
+
   bool get isAdmin => currentUser != null && currentUser.systemRoles.contains(UserSystemRole.ADMIN);
 
   String get organizationUrl => top_routes.RoutePaths.organization.toUrl(parameters: {'orgId': currentOrganization.id.toString()});
-  
-  Style get style => _styleService.style;
 }

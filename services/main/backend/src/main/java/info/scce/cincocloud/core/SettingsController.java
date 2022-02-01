@@ -1,9 +1,7 @@
 package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.core.rest.tos.SettingsTO;
-import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.SettingsDB;
-import info.scce.cincocloud.db.StyleDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.List;
@@ -48,19 +46,6 @@ public class SettingsController {
     final SettingsDB settingsInDb = SettingsDB.findById(settings.getId());
 
     if (subject != null && subject.isAdmin() && settingsInDb != null) {
-      final StyleDB style = settingsInDb.style;
-      style.navBgColor = settings.getstyle().getnavBgColor();
-      style.navTextColor = settings.getstyle().getnavTextColor();
-      style.bodyBgColor = settings.getstyle().getbodyBgColor();
-      style.bodyTextColor = settings.getstyle().getbodyTextColor();
-      style.primaryBgColor = settings.getstyle().getprimaryBgColor();
-      style.primaryTextColor = settings.getstyle().getprimaryTextColor();
-      if (settings.getstyle().getlogo() != null) {
-        style.logo = BaseFileDB.findById(settings.getstyle().getlogo().getId());
-      } else {
-        style.logo = null;
-      }
-
       settingsInDb.globallyCreateOrganizations = settings.getgloballyCreateOrganizations();
       settingsInDb.allowPublicUserRegistration = settings.getallowPublicUserRegistration();
       return Response.ok(SettingsTO.fromEntity(settingsInDb, objectCache)).build();

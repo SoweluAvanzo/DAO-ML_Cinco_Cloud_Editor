@@ -7,7 +7,6 @@ import '../../model/core.dart';
 import '../../service/organization_service.dart';
 import '../../service/user_service.dart';
 import '../../service/notification_service.dart';
-import '../../service/style_service.dart';
 import '../shared/navigation/navigation_component.dart';
 import '../projects/projects_component.dart';
 import './users/users_component.dart';
@@ -17,10 +16,11 @@ import './access_rights/access_rights_component.dart';
 @Component(
   selector: 'organization',
   templateUrl: 'organization_component.html',
+  styleUrls: const ['organization_component.css'],
   directives: const [coreDirectives, routerDirectives, NavigationComponent, ProjectsComponent, UsersComponent, AppearanceComponent, AccessRightsComponent],
   providers: const [ClassProvider(UserService), ClassProvider(OrganizationService)],
 ) 
-class OrganizationComponent implements OnInit, OnActivate, OnDeactivate {
+class OrganizationComponent implements OnActivate {
 
   User currentUser;
   Organization organization;
@@ -29,17 +29,12 @@ class OrganizationComponent implements OnInit, OnActivate, OnDeactivate {
   final OrganizationService _organizationService;
   final UserService _userService;
   final NotificationService _notificationService;
-  final StyleService _styleService;
-  
+
   String menuState = "projects";
   
-  OrganizationComponent(this._organizationService, this._userService, this._notificationService, this._styleService, this._router) {
+  OrganizationComponent(this._organizationService, this._userService, this._notificationService, this._router) {
   }
 
-  @override
-  void ngOnInit() {     
-  }
-    
   @override
   void onActivate(_, RouterState current) async {
     var orgId = current.parameters['orgId'];
@@ -49,7 +44,6 @@ class OrganizationComponent implements OnInit, OnActivate, OnDeactivate {
       _organizationService.getById(orgId)
       	.then((org){
       	  organization = org;
-      	  _styleService.update(org.style);
       	  document.title = "Cinco Cloud | " + org.name;
       	})
       	.catchError((err) {
@@ -59,12 +53,7 @@ class OrganizationComponent implements OnInit, OnActivate, OnDeactivate {
       window.console.log(err);
     });
   }
-  
-  @override
-  void onDeactivate(_, RouterState next) async {
-  	_styleService.handleOnDeactivate(next);
-  }
-  
+
   void setMenuState(dynamic e, String state) {
   	e.preventDefault();
   	menuState = state;
@@ -77,7 +66,7 @@ class OrganizationComponent implements OnInit, OnActivate, OnDeactivate {
   void orgChanged(Organization organization) {
     this.organization = organization;
   }
-  
+
   bool get isOrgOwner => organization.owners.indexWhere((u) => u.id == currentUser.id) > -1;
 }
 
