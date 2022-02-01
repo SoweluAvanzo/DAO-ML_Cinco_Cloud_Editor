@@ -7,7 +7,14 @@
     <div *ngIf="isOrgOwner" class="col-12 col-sm-3">
       <div class="sidebar">
         <div class="sidebar-section">
-          <h4 class="sidebar-section-title">{{organization.name}}</h4>
+          <div class="org-header">
+            <div class="org-header-logo" *ngIf="organization.logo != null">
+              <img [src]="organization.logo.downloadPath">
+            </div>
+            <h5 class="org-header-name sidebar-section-title">
+              {{organization.name}}
+            </h5>
+          </div>
           <hr>
           <a (click)="setMenuState($event, 'projects')" [ngClass]="{'active': isMenuState('projects')}"
              class="sidebar-section-item" href="#">Projects</a>
@@ -15,8 +22,8 @@
              class="sidebar-section-item" href="#">Members</a>
           <a (click)="setMenuState($event, 'accessRights')" [ngClass]="{'active': isMenuState('accessRights')}"
              class="sidebar-section-item" href="#">Access Rights</a>
-          <a (click)="setMenuState($event, 'appearance')" [ngClass]="{'active': isMenuState('appearance')}" class="sidebar-section-item"
-             href="#">Appearance</a>
+          <a (click)="setMenuState($event, 'appearance')" [ngClass]="{'active': isMenuState('appearance')}"
+             class="sidebar-section-item" href="#">Appearance</a>
         </div>
       </div>
       <hr class="d-block d-sm-none">

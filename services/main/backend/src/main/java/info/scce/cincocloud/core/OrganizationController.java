@@ -8,11 +8,9 @@ import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.SettingsDB;
-import info.scce.cincocloud.db.StyleDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
 import info.scce.cincocloud.rest.ObjectCache;
-import info.scce.cincocloud.util.DefaultColors;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -238,17 +236,6 @@ public class OrganizationController {
     final OrganizationDB org = new OrganizationDB();
     org.name = name;
     org.description = description;
-
-    final StyleDB style = new StyleDB();
-    style.navBgColor = DefaultColors.NAV_BG_COLOR;
-    style.navTextColor = DefaultColors.NAV_TEXT_COLOR;
-    style.bodyBgColor = DefaultColors.BODY_BG_COLOR;
-    style.bodyTextColor = DefaultColors.BODY_TEXT_COLOR;
-    style.primaryBgColor = DefaultColors.PRIMARY_BG_COLOR;
-    style.primaryTextColor = DefaultColors.PRIMARY_TEXT_COLOR;
-    style.persist();
-
-    org.style = style;
     org.persist();
 
     if (subject != null) {
@@ -284,23 +271,14 @@ public class OrganizationController {
       if (isOwnerOf(subject, orgInDB)) {
         orgInDB.name = organization.getname();
         orgInDB.description = organization.getdescription();
-        orgInDB.persist();
 
-        final StyleDB style = orgInDB.style;
-        style.navBgColor = organization.getstyle().getnavBgColor();
-        style.navTextColor = organization.getstyle().getnavTextColor();
-        style.bodyBgColor = organization.getstyle().getbodyBgColor();
-        style.bodyTextColor = organization.getstyle().getbodyTextColor();
-        style.primaryBgColor = organization.getstyle().getprimaryBgColor();
-        style.primaryTextColor = organization.getstyle().getprimaryTextColor();
-
-        if (organization.getstyle().getlogo() != null) {
-          final BaseFileDB logo = BaseFileDB.findById(organization.getstyle().getlogo().getId());
-          style.logo = logo;
+        if (organization.getlogo() != null) {
+          orgInDB.logo = BaseFileDB.findById(organization.getlogo().getId());
         } else {
-          style.logo = null;
+          orgInDB.logo = null;
         }
-        style.persist();
+
+        orgInDB.persist();
 
         return Response.ok(OrganizationTO.fromEntity(orgInDB, objectCache)).build();
       }

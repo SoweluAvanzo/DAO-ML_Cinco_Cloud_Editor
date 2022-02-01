@@ -11,5 +11,23 @@
   </button>
   <hr>
 
-  <style-form (updated)="handleStyleUpdated($event)" *ngIf="style != null" [style]="style"></style-form>
+  <div class="form-group">
+    <label>
+      Logo
+      <span (click)="removeLogo()" *ngIf="logo != null" class="text-muted cursor-pointer">(Remove)</span>
+    </label>
+
+    <div *ngIf="logo != null">
+      <figure role="group">
+        <img class="d-block my-2" src="{{logo.downloadPath}}" style="max-width: 100%; height: auto; max-height: 80px">
+      </figure>
+    </div>
+
+    <input *ngIf="logo == null"
+           [disabled]="uploader.isUploading"
+           [uploader]="uploader"
+           class="form-control-file"
+           ng2-file-select
+           type="file">
+  </div>
 </div>

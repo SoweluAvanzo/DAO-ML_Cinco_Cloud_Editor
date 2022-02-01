@@ -16,7 +16,7 @@ public class OrganizationTO extends RESTBaseImpl {
   private List<UserTO> owners = new LinkedList<>();
   private List<UserTO> members = new LinkedList<>();
   private List<ProjectTO> projects = new LinkedList<>();
-  private StyleTO style;
+  private FileReferenceTO logo;
 
   public static OrganizationTO fromEntity(
       final OrganizationDB entity,
@@ -30,7 +30,9 @@ public class OrganizationTO extends RESTBaseImpl {
     result.setId(entity.id);
     result.setname(entity.name);
     result.setdescription(entity.description);
-    result.setstyle(StyleTO.fromEntity(entity.style, objectCache));
+    if (entity.logo != null) {
+      result.setlogo(new FileReferenceTO(entity.logo));
+    }
 
     objectCache.putRestTo(entity, result);
 
@@ -99,13 +101,13 @@ public class OrganizationTO extends RESTBaseImpl {
     this.projects = projects;
   }
 
-  @JsonProperty("style")
-  public StyleTO getstyle() {
-    return this.style;
+  @JsonProperty("logo")
+  public FileReferenceTO getlogo() {
+    return this.logo;
   }
 
-  @JsonProperty("style")
-  public void setstyle(final StyleTO style) {
-    this.style = style;
+  @JsonProperty("logo")
+  public void setlogo(final FileReferenceTO logo) {
+    this.logo = logo;
   }
 }

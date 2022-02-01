@@ -1,59 +1,57 @@
 import 'dart:core';
 
 import 'package:angular/angular.dart';
+import 'package:angular_forms/angular_forms.dart';
 
 import '../../../model/core.dart';
+import '../../../service/base_service.dart';
 import '../../../service/organization_service.dart';
 import '../../../service/notification_service.dart';
-import '../../../service/style_service.dart';
-import '../../../pages/shared/style_form/style_form_component.dart';
+import '../../../filesupport/fileselect.dart';
+import '../../../filesupport/fileuploader.dart';
 
 @Component(
   selector: 'appearance',
   templateUrl: 'appearance_component.html',
-  directives: const [coreDirectives, StyleFormComponent],
+  directives: const [coreDirectives, formDirectives, FileSelect],
   providers: const [ClassProvider(OrganizationService)],
 )
-class AppearanceComponent implements OnInit, OnDestroy {
+class AppearanceComponent implements OnInit {
+
   @Input("user")
   User currentUser;
 
   @Input()
   Organization organization;
 
-  Style style;
-
   final OrganizationService _organizationService;
-  final StyleService _styleService;
   final NotificationService _notificationService;
 
-  AppearanceComponent(this._organizationService, this._styleService,
-      this._notificationService) {}
+  FileReference logo;
+
+  FileUploader uploader = new FileUploader({
+    'url': '${BaseService.getUrl()}/files/create',
+    'authToken': '${BaseService.getAuthToken()}'
+  }, autoUpload: true);
+
+  AppearanceComponent(this._organizationService, this._notificationService) {}
 
   @override
   void ngOnInit() {
-    style = organization.style;
-  }
+    logo = organization.logo;
 
-  @override
-  void ngOnDestroy() {}
-
-  void updatePreview() {
-    Organization org = new Organization();
-    org.style = style;
-    _styleService.update(org.style);
+    uploader.newFileStream.listen((file) {
+      logo = file;
+    });
   }
 
   void reset() {
-    style = organization.style;
-    updatePreview();
+    logo = organization.logo;
+    save(null);
   }
 
-  void handleStyleUpdated(dynamic e) {
-    if (e is Style) {
-      style = e;
-      updatePreview();
-    }
+  void removeLogo() {
+    logo = null;
   }
 
   void save(dynamic e) {
@@ -61,20 +59,13 @@ class AppearanceComponent implements OnInit, OnDestroy {
       e.preventDefault();
     }
 
-    organization.style.navBgColor = style.navBgColor;
-    organization.style.navTextColor = style.navTextColor;
-    organization.style.bodyBgColor = style.bodyBgColor;
-    organization.style.bodyTextColor = style.bodyTextColor;
-    organization.style.primaryBgColor = style.primaryBgColor;
-    organization.style.primaryTextColor = style.primaryTextColor;
-    organization.style.logo = style.logo;
+    organization.logo = logo;
 
     _organizationService.update(organization).then((updatedOrg) {
       organization = updatedOrg;
       _notificationService.displayMessage(
           "The appearance properties have been updated.",
           NotificationType.SUCCESS);
-      _styleService.update(updatedOrg.style);
     });
   }
 }
