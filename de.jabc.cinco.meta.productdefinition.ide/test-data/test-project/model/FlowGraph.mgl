@@ -69,6 +69,7 @@ node ExternalActivity {
 	outgoingEdges (LabeledTransition[1,*])
 }
 
+@jumpToPrime
 node SubFlowGraph {
 	style greenTextRectangle("${subFlowGraph.modelName}")
 	
