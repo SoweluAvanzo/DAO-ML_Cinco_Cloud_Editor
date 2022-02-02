@@ -18,7 +18,7 @@ public class OrganizationDB extends PanacheEntity {
   public String description;
 
   @OneToOne(cascade = CascadeType.ALL)
-  public StyleDB style;
+  public BaseFileDB logo;
 
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(

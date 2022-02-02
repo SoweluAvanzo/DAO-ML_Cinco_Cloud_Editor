@@ -221,71 +221,8 @@ class User {
   }
 }
 
-class Style {
-  int id;
-  String navBgColor;
-  String navTextColor;
-  String bodyBgColor;
-  String bodyTextColor;
-  String primaryBgColor;
-  String primaryTextColor;
-  FileReference logo;
-
-  Style({Map cache, dynamic jsog}) {
-    if (jsog != null) {
-      cache[jsog["@id"]] = this;
-      id = jsog["id"];
-
-      navBgColor = jsog["navBgColor"];
-      navTextColor = jsog["navTextColor"];
-      bodyBgColor = jsog["bodyBgColor"];
-      bodyTextColor = jsog["bodyTextColor"];
-      primaryBgColor = jsog["primaryBgColor"];
-      primaryTextColor = jsog["primaryTextColor"];
-
-      if (jsog.containsKey("logo") && jsog["logo"] != null) {
-        logo = new FileReference(jsog: jsog["logo"]);
-      }
-    } else {
-      id = -2;
-    }
-  }
-
-  static Style fromJSON(String s) {
-    return Style.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
-  }
-
-  static Style fromJSOG({Map cache, dynamic jsog}) {
-    return new Style(cache: cache, jsog: jsog);
-  }
-
-  Map toJSOG(Map cache) {
-    Map jsog = new Map();
-    if (cache.containsKey("core.Style:${id}")) {
-      jsog["@ref"] = cache["core.Style:${id}"];
-    } else {
-      cache["core.Style:${id}"] = (cache.length + 1).toString();
-      jsog['@id'] = cache["core.Style:${id}"];
-      jsog['id'] = id;
-
-      jsog['navBgColor'] = navBgColor;
-      jsog['navTextColor'] = navTextColor;
-      jsog['bodyBgColor'] = bodyBgColor;
-      jsog['bodyTextColor'] = bodyTextColor;
-      jsog['primaryBgColor'] = primaryBgColor;
-      jsog['primaryTextColor'] = primaryTextColor;
-      if (logo != null) {
-        jsog['logo'] = logo.toJSOG(cache);
-      }
-      jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.StyleTO";
-    }
-    return jsog;
-  }
-}
-
 class Settings {
   int id;
-  Style style;
   bool globallyCreateOrganizations;
   bool allowPublicUserRegistration;
 
@@ -295,13 +232,8 @@ class Settings {
       id = jsog["id"];
       globallyCreateOrganizations = jsog["globallyCreateOrganizations"];
       allowPublicUserRegistration = jsog["allowPublicUserRegistration"];
-
-      if (jsog.containsKey("style")) {
-        style = new Style(cache: cache, jsog: jsog["style"]);
-      }
     } else {
       id = -1;
-      style = new Style();
       globallyCreateOrganizations = true;
       allowPublicUserRegistration = true;
     }
@@ -323,7 +255,6 @@ class Settings {
       cache["core.Settings:${id}"] = (cache.length + 1).toString();
       jsog['@id'] = cache["core.Settings:${id}"];
       jsog['id'] = id;
-      jsog['style'] = style.toJSOG(cache);
       jsog['globallyCreateOrganizations'] = globallyCreateOrganizations;
       jsog['allowPublicUserRegistration'] = allowPublicUserRegistration;
       jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.SettingsTO";
@@ -464,7 +395,7 @@ class Organization {
   int id;
   String name;
   String description;
-  Style style;
+  FileReference logo;
   List<User> owners;
   List<User> members;
   List<Project> projects;
@@ -479,6 +410,10 @@ class Organization {
       id = jsog["id"];
       name = jsog["name"];
       description = jsog["description"];
+
+      if (jsog.containsKey("logo") && jsog["logo"] != null) {
+        logo = new FileReference(jsog: jsog["logo"]);
+      }
 
       if (jsog.containsKey("members")) {
         for (var value in jsog["members"]) {
@@ -509,13 +444,8 @@ class Organization {
           }
         }
       }
-
-      if (jsog.containsKey("style")) {
-        style = new Style(cache: cache, jsog: jsog["style"]);
-      }
     } else {
       id = -1;
-      style = new Style();
     }
   }
 
@@ -571,7 +501,9 @@ class Organization {
       jsog['owners'] = owners.map((n) => n.toJSOG(cache)).toList();
       jsog['members'] = members.map((n) => n.toJSOG(cache)).toList();
       jsog['projects'] = projects.map((n) => n.toJSOG(cache)).toList();
-      jsog['style'] = style.toJSOG(cache);
+      if (logo != null) {
+        jsog['logo'] = logo.toJSOG(cache);
+      }
       jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.OrganizationTO";
     }
     return jsog;

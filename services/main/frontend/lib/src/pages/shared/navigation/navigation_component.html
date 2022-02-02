@@ -1,12 +1,12 @@
 <header>
   <nav class="navbar navbar-static-top navbar-expand-lg navbar-dark org-nav-bg-color">
 
-    <a *ngIf="style == null || style.logo == null" class="navbar-brand" style="color: white;">
+    <a *ngIf="currentOrganization == null || currentOrganization.logo == null" class="navbar-brand" style="color: white;">
       <img alt="Brand" src="img/cinco-logo-square.png" style="height: 30px; margin-right: .5rem">
     </a>
 
-    <a *ngIf="style != null && style.logo != null" class="mr-2">
-      <img alt="Brand" src="{{style.logo.downloadPath}}" style="height: 30px; width: auto; margin-right: .5rem">
+    <a *ngIf="currentOrganization != null && currentOrganization.logo != null" class="mr-2">
+      <img alt="Brand" src="{{currentOrganization.logo.downloadPath}}" style="height: 30px; width: auto; margin-right: .5rem">
     </a>
 
     <button aria-controls="navbarToggler" aria-expanded="false" class="navbar-toggler" data-target="#navbarToggler"

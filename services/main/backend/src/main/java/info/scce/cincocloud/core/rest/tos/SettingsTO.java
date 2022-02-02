@@ -7,7 +7,6 @@ import info.scce.cincocloud.rest.RESTBaseImpl;
 
 public class SettingsTO extends RESTBaseImpl {
 
-  private StyleTO style;
   private boolean globallyCreateOrganizations;
   private boolean allowPublicUserRegistration;
 
@@ -21,23 +20,12 @@ public class SettingsTO extends RESTBaseImpl {
 
     final var result = new SettingsTO();
     result.setId(entity.id);
-    result.setstyle(StyleTO.fromEntity(entity.style, objectCache));
     result.setgloballyCreateOrganizations(entity.globallyCreateOrganizations);
     result.setallowPublicUserRegistration(entity.allowPublicUserRegistration);
 
     objectCache.putRestTo(entity, result);
 
     return result;
-  }
-
-  @JsonProperty("style")
-  public StyleTO getstyle() {
-    return this.style;
-  }
-
-  @JsonProperty("style")
-  public void setstyle(final StyleTO style) {
-    this.style = style;
   }
 
   @JsonProperty("globallyCreateOrganizations")
