@@ -11,7 +11,7 @@ data:
   DOCKER_REGISTRY_HOST: "registry-service"
   DOCKER_REGISTRY_PORT: "5000"
   ARCHETYPE_REGISTRY_URL: "registry.gitlab.com"
-  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: "f619d8fbcc31e7692935bfb146a3f10e0a2986c0"
+  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: "b21265e5cdaeb7c4e989de0a2e0260dcc8e6cfe3"
 ---
 apiVersion: apps/v1
 kind: Deployment
