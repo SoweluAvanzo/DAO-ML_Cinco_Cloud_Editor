@@ -1521,7 +1521,7 @@ class GraphmodelComponent extends Generatable {
 				void cb_resize_node_«node.jsCall(g)»(int width,int height,String direction,int id) {
 					«IF node.resizable»
 						var node = findElement(id) as core.Node;
-						if(node != null && node.width!=width||node.height!=height) {
+						if(node != null && (node.width != width || node.height != height) ) {
 							startPropagation();
 							var ccm = commandGraph.sendResizeNodeCommand(id,width,height,direction,user);
 							graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
