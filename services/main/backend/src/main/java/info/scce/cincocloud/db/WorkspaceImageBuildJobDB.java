@@ -3,6 +3,7 @@ package info.scce.cincocloud.db;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import java.time.Instant;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -46,6 +47,10 @@ public class WorkspaceImageBuildJobDB extends PanacheEntity {
   public WorkspaceImageBuildJobDB(@NotNull ProjectDB project, Status status) {
     this.project = project;
     this.status = status;
+  }
+
+  public static Long deleteByIdIn(List<Long> ids) {
+    return delete("id in ?1", ids);
   }
 
   public static PanacheQuery<WorkspaceImageBuildJobDB> findByProjectId(Long projectId) {
