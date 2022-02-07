@@ -1,0 +1,107 @@
+import "model/ExternalLibrary.ecore" as externalLibrary
+
+id info.scce.cinco.product.extendedFlowgraph
+stylePath "model/ExtendedFlowGraph.style"
+
+@primeviewer
+@generatable("info.scce.cinco.product.extendedflowgraph.codegen.FlowGenerator","/src-gen/")
+graphModel ExtendedFlowGraph {
+	iconPath "icons/FlowGraph.png"
+	diagramExtension "extended_flowgraph"
+	
+	containableElements (Start[1,1], End, Activity, EActivityA, EActivityB, ELibrary, SubFlowGraph, Swimlane)
+	attr EString as modelName
+}
+
+@contextMenuAction("info.scce.cinco.product.extendedflowgraph.action.ShortestPathToEnd")
+@doubleClickAction("info.scce.cinco.product.extendedflowgraph.action.ShortestPathToEnd")
+@icon("icons/Start.png")
+@palette("Round Elements")
+node Start {
+	style greenCircle
+	// allow exactly one outgoing Transition
+	outgoingEdges (Transition[1,1]) 
+}	
+
+@icon("icons/End.png")
+@palette("Round Elements")
+node End{
+	style redCircle
+	/*
+	
+	allow an arbitrary number (>0) of incoming edges
+	
+	the following would have been valid as well, meaning the same:		  
+	  incomingEdges (*[1,*])
+	
+	*/
+	incomingEdges ({Transition,LabeledTransition}[1,*])
+}
+
+// use the "blueTextRectangle" as style and pass the attribute "name" as parameter
+@icon("icons/Activity.png")
+@palette("Rectangular Elements")
+@postCreate("info.scce.cinco.product.extendedflowgraph.hooks.RandomActivityName")
+node Activity {
+	style blueTextRectangle("${name}")
+	attr EString as name
+	attr EString as description
+	incomingEdges (*[1,*])
+	outgoingEdges (LabeledTransition[1,*])
+}
+
+@jumpToPrime
+node EActivityA {
+	style greenTextRectangle("${activityC.name}")
+	@pvLabel(name)
+	@pvFileExtension("elib")
+	prime externalLibrary.ExternalAbstractActivityC as activityC
+	incomingEdges (*[1,*])
+	outgoingEdges (LabeledTransition[1,*])			
+}
+
+@jumpToPrime
+node EActivityB {
+	style greenTextRectangle("${activityD.name}")
+	@pvLabel(name)
+	@pvFileExtension("elib")
+	prime externalLibrary.ExternalActivityD as activityD
+	incomingEdges (*[1,*])
+	outgoingEdges (LabeledTransition[1,*])			
+}
+
+@jumpToPrime
+node ELibrary {
+	style greenTextRectangle("${library.name}")
+	@pvLabel(name)
+	@pvFileExtension("elib")
+	prime externalLibrary.ExternalActivityLibrary as library
+	incomingEdges (*[1,*])
+	outgoingEdges (LabeledTransition[1,*])			
+}
+
+@jumpToPrime
+node SubFlowGraph {
+	style greenTextRectangle("${subFlowGraph.modelName}")
+	@pvLabel(modelName)
+	prime this::ExtendedFlowGraph as subFlowGraph
+	incomingEdges (*[1,*])
+	outgoingEdges (LabeledTransition[1,*])
+}
+
+@icon("icons/Swimlane.png")
+@palette("Rectangular Elements")
+container Swimlane {
+	style swimlane("${actor}")
+	attr EString as actor	
+	containableElements (Start[1,1], Activity, End, EActivityA, EActivityB, SubFlowGraph, Swimlane)
+}
+
+edge Transition {
+	style simpleArrow
+}
+
+edge LabeledTransition {
+	style labeledArrow("${label}")
+	attr EString as label
+}
