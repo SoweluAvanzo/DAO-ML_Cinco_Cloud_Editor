@@ -10,14 +10,14 @@ class WorkspaceImageBuildJobService extends BaseService {
 
   WorkspaceImageBuildJobService(Router router) : super(router);
 
-  Future<List<WorkspaceImageBuildJob>> getAll(int projectId, int page, int size) async {
+  Future<Page<WorkspaceImageBuildJob>> getAll(int projectId, int page, int size) async {
     return HttpRequest.request(
         "${getBaseUrl()}/projects/${projectId}/build-jobs/private?page=${page}&size=${size}",
         method: "GET",
         requestHeaders: requestHeaders,
         withCredentials: true
     )
-        .then(transformResponseList)
+        .then(transformPage)
         .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
@@ -59,16 +59,14 @@ class WorkspaceImageBuildJobService extends BaseService {
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  List<WorkspaceImageBuildJob> transformResponseList(dynamic response) {
-    List<WorkspaceImageBuildJob> jobs = new List();
+  Page<WorkspaceImageBuildJob> transformPage(dynamic response) {
     Map<String, dynamic> cache = new Map();
-    jsonDecode(response.responseText).forEach((job) {
-      if (job.containsKey("@ref")) {
-        jobs.add(cache[job["@ref"]]);
-      } else {
-        jobs.add(WorkspaceImageBuildJob(cache: cache, jsog: job));
-      }
+    dynamic pageJsog = jsonDecode(response.responseText);
+
+    Page<WorkspaceImageBuildJob> page = new Page(cache: cache, jsog: pageJsog, resolveTypeFn: (item) {
+      return WorkspaceImageBuildJob(cache: cache, jsog: item);
     });
-    return jobs;
+
+    return page;
   }
 }

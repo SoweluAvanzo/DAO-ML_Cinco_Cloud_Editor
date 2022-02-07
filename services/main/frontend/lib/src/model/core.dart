@@ -608,3 +608,36 @@ class Project {
     return jsog;
   }
 }
+
+class Page<T> {
+  List<T> items;
+  int number;
+  int size;
+  int amountOfPages;
+
+  Page({Map cache, dynamic jsog, T Function(dynamic) resolveTypeFn}) {
+    if (jsog != null) {
+      number = jsog['number'];
+      size = jsog['size'];
+      amountOfPages = jsog['amountOfPages'];
+
+      if (jsog['items'] != null && jsog['items'].length > 0) {
+        List<T> items = new List();
+        jsog['items'].forEach((item) {
+          if (item.containsKey("@ref")) {
+            items.add(cache[item["@ref"]]);
+          } else {
+            items.add(resolveTypeFn(item));
+          }
+        });
+
+        this.items = items;
+      }
+    } else {
+      items = List();
+      number = 0;
+      size = 0;
+      amountOfPages = 0;
+    }
+  }
+}
