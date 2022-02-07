@@ -174,39 +174,39 @@ class EditorComponent extends Generatable {
 		
 		void initializeEditor() {
 			if(mainLayout == 'classic') {
-			  grid = null;
-			  fetchGrid();
-			  var t = new Timer.periodic(const Duration(milliseconds: 100), (Timer t){
-			    if (grid != null) {
-			      initializeGrid(t);
-			      reinitGrid();
-			      if(this.currentFile != null) {
-			        var functionCall = 'reaAdjustDimensions_'+ this.currentFile.$lower_type();
-			        js.context.callMethod(functionCall);
-			      }
-			    }
-			  });
+				var t = new Timer.periodic(const Duration(milliseconds: 20), (Timer t){
+					if (this.grid != null) {
+						t.cancel();
+						initEditorGrid();
+					}
+				});
+			}
+		}
+		
+		initEditorGrid() {
+			initializeGrid();
+			reinitGrid();
+			if(this.currentFile != null) {
+				var functionCall = 'reaAdjustDimensions_'+ this.currentFile.$lower_type();
+				js.context.callMethod(functionCall);
 			}
 		}
 	
 		Future<dynamic> fetchGrid() {
+			grid = null;
 			return this._editorGridService.get().then((g) {
 				this.updateGrid(g);
 			});
 		}
 
-		void initializeGrid(Timer t) {
-			t.cancel();
+		void initializeGrid() {
 			document.dispatchEvent(new CustomEvent("editor:grid-init"));
-					
 			document.on["editor:grid-change"].listen((Event event) {
 				var items = (event as CustomEvent).detail['items'];
-						
 				var map = new Map<String, PyroEditorGridItem>();
 				_editorDataService.grid.items.forEach((i) {
 					map.putIfAbsent(i.id.toString(), () => i);
 				});
-					
 				items.forEach((i){
 					if(i['x'] is int && i['y'] is int) {
 						var id = i['id'];
@@ -260,22 +260,22 @@ class EditorComponent extends Generatable {
 	    	return fullscreenWidgetId == null || fullscreenWidgetId == id;
 	    }
 	    
-	    updateGrid(PyroEditorGrid g) {
-	        _editorDataService.grid = g;
-	        gridItemMap.clear();
-	        _editorDataService.grid.items.forEach((item){
-	            gridItemMap[item.id] = item;
-	        });
-	        grid = _editorDataService.grid;
-	        
-	        // set new active tab after moving tabs
-	        widgetTabs.forEach((widgetTab) {
+		updateGrid(PyroEditorGrid g) {
+			_editorDataService.grid = g;
+			gridItemMap.clear();
+			_editorDataService.grid.items.forEach((item){
+				gridItemMap[item.id] = item;
+			});
+			grid = _editorDataService.grid;
+			
+			// set new active tab after moving tabs
+			widgetTabs.forEach((widgetTab) {
 				bool hasActiveTab = widgetTab.tabs.fold(true, (acc, val) => acc && val.active);
 				if (!hasActiveTab) {
 					widgetTab.setSelected(widgetTab.tabs[0]);
 				}
-	        });
-	    }
+			});
+		}
 	    
 		void reinitGrid() {
 		  document.dispatchEvent(new CustomEvent("editor:grid-reinit", detail: grid.toJSOG(new Map())));
@@ -318,7 +318,7 @@ class EditorComponent extends Generatable {
 	
 	    void changeStructure(dynamic e) {}
 	
-	    void changedGraph(CompoundCommandMessage ccm) {
+		void changedGraph(CompoundCommandMessage ccm) {
 			if(ccm.type == "basic_valid_answer") {
 				var allElements = currentFile.allElements();
 				var exists = allElements.contains(selectedElement);
@@ -329,7 +329,7 @@ class EditorComponent extends Generatable {
 					p.rebuildTrees();
 				}
 			}
-	    }
+		}
 	
 		void changedProperties(PropertyMessage pm) {
 			this.graphService.canvasComponent.updateProperties(pm.delegate);
@@ -399,6 +399,7 @@ class EditorComponent extends Generatable {
 		}
 		
 		void postGraphModelSwitched() {
+		    fetchGrid();
 		    initializeEditor();
 			unblockInteraction();
 		}
@@ -423,12 +424,17 @@ class EditorComponent extends Generatable {
 	            receivePropertyUpdate(message);
 	        }
 	    }
-	    
-	    changeGridLayout(String layout) {
-			_editorGridService.setLayout(grid.id, layout).then((grid) {
-			    updateGrid(grid);
-			});
-	    }
+		
+		changeGridLayout(String layout) {
+			if(layout == 'micro' || layout == 'classic') {
+				changedMainLayout(layout);
+			} else {
+				_editorGridService.setLayout(grid.id, layout).then((g) {
+					updateGrid(g);
+					initializeEditor();
+				});
+			}
+		}
 	
 	    Future<Message> sendMessage(Message message) async {
 	    	return graphService.sendMessage(message,currentFile.$type(),currentFile.id);
@@ -541,6 +547,7 @@ class EditorComponent extends Generatable {
 		            [currentFile]="currentFile"
 		            [currentLocalSettings]="currentLocalSettings"
 		            [permissionVectors]="permissionVectors"
+					[layoutType]="mainLayout"
 		            (selectionChanged)="selectionChanged($event)"
 		            (selectionChangedModal)="selectionChangedModal($event)"
 		            (hasChanged)="changedGraph($event)"
@@ -605,6 +612,7 @@ class EditorComponent extends Generatable {
 								[redirectionStack]="redirectionStack"
 							    [currentLocalSettings]="currentLocalSettings"
 							    [permissionVectors]="permissionVectors"
+							    [layoutType]="mainLayout"
 							    (selectionChanged)="selectionChanged($event)"
 							    (selectionChangedModal)="selectionChangedModal($event)"
 							    (hasChanged)="changedGraph($event)"

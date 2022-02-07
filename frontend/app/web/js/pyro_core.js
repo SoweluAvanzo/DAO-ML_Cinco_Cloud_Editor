@@ -1785,6 +1785,8 @@ function adjustMapDimensions(paperMap) {
     if(paperMap == null)
         return;
 	var paper_map_obj = document.getElementById("paper_map");
+	if(paper_map_obj == null)
+        return;
 	var container = paper_map_obj.closest("bs-tab-content"); // 'classic' layout-container
 	var mapWidth;
 	var mapHeight;
