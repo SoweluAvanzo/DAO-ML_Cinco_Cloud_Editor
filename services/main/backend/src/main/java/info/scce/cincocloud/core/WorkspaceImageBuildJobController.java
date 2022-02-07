@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core;
 
+import info.scce.cincocloud.core.rest.tos.PageTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
 import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
@@ -62,13 +63,19 @@ public class WorkspaceImageBuildJobController {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    final var jobs = WorkspaceImageBuildJobDB
-        .findByProjectIdOrderByStartedAtDesc(projectId)
+    final var query = WorkspaceImageBuildJobDB
+        .findByProjectIdOrderByStartedAtDesc(projectId);
+
+    final var amountOfPages = (long) Math.ceil((double) query.count() / size);
+
+    final var items = query
         .page(Page.of(page, size)).stream()
         .map(j -> WorkspaceImageBuildJobTO.fromEntity(j, objectCache))
         .collect(Collectors.toList());
 
-    return Response.ok(jobs).build();
+    final var currentPage = new PageTO<WorkspaceImageBuildJobTO>(items, page, size, amountOfPages);
+
+    return Response.ok(currentPage).build();
   }
 
   @DELETE

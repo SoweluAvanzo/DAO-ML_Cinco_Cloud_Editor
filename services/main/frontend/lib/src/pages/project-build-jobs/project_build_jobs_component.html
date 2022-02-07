@@ -6,13 +6,14 @@
     <div class="container mt-3">
       <h1 class="h5" *ngIf="project != null">{{project.name}} > Build Jobs</h1>
     </div>
-    <div class="container mt-3">
+    <div class="container mt-3" *ngIf="buildJobsPage != null">
 
-      <div class="alert alert-info" *ngIf="buildJobs.length === 0">
-        There are no build jobs for this project yet.
+      <div class="alert alert-info" *ngIf="buildJobsPage.items.length === 0">
+        <span *ngIf="buildJobsPage.number == 0">There are no build jobs for this project yet.</span>
+        <span *ngIf="buildJobsPage.number > 0">There are no more build jobs on this page.</span>
       </div>
 
-      <ng-container *ngIf="buildJobs.length > 0">
+      <ng-container *ngIf="buildJobsPage.items.length > 0">
         <table class="table pyro-table">
           <thead>
             <tr>
@@ -22,8 +23,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let job of buildJobs">
-              <td width="1">
+            <tr *ngFor="let job of buildJobsPage.items">
+              <td style="width: 1%">
                 <project-build-job-status-badge [job]="job"></project-build-job-status-badge>
               </td>
               <td>
@@ -54,6 +55,17 @@
         </table>
       </ng-container>
 
+      <div class="btn-group btn-group-sm">
+        <button class="btn btn-outline-light" (click)="previousPage()" [disabled]="!hasPreviousPage">
+          <i class="fas fa-fw fa-angle-left"></i> Previous page
+        </button>
+        <button class="btn btn-outline-light" disabled>
+          {{(buildJobsPage.number + 1)}} / {{buildJobsPage.amountOfPages}}
+        </button>
+        <button class="btn btn-outline-light" (click)="nextPage()" [disabled]="!hasNextPage">
+          Next page <i class="fas fa-fw fa-angle-right"></i>
+        </button>
+      </div>
     </div>
   </div>
 </div>
