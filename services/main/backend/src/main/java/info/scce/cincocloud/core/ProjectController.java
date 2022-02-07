@@ -120,6 +120,7 @@ public class ProjectController {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
 
     final ProjectDB pp = ProjectDB.findById(ownedProject.getId());
+    projectService.checkIfProjectExists(pp);
     projectService.checkPermission(pp, securityContext);
 
     if (canEditProject(subject, pp)) {
@@ -157,6 +158,7 @@ public class ProjectController {
       @PathParam("projectId") final long projectId) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
     final ProjectDB project = ProjectDB.findById(projectId);
+    projectService.checkIfProjectExists(project);
     projectService.checkPermission(project, securityContext);
 
     if (isInOrganization(subject, project.organization)) {
@@ -171,6 +173,7 @@ public class ProjectController {
   public Response deployProject(@Context SecurityContext securityContext,
       @PathParam("projectId") final long projectId) {
     final ProjectDB project = ProjectDB.findById(projectId);
+    projectService.checkIfProjectExists(project);
     projectService.checkPermission(project, securityContext);
     final var result = projectDeploymentService.deploy(project);
     return Response.ok(result).build();
@@ -182,6 +185,7 @@ public class ProjectController {
   public Response stopDeployedProject(@Context SecurityContext securityContext,
       @PathParam("projectId") final long projectId) {
     final ProjectDB project = ProjectDB.findById(projectId);
+    projectService.checkIfProjectExists(project);
     projectService.checkPermission(project, securityContext);
     projectDeploymentService.stop(project);
     return Response.status(Response.Status.OK).build();
@@ -194,6 +198,7 @@ public class ProjectController {
       @PathParam("id") final long id) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
     final ProjectDB project = ProjectDB.findById(id);
+    projectService.checkIfProjectExists(project);
     if (canDeleteProject(subject, project)) {
       projectService.deleteById(subject, id, securityContext);
       projectDeploymentService.delete(project);
