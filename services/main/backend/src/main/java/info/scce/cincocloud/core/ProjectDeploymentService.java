@@ -33,6 +33,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
 import java.time.Duration;
+import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -270,7 +271,8 @@ public class ProjectDeploymentService {
             .get(service.getSpec().getPorts().get(0).getPort(), service.getSpec().getClusterIP(),
                 "")
             .send()
-            .map(res -> res.statusCode() == 200 || res.statusCode() == 403),
+            .map(res -> List.of(200, 403).contains(res.statusCode())
+                && res.bodyAsString().contains("theia-preload")),
         () -> {
           final var s2 = new ProjectDeploymentTO(path, ProjectDeploymentStatus.READY);
           CDIUtils.getBean(ProjectWebSocket.class)
