@@ -616,6 +616,8 @@ class Page<T> {
   int amountOfPages;
 
   Page({Map cache, dynamic jsog, T Function(dynamic) resolveTypeFn}) {
+    items = List();
+
     if (jsog != null) {
       number = jsog['number'];
       size = jsog['size'];
@@ -634,7 +636,6 @@ class Page<T> {
         this.items = items;
       }
     } else {
-      items = List();
       number = 0;
       size = 0;
       amountOfPages = 0;
