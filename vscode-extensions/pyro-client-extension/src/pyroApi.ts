@@ -1,4 +1,5 @@
 import * as http from 'http';
+import * as https from 'https';
 import { PYRO_HOST, PYRO_PORT, PYRO_SUBPATH } from "./env_var";
 import { isEmpty } from './fileNameUtils';
 import { PyroEditorProvider } from './pyroEditor';
@@ -12,18 +13,19 @@ export abstract class PyroApi {
 	private static async performRequest(options: http.RequestOptions,data?:any):Promise<any> {
 		PyroEditorProvider.logging("REQUESTING:\n"+options.path);
 		return new Promise((resolve, reject) => {
-			const req = http.request(options,(response: http.IncomingMessage) => {
+			const httpOptions = this.applyHttpsOptions(options);
+			const req = https.request(httpOptions,(response: http.IncomingMessage) => {
 					if (response.statusCode != 200) {
-						PyroEditorProvider.logging('REQUEST FAILED:\n'+options.hostname+'\n'+options.path+'\n'+options.port);
+						PyroEditorProvider.logging('REQUEST FAILED:\n'+httpOptions.hostname+'\n'+httpOptions.path+'\n'+httpOptions.port);
 						PyroEditorProvider.logging('CODE: '+response.statusCode+" | MESSAGE: "+response.statusMessage);
 						reject(new Error(response.statusMessage));
 					}
 					const chunks:any[] = [];
-					response.on('data', (chunk) => {
+					response.on('data', (chunk: string) => {
 						PyroEditorProvider.logging('RESPONSE-RECEIVED:\n'+chunk);
 						chunks.push(chunk);
 					});
-					response.on('error',(e)=>PyroEditorProvider.logging("Process-Error:\n"+e));
+					response.on('error',(e: string)=>PyroEditorProvider.logging("Process-Error:\n"+e));
 					response.on('end', () => {
 						const result = Buffer.concat(chunks).toString();
 						PyroEditorProvider.logging("Process-Ended");
@@ -43,37 +45,37 @@ export abstract class PyroApi {
 	}
 
 	public static async createModel(name :string|undefined, modelType:string|undefined, token: string): Promise<any> {
-		const options = {
+		const options = this.applyHttpsOptions({
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
-			path: PYRO_SUBPATH+'/api/'+modelType?.toLowerCase()+'/create/private',
+			path: PYRO_SUBPATH+'/api/'+PyroApi.getRestEndpoint(modelType)+'/create/private',
 			method: 'POST',
 			'headers': {
 				'Authorization': token,
 				'Content-Type': 'application/json'
 			}
-		};
+		});
 		return this.performRequest(options, {
 			'filename': name
 		});
 	}
 
 	public static async removeModel(modelType:string|undefined, id: string, token: string): Promise<any> {
-		const options = {
+		const options = this.applyHttpsOptions({
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
-			path: PYRO_SUBPATH+'/api/'+modelType?.toLowerCase()+'/remove/'+id+'/private',
+			path: PYRO_SUBPATH+'/api/'+PyroApi.getRestEndpoint(modelType)+'/remove/'+id+'/private',
 			method: 'GET',
 			'headers': {
 				'Authorization': token,
 				'Content-Type': 'application/json'
 			}
-		};
+		});
 		return this.performRequest(options);
 	}
 
 	public static async getModelTypes(token: string): Promise<Map<string, string>> {
-		const options = {
+		const options = this.applyHttpsOptions({
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
 			path: PYRO_SUBPATH+'/api/graph/list/private',
@@ -82,7 +84,7 @@ export abstract class PyroApi {
 				//'Authorization': token,
 				'Content-Type': 'application/json'
 			}
-		};
+		});
 		return this.performRequest(options);
 	}
 	
@@ -97,5 +99,22 @@ export abstract class PyroApi {
 			}
 		}
 		return result;
+	}
+	
+	public static applyHttpsOptions(options: http.RequestOptions): http.RequestOptions {
+		if (process.env.USE_SSL === 'true') {
+			return { ...options, ...{
+					protocol: 'https:',
+					agent: https.globalAgent
+				}};
+		} else {
+			return options;
+		}
+	}
+
+	public static getRestEndpoint(modelType: string | undefined) {
+		if(!modelType)
+			throw new Error("ModelType missing!");
+		return modelType.replace(".", "_").toLowerCase();
 	}
 }

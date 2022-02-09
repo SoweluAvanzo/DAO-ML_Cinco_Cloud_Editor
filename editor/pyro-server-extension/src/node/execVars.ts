@@ -11,6 +11,8 @@ export const cmdArgs = [
     '-Dquarkus.datasource.jdbc.url="jdbc:postgresql://' + DATABASE_URL + '"',
     '-Dquarkus.datasource.username="' + DATABASE_USER + '"',
     '-Dquarkus.datasource.password="' + DATABASE_PASSWORD + '"',
+    `-Dinfo.scce.pyro.auth.MainAppAuthClient/mp-rest/url=http${process.env.USE_SSL ? 's' : ''}://192.168.65.2:3000`,
+    `-Dinfo.scce.pyro.style.MainAppStyleClient/mp-rest/url=http${process.env.USE_SSL ? 's' : ''}://192.168.65.2:3000`,
     '-Dquarkus.http.port=' + PYRO_PORT,
     '-jar'
 ];
