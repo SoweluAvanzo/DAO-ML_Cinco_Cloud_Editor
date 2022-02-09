@@ -181,6 +181,9 @@ class Generator {
 			cpd
 		);
 
+		// generate spec
+		new de.jabc.cinco.meta.plugin.pyro.spec.Generator(base).generate(gc)
+
 		// generate preview
 		new de.jabc.cinco.meta.plugin.pyro.preview.Generator(base).generate(gc)
 
