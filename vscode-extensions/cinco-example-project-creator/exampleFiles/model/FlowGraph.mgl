@@ -6,11 +6,12 @@ stylePath "model/FlowGraph.style"
 @primeviewer
 @generatable("info.scce.cinco.product.flowgraph.codegen.Generate","/src-gen/")
 @postCreate("info.scce.cinco.product.flowgraph.hooks.InitializeFlowGraphModel")
+@mcam("check")
 graphModel FlowGraphDiagram {
 	iconPath "icons/FlowGraph.png"
 	diagramExtension "flowgraph"
 	
-	containableElements(Start, End, Activity, Swimlane, /*ExternalActivity,*/ SubFlowGraph)
+	containableElements(Start, End, Activity, Swimlane, ExternalActivity, SubFlowGraph)
 	
 	attr EString as modelName
 }
@@ -51,7 +52,7 @@ node Activity {
 	
 	attr EString as name
 	attr EString as description
-	incomingEdges (*[1,*])
+	incomingEdges ({Transition,LabeledTransition}[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }
 
@@ -61,15 +62,16 @@ node ExternalActivity {
 	@pvLabel(name)
 	@pvFileExtension("elib")
 	prime externalLibrary.ExternalActivity as activity
-	incomingEdges (*[1,*])
+	incomingEdges ({Transition,LabeledTransition}[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }
 
+@jumpToPrime
 node SubFlowGraph {
 	style greenTextRectangle("${subFlowGraph.modelName}")
 	
 	prime this::FlowGraphDiagram as subFlowGraph
-	incomingEdges (*[1,*])
+	incomingEdges ({Transition,LabeledTransition}[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 }
 
@@ -79,7 +81,7 @@ container Swimlane {
 	style swimlane("${actor}")
 	
 	attr EString as actor
-	containableElements (Start[1,1], Activity, End, /*ExternalActivity,*/ SubFlowGraph)
+	containableElements (Start[1,1], Activity, End, ExternalActivity, SubFlowGraph)
 }
 
 edge Transition {
