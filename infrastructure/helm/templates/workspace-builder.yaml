@@ -6,8 +6,6 @@ metadata:
 data:
   AMPQ_HOST: "ampq-service"
   AMPQ_PORT: "5672"
-  AMPQ_USERNAME: "cc"
-  AMPQ_PASSWORD: "cc"
   DOCKER_REGISTRY_HOST: "registry-service"
   DOCKER_REGISTRY_PORT: "5000"
   ARCHETYPE_REGISTRY_URL: "registry.gitlab.com"
@@ -50,6 +48,16 @@ spec:
                 secretKeyRef:
                   name: cinco-cloud-archetype-registry-credentials
                   key: password
+            - name: AMPQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: artemisUser
+            - name: AMPQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: artemisPassword
           securityContext:
             privileged: true
       imagePullSecrets:

@@ -1,6 +1,7 @@
 package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.persistence.CascadeType;
@@ -19,6 +20,11 @@ public class ProjectDB extends PanacheEntity {
 
   public String name;
   public String description;
+
+  /**
+   * If != null, the project is considered deleted.
+   */
+  public Instant deletedAt;
 
   @NotNull
   @Enumerated(EnumType.STRING)

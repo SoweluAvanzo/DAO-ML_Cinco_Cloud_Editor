@@ -10,9 +10,9 @@ public class PostgresResource implements QuarkusTestResourceLifecycleManager {
 
   @Container
   static PostgreSQLContainer<?> database = new PostgreSQLContainer<>("postgres:13-alpine")
-      .withDatabaseName("quarkus_test")
-      .withUsername("quarkus_test")
-      .withPassword("quarkus_test");
+      .withDatabaseName("cc")
+      .withUsername("cc")
+      .withPassword("cc");
 
   @Override
   public Map<String, String> start() {

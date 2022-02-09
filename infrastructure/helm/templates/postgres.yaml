@@ -7,8 +7,6 @@ metadata:
     app: postgres
 data:
   POSTGRES_DB: cc
-  POSTGRES_USER: cc
-  POSTGRES_PASSWORD: cc
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -34,6 +32,17 @@ spec:
           envFrom:
             - configMapRef:
                 name: postgres-config
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: databaseUser
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: databasePassword
           ports:
             - containerPort: 5432
               name: postgres

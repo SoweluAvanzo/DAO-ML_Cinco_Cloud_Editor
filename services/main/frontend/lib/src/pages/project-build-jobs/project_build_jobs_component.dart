@@ -1,5 +1,6 @@
 import 'package:angular/angular.dart';
 import 'dart:html';
+import 'dart:math';
 import 'dart:convert';
 import 'package:angular_router/angular_router.dart';
 import 'package:ng_bootstrap/ng_bootstrap.dart';
@@ -37,11 +38,11 @@ class ProjectBuildJobsComponent implements OnActivate, OnDeactivate {
 
   User user;
   Project project;
-  List<WorkspaceImageBuildJob> buildJobs = List();
+  Page<WorkspaceImageBuildJob> buildJobsPage;
   WebSocket projectWebSocket;
 
-  int page = 0;
-  int size = 15;
+  int pageNumber = 0;
+  int pageSize = 15;
 
   final ProjectService _projectService;
   final UserService _userService;
@@ -70,17 +71,31 @@ class ProjectBuildJobsComponent implements OnActivate, OnDeactivate {
 
         document.title = "Cinco Cloud | " + project.name;
 
-        _buildJobService.getAll(project.id, page, size).then((jobs){
-          buildJobs = jobs;
-        }).catchError((err) {
-          window.console.log(err);
-        });
+        loadPage();
       }).catchError((err) {
         window.console.log(err);
       });
     }).catchError((err){
       window.console.log(err);
     });
+  }
+
+  void loadPage() {
+    _buildJobService.getAll(project.id, pageNumber, pageSize).then((p) {
+      buildJobsPage = p;
+    }).catchError((err) {
+      window.console.log(err);
+    });
+  }
+
+  void nextPage() {
+    pageNumber++;
+    loadPage();
+  }
+
+  void previousPage() {
+    pageNumber = max(0, pageNumber - 1);
+    loadPage();
   }
 
   @override
@@ -99,13 +114,21 @@ class ProjectBuildJobsComponent implements OnActivate, OnDeactivate {
         switch(message.event) {
           case WebSocketEvents.UPDATE_BUILD_JOB_STATUS:
             var job = WorkspaceImageBuildJob.fromJSOG(cache: Map(), jsog: message.content);
-            var i = buildJobs.indexWhere((j) => j.id == job.id);
+            var i = buildJobsPage.items.indexWhere((j) => j.id == job.id);
             if (i > -1) {
-              buildJobs[i] = job;
+              buildJobsPage.items[i] = job;
             } else {
-              buildJobs.insert(0, job);
-              if (buildJobs.length > size) {
-                buildJobs.removeLast();
+              // insert job at the top if we are on the first page
+              if (buildJobsPage.number == 0) {
+                buildJobsPage.items.insert(0, job);
+                // remove the last job on the page if the page overflows
+                if (buildJobsPage.items.length > pageSize) {
+                  buildJobsPage.items.removeLast();
+                  // increase the amount of pages if we are on the last page
+                  if (buildJobsPage.number + 1 == buildJobsPage.amountOfPages) {
+                    buildJobsPage.amountOfPages++;
+                  }
+                }
               }
             }
             break;
@@ -126,7 +149,7 @@ class ProjectBuildJobsComponent implements OnActivate, OnDeactivate {
   void deleteJob(WorkspaceImageBuildJob job) {
     _buildJobService.remove(project.id, job).then((deletedJob){
       _notificationService.displayMessage("The job has been deleted.", NotificationType.SUCCESS);
-      buildJobs.remove(job);
+      buildJobsPage.items.remove(job);
     }).catchError((err) {
       _notificationService.displayMessage("The job could not be deleted.", NotificationType.DANGER);
     });
@@ -137,4 +160,8 @@ class ProjectBuildJobsComponent implements OnActivate, OnDeactivate {
   }
 
   Organization get organization => project == null ? null : project.organization;
+
+  bool get hasNextPage => buildJobsPage != null && buildJobsPage.number + 1 < buildJobsPage.amountOfPages;
+
+  bool get hasPreviousPage => buildJobsPage != null && buildJobsPage.number > 0;
 }
