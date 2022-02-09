@@ -16,7 +16,7 @@ data:
   PODAN_REGISTRY_API_PORT: "8000"
   KUBERNETES_NAMESPACE: {{ .Values.namespace }}
   CINCO_CLOUD_HOST: {{ .Values.ingress.host }}
-  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: "f619d8fbcc31e7692935bfb146a3f10e0a2986c0"
+  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: "04fb083309f7c4887ee2f5b1fdc93317666df78e"
   {{ if eq .Values.serverTier "local" }}
   CINCO_CLOUD_USE_SSL: "false"
   {{- else -}}
