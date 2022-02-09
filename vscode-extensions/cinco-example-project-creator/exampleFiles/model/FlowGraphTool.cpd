@@ -23,5 +23,4 @@ cincoProduct FlowGraphTool {
 		info.scce.cinco.product.flowgraph.edit,
 		info.scce.cinco.product.flowgraph.editor
 	}
-	
 }
