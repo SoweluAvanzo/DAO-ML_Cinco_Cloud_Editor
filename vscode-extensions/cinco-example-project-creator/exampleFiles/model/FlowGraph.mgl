@@ -3,9 +3,6 @@ import "model/ExternalLibrary.ecore" as externalLibrary
 id info.scce.cinco.product.flowgraph
 stylePath "model/FlowGraph.style"
 
-
-
-
 @primeviewer
 @generatable("info.scce.cinco.product.flowgraph.codegen.Generate","/src-gen/")
 @postCreate("info.scce.cinco.product.flowgraph.hooks.InitializeFlowGraphModel")
