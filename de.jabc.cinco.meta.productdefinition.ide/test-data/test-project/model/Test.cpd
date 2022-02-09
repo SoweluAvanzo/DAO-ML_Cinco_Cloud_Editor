@@ -1,7 +1,13 @@
+// TODO: The following 2 pyro-annotations have to be abandoned in the near future!
 @pyro
-@pyroIncludeSources("info.scce.cinco.product.flowgraph/src")
+@pyroIncludeSources("info.scce.cinco.product.extendedflowgraph/src", "info.scce.cinco.product.flowgraph/src")
 cincoProduct Test {
-
+	mgl "model/Empty.mgl"
+	mgl "model/Hierarchy.mgl"
+	mgl "model/HooksAndActions.mgl"		
+	mgl "model/Attributes.mgl"						
+	mgl "model/PrimeRefs.mgl"			
+	mgl "model/ExtendedFlowGraph.mgl"
 	mgl "model/FlowGraph.mgl"
 
 	splashScreen "branding/splash.bmp" {
@@ -16,16 +22,6 @@ cincoProduct Test {
 	image128 "branding/Icon128.png"
 
 	about {
-		text "This is the example project for the Cinco SCCE Meta Tooling Suite ( http://cinco.scce.info ) that serves as a feature showcase. It is generated using the 'New CincoProduct' wizard"
+		text "This is the test-project for the Cinco-Cloud"
 	}
-	
-	plugins {
-		info.scce.cinco.product.flowgraph.edit,
-		info.scce.cinco.product.flowgraph.editor
-	}
-	
 }
-
-// TODO: 
-// - src-files
-// - style-src

@@ -1,0 +1,23 @@
+package info.scce.cinco.product.extendedflowgraph.hooks;
+
+import de.jabc.cinco.meta.runtime.hook.CincoPostDeleteHook;
+import graphmodel.ModelElement;
+
+/**
+ * Example post-create hook that randomly sets the name of the activity. Possible
+ * names are inspired by the action verbs of old-school point&click adventure games :)
+ */
+public class PostDelete2 extends CincoPostDeleteHook<ModelElement> {
+	@Override
+	public Runnable getPostDeleteFunction(ModelElement modelElement) {
+		System.out.println("I am PostDelete2!");
+		return new Runnable() {
+			@Override
+			public void run() {
+				System.out.println("I am PostDeleteRunnable2!");
+			}
+		};
+	}
+	
+}
+
