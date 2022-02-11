@@ -68,8 +68,8 @@ module.exports = {
             path: '/content/developer-guide/installation/'
           },
           {
-            title: 'Coding conventions',
-            path: '/content/developer-guide/coding-conventions/'
+            title: 'Developing on CincoCloud',
+            path: '/content/developer-guide/developing/'
           }
         ]
       },
