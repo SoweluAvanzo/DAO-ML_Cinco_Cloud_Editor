@@ -53,6 +53,9 @@
         <div class="text-muted" *ngIf="project.image != null">
           Image: <em>@{{project.image.imageName}}</em>
         </div>
+        <div class="text-muted" *ngIf="project.graphModelTypes.length > 0">
+          Languages: <span *ngFor="let gmt of project.graphModelTypes" class="badge badge-pill badge-secondary mr-1 font-weight-normal">{{gmt.typeName}}</span>
+        </div>
       </div>
     </div>
   </div>

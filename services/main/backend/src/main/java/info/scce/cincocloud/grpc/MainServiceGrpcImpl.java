@@ -1,8 +1,11 @@
 package info.scce.cincocloud.grpc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
-import info.scce.cincocloud.config.VertxService;
+import info.scce.cincocloud.core.rest.tos.GraphModelTypeSpecTO;
+import info.scce.cincocloud.core.rest.tos.GraphModelTypeTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
+import info.scce.cincocloud.db.GraphModelTypeDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.mq.WorkspaceImageBuildJobMessage;
@@ -13,16 +16,20 @@ import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 import info.scce.cincocloud.sync.ProjectWebSocket.Messages;
 import io.grpc.Status;
+import io.grpc.Status.Code;
 import io.grpc.StatusRuntimeException;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
-import io.vertx.mutiny.core.buffer.Buffer;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.zip.ZipFile;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
@@ -41,13 +48,13 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
   WorkspaceMQProducer workspaceMQProducer;
 
   @Inject
-  VertxService vertxService;
-
-  @Inject
   ProjectWebSocket projectWebSocket;
 
   @Inject
   ObjectCache objectCache;
+
+  @Inject
+  ObjectMapper objectMapper;
 
   @Override
   @Transactional
@@ -67,28 +74,16 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
           .withDescription("archive must not be empty"));
     }
 
-    final var vertx = vertxService.getVertx();
     final var path = getArchiveDirectoryPath(projectId);
     final var file = getArchiveFilePath(projectId);
 
-    try {
-      if (!Files.exists(path)) {
-        Files.createDirectories(path);
-      }
-
-      if (Files.exists(file)) {
-        Files.delete(file);
-      }
-    } catch (Exception e) {
-      throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
-          .withDescription("failed to save archive."));
-    }
+    removeExistingArchive(path, file);
 
     return Uni.createFrom().item(() -> {
       final var project = (ProjectDB) ProjectDB.findByIdOptional(projectId)
           .orElseThrow(() -> new StatusRuntimeException(
-              Status.fromCode(Status.Code.INVALID_ARGUMENT).withDescription("project not found")
-          ));
+              Status.fromCode(Status.Code.INVALID_ARGUMENT)
+                  .withDescription("project not found")));
 
       WorkspaceImageBuildJobDB.findByProjectId(projectId).stream()
           .filter(job -> job.status.equals(WorkspaceImageBuildJobDB.Status.BUILDING))
@@ -96,29 +91,35 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
           .ifPresent((job) -> {
             throw new StatusRuntimeException(
                 Status.fromCode(Status.Code.ALREADY_EXISTS)
-                    .withDescription("a build job for the project already exists")
-            );
+                    .withDescription("a build job for the project already exists"));
           });
 
-      return createBuildJob(project);
+      try {
+        LOGGER.log(Level.INFO, "Save archive (projectId: {0}, archive: {1})", new Object[] {project, file});
+        Files.write(file, archiveInBytes.toByteArray());
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new StatusRuntimeException(
+            Status.fromCode(Code.INTERNAL)
+                .withDescription("failed to persist archive file"));
+      }
+
+      final var toolSpec = readToolSpecJsonFromArchive(file);
+      mergeGraphModelTypesInProject(project, toolSpec);
+
+      LOGGER.log(
+          Level.INFO,
+          "Create build image job and send it to the message queue (projectId: {0}, user: {1}, archive: {2})",
+          new Object[] {project, project.owner.username, file}
+      );
+
+      final var job = createBuildJob(project);
+      final var message = new WorkspaceImageBuildJobMessage(projectId, job.id, project.owner.username, project.name);
+      workspaceMQProducer.send(message);
+      return job;
     })
         .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-        .flatMap(job -> {
-          final var project = job.project;
-          LOGGER.log(Level.INFO, "Save archive (projectId: {0}, archive: {1})",
-              new Object[] {project, file});
-          return vertx.fileSystem()
-              .writeFile(file.toString(), Buffer.buffer(archiveInBytes.toByteArray()))
-              .map(v -> {
-                LOGGER.log(Level.INFO,
-                    "Create build image job (projectId: {0}, user: {1}, archive: {2})",
-                    new Object[] {project, project.owner.username, file});
-                workspaceMQProducer.send(
-                    new WorkspaceImageBuildJobMessage(projectId, job.id, project.owner.username,
-                        project.name));
-                return createImageReply(projectId);
-              });
-        });
+        .map(job -> createImageReply(job.project.id));
   }
 
   @Override
@@ -276,5 +277,84 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
 
   private Path getArchiveFilePath(Long projectId) {
     return getArchiveDirectoryPath(projectId).resolve("archive.zip");
+  }
+
+  private void removeExistingArchive(Path path, Path file) {
+    try {
+      if (!Files.exists(path)) {
+        Files.createDirectories(path);
+      }
+
+      if (Files.exists(file)) {
+        Files.delete(file);
+      }
+    } catch (Exception e) {
+      throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
+          .withDescription("failed to save archive."));
+    }
+  }
+
+  private GraphModelTypeSpecTO readToolSpecJsonFromArchive(Path file) {
+    try {
+      final var zip = new ZipFile(file.toFile());
+      final var entries = zip.entries();
+
+      // find the spec.json file in the archive
+      // and parse its contents
+      while (entries.hasMoreElements()) {
+        final var entry = entries.nextElement();
+        if (entry.getName().equals("spec.json")) {
+          try (final var is = zip.getInputStream(entry)) {
+            final var json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            return objectMapper.readValue(json, GraphModelTypeSpecTO.class);
+          }
+        }
+      }
+
+      throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
+          .withDescription("spec.json file not found in archive."));
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
+          .withDescription("failed to read spec.json file from archive."));
+    }
+  }
+
+  private void mergeGraphModelTypesInProject(ProjectDB project, GraphModelTypeSpecTO spec) {
+    // Remove GraphModelTypes that do not exist anymore. Here, we remove all
+    // those entries from graphModelTypes list, where the typeName does not
+    // exist in the parsed spec.json file anymore.
+    final var gmtSpecSet = spec.graphModelTypes.stream()
+        .map(GraphModelTypeTO::gettypeName)
+        .collect(Collectors.toSet());
+
+    final var graphModelTypesToDelete = project.graphModelTypes.stream()
+        .filter(g -> !gmtSpecSet.contains(g.typeName))
+        .collect(Collectors.toList());
+
+    project.graphModelTypes.removeAll(graphModelTypesToDelete);
+    project.persist();
+
+    graphModelTypesToDelete.forEach(PanacheEntityBase::delete);
+
+    // Add new GraphModelTypes to project. A GraphModelType is considered new,
+    // if its typeName does not exist as an entry in the graphModelTypes list
+    // of a project.
+    final var projectGmtSet = project.graphModelTypes.stream()
+        .map(g -> g.typeName)
+        .collect(Collectors.toSet());
+
+    spec.graphModelTypes.stream()
+        .filter(g -> !projectGmtSet.contains(g.gettypeName()))
+        .forEach(g -> {
+          final var db = new GraphModelTypeDB();
+          db.typeName = g.gettypeName();
+          db.fileExtension = g.getfileExtension();
+          db.project = project;
+          db.persist();
+          project.graphModelTypes.add(db);
+        });
+
+    project.persist();
   }
 }

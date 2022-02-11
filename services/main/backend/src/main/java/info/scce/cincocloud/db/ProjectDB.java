@@ -56,6 +56,9 @@ public class ProjectDB extends PanacheEntity {
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "project")
   public Collection<WorkspaceImageBuildJobDB> buildJobs = new ArrayList<>();
 
+  @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "project")
+  public Collection<GraphModelTypeDB> graphModelTypes = new ArrayList<>();
+
   @Transient
   public boolean isLanguageEditor() {
     return this.type.equals(ProjectType.LANGUAGE_EDITOR);
