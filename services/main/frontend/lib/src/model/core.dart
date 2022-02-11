@@ -554,8 +554,11 @@ class Project {
   Organization organization;
   WorkspaceImage image;
   WorkspaceImage template;
+  List<GraphModelType> graphModelTypes;
 
   Project({Map cache, dynamic jsog}) {
+    graphModelTypes = List();
+
     if (jsog != null) {
       cache[jsog["@id"]] = this;
       id = jsog["id"];
@@ -567,6 +570,16 @@ class Project {
       organization = _resolveComplexType(cache, jsog, "organization", (c, j) => new Organization(cache: c, jsog: j));
       owner = _resolveComplexType(cache, jsog, "owner", (c, j) => new User(cache: c, jsog: j));
       template = _resolveComplexType(cache, jsog, "template", (c, j) => new WorkspaceImage(cache: c, jsog: j));
+
+      if (jsog.containsKey("graphModelTypes")) {
+        for (var value in jsog["graphModelTypes"]) {
+          if (value.containsKey("@ref")) {
+            graphModelTypes.add(cache[value["@ref"]]);
+          } else {
+            graphModelTypes.add(new GraphModelType(cache: cache, jsog: value));
+          }
+        }
+      }
     }
     else {
       id = -1;
@@ -639,6 +652,23 @@ class Page<T> {
       number = 0;
       size = 0;
       amountOfPages = 0;
+    }
+  }
+}
+
+class GraphModelType {
+  int id;
+  String typeName;
+  String fileExtension;
+
+  GraphModelType({Map cache, dynamic jsog}) {
+    if (jsog != null) {
+      cache[jsog["@id"]] = this;
+      id = jsog["id"];
+      typeName = jsog["typeName"];
+      fileExtension = jsog["fileExtension"];
+    } else {
+      id = -1;
     }
   }
 }
