@@ -16,8 +16,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 @QuarkusTest
 public class RegistrationControllerTest extends AbstractCincoCloudTest {
 
-  private final Map<String, String> defaultHeaders = Map.of("content-type", "application/json");
-
   @BeforeEach
   public void setup() {
     reset();

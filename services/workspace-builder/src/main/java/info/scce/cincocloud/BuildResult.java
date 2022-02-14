@@ -1,5 +1,7 @@
 package info.scce.cincocloud;
 
+import java.util.UUID;
+
 public class BuildResult {
 
   /**
@@ -23,16 +25,22 @@ public class BuildResult {
   public String message;
 
   /**
-   * The name of the built image.
+   * The image UUID
    */
-  public String image;
+  public UUID uuid;
 
-  public BuildResult(Long projectId, Long jobId, Boolean success, String message, String image) {
+  public BuildResult(
+      Long projectId,
+      Long jobId,
+      Boolean success,
+      String message,
+      UUID uuid
+  ) {
     this.projectId = projectId;
     this.jobId = jobId;
     this.success = success;
     this.message = message;
-    this.image = image;
+    this.uuid = uuid;
   }
 
   @Override
@@ -42,7 +50,7 @@ public class BuildResult {
         + ", jobId=" + jobId
         + ", success=" + success
         + ", message='" + message + '\''
-        + ", image='" + image + '\''
+        + ", uuid=" + uuid
         + '}';
   }
 }

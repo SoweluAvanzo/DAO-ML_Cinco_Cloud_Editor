@@ -8,7 +8,9 @@ import './pages/organizations/organizations_component.template.dart' as ng;
 import './pages/organization/organization_component.template.dart' as ng;
 import './pages/project/project_component.template.dart' as ng;
 import './pages/project-build-jobs/project_build_jobs_component.template.dart' as ng;
+import './pages/project-members/project_members_component.template.dart' as ng;
 import './pages/profile/profile_component.template.dart' as ng;
+import './pages/overview/overview_component.template.dart' as ng;
 
 export 'route_paths.dart';
 
@@ -26,6 +28,11 @@ class Routes {
   static final logout = RouteDefinition(
     routePath: RoutePaths.logout,
     component: ng.LogoutComponentNgFactory
+  );
+
+  static final overview = RouteDefinition(
+      routePath: RoutePaths.overview,
+      component: ng.OverviewComponentNgFactory
   );
   
   static final organizations = RouteDefinition(
@@ -48,6 +55,11 @@ class Routes {
       component: ng.ProjectBuildJobsComponentNgFactory
   );
 
+  static final projectMembers = RouteDefinition(
+      routePath: RoutePaths.projectMembers,
+      component: ng.ProjectMembersComponentNgFactory
+  );
+
   static final profile = RouteDefinition(
     routePath: RoutePaths.profile,
     component: ng.ProfileComponentNgFactory
@@ -61,10 +73,12 @@ class Routes {
 	  home,
 	  admin,
 	  logout,
+    overview,
 	  organizations,
 	  organization,
 	  profile,
     project,
-    projectBuildJobs
+    projectBuildJobs,
+    projectMembers
   ];
 }

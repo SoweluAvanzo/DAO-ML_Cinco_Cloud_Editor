@@ -99,8 +99,4 @@ class OrganizationsComponent implements OnInit {
   String getProjectsUrl(Organization org) {
   	return top_routes.RoutePaths.organization.toUrl(parameters: {"orgId": org.id.toString()});
   }
-    
-  bool get isOrgManager => currentUser != null && currentUser.systemRoles.contains(UserSystemRole.ORGANIZATION_MANAGER);
-  
-  bool get canCreateOrganization => isOrgManager || (settings != null && settings.globallyCreateOrganizations);
 }

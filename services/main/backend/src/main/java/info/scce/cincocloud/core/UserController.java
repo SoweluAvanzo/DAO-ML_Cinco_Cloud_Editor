@@ -68,10 +68,8 @@ public class UserController {
   public Response searchUser(@Context SecurityContext securityContext, UserSearchInput search) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
 
-    if (subject != null && subject.isAdmin()) {
-
-      final List<UserDB> resultByUsername = UserDB
-          .list("username", search.getusernameOrEmail());
+    if (subject != null) {
+      final List<UserDB> resultByUsername = UserDB.list("username", search.getusernameOrEmail());
       if (resultByUsername.size() == 1) {
         return Response.ok(UserTO.fromEntity(resultByUsername.get(0), objectCache)).build();
       }
@@ -119,7 +117,6 @@ public class UserController {
 
       if (!user.isAdmin()) {
         user.systemRoles.add(UserSystemRole.ADMIN);
-        user.systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
       }
 
       return Response.ok(UserTO.fromEntity(user, objectCache)).build();
@@ -147,49 +144,6 @@ public class UserController {
       }
 
       user.systemRoles.remove(UserSystemRole.ADMIN);
-      return Response.ok(UserTO.fromEntity(user, objectCache)).build();
-    }
-
-    return Response.status(Response.Status.FORBIDDEN).build();
-  }
-
-  @POST
-  @Path("/{userId}/roles/addOrgManager")
-  @RolesAllowed("user")
-  public Response addOrgManager(@Context SecurityContext securityContext,
-      @PathParam("userId") final long userId) {
-    final UserDB subject = UserDB.getCurrentUser(securityContext);
-
-    if (subject != null && subject.isAdmin()) {
-      final UserDB user = UserDB.findById(userId);
-      if (user == null) {
-        return Response.status(Response.Status.NOT_FOUND).build();
-      }
-
-      if (!user.systemRoles.contains(UserSystemRole.ORGANIZATION_MANAGER)) {
-        user.systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
-      }
-
-      return Response.ok(UserTO.fromEntity(user, objectCache)).build();
-    }
-
-    return Response.status(Response.Status.FORBIDDEN).build();
-  }
-
-  @POST
-  @Path("/{userId}/roles/removeOrgManager")
-  @RolesAllowed("user")
-  public Response removeOrgManager(@Context SecurityContext securityContext,
-      @PathParam("userId") final long userId) {
-    final UserDB subject = UserDB.getCurrentUser(securityContext);
-
-    if (subject != null && subject.isAdmin()) {
-      final UserDB user = UserDB.findById(userId);
-      if (user == null) {
-        return Response.status(Response.Status.NOT_FOUND).build();
-      }
-
-      user.systemRoles.remove(UserSystemRole.ORGANIZATION_MANAGER);
       return Response.ok(UserTO.fromEntity(user, objectCache)).build();
     }
 

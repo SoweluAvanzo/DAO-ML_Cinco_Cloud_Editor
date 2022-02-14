@@ -45,6 +45,9 @@ public class WorkspaceImageBuildJobController {
   @Inject
   WorkspaceMQProducer workspaceMQProducer;
 
+  @Inject
+  ProjectService projectService;
+
   @GET
   @Path("/build-jobs/private")
   @RolesAllowed("user")
@@ -59,9 +62,7 @@ public class WorkspaceImageBuildJobController {
         .findByIdOptional(projectId)
         .orElseThrow(() -> new EntityNotFoundException("The project (id: " + projectId + ") could not be found."));
 
-    if (!isMemberOfOrganization(subject, project.organization)) {
-      return Response.status(Response.Status.FORBIDDEN).build();
-    }
+    projectService.checkPermission(project, subject);
 
     final var query = WorkspaceImageBuildJobDB
         .findByProjectIdOrderByStartedAtDesc(projectId);
@@ -124,7 +125,7 @@ public class WorkspaceImageBuildJobController {
   }
 
   private void checkUserIsProjectOwner(UserDB user, ProjectDB project, String message) {
-    if (!project.owner.equals(user)) {
+    if (!projectService.userOwnsProject(user, project)) {
       throw new RestException(Status.FORBIDDEN, message);
     }
   }
@@ -133,9 +134,5 @@ public class WorkspaceImageBuildJobController {
     return (WorkspaceImageBuildJobDB) WorkspaceImageBuildJobDB
         .findByIdOptional(jobId)
         .orElseThrow(() -> new EntityNotFoundException("The job (id: " + jobId + ") could not be found"));
-  }
-
-  private boolean isMemberOfOrganization(UserDB user, OrganizationDB organization) {
-    return organization.members.contains(user) || organization.owners.contains(user);
   }
 }

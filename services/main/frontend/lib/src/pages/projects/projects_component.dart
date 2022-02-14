@@ -2,13 +2,12 @@ import 'package:angular/angular.dart';
 import 'dart:html';
 import 'dart:convert';
 import 'package:angular_router/angular_router.dart';
-import 'package:ng_bootstrap/ng_bootstrap.dart';
 
 import '../../model/core.dart';
 import 'new_project/new_project_component.dart';
 import 'edit_project/edit_project_component.dart';
 import 'delete_project/delete_project_component.dart';
-import '../../components/workspace_image_badge/workspace_image_badge_component.dart';
+import 'project_list/project_list_component.dart';
 
 import '../../routes.dart' as top_routes;
 import '../../service/base_service.dart';
@@ -30,8 +29,7 @@ import '../main/route_paths.dart';
       NewProjectComponent,
       EditProjectComponent,
       DeleteProjectComponent,
-      WorkspaceImageBadgeComponent,
-      bsDirectives
+      ProjectListComponent,
     ],
     styleUrls: const [
       'projects_component.css'
@@ -121,17 +119,19 @@ class ProjectsComponent implements OnInit {
   	notificationService.displayMessage("Project has been edited.", NotificationType.SUCCESS);
   }
 
-  bool get canCreate =>
-      orgArv != null &&
-      orgArv.accessRights.contains(OrganizationAccessRight.CREATE_PROJECTS);
+  bool get canCreate => orgArv != null && orgArv.accessRights.contains(OrganizationAccessRight.CREATE_PROJECTS);
 
-  bool get canEdit =>
-      orgArv != null &&
-      orgArv.accessRights.contains(OrganizationAccessRight.EDIT_PROJECTS);
+  bool canEdit(User user, Project project) {
+    return orgArv != null && orgArv.accessRights.contains(OrganizationAccessRight.EDIT_PROJECTS);
+  }
 
-  bool get canDelete =>
-      orgArv != null &&
-      orgArv.accessRights.contains(OrganizationAccessRight.DELETE_PROJECTS);
+  bool canDelete(User user, Project project) {
+    return orgArv != null && orgArv.accessRights.contains(OrganizationAccessRight.DELETE_PROJECTS);
+  }
+
+  bool canManageMembers(User user, Project project) {
+    return false;
+  }
 
   String getProjectBuildJobsUrl(Project project) {
     return top_routes.RoutePaths.projectBuildJobs.toUrl(parameters: {"projectId": project.id.toString()});

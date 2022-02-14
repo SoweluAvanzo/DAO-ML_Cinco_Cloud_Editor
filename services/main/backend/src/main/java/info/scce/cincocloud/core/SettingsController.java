@@ -46,7 +46,6 @@ public class SettingsController {
     final SettingsDB settingsInDb = SettingsDB.findById(settings.getId());
 
     if (subject != null && subject.isAdmin() && settingsInDb != null) {
-      settingsInDb.globallyCreateOrganizations = settings.getgloballyCreateOrganizations();
       settingsInDb.allowPublicUserRegistration = settings.getallowPublicUserRegistration();
       return Response.ok(SettingsTO.fromEntity(settingsInDb, objectCache)).build();
     }

@@ -1,6 +1,7 @@
 package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.core.rest.tos.ProjectTO;
+import info.scce.cincocloud.core.rest.tos.UserTO;
 import info.scce.cincocloud.db.OrganizationAccessRight;
 import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.OrganizationDB;
@@ -8,9 +9,13 @@ import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.ProjectType;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.WorkspaceImageDB;
+import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -25,6 +30,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
 @Transactional
@@ -47,17 +53,18 @@ public class ProjectController {
   @Path("/create/private")
   @RolesAllowed("user")
   public Response createProject(@Context SecurityContext securityContext, ProjectTO newProject) {
-
     final UserDB subject = UserDB.getCurrentUser(securityContext);
 
+    Optional<OrganizationDB> organizationOptional;
     if (newProject.getorganization() == null) {
-      return Response.status(Response.Status.BAD_REQUEST).build();
-    }
-
-    final OrganizationDB org = OrganizationDB
-        .findById(newProject.getorganization().getId());
-    if (org == null) {
-      return Response.status(Response.Status.NOT_FOUND).build();
+      organizationOptional = Optional.empty();
+    } else {
+      final OrganizationDB org = OrganizationDB
+          .findById(newProject.getorganization().getId());
+      if (org == null) {
+        return Response.status(Response.Status.NOT_FOUND).build();
+      }
+      organizationOptional = Optional.of(org);
     }
 
     final Optional<WorkspaceImageDB> imageOptional = Optional
@@ -66,21 +73,21 @@ public class ProjectController {
 
     if (imageOptional.isPresent()) {
       final WorkspaceImageDB image = imageOptional.get();
-      if (!image.published && !image.project.owner.equals(subject)) {
+      if (!image.published && !projectService.userOwnsProject(subject, image.project)) {
         return Response.status(Response.Status.BAD_REQUEST).build();
       }
     }
 
-    if (canCreateProject(subject, org)) {
-      final ProjectDB pp = createProject(
+    if (canCreateProject(subject, organizationOptional)) {
+      final ProjectDB project = createProject(
           newProject.getname(),
           newProject.getdescription(),
           subject,
-          org,
+          organizationOptional,
           imageOptional
       );
 
-      return Response.ok(ProjectTO.fromEntity(pp, objectCache)).build();
+      return Response.ok(ProjectTO.fromEntity(project, objectCache)).build();
     }
     return Response.status(Response.Status.FORBIDDEN).build();
   }
@@ -89,27 +96,28 @@ public class ProjectController {
       String name,
       String description,
       UserDB subject,
-      OrganizationDB org,
-      Optional<WorkspaceImageDB> image
+      Optional<OrganizationDB> organizationOptional,
+      Optional<WorkspaceImageDB> imageOptional
   ) {
-    final ProjectDB pp = new ProjectDB();
-    pp.owner = subject;
-    pp.name = name;
-    pp.description = description;
-    pp.organization = org;
-    subject.ownedProjects.add(pp);
-    org.projects.add(pp);
+    final ProjectDB project = new ProjectDB();
+    project.owner = organizationOptional.isPresent() ? null : subject;
+    project.name = name;
+    project.description = description;
+    project.organization = organizationOptional.orElse(null);
+    subject.ownedProjects.add(project);
+    organizationOptional
+        .ifPresent(organization -> organization.projects.add(project));
 
-    image.ifPresent(i -> {
-      pp.template = i;
-      pp.type = ProjectType.MODEL_EDITOR;
+    imageOptional.ifPresent(image -> {
+      project.template = image;
+      project.type = ProjectType.MODEL_EDITOR;
     });
 
-    pp.persist();
+    project.persist();
     subject.persist();
-    org.persist();
+    organizationOptional.ifPresent(organization -> organization.persist());
 
-    return pp;
+    return project;
   }
 
   @POST
@@ -118,35 +126,15 @@ public class ProjectController {
   public Response updateProject(@Context SecurityContext securityContext,
       ProjectTO ownedProject) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final ProjectDB project = ProjectDB.findById(ownedProject.getId());
+    projectService.checkIfProjectExists(project);
+    projectService.checkPermission(project, subject);
 
-    final ProjectDB pp = ProjectDB.findById(ownedProject.getId());
-    projectService.checkIfProjectExists(pp);
-    projectService.checkPermission(pp, securityContext);
-
-    if (canEditProject(subject, pp)) {
-      pp.description = ownedProject.getdescription();
-      pp.name = ownedProject.getname();
-
-      // set new owner
-      if (pp.organization.owners.contains(subject)
-          || subject.systemRoles.size() > 0
-          || pp.owner.equals(subject)
-      ) {
-        final UserDB newOwner = UserDB.findById(ownedProject.getowner().getId());
-        if (newOwner == null) {
-          return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        if (!isInOrganization(newOwner, pp.organization)) {
-          return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        pp.owner.ownedProjects.remove(pp);
-        pp.owner = newOwner;
-        pp.persist();
-        newOwner.ownedProjects.add(pp);
-        newOwner.persist();
-      }
-      pp.persist();
-      return Response.ok(ProjectTO.fromEntity(pp, objectCache)).build();
+    if (canEditProject(subject, project)) {
+      project.description = ownedProject.getdescription();
+      project.name = ownedProject.getname();
+      project.persist();
+      return Response.ok(ProjectTO.fromEntity(project, objectCache)).build();
     }
     return Response.status(Response.Status.FORBIDDEN).build();
   }
@@ -159,12 +147,75 @@ public class ProjectController {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
     final ProjectDB project = ProjectDB.findById(projectId);
     projectService.checkIfProjectExists(project);
-    projectService.checkPermission(project, securityContext);
+    projectService.checkPermission(project, subject);
+    return Response.ok(ProjectTO.fromEntity(project, objectCache)).build();
+  }
 
-    if (isInOrganization(subject, project.organization)) {
-      return Response.ok(ProjectTO.fromEntity(project, objectCache)).build();
+  @GET
+  @Path("/private")
+  @RolesAllowed("user")
+  public Response getProjects(@Context SecurityContext securityContext) {
+    final var subject = UserDB.getCurrentUser(securityContext);
+
+    final var projects = ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id).stream()
+        .map(p -> ProjectTO.fromEntity(p, objectCache))
+        .collect(Collectors.toList());
+
+    return Response.ok(projects).build();
+  }
+
+  @POST
+  @Path("/{projectId}/member/private")
+  @RolesAllowed("user")
+  public Response addMember(
+      @Context SecurityContext securityContext,
+      @PathParam("projectId") final long projectId,
+      UserTO user
+  ) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final ProjectDB project = ProjectDB.findById(projectId);
+    projectService.checkIfProjectExists(project);
+    projectService.checkPermission(project, subject);
+
+    final UserDB userToAdd = UserDB.findById(user.getId());
+    if (userToAdd == null) {
+      throw new RestException(Status.NOT_FOUND, "the user could not be found");
+    } else if (project.members.contains(userToAdd)) {
+      throw new RestException(Status.BAD_REQUEST, "the user is already a member of the project");
+    } else if (project.owner != null && project.owner.equals(userToAdd)) {
+      throw new RestException(Status.BAD_REQUEST, "the owner of the project cannot be added as member");
     }
-    return Response.status(Response.Status.FORBIDDEN).build();
+
+    project.members.add(userToAdd);
+    project.persist();
+
+    return Response.ok(ProjectTO.fromEntity(project, objectCache)).build();
+  }
+
+  @DELETE
+  @Path("/{projectId}/member/{userId}/private")
+  @RolesAllowed("user")
+  public Response removeMember(
+      @Context SecurityContext securityContext,
+      @PathParam("projectId") final long projectId,
+      @PathParam("userId") final long userId
+  ) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final ProjectDB project = ProjectDB.findById(projectId);
+    projectService.checkIfProjectExists(project);
+    projectService.checkPermission(project, subject);
+
+    final UserDB userToRemove = UserDB.findById(userId);
+    if (userToRemove == null) {
+      throw new RestException(Status.NOT_FOUND, "the user could not be found");
+    } else if (!project.members.contains(userToRemove)) {
+      throw new RestException(Status.BAD_REQUEST, "the user is not a member of the project");
+    }
+
+    project.members.remove(userToRemove);
+    project.persist();
+
+    return Response.ok(ProjectTO.fromEntity(project, objectCache)).build();
   }
 
   @POST
@@ -172,9 +223,10 @@ public class ProjectController {
   @RolesAllowed("user")
   public Response deployProject(@Context SecurityContext securityContext,
       @PathParam("projectId") final long projectId) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
     final ProjectDB project = ProjectDB.findById(projectId);
     projectService.checkIfProjectExists(project);
-    projectService.checkPermission(project, securityContext);
+    projectService.checkPermission(project, subject);
     final var result = projectDeploymentService.deploy(project);
     return Response.ok(result).build();
   }
@@ -184,9 +236,10 @@ public class ProjectController {
   @RolesAllowed("user")
   public Response stopDeployedProject(@Context SecurityContext securityContext,
       @PathParam("projectId") final long projectId) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
     final ProjectDB project = ProjectDB.findById(projectId);
     projectService.checkIfProjectExists(project);
-    projectService.checkPermission(project, securityContext);
+    projectService.checkPermission(project, subject);
     projectDeploymentService.stop(project);
     return Response.status(Response.Status.OK).build();
   }
@@ -200,45 +253,45 @@ public class ProjectController {
     final ProjectDB project = ProjectDB.findById(id);
     projectService.checkIfProjectExists(project);
     if (canDeleteProject(subject, project)) {
-      projectService.deleteById(subject, id, securityContext);
+      projectService.deleteById(subject, id);
       projectDeploymentService.delete(project);
       return Response.ok("Removed").build();
     }
     return Response.status(Response.Status.FORBIDDEN).build();
   }
 
-  private boolean isInOrganization(
-      UserDB user,
-      OrganizationDB org) {
-    return org.members.contains(user) || org.owners.contains(user);
-  }
-
   private boolean canCreateProject(
       UserDB user,
-      OrganizationDB org) {
-    OrganizationAccessRightVectorDB arv = getAccessRightVector(user, org);
-    return arv != null && arv.accessRights.contains(OrganizationAccessRight.CREATE_PROJECTS);
+      Optional<OrganizationDB> organizationOptional) {
+    if (organizationOptional.isPresent()) {
+      final OrganizationDB org = organizationOptional.get();
+      OrganizationAccessRightVectorDB arv = getAccessRightVector(user, org);
+      return arv != null && arv.accessRights.contains(OrganizationAccessRight.CREATE_PROJECTS);
+    } else {
+      return true;
+    }
   }
 
   private boolean canEditProject(
       UserDB user,
       ProjectDB project) {
-    OrganizationAccessRightVectorDB arv = getAccessRightVector(user, project);
-    return arv != null && arv.accessRights.contains(OrganizationAccessRight.EDIT_PROJECTS);
+    if (project.organization == null) {
+      return project.owner.equals(user);
+    } else {
+      OrganizationAccessRightVectorDB arv = getAccessRightVector(user, project.organization);
+      return arv != null && arv.accessRights.contains(OrganizationAccessRight.EDIT_PROJECTS);
+    }
   }
 
   private boolean canDeleteProject(
       UserDB user,
       ProjectDB project) {
-    OrganizationAccessRightVectorDB arv = getAccessRightVector(user, project);
-    return arv != null && arv.accessRights.contains(OrganizationAccessRight.DELETE_PROJECTS);
-  }
-
-  private OrganizationAccessRightVectorDB getAccessRightVector(
-      UserDB user,
-      ProjectDB project
-  ) {
-    return getAccessRightVector(user, project.organization);
+    if (project.organization == null) {
+      return project.owner.equals(user);
+    } else {
+      OrganizationAccessRightVectorDB arv = getAccessRightVector(user, project.organization);
+      return arv != null && arv.accessRights.contains(OrganizationAccessRight.DELETE_PROJECTS);
+    }
   }
 
   private OrganizationAccessRightVectorDB getAccessRightVector(

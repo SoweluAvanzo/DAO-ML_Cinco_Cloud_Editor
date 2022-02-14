@@ -16,7 +16,7 @@ public class UserService {
 
   /**
    * Removes a user from all associated organizations and deletes the user from the database.
-
+   *
    * @param userToDelete The user to delete.
    */
   public void deleteUser(UserDB userToDelete) {

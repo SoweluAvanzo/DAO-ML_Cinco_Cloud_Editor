@@ -60,7 +60,7 @@ public class WorkspaceMQConsumer {
           .orElseThrow(() -> new EntityNotFoundException(
               "The project with the id '" + result.projectId + "' could not be found."));
 
-      final var existingImageOptional = WorkspaceImageDB.findByImageName(result.image);
+      final var existingImageOptional = WorkspaceImageDB.findByUUID(result.uuid);
       final WorkspaceImageDB image;
       if (existingImageOptional.isPresent()) {
         image = existingImageOptional.get();
@@ -69,11 +69,9 @@ public class WorkspaceMQConsumer {
         LOGGER.log(Level.INFO, "Image {0} updated.", new Object[] {image.toString()});
       } else {
         image = new WorkspaceImageDB();
-        image.name = result.image;
-        image.imageName = result.image;
+        image.uuid = result.uuid;
         image.imageVersion = "latest";
         image.published = true;
-        image.user = project.owner;
         image.project = project;
         image.persist();
 

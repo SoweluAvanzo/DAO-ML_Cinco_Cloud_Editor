@@ -1,11 +1,16 @@
 package info.scce.cincocloud;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.UUID;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 public class BuildJob {
+
+  /**
+   * The image UUID
+   */
+  public UUID uuid;
 
   /**
    * The ID of the workspace.
@@ -18,25 +23,8 @@ public class BuildJob {
   @Min(value = 0, message = "The ID must not be < 0.")
   public Long jobId;
 
-  /**
-   * The username the workspace belongs to.
-   */
-  @NotBlank(message = "The username must not be empty.")
-  public String username;
-
-  /**
-   * The name of the language for which a workspace image should be build.
-   */
-  @NotBlank(message = "The language must not be empty.")
-  public String language;
-
   @JsonIgnore
   public String getImageTag() {
-    return username.trim().toLowerCase()
-        + "/"
-        + language.toLowerCase().trim().replaceAll(" ", "_")
-        + "-"
-        + projectId
-        + ":latest";
+    return uuid + ":latest";
   }
 }

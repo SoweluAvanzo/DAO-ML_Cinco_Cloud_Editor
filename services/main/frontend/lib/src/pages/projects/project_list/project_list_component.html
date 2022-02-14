@@ -1,0 +1,50 @@
+<div *ngIf="projects.length > 0" class="list-group">
+  <div *ngFor="let project of projects" class="list-group-item pyro-list-entry">
+    <div class="list-group-item-heading d-flex flex-row">
+      <div (click)="openCurrentProject(project)" class="w-100 d-flex flex-row align-items-center" style="cursor: pointer">
+        <h5 class="w-100 m-0 mr-2">{{project.name}}</h5>
+        <workspace-image-badge class="flex-shrink-0 mr-3" [image]="project.template" *ngIf="project.template != null"></workspace-image-badge>
+        <span class="language-editor-badge flex-shrink-0 mr-3" *ngIf="project.template == null">Language editor</span>
+      </div>
+      <div class="flex-shrink-0">
+        <bs-dropdown>
+          <button class="btn btn-sm ml-1 dropdown-toggle no-caret" type="button">
+            <i class="fas fa-fw fa-ellipsis-h"></i>
+          </button>
+          <bs-dropdown-menu class="dropdown-menu-right">
+            <li (click)="editProject(project)" *ngIf="canEdit(user, project)">
+              <div class="dropdown-item"><i class="fas fa-fw fa-edit"></i> Edit</div>
+            </li>
+            <li (click)="deleteProject(project)" *ngIf="canDelete(user, project)">
+              <div class="dropdown-item"><i class="fas fa-fw fa-trash"></i> Delete</div>
+            </li>
+            <div class="dropdown-divider"></div>
+            <li *ngIf="canManageMembers(user, project)">
+              <a class="dropdown-item" [routerLink]="getProjectMembersUrl(project)"><i class="fas fa-fw fa-users"></i> Members</a>
+            </li>
+            <li>
+              <a class="dropdown-item" [routerLink]="getProjectBuildJobsUrl(project)"><i class="fas fa-fw fa-history"></i> Build Jobs</a>
+            </li>
+          </bs-dropdown-menu>
+        </bs-dropdown>
+      </div>
+    </div>
+
+    <div class="list-group-item-text">
+      <p *ngIf="project.description.trim() != ''">
+        <em>{{project.description}}</em>
+      </p>
+      <div class="text-muted" *ngIf="project.owner != null">
+        Owner:
+        <strong *ngIf="project.owner.id == user.id">You</strong>
+        <em *ngIf="project.owner.id != user.id">{{project.owner.username}}</em>
+      </div>
+      <div class="text-muted" *ngIf="project.image != null">
+        Image: <em>{{project.image.getImageName()}}</em>
+      </div>
+      <div class="text-muted" *ngIf="project.graphModelTypes.length > 0">
+        Languages: <span *ngFor="let gmt of project.graphModelTypes" class="badge badge-pill badge-secondary mr-1 font-weight-normal">{{gmt.typeName}}</span>
+      </div>
+    </div>
+  </div>
+</div>

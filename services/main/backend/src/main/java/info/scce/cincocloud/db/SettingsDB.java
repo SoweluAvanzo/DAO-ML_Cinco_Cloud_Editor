@@ -6,7 +6,5 @@ import javax.persistence.Entity;
 @Entity
 public class SettingsDB extends PanacheEntity {
 
-  public boolean globallyCreateOrganizations = true;
-
   public boolean allowPublicUserRegistration = true;
 }

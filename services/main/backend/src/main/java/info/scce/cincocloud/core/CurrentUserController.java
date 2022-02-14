@@ -1,11 +1,9 @@
 package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.auth.PBKDF2Encoder;
-import info.scce.cincocloud.auth.TokenUtils;
 import info.scce.cincocloud.core.rest.inputs.UpdateCurrentUserInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateCurrentUserPasswordInput;
 import info.scce.cincocloud.core.rest.inputs.UserLoginInput;
-import info.scce.cincocloud.core.rest.tos.AuthResponseTO;
 import info.scce.cincocloud.core.rest.tos.UserTO;
 import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.UserDB;
@@ -30,21 +28,17 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Transactional
 @Path("/user/current")
 @RequestScoped
 public class CurrentUserController {
 
-  @ConfigProperty(name = "cincocloud.jwt.duration")
-  Long duration;
-
-  @ConfigProperty(name = "mp.jwt.verify.issuer")
-  String issuer;
-
   @Inject
   ObjectCache objectCache;
+
+  @Inject
+  AuthService authService;
 
   @Inject
   PBKDF2Encoder passwordEncoder;
@@ -55,11 +49,8 @@ public class CurrentUserController {
   @Consumes(MediaType.APPLICATION_JSON)
   @PermitAll
   public Response login(@Valid UserLoginInput login) {
-    final UserDB subject = UserDB.find("email", login.email).firstResult();
-    if (subject != null && subject.password.equals(passwordEncoder.encode(login.password))) {
-      return getAuthResponse(subject);
-    }
-    return Response.status(Response.Status.UNAUTHORIZED).build();
+    final var auth = authService.login(login);
+    return Response.ok(auth).build();
   }
 
   @GET
@@ -127,7 +118,7 @@ public class CurrentUserController {
     subject.persist();
 
     // get new authentication since credentials could be changed
-    return getAuthResponse(subject);
+    return Response.ok(authService.generateToken(subject)).build();
   }
 
   @PUT
@@ -151,16 +142,6 @@ public class CurrentUserController {
     subject.persist();
 
     // get new authentication since credentials could be changed
-    return getAuthResponse(subject);
-  }
-
-  private Response getAuthResponse(UserDB subject) {
-    try {
-      final var auth = new AuthResponseTO(TokenUtils.generateToken(subject.email, "user", duration, issuer));
-      return Response.ok(auth).build();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return Response.status(Response.Status.FORBIDDEN).build();
-    }
+    return Response.ok(authService.generateToken(subject)).build();
   }
 }

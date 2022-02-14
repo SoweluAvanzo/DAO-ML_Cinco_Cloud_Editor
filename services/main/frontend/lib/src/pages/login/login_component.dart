@@ -56,7 +56,7 @@ class LoginComponent implements OnInit{
 					window.localStorage.remove('pyro_redirect');
 					window.location.href = redirectUrl;
 				} else {
-					_router.navigate(Routes.organizations.toUrl());
+					_router.navigate(Routes.overview.toUrl());
 				}
 			}).catchError((_) {correct = !tried;});
 		}

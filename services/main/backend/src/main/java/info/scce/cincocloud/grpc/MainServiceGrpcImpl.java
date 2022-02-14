@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -109,12 +110,12 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
 
       LOGGER.log(
           Level.INFO,
-          "Create build image job and send it to the message queue (projectId: {0}, user: {1}, archive: {2})",
-          new Object[] {project, project.owner.username, file}
+          "Create build image job and send it to the message queue (projectId: {0}, archive: {1})",
+          new Object[] {project, file}
       );
 
       final var job = createBuildJob(project);
-      final var message = new WorkspaceImageBuildJobMessage(projectId, job.id, project.owner.username, project.name);
+      final var message = new WorkspaceImageBuildJobMessage(UUID.randomUUID(), projectId, job.id);
       workspaceMQProducer.send(message);
       return job;
     })

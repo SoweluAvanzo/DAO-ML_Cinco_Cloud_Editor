@@ -116,32 +116,6 @@ class UserService extends BaseService {
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  Future<User> addOrgManagerRole(User user) async {
-    return HttpRequest.request(
-            "${getBaseUrl()}/users/${user.id}/roles/addOrgManager",
-            method: "POST",
-            requestHeaders: requestHeaders,
-            withCredentials: true)
-        .then((response) {
-      User result =
-          User.fromJSOG(new Map(), jsonDecode(response.responseText));
-      return result;
-    }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
-  }
-
-  Future<User> removeOrgManagerRole(User user) async {
-    return HttpRequest.request(
-            "${getBaseUrl()}/users/${user.id}/roles/removeOrgManager",
-            method: "POST",
-            requestHeaders: requestHeaders,
-            withCredentials: true)
-        .then((response) {
-      User result =
-          User.fromJSOG(new Map(), jsonDecode(response.responseText));
-      return result;
-    }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
-  }
-
   Future<User> loadUser() async {
     return HttpRequest.request("${getBaseUrl()}/user/current/private",
             method: "GET",
