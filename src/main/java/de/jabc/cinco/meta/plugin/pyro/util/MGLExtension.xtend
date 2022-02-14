@@ -422,6 +422,24 @@ class MGLExtension {
 		throw new IllegalStateException("The name of the MGL model \"" + model.package +
 			"\" could not be resolved properly.")
 	}
+	
+		def String getFileName(Styles model) {
+		val pattern = Pattern.compile("[\\w\\-. ]+(?=(msl|style)$)")
+		var uriString = ""
+		val modelResourceURI = model.eResource.URI
+		val platformString = modelResourceURI.toPlatformString(true)
+		if (platformString !== null) {
+			uriString = platformString
+		} else {
+			uriString = modelResourceURI.toString()
+		}
+		val matcher = pattern.matcher(uriString)
+		if (matcher.find()) {
+			return matcher.group();
+		}
+		throw new IllegalStateException("The name of the MGL model \"" + model.packageContainer +
+			"\" could not be resolved properly.")
+	}
 
 	def static MGLModel mglModel(ModelElement modelElement) {
 		if(modelElement.eContainer instanceof MGLModel) {
@@ -484,7 +502,7 @@ class MGLExtension {
 		val alreadyVisited = #[eObject]
 		var candidate = eObject as EObject
 		while (candidate !== null) {
-			if (candidate instanceof MGLModel || candidate instanceof EPackage) {
+			if (candidate instanceof MGLModel || candidate instanceof EPackage || candidate instanceof Styles) {
 				return candidate
 			}
 			candidate = candidate.eContainer
@@ -2168,6 +2186,9 @@ class MGLExtension {
 		}
 		else if (object instanceof Type) {
 			return object.name
+		}
+		else if (object instanceof Styles) {
+			return object.fileName
 		}
 		else if (object instanceof ENamedElement) {
 			return object.name
