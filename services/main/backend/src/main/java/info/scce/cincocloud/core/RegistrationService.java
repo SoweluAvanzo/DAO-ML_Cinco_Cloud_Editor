@@ -2,6 +2,7 @@ package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.auth.PBKDF2Encoder;
 import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
+import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.SettingsDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
@@ -24,6 +25,13 @@ public class RegistrationService {
       throw new RestException(Status.FORBIDDEN, "User registration is currently disabled");
     }
 
+    final var usernameExists =
+        !UserDB.list("username", userRegistration.getUsername()).isEmpty() ||
+            !OrganizationDB.list("name", userRegistration.getUsername()).isEmpty();
+    if (usernameExists) {
+      throw new RestException("The username already exists");
+    }
+
     final var emailExists = !UserDB.list("email", userRegistration.getEmail()).isEmpty();
     if (emailExists) {
       throw new RestException("The email already exists");
@@ -43,7 +51,6 @@ public class RegistrationService {
 
     if (UserDB.count() == 1) {
       user.systemRoles.add(UserSystemRole.ADMIN);
-      user.systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
     }
 
     user.persist();

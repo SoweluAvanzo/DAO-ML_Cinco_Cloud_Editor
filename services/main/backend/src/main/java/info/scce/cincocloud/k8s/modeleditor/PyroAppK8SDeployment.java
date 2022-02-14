@@ -67,7 +67,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
         .withContainers(
             new ContainerBuilder()
                 .withName(name)
-                .withImage(registryUrl + "/" + project.template.imageName)
+                .withImage(registryUrl + "/" + project.template.getImageName())
                 .withImagePullPolicy("Always")
                 .withPorts(
                     new ContainerPortBuilder()

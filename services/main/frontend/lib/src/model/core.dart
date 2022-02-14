@@ -131,7 +131,6 @@ class UpdateCurrentUserPasswordInput {
 
 class UserSystemRole {
   static final String ADMIN = "ADMIN";
-  static final String ORGANIZATION_MANAGER = "ORGANIZATION_MANAGER";
 }
 
 class User {
@@ -175,8 +174,6 @@ class User {
       for (var value in jsog["systemRoles"]) {
         if (value == UserSystemRole.ADMIN) {
           systemRoles.add(UserSystemRole.ADMIN);
-        } else if (value == UserSystemRole.ORGANIZATION_MANAGER) {
-          systemRoles.add(UserSystemRole.ORGANIZATION_MANAGER);
         }
       }
     }
@@ -223,18 +220,15 @@ class User {
 
 class Settings {
   int id;
-  bool globallyCreateOrganizations;
   bool allowPublicUserRegistration;
 
   Settings({Map cache, dynamic jsog}) {
     if (jsog != null) {
       cache[jsog["@id"]] = this;
       id = jsog["id"];
-      globallyCreateOrganizations = jsog["globallyCreateOrganizations"];
       allowPublicUserRegistration = jsog["allowPublicUserRegistration"];
     } else {
       id = -1;
-      globallyCreateOrganizations = true;
       allowPublicUserRegistration = true;
     }
   }
@@ -255,7 +249,6 @@ class Settings {
       cache["core.Settings:${id}"] = (cache.length + 1).toString();
       jsog['@id'] = cache["core.Settings:${id}"];
       jsog['id'] = id;
-      jsog['globallyCreateOrganizations'] = globallyCreateOrganizations;
       jsog['allowPublicUserRegistration'] = allowPublicUserRegistration;
       jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.SettingsTO";
     }
@@ -290,11 +283,9 @@ class WorkspaceImageBuildResult {
 
 class WorkspaceImage {
   int id;
-  String name;
-  String imageName;
+  String uuid;
   String imageVersion;
   bool published;
-  User user;
   Project project;
 
   WorkspaceImage({Map cache, dynamic jsog}) {
@@ -302,16 +293,13 @@ class WorkspaceImage {
       cache[jsog["@id"]] = this;
 
       id = jsog["id"];
-      name = jsog["name"];
-      imageName = jsog["imageName"];
+      uuid = jsog["uuid"];
       imageVersion = jsog["imageVersion"];
       published = jsog["published"];
 
       project = _resolveComplexType(cache, jsog, "project", (c, j) => new Project(cache: c, jsog: j));
-      user = _resolveComplexType(cache, jsog, "user", (c, j) => new User(cache: c, jsog: j));
     } else {
       id = -1;
-      user = new User();
     }
   }
 
@@ -323,6 +311,16 @@ class WorkspaceImage {
     return new WorkspaceImage(cache: cache, jsog: jsog);
   }
 
+  String getImageName() {
+    String namespace = "";
+    if (project.owner != null) {
+      namespace += '${project.owner.username}';
+    } else if (project.organization != null) {
+      namespace +=  '${project.organization.name}';
+    }
+    return '@${namespace}/${project.name}';
+  }
+
   Map toJSOG(Map cache) {
     Map jsog = new Map();
     if (cache.containsKey("core.WorkspaceImage:${id}")) {
@@ -331,11 +329,9 @@ class WorkspaceImage {
       cache["core.WorkspaceImage:${id}"] = (cache.length + 1).toString();
       jsog['@id'] = cache["core.WorkspaceImage:${id}"];
       jsog['id'] = id;
-      jsog['name'] = name;
-      jsog['imageName'] = imageName;
+      jsog['uuid'] = uuid;
       jsog['imageVersion'] = imageVersion;
       jsog['published'] = published;
-      jsog['user'] = user.toJSOG(cache);
       jsog['project'] = project.toJSOG(cache);
       jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.WorkspaceImageTO";
     }
@@ -554,9 +550,11 @@ class Project {
   Organization organization;
   WorkspaceImage image;
   WorkspaceImage template;
+  List<User> members;
   List<GraphModelType> graphModelTypes;
 
   Project({Map cache, dynamic jsog}) {
+    members = List();
     graphModelTypes = List();
 
     if (jsog != null) {
@@ -570,6 +568,7 @@ class Project {
       organization = _resolveComplexType(cache, jsog, "organization", (c, j) => new Organization(cache: c, jsog: j));
       owner = _resolveComplexType(cache, jsog, "owner", (c, j) => new User(cache: c, jsog: j));
       template = _resolveComplexType(cache, jsog, "template", (c, j) => new WorkspaceImage(cache: c, jsog: j));
+      members = _resolveComplexListType(cache, jsog, "members", (c, j) => new User(cache: c, jsog: j));
 
       if (jsog.containsKey("graphModelTypes")) {
         for (var value in jsog["graphModelTypes"]) {
@@ -614,6 +613,9 @@ class Project {
       }
       if (template != null) {
         jsog['template'] = template.toJSOG(cache);
+      }
+      if (members != null) {
+        jsog['members'] = members.map((u) => u.toJSOG(cache)).toList();
       }
       jsog['description'] = description;
       jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.ProjectTO";

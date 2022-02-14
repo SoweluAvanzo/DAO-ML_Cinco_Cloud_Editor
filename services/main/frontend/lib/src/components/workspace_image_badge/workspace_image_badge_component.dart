@@ -11,6 +11,4 @@ class WorkspaceImageBadgeComponent {
 
   @Input()
   WorkspaceImage image;
-
-  String get name => image.imageName.split(':')[0];
 }

@@ -23,6 +23,7 @@ class NewOrganizationComponent {
   OrganizationService _organizationService;
   
   bool show = false;
+  bool createFailed = false;
 
   NewOrganizationComponent(this._organizationService) {
   }
@@ -32,7 +33,7 @@ class NewOrganizationComponent {
   	  .then((newOrg){
   		createdSC.add(newOrg);
   	  }).catchError((err){
-  		window.console.log(err);
+  		createFailed = true;
   	  });
   }
   

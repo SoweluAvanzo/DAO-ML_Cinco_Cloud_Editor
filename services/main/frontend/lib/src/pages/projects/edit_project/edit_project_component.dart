@@ -64,12 +64,14 @@ class EditProjectComponent implements OnInit {
   void editProject() {
     project.name = projectName;
     project.description = projectDescription;
-        
-    int id = int.tryParse(selectedOwnerId);
-    List<User> allUsers = new List.from(organization.owners)..addAll(organization.members);
-    int i = allUsers.indexWhere((u) => u.id == id);
-    project.owner = allUsers[i];
-    
+
+    if (organization != null) {
+      int id = int.tryParse(selectedOwnerId);
+      List<User> allUsers = new List.from(organization.owners)..addAll(organization.members);
+      int i = allUsers.indexWhere((u) => u.id == id);
+      project.owner = allUsers[i];
+    }
+
     _projectService.update(project).then((_){
     	hasBeenSaved=true;
     	editedProjectSC.add(project);
@@ -89,7 +91,7 @@ class EditProjectComponent implements OnInit {
   }
   
   bool get canChangeOwner {
-    return organization.owners.indexWhere((u) => u.id == user.id) > -1 || user.systemRoles.length > 0;
+    return organization != null && (organization.owners.indexWhere((u) => u.id == user.id) > -1 || user.systemRoles.length > 0);
   }
 
   void setProjectTab(dynamic e) {

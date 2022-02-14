@@ -13,20 +13,6 @@
 <div *ngIf="settings != null" class="list-group">
   <div class="list-group-item pyro-list-entry d-flex flex-row">
     <div class="w-100 mr-3">
-      <strong>Globally create organizations</strong>
-      <p class="mb-0 text-muted">
-        When enabled, every user is allowed to create organizations without being an organization manager.
-      </p>
-    </div>
-    <div>
-      <toggle-button
-          (changed)="handleGloballyCreateOrganizationsChanged($event)"
-          [enabled]="settings.globallyCreateOrganizations">
-      </toggle-button>
-    </div>
-  </div>
-  <div class="list-group-item pyro-list-entry d-flex flex-row">
-    <div class="w-100 mr-3">
       <strong>Allow user registration</strong>
       <p class="mb-0 text-muted">
         When disabled, the registration is not possible for new users.

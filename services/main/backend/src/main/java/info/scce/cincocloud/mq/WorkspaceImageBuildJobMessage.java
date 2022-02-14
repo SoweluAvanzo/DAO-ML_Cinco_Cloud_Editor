@@ -1,6 +1,13 @@
 package info.scce.cincocloud.mq;
 
+import java.util.UUID;
+
 public class WorkspaceImageBuildJobMessage {
+
+  /**
+   * The image UUID
+   */
+  public UUID uuid;
 
   /**
    * The ID of the project.
@@ -12,31 +19,22 @@ public class WorkspaceImageBuildJobMessage {
    */
   public Long jobId;
 
-  /**
-   * The username the workspace belongs to.
-   */
-  public String username;
-
-  /**
-   * The name of the language for which a workspace image should be build.
-   */
-  public String language;
-
-  public WorkspaceImageBuildJobMessage(Long projectId, Long jobId, String username,
-      String language) {
+  public WorkspaceImageBuildJobMessage(
+      UUID uuid,
+      Long projectId,
+      Long jobId
+  ) {
+    this.uuid = uuid;
     this.projectId = projectId;
     this.jobId = jobId;
-    this.username = username;
-    this.language = language;
   }
 
   @Override
   public String toString() {
     return "WorkspaceImageBuildJobMessage{"
-        + "projectId=" + projectId
+        + "uuid=" + uuid
+        + ", projectId=" + projectId
         + ", jobId=" + jobId
-        + ", username='" + username + '\''
-        + ", language='" + language + '\''
         + '}';
   }
 }

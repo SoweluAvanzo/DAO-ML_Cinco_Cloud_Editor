@@ -3,20 +3,15 @@ package info.scce.cincocloud.db;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
+import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Entity
 public class WorkspaceImageDB extends PanacheEntity {
-
-  @NotBlank
-  public String name;
-
-  @NotBlank
-  public String imageName;
 
   @NotBlank
   public String imageVersion;
@@ -31,28 +26,30 @@ public class WorkspaceImageDB extends PanacheEntity {
   public Instant updatedAt = Instant.now();
 
   @NotNull
-  @ManyToOne
-  public UserDB user;
-
-  @NotNull
   @OneToOne
   public ProjectDB project;
 
-  public static Optional<WorkspaceImageDB> findByImageName(String imageName) {
-    return find("imageName", imageName).firstResultOptional();
+  @Column(columnDefinition = "uuid", updatable = false)
+  public UUID uuid = UUID.randomUUID();
+
+  public static Optional<WorkspaceImageDB> findByUUID(UUID uuid) {
+    return find("uuid", uuid).firstResultOptional();
   }
 
   @Override
   public String toString() {
-    return "WorkspaceImageDB{"
-        + "name='" + name + '\''
-        + ", imageName='" + imageName + '\''
-        + ", imageVersion='" + imageVersion + '\''
-        + ", published=" + published
-        + ", createdAt=" + createdAt
-        + ", updatedAt=" + updatedAt
-        + ", project=" + project
-        + ", user=" + user
-        + '}';
+    return "WorkspaceImageDB{" +
+        "id=" + id +
+        ", imageVersion='" + imageVersion + '\'' +
+        ", published=" + published +
+        ", createdAt=" + createdAt +
+        ", updatedAt=" + updatedAt +
+        ", project=" + project +
+        ", uuid=" + uuid +
+        '}';
+  }
+
+  public String getImageName() {
+    return uuid.toString() + ":" + imageVersion;
   }
 }

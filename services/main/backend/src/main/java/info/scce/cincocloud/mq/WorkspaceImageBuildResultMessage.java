@@ -1,5 +1,7 @@
 package info.scce.cincocloud.mq;
 
+import java.util.UUID;
+
 public class WorkspaceImageBuildResultMessage {
 
   /**
@@ -14,7 +16,7 @@ public class WorkspaceImageBuildResultMessage {
   public Long jobId;
 
   /**
-   * The the image could be built successfully.
+   * The image could be built successfully.
    */
   public Boolean success;
 
@@ -26,5 +28,5 @@ public class WorkspaceImageBuildResultMessage {
   /**
    * The name of the built image.
    */
-  public String image;
+  public UUID uuid;
 }

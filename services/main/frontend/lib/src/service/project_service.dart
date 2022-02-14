@@ -16,6 +16,33 @@ class ProjectService extends BaseService {
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
+  Future<List<Project>> getAll() async {
+    return HttpRequest.request("${getBaseUrl()}/project/private", method: "GET", requestHeaders: requestHeaders, withCredentials: true).then((response){
+      List<Project> projects = new List();
+      Map<String, dynamic> cache = new Map();
+      jsonDecode(response.responseText).forEach((project) {
+        if(project.containsKey("@ref")){
+          projects.add(cache[project["@ref"]]);
+        } else {
+          projects.add(Project(cache: cache, jsog: project));
+        }
+      });
+      return projects;
+    }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
+  }
+
+  Future<Project> addMember(String projectId, User user) async {
+    return HttpRequest.request("${getBaseUrl()}/project/${projectId}/member/private", sendData:jsonEncode(user.toJSOG(new Map())), method: "POST", requestHeaders: requestHeaders, withCredentials: true).then((response) {
+      return Project.fromJSON(response.responseText);
+    }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
+  }
+
+  Future<Project> removeMember(String projectId, User user) async {
+    return HttpRequest.request("${getBaseUrl()}/project/${projectId}/member/${user.id}/private", method: "DELETE", requestHeaders: requestHeaders, withCredentials: true).then((response) {
+      return Project.fromJSON(response.responseText);
+    }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
+  }
+
   Future<Project> create(String name, String description, Organization org, WorkspaceImage template, User user) async {
     Project pp = new Project();
     pp.name = name;
