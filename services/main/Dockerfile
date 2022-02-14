@@ -6,16 +6,13 @@
 # Note: Get MissingPortFileException from the Dart compiler during then build
 #       if Linux Kernel > 5.4 is used on the host.
 #
-FROM docker.io/google/dart:2.4.1 as builder-frontend
+FROM docker.io/library/node:16.14.0-buster-slim as builder-frontend
 WORKDIR /app/frontend
-RUN pub global activate webdev
-COPY ./main/frontend/pubspec.yaml /app/frontend
-COPY ./main/frontend/build.yaml /app/frontend
-RUN pub get
-COPY ./main/frontend/web /app/frontend/web
-COPY ./main/frontend/lib /app/frontend/lib
-RUN pub run build_runner build -o build
-
+COPY ./main/frontend/package.json /app/frontend
+COPY ./main/frontend/package-lock.json /app/frontend
+RUN npm install
+COPY ./main/frontend/ /app/frontend
+RUN npm run build
 #
 # Build the quarkus backend. Move static frontend files to the quarkus resource
 # folder so that we can build a fat jar that includes the frontend.
@@ -28,8 +25,7 @@ COPY ./main/backend/mvnw /app/main/backend/
 COPY ./main/backend/pom.xml /app/main/backend/
 RUN ./mvnw verify
 COPY ./main/backend/src /app/main/backend/src
-COPY --from=builder-frontend /app/frontend/build/web/ /app/main/backend/src/main/resources/META-INF/resources/
-COPY --from=builder-frontend /app/frontend/build/packages/ /app/main/backend/src/main/resources/META-INF/resources/packages/
+COPY --from=builder-frontend /app/frontend/dist/cinco-cloud-frontend/ /app/main/backend/src/main/resources/META-INF/resources/
 RUN ./mvnw package -DskipTests
 
 #

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/">
+  <title>Cinco Cloud</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- favicons -->
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicons/favicon-16x16.png">
+  <link rel="manifest" href="assets/img/favicons/site.webmanifest">
+  <link rel="mask-icon" href="assets/img/favicons/safari-pinned-tab.svg" color="#5bbad5">
+  <link rel="shortcut icon" href="assets/img/favicons/favicon.ico">
+  <meta name="msapplication-TileColor" content="#474747">
+  <meta name="msapplication-config" content="assets/img/favicons/browserconfig.xml">
+  <meta name="theme-color" content="#ffffff">
+
+  <!-- stylesheets -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+  <!---
+  <link rel="stylesheet" href="app/styles/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="app/styles/css/fontawesome.all.css" />
+  <link rel="stylesheet" href="app/styles/css/ng_bootstrap_all.css" />
+  <link rel="stylesheet" href="app/styles/css/overwrites.css" />
+  <link rel="stylesheet" href="app/styles/css/b4vtabs.min.css">
+  --->
+
+  <!-- organization styles -->
+  <style id="default-organization-stylesheet">
+    body {
+      margin: 0 auto;
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /** default organization styles */
+    .org-nav-bg-color {
+      background-color: #525252;
+    }
+
+    .org-nav-text-color {
+    }
+
+    .org-body-bg-color {
+      background-color: #333;
+    }
+
+    .org-body-text-color {
+      color: #fff;
+    }
+  </style>
+
+  <script>
+    /* load global pyro theme */
+    const css = localStorage.getItem('pyroGlobalStyle');
+    if (css != null) {
+      const styleNode = document.createElement("style");
+      styleNode.setAttribute("id", "organization-stylesheet");
+      styleNode.innerText = css.split('\n').join('').split('\t').join('');
+      const head = document.querySelector("head");
+      head.insertBefore(styleNode, head.querySelector('#default-organization-stylesheet').nextSibling);
+    }
+  </script>
+
+  <script>
+    if (typeof window.MemoryInfo == "undefined") {
+      if (typeof window.performance.memory != "undefined") {
+        window.MemoryInfo = function () {};
+        window.MemoryInfo.prototype = window.performance.memory.__proto__;
+      }
+    }
+  </script>
+
+  <!-- libraries -->
+  <!--
+  <script type="application/javascript" src="assets/js/jquery.min.js"></script>
+  <script type="application/javascript" src="assets/js/popper.js"></script>
+  <script type="application/javascript" src="assets/js/bootstrap.min.js"></script>
+  --->
+  <!-- app -->
+</head>
+<body class="org-body-bg-color org-body-text-color">
+<cc-root></cc-root>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+</body>
+</html>
