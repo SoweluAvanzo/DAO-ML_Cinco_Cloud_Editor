@@ -380,8 +380,16 @@ class MGLExtension {
 		return g.EClassifiers.filter(EClass)
 	}
 
-	def elementsAndEnums(EPackage g) {
+	def Iterable<ENamedElement> elementsAndPackage(EPackage g) {
+		return (g.EClassifiers.filter(EClass) + #[g]).toSet
+	}
+
+	def Iterable<ENamedElement> elementsAndEnums(EPackage g) {
 		return g.EClassifiers.filter(EClass) + g.EClassifiers.filter(EEnum)
+	}
+
+	def Iterable<ENamedElement> elementsAndEnumsAndPackage(EPackage g) {
+		return (g.elementsAndPackage + g.EClassifiers.filter(EEnum)).toSet
 	}
 
 	def elementsAndGraphmodels(MGLModel model) {
@@ -804,6 +812,10 @@ class MGLExtension {
 	}
 
 	def getEcorePrimeRefs(MGLModel model) {
+		model.nodes.filter[isPrime].map[primeReference].filter(ReferencedEClass).toSet
+	}
+
+	def getEcorePrimeRefs(GraphModel model) {
 		model.nodes.filter[isPrime].map[primeReference].filter(ReferencedEClass).toSet
 	}
 
@@ -3070,8 +3082,57 @@ class MGLExtension {
 	def shapeFQN(ModelElement me) '''«(me.modelPackage as MGLModel).shapeFQN».«me.name.fuEscapeDart»'''
 	def shapeFQN(MGLModel m) '''joint.shapes.«m.name.lowEscapeDart»'''
 	
+	def websocketEventPrime() '''referenced'''
+	
 	def concreteGraphModels(MGLModel m) {
 		return m.graphModels.filter[!isAbstract].toSet
+	}
+	
+	/**
+	 * Returns all GraphModels that can contain elements, that could
+	 * potencially reference an element of the given GraphModel g  
+	 * */
+	def dispatch Iterable<GraphModel> referencingGraphModels(GraphModel g, GeneratorCompound gc) {
+		val allNodes = gc.mglModels.map[nodes].flatten.toSet
+		// all nodes of the cpd, that reference any element of this graphModel
+		val refNodes = allNodes.filter[isPrime].filter[
+			g.elementsAndTypesAndGraphModels.contains(it.primeReference.type)
+		]
+		// all graphModels that use the potencial primeReferencing nodes
+		val potencialReferencing = refNodes.map[it.graphModels].flatten.toSet.filter[!isAbstract]
+		return potencialReferencing
+	}
+	
+	/**
+	 * Returns all GraphModels that can contain elements, that could
+	 * potencially reference an element of the given EPackage g  
+	 * */
+	def dispatch Iterable<GraphModel> referencingGraphModels(EPackage g, GeneratorCompound gc) {
+		val allNodes = gc.mglModels.map[nodes].flatten.toSet
+		// all nodes of the cpd, that reference any element of this graphModel
+		val refNodes = allNodes.filter[isPrime].filter[
+			g.elements.contains(it.primeReference.type)
+		]
+		// all graphModels that use the potencial primeReferencing nodes
+		val potencialReferencing = refNodes.map[it.graphModels].flatten.toSet.filter[!isAbstract]
+		return potencialReferencing
+	}
+	
+	/**
+	 * Returns all GraphModels that can contain elements, that could
+	 * potencially reference the given EObject e  
+	 * */
+	def dispatch Iterable<GraphModel> referencingGraphModels(EObject e, GeneratorCompound gc) {
+		val allNodes = gc.mglModels.map[nodes].flatten.toSet
+		// all nodes of the cpd, that reference any element of this graphModel
+		val refNodes = allNodes.filter[isPrime].filter[
+			it.primeReference.type.typeName.toString.equals(
+				e.typeName.toString
+			)
+		]
+		// all graphModels that use the potencial primeReferencing nodes
+		val potencialReferencing = refNodes.map[it.graphModels].flatten.toSet.filter[!isAbstract]
+		return potencialReferencing
 	}
 	
 	def containmentCheckTemplate(
@@ -3110,7 +3171,6 @@ class MGLExtension {
 		)
 	}
 	
-	// TODO: SAMI - can be more optimized
 	def constraintCheckTemplate(
 		Set<mgl.BoundedConstraint> constraints,
 		Function<GraphicalModelElement, CharSequence> typeCheck,

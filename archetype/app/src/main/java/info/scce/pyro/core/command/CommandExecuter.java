@@ -8,6 +8,7 @@ import graphmodel.*;
 import info.scce.pyro.sync.GraphModelWebSocket;
 import info.scce.pyro.core.command.types.HighlightCommand;
 import info.scce.pyro.core.command.types.*;
+import org.eclipse.emf.ecore.EObject;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,7 @@ abstract public class CommandExecuter {
     protected BatchExecution batch;
     protected List<HighlightCommand> highlightings;
     protected OpenFileCommand openFileCommand;
+    protected Long userId;
     
     public void openFile(io.quarkus.hibernate.orm.panache.PanacheEntity file) {
         openFileCommand = new OpenFileCommand();
@@ -42,9 +44,10 @@ abstract public class CommandExecuter {
         this.highlightings = highlightings;
     }
 
-    CommandExecuter(GraphModelWebSocket graphModelWebSocket,List<HighlightCommand> highlightings) {
+    CommandExecuter(GraphModelWebSocket graphModelWebSocket,List<HighlightCommand> highlightings, Long userId) {
         this.graphModelWebSocket = graphModelWebSocket;
         this.highlightings = highlightings;
+        this.userId = userId;
     }
     
     public GraphModelWebSocket getGraphModelWebSocket() {
@@ -308,4 +311,7 @@ abstract public class CommandExecuter {
     public java.io.InputStream loadFile(final entity.core.BaseFileDB identifier) {
     	return fileController.loadFile(identifier);
     }
+    
+    public abstract void sync(EObject e);
+    public abstract void sync(ModelElement e);
 }

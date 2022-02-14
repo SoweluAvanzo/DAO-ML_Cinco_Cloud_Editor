@@ -4,6 +4,7 @@ import 'dart:html' as html;
 import 'dart:convert' as convert;
 import '../model/core.dart';
 import '../service/base_service.dart';
+import '../pages/editor/editor_component.dart';
 import 'package:angular_router/angular_router.dart';
 
 @Component(
@@ -50,6 +51,9 @@ class TreeViewComponent implements OnInit {
   @Input()
   String name;
 
+  @Input()
+  EditorComponent parent;
+  
   @ContentChildren(TreeViewNodeComponent)
   List<TreeViewNodeComponent> layer;
 
@@ -65,6 +69,9 @@ class TreeViewComponent implements OnInit {
   @override
   void ngOnInit()
   {
+    if(parent != null) {
+      parent.registerTreeViewComponent(this);
+    }
     load(null);
   }
 
@@ -75,7 +82,7 @@ class TreeViewComponent implements OnInit {
     	method: "GET",
         requestHeaders: _baseService.requestHeaders,
         withCredentials: true
-    ).then((response){
+    ).then((response){ // TODO: SAMI - primeViewer needs to be rather merge
       treeView = new TreeView.fromJSOG(convert.jsonDecode(response.responseText));
     });
   }

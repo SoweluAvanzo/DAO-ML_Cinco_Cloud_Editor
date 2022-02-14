@@ -23,6 +23,8 @@ import style.EdgeStyle
 import style.NodeStyle
 import style.Styles
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.ModelElementHook
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EPackage
 
 class GraphModelCommandExecuter extends Generatable {
 	
@@ -46,6 +48,12 @@ class GraphModelCommandExecuter extends Generatable {
 			import graphmodel.*;
 			import entity.core.PyroUserDB;
 			import info.scce.pyro.sync.GraphModelWebSocket;
+			import java.util.List;
+			import java.util.LinkedList;
+			import java.util.stream.Collectors;
+			import org.eclipse.emf.ecore.EObject;
+			import info.scce.pyro.rest.ObjectCache;
+			import info.scce.pyro.sync.WebSocketMessage;
 			import «dbTypeFQN»;
 			
 			/**
@@ -54,18 +62,18 @@ class GraphModelCommandExecuter extends Generatable {
 			public class «g.commandExecuter» extends CommandExecuter {
 				
 				private info.scce.pyro.rest.ObjectCache objectCache;
-				private GraphModelWebSocket graphModelWebSocket;
 				
 				public «g.commandExecuter»(
 					PyroUserDB user,
-					info.scce.pyro.rest.ObjectCache objectCache,
+					ObjectCache objectCache,
 					GraphModelWebSocket graphModelWebSocket,
 					«g.entityFQN» graph,
-					java.util.List<info.scce.pyro.core.command.types.HighlightCommand> highlightings
+					List<info.scce.pyro.core.command.types.HighlightCommand> highlightings
 				) {
 					super(
 						graphModelWebSocket,
-						highlightings
+						highlightings,
+						user.id
 					);
 					this.objectCache = objectCache;
 					super.batch = new BatchExecution(user,new «g.apiImplFQN»(graph,this));
@@ -78,12 +86,13 @@ class GraphModelCommandExecuter extends Generatable {
 				public «g.commandExecuter»(
 					BatchExecution batch,
 					GraphModelWebSocket graphModelWebSocket,
-					java.util.List<info.scce.pyro.core.command.types.HighlightCommand> highlightings,
-					info.scce.pyro.rest.ObjectCache objectCache
+					List<info.scce.pyro.core.command.types.HighlightCommand> highlightings,
+					ObjectCache objectCache
 				) {
 					super(
 						graphModelWebSocket,
-						highlightings
+						highlightings,
+						batch.user.id
 					);
 					super.batch = batch;
 					this.objectCache = objectCache;
@@ -142,14 +151,14 @@ class GraphModelCommandExecuter extends Generatable {
 									'''
 										«refType.restFQN».fromEntityProperties(
 											prime,
-											new info.scce.pyro.rest.ObjectCache()
+											new ObjectCache()
 										),
 									'''
 								}»
 							«ENDIF»
 							«e.restFQN».fromEntityProperties(
 								node,
-								new info.scce.pyro.rest.ObjectCache()
+								new ObjectCache()
 							)
 						);
 						if(prev != null) {
@@ -209,14 +218,14 @@ class GraphModelCommandExecuter extends Generatable {
 							«ENDIF»
 							«e.restFQN».fromEntityProperties(
 								(«e.entityFQN») entity.getDelegate(),
-								new info.scce.pyro.rest.ObjectCache()
+								new ObjectCache()
 							)
 						);
 					}
 				«ENDFOR»
 				«FOR e:g.edges.filter[!isAbstract]»
 					
-					public «e.apiFQN» create«e.name.escapeJava»(Node source, Node target, java.util.List<BendingPoint> positions, «e.restFQN» prev){
+					public «e.apiFQN» create«e.name.escapeJava»(Node source, Node target, List<BendingPoint> positions, «e.restFQN» prev){
 						«e.entityFQN» edge = new «e.entityFQN»();
 						«'''edge'''.setDefault(e,false)»
 						
@@ -234,7 +243,7 @@ class GraphModelCommandExecuter extends Generatable {
 							edge.bendingPoints,
 							«e.restFQN».fromEntityProperties(
 								edge,
-								new info.scce.pyro.rest.ObjectCache()
+								new ObjectCache()
 							)
 						);
 						if(prev != null) {
@@ -251,7 +260,7 @@ class GraphModelCommandExecuter extends Generatable {
 						entity.core.BendingPointDB bp = new entity.core.BendingPointDB();
 						bp.x = x;
 						bp.y = y;
-						java.util.List<BendingPoint> bps = edge.getBendingPoints().stream()
+						List<BendingPoint> bps = edge.getBendingPoints().stream()
 							.map(n->BendingPoint.fromEntity((entity.core.BendingPointDB) n))
 							.collect(java.util.stream.Collectors.toList());
 						bps.add(BendingPoint.fromEntity(bp));
@@ -259,7 +268,7 @@ class GraphModelCommandExecuter extends Generatable {
 						super.updateBendingPoints(TypeRegistry.getTypeOf(edge),edge,bps);
 					}
 					
-					public void update«e.name.fuEscapeJava»(«e.apiFQN» edge, java.util.List<BendingPoint> points){
+					public void update«e.name.fuEscapeJava»(«e.apiFQN» edge, List<BendingPoint> points){
 						super.updateBendingPoints(TypeRegistry.getTypeOf(edge),edge,points);
 					}
 					
@@ -269,7 +278,7 @@ class GraphModelCommandExecuter extends Generatable {
 							entity,
 							«e.restFQN».fromEntityProperties(
 								(«e.entityFQN») entity.getDelegate(),
-								new info.scce.pyro.rest.ObjectCache()
+								new ObjectCache()
 							),
 							TypeRegistry.getTypeOf(entity.getSourceElement()),
 							TypeRegistry.getTypeOf(entity.getTargetElement())
@@ -335,7 +344,7 @@ class GraphModelCommandExecuter extends Generatable {
 					}
 				«ENDFOR»
 		
-			    public void setEdgeDBComponents(«dbTypeName» edge, Node source, Node target, java.util.List<BendingPoint> bendingPoints) {
+			    public void setEdgeDBComponents(«dbTypeName» edge, Node source, Node target, List<BendingPoint> bendingPoints) {
 			    	«{
 						val possibleTypes = g.edges.map[resolveSubTypesAndType].flatten.toSet.filter[!isAbstract].filter(ModelElement)
 						'''
@@ -398,7 +407,7 @@ class GraphModelCommandExecuter extends Generatable {
 							TypeRegistry.getTypeOf(entity),
 							«e.restFQN».fromEntityProperties(
 								(«e.entityFQN») entity.getDelegate(),
-								new info.scce.pyro.rest.ObjectCache()
+								new ObjectCache()
 							),
 							prev
 						);
@@ -498,7 +507,7 @@ class GraphModelCommandExecuter extends Generatable {
 								«e.entityFQN» dbEntity = «e.entityFQN».findById(update.getId());
 								«e.restFQN» prev = «e.restFQN».fromEntityProperties(
 									dbEntity,
-									new info.scce.pyro.rest.ObjectCache()
+									new ObjectCache()
 								);
 								
 								if(dbEntity == null) {
@@ -515,7 +524,7 @@ class GraphModelCommandExecuter extends Generatable {
 								«e.entityFQN» dbEntity = («e.entityFQN») apiEntity.getDelegate();
 								«e.restFQN» prev = «e.restFQN».fromEntityProperties(
 									dbEntity,
-									new info.scce.pyro.rest.ObjectCache()
+									new ObjectCache()
 								);
 							«ENDIF»
 							
@@ -529,7 +538,7 @@ class GraphModelCommandExecuter extends Generatable {
 									//for enums
 									«IF attr.list»
 										if(update.get«attr.name.escapeJava»() != null) {
-											java.util.List<«attr.entityFQN»> newList = update.get«attr.name.escapeJava»().stream().map( n -> {
+											List<«attr.entityFQN»> newList = update.get«attr.name.escapeJava»().stream().map( n -> {
 												«{
 													val en = attr.attributeTypeName.getEnum(modelPackage)
 													'''
@@ -605,7 +614,7 @@ class GraphModelCommandExecuter extends Generatable {
 								«IF attr.list»
 									{
 										// list
-										java.util.List<«attr.apiFQN»> newList = update.get«attr.name.escapeJava»().stream()
+										List<«attr.apiFQN»> newList = update.get«attr.name.escapeJava»().stream()
 											.map((n) -> n != null ? this.update«attributeTypeName»(n) : null)
 											.collect(java.util.stream.Collectors.toList());
 										
@@ -652,7 +661,7 @@ class GraphModelCommandExecuter extends Generatable {
 									TypeRegistry.getTypeOf(dbEntity),
 									«e.restFQN».fromEntityProperties(
 										dbEntity,
-										new info.scce.pyro.rest.ObjectCache()
+										new ObjectCache()
 									),
 									prev
 								);
@@ -816,6 +825,108 @@ class GraphModelCommandExecuter extends Generatable {
 					java.util.Set<?> aH = a.stream().collect(java.util.stream.Collectors.toSet());
 					java.util.Set<?> bH = b.stream().collect(java.util.stream.Collectors.toSet());
 					return !aH.equals(bH) || a.size() != b.size();
+				}
+				
+				/**
+				 * This can be used by e.g. CustomActions to synchronize to e.g. the PrimeViewer
+				 * or other custom plugins a change of an element
+				 */
+				@Override
+				public void sync(ModelElement e) {
+					if(e == null) {
+						return;
+					}
+					String messageEventType = "«websocketEventPrime»";
+					String idString = null;
+					if(e instanceof GraphModel) {
+						idString = e.getId();
+					} else {
+						// element could be contained
+						GraphModel root = ((ModelElement) e).getRootElement();
+						idString = root.getId();
+					}
+					long id = Long.parseLong(idString);
+					info.scce.pyro.core.graphmodel.IdentifiableElement content = TypeRegistry.getApiToRest(e);
+					
+					// propagate directly to used graphModel
+					graphModelWebSocket.send(id, WebSocketMessage.fromEntity(userId, messageEventType, content));
+					«{
+						val potencialReferencees = g.referencingGraphModels(gc)
+						'''
+							«IF !potencialReferencees.empty»
+								
+								// collect ids of references
+								List<Long> ids = new LinkedList<>();
+								
+								// propagate to potencial referencing models
+								«FOR refG : potencialReferencees»
+									{
+										// collect ids from all «refG.typeName»
+										List<«refG.entityFQN»> potencialReferencing = «refG.entityFQN».listAll();
+										ids.addAll(
+											potencialReferencing.stream().map((«refG.entityFQN» entity) -> entity.id).collect(Collectors.toList())
+										);
+									}
+								«ENDFOR»
+								
+								if(content == null)
+									return;
+								// propagate to references
+								for(Long refId : ids) {
+									this.graphModelWebSocket.send(refId, WebSocketMessage.fromEntity(userId, messageEventType, content));
+								}
+							«ENDIF»
+						'''
+					}»
+				}
+				
+				/**
+				 * This can be used by e.g. CustomActions to synchronize to e.g. the PrimeViewer
+				 * or other custom plugins a change of an element
+				 */
+				@Override
+				public void sync(EObject e) {
+					«{
+						var referencableEcoreElements = g.ecorePrimeRefs.map[type].map[it.modelPackage as EPackage].map[elementsAndEnumsAndPackage].flatten.toSet
+						'''
+							«IF !referencableEcoreElements.empty»
+								if(e == null) {
+									return;
+								}
+								// collect ids of references
+								List<Long> ids = new LinkedList<>();
+								info.scce.pyro.core.graphmodel.IdentifiableElement content = TypeRegistry.getDBToRestPrime(e.getDelegate(), new ObjectCache(), false);
+								
+								«FOR e : referencableEcoreElements SEPARATOR " else "
+								»«val ecoreElement = (e as EObject)»if("«ecoreElement.typeName»".equals(e.getType())) {
+									«{	
+										val potencialReferencees = ecoreElement.referencingGraphModels(gc)
+										'''
+											«IF !potencialReferencees.empty»
+												«FOR refG : potencialReferencees»
+													{
+														// collect ids from all «refG.typeName»
+														List<«refG.entityFQN»> potencialReferencing = «refG.entityFQN».listAll();
+														ids.addAll(
+															potencialReferencing.stream().map((«refG.entityFQN» entity) -> entity.id).collect(Collectors.toList())
+														);
+													}
+												«ENDFOR»
+											«ENDIF»
+										'''
+									}»
+								}«
+								ENDFOR»
+								
+								if(content == null)
+									return;
+								// propagate to references
+								for(Long refId : ids) {
+									this.graphModelWebSocket.send(refId, WebSocketMessage.fromEntity(userId, "«websocketEventPrime»", content));
+								}
+							«ENDIF»
+						'''
+					}»
 				}
 			}
 		'''

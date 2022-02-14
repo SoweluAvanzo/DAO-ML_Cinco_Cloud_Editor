@@ -7,7 +7,7 @@ import '../../../model/core.dart';
     templateUrl: 'profile_image_component.html',
     directives: const [coreDirectives],
     styleUrls: const ['profile_image_component.css'])
-class ProfileImageComponent {
+class ProfileImageComponent { // TODO: remove profile content
   @Input()
   PyroUser user;
 
@@ -19,7 +19,6 @@ class ProfileImageComponent {
     } else if (user.profilePicture == null) {
       return "https://www.gravatar.com/avatar/${user.emailHash}?d=retro";
     } else {
-      // TODO: SAMI: security
       return user.profilePicture;
     }
   }
