@@ -307,7 +307,7 @@ class Shapes extends Generatable {
 	}
 	'''
 	
-	def dispatch markupCSS(Polygon shape,String s,int i,String ref, MGLModel modelPackage)
+	def dispatch markupCSS(Polygon shape,String s,int i,String ref)
 	'''
 	'«shape.tagName».«s.tagClass(i)»':{
 		«ref.ref»
@@ -316,11 +316,11 @@ class Shapes extends Generatable {
 	}
 	'''
 	
-	def dispatch markupCSS(Image shape,String s,int i,String ref, MGLModel modelPackage)
+	def dispatch markupCSS(Image shape,String s,int i,String ref)
 	'''
 	'«shape.tagName».«s.tagClass(i)»':{
 		«ref.ref»
-		'xlink:href':'img/«modelPackage.name.lowEscapeDart»/«shape.path.fileName»',
+		'xlink:href':'img/«shape.modelPackage.name.lowEscapeDart»/«shape.path.fileName»',
 		«shape.shapeCSS»
 	}
 	'''
