@@ -45,23 +45,50 @@ class EcoreModelView extends EditorViewPlugin {
 			public class EcoreRestController {
 			
 			    @javax.inject.Inject
-			    private info.scce.pyro.rest.ObjectCache objectCache;
+			    info.scce.pyro.rest.ObjectCache objectCache;
 				
+				/*
 				«FOR lib:gc.ecores»
+					
 					@javax.inject.Inject
 					private info.scce.pyro.core.«lib.name.fuEscapeJava»Controller «lib.name.escapeJava»RestController;
 				«ENDFOR»
-		
+				*/
+				
 			    @javax.ws.rs.GET
 			    @javax.ws.rs.Path("read/{typeName}/private")
-			    @javax.annotation.security.RolesAllowed("user")«/* TODO: SAMI - make ecore-fetching type-dependent */»
+			    @javax.annotation.security.RolesAllowed("user")
 			    public Response load(@javax.ws.rs.core.Context SecurityContext securityContext,  @javax.ws.rs.PathParam("typeName") final String graphModelType) {
 					
 			    	TreeViewRest tvr = new TreeViewRest();
 			    	tvr.setlayer(new LinkedList<>());
+			    	«val allPrimeNodes = gc.mglModels.map[nodes].flatten.toSet.filter[isPrime].filter[!(primeReference.type instanceof mgl.ModelElement)]»
 					«FOR lib:gc.ecores»
-						final java.util.List<«lib.entityFQN»> list«lib.name.escapeJava» = «lib.entityFQN».listAll();
-						tvr.getlayer().addAll(buildResponse«lib.name.fuEscapeJava»(list«lib.name.escapeJava»));
+						«{
+							val containedElements = lib.elements.map[resolveSubTypesAndType].flatten.toSet
+							val allReferencees = allPrimeNodes.filter[p|
+								val primeType = p.primeReference.type
+								val resolvedTypes = primeType.resolveSubTypesAndType
+								!containedElements.filter[c|
+									!resolvedTypes.filter[r|
+										r.typeName.toString == c.typeName.toString
+									].empty
+								].empty
+							]
+ 							val allReferenceeGraphModels = allReferencees.map[graphModels].flatten.toSet.filter[!isAbstract]
+							'''
+								«IF !allReferenceeGraphModels.empty»
+									if(
+										«FOR g : allReferenceeGraphModels SEPARATOR " ||"»
+											graphModelType.equals("«g.typeName»")
+										«ENDFOR»
+									) {
+										final java.util.List<«lib.entityFQN»> list«lib.name.escapeJava» = «lib.entityFQN».listAll();
+										tvr.getlayer().addAll(buildResponse«lib.name.fuEscapeJava»(list«lib.name.escapeJava»));
+									}
+								«ENDIF»
+							'''
+						}»
 			        «ENDFOR»
 			        return Response.ok(tvr).build();
 			    }

@@ -113,7 +113,11 @@ class EcoreElementImplementation extends Generatable {
 					'''
 						@Override
 						public «cApiFQN» getContainer() {
+							if(this.delegate == null)
+								return null;
 							«cEntityFQN» container = («cEntityFQN») this.delegate.getContainer();
+							if(container == null)
+								return null;
 							return new «cApiImplFQN»(container);
 						}
 						

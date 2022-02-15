@@ -4,6 +4,7 @@ import 'dart:html' as html;
 import 'dart:convert' as convert;
 import '../model/core.dart';
 import '../service/base_service.dart';
+import '../pages/editor/editor_component.dart';
 import 'package:angular_router/angular_router.dart';
 
 @Component(
@@ -50,6 +51,9 @@ class TreeViewComponent implements OnInit {
   @Input()
   String name;
 
+  @Input()
+  EditorComponent parent;
+  
   @ContentChildren(TreeViewNodeComponent)
   List<TreeViewNodeComponent> layer;
 
@@ -65,6 +69,9 @@ class TreeViewComponent implements OnInit {
   @override
   void ngOnInit()
   {
+    if(parent != null) {
+      parent.registerTreeViewComponent(this);
+    }
     load(null);
   }
 
@@ -75,8 +82,13 @@ class TreeViewComponent implements OnInit {
     	method: "GET",
         requestHeaders: _baseService.requestHeaders,
         withCredentials: true
-    ).then((response){
-      treeView = new TreeView.fromJSOG(convert.jsonDecode(response.responseText));
+    ).then((response){ // TODO: SAMI - primeViewer needs to be rather merge
+      TreeView newTreeView = new TreeView.fromJSOG(convert.jsonDecode(response.responseText));
+      if(treeView == null) {
+        treeView = newTreeView;
+      } else {
+        treeView.merge(newTreeView);
+      }
     });
   }
 
@@ -186,8 +198,12 @@ class TreeViewNodeComponent {
 
 }
 
-class TreeView {
+class TreeView extends Mergable {
   List<TreeViewNode> layer = new List();
+
+  merge(TreeView t) {
+    layer = mergeLayer(t.layer, layer);
+  }
 
   TreeView.fromJSOG(dynamic jsog) {
     Map cache = new Map();
@@ -197,7 +213,7 @@ class TreeView {
   }
 }
 
-class TreeViewNode {
+class TreeViewNode extends Mergable {
   String label;
   String iconpath;
   int id = -1;
@@ -210,8 +226,6 @@ class TreeViewNode {
   bool isDragable = true;
 
   List<TreeViewNode> children = new List();
-
-
 
   TreeViewNode(dynamic jsog,Map cache) {
     if (cache == null) {
@@ -238,6 +252,22 @@ class TreeViewNode {
     }
   }
 
+  merge(TreeViewNode n) {
+    if(this.id != n.id) {
+      return;
+    }
+    // update properties
+    this.label = n.label;
+    this.iconpath = n.iconpath;
+    this.type = n.type;
+
+    this.isClickable = n.isClickable;
+    this.isDoubleClickable = n.isDoubleClickable;
+    this.isDragable = n.isDragable;
+
+    this.children = mergeLayer(n.children, this.children);
+  }
+
   Map toJSOG() {
     Map map = new Map();
     map['@id'] = this.id;
@@ -252,7 +282,42 @@ class TreeViewNode {
     map['isDragable'] = this.isDragable;
 
     return map;
-
   }
+}
 
+class Mergable {
+
+  mergeLayer(List<TreeViewNode> newLayer, List<TreeViewNode> oldLayer) {
+    // identify new children
+    List<TreeViewNode> newChildren = new List();
+    for(var newChild in newLayer) {
+      var existing = false;
+      for(var oldChild in oldLayer) {
+        if(oldChild.id == newChild.id) {
+          existing = true;
+          break;
+        }
+      }
+      if(!existing) {
+        newChildren.add(newChild);
+      }
+    }
+    if(!oldLayer.isEmpty) {
+      // remove old children, that do not exist anymore
+      oldLayer.removeWhere((oldChild) =>
+        // no child in n exists with the id of the oldChild, thus does not exist anymore
+        newLayer.where((newChild) => oldChild.id == newChild.id).isEmpty
+      );
+    }
+    // merge/update present children
+    for(var oldNode in oldLayer) {
+      var newNode = newLayer.firstWhere((n) => n.id == oldNode.id, orElse: null);
+      if(newNode != null) {
+        oldNode.merge(newNode);
+      }
+    }
+    // add new children
+    oldLayer.addAll(newChildren);
+    return oldLayer;
+  }
 }

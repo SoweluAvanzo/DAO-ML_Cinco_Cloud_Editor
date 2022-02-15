@@ -92,13 +92,20 @@ class EditorComponent extends Generatable {
 	    @ViewChildren(BsTabsComponent)
 	    List<BsTabsComponent> widgetTabs = new List();
 	    
+	    static List<PropertiesComponent> properties = new List<PropertiesComponent>();
 	    @ViewChildren(PropertiesComponent) set propertiesComp(content) {
 	    	if(content is List<PropertiesComponent>) {
 	    		properties.addAll(content);
 	    		properties = properties.toSet().toList();
 	    	}
 	    }
-	    static List<PropertiesComponent> properties = new List<PropertiesComponent>();
+	    
+	    static List<TreeViewComponent> treeComponents = new List<TreeViewComponent>();
+	    void registerTreeViewComponent(TreeViewComponent t) {
+	    	if(!treeComponents.contains(t)) {
+	    		treeComponents.add(t);
+	    	}
+	    }
 	    
 	    List<PyroGraphModelPermissionVector> permissionVectors;
 	    RedirectionStack redirectionStack = new RedirectionStack();
@@ -124,6 +131,8 @@ class EditorComponent extends Generatable {
 	    	currentLocalSettings = new LocalGraphModelSettings();
 	    	permissionVectors = new List();
 	    }
+	    
+	    EditorComponent get instance => this;
 	    
 		@override
 		void onActivate(_, RouterState current) async {
@@ -318,26 +327,40 @@ class EditorComponent extends Generatable {
 	
 	    void changeStructure(dynamic e) {}
 	
-		void changedGraph(CompoundCommandMessage ccm) {
-			if(ccm.type == "basic_valid_answer") {
-				var allElements = currentFile.allElements();
-				var exists = allElements.contains(selectedElement);
-				if(!exists) {
-					selectedElement = currentFile;
-				}
-				for(var p in properties) {
-					p.rebuildTrees();
-				}
+		void changedData(message) {
+			String type = message['type'];
+			var m = message['message'];
+			if(type == 'update') {
+			  changedGraph(m);
+			} else if(type == '«websocketEventPrime»') {
+			  changedReference(m);
 			}
 		}
-	
+		
+		void changedGraph(m) {
+			var allElements = currentFile.allElements();
+			var exists = allElements.contains(selectedElement);
+			if(!exists) {
+				selectedElement = currentFile;
+			}
+			for(var p in properties) {
+				p.rebuildTrees();
+			}
+		}
+		
+		void changedReference(m) {
+			for(var t in treeComponents) {
+			  t.load(null);
+			}
+		}
+		
 		void changedProperties(PropertyMessage pm) {
 			this.graphService.canvasComponent.updateProperties(pm.delegate);
 			sendMessage(pm).then((m){
-			if (m is CompoundCommandMessage) {
-			         this.graphService.canvasComponent.executeCommands(m,true);
-			         graphService.update(currentFile.id);
-			     }
+				if (m is CompoundCommandMessage) {
+					this.graphService.canvasComponent.executeCommands(m,true);
+					graphService.update(currentFile.id);
+				}
 			});
 		}
 		
@@ -530,6 +553,7 @@ class EditorComponent extends Generatable {
 										[fetchUrl]="'«pc.fetchURL»'"
 										[clickUrl]="'«pc.clickURL»'"
 										[dbClickUrl]="'«pc.dbClickURL»'"
+										[parent]="instance"
 										style="height: 100%;"
 										>
 									</tree-view>
@@ -550,7 +574,7 @@ class EditorComponent extends Generatable {
 					[layoutType]="mainLayout"
 		            (selectionChanged)="selectionChanged($event)"
 		            (selectionChangedModal)="selectionChangedModal($event)"
-		            (hasChanged)="changedGraph($event)"
+		            (hasChanged)="changedData($event)"
 		            (jumpTo)="jumpToPrime($event)"
 		            (changeLayout)="changeGridLayout($event)"
 		          ></pyro-canvas>
@@ -615,7 +639,7 @@ class EditorComponent extends Generatable {
 							    [layoutType]="mainLayout"
 							    (selectionChanged)="selectionChanged($event)"
 							    (selectionChangedModal)="selectionChangedModal($event)"
-							    (hasChanged)="changedGraph($event)"
+							    (hasChanged)="changedData($event)"
 							    (jumpTo)="jumpToPrime($event)"
 							    (changeLayout)="changeGridLayout($event)"
 							  ></pyro-canvas>
@@ -674,6 +698,7 @@ class EditorComponent extends Generatable {
 										[fetchUrl]="'«pc.fetchURL»'"
 										[clickUrl]="'«pc.clickURL»'"
 										[dbClickUrl]="'«pc.dbClickURL»'"
+										[parent]="instance"
 										style="height: 100%;"
 									>
 									</tree-view>

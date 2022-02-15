@@ -53,7 +53,7 @@ class PrimeModelView extends EditorViewPlugin {
 			public class PrimeRestController {
 			
 				@javax.inject.Inject
-				private info.scce.pyro.rest.ObjectCache objectCache;
+				info.scce.pyro.rest.ObjectCache objectCache;
 				
 				private static final String LIST_TYPE = "[]";
 				

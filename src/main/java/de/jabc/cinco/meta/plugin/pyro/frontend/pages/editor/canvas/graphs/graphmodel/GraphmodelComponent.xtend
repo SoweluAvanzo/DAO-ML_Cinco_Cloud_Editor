@@ -549,10 +549,13 @@ class GraphmodelComponent extends Generatable {
 								var x = content['x'];
 								var y = content['y'];
 								var userName = senderId;
-
+								
 								js.JsObject cursorManager = js.context['\$cursor_manager_«g.jsCall»'];
 								cursorManager.callMethod('update_cursor', [senderId, userName, x, y]);  
 							}
+						} else if (event == '«websocketEventPrime»') {
+							var m = Message.fromJSOG(jsog['content']);
+							hasChangedSC.add({ "type": "«websocketEventPrime»", "message": m });
 						} else {
 							// update graph model changed by another user
 							if (jsog['senderId'].toString() != user.id.toString()) {
@@ -575,7 +578,7 @@ class GraphmodelComponent extends Generatable {
 									startPropagation().then((_) {
 										if (m is CompoundCommandMessage) {
 											executeCommands(m, true);
-											hasChangedSC.add(m);
+											hasChangedSC.add({ "type": "update", "message": m });
 										}
 									}).then((_) => endPropagation());
 								}

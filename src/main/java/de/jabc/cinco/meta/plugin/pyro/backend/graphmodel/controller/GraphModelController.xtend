@@ -719,8 +719,27 @@ class GraphModelController extends Generatable {
 		    return Response.status(Response.Status.BAD_REQUEST).build();
 		}
 
-		private void propagateChange(long graphModelId, long senderId, Object content) {
-			graphModelWebSocket.send(graphModelId,WebSocketMessage.fromEntity(senderId,content));
+		private void propagateChange(long elementId, long senderId, Object content) {
+			// propagate to same users-canvas
+			graphModelWebSocket.send(elementId,WebSocketMessage.fromEntity(senderId,content));
+			«{
+				val potencialReferencees = g.referencingGraphModels(gc)
+				'''
+					«IF !potencialReferencees.empty»
+						// propagate to potencial prime-referencees
+						String messageEventType = "«websocketEventPrime»";
+						«FOR refG : potencialReferencees»
+							{
+								// references from «refG.typeName»
+								java.util.List<«refG.entityFQN»> potencialReferencing = «refG.entityFQN».listAll();
+								for(«refG.entityFQN» e : potencialReferencing) {
+									graphModelWebSocket.send(e.id, WebSocketMessage.fromEntity(senderId, messageEventType, content));
+								}
+							}
+						«ENDFOR»
+					«ENDIF»
+				'''
+			}»
 		}
 
 		private Response executePropertyUpdate(PropertyMessage pm,entity.core.PyroUserDB user, «g.entityFQN» graph) {
