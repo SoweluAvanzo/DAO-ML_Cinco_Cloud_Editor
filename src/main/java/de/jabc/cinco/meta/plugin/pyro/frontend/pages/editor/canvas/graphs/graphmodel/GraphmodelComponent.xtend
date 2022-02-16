@@ -1104,47 +1104,69 @@ class GraphmodelComponent extends Generatable {
 			 	return resp is bool && resp == true;
 			 }
 			 
-			 js.JsArray cb_get_valid_containers(int id,String type) {
+			 js.JsArray cb_get_valid_containers(int id, String type, bool isReference) {
 			 	var possibleNodes = [];
-			 	if(id==-1) {
-			 		switch(type) {
-			 			«{ 
-			 				// resolve type mapping
-			 				val nodes = g.nodes
-			 				// entry is the type that is referenced, value are the possible creatable nodes
-			 				val possibleMapping = new HashMap<EObject, HashSet<GraphicalModelElement>>
-			 				val nodeTypes = nodes.map[resolveSubTypesAndType]
-			 					.flatten.toSet;
-			 				for(nodeType : nodeTypes) {
-			 					var references = new HashSet<EObject>
-			 					// resolve type references
-			 					if((nodeType as GraphicalModelElement ).isPrime) {
-		 							// resolve prime-node to it's referenced types
-		 							val primeRef = (nodeType as Node).primeReference.type
-		 							references.addAll(primeRef.resolveSubTypesAndType.toSet)
-		 						} else {
-		 							references.add(nodeType)
-		 						}
-		 						// create mapping of referencedTypes to nodes
-		 						for(r : references) {
-		 							if(!possibleMapping.containsKey(r)) {
-		 								possibleMapping.put(r, new HashSet)
-		 							}
-		 							possibleMapping.get(r).add(nodeType as GraphicalModelElement)
-		 						}
-			 				}
-			 				'''
-			 					«FOR entry:possibleMapping.entrySet»
-			 						case '«entry.key.typeName»':
-			 							«FOR n:entry.value»
-			 								possibleNodes.add(new «n.dartFQN»());
-			 							«ENDFOR»
-			 							break;
-			 					«ENDFOR»
-			 				'''
-			 			}»
-			 		}
-			 	}
+				if(id==-1) {
+					if(isReference) {
+						switch(type) {
+				 			«{ 
+				 				// resolve type mapping
+				 				val nodes = g.nodes
+				 				// entry is the type that is referenced, value are the possible resulting nodes
+				 				val possibleMapping = new HashMap<EObject, java.util.Set<GraphicalModelElement>>
+				 				val nodeTypes = nodes.map[resolveSubTypesAndType].flatten.toSet.filter[isPrime];
+				 				for(nodeType : nodeTypes) {
+									val primeReferenced = (nodeType as Node).primeReference.type
+									val allReferenceableTypes = primeReferenced.resolveSubTypesAndType.toSet
+									for(r : allReferenceableTypes) {
+										if(!possibleMapping.containsKey(r)) {
+											possibleMapping.put(r, new HashSet)
+										}
+										possibleMapping.get(r).add(nodeType as GraphicalModelElement);
+									}
+				 				}
+				 				'''
+				 					«FOR entry : possibleMapping.entrySet»
+				 						case '«entry.key.typeName»':
+				 							«FOR n : entry.value»
+				 								possibleNodes.add(new «n.dartFQN»());
+				 							«ENDFOR»
+				 							break;
+				 					«ENDFOR»
+				 				'''
+				 			}»
+				 		}
+					} else {
+						switch(type) {
+				 			«{ 
+				 				// resolve type mapping
+				 				val nodes = g.nodes
+				 				// entry is the type that is referenced, value are the possible resulting nodes
+				 				val possibleMapping = new HashMap<EObject, HashSet<GraphicalModelElement>>
+				 				val nodeTypes = nodes.map[resolveSubTypesAndType].flatten.toSet.filter[!isPrime];
+				 				for(nodeType : nodeTypes) {
+									if(!possibleMapping.containsKey(nodeType)) {
+										possibleMapping.put(nodeType, new HashSet)
+									}
+									possibleMapping.get(nodeType).add(nodeType as GraphicalModelElement)
+				 				}
+				 				'''
+				 					«FOR entry : possibleMapping.entrySet»
+				 						case '«entry.key.typeName»':
+				 							«FOR n : entry.value»
+				 								possibleNodes.add(new «n.dartFQN»());
+				 							«ENDFOR»
+				 							break;
+				 					«ENDFOR»
+				 				'''
+				 			}»
+				 		}
+					}
+				} else {
+				  possibleNodes.add(
+				    findElement(id)
+				  );
+				}
 			 	var valids = new js.JsArray();
 			 	
 			 	// identify all valid containers
@@ -1162,7 +1184,7 @@ class GraphmodelComponent extends Generatable {
 			 		});
 			 	}
 			 	return valids;
-			 }
+			}
 			
 			dynamic cb_can_move_node(int id,int containerId,{core.Node tmpNode:null}) {
 				var node = null;
