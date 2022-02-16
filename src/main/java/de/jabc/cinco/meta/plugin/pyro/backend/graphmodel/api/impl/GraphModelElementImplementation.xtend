@@ -960,8 +960,10 @@ class GraphModelElementImplementation extends Generatable {
 		val containedTypes = new java.util.HashSet
 		
 		for(s:superTypes) {
+			if(s instanceof ContainingElement ){
 			val  directContainedTypes = (s as ContainingElement).possibleEmbeddingTypes(g)
-			containedTypes += directContainedTypes.map[it.resolveAllSubTypesAndType].flatten.toSet	
+			containedTypes += directContainedTypes.map[it.resolveAllSubTypesAndType].flatten.toSet				
+			}
 		}
 		
 		'''
