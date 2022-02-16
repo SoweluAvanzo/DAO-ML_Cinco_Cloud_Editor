@@ -3,17 +3,19 @@
  Global Scope Variables
  -----
  */
-//stores the link which is used for creation
+// stores the link which is used for creation
 var $temp_link = null;
-//stores the link if multiple links can be created
+// stores the link if multiple links can be created
 var $temp_link_multi = null;
-//stores if the possible edge menu is displayed
+// stores if the possible edge menu is displayed
 var $edge_menu_shown = false;
-//stores if the context menu is displayed
+// stores if the context menu is displayed
 var $context_menu_shown = false;
-//stores if the possible edge menu is displayed
+// stores the context-menu for options to pick
+var $option_picker;
+// stores if the possible edge menu is displayed
 var $edge_to_create = null;
-//function referece to remove_node_cascade method
+// function referece to remove_node_cascade method
 var $delete_node_fun = null;
 
 var $node_resize_last_direction = null;
@@ -446,7 +448,7 @@ function jump_to_element(id,graph,paper,functs) {
 
 function enable_wysiwyg_palette(paperP,graphP,paper,graph,typename,cb_create) {
 	paperP.on('cell:pointerdown', function(cellView, e, x, y) {
-	  $highlight_valid_containers_fun(-1,typename);
+	  $highlight_valid_containers_fun(-1,typename, false);
       $('body').append('<div id="flyPaper" style="position:fixed;z-index:9999;opacity:1;background-color:rgba(255, 255, 255, 0);pointer-event:none;"></div>');
       var sc = paper.scale();
       var flyGraph = new joint.dia.Graph(),
@@ -718,11 +720,9 @@ function update_single_edge_routing(link,router,connector) {
     link.set('connector', { name: connector });
 }
 
-function remove_edge_creation_menu() {
-    if($edge_menu_shown) {
-        $('#pyro_edge_menu').remove();
-        $edge_menu_shown = false;
-    }
+function removeMenus() {
+	remove_context_menu();
+	remove_option_picker();
 }
 
 function remove_context_menu() {
@@ -732,26 +732,65 @@ function remove_context_menu() {
     }
 }
 
-function create_edge_menu(target_view,possibleEdges,x,y,paper,graph) {
-    $temp_link_multi = $temp_link;
-    var btn_group = $('<div id="pyro_edge_menu" class="btn-group-vertical btn-group-sm" style="position: absolute;z-index: 99999;top: '+y+'px;left: '+x+'px;"></div>');
-    $('body').append(btn_group);
-    $edge_menu_shown = true;
-    for(var edgeKey in possibleEdges) {
-        if (possibleEdges.hasOwnProperty(edgeKey)) {
-            var edge = possibleEdges[edgeKey];
-            var button = $('<button type="button" class="btn">'+edge.name+'</button>');
+function remove_option_picker() {
+	if($option_picker != null) {
+		$option_picker.remove();
+		$option_picker = null;
+        $edge_menu_shown = false;
+	}
+}
 
-            btn_group.append(button);
+function createOptionPicker(absX, absY) {
+	removeMenus();
+	$option_picker = $('<div id="pyro_option_menu" class="btn-group-vertical btn-group-sm" style="position: absolute;z-index: 99999;top: '+absY+'px;left: '+absX+'px;"></div>');
+	$('body').append($option_picker);
+}
 
-            $(button).on('click',function () {
-                var e = possibleEdges[this.innerText];
-                create_edge(target_view,e.type,paper,graph);
-                $edge_menu_shown = false;
-                $('#pyro_edge_menu').remove();
-            });
+function addOptionPickerEntry(label, entry, action) {
+    var button = $('<button type="button" class="btn">'+label+'</button>');
+    $option_picker.append(button);
+    $(button).on(
+		'click',
+		() => {
+			action(entry);
+	        removeMenus();
+		}
+	);
+}
+
+/**
+ * absX, absY	The position of the optionsMenu
+ * options		Contains entries which represent the pickable-options 
+ * labelMapper	Receives an entry of 'options' and maps it to a string, representing the label of the pickable-option
+ * action		The action, triggered when clicking the pickable-option. Receives an entry of options
+ */
+function create_options_menu(absX, absY, options, labelMapper, action) {
+	$temp_link_multi = $temp_link;
+    createOptionPicker(absX, absY);
+    for(var key in options) {
+        if (options.hasOwnProperty(key)) {
+            var entry = options[key];
+            var label = labelMapper(entry);
+			addOptionPickerEntry(
+                label,
+				entry,
+                action
+            );
         }
     }
+}
+
+function create_edge_menu(target_view, possibleEdges, absX, absY, paper, graph) {
+    $edge_menu_shown = true;
+    $temp_link_multi = $temp_link;
+	create_options_menu(
+		absX, absY,
+		possibleEdges,
+		(e) => e.name,
+		(e) => {
+	        create_edge(target_view,e.type,paper,graph);
+	    }
+	);
 }
 
 function create_edge(target_view,possibleEdge,paper,graph,map) {
@@ -765,7 +804,6 @@ function create_edge(target_view,possibleEdge,paper,graph,map) {
     paper.findViewByModel(possibleEdge.getSourceElement()).render();
     paper.findViewByModel(possibleEdge).render();
     $temp_link_multi = null;
-
 }
 
 function init_edge_eventsystem(paper) {
@@ -1209,7 +1247,7 @@ function constraint_element_view(g,highlight_valid_targets,highlight_valid_conta
                 joint.dia.ElementView.prototype.pointerdown.apply(this.paper.findViewByModel(p), [evt, x, y]);
                 return;
             }
-            highlight_valid_containers(this.model.attributes.attrs.id,this.model.attributes.type);
+            highlight_valid_containers(this.model.attributes.attrs.id,this.model.attributes.type, false);
             joint.dia.ElementView.prototype.pointerdown.apply(this, arguments);
         },
         
@@ -1678,14 +1716,15 @@ function confirm_drop(ev) {
  * @param ev
  */
 function start_drag_element(ev) {
-
     $edge_to_create = ev.target.dataset.typename;
+	var isReference = ev.target.dataset.reference ? true : false;
     var content = JSON.stringify({
         'typename':ev.target.dataset.typename,
-        "elementid": ev.target.dataset.elementid
+        "elementid": ev.target.dataset.elementid,
+		'isReference': isReference
     });
-    $highlight_valid_containers_fun(-1,ev.target.dataset.typename);
-    ev.dataTransfer.setData("text",content);
+    $highlight_valid_containers_fun(-1, ev.target.dataset.typename, isReference);
+    ev.dataTransfer.setData("text", content);
 }
 
 /**

@@ -229,11 +229,20 @@ class Controller extends Generatable{
 		$graph_«g.jsCall».on('change:position', _.debounce($«g.jsCall»_lib.handleChangePosition, 10));
 	
 	    /**
-	     * Graphmodel (Canvas) has been clicked
+	     * Graphmodel (Canvas) actions
 	     */
+		$paper_«g.jsCall».on('blank:pointerclick',function () {
+			removeMenus();
+		});
+		$paper_«g.jsCall».on('blank:pointerdblclick', function(evt,x,y){
+			removeMenus();
+			
+			//fetch ca for element
+			cb_fire_dbc_actions($graphmodel_id_«g.jsCall»);
+			console.log("graphmodel double clicked");
+		});
 	    $paper_«g.jsCall».on('blank:pointerup', function(evt, x, y) {
-	    	remove_edge_creation_menu();
-	    	remove_context_menu();
+	    	removeMenus();
 	        deselect_all_elements(null,$paper_«g.jsCall»,$graph_«g.jsCall»);
 	        cb_graphmodel_selected();
 	        console.log("graphmodel clicked");
@@ -241,7 +250,6 @@ class Controller extends Generatable{
 	    $paper_«g.jsCall».on('blank:pointerdown', function(evt, x, y) {
 	        evt.data = { action: 'paper_drag', paper_drag_x: x, paper_drag_y: y };
 	    });
-	    
 	    $paper_«g.jsCall».on('blank:pointermove', function(evt, x, y) {
 	        var trans = $paper_«g.jsCall».translate();
 	        if(x - evt.data.x != 0 || y - evt.data.y != 0) {
@@ -252,27 +260,100 @@ class Controller extends Generatable{
 	            );
 	        }
 	    });
-	    
 	    $paper_«g.jsCall».on('blank:mousewheel', function(evt, x, y,delta) {
 			zoom_paper($paper_«g.jsCall»,evt,x,y,delta);
 		});
 		$paper_«g.jsCall».on('cell:mousewheel', function(cv,evt, x, y,delta) {
 			zoom_paper($paper_«g.jsCall»,evt,x,y,delta);
 		});
-		
-		$paper_«g.jsCall».on('blank:pointerclick',function () {
-			var node_menu = $('#pyro_node_menu');
-			if(node_menu !== null) {
-				node_menu.remove();
-			}
-		});
 		$paper_«g.jsCall».on('cell:pointerclick',function () {
-			var node_menu = $('#pyro_node_menu');
-			if(node_menu !== null) {
-				node_menu.remove();
-			}
+			removeMenus();
 		});
-		
+	    $paper_«g.jsCall».on('cell:pointerdblclick', function(cellView,evt,x,y){
+	    	removeMenus();
+	    	
+	    	//fetch ca for element
+	    	cb_fire_dbc_actions(cellView.model.attributes.attrs.id);
+	    });
+	    /**
+	     * Element has been selected
+	     * change selection
+	     * show properties
+	     */
+	    $paper_«g.jsCall».on('cell:pointerup', function(cellView,evt) {
+			if(cellView.model.attributes.attrs.isDeleted!==true) {
+				
+				//check for select disabled and try for container
+				while(cellView.model.attributes.attrs.disableSelect===true) {
+					// get container
+					if(cellView.model.attributes.parent == null){
+						cb_graphmodel_selected();
+						return;
+					}
+					cellView = $paper_«g.jsCall».findViewByModel($graph_«g.jsCall».getCell(cellView.model.attributes.parent));
+				}
+				
+			    update_selection(cellView,$paper_«g.jsCall»,$graph_«g.jsCall»);
+			    cb_element_selected(cellView.model.attributes.attrs.id);
+				«FOR node:nodes»
+					if(cellView.model.attributes.type=='«node.typeName»'){
+						//check if container has changed
+						move_node_«node.jsCall(g)»_hook(cellView);
+						if(!cellView.model.attributes.attrs.disableResize) {
+					    	$cb_functions_«g.jsCall».cb_resize_node_«node.jsCall(g)»(Math.round(cellView.model.attributes.size.width),Math.round(cellView.model.attributes.size.height),$node_resize_last_direction,cellView.model.attributes.attrs.id);	 	        		
+						}
+					}
+				«ENDFOR»
+				«FOR edge:edges»
+					if(cellView.model.attributes.type=='«edge.typeName»'){
+						var source = $graph_«g.jsCall».getCell(cellView.model.attributes.source.id);
+						var target = $graph_«g.jsCall».getCell(cellView.model.attributes.target.id);
+						reconnect_edge_«edge.jsCall(g)»_hook(cellView);
+						$cb_functions_«g.jsCall».cb_update_bendpoint(
+							cellView.model.attributes.vertices,
+							cellView.model.attributes.attrs.id
+						);
+					}
+				«ENDFOR»
+			     console.log(cellView);
+			     console.log("element clicked");
+			}
+	     });
+	    /**
+ 		* Link has been selected
+ 		* change selection
+ 		* show properties
+ 		*/
+ 		$paper_«g.jsCall».on('link:options', function(cellView,evt, x, y) {
+ 			removeMenus();
+ 			update_selection(cellView,$paper_«g.jsCall»,$graph_«g.jsCall»);
+ 			cb_element_selected(cellView.model.attributes.attrs.id);
+ 			console.log("link clicked");
+ 		});
+ 	    /**
+ 		 * Canvas has been right clicked
+ 		 * Show context menu for the graphmodel
+ 		 * including registered custome actions
+ 		 */
+ 		$paper_«g.jsCall».on('blank:contextmenu', function(evt,x,y){
+ 			removeMenus();
+ 			//fetch ca for graphmodel
+ 			var pos = getPaperToScreenPosition(x,y,$paper_«g.jsCall»);
+ 			cb_get_custom_actions($graphmodel_id_«g.jsCall»,Math.round(pos.x),Math.round(pos.y+$(document).scrollTop()),x,y);
+ 			console.log("graphmodel context menu clicked");
+ 		});
+ 	    /**
+ 	     * Element has been right clicked
+ 	     * Show context menu for the element
+ 	     * including registered custome actions
+ 	     */
+ 	    $paper_«g.jsCall».on('cell:contextmenu', function(cellView,evt,x,y){
+ 	    	removeMenus();
+ 	    	//fetch ca for element
+ 	    	var pos = getPaperToScreenPosition(x,y,$paper_«g.jsCall»);
+ 	    	cb_get_custom_actions(cellView.model.attributes.attrs.id,Math.round(pos.x),Math.round(pos.y+$(document).scrollTop()),x,y);
+ 	    });
+ 	    
 		(function() {
 			/**
 			 * emit the cursor position of the user on the paper
@@ -380,118 +461,6 @@ class Controller extends Generatable{
 		    }
 		  }
 		}());
-	    
-	    /**
-		* Link has been selected
-		* change selection
-		* show properties
-		*/
-		$paper_«g.jsCall».on('link:options', function(cellView,evt, x, y) {
-			remove_edge_creation_menu();
-			remove_context_menu();
-			update_selection(cellView,$paper_«g.jsCall»,$graph_«g.jsCall»);
-			cb_element_selected(cellView.model.attributes.attrs.id);
-			console.log("link clicked");
-		});
-	    
-	    /**
-		 * Canvas has been right clicked
-		 * Show context menu for the graphmodel
-		 * including registered custome actions
-		 */
-		$paper_«g.jsCall».on('blank:contextmenu', function(evt,x,y){
-			//fetch ca for graphmodel
-			var pos = getPaperToScreenPosition(x,y,$paper_«g.jsCall»);
-			cb_get_custom_actions($graphmodel_id_«g.jsCall»,Math.round(pos.x),Math.round(pos.y+$(document).scrollTop()),x,y);
-			console.log("graphmodel context menu clicked");
-		});
-		
-		/**
-		* Graphmodel has been double clicked
-		* Activate double click action
-		*/
-		$paper_«g.jsCall».on('blank:pointerdblclick', function(evt,x,y){
-			var node_menu = $('#pyro_node_menu');
-			if(node_menu !== null) {
-				node_menu.remove();
-			}
-			
-			//fetch ca for element
-			cb_fire_dbc_actions($graphmodel_id_«g.jsCall»);
-			console.log("graphmodel double clicked");
-		});
-	    
-	    /**
-	     * Element has been right clicked
-	     * Show context menu for the element
-	     * including registered custome actions
-	     */
-	    $paper_«g.jsCall».on('cell:contextmenu', function(cellView,evt,x,y){
-	    	//fetch ca for element
-	    	var pos = getPaperToScreenPosition(x,y,$paper_«g.jsCall»);
-
-	    	cb_get_custom_actions(cellView.model.attributes.attrs.id,Math.round(pos.x),Math.round(pos.y+$(document).scrollTop()),x,y);
-	    });
-	    
-	    /**
-	     * Element has been double clicked
-	     * Activate double click action
-	     */
-	    $paper_«g.jsCall».on('cell:pointerdblclick', function(cellView,evt,x,y){
-	    	var node_menu = $('#pyro_node_menu');
-			if(node_menu !== null) {
-				node_menu.remove();
-			}
-	    	
-	    	//fetch ca for element
-	    	cb_fire_dbc_actions(cellView.model.attributes.attrs.id);
-	    });
-	    
-	    
-	    /**
-	     * Element has been selected
-	     * change selection
-	     * show properties
-	     */
-	    $paper_«g.jsCall».on('cell:pointerup', function(cellView,evt) {
-			if(cellView.model.attributes.attrs.isDeleted!==true) {
-				
-				//check for select disabled and try for container
-				while(cellView.model.attributes.attrs.disableSelect===true) {
-					// get container
-					if(cellView.model.attributes.parent == null){
-						cb_graphmodel_selected();
-						return;
-					}
-					cellView = $paper_«g.jsCall».findViewByModel($graph_«g.jsCall».getCell(cellView.model.attributes.parent));
-				}
-				
-			    update_selection(cellView,$paper_«g.jsCall»,$graph_«g.jsCall»);
-			    cb_element_selected(cellView.model.attributes.attrs.id);
-				«FOR node:nodes»
-					if(cellView.model.attributes.type=='«node.typeName»'){
-						//check if container has changed
-						move_node_«node.jsCall(g)»_hook(cellView);
-						if(!cellView.model.attributes.attrs.disableResize) {
-					    	$cb_functions_«g.jsCall».cb_resize_node_«node.jsCall(g)»(Math.round(cellView.model.attributes.size.width),Math.round(cellView.model.attributes.size.height),$node_resize_last_direction,cellView.model.attributes.attrs.id);	 	        		
-						}
-					}
-				«ENDFOR»
-				«FOR edge:edges»
-					if(cellView.model.attributes.type=='«edge.typeName»'){
-						var source = $graph_«g.jsCall».getCell(cellView.model.attributes.source.id);
-						var target = $graph_«g.jsCall».getCell(cellView.model.attributes.target.id);
-						reconnect_edge_«edge.jsCall(g)»_hook(cellView);
-						$cb_functions_«g.jsCall».cb_update_bendpoint(
-							cellView.model.attributes.vertices,
-							cellView.model.attributes.attrs.id
-						);
-					}
-				«ENDFOR»
-			     console.log(cellView);
-			     console.log("element clicked");
-			}
-	     });
 	
 	    /**
 	     * Element has been added
@@ -672,8 +641,8 @@ class Controller extends Generatable{
 		});
 	}
 	
-	function highlight_valid_containers_«g.jsCall»(id,type) {
-		var validContainers = $cb_functions_«g.jsCall».cb_get_valid_containers(id,type);
+	function highlight_valid_containers_«g.jsCall»(id, type, isReference) {
+		var validContainers = $cb_functions_«g.jsCall».cb_get_valid_containers(id, type, isReference);
 		validContainers.forEach(function(vt){
 			var elem = findElementById(vt,$graph_«g.jsCall»);
 			if(elem == null) {
@@ -1204,33 +1173,27 @@ class Controller extends Generatable{
 	 * @param id
 	 */
 	function update_bendpoint_«g.jsCall»(points,id) {
+		removeMenus();
 	    update_bendpoint_internal(points, id,$graph_«g.jsCall»);
 	    return 'ready';
 	}
 	
-	/*
-	 *	Creation of nodes by drag and dropping from the palette
-	 */
-	function create_prime_node_menu_«g.jsCall»(possibleNodes,x,y,absX,absY,containerId,elementId) {
-		var btn_group = $('<div id="pyro_node_menu" class="btn-group-vertical btn-group-sm" style="position: absolute;z-index: 99999;top: '+absY+'px;left: '+absX+'px;"></div>');
-		$('body').append(btn_group);
-		for(var node in possibleNodes) {
-			var button = $('<button type="button" class="btn">'+possibleNodes[node]+'</button>');
-			
-			btn_group.append(button);
-			
-			$(button).on('click',function () {
-				switch(this.innerText){
-					«FOR node:nodes.filter[isPrime]» 
-						case '«node.typeName»':{
-							create_node_«node.jsCall(g)»(x,y,null,null,-1,containerId,"undefined",null,null,elementId);
-						    break;
-						}
+	function create_prime_node_menu_«g.jsCall»(possibleNodes, x, y, absX, absY, containerId, elementId) {
+		create_options_menu(
+			absX, absY,
+			possibleNodes,
+			(e) => e,
+			(e) => {
+				switch(e){
+					«FOR node:nodes.filter[isPrime]»
+					case '«node.typeName»':{
+						create_node_«node.jsCall(g)»(x,y,null,null,-1,containerId,"undefined",null,null,elementId);
+					    break;
+					}
 					«ENDFOR»
 				}
-			    $('#pyro_node_menu').remove();
-			});
-		}
+			}
+		);
 	}
 	
 	/**
@@ -1238,6 +1201,7 @@ class Controller extends Generatable{
 	 * @param ev
 	 */
 	function drop_on_canvas_«g.jsCall»(ev) {
+		removeMenus();
 		unhighlight_all_element_valid_target($paper_«g.jsCall»,$graph_«g.jsCall»);
 		ev.preventDefault();
 		var rp = getRelativeScreenPosition(ev.clientX,ev.clientY,$paper_«g.jsCall»);
@@ -1272,19 +1236,19 @@ class Controller extends Generatable{
 			if(possibleNodes.length==1){
 				//one node possible
 				switch (possibleNodes[0]) {
-				//foreach node
-				«FOR node:nodes.filter[isPrime]» 
-					case '«node.typeName»':{
-					create_node_«node.jsCall(g)»(x,y,null,null,-1,containerId,null,null,null,elementId);
+					//foreach node
+					«FOR node:nodes.filter[isPrime]» 
+						case '«node.typeName»':{
+							create_node_«node.jsCall(g)»(x,y,null,null,-1,containerId,null,null,null,elementId);
 						    break;
 						}
-				«ENDFOR»
-			    }
+					«ENDFOR»
+				}
 			}
 			else{
 				//multiple nodes possible
 				//show selection
-				 create_prime_node_menu_«g.jsCall»(possibleNodes,x,y,ev.clientX,ev.clientY,containerId,elementId);
+				create_prime_node_menu_«g.jsCall»(possibleNodes,x,y,ev.clientX,ev.clientY,containerId,elementId);
 			}
 			return;
 		}
@@ -1298,16 +1262,16 @@ class Controller extends Generatable{
 	function create_node_«g.jsCall»_after_drop(x,y,typeName) {
 		if(is_containement_allowed_«g.jsCall»({x:x,y:y},typeName)) {
 			var containerId = get_container_id_«g.jsCall»({x:x,y:y});
-	        switch (typeName) {
-	            //foreach node
+			switch (typeName) {
+				//foreach node
 				«FOR node:nodes» 
-				    case '«node.typeName»': {
-				    	create_node_«node.jsCall(g)»(x,y,null,null,-1,containerId,null,-1);
-				        break;
-				    }
+				case '«node.typeName»': {
+					create_node_«node.jsCall(g)»(x,y,null,null,-1,containerId,null,-1);
+				    break;
+				}
 				«ENDFOR»
-	        }
-	    }
+			}
+		}
 	}
 	
 	function get_container_id_«g.jsCall»(rp) {

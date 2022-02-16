@@ -82,7 +82,7 @@ class TreeViewComponent implements OnInit {
     	method: "GET",
         requestHeaders: _baseService.requestHeaders,
         withCredentials: true
-    ).then((response){ // TODO: SAMI - primeViewer needs to be rather merge
+    ).then((response){
       TreeView newTreeView = new TreeView.fromJSOG(convert.jsonDecode(response.responseText));
       if(treeView == null) {
         treeView = newTreeView;
@@ -125,30 +125,31 @@ class TreeViewComponent implements OnInit {
 @Component(
     selector: 'tree-view-node',
     template:'''
-<img *ngIf="hasIcon()" [src]="node.iconpath" style="width: 16px;height: 16px;margin-right: 5px;">
-<i
-        *ngIf="node.children.isNotEmpty"
-        (click)="openFolder(\$event)"
-        [ngClass]="getFolderClass()"
-></i> <a
-  href
-  (dblclick)="fireDoubleClick(\$event)"
-  (click)="fireClick(\$event)"
-  style="color: white;"
-  [attr.draggable]="getDraggable()"
-  ondragstart="start_drag_element(event)"
-  [attr.data-typename]="node.type"
-  [attr.data-elementid]="node.id"
-  >{{node.label}}</a>
-<ul [hidden]="!node.isOpen" style="LIST-STYLE-TYPE: none;">
-    <li *ngFor="let entry of node.children" style="white-space: nowrap;">
-        <tree-view-node
-            [node]="entry"
-            (click)="clickSC.add(\$event)"
-            (doubleClick)="doubleClickSC.add(\$event)"
-        ></tree-view-node>
-    </li>
-</ul>
+		<img *ngIf="hasIcon()" [src]="node.iconpath" style="width: 16px;height: 16px;margin-right: 5px;">
+		<i
+		        *ngIf="node.children.isNotEmpty"
+		        (click)="openFolder(\$event)"
+		        [ngClass]="getFolderClass()"
+		></i> <a
+		  href
+		  (dblclick)="fireDoubleClick(\$event)"
+		  (click)="fireClick(\$event)"
+		  style="color: white;"
+		  [attr.draggable]="getDraggable()"
+		  ondragstart="start_drag_element(event)"
+		  [attr.data-typename]="node.type"
+		  [attr.data-elementid]="node.id"
+		  [attr.data-reference]="true"
+		  >{{node.label}}</a>
+		<ul [hidden]="!node.isOpen" style="LIST-STYLE-TYPE: none;">
+		    <li *ngFor="let entry of node.children" style="white-space: nowrap;">
+		        <tree-view-node
+		            [node]="entry"
+		            (click)="clickSC.add(\$event)"
+		            (doubleClick)="doubleClickSC.add(\$event)"
+		        ></tree-view-node>
+		    </li>
+		</ul>
     ''',
     directives: const [coreDirectives,TreeViewNodeComponent]
 )
