@@ -611,7 +611,7 @@ class Generator extends FileGenerator {
 		}
 		//copy annotated included generator resources
 		{
-			val path = basePath + "/app/src/main/resources/META-INF/resources/"
+			val path = basePath + "/app/src/main/resources/META-INF/asset/"
 			gc.graphMopdels.filter[hasIncludeResourcesAnnotation].
 			forEach[g|{
 				val graphPath = path + g.name.lowEscapeDart+"/"
