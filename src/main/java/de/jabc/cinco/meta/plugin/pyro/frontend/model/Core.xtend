@@ -77,22 +77,22 @@ class Core extends Generatable {
 		  
 		  void addElement(IdentifiableElement e)
 		  {
-		    var existing = null;
-		    for(var m in modelElements) {
-		      if(m.id == e.id) {
-		        existing = m;
-		        break;
-		      }
-		    }
-		    if(existing==null) {
-		      modelElements.add(e);
-		    }
+			var existing = null;
+			for(var m in modelElements) {
+			  if(m.id == e.id) {
+			    existing = m;
+			    break;
+			  }
+			}
+			if(existing==null) {
+			  modelElements.add(e);
+			}
 		  }
 		  
 		  void addAllElements(List<IdentifiableElement> elementList) {
-		  	for(var e in elementList) {
-		  		addElement(e);
-		  	}
+			for(var e in elementList) {
+				addElement(e);
+			}
 		  }
 		}
 		

@@ -32,19 +32,22 @@ class OutgoingCheck extends Generatable{
 			g.getAllNodes().forEach((n)->{
 				«FOR n:nodes»
 				if(n instanceof «n.apiFQN») {
-					«n.apiFQN» node = («n.apiFQNWithoutName».impl.«n.name.fuEscapeJava»Impl)n;
+					«n.apiFQN» node = («n.apiFQN») n;
 					
 					«FOR group:n.outgoingEdgeConnections.filter[lowerBound>0]»
 						{
 							//check if type can be contained in group
 							int amount = 0;
 							«IF group.connectingEdges.map[subTypesAndType(it.name,g)].flatten.nullOrEmpty»
-							if(node.getOutgoing().size()<«group.lowerBound») {
-								addError(n,"at least «group.lowerBound» outgoing required");
-							}
+								if(node.getOutgoing().size()<«group.lowerBound») {
+									addError(n,"at least «group.lowerBound» outgoing required");
+								}
 							«ELSE»
 								«FOR containableType:group.connectingEdges.map[subTypesAndType(it.name,g)].flatten.filter(Edge).filter[!isIsAbstract]»
-								 	amount += node.getOutgoing(«containableType.apiFQN».class).stream().filter(c->c.getClass().getName().equals(«containableType.apiFQNWithoutName».impl.«containableType.name.fuEscapeJava»Impl.class.getName())).count();
+								 	amount += node.getOutgoing(«containableType.apiFQN».class).stream()
+								 		.filter(c ->
+								 			c.getClass().getName().equals(«containableType.apiImplFQN».class.getName())
+								 		).count();
 								«ENDFOR»
 								if(amount < «group.lowerBound»){
 									addError(n,"at least «group.lowerBound» of [«group.connectingEdges.map[name].join(",")»] outgoing required");

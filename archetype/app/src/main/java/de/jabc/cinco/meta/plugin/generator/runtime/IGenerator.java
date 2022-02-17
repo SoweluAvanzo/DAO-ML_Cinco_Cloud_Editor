@@ -1,23 +1,14 @@
 package de.jabc.cinco.meta.plugin.generator.runtime;
 
-import entity.core.*;
 import graphmodel.*;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import info.scce.pyro.auth.SecurityOverrideFilter;
-
-import org.apache.commons.io.FileUtils;
-
-import com.google.common.io.Files;
-
 
 /**
  * Author zweihoff
@@ -26,9 +17,9 @@ public abstract class IGenerator<T extends GraphModel> {
 
 	private List<GeneratedFile> files;
 	
-	private String basePath;
+	String basePath;
 	
-	private info.scce.pyro.core.FileController fileController;
+	info.scce.pyro.core.FileController fileController;
 	
 	
 	public IGenerator() {
@@ -100,12 +91,16 @@ public abstract class IGenerator<T extends GraphModel> {
     		return absolutPath.substring(absolutPath.lastIndexOf(resourceFolder) + resourceFolder.length() + 1);
     }
 
-    protected final void createFile(String filename,String content) {
+    protected final void createFile(String filename, CharSequence content) {
+        createFile(filename, "", content.toString());
+    }
+
+    protected final void createFile(String filename, String content) {
         createFile(filename,"",content);
     }
 
-    protected final void createFile(String filename,File file) {
-        createFile(filename,"",file);
+    protected final void createFile(String filename, File file) {
+        createFile(filename, "", file);
     }
 
     protected final void createFile(String filename,String path,String content) {
@@ -128,7 +123,6 @@ public abstract class IGenerator<T extends GraphModel> {
         if(filename.isEmpty()) {
             throw new IllegalStateException("Filename has to be given");
         }
-
         files.add(new GeneratedFile(filename,path,file));
     }
 }

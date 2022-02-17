@@ -403,7 +403,7 @@ class Generator extends FileGenerator {
 			val path = businessBasePath
 			val gen = new GraphModelElementImplementation(gc)
 			gc.mglModels.forEach[g|{
-				val styles = CincoUtil.getStyles(g)
+ 				val styles = CincoUtil.getStyles(g)
 				val graphPath = path+g.apiImplPath.toString;
 				clearDirectory(graphPath)
 				(#[g]+(g.elementsAndTypes)).filter(ModelElement).filter[!isIsAbstract].forEach[t|{

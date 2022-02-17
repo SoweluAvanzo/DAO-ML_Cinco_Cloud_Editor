@@ -307,7 +307,7 @@ class GraphModelController extends Generatable {
 							«FOR f:staticGenerationFiles.entrySet»
 								staticResourecURLs.put("«f.key»",new String[]{
 									«FOR file:f.value SEPARATOR ","»
-										"«file.absolutePath»"
+										"«file.path»"
 									«ENDFOR»
 									});
 							«ENDFOR»
@@ -319,7 +319,6 @@ class GraphModelController extends Generatable {
 								staticResourecURLs,
 								fileController
 							);
-							//TODO
 							return javax.ws.rs.core.Response.ok(null).build();
 						
 						} catch (java.io.IOException e) {
