@@ -19,12 +19,7 @@ public class RegistrationService {
   @Inject
   PBKDF2Encoder passwordEncoder;
 
-  public UserDB registerUser(UserRegistrationInput userRegistration) {
-    final var settings = (SettingsDB) SettingsDB.findAll().list().get(0);
-    if (!settings.allowPublicUserRegistration) {
-      throw new RestException(Status.FORBIDDEN, "User registration is currently disabled");
-    }
-
+  public UserDB registerUserInternal(UserRegistrationInput userRegistration) {
     final var usernameExists =
         !UserDB.list("username", userRegistration.getUsername()).isEmpty() ||
             !OrganizationDB.list("name", userRegistration.getUsername()).isEmpty();
@@ -53,12 +48,19 @@ public class RegistrationService {
       user.systemRoles.add(UserSystemRole.ADMIN);
     }
 
-    user.persist();
-
     // TODO: SAMI: send activation mail
     // TODO: SAMI: remove this later (for development use)
     user.isActivated = true;
-
+    user.persist();
     return user;
+  }
+
+  public UserDB registerUser(UserRegistrationInput userRegistration) {
+    final var settings = (SettingsDB) SettingsDB.findAll().list().get(0);
+    if (!settings.allowPublicUserRegistration) {
+      throw new RestException(Status.FORBIDDEN, "User registration is currently disabled");
+    }
+
+    return registerUserInternal(userRegistration);
   }
 }

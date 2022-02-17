@@ -5,7 +5,9 @@ import info.scce.cincocloud.auth.TokenUtils;
 import info.scce.cincocloud.core.rest.inputs.UserLoginInput;
 import info.scce.cincocloud.core.rest.tos.AuthResponseTO;
 import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.db.UserSystemRole;
 import info.scce.cincocloud.exeptions.RestException;
+import java.util.HashSet;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -40,7 +42,12 @@ public class AuthService {
 
   public AuthResponseTO generateToken(UserDB user) {
     try {
-      return new AuthResponseTO(TokenUtils.generateToken(user.email, "user", duration, issuer));
+      final var roles = new HashSet<String>();
+      roles.add("user");
+      if (user.systemRoles.contains(UserSystemRole.ADMIN)) {
+        roles.add("admin");
+      }
+      return new AuthResponseTO(TokenUtils.generateToken(user.email, roles, duration, issuer));
     } catch (Exception e) {
       throw new RestException(Status.UNAUTHORIZED, "failed to generate token");
     }

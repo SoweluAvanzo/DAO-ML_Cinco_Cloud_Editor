@@ -8,14 +8,14 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
-import java.util.Collections;
+import java.util.Set;
 
 /**
  * Utilities for generating a JWT for testing
  */
 public class TokenUtils {
 
-  public static String generateToken(String username, String role, Long duration, String issuer)
+  public static String generateToken(String username, Set<String> roles, Long duration, String issuer)
       throws Exception {
     JwtClaimsBuilder claimsBuilder = Jwt.claims();
     long currentTimeInSecs = currentTimeInSecs();
@@ -24,7 +24,7 @@ public class TokenUtils {
     claimsBuilder.subject(username);
     claimsBuilder.issuedAt(currentTimeInSecs);
     claimsBuilder.expiresAt(currentTimeInSecs + duration);
-    claimsBuilder.groups(Collections.singleton(role));
+    claimsBuilder.groups(roles);
 
     String privateKeyLocation = "/privatekey.pem";
     PrivateKey privateKey = readPrivateKey(privateKeyLocation);

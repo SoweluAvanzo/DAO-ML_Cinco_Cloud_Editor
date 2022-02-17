@@ -87,4 +87,17 @@ class BaseService {
     }
     return null;
   }
+
+  List<T> transformResponseList<T>(String json, T Function(Map, dynamic) f) {
+    var items = List<T>();
+    Map<String, dynamic> cache = new Map();
+    jsonDecode(json).forEach((item) {
+      if(item.containsKey("@ref")){
+        items.add(cache[item["@ref"]]);
+      } else {
+        items.add(f(cache, item));
+      }
+    });
+    return items;
+  }
 }

@@ -5,11 +5,12 @@ import '../../../../model/core.dart';
 import '../../../../service/user_service.dart';
 import '../../../../service/notification_service.dart';
 import '../../../../pipes/normalize_enum_string_pipe.dart';
+import '../create_user/create_user_component.dart';
 
 @Component(
   selector: 'users',
   templateUrl: 'users_component.html',
-  directives: const [coreDirectives],
+  directives: const [coreDirectives, CreateUserComponent],
   providers: const [],
   pipes: [NormalizeEnumStringPipe]
 )
@@ -19,16 +20,26 @@ class UsersComponent implements OnInit {
   final NotificationService _notificationService;
   
   List<User> users = new List();
+  bool showCreateUserModal = false;
         
   UsersComponent(this._userService, this._notificationService) {
   }
 
   @override
   void ngOnInit() {  	
-	_userService.findUsers().then((users) {
-	  this.users = users;
-	});  		
-  }     
+    _userService.findUsers().then((users) {
+      this.users = users;
+    });
+  }
+
+  void handleUserCreated(User user) {
+    users.add(user);
+    handleModalClose(null);
+  }
+
+  void handleModalClose(dynamic e) {
+    showCreateUserModal = false;
+  }
   
   void deleteUser(User user) {
   	_userService.deleteUser(user).then((_) {
