@@ -282,7 +282,7 @@ class FileHandler {
 		val root = getFileOrFolder(res,path)
 		val files = res.getAllFiles(path)
 		files.map[
-			root.absoluteFile.toPath.relativize(it.absoluteFile.toPath).toString.replaceAll("\\", "\\\\")
+			root.absoluteFile.toPath.relativize(it.absoluteFile.toPath).toString
 		]
 	}
 	

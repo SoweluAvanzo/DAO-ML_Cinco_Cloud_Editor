@@ -90,19 +90,29 @@ public abstract class IGenerator<T extends GraphModel> {
     		return absolutPath.substring(absolutPath.lastIndexOf(resourceFolder) + resourceFolder.length() + 1);
     }
 
-    protected final void createFile(String filename, CharSequence content) {
-        createFile(filename, "", content.toString());
+    protected final void createFile(String filePath, CharSequence content) {
+        createFile(filePath, content.toString());
     }
 
-    protected final void createFile(String filename, String content) {
-        createFile(filename,"",content);
+    protected final void createFile(String filename, String path, CharSequence content) {
+        createFile(filename, path, content.toString());
     }
 
-    protected final void createFile(String filename, File file) {
-        createFile(filename, "", file);
+    protected final void createFile(String filePath, String content) {
+        if(filePath==null) {
+            throw new IllegalStateException("All parameters has to be not null");
+        }
+        if(filePath.isEmpty()) {
+            throw new IllegalStateException("Filename has to be given");
+        }
+        String[] components = filePath.split("/");
+        String filename = components[components.length - 1];
+        int lastSlash = filePath.lastIndexOf("/");
+        String path = filePath.substring(0, lastSlash);
+        createFile(filename, path, content);
     }
-
-    protected final void createFile(String filename,String path,String content) {
+    
+    protected final void createFile(String filename, String path, String content) {
         if(filename==null||path==null||content==null) {
             throw new IllegalStateException("All parameters has to be not null");
         }
@@ -115,7 +125,7 @@ public abstract class IGenerator<T extends GraphModel> {
         files.add(new GeneratedFile(filename,path,content));
     }
 
-    protected final void createFile(String filename,String path,File file) {
+    protected final void createFile(String filename, String path, File file) {
         if(filename==null||path==null||file==null) {
             throw new IllegalStateException("All parameters has to be not null");
         }

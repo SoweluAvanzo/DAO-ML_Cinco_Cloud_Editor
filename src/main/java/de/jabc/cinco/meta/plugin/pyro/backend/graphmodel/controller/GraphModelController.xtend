@@ -24,7 +24,7 @@ class GraphModelController extends Generatable {
 	
 	
 	
-	def content(GraphModel g, Styles styles, Map<String,Iterable<String>> staticGenerationFiles) {
+	def s(GraphModel g, Styles styles, Map<String,Iterable<String>> staticGenerationFiles) {
 		val modelPackage = g.modelPackage as MGLModel
 		val hasAppearanceProviders = g.hasAppearanceProvider(styles) 
 		val hasChecks = g.hasChecks
@@ -307,7 +307,7 @@ class GraphModelController extends Generatable {
 							«FOR f:staticGenerationFiles.entrySet»
 								staticResourecURLs.put("«f.key»",new String[]{
 									«FOR file:f.value SEPARATOR ","»
-										"«file»"
+										"«{'''«file.replace('''\''', '''/''')»'''}»"
 									«ENDFOR»
 									});
 							«ENDFOR»

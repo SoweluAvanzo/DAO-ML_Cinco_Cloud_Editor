@@ -569,7 +569,7 @@ class Generator extends FileGenerator {
 				val gen = new GraphModelController(gc)
 				generateJavaFile(path,
 					gen.filename(g),
-					gen.content(g,styles,staticResourceFiles)
+					gen.content(g, styles, staticResourceFiles)
 				)
 			}]
 		}
@@ -611,9 +611,7 @@ class Generator extends FileGenerator {
 		}
 		//copy annotated included generator resources
 		{
-			val path = basePath+"src/main/resources/META-INF/resources/"
-
-			
+			val path = basePath + "/app/src/main/resources/META-INF/resources/"
 			gc.graphMopdels.filter[hasIncludeResourcesAnnotation].
 			forEach[g|{
 				val graphPath = path + g.name.lowEscapeDart+"/"
@@ -638,7 +636,7 @@ class Generator extends FileGenerator {
 		
 		//copy annotated additional JARs
 		{
-			val path = basePath+"/app/repo/info/scce/pyro/external/"
+			val path = basePath + "/app/repo/info/scce/pyro/external/"
 			gc.graphMopdels.filter[hasIncludeJARAnnotation].
 			forEach[g|{
 				val graphPath = path + g.name.lowEscapeJava+"/"
