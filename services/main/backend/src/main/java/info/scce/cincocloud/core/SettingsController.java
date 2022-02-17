@@ -40,12 +40,12 @@ public class SettingsController {
 
   @PUT
   @Path("/")
-  @RolesAllowed("user")
+  @RolesAllowed("admin")
   public Response update(@Context SecurityContext securityContext, final SettingsTO settings) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
     final SettingsDB settingsInDb = SettingsDB.findById(settings.getId());
 
-    if (subject != null && subject.isAdmin() && settingsInDb != null) {
+    if (subject != null && settingsInDb != null) {
       settingsInDb.allowPublicUserRegistration = settings.getallowPublicUserRegistration();
       return Response.ok(SettingsTO.fromEntity(settingsInDb, objectCache)).build();
     }

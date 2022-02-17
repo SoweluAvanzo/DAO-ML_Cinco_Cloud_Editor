@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core;
 
+import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
 import info.scce.cincocloud.core.rest.inputs.UserSearchInput;
 import info.scce.cincocloud.core.rest.tos.UserTO;
 import info.scce.cincocloud.db.UserDB;
@@ -10,6 +11,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -20,6 +22,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
 @Path("/users")
@@ -34,6 +37,9 @@ public class UserController {
 
   @Inject
   ObjectCache objectCache;
+
+  @Inject
+  RegistrationService registrationService;
 
   /**
    * Get all users.
@@ -57,6 +63,23 @@ public class UserController {
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
+  }
+
+  /**
+   * Create a new user as administrator.
+   *
+   * @param securityContext The security context.
+   * @param user            The data to create a new user from.
+   * @return The created user.
+   */
+  @POST
+  @Path("/private")
+  @RolesAllowed("admin")
+  public Response createUser(@Context SecurityContext securityContext, @Valid UserRegistrationInput user) {
+    final var createdUser = registrationService.registerUserInternal(user);
+    return Response.status(Status.CREATED)
+        .entity(UserTO.fromEntity(createdUser, objectCache))
+        .build();
   }
 
   /**

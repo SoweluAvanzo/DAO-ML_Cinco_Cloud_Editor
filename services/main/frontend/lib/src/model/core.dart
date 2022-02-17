@@ -157,14 +157,7 @@ class User {
       username = jsog["username"];
       email = jsog["email"];
       emailHash = jsog["emailHash"];
-
-      for (var value in jsog["ownedProjects"]) {
-        if (value.containsKey("@ref")) {
-          ownedProjects.add(cache[value["@ref"]]);
-        } else {
-          ownedProjects.add(new Project(cache: cache, jsog: value));
-        }
-      }
+      ownedProjects = _resolveComplexListType(cache, jsog, "ownedProjects", (c, j) => new Project(cache: c, jsog: j));
 
       if (jsog.containsKey("profilePicture") && jsog["profilePicture"] != null) {
         profilePicture = new FileReference(jsog: jsog["profilePicture"]);
