@@ -54,7 +54,10 @@ public abstract class IGenerator<T extends GraphModel> {
 			java.nio.file.Files.writeString(path, f.getContent());
 		}
 		
-		Path staticResourcePath = Paths.get(generationBaseFolderPath.toString(), staticResourceBase).normalize();
+		// TODO: Joel ab hier
+		
+		String staticResourceJarPath = "javaPath/"; // da was anderes rein
+		Path staticResourcePath = Paths.get(staticResourceJarPath, staticResourceBase).normalize();
 		File staticResourcesDest = new File(staticResourcePath.toString());
 		if (!staticResourcesDest.exists() || !staticResourcesDest.isDirectory()) {
 			staticResourcesDest.mkdirs();
@@ -64,7 +67,7 @@ public abstract class IGenerator<T extends GraphModel> {
 		for (java.util.Map.Entry<String, String[]> staticResource : staticResources.entrySet()) {
 			String[] fileEntries = staticResource.getValue();
 			for (String fileEntry : fileEntries) {
-				Path p = Paths.get(fileEntry).normalize();
+				Path p = Paths.get(staticResource.getKey() + "/" + fileEntry).normalize();
 				File f = new File(p.toString());
 				// if (f.exists() && !f.isDirectory()) {
 				// f.delete();
