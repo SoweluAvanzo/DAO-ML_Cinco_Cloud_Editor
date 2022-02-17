@@ -22,9 +22,7 @@ class GraphModelController extends Generatable {
 	
 	def filename(GraphModel g)'''«g.name.fuEscapeJava»Controller.java'''
 	
-	
-	
-	def s(GraphModel g, Styles styles, Map<String,Iterable<String>> staticGenerationFiles) {
+	def content(GraphModel g, Styles styles, Map<String,Iterable<String>> staticGenerationFiles) {
 		val modelPackage = g.modelPackage as MGLModel
 		val hasAppearanceProviders = g.hasAppearanceProvider(styles) 
 		val hasChecks = g.hasChecks
