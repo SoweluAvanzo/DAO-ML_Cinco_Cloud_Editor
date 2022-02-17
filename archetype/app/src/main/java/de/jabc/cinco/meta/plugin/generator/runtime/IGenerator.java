@@ -21,7 +21,6 @@ public abstract class IGenerator<T extends GraphModel> {
 	
 	info.scce.pyro.core.FileController fileController;
 	
-	
 	public IGenerator() {
 		files = new LinkedList<>();
 	}

@@ -553,11 +553,14 @@ class Generator extends FileGenerator {
 		{
 			val path = businessBasePath+"info/scce/pyro/core"
 			gc.graphMopdels.filter[!isAbstract].forEach[g|{
-				val staticResourceFiles = new HashMap
+				val staticResourceFiles = new HashMap<String, Iterable<String>>
 				if(g.hasIncludeResourcesAnnotation) { 
 					g.annotations.filter[name.equals("pyroGeneratorResource")&&!value.isEmpty].forEach[ann|{
 						ann.value.forEach[v|{
-							staticResourceFiles.put(v,FileHandler.getAllFiles(ann,v))
+							staticResourceFiles.put(
+								v,
+								FileHandler.getAllPath(ann,v)
+							)
 						}]
 					}]
 				}
