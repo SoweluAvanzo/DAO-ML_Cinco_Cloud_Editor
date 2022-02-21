@@ -1,17 +1,30 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { MainComponent } from './pages/main.component';
+import { LoginComponent } from './pages/login/login.component';
+import {RouterModule, Routes} from "@angular/router";
+import { WelcomeComponent } from './pages/welcome/welcome.component';
+import { UserNavbarComponent } from './components/user-navbar/user-navbar.component';
+
+const routes: Routes = [
+  { path:'home', component: WelcomeComponent},
+  { path:'login', component: LoginComponent},
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+]
 
 @NgModule({
   declarations: [
-    MainComponent
+    LoginComponent,
+    WelcomeComponent,
+    UserNavbarComponent
   ],
-  imports: [
-    CommonModule
-  ],
+    imports: [
+        CommonModule,
+        RouterModule,
+        RouterModule.forRoot(routes)
+    ],
   exports: [
-    MainComponent
+    WelcomeComponent
   ]
 })
 export class UserManagementModule { }

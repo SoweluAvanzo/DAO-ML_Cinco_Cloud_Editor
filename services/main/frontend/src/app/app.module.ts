@@ -5,6 +5,16 @@ import { AppComponent } from './app.component';
 import { UserManagementModule } from './features/user-management/user-management.module';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
 
+import { RouterModule, Routes } from '@angular/router'
+import { LoginComponent} from "./features/user-management/pages/login/login.component";
+import {WelcomeComponent} from "./features/user-management/pages/welcome/welcome.component";
+
+const routes: Routes = [
+  { path:'home', component: WelcomeComponent},
+  { path:'login', component: LoginComponent},
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+]
+
 @NgModule({
   declarations: [
     AppComponent
@@ -12,7 +22,8 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
   imports: [
     BrowserModule,
     UserManagementModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    RouterModule.forRoot(routes)
   ],
   providers: [],
   bootstrap: [AppComponent]
