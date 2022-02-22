@@ -22,9 +22,12 @@
     - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker load < $IMAGE-$VERSION/image.tar.gz
-    - docker tag $CI_REGISTRY_IMAGE/$IMAGE:$VERSION $CI_REGISTRY_IMAGE/$IMAGE:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$IMAGE:$VERSION
-    - docker push $CI_REGISTRY_IMAGE/$IMAGE:$CI_COMMIT_SHA
+    - |
+      for TAG in $PUSH_TAGS
+        do
+          docker tag $CI_REGISTRY_IMAGE/$IMAGE:$VERSION $CI_REGISTRY_IMAGE/$IMAGE:$TAG
+          docker push $CI_REGISTRY_IMAGE/$IMAGE:$TAG
+        done
 
 .theia-extension-build-job:
   image: node:14.18-buster-slim
@@ -34,7 +37,7 @@
   cache:
     paths:
       - ./vscode-extensions/$EXTENSION_DIR/node_modules
-  script: 
+  script:
     - cd ./vscode-extensions/$EXTENSION_DIR
     - npm install -g vsce --unsafe-perm
     - yarn
@@ -73,8 +76,34 @@ push:
   extends: .docker-push-job
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  needs: 
+  needs:
     - build
   variables:
     IMAGE: archetype
     VERSION: latest
+    PUSH_TAGS: latest $CI_COMMIT_SHA
+
+# feature-branch pipeline
+build-dev:
+  extends: .docker-build-job
+  rules:
+    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
+  when: manual
+  variables:
+    CONTEXT: .
+    DOCKERFILE: ./Dockerfile
+    IMAGE: archetype
+    VERSION: dev
+    GIT_SUBMODULE_STRATEGY: recursive
+
+push-dev:
+  extends: .docker-push-job
+  rules:
+    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
+  needs:
+    - build-dev
+  variables:
+    IMAGE: archetype
+    VERSION: dev
+    PUSH_TAGS: dev-$CI_COMMIT_REF_NAME
+
