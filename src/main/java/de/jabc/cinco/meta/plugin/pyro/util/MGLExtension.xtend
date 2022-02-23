@@ -1938,26 +1938,19 @@ class MGLExtension {
 		ns.mainShape
 	}
 
-	def dispatch boolean hasAppearanceProvider(Node n, Styles styles) {
-		val styleForNode = n.styleFor(styles)
-		return !styleForNode.appearanceProvider.nullOrEmpty
+	def dispatch boolean hasAppearanceProvider(GraphicalModelElement n, Styles styles) {
+		val style = n.styleFor(styles)
+		return style !== null && !style.appearanceProvider.nullOrEmpty
 	}
 
-	def dispatch boolean hasAppearanceProvider(Edge n, Styles styles) {
-		val styleForEdge = n.styleFor(styles)
-		return !styleForEdge.appearanceProvider.nullOrEmpty
+	def dispatch boolean hasAppearanceProvider(GraphModel g, Styles styles) {
+		return !g.elementsAndTypesAndGraphModels.filter(GraphicalModelElement).filter[
+			it.hasAppearanceProvider(styles)
+		].isEmpty;
 	}
 
-	def dispatch boolean hasAppearanceProvider(GraphModel n, Styles styles) {
-		return false;
-	}
-
-	def dispatch styleFor(Node n, Styles styles) {
-		n.styling(styles) as NodeStyle
-	}
-
-	def dispatch styleFor(Edge n, Styles styles) {
-		n.styling(styles) as EdgeStyle
+	def styleFor(GraphicalModelElement n, Styles styles) {
+		n.styling(styles)
 	}
 
 	def isList(Attribute attr) {
@@ -2742,6 +2735,9 @@ class MGLExtension {
 	}
 
 	def getPrimitiveDefaultDart(Attribute attr) {
+		if(attr instanceof Enumeration) {
+			return '''«attr.primitiveDartType(attr.MGLModel)».«attr.defaultValue»'''
+		}
 		if (attr.defaultValue !== null) {
 			switch (attr.attributeTypeName) {
 				case "EString": return '''"«attr.defaultValue»"'''
