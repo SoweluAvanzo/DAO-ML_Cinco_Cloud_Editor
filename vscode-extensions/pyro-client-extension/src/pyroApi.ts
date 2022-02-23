@@ -14,7 +14,7 @@ export abstract class PyroApi {
 		PyroEditorProvider.logging("REQUESTING:\n"+options.path);
 		return new Promise((resolve, reject) => {
 			const httpOptions = this.applyHttpsOptions(options);
-			const req = https.request(httpOptions,(response: http.IncomingMessage) => {
+			const req = http.request(httpOptions,(response: http.IncomingMessage) => {
 					if (response.statusCode != 200) {
 						PyroEditorProvider.logging('REQUEST FAILED:\n'+httpOptions.hostname+'\n'+httpOptions.path+'\n'+httpOptions.port);
 						PyroEditorProvider.logging('CODE: '+response.statusCode+" | MESSAGE: "+response.statusMessage);
@@ -45,7 +45,7 @@ export abstract class PyroApi {
 	}
 
 	public static async createModel(name :string|undefined, modelType:string|undefined, token: string): Promise<any> {
-		const options = this.applyHttpsOptions({
+		const options = {
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
 			path: PYRO_SUBPATH+'/api/'+PyroApi.getRestEndpoint(modelType)+'/create/private',
@@ -54,14 +54,14 @@ export abstract class PyroApi {
 				'Authorization': token,
 				'Content-Type': 'application/json'
 			}
-		});
+		};
 		return this.performRequest(options, {
 			'filename': name
 		});
 	}
 
 	public static async removeModel(modelType:string|undefined, id: string, token: string): Promise<any> {
-		const options = this.applyHttpsOptions({
+		const options = {
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
 			path: PYRO_SUBPATH+'/api/'+PyroApi.getRestEndpoint(modelType)+'/remove/'+id+'/private',
@@ -70,21 +70,21 @@ export abstract class PyroApi {
 				'Authorization': token,
 				'Content-Type': 'application/json'
 			}
-		});
+		};
 		return this.performRequest(options);
 	}
 
 	public static async getModelTypes(token: string): Promise<Map<string, string>> {
-		const options = this.applyHttpsOptions({
+		const options = {
 			hostname: PYRO_HOST,
 			port: PYRO_PORT,
 			path: PYRO_SUBPATH+'/api/graph/list/private',
 			method: 'GET',
 			'headers': {
-				//'Authorization': token,
+				'Authorization': token,
 				'Content-Type': 'application/json'
 			}
-		});
+		};
 		return this.performRequest(options);
 	}
 	
