@@ -605,7 +605,7 @@ class GraphmodelComponent extends Generatable {
 		    }
 		  
 		  Future<dynamic> initCanvas() {
-			graphService.loadCommandGraph«g.name.fuEscapeDart»(currentGraphModel,highlightings).then((cg){
+			return graphService.loadCommandGraph«g.name.fuEscapeDart»(currentGraphModel,highlightings).then((cg){
 				commandGraph = cg;
 				commandGraph.editorCommand.listen((c){
 					if(c is OpenFileCommand) {
