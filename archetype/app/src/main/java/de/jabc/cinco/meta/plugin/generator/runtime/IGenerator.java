@@ -13,14 +13,12 @@ import java.util.List;
 import info.scce.pyro.auth.SecurityOverrideFilter;
 import jdk.internal.reflect.ReflectionFactory.GetReflectionFactoryAction;
 
-
 /**
  * Author zweihoff
  */
 public abstract class IGenerator<T extends GraphModel> {
 
 	private List<GeneratedFile> files;
-	private List<Path> listOfStaticFiles;		
 	String basePath;
 	String staticResourceBase;
 	java.util.Map<String,String[]> staticResources;	
@@ -29,7 +27,6 @@ public abstract class IGenerator<T extends GraphModel> {
 	
 	public IGenerator() {
 		files = new LinkedList<>();
-		listOfStaticFiles = new LinkedList<>();
 	}
 	
 	public final void generateFiles(T graphModel, String basePath,String staticResourceBase,java.util.Map<String,String[]> staticResources,info.scce.pyro.core.FileController fileController) throws IOException {
@@ -38,8 +35,6 @@ public abstract class IGenerator<T extends GraphModel> {
 		this.staticResourceBase = staticResourceBase;
 		this.staticResources = staticResources;
 		
-		setResourcePathsOfFiles("/META-INF/"+staticResourceBase, Integer.MAX_VALUE, IGenerator.class);
-
 		generate(graphModel);
 		
 		String workspaceStringPath = SecurityOverrideFilter.getWorkspacePath();				
@@ -120,44 +115,19 @@ public abstract class IGenerator<T extends GraphModel> {
     
     protected final void copyStaticResources( String target) {
     	try {
-    		for (Path f : listOfStaticFiles) {
-    			copyResource(f.toString(), target, IGenerator.class);
+    		for (java.util.Map.Entry<String, String[]> staticResource : staticResources.entrySet()) {
+    			String[] fileEntries = staticResource.getValue();
+    			for (String fileEntry : fileEntries) {
+    				Path p = Paths.get(staticResource.getKey() + "/" + fileEntry).normalize();
+    				copyResource(p.toString(), target, IGenerator.class, staticResource.getKey() );
+    			}
     		}
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
-	}
-    
-	protected void setResourcePathsOfFiles(String folderPath, int depth, Class<?> mainClass) {
-		ClassLoader clsLoader = mainClass.getClassLoader();
-		java.net.URL resource = clsLoader.getResource(folderPath);
-		try {
-			java.net.URI uri = resource.toURI();
-			java.nio.file.Path path = Paths.get("");
-			if (uri.getScheme().equals("jar")) {			
-				if(fileSystem == null) {
-		            fileSystem = java.nio.file.FileSystems.newFileSystem(uri, java.util.Collections.<String, Object>emptyMap());
-		            }
-	            path = fileSystem.getPath(folderPath);
-	         	path = Paths.get(path.toUri()); // needed
-	        } else {
-	            path  = Paths.get(uri);
-	        }
-			java.util.stream.Stream<Path> walk = java.nio.file.Files.walk(path, depth);
-			for (java.util.Iterator<java.nio.file.Path> it = walk.iterator(); it.hasNext();){
-				java.nio.file.Path p = it.next();
-				if(java.nio.file.Files.isRegularFile(p)) {
-					p = Paths.get(p.toUri()); // needed
-					p = path.relativize(p);
-					listOfStaticFiles.add(p);
-				}
-			}
-		} catch (Exception e) {
-			// TODO: handle exceptio
-		}		
-  	}
+	}    
 	
-	protected void copyResource(String res, String dest, Class<?> mainClass) throws IOException {
+	protected void copyResource(String res, String dest, Class<?> mainClass, String folder) throws IOException {
 		
 		String workspaceStringPath = SecurityOverrideFilter.getWorkspacePath();				
 		Path workspaceAbsolutePath = Paths.get(workspaceStringPath);
@@ -168,30 +138,26 @@ public abstract class IGenerator<T extends GraphModel> {
 			dir.mkdirs();
 		}
 		
-		Path relativeStaticResourcePath = Paths.get(dest, staticResourceBase).normalize();
+		Path relativeStaticResourcePath = Paths.get(dest).normalize();
 		Path staticResourcePath = Paths.get(generationBaseFolderPath.toString(),relativeStaticResourcePath.toString());
 		File staticResourcesDest = new File(staticResourcePath.toString());
 		if (!staticResourcesDest.exists() || !staticResourcesDest.isDirectory()) {
 			staticResourcesDest.mkdirs();
 		}
 		
-		
 		ClassLoader clsLoader = mainClass.getClassLoader();
 		String resource = "/META-INF/"+staticResourceBase +"/"+res;
 		
 		// windows-path workaround
 		resource = resource.replace(File.separator, "/");
-		// first "/" needs to be deleted for windows-support
-	//	if (("" + resource.charAt(0)).equals("/")) {
-	//		resource = resource.substring(1);
-	//	}
 		
 		java.io.InputStream src = IGenerator.class.getResourceAsStream(resource);
 		
 		// windows-path workaround
 		String finalPath = staticResourcesDest.toString() +"/"+ res;
 		String sanitizedPath = finalPath.replace(File.separator, "/");
-		Path destPath = Paths.get(sanitizedPath);
+		Path destPath = Paths.get(staticResourcesDest.toString(), suffix(res, folder)).normalize();
+		//Path destPath = Paths.get(sanitizedPath);
 		
 		// create Folder holding the final file
 		int lastIndex = destPath.getNameCount() - 1;
