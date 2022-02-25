@@ -190,6 +190,7 @@ class EditorComponent extends Generatable {
 					}
 				});
 			}
+			loadAppearance();
 		}
 		
 		initEditorGrid() {
@@ -425,6 +426,23 @@ class EditorComponent extends Generatable {
 		    fetchGrid();
 		    initializeEditor();
 			unblockInteraction();
+		}
+		
+		void loadAppearance() {
+			new Timer.periodic(const Duration(milliseconds: 20), (Timer t){
+				if (
+					this.graphService.canvasComponent != null
+					&& this.graphService.canvasComponent.getCanvasComponent()?.commandGraph != null
+				) {
+					t.cancel();
+					this.graphService.loadAppearance(this.currentFile).then((m) {
+						if (m is CompoundCommandMessage) {
+						    this.graphService.canvasComponent.executeCommands(m,true);
+						    this.graphService.update(currentFile.id);
+						}
+					});
+				}
+			});
 		}
 		
 		void blockInteraction() {

@@ -4,7 +4,6 @@ import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.command.GraphModelComma
 import de.jabc.cinco.meta.plugin.pyro.util.Generatable
 import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import de.jabc.cinco.meta.plugin.pyro.util.MGLExtension
-import java.io.File
 import java.util.Map
 import mgl.GraphModel
 import mgl.ModelElement
@@ -252,26 +251,25 @@ class GraphModelController extends Generatable {
 			@javax.ws.rs.GET
 			@javax.ws.rs.Path("appearance/{id}/private")
 			@javax.annotation.security.RolesAllowed("user")
-			public Response appearance(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") long id) {
-			
+			public Response loadAppearance(@javax.ws.rs.core.Context SecurityContext securityContext, @javax.ws.rs.PathParam("id") long id) {
 				final «g.entityFQN» graph = «g.entityFQN».findById(id);
 				final entity.core.PyroUserDB user = entity.core.PyroUserDB.getCurrentUser(securityContext);
 				if (graph == null || user == null) {
 					return Response.status(Response.Status.BAD_REQUEST).build();
 				}
-				
-				
-				//setup batch execution
-				«g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
-				info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
-				«g.apiFactory».eINSTANCE.warmup(executer);
-				
-				//update appearance
+				return this.propagateAppearance(graph, user, null);
+			}
+			
+			private Response propagateAppearance(«g.entityFQN» graph, entity.core.PyroUserDB user, «g.commandExecuter» executer) {
+				if(executer == null) {
+					executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,new java.util.LinkedList<>());
+					info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
+					«g.apiFactory».eINSTANCE.warmup(executer);
+				}
 				executer.updateAppearance();
-				
-				// propagate
-				return createResponse("basic_valid_answer", executer,
-						user.id, graph.id, java.util.Collections.emptyList());
+				Response response = this.createResponse("basic_valid_answer", executer, user.id, graph.id, java.util.Collections.emptyList());
+				propagateChange(graph.id, user.id, response.getEntity());
+				return response;
 			}
 		«ENDIF»
 		«IF g.generating»
@@ -774,6 +772,7 @@ class GraphModelController extends Generatable {
 					executer.update«e.name.escapeJava»(«IF !e.isType»targetAPI, «ENDIF»(«e.restFQN») pm.getDelegate());
 			}«
 			ENDFOR»
+			
 		    CompoundCommandMessage response = new CompoundCommandMessage();
 			response.setType("basic_valid_answer");
 			CompoundCommand cc = new CompoundCommand();

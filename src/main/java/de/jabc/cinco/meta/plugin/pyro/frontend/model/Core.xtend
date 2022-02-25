@@ -289,18 +289,18 @@ class Core extends Generatable {
 		    map['y'] = y;
 		    return map;
 		  }
-		
-		
+		  
 		  BendingPoint fromJSOG(jsog, {Map cache}) {
 		    return new BendingPoint(cache: cache,jsog: jsog);
 		  }
+		  
 		  @override
 		  String $type() {
 		    return "core.BendingPoint";
 		  }
+		  
 		  @override
 		  void merge(PyroElement ie, {bool structureOnly: false, Map cache}) {
-		    // TODO: implement merge
 		  }
 		}
 		
