@@ -56,6 +56,16 @@ module.exports = {
     sidebar: [
       ['content/introduction/', 'Introduction'],
       {
+        title: 'User Guide',
+        sidebarDepth: 2,
+        children: [
+          {
+            title: 'Building Cinco products',
+            path: '/content/user-guide/building-cinco-products/'
+          }
+        ]
+      },
+      {
         title: 'Developer Guide',
         sidebarDepth: 2,
         children: [
