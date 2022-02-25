@@ -488,12 +488,11 @@ class GraphModelController extends Generatable {
 				'''
 			}»
 			«IF hasAppearanceProviders»
-				
-				executer.updateAppearance();
+				return this.propagateAppearance(graph, user, executer);
+			«ELSE»
+				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
+				return response;
 			«ENDIF»
-			
-			Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
-			return response;
 		}
 
 		@javax.ws.rs.POST
@@ -772,6 +771,10 @@ class GraphModelController extends Generatable {
 					executer.update«e.name.escapeJava»(«IF !e.isType»targetAPI, «ENDIF»(«e.restFQN») pm.getDelegate());
 			}«
 			ENDFOR»
+			«IF hasAppearanceProviders»
+				
+				executer.updateAppearance();
+			«ENDIF»
 			
 		    CompoundCommandMessage response = new CompoundCommandMessage();
 			response.setType("basic_valid_answer");
@@ -781,10 +784,6 @@ class GraphModelController extends Generatable {
 			response.setGraphModelId(graph.id);
 			response.setSenderId(user.id);
 			response.setHighlightings(executer.getHighlightings());
-			«IF hasAppearanceProviders»
-				
-				executer.updateAppearance();
-			«ENDIF»
 			
 			return Response.ok(response).build();
 		}
