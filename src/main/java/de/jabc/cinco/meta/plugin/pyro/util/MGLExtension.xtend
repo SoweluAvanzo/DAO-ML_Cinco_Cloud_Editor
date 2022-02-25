@@ -2735,15 +2735,17 @@ class MGLExtension {
 	}
 
 	def getPrimitiveDefaultDart(Attribute attr) {
-		if(attr instanceof Enumeration) {
-			return '''«attr.primitiveDartType(attr.MGLModel)».«attr.defaultValue»'''
-		}
+		if (attr.attributeTypeName.getEnum(attr.MGLModel) !== null) {
+            return '''«attr.primitiveDartType(attr.MGLModel)».«attr.defaultValue»'''
+       	}
+
 		if (attr.defaultValue !== null) {
 			switch (attr.attributeTypeName) {
 				case "EString": return '''"«attr.defaultValue»"'''
 				default: return '''«attr.defaultValue»'''
+				}
 			}
-		}
+		
 		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''false'''
 			case "ELong": return '''0'''
