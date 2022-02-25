@@ -3,12 +3,16 @@ package de.jabc.cinco.meta.plugin.generator.runtime;
 import graphmodel.*;
 
 import java.io.*;
+import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import info.scce.pyro.auth.SecurityOverrideFilter;
+import jdk.internal.reflect.ReflectionFactory.GetReflectionFactoryAction;
+
 
 /**
  * Author zweihoff
@@ -16,19 +20,26 @@ import info.scce.pyro.auth.SecurityOverrideFilter;
 public abstract class IGenerator<T extends GraphModel> {
 
 	private List<GeneratedFile> files;
-	
+	private List<Path> listOfStaticFiles;		
 	String basePath;
-	
+	String staticResourceBase;
+	java.util.Map<String,String[]> staticResources;	
+	static FileSystem fileSystem = null; 	
 	info.scce.pyro.core.FileController fileController;
 	
 	public IGenerator() {
 		files = new LinkedList<>();
+		listOfStaticFiles = new LinkedList<>();
 	}
 	
 	public final void generateFiles(T graphModel, String basePath,String staticResourceBase,java.util.Map<String,String[]> staticResources,info.scce.pyro.core.FileController fileController) throws IOException {
 		this.basePath = basePath;
 		this.fileController = fileController;
+		this.staticResourceBase = staticResourceBase;
+		this.staticResources = staticResources;
 		
+		setResourcePathsOfFiles("/META-INF/"+staticResourceBase, Integer.MAX_VALUE, IGenerator.class);
+
 		generate(graphModel);
 		
 		String workspaceStringPath = SecurityOverrideFilter.getWorkspacePath();				
@@ -53,42 +64,11 @@ public abstract class IGenerator<T extends GraphModel> {
 			}
 			java.nio.file.Files.writeString(path, f.getContent());
 		}
-		
-		// TODO: Joel ab hier
-		
-		String staticResourceJarPath = "javaPath/"; // da was anderes rein
-		Path staticResourcePath = Paths.get(staticResourceJarPath, staticResourceBase).normalize();
-		File staticResourcesDest = new File(staticResourcePath.toString());
-		if (!staticResourcesDest.exists() || !staticResourcesDest.isDirectory()) {
-			staticResourcesDest.mkdirs();
-		}
-		
-		//copy and overwrite with static resources
-		for (java.util.Map.Entry<String, String[]> staticResource : staticResources.entrySet()) {
-			String[] fileEntries = staticResource.getValue();
-			for (String fileEntry : fileEntries) {
-				Path p = Paths.get(staticResource.getKey() + "/" + fileEntry).normalize();
-				File f = new File(p.toString());
-				// if (f.exists() && !f.isDirectory()) {
-				// f.delete();
-				// }
-				try {
-					Path copyDest = Paths.get(staticResourcesDest.toString(), suffix(f.toString(), staticResource.getKey())).normalize();
-					File fileTocopy = new File(copyDest.toString());
-					if (!fileTocopy.getParentFile().exists()) {
-								fileTocopy.getParentFile().mkdirs();
-					}
-					java.nio.file.Files.copy(f.toPath(), fileTocopy.toPath().normalize(),
-									StandardCopyOption.REPLACE_EXISTING);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+
 	}
 
     protected abstract void generate(T graphModel);
-    
+        
     protected String suffix(String absolutPath, String resourceFolder) {
     		return absolutPath.substring(absolutPath.lastIndexOf(resourceFolder) + resourceFolder.length() + 1);
     }
@@ -137,4 +117,103 @@ public abstract class IGenerator<T extends GraphModel> {
         }
         files.add(new GeneratedFile(filename,path,file));
     }
+    
+    protected final void copyStaticResources( String target) {
+    	try {
+    		for (Path f : listOfStaticFiles) {
+    			copyResource(f.toString(), target, IGenerator.class);
+    		}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+    
+	protected void setResourcePathsOfFiles(String folderPath, int depth, Class<?> mainClass) {
+		ClassLoader clsLoader = mainClass.getClassLoader();
+		java.net.URL resource = clsLoader.getResource(folderPath);
+		try {
+			java.net.URI uri = resource.toURI();
+			java.nio.file.Path path = Paths.get("");
+			if (uri.getScheme().equals("jar")) {			
+				if(fileSystem == null) {
+		            fileSystem = java.nio.file.FileSystems.newFileSystem(uri, java.util.Collections.<String, Object>emptyMap());
+		            }
+	            path = fileSystem.getPath(folderPath);
+	         	path = Paths.get(path.toUri()); // needed
+	        } else {
+	            path  = Paths.get(uri);
+	        }
+			java.util.stream.Stream<Path> walk = java.nio.file.Files.walk(path, depth);
+			for (java.util.Iterator<java.nio.file.Path> it = walk.iterator(); it.hasNext();){
+				java.nio.file.Path p = it.next();
+				if(java.nio.file.Files.isRegularFile(p)) {
+					p = Paths.get(p.toUri()); // needed
+					p = path.relativize(p);
+					listOfStaticFiles.add(p);
+				}
+			}
+		} catch (Exception e) {
+			// TODO: handle exceptio
+		}		
+  	}
+	
+	protected void copyResource(String res, String dest, Class<?> mainClass) throws IOException {
+		
+		String workspaceStringPath = SecurityOverrideFilter.getWorkspacePath();				
+		Path workspaceAbsolutePath = Paths.get(workspaceStringPath);
+		Path generationBaseFolderPath = Paths.get(workspaceAbsolutePath.toString(), basePath);
+		File dir = new File(generationBaseFolderPath.toString());
+		
+		if(!dir.exists()) {
+			dir.mkdirs();
+		}
+		
+		Path relativeStaticResourcePath = Paths.get(dest, staticResourceBase).normalize();
+		Path staticResourcePath = Paths.get(generationBaseFolderPath.toString(),relativeStaticResourcePath.toString());
+		File staticResourcesDest = new File(staticResourcePath.toString());
+		if (!staticResourcesDest.exists() || !staticResourcesDest.isDirectory()) {
+			staticResourcesDest.mkdirs();
+		}
+		
+		
+		ClassLoader clsLoader = mainClass.getClassLoader();
+		String resource = "/META-INF/"+staticResourceBase +"/"+res;
+		
+		// windows-path workaround
+		resource = resource.replace(File.separator, "/");
+		// first "/" needs to be deleted for windows-support
+	//	if (("" + resource.charAt(0)).equals("/")) {
+	//		resource = resource.substring(1);
+	//	}
+		
+		java.io.InputStream src = IGenerator.class.getResourceAsStream(resource);
+		
+		// windows-path workaround
+		String finalPath = staticResourcesDest.toString() +"/"+ res;
+		String sanitizedPath = finalPath.replace(File.separator, "/");
+		Path destPath = Paths.get(sanitizedPath);
+		
+		// create Folder holding the final file
+		int lastIndex = destPath.getNameCount() - 1;
+		// lastIndex = lastIndex > 0 ? lastIndex : 0
+		if (lastIndex > 0) {
+			lastIndex = 0;
+		}
+		// val folderPath = Paths.get(File.separator + destPath.subpath(0, lastIndex))
+		createFolder(destPath.toString());
+		// create/copy file not directory
+		
+		java.nio.file.Files.copy(src, destPath, StandardCopyOption.REPLACE_EXISTING);
+		
+	}
+	
+
+	protected static boolean createFolder(String folderPath) throws IOException {
+		File file = new File(folderPath + File.separator);
+		if (file.exists()) {
+			return false;
+		}
+		java.nio.file.Files.createDirectories(Paths.get(folderPath));
+		return true;
+	}
 }

@@ -313,7 +313,7 @@ class GraphModelController extends Generatable {
 							generator.generateFiles(
 								cgraph,
 								"«IF gen.value.size>1»«gen.value.get(1)»«ENDIF»",
-								"asset/static/«g.name.lowEscapeJava»",«/* TODO: SAMI: outsource into MGLExtension against updateAnomaly */»
+								"asset/«g.name.lowEscapeJava»",«/* TODO: SAMI: outsource into MGLExtension against updateAnomaly */»
 								staticResourecURLs,
 								fileController
 							);
