@@ -16,10 +16,15 @@ class GraphModelSwitch extends Generatable {
 	def filename(GraphModel g)'''«g.name.toCamelCase.fuEscapeJava»Switch.java'''
 	
 	def createSwitchCase(String type)
-	'''«type.createSwitchCase('''graphmodel''')»'''
+	'''if(element instanceof graphmodel.«type») {
+		result = case«type»((graphmodel.«type»)element);
+		if(result != null) {
+			return result;
+		}
+	}'''
 	
-	def createSwitchCase(String type, CharSequence packageFQN)
-	'''if(element.getClass().toString().equals("«packageFQN».«type»")) {
+	def createSwitchCase(String type, String packageFQN, CharSequence typeName)
+	'''if("«typeName»".equals(TypeRegistry.getTypeOf(element))) {
 		result = case«type»((«packageFQN».«type»)element);
 		if(result != null) {
 			return result;
@@ -43,7 +48,7 @@ class GraphModelSwitch extends Generatable {
 				protected T doSwitch(graphmodel.IdentifiableElement element) {
 					T result = null;
 					«FOR e:g.elementsAndTypesAndGraphModels SEPARATOR " else "
-					»«e.name.escapeJava.createSwitchCase(e.modelPackage.apiFQNBase)»«
+					»«e.name.escapeJava.createSwitchCase(e.modelPackage.apiFQNBase.toString, e.typeName)»«
 					ENDFOR»
 					else «"GraphModel".createSwitchCase»
 					else «"Container".createSwitchCase»
