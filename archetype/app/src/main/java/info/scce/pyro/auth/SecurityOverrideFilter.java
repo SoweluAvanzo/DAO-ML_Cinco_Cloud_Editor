@@ -71,7 +71,14 @@ public class SecurityOverrideFilter implements ContainerRequestFilter {
     
     public static boolean isDebugging() {
     	try {
-    	return java.lang.management.ManagementFactory.getRuntimeMXBean().
+        	Map<String, String> env = System.getenv();
+        	try {
+        		boolean isDebugging = Boolean.parseBoolean(env.get("CINCO_CLOUD_DEBUG"));
+        		if(isDebugging) {
+        			return isDebugging;
+        		}
+        	} catch(Exception e) {}
+    		return java.lang.management.ManagementFactory.getRuntimeMXBean().
     	         getInputArguments().toString().indexOf("-Ddebug") > 0;
     	} catch(Exception e) {
     		return false;
@@ -80,14 +87,17 @@ public class SecurityOverrideFilter implements ContainerRequestFilter {
     
     public static String getWorkspacePath() {
     	String workspace = System.getProperty("user.home") + "/editor/workspace/";
-    	Map<String, String> env = System.getenv();
-    	String [] argsList = env.get("MAVEN_CMD_LINE_ARGS").split(" ");
-    	for(String s : argsList) {
-    		if(s.contains("-DworkspacePath")) {
-    			String[] result = s.split("=");
-    			workspace = result[1];
+    	try {
+        	Map<String, String> env = System.getenv();
+    		String workspace_path = env.get("WORKSPACE_PATH");
+    		if(workspace_path != null) {
+        		System.out.println("WORKSPACE_PATH defined:\n"+workspace_path);
+        		return workspace_path.strip().replaceAll("'", "");
     		}
+    	} catch(Exception e) {
+    		e.printStackTrace();
     	}
+		System.out.println("No WORKSPACE_PATH defined. Falling back to default:\n"+workspace);
     	return workspace;
     }
     
