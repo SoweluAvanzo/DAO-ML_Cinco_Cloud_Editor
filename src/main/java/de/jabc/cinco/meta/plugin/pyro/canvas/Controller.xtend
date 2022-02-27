@@ -4,10 +4,8 @@ import de.jabc.cinco.meta.plugin.pyro.util.Generatable
 import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import java.util.HashMap
 import java.util.LinkedHashMap
-import java.util.LinkedList
 import java.util.List
 import java.util.Map
-import java.util.Set
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import mgl.ContainingElement
@@ -319,41 +317,42 @@ class Controller extends Generatable{
 			     console.log("element clicked");
 			}
 	     });
-	    /**
- 		* Link has been selected
- 		* change selection
- 		* show properties
- 		*/
- 		$paper_«g.jsCall».on('link:options', function(cellView,evt, x, y) {
- 			removeMenus();
- 			update_selection(cellView,$paper_«g.jsCall»,$graph_«g.jsCall»);
- 			cb_element_selected(cellView.model.attributes.attrs.id);
- 			console.log("link clicked");
- 		});
- 	    /**
- 		 * Canvas has been right clicked
- 		 * Show context menu for the graphmodel
- 		 * including registered custome actions
- 		 */
- 		$paper_«g.jsCall».on('blank:contextmenu', function(evt,x,y){
- 			removeMenus();
- 			//fetch ca for graphmodel
- 			var pos = getPaperToScreenPosition(x,y,$paper_«g.jsCall»);
- 			cb_get_custom_actions($graphmodel_id_«g.jsCall»,Math.round(pos.x),Math.round(pos.y+$(document).scrollTop()),x,y);
- 			console.log("graphmodel context menu clicked");
- 		});
- 	    /**
- 	     * Element has been right clicked
- 	     * Show context menu for the element
- 	     * including registered custome actions
- 	     */
- 	    $paper_«g.jsCall».on('cell:contextmenu', function(cellView,evt,x,y){
- 	    	removeMenus();
- 	    	//fetch ca for element
- 	    	var pos = getPaperToScreenPosition(x,y,$paper_«g.jsCall»);
- 	    	cb_get_custom_actions(cellView.model.attributes.attrs.id,Math.round(pos.x),Math.round(pos.y+$(document).scrollTop()),x,y);
- 	    });
- 	    
+	     
+		/**
+		* Link has been selected
+		* change selection
+		* show properties
+		*/
+		$paper_«g.jsCall».on('link:options', function(cellView,evt, x, y) {
+			removeMenus();
+			update_selection(cellView,$paper_«g.jsCall»,$graph_«g.jsCall»);
+			cb_element_selected(cellView.model.attributes.attrs.id);
+			console.log("link clicked");
+		});
+		/**
+		 * Canvas has been right clicked
+		 * Show context menu for the graphmodel
+		 * including registered custome actions
+		 */
+		$paper_«g.jsCall».on('blank:contextmenu', function(evt,x,y){
+			removeMenus();
+			//fetch ca for graphmodel
+			var pos = getPaperToScreenPosition(x,y,$paper_«g.jsCall»);
+			cb_get_custom_actions($graphmodel_id_«g.jsCall»,Math.round(pos.x),Math.round(pos.y+$(document).scrollTop()),x,y);
+			console.log("graphmodel context menu clicked");
+		});
+		/**
+		 * Element has been right clicked
+		 * Show context menu for the element
+		 * including registered custome actions
+		 */
+		$paper_«g.jsCall».on('cell:contextmenu', function(cellView,evt,x,y){
+			removeMenus();
+			//fetch ca for element
+			var pos = getPaperToScreenPosition(x,y,$paper_«g.jsCall»);
+			cb_get_custom_actions(cellView.model.attributes.attrs.id,Math.round(pos.x),Math.round(pos.y+$(document).scrollTop()),x,y);
+		});
+
 		(function() {
 			/**
 			 * emit the cursor position of the user on the paper
@@ -1375,7 +1374,7 @@ class Controller extends Generatable{
 	def edgecreation(GraphModel g)
 	{
 		val nodes = g.nodes
-	
+		
 		'''
 			var sourceNode = $graph_«g.jsCall».getCell($temp_link.attributes.source.id);
 			var sourceType = sourceNode.attributes.type;
@@ -1393,9 +1392,8 @@ class Controller extends Generatable{
 			{
 				«{
 					val constraintsOutgoing =  new java.util.HashSet<mgl.BoundedConstraint>();
-					constraintsOutgoing += source.outgoingEdgeConnections.filter(mgl.BoundedConstraint).toSet
-					constraintsOutgoing += source.outgoingWildcards.filter(mgl.BoundedConstraint).toSet
 					val possibleOutgoing = source.possibleOutgoing.filter[!isAbstract]
+					constraintsOutgoing += source.possibleOutgoingConstraints
 					connectionCheckTemplate(
 						constraintsOutgoing,
 						null,
@@ -1417,8 +1415,7 @@ class Controller extends Generatable{
 												val possibleEdges = target.possibleIncoming.filter[!isAbstract].filter[possibleOutgoing.contains(it)]
 												'''
 													«{
-														val constraintsIncoming = source.incomingEdgeConnections.filter(mgl.BoundedConstraint).toSet
-														constraintsIncoming += source.incomingWildcards.filter(mgl.BoundedConstraint).toSet
+														val constraintsIncoming = source.possibleIncomingConstraints
 														connectionCheckTemplate(
 															constraintsIncoming,
 															null,
@@ -1497,29 +1494,6 @@ class Controller extends Generatable{
 				create_edge_menu(targetNode,possibleEdges,evt.clientX,evt.clientY+$(document).scrollTop(),$paper_«g.jsCall»,$graph_«g.jsCall»);
 			}
 		'''
-	}
-	
-	def reachable(Iterable<Node> sources, GraphModel g, OutgoingEdgeElementConnection connection){
-		val edges = g.edges
-		val result = new HashMap<Node,Set<IncomingEdgeElementConnection>>();
-		for(node:sources) {
-			val possibleEdgeConnections = new LinkedList
-			
-			val possibleOutgoingEdges = new LinkedList
-			if(connection.connectingEdges.empty) {
-				possibleOutgoingEdges += edges		
-			}
-			possibleOutgoingEdges+=connection.connectingEdges.map[name.subTypesAndType(g).filter(Edge)].flatten
-			
-			for(incomingEdge:possibleOutgoingEdges.toSet){
-				possibleEdgeConnections += node.incomingEdgeConnections.filter[connectingEdges.map[name.subTypesAndType(g).filter(Edge)].flatten.toSet.contains(incomingEdge)]
-				possibleEdgeConnections	+= node.incomingEdgeConnections.filter[connectingEdges.map[name.subTypesAndType(g).filter(Edge)].flatten.toSet.empty]
-			}
-			if(!possibleEdgeConnections.empty){
-				result.put(node,possibleEdgeConnections.toSet)
-			}
-		}
-		result
 	}
 	
 	def addLinkListeners(String link,Edge edge,GraphModel g)
