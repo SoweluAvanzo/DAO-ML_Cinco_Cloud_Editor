@@ -1717,6 +1717,8 @@ function confirm_drop(ev) {
  * @param ev
  */
 function start_drag_element(ev) {
+    if(!ev || !ev.target || !ev.target.dataset)
+        return;
     $edge_to_create = ev.target.dataset.typename;
 	var isReference = ev.target.dataset.reference ? true : false;
     var content = JSON.stringify({
