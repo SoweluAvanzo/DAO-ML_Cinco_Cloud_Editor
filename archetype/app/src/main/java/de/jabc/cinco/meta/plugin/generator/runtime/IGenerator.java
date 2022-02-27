@@ -7,11 +7,9 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import info.scce.pyro.auth.SecurityOverrideFilter;
-import jdk.internal.reflect.ReflectionFactory.GetReflectionFactoryAction;
 
 /**
  * Author zweihoff
@@ -64,8 +62,8 @@ public abstract class IGenerator<T extends GraphModel> {
 
     protected abstract void generate(T graphModel);
         
-    protected String suffix(String absolutPath, String resourceFolder) {
-    		return absolutPath.substring(absolutPath.lastIndexOf(resourceFolder) + resourceFolder.length() + 1);
+    protected String suffix(String absolutPath, String resource) {
+    		return absolutPath.substring(absolutPath.lastIndexOf(resource) + resource.length() + 1);
     }
 
     protected final void createFile(String filePath, CharSequence content) {
@@ -113,73 +111,163 @@ public abstract class IGenerator<T extends GraphModel> {
         files.add(new GeneratedFile(filename,path,file));
     }
     
-    protected final void copyStaticResources( String target) {
+    protected final void copyStaticResources(String relativeTargetPath) {
     	try {
     		for (java.util.Map.Entry<String, String[]> staticResource : staticResources.entrySet()) {
     			String[] fileEntries = staticResource.getValue();
     			for (String fileEntry : fileEntries) {
     				Path p = Paths.get(staticResource.getKey() + "/" + fileEntry).normalize();
-    				copyResource(p.toString(), target, IGenerator.class, staticResource.getKey() );
+    				String staticResourceFolder = staticResource.getKey();
+    				String resourceFilePath = suffix(p.toString(), staticResourceFolder);
+    				copyInternalResource(resourceFilePath, staticResourceFolder, relativeTargetPath);
     			}
     		}
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
-	}    
-	
-	protected void copyResource(String res, String dest, Class<?> mainClass, String folder) throws IOException {
-		
-		String workspaceStringPath = SecurityOverrideFilter.getWorkspacePath();				
+	}
+    
+    public void copyFileReference(String relativeFilePath, String relativTargetPath) {
+    	String workspaceStringPath = SecurityOverrideFilter.getWorkspacePath();				
 		Path workspaceAbsolutePath = Paths.get(workspaceStringPath);
 		Path generationBaseFolderPath = Paths.get(workspaceAbsolutePath.toString(), basePath);
 		File dir = new File(generationBaseFolderPath.toString());
-		
 		if(!dir.exists()) {
 			dir.mkdirs();
 		}
 		
-		Path relativeStaticResourcePath = Paths.get(dest).normalize();
-		Path staticResourcePath = Paths.get(generationBaseFolderPath.toString(),relativeStaticResourcePath.toString());
+		Path relativeStaticTargetPath = Paths.get(relativTargetPath).normalize();
+		Path staticResourcePath = Paths.get(generationBaseFolderPath.toString(),relativeStaticTargetPath.toString());
 		File staticResourcesDest = new File(staticResourcePath.toString());
 		if (!staticResourcesDest.exists() || !staticResourcesDest.isDirectory()) {
 			staticResourcesDest.mkdirs();
 		}
-		
-		ClassLoader clsLoader = mainClass.getClassLoader();
-		String resource = "/META-INF/"+staticResourceBase +"/"+res;
-		
-		// windows-path workaround
-		resource = resource.replace(File.separator, "/");
-		
-		java.io.InputStream src = IGenerator.class.getResourceAsStream(resource);
-		
-		// windows-path workaround
-		String finalPath = staticResourcesDest.toString() +"/"+ res;
-		String sanitizedPath = finalPath.replace(File.separator, "/");
-		Path destPath = Paths.get(staticResourcesDest.toString(), suffix(res, folder)).normalize();
-		//Path destPath = Paths.get(sanitizedPath);
-		
-		// create Folder holding the final file
-		int lastIndex = destPath.getNameCount() - 1;
-		// lastIndex = lastIndex > 0 ? lastIndex : 0
-		if (lastIndex > 0) {
-			lastIndex = 0;
+    }
+    
+    protected String getWorkspaceBasePath() {
+    	String workspaceStringPath = SecurityOverrideFilter.getWorkspacePath();				
+		String workspaceAbsolutePath = Paths.get(workspaceStringPath).toString();
+		String baseFolderPath = Paths.get(workspaceAbsolutePath, basePath).toString();
+		File dir = new File(baseFolderPath);
+		if (!dir.exists()) {
+			try {
+				java.nio.file.Files.createDirectories(Paths.get(baseFolderPath));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		// val folderPath = Paths.get(File.separator + destPath.subpath(0, lastIndex))
-		createFolder(destPath.toString());
-		// create/copy file not directory
-		
-		java.nio.file.Files.copy(src, destPath, StandardCopyOption.REPLACE_EXISTING);
-		
+		return baseFolderPath;
+    }
+    
+    /**
+     * if the workspace-path is "/editor/workspace" on the filesystem, and the
+     * relativeFolderPath is "gen-folder", the resulting created folder will have the path:
+     * 	"/editor/workspace/gen-folder"
+     * 
+     * @param relativeFolderPath	- this is the relative path, that will be created inside the workspace.
+     * 									e.g. "gen-folder"
+     * @return						- the concatenation of the workspace-path and the relativeFolderPath as a String:
+     * 									e.g. "/editor/workspace/gen-folder" 
+     */
+    public String createFolder(String relativeFolderPath) {
+    	// create workspaceBasePath (if not existing)
+    	String absoluteBaseFolderPath = getWorkspaceBasePath();
+    	// create folderPath
+    	String relativeStaticResourcePath = Paths.get(relativeFolderPath).normalize().toString();
+		String absoluteStaticResourcePath = Paths.get(absoluteBaseFolderPath, relativeStaticResourcePath).toString();
+		File staticResourcesDest = new File(absoluteStaticResourcePath);
+		if (!staticResourcesDest.exists() || !staticResourcesDest.isDirectory()) {
+			try {
+				if(!staticResourcesDest.isDirectory()) { // staticResourceDest is a File not a Folder
+					String sanitizedPath = absoluteStaticResourcePath.replace(File.separator, "/");
+					sanitizedPath = sanitizedPath.substring(0, sanitizedPath.lastIndexOf('/'));
+					java.nio.file.Files.createDirectories(Paths.get(sanitizedPath));
+				} else {
+					java.nio.file.Files.createDirectories(Paths.get(absoluteStaticResourcePath));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return absoluteStaticResourcePath;
+    }
+    
+    /**
+     * 
+     * @param relativeSourcePath		- The path to the sourceFile inside the workspace-path
+     * @param relativeTargetFolderPath	- The relativePath to the folder inside the workspace-path, where the resource will be copied to
+     * @throws IOException
+     */
+	protected void copyResource(String relativeSourcePath, String relativeTargetFolderPath) throws IOException {
+		String targetResourceName = relativeSourcePath.substring(relativeSourcePath.lastIndexOf('/') + 1);
+		copyResource(relativeSourcePath, relativeTargetFolderPath, targetResourceName);
 	}
 	
-
-	protected static boolean createFolder(String folderPath) throws IOException {
-		File file = new File(folderPath + File.separator);
-		if (file.exists()) {
-			return false;
+    /**
+     * 
+     * @param relativeSourcePath		- The path to the sourceFile inside the workspace-path
+     * @param relativeTargetFolderPath	- The relativePath to the folder inside the workspace-path, where the resource will be copied to
+     * @param targetResourceName		- The final name of the resource
+     * @throws IOException
+     */
+	protected void copyResource(String relativeSourcePath, String relativeTargetFolderPath, String targetResourceName) throws IOException {	
+		java.io.InputStream resourceStream = loadStream(relativeSourcePath);
+		String absoluteTargetFolderPath = createFolder(relativeTargetFolderPath);
+		String absoluteTargetResourcePath = absoluteTargetFolderPath + "/" + targetResourceName;
+		Path absoluteResourcePath = Paths.get(absoluteTargetResourcePath).normalize();
+		java.nio.file.Files.copy(resourceStream, absoluteResourcePath, StandardCopyOption.REPLACE_EXISTING);
+	}
+    
+	/**
+	 * 
+	 * @param relativeResourcePath			- the relative of the resource-path inside the relativeTargetFolderPath, as well as in the destination-path
+	 * 										after generation.
+	 * @param relativeTargetFolderPath 		- the relative-path inside the folder defined by "@generatable"-annotation (inside the workspace-folder).
+	 * 										Inside that folder, the "resourceFilePath" will be placed.
+	 * @param resourceStream				- the resource to copy as a stream.
+	 * @throws IOException
+	 */
+	protected void copyResource(java.io.InputStream resourceStream, String relativeTargetFolderPath) throws IOException {	
+		String absoluteTargetFolderPath = createFolder(relativeTargetFolderPath);
+		Path absoluteTargetResourceFilePath = Paths.get(absoluteTargetFolderPath + "/").normalize();
+		java.nio.file.Files.copy(resourceStream, absoluteTargetResourceFilePath, StandardCopyOption.REPLACE_EXISTING);
+	}
+	
+	/**
+	 * @param relativeResourcePath		- the relative of the resource-path inside the staticResourceFolder, as well as in the destination-path
+	 * 									after generation.
+	 * @param staticResourceFolder 		- defined by the "@pyroGeneratorResource"-annotation (That annotation can contain an array of possible folders).
+	 * @param relativeTargetFolderPath 	- the relative-path inside the folder defined by "@generatable"-annotation (inside the workspace-folder).
+	 * 									Inside that folder, the "resourceFilePath" will be placed.
+	 * @throws IOException
+	 */
+	protected void copyInternalResource(String relativeResourcePath, String staticResourceFolder, String relativeTargetFolderPath) throws IOException {	
+		java.io.InputStream resourceStream = loadResourceFromJar(staticResourceFolder + "/" + relativeResourcePath);
+		String relativeTargetPath = relativeTargetFolderPath + "/" + relativeResourcePath;
+		copyResource(resourceStream, relativeTargetPath);
+	}
+	
+	/**
+	 * Provides an InputStream of the resource located inside the jar at: /META-INF/[staticResourceBase, e.g. GraphModelName]/" + staticResourceFilePath,
+	 * where staticResourceFilePath, could be a folder, where all the GeneratorResources are located.
+	 * @param staticResourceFilePath
+	 * @return
+	 */
+	protected java.io.InputStream loadResourceFromJar(String staticResourceFilePath) {
+		String resource = "/META-INF/" + staticResourceBase + "/" + staticResourceFilePath;
+		resource = resource.replace(File.separator, "/");
+		return IGenerator.class.getResourceAsStream(resource);
+	}
+	
+	protected java.io.InputStream loadStream(String relativeWorkspaceFilePath) {
+    	String absoluteBaseFolderPath = getWorkspaceBasePath();
+    	String absoluteWorkspaceFilePath = absoluteBaseFolderPath + "/" + relativeWorkspaceFilePath;
+    	File workspaceFile = new File(absoluteWorkspaceFilePath);
+    	try {
+			return new FileInputStream(workspaceFile);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return null;
 		}
-		java.nio.file.Files.createDirectories(Paths.get(folderPath));
-		return true;
 	}
 }
