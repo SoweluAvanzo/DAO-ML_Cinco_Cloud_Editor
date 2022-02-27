@@ -49,7 +49,6 @@ import style.NodeStyle
 import style.Styles
 import java.util.regex.Pattern
 import java.util.ArrayList
-import de.jabc.cinco.meta.core.utils.MGLUtil
 import java.util.function.BiFunction
 
 class MGLExtension {
@@ -1986,33 +1985,68 @@ class MGLExtension {
 	def Set<Edge> possibleOutgoing(Node node) {
 		val model =node.modelPackage as MGLModel;
 		var directOutgoing = !node.outgoingWildcards.empty?
-			model.edges : node.outgoingEdgeConnections.map[connectingEdges].flatten.toSet
-		if (node.outgoingEdgeConnections.exists[connectingEdges.empty]) {
-			return this.edges(model).toSet
+			model.edges :
+			node.outgoingEdgeConnections.map[connectingEdges].flatten.toSet
+		var outgoing = directOutgoing.toSet;
+		
+		// if node has no outgoing edges and it extends, take the inherited edges
+		if (outgoing.empty && node.extends !== null) {
+			outgoing = node.extends.possibleOutgoing
 		}
-		val subTypesOfDirectOutgoing = directOutgoing.map[n|n.name.subTypes(model)].flatten.filter(Edge)
-		/*
-			if (node.extends !== null) {
-				return (directOutgoing + subTypesOfDirectOutgoing + node.extends.possibleOutgoing ).toSet
-			}
-		*/
-		return (directOutgoing + subTypesOfDirectOutgoing).toSet
+		
+		// resolve subTypes of outgoing edges
+		val subTypesOfDirectOutgoing = outgoing.map[n|n.name.subTypes(model)].flatten.filter(Edge)
+		outgoing = (outgoing + subTypesOfDirectOutgoing).toSet
+		
+		return outgoing
+	}
+	
+	def Set<mgl.BoundedConstraint> possibleOutgoingConstraints(Node node) {
+		var directOutgoingConstraints =  new java.util.HashSet<mgl.BoundedConstraint>();
+		directOutgoingConstraints += node.outgoingWildcards
+		directOutgoingConstraints += node.outgoingEdgeConnections
+		
+		var outgoingConstraints = directOutgoingConstraints.filter(mgl.BoundedConstraint).toSet;
+		
+		// if node has no outgoing edges and it extends, take the inherited edges
+		if (outgoingConstraints.empty && node.extends !== null) {
+			outgoingConstraints = node.extends.possibleOutgoingConstraints
+		}
+		
+		return outgoingConstraints.filter(mgl.BoundedConstraint).toSet
 	}
 
 	def Set<Edge> possibleIncoming(Node node) {
 		val model =node.modelPackage as MGLModel;
 		var directIncoming = !node.incomingWildcards.empty?
 			model.edges : node.incomingEdgeConnections.map[connectingEdges].flatten.toSet
-		if (node.incomingEdgeConnections.exists[connectingEdges.empty]) {
-			return this.edges(model).toSet
+		var incoming = directIncoming.toSet;
+		
+		// if node has no outgoing edges and it extends, take the inherited edges
+		if (incoming.empty && node.extends !== null) {
+			incoming = node.extends.possibleIncoming.toSet
 		}
-		val subTypesOfDirectIncoming = directIncoming.map[n|n.name.subTypes(model)].flatten.filter(Edge)
-		/*
-			if (node.extends !== null) {
-				return (directIncoming + subTypesOfDirectIncoming + node.extends.possibleIncoming ).toSet
-			}
-		*/
-		return (directIncoming + subTypesOfDirectIncoming).toSet
+		
+		// resolve subTypes of outgoing edges
+		val subTypesOfDirectIncoming = incoming.map[n|n.name.subTypes(model)].flatten.filter(Edge)
+		incoming = (incoming + subTypesOfDirectIncoming).toSet
+		
+		return incoming
+	}
+	
+	def Set<mgl.BoundedConstraint> possibleIncomingConstraints(Node node) {
+		var directIncomingConstraints =  new java.util.HashSet<mgl.BoundedConstraint>();
+		directIncomingConstraints += node.incomingWildcards
+		directIncomingConstraints += node.incomingEdgeConnections
+		
+		var incomingConstraints = directIncomingConstraints.filter(mgl.BoundedConstraint).toSet;
+		
+		// if node has no outgoing edges and it extends, take the inherited edges
+		if (incomingConstraints.empty && node.extends !== null) {
+			incomingConstraints = node.extends.possibleIncomingConstraints
+		}
+		
+		return incomingConstraints.filter(mgl.BoundedConstraint).toSet
 	}
 
 	def Set<Node> possibleSources(Edge edge) {
