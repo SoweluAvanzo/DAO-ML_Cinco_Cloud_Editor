@@ -50,11 +50,6 @@ class PyroFileControllerGenerator extends Generatable {
 		
 		    @javax.inject.Inject
 		    GraphModelController graphModelController;
-		    
-		    @javax.inject.Inject
-		    FileController fileController;
-		
-
 			«FOR g:gc.mglModels.map[graphModels].flatten.filter[!isAbstract]»
 				
 				@javax.ws.rs.GET

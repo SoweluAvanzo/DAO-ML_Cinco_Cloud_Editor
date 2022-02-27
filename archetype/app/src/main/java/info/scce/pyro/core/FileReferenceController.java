@@ -4,9 +4,6 @@ package info.scce.pyro.core;
 @javax.ws.rs.Path("/files")
 @javax.enterprise.context.RequestScoped
 public class FileReferenceController {
-
-	@javax.inject.Inject
-	FileController fileController;
 	
 	@javax.ws.rs.POST
 	@javax.ws.rs.Path("/create")
@@ -41,7 +38,7 @@ public class FileReferenceController {
 			}
 		}
 
-		final entity.core.BaseFileDB reference = this.fileController
+		final entity.core.BaseFileDB reference = FileController
 				.storeFile(fileName,
 						inputPart.getBody(java.io.InputStream.class, null));
 		reference.contentType = inputPart.getMediaType().toString();
@@ -56,8 +53,8 @@ public class FileReferenceController {
 	@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM)
 	public javax.ws.rs.core.Response download(@javax.ws.rs.PathParam("id") final long id) {
 		// TODO: SAMI: security
-		final entity.core.BaseFileDB reference = this.fileController.getFileReference(id);
-		final java.io.InputStream stream = this.fileController.loadFile(reference);
+		final entity.core.BaseFileDB reference = FileController.getFileReference(id);
+		final java.io.InputStream stream = FileController.loadFile(reference);
 
 		final byte[] result;
 
@@ -79,8 +76,8 @@ public class FileReferenceController {
 	@javax.annotation.security.RolesAllowed("user")
 	public javax.ws.rs.core.Response read(@javax.ws.rs.PathParam("id") final long id) {
 
-		final entity.core.BaseFileDB reference = this.fileController.getFileReference(id);
-		final java.io.InputStream stream = this.fileController.loadFile(reference);
+		final entity.core.BaseFileDB reference = FileController.getFileReference(id);
+		final java.io.InputStream stream = FileController.loadFile(reference);
 
 		final byte[] result;
 

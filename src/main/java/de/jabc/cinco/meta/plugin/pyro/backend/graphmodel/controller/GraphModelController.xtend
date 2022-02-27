@@ -69,9 +69,6 @@ class GraphModelController extends Generatable {
 	
 		@javax.inject.Inject
 		info.scce.pyro.rest.ObjectCache objectCache;
-		
-		@javax.inject.Inject
-		info.scce.pyro.core.FileController fileController;
 		«FOR gpr:primeModels»
 			
 			@javax.inject.Inject
@@ -199,9 +196,9 @@ class GraphModelController extends Generatable {
 				return Response.ok(resp).build();
 			}
 		«ENDIF»
-
 		«IF hasChecks»
 			
+			@SuppressWarnings("unchecked")
 			@javax.ws.rs.GET
 			@javax.ws.rs.Path("checks/{id}/private")
 			@javax.annotation.security.RolesAllowed("user")
@@ -312,8 +309,7 @@ class GraphModelController extends Generatable {
 								cgraph,
 								"«IF gen.value.size>1»«gen.value.get(1)»«ENDIF»",
 								"asset/«g.name.lowEscapeJava»",«/* TODO: SAMI: outsource into MGLExtension against updateAnomaly */»
-								staticResourecURLs,
-								fileController
+								staticResourecURLs
 							);
 							return javax.ws.rs.core.Response.ok(null).build();
 						
@@ -840,6 +836,7 @@ class GraphModelController extends Generatable {
 			}»
 		}
 		
+		@SuppressWarnings("unused")
 		private void addBendingPoints(«dbTypeName» delegate, java.util.List<info.scce.pyro.core.graphmodel.BendingPoint> positions) {
 			java.util.List<entity.core.BendingPointDB> bpEntities =  positions.stream().map(p -> {
 			    entity.core.BendingPointDB bp = new entity.core.BendingPointDB();

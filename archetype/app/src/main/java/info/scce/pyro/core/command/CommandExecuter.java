@@ -8,6 +8,7 @@ import graphmodel.*;
 import info.scce.pyro.sync.GraphModelWebSocket;
 import info.scce.pyro.core.command.types.HighlightCommand;
 import info.scce.pyro.core.command.types.*;
+import info.scce.pyro.core.FileController;
 import org.eclipse.emf.ecore.EObject;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,9 +18,6 @@ import java.util.stream.Collectors;
  */
 
 abstract public class CommandExecuter {
-	
-	@javax.inject.Inject
-	info.scce.pyro.core.FileController fileController;
 	
     protected final GraphModelWebSocket graphModelWebSocket;
     protected BatchExecution batch;
@@ -309,7 +307,7 @@ abstract public class CommandExecuter {
     public void updateAppearance() {}
     
     public java.io.InputStream loadFile(final entity.core.BaseFileDB identifier) {
-    	return fileController.loadFile(identifier);
+    	return FileController.loadFile(identifier);
     }
     
     public abstract void sync(EObject e);

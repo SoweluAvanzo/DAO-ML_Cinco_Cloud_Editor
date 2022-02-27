@@ -20,16 +20,14 @@ public abstract class IGenerator<T extends GraphModel> {
 	String basePath;
 	String staticResourceBase;
 	java.util.Map<String,String[]> staticResources;	
-	static FileSystem fileSystem = null; 	
-	info.scce.pyro.core.FileController fileController;
+	static FileSystem fileSystem = null;
 	
 	public IGenerator() {
 		files = new LinkedList<>();
 	}
 	
-	public final void generateFiles(T graphModel, String basePath,String staticResourceBase,java.util.Map<String,String[]> staticResources,info.scce.pyro.core.FileController fileController) throws IOException {
+	public final void generateFiles(T graphModel, String basePath,String staticResourceBase,java.util.Map<String,String[]> staticResources) throws IOException {
 		this.basePath = basePath;
-		this.fileController = fileController;
 		this.staticResourceBase = staticResourceBase;
 		this.staticResources = staticResources;
 		
@@ -66,15 +64,15 @@ public abstract class IGenerator<T extends GraphModel> {
     		return absolutPath.substring(absolutPath.lastIndexOf(resource) + resource.length() + 1);
     }
 
-    protected final void createFile(String filePath, CharSequence content) {
+    public final void createFile(String filePath, CharSequence content) {
         createFile(filePath, content.toString());
     }
 
-    protected final void createFile(String filename, String path, CharSequence content) {
+    public final void createFile(String filename, String path, CharSequence content) {
         createFile(filename, path, content.toString());
     }
 
-    protected final void createFile(String filePath, String content) {
+    public final void createFile(String filePath, String content) {
         if(filePath==null) {
             throw new IllegalStateException("All parameters has to be not null");
         }
@@ -88,7 +86,7 @@ public abstract class IGenerator<T extends GraphModel> {
         createFile(filename, path, content);
     }
     
-    protected final void createFile(String filename, String path, String content) {
+    public final void createFile(String filename, String path, String content) {
         if(filename==null||path==null||content==null) {
             throw new IllegalStateException("All parameters has to be not null");
         }
@@ -101,7 +99,7 @@ public abstract class IGenerator<T extends GraphModel> {
         files.add(new GeneratedFile(filename,path,content));
     }
 
-    protected final void createFile(String filename, String path, File file) {
+    public final void createFile(String filename, String path, File file) {
         if(filename==null||path==null||file==null) {
             throw new IllegalStateException("All parameters has to be not null");
         }
@@ -110,8 +108,12 @@ public abstract class IGenerator<T extends GraphModel> {
         }
         files.add(new GeneratedFile(filename,path,file));
     }
+
+    public final void copyStaticResources() {
+    	copyStaticResources("");
+    }
     
-    protected final void copyStaticResources(String relativeTargetPath) {
+    public final void copyStaticResources(String relativeTargetPath) {
     	try {
     		for (java.util.Map.Entry<String, String[]> staticResource : staticResources.entrySet()) {
     			String[] fileEntries = staticResource.getValue();
@@ -144,7 +146,7 @@ public abstract class IGenerator<T extends GraphModel> {
 		}
     }
     
-    protected String getWorkspaceBasePath() {
+    public String getWorkspaceBasePath() {
     	String workspaceStringPath = SecurityOverrideFilter.getWorkspacePath();				
 		String workspaceAbsolutePath = Paths.get(workspaceStringPath).toString();
 		String baseFolderPath = Paths.get(workspaceAbsolutePath, basePath).toString();
@@ -198,7 +200,7 @@ public abstract class IGenerator<T extends GraphModel> {
      * @param relativeTargetFolderPath	- The relativePath to the folder inside the workspace-path, where the resource will be copied to
      * @throws IOException
      */
-	protected void copyResource(String relativeSourcePath, String relativeTargetFolderPath) throws IOException {
+	public void copyResource(String relativeSourcePath, String relativeTargetFolderPath) throws IOException {
 		String targetResourceName = relativeSourcePath.substring(relativeSourcePath.lastIndexOf('/') + 1);
 		copyResource(relativeSourcePath, relativeTargetFolderPath, targetResourceName);
 	}
@@ -210,7 +212,7 @@ public abstract class IGenerator<T extends GraphModel> {
      * @param targetResourceName		- The final name of the resource
      * @throws IOException
      */
-	protected void copyResource(String relativeSourcePath, String relativeTargetFolderPath, String targetResourceName) throws IOException {	
+	public void copyResource(String relativeSourcePath, String relativeTargetFolderPath, String targetResourceName) throws IOException {	
 		java.io.InputStream resourceStream = loadStream(relativeSourcePath);
 		String absoluteTargetFolderPath = createFolder(relativeTargetFolderPath);
 		String absoluteTargetResourcePath = absoluteTargetFolderPath + "/" + targetResourceName;
@@ -227,9 +229,12 @@ public abstract class IGenerator<T extends GraphModel> {
 	 * @param resourceStream				- the resource to copy as a stream.
 	 * @throws IOException
 	 */
-	protected void copyResource(java.io.InputStream resourceStream, String relativeTargetFolderPath) throws IOException {	
+	public void copyResource(java.io.InputStream resourceStream, String relativeTargetFolderPath) throws IOException {	
 		String absoluteTargetFolderPath = createFolder(relativeTargetFolderPath);
+		
+		// resolve absolute resource path
 		Path absoluteTargetResourceFilePath = Paths.get(absoluteTargetFolderPath + "/").normalize();
+		
 		java.nio.file.Files.copy(resourceStream, absoluteTargetResourceFilePath, StandardCopyOption.REPLACE_EXISTING);
 	}
 	
@@ -241,7 +246,7 @@ public abstract class IGenerator<T extends GraphModel> {
 	 * 									Inside that folder, the "resourceFilePath" will be placed.
 	 * @throws IOException
 	 */
-	protected void copyInternalResource(String relativeResourcePath, String staticResourceFolder, String relativeTargetFolderPath) throws IOException {	
+	public void copyInternalResource(String relativeResourcePath, String staticResourceFolder, String relativeTargetFolderPath) throws IOException {	
 		java.io.InputStream resourceStream = loadResourceFromJar(staticResourceFolder + "/" + relativeResourcePath);
 		String relativeTargetPath = relativeTargetFolderPath + "/" + relativeResourcePath;
 		copyResource(resourceStream, relativeTargetPath);
@@ -253,13 +258,13 @@ public abstract class IGenerator<T extends GraphModel> {
 	 * @param staticResourceFilePath
 	 * @return
 	 */
-	protected java.io.InputStream loadResourceFromJar(String staticResourceFilePath) {
+	public java.io.InputStream loadResourceFromJar(String staticResourceFilePath) {
 		String resource = "/META-INF/" + staticResourceBase + "/" + staticResourceFilePath;
 		resource = resource.replace(File.separator, "/");
 		return IGenerator.class.getResourceAsStream(resource);
 	}
 	
-	protected java.io.InputStream loadStream(String relativeWorkspaceFilePath) {
+	public java.io.InputStream loadStream(String relativeWorkspaceFilePath) {
     	String absoluteBaseFolderPath = getWorkspaceBasePath();
     	String absoluteWorkspaceFilePath = absoluteBaseFolderPath + "/" + relativeWorkspaceFilePath;
     	File workspaceFile = new File(absoluteWorkspaceFilePath);
