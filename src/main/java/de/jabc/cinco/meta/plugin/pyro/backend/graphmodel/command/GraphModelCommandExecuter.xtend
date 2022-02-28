@@ -717,24 +717,34 @@ class GraphModelCommandExecuter extends Generatable {
 				«ENDIF»
 				@Override
 				public void updateAppearance() {
-					super.getAllModelElements().forEach((element)->{
-						«{
-							val possibleTypes = g.elements.filter[!isIsAbstract].filter[!isType].filter[hasAppearanceProvider(styles)]
-							'''element'''.typeInstanceSwitchTemplate(
-								possibleTypes,
-								[e|
-									'''
-										updateAppearanceProvider«e.name.escapeJava»((«e.apiFQN») element);
-									'''
-								],
-								[type|'''«type.apiFQN»'''],
-								false
-							)
-						}»
+					updateAppearance(getBatch().getGraphModel());
+				}
+				
+				@Override
+				public void updateAppearance(ModelElementContainer mec) {
+					getAllModelElements(mec).forEach((element)->{
+						updateAppearanceOf(element);
 					});
 				}
-		
+				
+				@Override
+				public void updateAppearanceOf(IdentifiableElement element) {
+					«{
+						val possibleTypes = g.elements.filter[!isIsAbstract].filter[!isType].filter[hasAppearanceProvider(styles)]
+						'''element'''.typeInstanceSwitchTemplate(
+							possibleTypes,
+							[e|
+								'''
+									updateAppearanceProvider«e.name.escapeJava»((«e.apiFQN») element);
+								'''
+							],
+							[type|'''«type.apiFQN»'''],
+							false
+						)
+					}»
+				}
 				«FOR e:g.elements.filter(UserDefinedType)»
+					
 					public void remove«e.name.escapeJava»(«e.apiFQN» apiEntity){
 						«dbTypeName» entity = apiEntity.getDelegate();
 						«IF e.isAbstract»

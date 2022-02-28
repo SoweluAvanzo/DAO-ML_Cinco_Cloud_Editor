@@ -297,7 +297,7 @@ abstract public class CommandExecuter {
         return getAllModelElements(getBatch().getGraphModel());
     }
 
-    private List<ModelElement> getAllModelElements(ModelElementContainer mec) {
+    public List<ModelElement> getAllModelElements(ModelElementContainer mec) {
         List<ModelElement> result = new LinkedList<>();
         result.addAll(mec.getModelElements());
         mec.getModelElements().stream().filter(n->n instanceof ModelElementContainer).forEach(n->result.addAll(getAllModelElements((ModelElementContainer) n)));
@@ -305,6 +305,8 @@ abstract public class CommandExecuter {
     }
 
     public void updateAppearance() {}
+    public void updateAppearance(ModelElementContainer mec) {}
+    public void updateAppearanceOf(IdentifiableElement element) {}
     
     public java.io.InputStream loadFile(final entity.core.BaseFileDB identifier) {
     	return FileController.loadFile(identifier);

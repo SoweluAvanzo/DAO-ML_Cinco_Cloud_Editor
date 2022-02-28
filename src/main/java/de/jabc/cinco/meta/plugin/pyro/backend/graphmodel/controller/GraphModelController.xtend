@@ -42,10 +42,10 @@ class GraphModelController extends Generatable {
 	
 	import javax.ws.rs.core.Response;
 	
+	import info.scce.pyro.core.command.CommandExecuter;
 	import «modelPackage.typeRegistryFQN»;
 	import «g.commandExecuterFQN»;
 	import «g.apiFactoryFQN»;
-	
 	«FOR gpr:primeModels»
 		import «gpr.commandExecuterFQN»;
 	«ENDFOR»
@@ -263,7 +263,7 @@ class GraphModelController extends Generatable {
 					info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
 					«g.apiFactory».eINSTANCE.warmup(executer);
 				}
-				executer.updateAppearance();
+				updateAppearance(graph, executer);
 				Response response = this.createResponse("basic_valid_answer", executer, user.id, graph.id, java.util.Collections.emptyList());
 				propagateChange(graph.id, user.id, response.getEntity());
 				return response;
@@ -431,7 +431,7 @@ class GraphModelController extends Generatable {
 						ca.execute(ce);
 						
 						«IF hasAppearanceProviders»
-							executer.updateAppearance();
+							updateAppearance(graph, executer);
 						«ENDIF»
 						
 						//propagate
@@ -541,7 +541,7 @@ class GraphModelController extends Generatable {
 						ENDFOR»
 						«IF hasAppearanceProviders»
 							
-							executer.updateAppearance();
+							updateAppearance(graph, executer);
 						«ENDIF»
 						
 						Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
@@ -604,7 +604,7 @@ class GraphModelController extends Generatable {
 						ENDFOR»
 						«IF hasAppearanceProviders»
 							
-							executer.updateAppearance();
+							updateAppearance(graph, executer);
 						«ENDIF»
 						
 						Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
@@ -769,7 +769,7 @@ class GraphModelController extends Generatable {
 			ENDFOR»
 			«IF hasAppearanceProviders»
 				
-				executer.updateAppearance();
+				updateAppearance(graph, executer);
 			«ENDIF»
 			
 		    CompoundCommandMessage response = new CompoundCommandMessage();
@@ -805,7 +805,7 @@ class GraphModelController extends Generatable {
 			throw new IllegalStateException("Graphmodel could not be found");
 		}
 		
-		private void createNode(String type,Object mec, long x, long y, Long primeId, «g.commandExecuter» executer,SecurityContext securityContext) {
+		private graphmodel.Node createNode(String type,Object mec, long x, long y, Long primeId, «g.commandExecuter» executer,SecurityContext securityContext) {
 			«{
 				val containers = (g.nodes.filter(NodeContainer).filter[!isIsAbstract] + #[g]).toSet.filter(ModelElement)
 				'''mec'''.typeInstanceSwitchTemplate(
@@ -817,7 +817,7 @@ class GraphModelController extends Generatable {
 								«container.apiFQN» n = («container.apiFQN») mec;
 								«FOR n:containableElements SEPARATOR " else "
 								»if(type.equals("«n.typeName»")) {
-									n.new«n.name.fuEscapeJava»(
+									return n.new«n.name.fuEscapeJava»(
 									«IF n.isPrime»
 										primeId,
 									«ENDIF»
@@ -834,6 +834,7 @@ class GraphModelController extends Generatable {
 					false
 				)
 			}»
+			return null;
 		}
 		
 		@SuppressWarnings("unused")
@@ -892,7 +893,7 @@ class GraphModelController extends Generatable {
 			return edge;
 		}
 		
-	    private Response executeCommand(CompoundCommandMessage ccm, entity.core.PyroUserDB user, «g.entityFQN» graph,SecurityContext securityContext) {
+	    private Response executeCommand(CompoundCommandMessage ccm, entity.core.PyroUserDB user, «g.entityFQN» graph, SecurityContext securityContext) {
 	        //setup batch execution
 	        «g.commandExecuter» executer = new «g.commandExecuter»(user,objectCache,graphModelWebSocket,graph,ccm.getHighlightings());
 	        info.scce.pyro.core.highlight.HighlightFactory.eINSTANCE.warmup(executer);
@@ -951,7 +952,7 @@ class GraphModelController extends Generatable {
 							} else {
 								«FOR e:g.nodes.filter[!isIsAbstract] SEPARATOR " else "
 								»if(c.getType().equals("«e.typeName»")) {
-									executer.create«e.name.escapeJava»(
+									n = executer.create«e.name.escapeJava»(
 										cm.getX(),
 										cm.getY(),
 										«{
@@ -975,8 +976,9 @@ class GraphModelController extends Generatable {
 								ENDFOR»
 							}
 						} else {
-							createNode(c.getType(),cmec,cm.getX(),cm.getY(),cm.getPrimeId(),executer, securityContext);
+							n = createNode(c.getType(),cmec,cm.getX(),cm.getY(),cm.getPrimeId(),executer, securityContext);
 						}
+						updateAppearance(n, executer);
 					}
 					
 					// MOVE NODE COMMAND
@@ -1025,18 +1027,20 @@ class GraphModelController extends Generatable {
 						// resolving elements
 						graphmodel.Node source = (graphmodel.Node) «typeRegistryName».findApiByType(cm.getSourceType(), sourceId, executer);
 						graphmodel.Node target = (graphmodel.Node) «typeRegistryName».findApiByType(cm.getTargetType(), targetId, executer);
+						graphmodel.Edge e;
 						
 						// resolving and creating edge
 						if(isReOrUndo) {
 							if(cm.getDelegateId()!=0){
-								graphmodel.Edge e = createEdge(c.getType(),source,target,cm.getPositions(),executer);
+								e = createEdge(c.getType(),source,target,cm.getPositions(),executer);
 								ccm.rewriteId(cm.getDelegateId(),e.getDelegateId());
 							} else {
-								createEdge(c.getType(),source,target,cm.getPositions(),executer);
+								e = createEdge(c.getType(),source,target,cm.getPositions(),executer);
 							}
 						} else {
-							createEdge(c.getType(),source,target,cm.getPositions(),executer);
+							e = createEdge(c.getType(),source,target,cm.getPositions(),executer);
 						}
+						updateAppearance(e, executer);
 					}
 
 					// RECONNECT EDGE COMMAND
@@ -1135,7 +1139,7 @@ class GraphModelController extends Generatable {
 		            }
 		        }
 				«IF hasAppearanceProviders»
-					executer.updateAppearance();
+					updateAppearance(graph, executer);
 				«ENDIF»
 	        } catch(Exception e) {
 	        	//send rollback
@@ -1163,6 +1167,19 @@ class GraphModelController extends Generatable {
 			return createResponse(type,executer,user.id,graph.id,ccm.getRewriteRule());
 	    }
 	    
+		private void updateAppearance(PanacheEntity e, CommandExecuter executer) { // TODO: SAMI
+			graphmodel.IdentifiableElement element = TypeRegistry.getDBToApi(e, executer);
+			updateAppearance(element, executer);
+		}
+		
+		private void updateAppearance(graphmodel.IdentifiableElement e, CommandExecuter executer) { // TODO: SAMI
+			if(e instanceof graphmodel.ModelElementContainer) {
+				executer.updateAppearance((graphmodel.ModelElementContainer) e);
+			} else {
+				executer.updateAppearanceOf(e);
+			}
+		}
+	    
 		private long resolveId(long id, java.util.List<info.scce.pyro.core.command.types.RewriteRule> rewriteRules) {
 			java.util.Optional<info.scce.pyro.core.command.types.RewriteRule> rewrittenRule = 
 					rewriteRules.stream()
@@ -1173,7 +1190,7 @@ class GraphModelController extends Generatable {
 				return id;
 		}
 	    
-	    private Response createResponse(String type,«g.commandExecuter» executer,long userId,long graphId,java.util.List<RewriteRule> rewriteRuleList) {
+	    private Response createResponse(String type, CommandExecuter executer,long userId,long graphId,java.util.List<RewriteRule> rewriteRuleList) {
 	       	CompoundCommandMessage response = new CompoundCommandMessage();
 	   		response.setType(type);
 	   		response.setRewriteRule(rewriteRuleList);
@@ -1186,7 +1203,6 @@ class GraphModelController extends Generatable {
 	   		response.setHighlightings(executer.getHighlightings());
 	   		return Response.ok(response).build();
 	    }
-	    
 	}
 	
 	'''
