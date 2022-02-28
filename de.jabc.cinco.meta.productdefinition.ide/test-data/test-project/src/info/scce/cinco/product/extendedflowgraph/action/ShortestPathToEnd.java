@@ -22,6 +22,10 @@ public class ShortestPathToEnd extends CincoCustomAction<Start> {
 
 	@Override
 	public void execute(Start start) {
+		/**
+		 * Create several ecore-elements. Those can be used by drag and drop,
+		 * from the ecore-viewer.
+		 */
 		externallibrary.ExternalLibrary externalLibrary = new externallibrary.impl.ExternalLibraryImpl();
 		externalLibrary.setFilename("ExternalLibrary_"+index);
 		
@@ -34,5 +38,9 @@ public class ShortestPathToEnd extends CincoCustomAction<Start> {
 		eActivityA.setName("eActivityA_"+index);
 		eActivityA.setContainer(externalLibrary);
 		externalLibrary.addExternalActivityA(eActivityA);
+		
+		// syncs changes/creation of/to ecore-elements to ecore-viewer
+		// (for modelelements analogous to the primeViewer)
+		this.commandExecuter().sync(externalLibrary);
 	}
 }	

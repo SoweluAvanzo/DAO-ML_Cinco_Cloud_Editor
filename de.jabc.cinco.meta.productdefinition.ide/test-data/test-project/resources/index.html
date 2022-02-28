@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WebStory</title>
+    <style>
+        /* inspired by http://stackoverflow.com/a/12121309 */
+        #scaledwrapper {
+            width: 100%;
+            margin: auto;
+            /* whatever width you want */
+            display: block;
+            position: relative;
+        }
+        #scaledwrapper:after {
+            /* 
+            16:9 ratio -> 56.25%
+            4:3 ratio -> 75%
+            3:2 ratio -> 66.66%
+            
+            */            
+            padding-top: 75%;
+            display: block;
+            content: '';
+        }
+        .scaledcontainer {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            /* fill parent */
+            background-color: deepskyblue;
+            /* let's see it! */
+            color: white;
+            background-repeat:no-repeat;
+            background-size:100% 100%;
+        }
+        body {
+            margin:0;
+        }
+
+    </style>
+</head>
+<body style="background-color: #9d9d9d">
+<div id="scaledwrapper">
+    <div id="imageContainer" class="scaledcontainer"></div>
+</div>
+
+<script src="js_static/jquery.min.js"></script> <!-- https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js -->
+<script src="js_generated/declarations.js"></script>
+<script src="js_static/webstoryFramework.js"></script>
+<script src="js_generated/activities.js"></script>
+
+</body>
+</html>
