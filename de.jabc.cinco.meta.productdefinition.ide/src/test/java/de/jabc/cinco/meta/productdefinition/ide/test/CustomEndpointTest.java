@@ -31,6 +31,9 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 		URI base = URI.createURI(this.root.toURI().toString());
 		String baseString = base.toString();
 		
+		// fallback, since no real workspace is present
+		WorkspaceContext.setFallbackURI(base);
+		
 		WorkspaceContext workspaceContext = new WorkspaceContext(base, null);
 		String result = workspaceContext.getRootURI().toString();
 		String expected = base.toString();

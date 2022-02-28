@@ -9,6 +9,7 @@ cincoProduct Test {
 	mgl "model/PrimeRefs.mgl"			
 	mgl "model/ExtendedFlowGraph.mgl"
 	mgl "model/FlowGraph.mgl"
+	mgl "model/WebStory.mgl"
 
 	splashScreen "branding/splash.bmp" {
 		progressBar (37,268,190,10)

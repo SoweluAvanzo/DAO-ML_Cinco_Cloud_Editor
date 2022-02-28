@@ -227,9 +227,8 @@ public class WorkspaceContext implements IWorkspaceContext {
 					return handler.getBaseURI();
 				}
 			} catch(Exception e) {
-				System.out.println("No root URI resolvable, falling back to: "+FALLBACK_URI.devicePath());
-				return FALLBACK_URI;
 			}
+			return FALLBACK_URI;
 		}
 		return projectConfig.getPath();
 	}
@@ -240,6 +239,7 @@ public class WorkspaceContext implements IWorkspaceContext {
 	 */
 	public static void setFallbackURI(URI fallbackUri) {
 		FALLBACK_URI = fallbackUri;
+		System.out.println("If no workspace found, FALLBACK_URI set to: "+FALLBACK_URI);
 	}
 	
 	/**
