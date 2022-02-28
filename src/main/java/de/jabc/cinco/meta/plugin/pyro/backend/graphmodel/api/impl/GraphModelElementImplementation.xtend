@@ -958,8 +958,8 @@ class GraphModelElementImplementation extends Generatable {
 		val g = ce.modelPackage as MGLModel
 		val superTypes = ce.resolveSuperTypesAndType
 		val containedTypes = new java.util.HashSet
-		
-		for(s:superTypes.filter(ContainingElement)) {
+		val containingElementsOfSuperTypes = superTypes.filter(ContainingElement)
+		for(s:containingElementsOfSuperTypes) {
 			val  directContainedTypes = s.possibleEmbeddingTypes(g)
 			containedTypes += directContainedTypes.map[it.resolveAllSubTypesAndType].flatten.toSet	
 		}
