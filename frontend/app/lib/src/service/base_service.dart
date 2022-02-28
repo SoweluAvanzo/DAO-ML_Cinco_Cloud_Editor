@@ -49,7 +49,7 @@ class BaseService {
 
   static String getBaseHref() {
     var baseHref = window.document.querySelector('base').getAttribute('href');
-    var cleanBaseHref = baseHref.substring(0, baseHref.length - 1);
+    var cleanBaseHref = baseHref.length <= 0 ? "" : baseHref.substring(0, baseHref.length - 1);
     print("BASE_HREF: "+cleanBaseHref);
     return cleanBaseHref;
   }
