@@ -7,12 +7,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import javax.enterprise.context.ApplicationScoped;
 
-@ApplicationScoped
 public class FileController {
 
-	public entity.core.BaseFileDB getFileReference(final long id) {
+	public static InputStream loadFile(String baseFilePath) {
+		return loadFile(
+				getBaseFile(baseFilePath)
+			);
+	}
+	
+	public static InputStream loadFile(final long id) {
+		return loadFile(
+				getFileReference(id)
+			);
+	}
+	
+	public static entity.core.BaseFileDB getFileReference(final long id) {
 		final entity.core.BaseFileDB file = entity.core.BaseFileDB.findById(id);
 
 		if (file == null) {
@@ -22,7 +32,7 @@ public class FileController {
 		return file;
 	}
 	
-	public entity.core.BaseFileDB getBaseFile(String baseFilePath) {
+	public static entity.core.BaseFileDB getBaseFile(String baseFilePath) {
 		try {
 			java.net.URI uri = new java.net.URI(baseFilePath);
 			String[] segments = uri.getPath().split("/");
@@ -35,7 +45,7 @@ public class FileController {
 		}
 	}
 
-	public InputStream loadFile(final entity.core.BaseFileDB identifier) {
+	public static InputStream loadFile(final entity.core.BaseFileDB identifier) {
 		if (identifier == null) {
 			return null;
 		}
@@ -51,7 +61,7 @@ public class FileController {
 		}
 	}
 	
-	public entity.core.BaseFileDB storeFile(final String fileName, final InputStream data) throws IOException {
+	public static entity.core.BaseFileDB storeFile(final String fileName, final InputStream data) throws IOException {
 		final entity.core.BaseFileDB result = new entity.core.BaseFileDB();
 		result.filename = org.apache.commons.io.FilenameUtils.removeExtension(fileName);
 		
@@ -99,11 +109,11 @@ public class FileController {
 		return result;
 	}
 	
-	public void deleteFile(String baseFilePath) {
+	public static void deleteFile(String baseFilePath) {
 		deleteFile(getBaseFile(baseFilePath));
 	}
 
-	public void deleteFile(entity.core.BaseFileDB identifier) {
+	public static void deleteFile(entity.core.BaseFileDB identifier) {
 		File f = new File("uploads" + File.separator + identifier.id + File.separator
 		+ identifier.filename+"."+identifier.fileExtension);
 		f.delete();

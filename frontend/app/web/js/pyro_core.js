@@ -1505,16 +1505,17 @@ function update_node_apperance_internal(cell,shape,
         cell.model.attr(shape+'/font-style',"normal");
     }
     if(imagePath!=null) {
-        if(imagePath.includes('rest/files/')) {
-            cell.model.attr(shape+'/xlink:href',imagePath);
-        } else {
-            cell.model.attr(shape+'/xlink:href',"img/"+imagePath);
+        cell.model.attr(shape+'/xlink:href', imagePath);
+        cell.model.attr(shape+'/refHeight', '100%');
+        cell.model.attr(shape+'/refWidth', '100%');
+        if(
+            !shape.startsWith("ellipse.")
+        ) {
+            cell.model.attr(shape+'/ref-x', '50.0%');
+            cell.model.attr(shape+'/ref-y', '50.0%');
         }
-
     }
 }
-
-
 
 function update_edge_text_apperance_internal(idx,cell,shape,
                                              background_r,background_g,background_b,
@@ -1716,6 +1717,8 @@ function confirm_drop(ev) {
  * @param ev
  */
 function start_drag_element(ev) {
+    if(!ev || !ev.target || !ev.target.dataset)
+        return;
     $edge_to_create = ev.target.dataset.typename;
 	var isReference = ev.target.dataset.reference ? true : false;
     var content = JSON.stringify({

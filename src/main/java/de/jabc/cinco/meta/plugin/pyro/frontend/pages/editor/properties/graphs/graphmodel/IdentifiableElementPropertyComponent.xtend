@@ -53,16 +53,22 @@ class IdentifiableElementPropertyComponent extends Generatable {
 					'url': '${BaseService.getUrl()}/files/create'
 					//,
 					//'authToken': BaseService.getAuthToken()
-				},autoUpload:true«IF !file.getFile.value.empty», accept:"«file.getFile.value.join(", ")»"«ENDIF»);
+				}, autoUpload:true«IF !file.getFile.value.empty», accept:"«file.getFile.value.join(", ")»"«ENDIF»);
 			«ENDFOR»
+			«IF !fileAttributes.empty»
+				
+				String getDownloadPath(path) {
+					return FileReference.toDownloadPath(path);
+				}
+			«ENDIF»
 			
 			«me.name.fuEscapeDart»PropertyComponent() {
 			  	«FOR file:fileAttributes»
 			  		uploader_«file.name.escapeDart».newFileStream.listen((fr){
 			  			«IF file.isList»
-			  				addList«file.name.escapeDart»(fr.downloadPath);
+			  				addList«file.name.escapeDart»(fr.path);
 			  			«ELSE»
-			  				currentElement.«file.name.escapeDart» = fr.downloadPath;
+			  				currentElement.«file.name.escapeDart» = fr.path;
 			  			«ENDIF»
 			  			hasChangedSC.add(currentElement);
 			  		});
@@ -278,7 +284,7 @@ class IdentifiableElementPropertyComponent extends Generatable {
 								<input class="form-control-file" ng2-file-select [uploader]="uploader_«attr.name.escapeDart»" «IF attr.readOnly»disabled«ELSE»[disabled]="uploader_«attr.name.escapeDart».isUploading"«ENDIF» type="file" id="«attr.name.lowEscapeDart»">
 								«IF attr.isList»
 									<div class="input-group" *ngFor="let i of currentElement.«attr.name.escapeDart»; let x = index; trackBy: trackPrimitiveValue" style="margin-bottom: 5px;">
-										<a style="color:#fff" [href]="currentElement.«attr.name.escapeDart»[x]">{{currentElement.«attr.name.escapeDart»[x]}}</a>
+										<a style="color:#fff" [href]="getDownloadPath(currentElement.«attr.name.escapeDart»[x])">{{currentElement.«attr.name.escapeDart»[x]}}</a>
 									    <span class="input-group-btn">
 									    	<button (click)="removeList«attr.name.escapeDart»(x)" class="btn" type="button">
 									    		<i class="fas fa-times"></i>
@@ -286,7 +292,7 @@ class IdentifiableElementPropertyComponent extends Generatable {
 									    </span>
 									</div>
 								«ELSE»
-									<a style="color:#fff" [href]="currentElement.«attr.name.escapeDart»">{{currentElement.«attr.name.escapeDart»}}</a>
+									<a style="color:#fff" [href]="getDownloadPath(currentElement.«attr.name.escapeDart»)">{{currentElement.«attr.name.escapeDart»}}</a>
 								«ENDIF»
 							«ELSE»
 								«IF attr.multiline»
@@ -326,9 +332,9 @@ class IdentifiableElementPropertyComponent extends Generatable {
 						<div class="form-group">
 						       <label>«attr.name»</label>
 						       «IF !attr.readOnly»
-						       	<a href (click)="addList«attr.name.escapeDart»($event)">
-						       		<i class="fas fa-plus"></i>
-						       	</a>
+						       <a href (click)="addList«attr.name.escapeDart»($event)">
+						       	<i class="fas fa-plus"></i>
+						       </a>
 							   «ENDIF»
 						       <div class="input-group" *ngFor="let i of currentElement.«attr.name.escapeDart»; let x = index;trackBy: trackPrimitiveValue" style="margin-bottom: 5px;">
 						           <div class="checkbox">
@@ -365,7 +371,7 @@ class IdentifiableElementPropertyComponent extends Generatable {
 								«ENDIF»
 						      	<div class="input-group" *ngFor="let i of currentElement.«attr.name.escapeDart»; let x = index; trackBy: trackPrimitiveValue" style="margin-bottom: 5px;">
 						      		«IF attr.isFile»
-						      			<a style="color:#fff" [href]="currentElement.«attr.name.escapeDart»[x]">{{currentElement.«attr.name.escapeDart»[x]}}</a>
+						      			<a style="color:#fff" [href]="getDownloadPath(currentElement.«attr.name.escapeDart»[x])">{{currentElement.«attr.name.escapeDart»[x]}}</a>
 						      		«ELSE»
 						      			<input «IF attr.readOnly»disabled «ENDIF»(blur)="valueChanged($event)" [(ngModel)]="currentElement.«attr.name.escapeDart»[x]" type="«attr.htmlType»" class="form-control">
 						      	    «ENDIF»

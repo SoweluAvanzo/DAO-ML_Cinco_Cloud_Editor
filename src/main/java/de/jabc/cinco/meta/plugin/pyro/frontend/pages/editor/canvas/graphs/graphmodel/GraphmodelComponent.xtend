@@ -38,6 +38,7 @@ class GraphmodelComponent extends Generatable {
 			«ELSE»
 				import 'package:«gc.projectName.escapeDart»/src/model/command_graph.dart';
 			«ENDIF»
+			import 'package:Test/src/filesupport/fileuploader.dart';
 			
 			import 'package:«gc.projectName.escapeDart»/«g.modelFilePath»' as «g.modelPackage.name.lowEscapeDart»;
 			«FOR pr : primeReferencedPackages»
@@ -275,7 +276,9 @@ class GraphmodelComponent extends Generatable {
 						cmd.fontSize,
 						cmd.fontBold,
 						cmd.fontItalic,
-						cmd.imagePath
+						FileReference.toDownloadPath(
+							cmd.imagePath
+						)
 					]);
 				}
 				
@@ -430,9 +433,10 @@ class GraphmodelComponent extends Generatable {
 		  @override
 		  void ngOnInit() {
 		  	loading = true;
-		  	initCanvas();
-			BaseService.getTicket().then((ticket) => {
-				activateWebSocket(ticket)
+		  	initCanvas().then((_) {
+				BaseService.getTicket().then((ticket) => {
+					activateWebSocket(ticket)
+				});
 			});
 		  }
 		  
@@ -600,8 +604,8 @@ class GraphmodelComponent extends Generatable {
 		        }
 		    }
 		  
-		  void initCanvas() {
-			graphService.loadCommandGraph«g.name.fuEscapeDart»(currentGraphModel,highlightings).then((cg){
+		  Future<dynamic> initCanvas() {
+			return graphService.loadCommandGraph«g.name.fuEscapeDart»(currentGraphModel,highlightings).then((cg){
 				commandGraph = cg;
 				commandGraph.editorCommand.listen((c){
 					if(c is OpenFileCommand) {
@@ -610,9 +614,9 @@ class GraphmodelComponent extends Generatable {
 							jumpToSC.add(m);
 					}
 				});
-		  	  	currentGraphModel.merge(cg.currentGraphModel);
-		  	  	graphService.update(currentGraphModel.id);
-		  	  	js.context.callMethod("load_«g.jsCall»",[
+				currentGraphModel.merge(cg.currentGraphModel);
+				graphService.update(currentGraphModel.id);
+				js.context.callMethod("load_«g.jsCall»",[
 					currentGraphModel.width,
 					currentGraphModel.height,
 					currentGraphModel.scale,
@@ -650,158 +654,154 @@ class GraphmodelComponent extends Generatable {
 							cb_reconnect_edge_«elem.jsCall(g)»
 						«ENDIF»
 					«ENDFOR»
-		  		]);
-		   	    «IF g.hasAppearanceProvider(styles)»
-		   	    	graphService.appearances«g.name.fuEscapeDart»(currentGraphModel).then((data){
-		   	    		var jsog = convert.jsonDecode(data);
-		   	    		var m = Message.fromJSOG(jsog);
-		   	    		startPropagation().then((_) {
-		   	    			if (m is CompoundCommandMessage) {
-		   	    				executeCommands(m,true);
-		   	    			}
-		   	    		}).then((_) => endPropagation());
-		   	    	});
-		   	    «ENDIF»
+				]);
+				«IF g.hasAppearanceProvider(styles)»
+					graphService.appearances«g.name.fuEscapeDart»(currentGraphModel).then((data){
+						var jsog = convert.jsonDecode(data);
+						var m = Message.fromJSOG(jsog);
+						startPropagation().then((_) {
+							if (m is CompoundCommandMessage) {
+								executeCommands(m,true);
+							}
+						}).then((_) => endPropagation());
+					});
+				«ENDIF»
+			}).whenComplete(()=>loading = false);
+		 }
+		 
+		  Future<Null> startPropagation(){
+		   js.context.callMethod('start_propagation_«g.jsCall»',[]);
+		   return new Future.value(null);
+		  }
 		  
-				}).whenComplete(()=>loading = false);
-			 }
-			 
-			 
-			  
-			  
-			  Future<Null> startPropagation(){
-			   js.context.callMethod('start_propagation_«g.jsCall»',[]);
-			   return new Future.value(null);
-			  }
-			  
-			  void endPropagation(){
-			    js.context.callMethod('end_propagation_«g.jsCall»',[]);
-			    «IF g.hasChecks»
-			    	//reload checks
-			    	fetchChecks();
-			    «ENDIF»
-			  }
-			  
-			  void updateCheckLevel(bool isError,bool isWarning,bool isInfo) {
-			  	this.isError = isError;
-			  	this.isWarning = isWarning;
-			  	this.isInfo = isInfo;
-			  	«IF g.hasChecks»
-			  		fetchChecks();
-			  	«ENDIF»
-			  }
-			  
-			 void updateGlueline(bool isGlueline) {
-			 	js.context.callMethod("refresh_gluelines_«g.jsCall»",[isGlueline]);
-			 }
-			 «IF g.hasChecks»
-			 	
-			 	void fetchChecks() {
-			 		checkService.read(currentGraphModel).then((crs){
-			 			CheckResults filteredCRS = CheckResults.filterChecks(CheckResults.copy(crs),isError,isWarning,isInfo);
-			 			refreshChecks(filteredCRS);
-			 		});
-			 	}
-			 «ENDIF»
-			 
-			 void export(String type) {
-			 		if(type=='svg'){
-			 		   	js.context.callMethod('download_svg',[currentGraphModel.filename]);
-			 		}
-			 		if(type=='png'){
-			 		   	js.context.callMethod('download_png',[currentGraphModel.filename]);
-			 		}
-			 }
-			 
-			 void updateScale(double factor,{bool persist:true}) {
-			 	if(factor!=0.0) {
-			 		currentGraphModel.scale = factor;
-			 	}
-			 	if(persist) {
-			 		graphService.updateGraphModel(currentGraphModel).then((_){
-			 			js.context.callMethod('update_scale_«g.jsCall»',[currentGraphModel.scale]);
-			 		});
-			 	} else {
-			 		js.context.callMethod('update_scale_«g.jsCall»',[currentGraphModel.scale]);
-			 	}
-			 	
-			 }
-			 
-			 void updateRouting() {
-			 	graphService.updateGraphModel(currentGraphModel).then((_){
-			 		js.context.callMethod('update_routing_«g.jsCall»',[currentGraphModel.router,currentGraphModel.connector]);
-			 	});
-			 }
-			 
-			 void updateProperties(core.IdentifiableElement ie) {
-			   	if(ie is! core.GraphModel){
-					currentGraphModel.allElements().where((n)=>n is core.ModelElement).forEach((n)=>updateElement(n));
-				} else {
-					if(ie.$type() == "«g.typeName»"){
-						currentGraphModel.merge(ie,structureOnly:false);
-					}
+		  void endPropagation(){
+		    js.context.callMethod('end_propagation_«g.jsCall»',[]);
+		    «IF g.hasChecks»
+		    	//reload checks
+		    	fetchChecks();
+		    «ENDIF»
+		  }
+		  
+		  void updateCheckLevel(bool isError,bool isWarning,bool isInfo) {
+		  	this.isError = isError;
+		  	this.isWarning = isWarning;
+		  	this.isInfo = isInfo;
+		  	«IF g.hasChecks»
+		  		fetchChecks();
+		  	«ENDIF»
+		  }
+		  
+		 void updateGlueline(bool isGlueline) {
+		 	js.context.callMethod("refresh_gluelines_«g.jsCall»",[isGlueline]);
+		 }
+		 «IF g.hasChecks»
+		 	
+		 	void fetchChecks() {
+		 		checkService.read(currentGraphModel).then((crs){
+		 			CheckResults filteredCRS = CheckResults.filterChecks(CheckResults.copy(crs),isError,isWarning,isInfo);
+		 			refreshChecks(filteredCRS);
+		 		});
+		 	}
+		 «ENDIF»
+		 
+		 void export(String type) {
+		 		if(type=='svg'){
+		 		   	js.context.callMethod('download_svg',[currentGraphModel.filename]);
+		 		}
+		 		if(type=='png'){
+		 		   	js.context.callMethod('download_png',[currentGraphModel.filename]);
+		 		}
+		 }
+		 
+		 void updateScale(double factor,{bool persist:true}) {
+		 	if(factor!=0.0) {
+		 		currentGraphModel.scale = factor;
+		 	}
+		 	if(persist) {
+		 		graphService.updateGraphModel(currentGraphModel).then((_){
+		 			js.context.callMethod('update_scale_«g.jsCall»',[currentGraphModel.scale]);
+		 		});
+		 	} else {
+		 		js.context.callMethod('update_scale_«g.jsCall»',[currentGraphModel.scale]);
+		 	}
+		 	
+		 }
+		 
+		 void updateRouting() {
+		 	graphService.updateGraphModel(currentGraphModel).then((_){
+		 		js.context.callMethod('update_routing_«g.jsCall»',[currentGraphModel.router,currentGraphModel.connector]);
+		 	});
+		 }
+		
+		void updateProperties(core.IdentifiableElement ie) {
+			if(ie is! core.GraphModel){
+				currentGraphModel.allElements().where((n)=>n is core.ModelElement).forEach((n)=>updateElement(n));
+			} else {
+				if(ie.$type() == "«g.typeName»"){
+					currentGraphModel.merge(ie,structureOnly:false);
 				}
+			}
+			
+			//check for prime referencable element in same graph and update
+			«FOR pr : g.MGLModel.primeRefs.filter[referencedElement.graphModels.contains(g)] SEPARATOR " else "
+			»if(ie.$type() == "«pr.referencedElement.typeName»") {
+				//update all prime nodes for this element
 				
-				//check for prime referencable element in same graph and update
-				«FOR pr : g.MGLModel.primeRefs.filter[referencedElement.graphModels.contains(g)] SEPARATOR " else "
-				»if(ie.$type() == "«pr.referencedElement.typeName»") {
-					//update all prime nodes for this element
-					
-					currentGraphModel.allElements()
-						.where((n)=> n.$type() == "«(pr.eContainer as ModelElement).typeName»")
-						.forEach((n)=>updateElement(n));
-				}«
-				ENDFOR»
-			}
-			
-			void cb_property_persist(int id,String value) {
-			 	
-			 	var elem = currentGraphModel.allElements().where((n)=>n.id == id).first;
-				PropertyMessage pm = new PropertyMessage(
-				    elem.id,
-				    elem.runtimeType.toString(),
-				    elem,
-				    user.id
-				);
-			 	«FOR e : g.nodes.filter[directlyEditable] SEPARATOR "else "
-			 	»if(elem.$type() == "«e.typeName»") {
-			 		(elem as «e.dartFQN»).«e.directlyEditableAttribute.name.escapeDart» = value;
-			 	}«
-			 	ENDFOR»
-				graphService.sendMessage(pm,"«g.restEndpoint»",currentGraphModel.id).then((m){
-					«'''
-			  	    if (m is CompoundCommandMessage) {
-			  	    	executeCommands(m,true);
-			  	    }
-			  		'''.propagation»
-				});
-			}
-			
-			void undo() {
-				var ccm = commandGraph.undo(user);
-				if(ccm != null && !ccm.cmd.queue.isEmpty) {
-				  graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m) {
+				currentGraphModel.allElements()
+					.where((n)=> n.$type() == "«(pr.eContainer as ModelElement).typeName»")
+					.forEach((n)=>updateElement(n));
+			}«
+			ENDFOR»
+		}
+		
+		void cb_property_persist(int id,String value) {
+		 	
+		 	var elem = currentGraphModel.allElements().where((n)=>n.id == id).first;
+			PropertyMessage pm = new PropertyMessage(
+			    elem.id,
+			    elem.runtimeType.toString(),
+			    elem,
+			    user.id
+			);
+		 	«FOR e : g.nodes.filter[directlyEditable] SEPARATOR "else "
+		 	»if(elem.$type() == "«e.typeName»") {
+		 		(elem as «e.dartFQN»).«e.directlyEditableAttribute.name.escapeDart» = value;
+		 	}«
+		 	ENDFOR»
+			graphService.sendMessage(pm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 				«'''
-			  	    «'''
-			  	      commandGraph.receiveCommand(m);
-			  	    '''.checkCommand("undo_valid_answer",false)»
-			  	'''.propagation»
-				  });
-				}
+		  	    if (m is CompoundCommandMessage) {
+		  	    	executeCommands(m,true);
+		  	    }
+		  		'''.propagation»
+			});
+		}
+		
+		void undo() {
+			var ccm = commandGraph.undo(user);
+			if(ccm != null && !ccm.cmd.queue.isEmpty) {
+			  graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m) {
+			«'''
+		  	    «'''
+		  	      commandGraph.receiveCommand(m);
+		  	    '''.checkCommand("undo_valid_answer",false)»
+		  	'''.propagation»
+			  });
 			}
-			
-			void redo() {
-				var ccm = commandGraph.redo(user);
-			  	if(ccm!=null && !ccm.cmd.queue.isEmpty) {
-				    graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m) {
-						«'''
-					      	«'''
-					        commandGraph.receiveCommand(m);
-					      	'''.checkCommand("redo_valid_answer",false)»
-					  	'''.propagation»
-				    });
-				}
+		}
+		
+		void redo() {
+			var ccm = commandGraph.redo(user);
+		  	if(ccm!=null && !ccm.cmd.queue.isEmpty) {
+			    graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m) {
+					«'''
+				      	«'''
+				        commandGraph.receiveCommand(m);
+				      	'''.checkCommand("redo_valid_answer",false)»
+				  	'''.propagation»
+			    });
 			}
+		}
 			
 			/// create the current graphmodel initailly
 			void initialized() {

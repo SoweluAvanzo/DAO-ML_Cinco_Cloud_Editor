@@ -8,6 +8,7 @@ import graphmodel.*;
 import info.scce.pyro.sync.GraphModelWebSocket;
 import info.scce.pyro.core.command.types.HighlightCommand;
 import info.scce.pyro.core.command.types.*;
+import info.scce.pyro.core.FileController;
 import org.eclipse.emf.ecore.EObject;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,9 +18,6 @@ import java.util.stream.Collectors;
  */
 
 abstract public class CommandExecuter {
-	
-	@javax.inject.Inject
-	info.scce.pyro.core.FileController fileController;
 	
     protected final GraphModelWebSocket graphModelWebSocket;
     protected BatchExecution batch;
@@ -299,7 +297,7 @@ abstract public class CommandExecuter {
         return getAllModelElements(getBatch().getGraphModel());
     }
 
-    private List<ModelElement> getAllModelElements(ModelElementContainer mec) {
+    public List<ModelElement> getAllModelElements(ModelElementContainer mec) {
         List<ModelElement> result = new LinkedList<>();
         result.addAll(mec.getModelElements());
         mec.getModelElements().stream().filter(n->n instanceof ModelElementContainer).forEach(n->result.addAll(getAllModelElements((ModelElementContainer) n)));
@@ -307,9 +305,11 @@ abstract public class CommandExecuter {
     }
 
     public void updateAppearance() {}
+    public void updateAppearance(ModelElementContainer mec) {}
+    public void updateAppearanceOf(IdentifiableElement element) {}
     
     public java.io.InputStream loadFile(final entity.core.BaseFileDB identifier) {
-    	return fileController.loadFile(identifier);
+    	return FileController.loadFile(identifier);
     }
     
     public abstract void sync(EObject e);

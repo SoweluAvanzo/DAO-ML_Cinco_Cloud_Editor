@@ -38,7 +38,7 @@ class ContainmentCheck extends Generatable{
 						}
 					«ELSE»
 						«FOR containableType:con.types»
-						 	amount += g.getModelElements(«containableType.apiFQN».class).stream()«IF !containableType.isAbstract».filter(c->c.getClass().getName().equals(«containableType.apiFQN».impl.«containableType.name.fuEscapeJava»Impl.class.getName()))«ENDIF».count();
+						 	amount += g.getModelElements(«containableType.apiFQN».class).stream()«IF !containableType.isAbstract».filter(c->c.getClass().getName().equals(«containableType.apiImplFQN».class.getName()))«ENDIF».count();
 						«ENDFOR»
 						if(amount < «con.lowerBound»){
 							addError(g,"at least «con.lowerBound» of [«con.getGroupContainables(g.MGLModel).toSet.map[name].join(",")»] required");
@@ -51,7 +51,7 @@ class ContainmentCheck extends Generatable{
 			g.getAllNodes().forEach((n)->{
 				«FOR n:nodes»
 				if(n instanceof «g.apiFQN») {
-					«g.apiFQN» container = («g.apiFQNWithoutName».impl.«g.name.fuEscapeJava»Impl)n;
+					«g.apiFQN» container = («g.apiImplFQN»)n;
 					«FOR group:n.containableElements.filter[lowerBound>0]»
 						{
 							//check if type can be contained in group

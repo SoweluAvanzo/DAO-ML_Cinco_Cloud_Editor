@@ -134,6 +134,14 @@ class CanvasComponent extends Generatable {
 			ENDFOR»
 		}
 		
+		dynamic getCanvasComponent() {
+			«FOR g:gc.concreteGraphModels SEPARATOR " else "
+			»if(is«g.name.fuEscapeDart»()){
+				return this.«g.name.lowEscapeDart»CanvasComponent;
+			}«ENDFOR»
+			return null;
+		}
+		
 		void executeCommands(CompoundCommandMessage m,bool forceExecute) {
 			«FOR g:gc.concreteGraphModels»
 				if(«g.name.lowEscapeDart»CanvasComponent!=null) {

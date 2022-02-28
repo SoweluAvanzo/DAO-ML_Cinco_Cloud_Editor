@@ -766,6 +766,25 @@ class Model extends Generatable {
 				«IF element.hasToExtendContainer»
 					
 					List<core.ModelElement> modelElements;
+					
+					void addElement(core.IdentifiableElement e) {
+						var existing = null;
+						for(var m in modelElements) {
+							if(m.id == e.id) {
+								existing = m;
+								break;
+							}
+						}
+						if(existing==null) {
+							modelElements.add(e);
+						}
+					}
+					
+					void addAllElements(List<core.IdentifiableElement> elementList) {
+						for(var e in elementList) {
+							addElement(e);
+						}
+					}
 				«ENDIF»
 				
 				@override

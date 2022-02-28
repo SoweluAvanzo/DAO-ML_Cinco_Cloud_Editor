@@ -437,9 +437,21 @@ class FileReference {
   String fileName;
   String contentType;
 
-  String get path => '${BaseService.getUrl()}/files/read/${id}/private';
-  String get downloadPath =>
-      '${BaseService.getUrl()}/files/download/${id}/private';
+  static String get readBase => '${BaseService.getUrl()}/files/read';
+  static String get downloadBase => '${BaseService.getUrl()}/files/download';
+  static String toReadPath(path) {
+    if(path == null)
+      return path;
+    return FileReference.readBase + "/" + path;
+  }
+  static String toDownloadPath(path) {
+    if(path == null)
+      return path;
+    return FileReference.downloadBase + "/" + path;
+  }
+  String get path => '${id}/private';
+  String get downloadPath => '${FileReference.downloadBase}/${path}';
+  String get readPath => '${FileReference.readBase}/${path}';
 
   FileReference({jsog}) {
     // default constructor
