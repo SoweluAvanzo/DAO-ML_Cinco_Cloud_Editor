@@ -90,7 +90,7 @@ public class SecurityOverrideFilter implements ContainerRequestFilter {
     	try {
         	Map<String, String> env = System.getenv();
     		String workspace_path = env.get("WORKSPACE_PATH");
-    		if(workspace_path != null) {
+    		if(workspace_path != null && !workspace_path.isEmpty()) {
         		System.out.println("WORKSPACE_PATH defined:\n"+workspace_path);
         		return workspace_path.strip().replaceAll("'", "");
     		}
@@ -100,5 +100,4 @@ public class SecurityOverrideFilter implements ContainerRequestFilter {
 		System.out.println("No WORKSPACE_PATH defined. Falling back to default:\n"+workspace);
     	return workspace;
     }
-    
 }

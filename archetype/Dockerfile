@@ -26,6 +26,7 @@ RUN /pyro-server/compileBackend.sh
 FROM registry.gitlab.com/scce/cinco-cloud-archetype/archetype:${ARCHETYPE_IMAGE_TAG} as cinco-cloud-archetype
 # set baseHref path for static resources of frontend
 ENV PYRO_SUBPATH=/
+ENV WORKSPACE_PATH='\editor\workspace'
 # integrate pyro-server into cinco-cloud-archetype
 COPY --from=pyro-server-builder /pyro-server/pyro-server/ /editor/pyro-server-extension/pyro-server
 #-----------------------------------------------------------------------
@@ -53,4 +54,5 @@ CMD cd /editor/pyro-server-extension/pyro-server/ && \
     PYRO_HOST="${PYRO_HOST}" \
     PYRO_PORT="${PYRO_PORT}" \
     PYRO_SUBPATH="${PYRO_SUBPATH}" \
+    WORKSPACE_PATH="${WORKSPACE_PATH}" \
     yarn run theia start --port=3000 --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
