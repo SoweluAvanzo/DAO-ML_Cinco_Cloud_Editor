@@ -72,6 +72,9 @@ public class ProjectDB extends PanacheEntity {
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "project")
   public Collection<GraphModelTypeDB> graphModelTypes = new ArrayList<>();
 
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  public GitInformationDB gitInformation;
+
   @Transient
   public boolean isLanguageEditor() {
     return this.type.equals(ProjectType.LANGUAGE_EDITOR);

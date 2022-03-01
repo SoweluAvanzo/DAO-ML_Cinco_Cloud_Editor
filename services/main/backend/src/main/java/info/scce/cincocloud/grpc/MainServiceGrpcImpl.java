@@ -6,6 +6,7 @@ import info.scce.cincocloud.core.rest.tos.GraphModelTypeSpecTO;
 import info.scce.cincocloud.core.rest.tos.GraphModelTypeTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
 import info.scce.cincocloud.db.GraphModelTypeDB;
+import info.scce.cincocloud.db.GitInformationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.mq.WorkspaceImageBuildJobMessage;
@@ -210,6 +211,44 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
             .setStatus(jobStatusToProtoJobStatus(job.status))
             .build()
         );
+  }
+
+  @Override
+  @Transactional
+  public Uni<CincoCloudProtos.GetGitInformationReply> getGitInformation (
+          CincoCloudProtos.GetGitInformationRequest request) {
+    final var projectId = request.getProjectId();
+
+    LOGGER.log(Level.INFO, "getGitInformation(projectId: {0})", new Object[] {projectId});
+
+    return Uni.createFrom()
+        .item(() -> GitInformationDB.findByProjectId(request.getProjectId()).firstResultOptional())
+        .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+        .map(gitInformationOptional -> {
+          if (gitInformationOptional.isEmpty()) {
+            return CincoCloudProtos.GetGitInformationReply.newBuilder()
+                    .setProjectId(projectId)
+                    .setType(CincoCloudProtos.GetGitInformationReply.Type.NONE)
+                    .build();
+          } else {
+            final var gitInformation = gitInformationOptional.get();
+            var rb = CincoCloudProtos.GetGitInformationReply.newBuilder()
+                    .setProjectId(projectId)
+                    .setType(gitInformation.type)
+                    .setRepositoryUrl(gitInformation.repositoryUrl)
+                    .setUsername(gitInformation.username)
+                    .setPassword(gitInformation.password);
+
+            if (gitInformation.branch != null) {
+              rb = rb.setBranch(gitInformation.branch);
+            }
+            if (gitInformation.genSubdirectory != null) {
+              rb = rb.setGenSubdirectory(gitInformation.genSubdirectory);
+            }
+
+            return rb.build();
+          }
+        });
   }
 
   private WorkspaceImageBuildJobDB createBuildJob(ProjectDB project) {
