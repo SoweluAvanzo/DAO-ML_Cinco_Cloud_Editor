@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { SettingsApiService } from '../../../../core/services/api/settings-api.service';
+import { Settings } from '../../../../core/models/settings';
 
 @Component({
   selector: 'cc-welcome',
@@ -6,11 +8,15 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./welcome.component.scss']
 })
 export class WelcomeComponent implements OnInit {
-  title = 'Welcome-Screen';
+  public settings: Settings;
 
-  constructor() { }
-
-  ngOnInit(): void {
+  constructor(private settingsApi: SettingsApiService) {
   }
 
+  ngOnInit(): void {
+    this.settingsApi.get().subscribe({
+      next: settings => this.settings = settings,
+      error: console.error
+    });
+  }
 }

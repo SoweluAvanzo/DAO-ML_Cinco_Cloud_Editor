@@ -8,6 +8,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
 import { RouterModule, Routes } from '@angular/router'
 import { LoginComponent} from "./features/user-management/pages/login/login.component";
 import {WelcomeComponent} from "./features/user-management/pages/welcome/welcome.component";
+import {CoreModule} from "./core/core.module";
 
 const routes: Routes = [
   { path:'home', component: WelcomeComponent},
@@ -23,7 +24,8 @@ const routes: Routes = [
     BrowserModule,
     UserManagementModule,
     FontAwesomeModule,
-    RouterModule.forRoot(routes)
+    RouterModule.forRoot(routes),
+    CoreModule
   ],
   providers: [],
   bootstrap: [AppComponent]
