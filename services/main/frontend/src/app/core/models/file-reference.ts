@@ -1,5 +1,5 @@
-import {BaseEntity} from './base-entity';
-import {environment} from '../../../environments/environment';
+import { BaseEntity } from './base-entity';
+import { environment } from '../../../environments/environment';
 
 export class FileReference extends BaseEntity {
   fileName: string;

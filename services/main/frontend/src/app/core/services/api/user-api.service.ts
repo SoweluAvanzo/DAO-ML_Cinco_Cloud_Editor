@@ -1,12 +1,12 @@
-import {Injectable} from '@angular/core';
-import {BaseApiService} from './base-api.service';
-import {HttpClient} from '@angular/common/http';
-import {JsogService} from 'jsog-typescript';
-import {map, Observable} from 'rxjs';
-import {UserRegisterInput} from '../../models/forms/user-register-input';
-import {User} from '../../models/user';
-import {UpdateCurrentUserProfileInput} from '../../models/forms/update-current-user-profile-input';
-import {UpdateCurrentUserPasswordInput} from '../../models/forms/update-current-user-password-input';
+import { Injectable } from '@angular/core';
+import { BaseApiService } from './base-api.service';
+import { HttpClient } from '@angular/common/http';
+import { JsogService } from 'jsog-typescript';
+import { map, Observable } from 'rxjs';
+import { UserRegisterInput } from '../../models/forms/user-register-input';
+import { User } from '../../models/user';
+import { UpdateCurrentUserProfileInput } from '../../models/forms/update-current-user-profile-input';
+import { UpdateCurrentUserPasswordInput } from '../../models/forms/update-current-user-password-input';
 
 @Injectable({
   providedIn: 'root'
@@ -36,7 +36,7 @@ export class UserApiService extends BaseApiService {
   }
 
   public search(usernameOrEmail: string): Observable<User> {
-    const input = {usernameOrEmail};
+    const input = { usernameOrEmail };
     return this.http.post(`${this.apiUrl}/users/search`, input, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );

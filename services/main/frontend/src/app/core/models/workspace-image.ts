@@ -1,7 +1,7 @@
-import {BaseEntity} from './base-entity';
-import {User} from './user';
-import {Project} from './project';
-import {JsonProperty} from 'jsog-typescript';
+import { BaseEntity } from './base-entity';
+import { User } from './user';
+import { Project } from './project';
+import { JsonProperty } from 'jsog-typescript';
 
 export class WorkspaceImage extends BaseEntity {
   name: string;

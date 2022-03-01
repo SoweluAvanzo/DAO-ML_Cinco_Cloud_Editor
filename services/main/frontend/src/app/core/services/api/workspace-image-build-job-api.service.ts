@@ -1,10 +1,10 @@
-import {Injectable} from '@angular/core';
-import {BaseApiService} from './base-api.service';
-import {HttpClient} from '@angular/common/http';
-import {JsogService} from 'jsog-typescript';
-import {map, Observable} from 'rxjs';
-import {Page} from '../../models/page';
-import {WorkspaceImageBuildJob} from '../../models/workspace-image-build-job';
+import { Injectable } from '@angular/core';
+import { BaseApiService } from './base-api.service';
+import { HttpClient } from '@angular/common/http';
+import { JsogService } from 'jsog-typescript';
+import { map, Observable } from 'rxjs';
+import { Page } from '../../models/page';
+import { WorkspaceImageBuildJob } from '../../models/workspace-image-build-job';
 
 @Injectable({
   providedIn: 'root'

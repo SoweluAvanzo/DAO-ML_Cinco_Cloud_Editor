@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
-import {BaseApiService} from './base-api.service';
-import {HttpClient} from '@angular/common/http';
-import {JsogService} from 'jsog-typescript';
-import {map, Observable} from 'rxjs';
-import {OrganizationAccessRightVector} from '../../models/organization-access-right-vector';
+import { Injectable } from '@angular/core';
+import { BaseApiService } from './base-api.service';
+import { HttpClient } from '@angular/common/http';
+import { JsogService } from 'jsog-typescript';
+import { map, Observable } from 'rxjs';
+import { OrganizationAccessRightVector } from '../../models/organization-access-right-vector';
 
 @Injectable({
   providedIn: 'root'

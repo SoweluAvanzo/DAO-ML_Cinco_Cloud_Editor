@@ -1,11 +1,11 @@
-import {Injectable} from '@angular/core';
-import {BaseApiService} from './base-api.service';
-import {JsogService} from 'jsog-typescript';
-import {HttpClient} from '@angular/common/http';
-import {map, Observable, tap} from 'rxjs';
-import {UserLoginInput} from '../../models/forms/user-login-input';
-import {AuthResponse} from '../../models/auth-response';
-import {TicketResponse} from '../../models/ticket-response';
+import { Injectable } from '@angular/core';
+import { BaseApiService } from './base-api.service';
+import { JsogService } from 'jsog-typescript';
+import { HttpClient } from '@angular/common/http';
+import { map, Observable, tap } from 'rxjs';
+import { UserLoginInput } from '../../models/forms/user-login-input';
+import { AuthResponse } from '../../models/auth-response';
+import { TicketResponse } from '../../models/ticket-response';
 
 @Injectable({
   providedIn: 'root'

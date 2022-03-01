@@ -1,5 +1,5 @@
-import {FileReference} from '../file-reference';
-import {JsonProperty} from 'jsog-typescript';
+import { FileReference } from '../file-reference';
+import { JsonProperty } from 'jsog-typescript';
 
 export class UpdateCurrentUserProfileInput {
   name: string;

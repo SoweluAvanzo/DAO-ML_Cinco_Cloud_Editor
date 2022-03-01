@@ -1,8 +1,8 @@
-import {BaseEntity} from './base-entity';
-import {FileReference} from './file-reference';
-import {JsonProperty} from 'jsog-typescript';
-import {User} from './user';
-import {Project} from './project';
+import { BaseEntity } from './base-entity';
+import { FileReference } from './file-reference';
+import { JsonProperty } from 'jsog-typescript';
+import { User } from './user';
+import { Project } from './project';
 
 export class Organization extends BaseEntity {
   name: string;

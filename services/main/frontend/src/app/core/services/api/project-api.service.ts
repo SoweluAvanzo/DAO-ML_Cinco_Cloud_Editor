@@ -1,10 +1,10 @@
-import {Injectable} from '@angular/core';
-import {BaseApiService} from './base-api.service';
-import {HttpClient} from '@angular/common/http';
-import {JsogService} from 'jsog-typescript';
-import {map, Observable} from 'rxjs';
-import {Project} from '../../models/project';
-import {ProjectDeployment} from '../../models/project-deployment';
+import { Injectable } from '@angular/core';
+import { BaseApiService } from './base-api.service';
+import { HttpClient } from '@angular/common/http';
+import { JsogService } from 'jsog-typescript';
+import { map, Observable } from 'rxjs';
+import { Project } from '../../models/project';
+import { ProjectDeployment } from '../../models/project-deployment';
 
 @Injectable({
   providedIn: 'root'
