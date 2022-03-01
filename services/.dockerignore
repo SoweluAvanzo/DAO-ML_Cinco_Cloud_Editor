@@ -1,0 +1,4 @@
+# TODO: tells skaffold to ignore frontend files for development purposes
+# TODO: remove this file once the branch is merged with the main branch
+main/frontend/**/*
+main/frontend_old/**/*

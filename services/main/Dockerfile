@@ -6,13 +6,16 @@
 # Note: Get MissingPortFileException from the Dart compiler during then build
 #       if Linux Kernel > 5.4 is used on the host.
 #
-FROM docker.io/library/node:16.14.0-buster-slim as builder-frontend
-WORKDIR /app/frontend
-COPY ./main/frontend/package.json /app/frontend
-COPY ./main/frontend/package-lock.json /app/frontend
-RUN npm install
-COPY ./main/frontend/ /app/frontend
-RUN npm run build
+
+# TODO: uncomment this as soon as the branch is merged with the main branch
+#FROM docker.io/library/node:16.14.0-buster-slim as builder-frontend
+#WORKDIR /app/frontend
+#COPY ./main/frontend/package.json /app/frontend
+#COPY ./main/frontend/package-lock.json /app/frontend
+#RUN npm install
+#COPY ./main/frontend/ /app/frontend
+#RUN npm run build
+
 #
 # Build the quarkus backend. Move static frontend files to the quarkus resource
 # folder so that we can build a fat jar that includes the frontend.
@@ -25,7 +28,8 @@ COPY ./main/backend/mvnw /app/main/backend/
 COPY ./main/backend/pom.xml /app/main/backend/
 RUN ./mvnw verify
 COPY ./main/backend/src /app/main/backend/src
-COPY --from=builder-frontend /app/frontend/dist/cinco-cloud-frontend/ /app/main/backend/src/main/resources/META-INF/resources/
+# TODO: uncomment this as soon as the branch is merged with the main branch
+#COPY --from=builder-frontend /app/frontend/dist/cinco-cloud-frontend/ /app/main/backend/src/main/resources/META-INF/resources/
 RUN ./mvnw package -DskipTests
 
 #
