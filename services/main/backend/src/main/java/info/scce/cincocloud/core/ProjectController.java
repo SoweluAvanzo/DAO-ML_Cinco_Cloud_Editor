@@ -1,15 +1,11 @@
 package info.scce.cincocloud.core;
 
+import info.scce.cincocloud.core.rest.tos.GitInformationTO;
 import info.scce.cincocloud.core.rest.tos.ProjectTO;
 import info.scce.cincocloud.core.rest.tos.UserTO;
-import info.scce.cincocloud.db.OrganizationAccessRight;
-import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
-import info.scce.cincocloud.db.OrganizationDB;
-import info.scce.cincocloud.db.ProjectDB;
-import info.scce.cincocloud.db.ProjectType;
-import info.scce.cincocloud.db.UserDB;
-import info.scce.cincocloud.db.WorkspaceImageDB;
+import info.scce.cincocloud.db.*;
 import info.scce.cincocloud.exeptions.RestException;
+import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.ArrayList;
 import java.util.List;
@@ -133,6 +129,7 @@ public class ProjectController {
     if (canEditProject(subject, project)) {
       project.description = ownedProject.getdescription();
       project.name = ownedProject.getname();
+
       project.persist();
       return Response.ok(ProjectTO.fromEntity(project, objectCache)).build();
     }
@@ -162,6 +159,43 @@ public class ProjectController {
         .collect(Collectors.toList());
 
     return Response.ok(projects).build();
+  }
+
+  @POST
+  @Path("/{projectId}/git-information")
+  @RolesAllowed("user")
+  public Response updateGitInformation(@Context SecurityContext securityContext,
+                                       GitInformationTO gitInformationTO,
+                                       @PathParam("projectId") final long projectId) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final ProjectDB project = ProjectDB.findById(projectId);
+
+    projectService.checkIfProjectExists(project);
+    projectService.checkPermission(project, subject);
+
+    if (!canEditProject(subject, project)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
+    mergeGitInformation(gitInformationTO, project);
+    project.persistAndFlush();
+
+    return Response.ok(getOrBuildGitInformationTO(project)).build();
+  }
+
+  @GET
+  @Path("/{projectId}/git-information")
+  @RolesAllowed("user")
+  public Response getGitInformation(@Context SecurityContext securityContext,
+                                    @PathParam("projectId") final long projectId) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+    final ProjectDB ownedProject = ProjectDB.findById(projectId);
+
+    if (!canEditProject(subject, ownedProject)) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
+    return Response.ok(getOrBuildGitInformationTO(ownedProject)).build();
   }
 
   @POST
@@ -301,5 +335,30 @@ public class ProjectController {
     final List<OrganizationAccessRightVectorDB> result = OrganizationAccessRightVectorDB
         .list("user = ?1 and organization = ?2", user, org);
     return result.size() == 1 ? result.get(0) : null;
+  }
+
+  private void mergeGitInformation(GitInformationTO gitInformationTO, ProjectDB project) {
+    if (gitInformationTO.getType().equals(CincoCloudProtos.GetGitInformationReply.Type.NONE)) {
+      project.gitInformation = null;
+    } else {
+      if (project.gitInformation == null) project.gitInformation = new GitInformationDB();
+      project.gitInformation.type = gitInformationTO.getType();
+      project.gitInformation.password = gitInformationTO.getPassword();
+      project.gitInformation.repositoryUrl = gitInformationTO.getRepositoryUrl();
+      project.gitInformation.branch = gitInformationTO.getBranch();
+      project.gitInformation.username = gitInformationTO.getUsername();
+      project.gitInformation.genSubdirectory = gitInformationTO.getGenSubdirectory();
+      project.gitInformation.project = project;
+    }
+  }
+
+  private GitInformationTO getOrBuildGitInformationTO(ProjectDB project) {
+    if (project.gitInformation != null) return GitInformationTO.fromEntity(project.gitInformation);
+
+    final var r = new GitInformationTO();
+    r.setProjectId(project.id);
+    r.setType(CincoCloudProtos.GetGitInformationReply.Type.NONE);
+
+    return r;
   }
 }

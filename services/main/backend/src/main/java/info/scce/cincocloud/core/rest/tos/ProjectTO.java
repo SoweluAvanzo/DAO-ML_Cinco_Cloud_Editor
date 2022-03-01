@@ -1,6 +1,7 @@
 package info.scce.cincocloud.core.rest.tos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import info.scce.cincocloud.db.GitInformationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.ProjectType;
 import info.scce.cincocloud.db.UserDB;

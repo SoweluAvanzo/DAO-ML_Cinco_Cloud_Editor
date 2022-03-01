@@ -667,3 +667,58 @@ class GraphModelType {
     }
   }
 }
+
+class GitInformation {
+  int id;
+  String type;
+  String repositoryUrl;
+  String username;
+  String password;
+  String branch;
+  String genSubdirectory;
+  int projectId;
+
+  GitInformation({Map cache, dynamic jsog}) {
+    if (jsog != null) {
+      cache[jsog["@id"]] = this;
+      id = jsog["id"];
+      type = jsog["type"];
+      repositoryUrl = jsog["repositoryUrl"];
+      username = jsog["username"];
+      password = jsog["password"];
+      branch = jsog["branch"];
+      genSubdirectory = jsog["genSubdirectory"];
+      projectId = jsog["projectId"];
+    } else {
+      id = -1;
+    }
+  }
+
+  static GitInformation fromJSON(String s) {
+    return GitInformation.fromJSOG(cache: new Map(), jsog: jsonDecode(s));
+  }
+
+  static GitInformation fromJSOG({Map cache, dynamic jsog}) {
+    return new GitInformation(cache: cache, jsog: jsog);
+  }
+
+  Map toJSOG(Map cache) {
+    Map jsog = new Map();
+    if (cache.containsKey("core.GitInformation:${id}")) {
+      jsog["@ref"] = cache["core.GitInformation:${id}"];
+    } else {
+      cache["core.GitInformation:${id}"] = (cache.length + 1).toString();
+      jsog['@id'] = cache["core.GitInformation:${id}"];
+      jsog['id'] = id;
+      jsog['type'] = type;
+      jsog['repositoryUrl'] = repositoryUrl;
+      jsog['username'] = username;
+      jsog['password'] = password;
+      jsog['branch'] = branch;
+      jsog['genSubdirectory'] = genSubdirectory;
+      jsog['projectId'] = projectId;
+      jsog['runtimeType'] = "info.scce.cincocloud.core.rest.tos.GitInformationTO";
+    }
+    return jsog;
+  }
+}
