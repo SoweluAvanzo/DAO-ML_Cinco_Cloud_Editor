@@ -1,7 +1,8 @@
-import { commands, Disposable, ExtensionContext, window, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, Uri, window, workspace } from 'vscode';
 
 import { CincoLanguageClient } from '../lsp/cincoLanguageClient';
-import { generationCommandId } from '../registry/commandRegistry';
+import { generationCommandId, pushCommandId } from '../registry/commandRegistry';
+import { pushFilesToRemote } from "../git/gitHandler";
 
 export function registerGenerationCommand(context: ExtensionContext, languageClient: CincoLanguageClient) {
     const generationCmd: Disposable = commands.registerCommand(generationCommandId, () => generationCommand(languageClient));
@@ -31,4 +32,13 @@ async function generationCommand(languageClient: CincoLanguageClient) {
     } else {
         window.showInformationMessage("generator is not yet ready, please wait");
     }
+}
+
+export function registerPushCommand(context: ExtensionContext) {
+    const pushCmd: Disposable = commands.registerCommand(pushCommandId, (fileUri: Uri) => pushCommand(fileUri));
+    context.subscriptions.push(pushCmd);
+}
+
+async function pushCommand(fileUri: Uri) {
+    pushFilesToRemote(fileUri);
 }

@@ -2,7 +2,7 @@
 import * as fs from 'fs';
 import { commands, window } from 'vscode';
 
-import { CreateImageRequest, MainServiceClient } from '../cinco-cloud';
+import {CreateImageRequest, GetGitInformationReply, GetGitInformationRequest, MainServiceClient} from '../cinco-cloud';
 import { workbenchOutput } from '../extension';
 import { ChannelCredentials } from '@grpc/grpc-js';
 
@@ -48,6 +48,23 @@ async function getProjectId(): Promise<string> {
         workbenchOutput.appendLine(message);
         throw new Error(e);
     }
+}
+
+export async function getGitInformation(): Promise<GetGitInformationReply> {
+    const projectId: number = + await getProjectId();
+    const mainService = new MainServiceClient(host + ":" + port, ChannelCredentials.createInsecure());
+
+    return new Promise((resolve, reject) => {
+        mainService.getGitInformation({ projectId }, (err, res) => {
+            if (err) {
+                console.log('Failed to retrieve git information from main service.', err);
+                throw new Error();
+            } else {
+                console.log('Retrieved git information from main service.');
+                resolve(res);
+            }
+        });
+    });
 }
 
 function getCincoCloudHost(): string {

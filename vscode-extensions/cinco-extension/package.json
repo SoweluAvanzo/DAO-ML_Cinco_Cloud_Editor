@@ -16,7 +16,8 @@
         "onLanguage:cpd",
         "onLanguage:mgl",
         "onLanguage:style",
-        "onCommand:cinco.command.generate"
+        "onCommand:cinco.command.generate",
+        "onCommand:cinco.command.push"
     ],
     "main": "./out/src/extension",
     "contributes": {
@@ -26,6 +27,11 @@
                 "title": "Generate Pyro Product",
                 "category": "CINCO",
                 "icon": "./resources/icon.png"
+            },
+            {
+                "command": "cinco.command.push",
+                "title": "Push to remote",
+                "category": "CINCO"
             }
         ],
         "menus": {
@@ -35,10 +41,16 @@
                     "command": "cinco.command.generate",
                     "group": "navigation"
                 }
+            ],
+            "explorer/context": [
+                {
+                    "command": "cinco.command.push",
+                    "group": "8_git@1"
+                }
             ]
         },
         "languages": [
-            {
+            { 
                 "id": "cpd",
                 "aliases": [
                     "cpd"
@@ -109,6 +121,7 @@
         "vsce": "1.88.0"
     },
     "dependencies": {
+        "simple-git": "^3.1.1",
         "@grpc/grpc-js": "^1.3.6",
         "copyfiles": "2.3.0",
         "dos2unix-cli": "1.0.1",
