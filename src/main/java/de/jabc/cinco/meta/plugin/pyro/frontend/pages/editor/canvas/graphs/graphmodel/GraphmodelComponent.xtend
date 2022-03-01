@@ -38,7 +38,7 @@ class GraphmodelComponent extends Generatable {
 			«ELSE»
 				import 'package:«gc.projectName.escapeDart»/src/model/command_graph.dart';
 			«ENDIF»
-			import 'package:Test/src/filesupport/fileuploader.dart';
+			import 'package:«gc.projectName.escapeDart»/src/filesupport/fileuploader.dart';
 			
 			import 'package:«gc.projectName.escapeDart»/«g.modelFilePath»' as «g.modelPackage.name.lowEscapeDart»;
 			«FOR pr : primeReferencedPackages»
