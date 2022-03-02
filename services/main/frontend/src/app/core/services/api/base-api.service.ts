@@ -1,11 +1,9 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { JsogService } from 'jsog-typescript';
 import { environment } from '../../../../environments/environment';
 
 export abstract class BaseApiService {
 
-  protected constructor(protected http: HttpClient,
-                        protected jsog: JsogService) {
+  protected constructor(protected http: HttpClient) {
   }
 
   protected get apiUrl(): string {

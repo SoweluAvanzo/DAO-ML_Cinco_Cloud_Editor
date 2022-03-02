@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { BaseApiService } from './base-api.service';
-import { JsogService } from 'jsog-typescript';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
 import { UserLoginInput } from '../../models/forms/user-login-input';
@@ -14,13 +13,13 @@ export class AuthApiService extends BaseApiService {
 
   private readonly TOKEN_KEY: string = 'cinco_cloud_token';
 
-  constructor(http: HttpClient, jsog: JsogService) {
-    super(http, jsog);
+  constructor(http: HttpClient) {
+    super(http);
   }
 
   public login(input: UserLoginInput): Observable<AuthResponse> {
     return this.http.post(`${this.apiUrl}/user/current/login`, input, this.defaultHttpOptions).pipe(
-      map(body => body as AuthResponse),
+      map((body: any) => body as AuthResponse),
       tap(auth => {
         window.localStorage.setItem(this.TOKEN_KEY, auth.token);
       })
@@ -38,7 +37,7 @@ export class AuthApiService extends BaseApiService {
 
   public getTicket(): Observable<TicketResponse> {
     return this.http.get(`${this.apiUrl}/ticket`, this.defaultHttpOptions).pipe(
-      map(body => body as TicketResponse)
+      map((body: any) => body as TicketResponse)
     );
   }
 }

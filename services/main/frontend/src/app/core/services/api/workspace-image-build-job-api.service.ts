@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
 import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
-import { JsogService } from 'jsog-typescript';
 import { map, Observable } from 'rxjs';
 import { Page } from '../../models/page';
 import { WorkspaceImageBuildJob } from '../../models/workspace-image-build-job';
+import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WorkspaceImageBuildJobApiService extends BaseApiService {
 
-  constructor(http: HttpClient, jsog: JsogService) {
-    super(http, jsog);
+  constructor(http: HttpClient) {
+    super(http);
   }
 
   public getAll(projectId: number, page: number, size: number): Observable<Page<WorkspaceImageBuildJob>> {
@@ -22,7 +22,7 @@ export class WorkspaceImageBuildJobApiService extends BaseApiService {
   }
 
   public update(projectId: number, job: WorkspaceImageBuildJob): Observable<WorkspaceImageBuildJob> {
-    return this.http.put(`${this.apiUrl}/projects/${projectId}/build-jobs/private`, this.jsog.serialize(job), this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/projects/${projectId}/build-jobs/private`, toJsog(job), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
@@ -40,16 +40,19 @@ export class WorkspaceImageBuildJobApiService extends BaseApiService {
   }
 
   private transformPage(body: any): Page<WorkspaceImageBuildJob> {
-    const page = body as Page<WorkspaceImageBuildJob>;
+    const page = new Page<WorkspaceImageBuildJob>();
+    page.number = body.number;
+    page.size = body.size;
+    page.amountOfPages = body.amountOfPages;
     page.items = this.transformList(page.items);
     return page;
   }
 
   private transformSingle(body: any): WorkspaceImageBuildJob {
-    return this.jsog.deserializeObject(body as any, WorkspaceImageBuildJob);
+    return fromJsog(body, WorkspaceImageBuildJob);
   }
 
   private transformList(body: any[]): WorkspaceImageBuildJob[] {
-    return this.jsog.deserializeArray(body as any[], WorkspaceImageBuildJob);
+    return fromJsogList(body, WorkspaceImageBuildJob);
   }
 }

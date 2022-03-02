@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
-import { JsogService } from 'jsog-typescript';
 import { map, Observable } from 'rxjs';
 import { WorkspaceImage } from '../../models/workspace-image';
+import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WorkspaceImageApiService extends BaseApiService {
 
-  constructor(http: HttpClient, jsog: JsogService) {
-    super(http, jsog);
+  constructor(http: HttpClient) {
+    super(http);
   }
 
   public search(query: string): Observable<WorkspaceImage[]> {
@@ -27,16 +27,16 @@ export class WorkspaceImageApiService extends BaseApiService {
   }
 
   public update(image: WorkspaceImage): Observable<WorkspaceImage> {
-    return this.http.put(`${this.apiUrl}/image-registry/images/${image.id}`, this.jsog.serialize(image), this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/image-registry/images/${image.id}`, toJsog(image), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   private transformSingle(body: any): WorkspaceImage {
-    return this.jsog.deserializeObject(body as any, WorkspaceImage);
+    return fromJsog(body, WorkspaceImage);
   }
 
   private transformList(body: any[]): WorkspaceImage[] {
-    return this.jsog.deserializeArray(body as any[], WorkspaceImage);
+    return fromJsogList(body, WorkspaceImage);
   }
 }

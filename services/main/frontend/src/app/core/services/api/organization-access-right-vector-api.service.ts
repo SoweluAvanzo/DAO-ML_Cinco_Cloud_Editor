@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
-import { JsogService } from 'jsog-typescript';
 import { map, Observable } from 'rxjs';
 import { OrganizationAccessRightVector } from '../../models/organization-access-right-vector';
+import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrganizationAccessRightVectorApiService extends BaseApiService {
 
-  constructor(http: HttpClient, jsog: JsogService) {
-    super(http, jsog);
+  constructor(http: HttpClient) {
+    super(http);
   }
 
   public getAll(organizationId: number): Observable<OrganizationAccessRightVector[]> {
@@ -27,16 +27,16 @@ export class OrganizationAccessRightVectorApiService extends BaseApiService {
   }
 
   public update(vector: OrganizationAccessRightVector): Observable<OrganizationAccessRightVector> {
-    return this.http.put(`${this.apiUrl}/organization/${vector.organization.id}/accessRights/${vector.id}`, this.jsog.serialize(vector), this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/organization/${vector.organization.id}/accessRights/${vector.id}`, toJsog(vector), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   private transformSingle(body: any): OrganizationAccessRightVector {
-    return this.jsog.deserializeObject(body as any, OrganizationAccessRightVector);
+    return fromJsog(body, OrganizationAccessRightVector);
   }
 
   private transformList(body: any[]): OrganizationAccessRightVector[] {
-    return this.jsog.deserializeArray(body as any[], OrganizationAccessRightVector);
+    return fromJsogList(body, OrganizationAccessRightVector);
   }
 }

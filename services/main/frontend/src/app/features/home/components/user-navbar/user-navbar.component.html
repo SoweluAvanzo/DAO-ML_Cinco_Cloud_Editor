@@ -1,9 +1,21 @@
 <nav class="navbar navbar-expand-lg org-nav-bg-color">
-  <a class="navbar-brand">
-    <img src="assets/img/cinco-logo-square.png" style="height: 30px; margin-right: .5rem"> Cinco Cloud
-  </a>
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/">
+      <img src="assets/img/cinco-logo-square.png" style="height: 30px; margin-right: .5rem"> Cinco Cloud
+    </a>
 
-  <a routerLink="/login" class="navbar-login">
-    Login
-  </a>
+    <button aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"
+            class="navbar-toggler text-white" data-bs-target="#navbarSupportedContent" data-bs-toggle="collapse"
+            type="button">
+      <fa-icon [icon]="['fas', 'bars']"></fa-icon>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/login">Login</a>
+        </li>
+      </ul>
+    </div>
+  </div>
 </nav>

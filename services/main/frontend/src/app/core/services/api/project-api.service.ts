@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
 import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
-import { JsogService } from 'jsog-typescript';
 import { map, Observable } from 'rxjs';
 import { Project } from '../../models/project';
 import { ProjectDeployment } from '../../models/project-deployment';
+import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectApiService extends BaseApiService {
 
-  constructor(http: HttpClient, jsog: JsogService) {
-    super(http, jsog);
+  constructor(http: HttpClient) {
+    super(http);
   }
 
   public get(projectId: number): Observable<Project> {
@@ -22,7 +22,7 @@ export class ProjectApiService extends BaseApiService {
   }
 
   public create(project: Project): Observable<Project> {
-    return this.http.post(`${this.apiUrl}/project/create/private`, this.jsog.serialize(project), this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/project/create/private`, toJsog(project), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
@@ -40,7 +40,7 @@ export class ProjectApiService extends BaseApiService {
   }
 
   public update(project: Project): Observable<Project> {
-    return this.http.post(`${this.apiUrl}/project/update/private`, this.jsog.serialize(project), this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/project/update/private`, toJsog(project), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
@@ -52,10 +52,10 @@ export class ProjectApiService extends BaseApiService {
   }
 
   private transformSingle(body: any): Project {
-    return this.jsog.deserializeObject(body as any, Project);
+    return fromJsog(body, Project);
   }
 
   private transformList(body: any[]): Project[] {
-    return this.jsog.deserializeArray(body as any[], Project);
+    return fromJsogList(body, Project);
   }
 }

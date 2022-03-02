@@ -11,7 +11,7 @@ import { AuthApiService } from './auth-api.service';
 export class ProjectWebSocketApiService extends BaseApiService {
 
   constructor(http: HttpClient, jsog: JsogService, private authService: AuthApiService) {
-    super(http, jsog);
+    super(http);
   }
 
   public create(projectId: number): Observable<WebSocket> {

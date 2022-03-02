@@ -1,31 +1,44 @@
-<div class="main-class">
-  <div class="site-wrapper">
-    <div class="site-wrapper-inner">
-      <div class="cover-container">
+<cc-user-navbar></cc-user-navbar>
 
-        <cc-user-navbar></cc-user-navbar>
-        <div class="container">
-          <form>
-            <div class="row">
-              <label class="col-sm-1 col-form-label" for="emailInput">Email address</label>
-              <div class="col-sm-4 col-sm-offset-4">
-                <input class="form-control" id="emailInput" placeholder="name@example.com" type="email">
-              </div>
-            </div>
-            <div class="row">
-              <label class="col-sm-1 col-form-label" for="passwordInput">Password</label>
-              <div class="col-sm-auto">
-                <input class="form-control" id="passwordInput" placeholder="name@example.com" type="password">
-              </div>
-            </div>
-            <div class="row">
-              <button class="btn-primary btn col-sm-1" type="submit">Login</button>
-            </div>
-          </form>
-        </div>
-
-
+<div class="container">
+  <div class="mt-3 mx-auto" style="width: 300px;">
+    <form (ngSubmit)="login()" [formGroup]="loginForm" class="d-flex flex-column gap-3 mb-3">
+      <div>
+        <label class="form-label" for="email">Email address</label>
+        <input
+          class="form-control"
+          formControlName="email"
+          id="email"
+          placeholder="Enter your email address"
+          type="email">
       </div>
+      <div>
+        <label class="form-label" for="password">Password</label>
+        <input
+          class="form-control"
+          formControlName="password"
+          id="password"
+          placeholder="Enter your password"
+          type="password">
+      </div>
+      <button
+        class="btn-primary btn d-block"
+        type="submit"
+        [disabled]="loginForm.invalid"
+      >
+        Login
+      </button>
+    </form>
+
+    <div *ngIf="canRegister">
+      <hr>
+      <p class="m-0 text-center text-muted">
+        <small>
+          Do not have an account yet?
+          <a routerLink="/register">Create one!</a>
+        </small>
+      </p>
     </div>
   </div>
 </div>
+

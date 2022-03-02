@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
-import { JsogService } from 'jsog-typescript';
 import { map, Observable } from 'rxjs';
 import { Settings } from '../../models/settings';
+import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SettingsApiService extends BaseApiService {
 
-  constructor(http: HttpClient, jsog: JsogService) {
-    super(http, jsog);
+  constructor(http: HttpClient) {
+    super(http);
   }
 
   public get(): Observable<Settings> {
@@ -21,12 +21,12 @@ export class SettingsApiService extends BaseApiService {
   }
 
   public update(settings: Settings): Observable<Settings> {
-    return this.http.put(`${this.apiUrl}/settings`, this.jsog.serialize(settings), this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/settings`, toJsog(settings), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   private transformSingle(body: any): Settings {
-    return this.jsog.deserializeObject(body as any, Settings);
+    return fromJsog(body, Settings);
   }
 }
