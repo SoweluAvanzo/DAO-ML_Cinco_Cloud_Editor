@@ -4,6 +4,7 @@ import { AuthApiService } from '../../../../core/services/api/auth-api.service';
 import { SettingsApiService } from '../../../../core/services/api/settings-api.service';
 import { Settings } from '../../../../core/models/settings';
 import { UserLoginInput } from '../../../../core/models/forms/user-login-input';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'cc-login',
@@ -20,7 +21,8 @@ export class LoginComponent implements OnInit {
   });
 
   constructor(private authApi: AuthApiService,
-              private settingsApi: SettingsApiService) {
+              private settingsApi: SettingsApiService,
+              private router: Router) {
   }
 
   public get canRegister(): boolean {
@@ -37,7 +39,7 @@ export class LoginComponent implements OnInit {
   public login(): void {
     const input: UserLoginInput = this.loginForm.value;
     this.authApi.login(input).subscribe({
-      next: () => console.log('success'),
+      next: () => this.router.navigate(['/app']),
       error: console.error
     });
   }
