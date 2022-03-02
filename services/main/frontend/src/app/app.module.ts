@@ -8,10 +8,16 @@ import { RouterModule, Routes } from '@angular/router';
 import { CoreModule } from './core/core.module';
 import { HomeModule } from './features/home/home.module';
 import { NotFoundComponent } from './features/home/pages/not-found/not-found.component';
+import { UserIsLoggedInGuard } from './core/guards/user-is-logged-in.guard';
 
 const routes: Routes = [
   { path: '', loadChildren: () => import('./features/home/home.module').then(m => m.HomeModule) },
-  { path: 'app', loadChildren: () => import('./features/internal/internal.module').then(m => m.InternalModule) },
+  {
+    path: 'app',
+    loadChildren: () => import('./features/internal/internal.module').then(m => m.InternalModule),
+    canActivate: [UserIsLoggedInGuard],
+    canActivateChild: [UserIsLoggedInGuard],
+  },
   { path: '**', component: NotFoundComponent }
 ];
 

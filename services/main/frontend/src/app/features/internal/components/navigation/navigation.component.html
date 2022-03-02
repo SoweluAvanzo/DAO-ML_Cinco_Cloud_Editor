@@ -1,0 +1,40 @@
+<nav class="navbar navbar-expand-lg org-nav-bg-color navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex flex-row align-items-center" routerLink="/app">
+      <img class="me-2" src="assets/img/cinco-logo-square.png" style="height: 23px"> CincoCloud
+    </a>
+
+    <button
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+      class="navbar-toggler text-white"
+      data-bs-target="#navbarSupportedContent"
+      data-bs-toggle="collapse"
+      type="button"
+    >
+      <fa-icon [icon]="['fas', 'bars']"></fa-icon>
+    </button>
+
+    <div *ngIf="user != null" class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="nav ms-auto">
+        <li class="nav-item" display="dynamic" ngbDropdown placement="bottom-end">
+          <a
+            class="nav-link text-white"
+            id="navbarDropdown3"
+            ngbDropdownToggle
+            role="button"
+            tabindex="0"
+          >
+            <cc-user-profile-image class="d-inline-block me-2" style="height: 23px" [user]="user"></cc-user-profile-image>
+          </a>
+          <div aria-labelledby="navbarDropdown3" class="dropdown-menu" ngbDropdownMenu>
+            <a (click)="$event.preventDefault()" href="#" ngbDropdownItem>Profile</a>
+            <div class="dropdown-divider"></div>
+            <a ngbDropdownItem routerLink="/logout">Logout</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

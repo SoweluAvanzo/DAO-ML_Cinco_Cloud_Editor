@@ -49,9 +49,9 @@
           type="password">
       </div>
       <button
+        [disabled]="registerForm.invalid"
         class="btn-primary btn d-block"
         type="submit"
-        [disabled]="registerForm.invalid"
       >
         Register
       </button>

@@ -1,19 +1,35 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Routes, RouterModule } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { InternalComponent } from './internal.component';
+import { NavigationComponent } from './components/navigation/navigation.component';
+import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { CoreModule } from '../../core/core.module';
 
 const routes: Routes = [
-  { path: '', component: InternalComponent }
+  {
+    path: '',
+    component: InternalComponent,
+  }
 ];
 
 @NgModule({
   declarations: [
-    InternalComponent
+    InternalComponent,
+    NavigationComponent
   ],
   imports: [
     CommonModule,
-    RouterModule.forChild(routes)
+    FontAwesomeModule,
+    NgbDropdownModule,
+    RouterModule.forChild(routes),
+    CoreModule
   ]
 })
-export class InternalModule { }
+export class InternalModule {
+  constructor(library: FaIconLibrary) {
+    library.addIcons(faBars);
+  }
+}

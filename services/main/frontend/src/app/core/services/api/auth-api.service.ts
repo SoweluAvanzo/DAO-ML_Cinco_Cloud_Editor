@@ -1,28 +1,31 @@
 import { Injectable } from '@angular/core';
 import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable, tap } from 'rxjs';
+import { map, mergeMap, Observable, tap } from 'rxjs';
 import { UserLoginInput } from '../../models/forms/user-login-input';
 import { AuthResponse } from '../../models/auth-response';
 import { TicketResponse } from '../../models/ticket-response';
+import { UserApiService } from './user-api.service';
+import { User } from '../../models/user';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthApiService extends BaseApiService {
 
-  private readonly TOKEN_KEY: string = 'cinco_cloud_token';
+  static readonly TOKEN_KEY: string = 'cinco_cloud_token';
 
-  constructor(http: HttpClient) {
+  constructor(http: HttpClient, private userApi: UserApiService) {
     super(http);
   }
 
-  public login(input: UserLoginInput): Observable<AuthResponse> {
+  public login(input: UserLoginInput): Observable<User> {
     return this.http.post(`${this.apiUrl}/user/current/login`, input, this.defaultHttpOptions).pipe(
       map((body: any) => body as AuthResponse),
       tap(auth => {
-        window.localStorage.setItem(this.TOKEN_KEY, auth.token);
-      })
+        window.localStorage.setItem(AuthApiService.TOKEN_KEY, auth.token);
+      }),
+      mergeMap(_ => this.userApi.getCurrent())
     );
   }
 
@@ -30,7 +33,7 @@ export class AuthApiService extends BaseApiService {
     return this.http.get(`${this.apiUrl}/user/current/logout`, this.defaultHttpOptions).pipe(
       map(_ => true),
       tap(_ => {
-        window.localStorage.removeItem(this.TOKEN_KEY);
+        window.localStorage.removeItem(AuthApiService.TOKEN_KEY);
       })
     );
   }

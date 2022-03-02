@@ -18,7 +18,7 @@ export class UserApiService extends BaseApiService {
   }
 
   public register(input: UserRegisterInput): Observable<string> {
-    const options: any = {...this.defaultHttpOptions, ...{ responseType: 'text' }}
+    const options: any = { ...this.defaultHttpOptions, ...{ responseType: 'text' } };
     return this.http.post(`${this.apiUrl}/register/new/public`, input, options).pipe(
       map(body => body.toString())
     );

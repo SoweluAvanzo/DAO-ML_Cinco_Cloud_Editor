@@ -22,9 +22,9 @@
           type="password">
       </div>
       <button
+        [disabled]="loginForm.invalid"
         class="btn-primary btn d-block"
         type="submit"
-        [disabled]="loginForm.invalid"
       >
         Login
       </button>

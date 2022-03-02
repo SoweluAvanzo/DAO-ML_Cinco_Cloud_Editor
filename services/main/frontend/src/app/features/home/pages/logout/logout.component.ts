@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthApiService } from '../../../../core/services/api/auth-api.service';
-import { Router } from '@angular/router';
-import { delay } from 'rxjs';
+import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 
 @Component({
   selector: 'cc-logout',
@@ -10,15 +8,12 @@ import { delay } from 'rxjs';
 })
 export class LogoutComponent implements OnInit {
 
-  constructor(private authApi: AuthApiService,
-              private router: Router) {
+  constructor(private appStore: AppStoreService) {
   }
 
   ngOnInit(): void {
-    this.authApi.logout()
-      .pipe(delay(2000))
-      .subscribe({
-        complete: () => this.router.navigate(['/login'])
-      });
+    this.appStore.logout().subscribe({
+      error: console.error
+    });
   }
 }

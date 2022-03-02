@@ -3,7 +3,7 @@ import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { Settings } from '../../models/settings';
-import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
+import { fromJsog, toJsog } from '../../utils/jsog-utils';
 
 @Injectable({
   providedIn: 'root'
