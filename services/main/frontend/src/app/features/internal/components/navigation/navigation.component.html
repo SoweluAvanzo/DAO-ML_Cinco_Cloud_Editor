@@ -17,6 +17,15 @@
     </button>
 
     <div *ngIf="user != null" class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="nav">
+        <li class="nav-item">
+          <a routerLink="/app/admin" class="nav-link text-white">
+            <fa-icon [icon]="['fas', 'user-lock']" [fixedWidth]="true"></fa-icon>
+            <span class="ms-2">Admin</span>
+          </a>
+        </li>
+      </ul>
+
       <ul class="nav ms-auto">
         <li class="nav-item" display="dynamic" ngbDropdown placement="bottom-end">
           <a

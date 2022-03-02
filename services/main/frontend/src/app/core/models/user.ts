@@ -11,4 +11,8 @@ export class User extends BaseEntity {
   systemRoles: UserSystemRole[] = [];
   profilePicture: FileReference;
   ownedProjects: Project[] = [];
+
+  get isAdmin(): boolean {
+    return this.systemRoles.includes(UserSystemRole.ADMIN);
+  }
 }

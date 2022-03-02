@@ -38,4 +38,8 @@ export class AppStoreService {
   public setUser(user: User): void {
     this.user.next(user);
   }
+
+  public getUser(): User {
+    return this.user.getValue();
+  }
 }
