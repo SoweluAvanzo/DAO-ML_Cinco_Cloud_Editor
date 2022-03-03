@@ -56,7 +56,11 @@ spec:
       protocol: TCP
     - port: 8161
       name: ampq-server
+  {{ if or (eq .Values.serverTier "local") (eq .Values.serverTier "local-ssl") }}
   type: NodePort
+  {{- else -}}
+  type: ClusterIP
+  {{- end }}
   selector:
     app: ampq
 ---
