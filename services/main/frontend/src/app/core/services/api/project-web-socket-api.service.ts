@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
-import { JsogService } from 'jsog-typescript';
 import { Observable, Subject } from 'rxjs';
 import { AuthApiService } from './auth-api.service';
 
