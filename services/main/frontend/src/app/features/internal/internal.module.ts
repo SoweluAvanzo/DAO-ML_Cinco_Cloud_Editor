@@ -4,7 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { InternalComponent } from './internal.component';
 import { NavigationComponent } from './components/navigation/navigation.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faBars, faImage, faPlus, faUserLock } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faCode, faImage, faPlus, faProjectDiagram, faUserLock } from '@fortawesome/free-solid-svg-icons';
 import { NgbDropdownModule, NgbModalModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { CoreModule } from '../../core/core.module';
 import { UserIsAdminGuard } from '../../core/guards/user-is-admin.guard';
@@ -13,6 +13,7 @@ import { CreateProjectModalComponent } from './components/create-project-modal/c
 import { CreateOrganizationModalComponent } from './components/create-organization-modal/create-organization-modal.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { OrganizationListComponent } from './components/organization-list/organization-list.component';
+import { ProjectListComponent } from './components/project-list/project-list.component';
 
 const routes: Routes = [
   {
@@ -57,7 +58,8 @@ const routes: Routes = [
     OverviewComponent,
     CreateProjectModalComponent,
     CreateOrganizationModalComponent,
-    OrganizationListComponent
+    OrganizationListComponent,
+    ProjectListComponent
   ],
   imports: [
     CommonModule,
@@ -72,6 +74,6 @@ const routes: Routes = [
 })
 export class InternalModule {
   constructor(library: FaIconLibrary) {
-    library.addIcons(faBars, faUserLock, faPlus, faImage);
+    library.addIcons(faBars, faUserLock, faPlus, faImage, faCode, faProjectDiagram);
   }
 }

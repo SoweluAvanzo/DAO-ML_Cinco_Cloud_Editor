@@ -1,0 +1,9 @@
+.owner-column {
+  width: 47px;
+  text-align: right;
+}
+
+.project-type-badge {
+  background: #333333;
+  color: #d4d4d4;
+}

@@ -17,10 +17,10 @@
     </button>
 
     <div *ngIf="user != null" class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="nav" *ngIf="user.isAdmin">
+      <ul *ngIf="user.isAdmin" class="nav">
         <li class="nav-item">
-          <a routerLink="/app/admin" class="nav-link text-white">
-            <fa-icon [icon]="['fas', 'user-lock']" [fixedWidth]="true"></fa-icon>
+          <a class="nav-link text-white" routerLink="/app/admin">
+            <fa-icon [fixedWidth]="true" [icon]="['fas', 'user-lock']"></fa-icon>
             <span class="ms-2">Admin</span>
           </a>
         </li>
@@ -35,7 +35,8 @@
             role="button"
             tabindex="0"
           >
-            <cc-user-profile-image class="d-inline-block me-2" style="height: 23px" [user]="user"></cc-user-profile-image>
+            <cc-user-profile-image [user]="user" class="d-inline-block me-2"
+                                   style="height: 23px"></cc-user-profile-image>
           </a>
           <div aria-labelledby="navbarDropdown3" class="dropdown-menu" ngbDropdownMenu>
             <a ngbDropdownItem routerLink="/app/profile">Profile</a>

@@ -22,7 +22,8 @@ export class OverviewComponent implements OnInit {
 
   constructor(private projectApi: ProjectApiService,
               private organizationApi: OrganizationApiService,
-              private modalService: NgbModal) { }
+              private modalService: NgbModal) {
+  }
 
   ngOnInit(): void {
     combineLatest([
@@ -40,13 +41,15 @@ export class OverviewComponent implements OnInit {
     const ref = this.modalService.open(CreateProjectModalComponent);
     ref.result.then(
       createdProject => this.projects.push(createdProject)
-    ).catch(() => {});
+    ).catch(() => {
+    });
   }
 
   openCreateOrganizationModal(): void {
     const ref = this.modalService.open(CreateOrganizationModalComponent);
     ref.result.then(
       createdOrganization => this.organizations.push(createdOrganization)
-    ).catch(() => {});
+    ).catch(() => {
+    });
   }
 }

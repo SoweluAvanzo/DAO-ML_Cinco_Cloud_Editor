@@ -17,7 +17,8 @@ export class CreateOrganizationModalComponent {
   });
 
   constructor(private organizationApi: OrganizationApiService,
-              public modal: NgbActiveModal) { }
+              public modal: NgbActiveModal) {
+  }
 
   createOrganization(): void {
     const newOrganization = new Organization();

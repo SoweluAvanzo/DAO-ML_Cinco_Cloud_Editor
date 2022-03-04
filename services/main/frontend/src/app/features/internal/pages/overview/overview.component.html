@@ -1,22 +1,25 @@
 <div class="container mt-3">
   <div class="d-flex align-items-center">
-    <ul ngbNav #nav="ngbNav" class="nav nav-pills d-flex gap-2">
-      <li ngbNavItem="projects" class="nav-item">
-        <a ngbNavLink class="nav-link">
+    <ul #nav="ngbNav" class="nav nav-pills d-flex gap-2" ngbNav>
+      <li class="nav-item" ngbNavItem="projects">
+        <a class="nav-link" ngbNavLink>
           Projects <span class="badge">{{projects.length}}</span>
         </a>
         <ng-template ngbNavContent>
-          <div class="alert alert-info mt-3" *ngIf="projects.length === 0">
+          <div *ngIf="projects.length === 0; else projectList" class="alert alert-info mt-3">
             There aren't any projects yet.
           </div>
+          <ng-template #projectList>
+            <cc-project-list [projects]="projects"></cc-project-list>
+          </ng-template>
         </ng-template>
       </li>
-      <li ngbNavItem="organizations" class="nav-item">
-        <a ngbNavLink class="nav-link">
+      <li class="nav-item" ngbNavItem="organizations">
+        <a class="nav-link" ngbNavLink>
           Organizations <span class="badge">{{organizations.length}}</span>
         </a>
         <ng-template ngbNavContent>
-          <div class="alert alert-info mt-3" *ngIf="organizations.length === 0; else organizationList">
+          <div *ngIf="organizations.length === 0; else organizationList" class="alert alert-info mt-3">
             There aren't any organizations yet.
           </div>
           <ng-template #organizationList>
@@ -27,21 +30,21 @@
     </ul>
     <div class="ms-auto">
       <button
-        class="btn btn-primary"
-        *ngIf="nav.activeId === 'projects'"
         (click)="openCreateProjectModal()"
+        *ngIf="nav.activeId === 'projects'"
+        class="btn btn-primary"
       >
         <fa-icon [icon]="['fas', 'plus']"></fa-icon>&nbsp; New Project
       </button>
       <button
-        class="btn btn-primary"
-        *ngIf="nav.activeId === 'organizations'"
         (click)="openCreateOrganizationModal()"
+        *ngIf="nav.activeId === 'organizations'"
+        class="btn btn-primary"
       >
         <fa-icon [icon]="['fas', 'plus']"></fa-icon>&nbsp; New Organization
       </button>
     </div>
   </div>
 
-  <div class="mt-3" [ngbNavOutlet]="nav"></div>
+  <div [ngbNavOutlet]="nav" class="mt-3"></div>
 </div>

@@ -1,5 +1,5 @@
 <div class="list-group">
-  <a class="list-group-item list-group-item-action d-flex" *ngFor="let org of organizations">
+  <a *ngFor="let org of organizations" class="list-group-item list-group-item-action d-flex">
     <div class="me-3">
       <div
         *ngIf="org.logo == null; else logo"
@@ -8,7 +8,7 @@
         <fa-icon [icon]="['fas', 'image']"></fa-icon>
       </div>
       <ng-template #logo>
-        <div class="logo rounded-2" [style]="getOrganizationBackgroundImageStyle(org)"></div>
+        <div [style]="getOrganizationBackgroundImageStyle(org)" class="logo rounded-2"></div>
       </ng-template>
     </div>
     <div class="flex-grow-1 d-flex">
@@ -16,7 +16,7 @@
         <div>
           <strong>{{org.name}}</strong>
         </div>
-        <div class="text-muted" *ngIf="org.description !== ''">
+        <div *ngIf="org.description !== ''" class="text-muted">
           <em>
             <small>{{org.description}}</small>
           </em>

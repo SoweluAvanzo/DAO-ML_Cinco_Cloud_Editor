@@ -103,7 +103,10 @@ function fromJsogInternal<T>(obj: any, cls: any, cache: any): T {
 
     // copy all properties from the jsog object to the target class
     const propValue = obj[prop];
-    if (isPrimitiveField(propValue)) {
+
+    if (prop == '@ref') {
+      return cache[propValue] as T;
+    } else if (isPrimitiveField(propValue)) {
       target[prop] = isDateField(propValue)
         ? new Date(propValue)
         : propValue;

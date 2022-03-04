@@ -16,13 +16,13 @@ export class WorkspaceImageApiService extends BaseApiService {
 
   public search(query: string): Observable<WorkspaceImage[]> {
     return this.http.get(`${this.apiUrl}/image-registry/search?q=${query}`, this.defaultHttpOptions).pipe(
-      map(body => this.transformList(body as any[]))
+      map((body: any) => this.transformList(body))
     );
   }
 
   public getAll(): Observable<WorkspaceImage[]> {
     return this.http.get(`${this.apiUrl}/image-registry/images`, this.defaultHttpOptions).pipe(
-      map(body => this.transformList(body as any[]))
+      map((body: any) => this.transformList(body))
     );
   }
 

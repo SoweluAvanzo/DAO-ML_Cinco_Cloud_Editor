@@ -1,13 +1,72 @@
 <div class="modal-header">
   <h5 class="modal-title">Create a new project</h5>
-  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="modal.dismiss()"></button>
+  <button (click)="modal.dismiss()" aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
 </div>
 <div class="modal-body">
-  <p>
-    sdfsdf
-  </p>
+  <div class="d-flex gap-3">
+    <div (click)="withProjectImage = false" [class.active]="!withProjectImage"
+         class="option card cursor-pointer shadow-sm w-50">
+      <div class="card-body">
+        <h6>Empty project</h6>
+        <p class="text-muted m-0">
+          Create graphical DSLs for modeling environments.
+        </p>
+      </div>
+    </div>
+    <div (click)="withProjectImage = true" [class.active]="withProjectImage"
+         class="option card cursor-pointer shadow-sm w-50">
+      <div class="card-body">
+        <h6>From template</h6>
+        <p class="text-muted m-0">
+          Use an existing modeling environment.
+        </p>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <form (ngSubmit)="createProject()" [formGroup]="form" class="d-flex flex-column gap-3 mb-3">
+    <div>
+      <label class="form-label" for="name">Name</label>
+      <input
+        class="form-control"
+        formControlName="name"
+        id="name"
+        placeholder="Enter a name"
+        type="text">
+    </div>
+    <div>
+      <label class="form-label" for="description">Description</label>
+      <textarea
+        class="form-control"
+        formControlName="description"
+        id="description"
+        placeholder="Enter a description"
+        rows="3">
+      </textarea>
+    </div>
+  </form>
+  <div *ngIf="withProjectImage" class="mt-3">
+    <label class="form-label">Template</label>
+
+    <div *ngIf="selectedProjectImage != null" class="list-group">
+      <div class="list-group-item p-2 d-flex align-items-center">
+        <div class="w-100">
+          <cc-workspace-image-badge [image]="selectedProjectImage"></cc-workspace-image-badge>
+        </div>
+        <div>
+          <i (click)="selectedProjectImage = null" class="fa fa-fw fa-times cursor-pointer"></i>
+        </div>
+      </div>
+    </div>
+
+    <cc-workspace-image-search-input
+      (selectImage)="selectedProjectImage = $event"
+      *ngIf="selectedProjectImage == null"
+    >
+    </cc-workspace-image-search-input>
+  </div>
 </div>
 <div class="modal-footer">
-  <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
-  <button type="button" class="btn btn-primary">Create</button>
+  <button (click)="modal.dismiss()" class="btn btn-secondary" type="button">Cancel</button>
+  <button (click)="createProject()" [disabled]="!canCreateProject" class="btn btn-primary" type="button">Create</button>
 </div>

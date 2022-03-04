@@ -3,6 +3,7 @@ import { Organization } from './organization';
 import { User } from './user';
 import { WorkspaceImage } from './workspace-image';
 import { ProjectType } from '../enums/project-type';
+import { GraphModelType } from './graph-model-type';
 
 export class Project extends BaseEntity {
   type: ProjectType;
@@ -12,4 +13,5 @@ export class Project extends BaseEntity {
   organization: Organization;
   image: WorkspaceImage;
   template: WorkspaceImage;
+  graphModelTypes: GraphModelType[] = [];
 }
