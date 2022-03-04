@@ -5,9 +5,10 @@ import { InternalComponent } from './internal.component';
 import { NavigationComponent } from './components/navigation/navigation.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faBars, faUserLock } from '@fortawesome/free-solid-svg-icons';
-import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDropdownModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { CoreModule } from '../../core/core.module';
 import { UserIsAdminGuard } from '../../core/guards/user-is-admin.guard';
+import { OverviewComponent } from './pages/overview/overview.component';
 
 const routes: Routes = [
   {
@@ -19,6 +20,10 @@ const routes: Routes = [
         loadChildren: () => import('../admin/admin.module').then(m => m.AdminModule),
         canActivate: [UserIsAdminGuard],
         canActivateChild: [UserIsAdminGuard]
+      },
+      {
+        path: 'overview',
+        component: OverviewComponent
       }
     ]
   }
@@ -27,12 +32,14 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     InternalComponent,
-    NavigationComponent
+    NavigationComponent,
+    OverviewComponent
   ],
   imports: [
     CommonModule,
     FontAwesomeModule,
     NgbDropdownModule,
+    NgbNavModule,
     RouterModule.forChild(routes),
     CoreModule
   ]

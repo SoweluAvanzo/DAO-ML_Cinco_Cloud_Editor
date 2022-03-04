@@ -15,6 +15,12 @@ export class ProjectApiService extends BaseApiService {
     super(http);
   }
 
+  public getAll(): Observable<Project[]> {
+    return this.http.get(`${this.apiUrl}/project/private`, this.defaultHttpOptions).pipe(
+      map((body: any) => this.transformList(body))
+    );
+  }
+
   public get(projectId: number): Observable<Project> {
     return this.http.get(`${this.apiUrl}/project/${projectId}`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
@@ -29,7 +35,7 @@ export class ProjectApiService extends BaseApiService {
 
   public deploy(project: Project): Observable<ProjectDeployment> {
     return this.http.post(`${this.apiUrl}/project/${project.id}/deployments/private`, '', this.defaultHttpOptions).pipe(
-      map(body => body as ProjectDeployment)
+      map((body: any) => body as ProjectDeployment)
     );
   }
 

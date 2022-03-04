@@ -17,7 +17,7 @@ export class OrganizationApiService extends BaseApiService {
 
   public getAll(): Observable<Organization[]> {
     return this.http.get(`${this.apiUrl}/organization`, this.defaultHttpOptions).pipe(
-      map(body => this.transformList(body as any[]))
+      map((body: any) => this.transformList(body))
     );
   }
 
