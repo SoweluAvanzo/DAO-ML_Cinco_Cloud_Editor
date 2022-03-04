@@ -1,10 +1,15 @@
 package info.scce.cincocloud.core.rest.tos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import info.scce.cincocloud.db.GitInformationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.ProjectType;
+import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.rest.RESTBaseImpl;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ProjectTO extends RESTBaseImpl {
 
@@ -15,6 +20,8 @@ public class ProjectTO extends RESTBaseImpl {
   private ProjectType type;
   private String name;
   private String description;
+  private List<UserTO> members = new ArrayList<>();
+  private List<GraphModelTypeTO> graphModelTypes = new ArrayList<>();
 
   public static ProjectTO fromEntity(final ProjectDB entity, final ObjectCache objectCache) {
 
@@ -42,8 +49,20 @@ public class ProjectTO extends RESTBaseImpl {
       result.setorganization(OrganizationTO.fromEntity(entity.organization, objectCache));
     }
 
+    if (entity.members != null) {
+      for (UserDB m : entity.members) {
+        result.getmembers().add(UserTO.fromEntity(m, objectCache));
+      }
+    }
+
     if (entity.owner != null) {
       result.setowner(UserTO.fromEntity(entity.owner, objectCache));
+    }
+
+    if (entity.graphModelTypes != null && !entity.graphModelTypes.isEmpty()) {
+      result.setgraphModelTypes(entity.graphModelTypes.stream()
+          .map(g -> GraphModelTypeTO.fromEntity(g, objectCache))
+          .collect(Collectors.toList()));
     }
 
     return result;
@@ -117,5 +136,25 @@ public class ProjectTO extends RESTBaseImpl {
   @JsonProperty("type")
   public void setType(ProjectType type) {
     this.type = type;
+  }
+
+  @JsonProperty("members")
+  public List<UserTO> getmembers() {
+    return this.members;
+  }
+
+  @JsonProperty("members")
+  public void setmembers(final List<UserTO> members) {
+    this.members = members;
+  }
+
+  @JsonProperty("graphModelTypes")
+  public List<GraphModelTypeTO> getgraphModelTypes() {
+    return graphModelTypes;
+  }
+
+  @JsonProperty("graphModelTypes")
+  public void setgraphModelTypes(List<GraphModelTypeTO> graphModelTypes) {
+    this.graphModelTypes = graphModelTypes;
   }
 }

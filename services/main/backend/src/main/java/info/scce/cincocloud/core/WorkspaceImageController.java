@@ -35,31 +35,44 @@ public class WorkspaceImageController {
   @Inject
   ObjectCache objectCache;
 
+  @Inject
+  ProjectService projectService;
+
   @GET
   @Path("/search")
   @RolesAllowed("user")
   public Response search(@Context SecurityContext securityContext, @QueryParam("q") String query) {
     final var currentUser = UserDB.getCurrentUser(securityContext);
 
-    final List<WorkspaceImageTO> images = WorkspaceImageDB.listAll()
+    final List<WorkspaceImageDB> images = WorkspaceImageDB.listAll()
         .stream()
         .map(image -> (WorkspaceImageDB) image)
-        .filter(image -> image.published || image.project.owner.equals(currentUser))
-        .map(image -> WorkspaceImageTO.fromEntity(image, objectCache))
+        .filter(image -> image.published || projectService.userOwnsProject(currentUser, image.project))
         .collect(Collectors.toList());
 
+    List<WorkspaceImageDB> responseImages;
     if (query == null || query.trim().isEmpty()) {
-      return Response.ok(images).build();
+      responseImages = images;
     } else {
       final String q = query.toLowerCase();
-      final List<WorkspaceImageTO> filteredImages = images.stream()
-          .filter(image -> image.name.toLowerCase().contains(q)
-              || image.imageName.contains(q)
-              || image.user.getusername().toLowerCase().contains(q))
-          .collect(Collectors.toList());
-
-      return Response.ok(filteredImages).build();
+      responseImages =
+          images.stream()
+              .filter(image ->
+                  image.project.name.toLowerCase().contains(q) ||
+                      image.project.matchOnOwnership(
+                          owner -> owner.name.toLowerCase().contains(q),
+                          organization -> organization.name.toLowerCase().contains(q)
+                      )
+              )
+              .collect(Collectors.toList());
     }
+
+    return Response.ok(
+        responseImages
+            .stream()
+            .map(image -> WorkspaceImageTO.fromEntity(image, objectCache))
+            .collect(Collectors.toList())
+    ).build();
   }
 
   @GET
@@ -86,7 +99,7 @@ public class WorkspaceImageController {
     final var imageInDb = (WorkspaceImageDB) WorkspaceImageDB.findByIdOptional(userId)
         .orElseThrow(() -> new EntityNotFoundException("Image could not be found."));
 
-    if (!imageInDb.user.equals(currentUser)) {
+    if (!projectService.userOwnsProject(currentUser, imageInDb.project)) {
       throw new ForbiddenException("You are not allowed to modify this image.");
     }
 

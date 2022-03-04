@@ -1,21 +1,34 @@
 package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Function;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 @Entity
+@NamedQuery(
+    name = "ProjectDB.findWhereUserIsOwnerOrMember",
+    query = ""
+        + "select distinct project "
+        + "from ProjectDB project, UserDB user "
+        + "where (project.owner is not null and project.owner.id = ?1) "
+        + "or (user.id = ?1 and user in elements(project.members))"
+)
 public class ProjectDB extends PanacheEntity {
 
   public String name;
@@ -56,6 +69,12 @@ public class ProjectDB extends PanacheEntity {
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "project")
   public Collection<WorkspaceImageBuildJobDB> buildJobs = new ArrayList<>();
 
+  @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "project")
+  public Collection<GraphModelTypeDB> graphModelTypes = new ArrayList<>();
+
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  public GitInformationDB gitInformation;
+
   @Transient
   public boolean isLanguageEditor() {
     return this.type.equals(ProjectType.LANGUAGE_EDITOR);
@@ -64,5 +83,38 @@ public class ProjectDB extends PanacheEntity {
   @Transient
   public boolean isModelEditor() {
     return this.type.equals(ProjectType.MODEL_EDITOR);
+  }
+
+  @ManyToMany(cascade = CascadeType.ALL)
+  @JoinTable(
+      name = "ProjectDB_members",
+      joinColumns = @JoinColumn(name = "ProjectDB_id"),
+      inverseJoinColumns = @JoinColumn(name = "UserDB_id")
+  )
+  public Collection<UserDB> members = new ArrayList<>();
+
+  public static PanacheQuery<ProjectDB> findProjectsWhereUserIsOwner(long userId) {
+    return find("owner is not null and owner.id = ?1", userId);
+  }
+
+  public static PanacheQuery<ProjectDB> findProjectsWhereUserIsOwnerOrMember(long userId) {
+    return find("#ProjectDB.findWhereUserIsOwnerOrMember", userId);
+  }
+
+  public <T> T matchOnOwnership(
+      Function<UserDB, T> personalCase,
+      Function<OrganizationDB, T> organizationCase
+  ) {
+    if (owner != null && organization == null) {
+      return personalCase.apply(owner);
+    } else if (owner == null && organization != null) {
+      return organizationCase.apply(organization);
+    } else if (owner == null && organization == null) {
+      throw new RuntimeException(String.format("Project %d is neither owned by a user nor by an organization", id));
+    } else if (owner != null && organization != null) {
+      throw new RuntimeException(String.format("Project %d is both owned by a user and by an organization", id));
+    } else {
+      throw new RuntimeException("Missing case in ProjectDB::matchOnOwnership");
+    }
   }
 }

@@ -28,7 +28,7 @@ public class PyroDatabaseK8SService extends PyroK8SResource<Service> {
                 .withPort(5432)
                 .withProtocol("TCP")
                 .build())
-            .withType("NodePort")
+            .withType("ClusterIP")
             .withSelector(Map.of("app", getProjectName() + "-database-statefulset"))
             .build())
         .build();

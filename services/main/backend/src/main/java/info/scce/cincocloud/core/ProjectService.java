@@ -7,11 +7,13 @@ import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.sync.ProjectRegistry;
 import java.time.Instant;
 import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
 
 @ApplicationScoped
 @Transactional
@@ -20,23 +22,26 @@ public class ProjectService {
   @Inject
   ProjectRegistry projectRegistry;
 
-  public void deleteById(UserDB user, final long id, SecurityContext securityContext) {
+  public void deleteById(UserDB subject, final long id) {
     final ProjectDB project = ProjectDB.findById(id);
-    checkPermission(project, securityContext);
+    checkPermission(project, subject);
 
-    if (project.owner.equals(user)) {
+    if (subject.equals(project.owner)) {
       project.owner.ownedProjects.remove(project);
+      // Set to null to prevent cascading deletion of the owner
       project.owner = null;
     }
 
     projectRegistry.closeSessions(project.id);
 
     // remove project from organization
-    project.organization.projects.remove(project);
-    project.organization.persist();
+    if (project.organization != null) {
+      project.organization.projects.remove(project);
+      project.organization.persist();
 
-    // null references and mark project as deleted
-    project.organization = null;
+      // null references and mark project as deleted
+      project.organization = null;
+    }
     project.deletedAt = Instant.now();
 
     final var buildJobIds = project.buildJobs.stream()
@@ -49,12 +54,20 @@ public class ProjectService {
     project.persist();
   }
 
-  public void checkPermission(ProjectDB project, SecurityContext securityContext) {
-    final UserDB user = UserDB.getCurrentUser(securityContext);
-    boolean isOwner = project.organization.owners.contains(user);
-    boolean isMember = project.organization.members.contains(user);
-    if (isOwner || isMember) {
-      return;
+  public void checkPermission(ProjectDB project, UserDB subject) {
+    List<Collection<UserDB>> authorizedUserLists = new LinkedList<>();
+    if (project.owner != null) {
+      authorizedUserLists.add(List.of(project.owner));
+    }
+    authorizedUserLists.add(project.members);
+    if (project.organization != null) {
+      authorizedUserLists.add(project.organization.owners);
+      authorizedUserLists.add(project.organization.members);
+    }
+    for (var authorizedUserList : authorizedUserLists) {
+      if (authorizedUserList.contains(subject)) {
+        return;
+      }
     }
     throw new RestException(Status.FORBIDDEN, "user can not access the project");
   }
@@ -68,6 +81,13 @@ public class ProjectService {
     if (project == null || project.deletedAt != null) {
       throw new RestException(Status.NOT_FOUND, "project can not be found");
     }
+  }
+
+  public boolean userOwnsProject(UserDB user, ProjectDB project) {
+    return project.matchOnOwnership(
+        owner -> user.equals(owner),
+        organization -> organization.owners.contains(user)
+    );
   }
 }
 

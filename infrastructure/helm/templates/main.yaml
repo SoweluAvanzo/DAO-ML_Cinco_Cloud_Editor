@@ -7,14 +7,12 @@ data:
   DATABASE_URL: "postgres-service/cc"
   AMPQ_HOST: "ampq-service"
   AMPQ_PORT: "5672"
-  AMPQ_USERNAME: "cc"
-  AMPQ_PASSWORD: "cc"
   PODAN_REGISTRY_HOST: "registry-service"
   PODAN_REGISTRY_PORT: "5000"
   PODAN_REGISTRY_API_PORT: "8000"
   KUBERNETES_NAMESPACE: {{ .Values.namespace }}
   CINCO_CLOUD_HOST: {{ .Values.ingress.host }}
-  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: "b21265e5cdaeb7c4e989de0a2e0260dcc8e6cfe3"
+  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: "7bf5bbb92cee1004bc90dfd57a8b16fcb9c1a04d"
   {{ if eq .Values.serverTier "local" }}
   CINCO_CLOUD_USE_SSL: "false"
   {{- else -}}
@@ -66,6 +64,16 @@ spec:
                 secretKeyRef:
                   name: cinco-cloud-main-secrets
                   key: databasePassword
+            - name: AMPQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: artemisUser
+            - name: AMPQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: artemisPassword
           securityContext:
             privileged: true
           volumeMounts:
@@ -93,7 +101,11 @@ spec:
     - port: 9000
       name: main-grpc
       protocol: TCP
+  {{ if or (eq .Values.serverTier "local") (eq .Values.serverTier "local-ssl") }}
   type: NodePort
+  {{- else -}}
+  type: ClusterIP
+  {{- end }}
   selector:
     app: main
 ---

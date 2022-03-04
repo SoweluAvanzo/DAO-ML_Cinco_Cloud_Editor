@@ -39,7 +39,7 @@ public class PyroAppK8SService extends PyroK8SResource<Service> {
                     .withProtocol("TCP")
                     .build()
             )
-            .withType("NodePort")
+            .withType("ClusterIP")
             .withSelector(Map.of("app", getProjectName() + "-app-deployment"))
             .build())
         .build();

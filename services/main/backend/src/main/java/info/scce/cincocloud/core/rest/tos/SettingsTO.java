@@ -20,7 +20,6 @@ public class SettingsTO extends RESTBaseImpl {
 
     final var result = new SettingsTO();
     result.setId(entity.id);
-    result.setgloballyCreateOrganizations(entity.globallyCreateOrganizations);
     result.setallowPublicUserRegistration(entity.allowPublicUserRegistration);
 
     objectCache.putRestTo(entity, result);

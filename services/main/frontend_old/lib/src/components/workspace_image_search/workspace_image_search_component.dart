@@ -42,8 +42,4 @@ class WorkspaceImageSearchComponent {
     selectImageSC.add(image);
     results.clear();
   }
-
-  String getDisplayName(String imageName) {
-    return '@' + imageName.split(':')[0];
-  }
 }

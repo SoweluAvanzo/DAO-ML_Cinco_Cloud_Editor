@@ -28,6 +28,9 @@
           <div class="nav-item" *ngIf="project.image != null">
             <a class="nav-link" [class.active]="isImageTab" (click)="setImageTab($event)" href="#">Image</a>
           </div>
+          <div class="nav-item" *ngIf="project.type == 'MODEL_EDITOR'">
+            <a class="nav-link" [class.active]="isGitInformationTab" (click)="setGitInformationTab($event)" href="#">Git Information</a>
+          </div>
         </div>
 
         <div *ngIf="hasBeenSaved" class="alert alert-success">
@@ -80,6 +83,41 @@
             </div>
           </div>
         </ng-container>
+
+        <ng-container *ngIf="isGitInformationTab">
+          <form (ngSubmit)="editGitInformation()">
+            <div class="form-group">
+              <label for="gitInformationType">Type</label>
+              <select [(ngModel)]="gitInformation.type" class="form-control" id="gitInformationType">
+                <option value="NONE">None</option>
+                <option value="BASIC">Basic</option>
+              </select>
+            </div>
+            <ng-container *ngIf="!(gitInformation.type == 'NONE')">
+              <div class="form-group">
+                <label for="repositoryUrl">Repository Url</label>
+                <input [(ngModel)]="gitInformation.repositoryUrl" type="text" class="form-control" id="repositoryUrl">
+              </div>
+              <div class="form-group">
+                <label for="username">Username</label>
+                <input [(ngModel)]="gitInformation.username" type="text" class="form-control" id="username">
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input [(ngModel)]="gitInformation.password" type="text" class="form-control" id="password">
+              </div>
+              <div class="form-group">
+                <label for="branch">Branch</label>
+                <input [(ngModel)]="gitInformation.branch" type="text" class="form-control" id="branch">
+              </div>
+              <div class="form-group">
+                <label for="genSubdirectory">Subdirectory</label>
+                <input [(ngModel)]="gitInformation.genSubdirectory" type="text" class="form-control" id="genSubdirectory">
+              </div>
+            </ng-container>
+          </form>
+        </ng-container>
+
       </div>
       <div class="modal-footer">
         <ng-container *ngIf="isProjectTab">
@@ -87,6 +125,9 @@
         </ng-container>
         <ng-container *ngIf="isImageTab">
           <button (click)="editImage()" class="btn btn-primary" type="button">Edit Image</button>
+        </ng-container>
+        <ng-container *ngIf="isGitInformationTab">
+          <button (click)="editGitInformation()" class="btn btn-primary" type="button">Edit Git Information</button>
         </ng-container>
         <button (click)="closeSC.add($event)" class="btn" data-dismiss="modal" type="button">Cancel</button>
       </div>

@@ -50,7 +50,11 @@ spec:
     - port: 8000
       name: registry-api
       protocol: TCP
+  {{ if or (eq .Values.serverTier "local") (eq .Values.serverTier "local-ssl") }}
   type: NodePort
+  {{- else -}}
+  type: ClusterIP
+  {{- end }}
   selector:
     app: registry
 ---

@@ -39,12 +39,7 @@ class UserService extends BaseService {
       if (response.responseText == 'None found') {
         throw new Exception(response.responseText);
       } else {
-        var result = jsonDecode(response.responseText);
-        List<User> users = new List();
-        result.forEach((u) {
-          users.add(User.fromJSOG(new Map(), u));
-        });
-        return users;
+        return transformResponseList(response.responseText, (cache, user) => User(cache: cache, jsog: user));
       }
     }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
@@ -79,6 +74,17 @@ class UserService extends BaseService {
       
   	}).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
+
+  Future<User> createUser(dynamic user) async {
+    return HttpRequest.request("${getBaseUrl()}/users/private",
+        method: "POST",
+        sendData: jsonEncode(user),
+        requestHeaders: requestHeaders,
+        withCredentials: true
+    ).then((response) {
+      return User.fromJSOG(new Map(), jsonDecode(response.responseText));;
+    }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
+  }
   
   Future<User> deleteUser(User user) async {
     return HttpRequest.request("${getBaseUrl()}/users/${user.id}",
@@ -106,32 +112,6 @@ class UserService extends BaseService {
   Future<User> removeAdminRole(User user) async {
     return HttpRequest.request(
             "${getBaseUrl()}/users/${user.id}/roles/removeAdmin",
-            method: "POST",
-            requestHeaders: requestHeaders,
-            withCredentials: true)
-        .then((response) {
-      User result =
-          User.fromJSOG(new Map(), jsonDecode(response.responseText));
-      return result;
-    }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
-  }
-
-  Future<User> addOrgManagerRole(User user) async {
-    return HttpRequest.request(
-            "${getBaseUrl()}/users/${user.id}/roles/addOrgManager",
-            method: "POST",
-            requestHeaders: requestHeaders,
-            withCredentials: true)
-        .then((response) {
-      User result =
-          User.fromJSOG(new Map(), jsonDecode(response.responseText));
-      return result;
-    }).catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
-  }
-
-  Future<User> removeOrgManagerRole(User user) async {
-    return HttpRequest.request(
-            "${getBaseUrl()}/users/${user.id}/roles/removeOrgManager",
             method: "POST",
             requestHeaders: requestHeaders,
             withCredentials: true)

@@ -11,4 +11,12 @@ public class UserLoginInput {
 
   @NotEmpty(message = "The password may not be empty.")
   public String password;
+
+  public UserLoginInput() {
+  }
+
+  public UserLoginInput(String email, String password) {
+    this.email = email;
+    this.password = password;
+  }
 }

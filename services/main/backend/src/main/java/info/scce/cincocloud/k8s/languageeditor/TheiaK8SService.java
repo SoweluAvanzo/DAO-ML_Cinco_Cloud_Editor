@@ -36,7 +36,7 @@ public class TheiaK8SService extends TheiaK8SResource<Service> {
                 .withPort(3000)
                 .withProtocol("TCP")
                 .build())
-            .withType("NodePort")
+            .withType("ClusterIP")
             .withSelector(Map.of("app", getProjectName()))
             .build())
         .build();

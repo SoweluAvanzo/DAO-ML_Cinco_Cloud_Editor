@@ -17,7 +17,7 @@ class WorkspaceImageService extends BaseService {
         requestHeaders: requestHeaders,
         withCredentials: true
     )
-        .then(transformResponseList)
+        .then((response) => transformResponseList(response.responseText, (cache, image) => WorkspaceImage(cache: cache, jsog: image)))
         .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
@@ -28,7 +28,7 @@ class WorkspaceImageService extends BaseService {
         requestHeaders: requestHeaders,
         withCredentials: true
     )
-        .then(transformResponseList)
+        .then((response) => transformResponseList(response.responseText, (cache, image) => WorkspaceImage(cache: cache, jsog: image)))
         .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
@@ -44,16 +44,4 @@ class WorkspaceImageService extends BaseService {
         .catchError(super.handleProgressEvent, test: (e) => e is ProgressEvent);
   }
 
-  List<WorkspaceImage> transformResponseList(dynamic response) {
-    List<WorkspaceImage> images = new List();
-    Map<String, dynamic> cache = new Map();
-    jsonDecode(response.responseText).forEach((image) {
-      if (image.containsKey("@ref")) {
-        images.add(cache[image["@ref"]]);
-      } else {
-        images.add(WorkspaceImage(cache: cache, jsog: image));
-      }
-    });
-    return images;
-  }
 }

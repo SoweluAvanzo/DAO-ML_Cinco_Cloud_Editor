@@ -45,7 +45,6 @@ public class StartupBean {
     LOGGER.log(Level.INFO, "Init application settings.");
     if (SettingsDB.listAll().isEmpty()) {
       final var settings = new SettingsDB();
-      settings.globallyCreateOrganizations = true;
       settings.allowPublicUserRegistration = true;
       settings.persist();
     }

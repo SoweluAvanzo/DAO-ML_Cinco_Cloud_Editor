@@ -8,10 +8,8 @@
   <p class="text-muted">All organizations you are a member of</p>
   <hr>
 
-  <div *ngIf="canCreateOrganization">
-    <button (click)="newOrganizationModal.open()" class="btn btn-primary btn-sm">Create Organization</button>
-    <hr>
-  </div>
+  <button (click)="newOrganizationModal.open()" class="btn btn-primary btn-sm">Create Organization</button>
+  <hr>
 
   <div *ngIf="organizations.length === 0" class="alert alert-info">
     There aren't any organizations yet.
@@ -34,7 +32,7 @@
         </p>
       </div>
       <div class="flex-shrink-0">
-        <div *ngIf="isOrgManager" class="btn-group btn-group-sm">
+        <div class="btn-group btn-group-sm">
           <button (click)="editOrganizationModal.open(org)" class="btn"><i class="fas fa-edit"></i></button>
           <button (click)="deleteOrganization(org)" class="btn"><i class="fas fa-trash"></i></button>
           <button (click)="leaveOrganization(org)" class="btn"><i class="fas fa-sign-out-alt"></i></button>

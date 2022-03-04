@@ -4,6 +4,7 @@ import static io.smallrye.common.constraint.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import info.scce.cincocloud.AbstractCincoCloudTest;
+import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
 import info.scce.cincocloud.db.SettingsDB;
 import io.quarkus.test.junit.QuarkusTest;
 import java.util.List;
@@ -26,12 +27,12 @@ public class ApplicationTest extends AbstractCincoCloudTest {
   }
 
   @Test
-  public void getSettings_globallyCreateOrganizationsIsTrue() {
+  public void getSettings_allowPublicUserRegistrationIsTrue() {
     final Optional<SettingsDB> settings = SettingsDB.findAll().list()
         .stream().map(s -> (SettingsDB) s)
         .findFirst();
 
     assertTrue(settings.isPresent());
-    assertTrue(settings.get().globallyCreateOrganizations);
+    assertTrue(settings.get().allowPublicUserRegistration);
   }
 }

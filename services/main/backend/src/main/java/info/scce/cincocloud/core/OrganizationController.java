@@ -9,7 +9,7 @@ import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.SettingsDB;
 import info.scce.cincocloud.db.UserDB;
-import info.scce.cincocloud.db.UserSystemRole;
+import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -54,15 +54,9 @@ public class OrganizationController {
       final List<OrganizationDB> result = OrganizationDB.listAll();
 
       final List<OrganizationTO> orgs = new LinkedList<>();
-      if (isOrgManager(subject)) {
-        for (OrganizationDB org : result) {
+      for (OrganizationDB org : result) {
+        if (org.members.contains(subject) || org.owners.contains(subject)) {
           orgs.add(OrganizationTO.fromEntity(org, objectCache));
-        }
-      } else {
-        for (OrganizationDB org : result) {
-          if (org.members.contains(subject) || org.owners.contains(subject)) {
-            orgs.add(OrganizationTO.fromEntity(org, objectCache));
-          }
         }
       }
 
@@ -85,7 +79,7 @@ public class OrganizationController {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
-      if (isMemberOf(subject, org) || isOwnerOf(subject, org) || isOrgManager(subject)) {
+      if (isMemberOf(subject, org) || isOwnerOf(subject, org)) {
         return Response.ok(OrganizationTO.fromEntity(org, objectCache)).build();
       }
     }
@@ -123,7 +117,7 @@ public class OrganizationController {
 
     final OrganizationDB org = OrganizationDB.findById(orgId);
 
-    if (subject != null && (isOrgManager(subject) || isOwnerOf(subject, org))) {
+    if (subject != null && isOwnerOf(subject, org)) {
       final UserDB member = UserDB.findById(user.getId());
 
       if (org == null || member == null) {
@@ -158,7 +152,7 @@ public class OrganizationController {
 
     final OrganizationDB org = OrganizationDB.findById(orgId);
 
-    if (subject != null && (isOrgManager(subject) || isOwnerOf(subject, org))) {
+    if (subject != null && isOwnerOf(subject, org)) {
       final UserDB owner = UserDB.findById(user.getId());
 
       if (org == null || owner == null) {
@@ -188,7 +182,7 @@ public class OrganizationController {
 
     final OrganizationDB org = OrganizationDB.findById(orgId);
 
-    if (subject != null && (isOrgManager(subject) || isOwnerOf(subject, org))) {
+    if (subject != null && isOwnerOf(subject, org)) {
       final UserDB userToRemove = UserDB.findById(user.getId());
 
       if (org == null || userToRemove == null) {
@@ -203,12 +197,6 @@ public class OrganizationController {
       // repersist, otherwise the user gets deleted by org.owners.remove(userToRemove)
       userToRemove.persist();
 
-      // assign projects of removed user to oneself for now
-      for (ProjectDB project : org.projects) {
-        project.owner = subject;
-        project.persist();
-      }
-
       return Response.ok(OrganizationTO.fromEntity(org, objectCache)).build();
     }
 
@@ -221,18 +209,26 @@ public class OrganizationController {
   public Response create(@Context SecurityContext securityContext, OrganizationTO newOrg) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
 
-    if (mayCreateOrganization(subject)) {
-      final OrganizationDB org = this
-          .createOrganization(newOrg.getname(), newOrg.getdescription(), subject);
-
+    if (subject != null) {
+      final OrganizationDB org = this.createOrganization(newOrg.getname(), newOrg.getdescription(), subject);
       return Response.ok(OrganizationTO.fromEntity(org, objectCache)).build();
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
   }
 
-  public OrganizationDB createOrganization(String name, String description,
-      UserDB subject) {
+  public OrganizationDB createOrganization(
+      String name,
+      String description,
+      UserDB subject
+  ) {
+    final var nameExists =
+        !OrganizationDB.list("name", name).isEmpty() ||
+            !UserDB.list("username", name).isEmpty();
+    if (nameExists) {
+      throw new RestException("The name already exists");
+    }
+
     final OrganizationDB org = new OrganizationDB();
     org.name = name;
     org.description = description;
@@ -299,8 +295,8 @@ public class OrganizationController {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
-      if (isOrgManager(subject) || isOwnerOf(subject, orgInDB)) {
-        deleteAllProjects(orgInDB, subject, securityContext);
+      if (isOwnerOf(subject, orgInDB)) {
+        deleteAllProjects(orgInDB, subject);
         deleteAccessRightVectors(orgInDB);
 
         orgInDB.members.clear();
@@ -314,12 +310,11 @@ public class OrganizationController {
     return Response.status(Response.Status.FORBIDDEN).build();
   }
 
-  private void deleteAllProjects(OrganizationDB org, UserDB subject,
-      SecurityContext securityContext) {
+  private void deleteAllProjects(OrganizationDB org, UserDB subject) {
     Iterator<ProjectDB> iter = org.projects.iterator();
     while (iter.hasNext()) {
       ProjectDB project = iter.next();
-      projectService.deleteById(subject, project.id, securityContext);
+      projectService.deleteById(subject, project.id);
       iter = org.projects.iterator();
     }
   }
@@ -334,16 +329,7 @@ public class OrganizationController {
   }
 
   private List<OrganizationAccessRightVectorDB> findAccessRightVectors(OrganizationDB org) {
-    final List<OrganizationAccessRightVectorDB> result = OrganizationAccessRightVectorDB
-        .list("organization = ?1", org);
-    return result;
-  }
-
-  private boolean mayCreateOrganization(UserDB user) {
-    final SettingsDB settings = SettingsDB.listAll().stream().map(n -> (SettingsDB) n)
-        .findFirst().orElse(null);
-
-    return user != null && (isOrgManager(user) || settings.globallyCreateOrganizations);
+    return OrganizationAccessRightVectorDB.list("organization = ?1", org);
   }
 
   private boolean accessRightVectorExists(
@@ -385,10 +371,6 @@ public class OrganizationController {
       e.persist();
       e.delete();
     }
-  }
-
-  private boolean isOrgManager(UserDB user) {
-    return user.systemRoles.contains(UserSystemRole.ORGANIZATION_MANAGER);
   }
 
   private boolean isMemberOf(UserDB user, OrganizationDB org) {

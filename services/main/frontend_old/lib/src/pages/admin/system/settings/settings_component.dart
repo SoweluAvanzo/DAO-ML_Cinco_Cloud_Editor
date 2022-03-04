@@ -46,10 +46,6 @@ class SettingsComponent implements OnInit {
   			_notificationService.displayMessage("Settings could not be updated.", NotificationType.DANGER);
   		});
   }
-  
-  void handleGloballyCreateOrganizationsChanged(bool e) {
-  	settings.globallyCreateOrganizations = e;
-  }
 
   void handleAllowPublicUserRegistrationChanged(bool e) {
     settings.allowPublicUserRegistration = e;

@@ -64,6 +64,7 @@ hr {
 }
 .pyro-list-entry {
     background-color: rgba(255,255,255,.1);
+    border-bottom: 1px solid #313131;
 }
 .pyro-list-entry a {
 }
