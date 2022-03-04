@@ -121,7 +121,7 @@ function fromJsogInternal<T>(obj: any, cls: any, cache: any): T {
       const ref = propValue['@ref'];
       target[prop] = ref != null
         ? cache[ref]
-        : fromJsogInternal(propValue, objectReferenceMap[propValue.name].cls, cache);
+        : fromJsogInternal(propValue, objectReferenceMap[cls.name].fields[prop], cache);
     }
   }
   return target as T;
