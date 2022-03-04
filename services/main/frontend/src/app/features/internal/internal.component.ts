@@ -12,6 +12,6 @@ export class InternalComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.router.navigate(['app', 'overview'])
+    // this.router.navigate(['app', 'overview'])
   }
 }

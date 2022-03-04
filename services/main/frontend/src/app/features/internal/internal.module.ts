@@ -13,6 +13,11 @@ import { OverviewComponent } from './pages/overview/overview.component';
 const routes: Routes = [
   {
     path: '',
+    redirectTo: 'overview'
+  },
+  {
+    path: '',
+    pathMatch: 'exact',
     component: InternalComponent,
     children: [
       {
@@ -24,9 +29,13 @@ const routes: Routes = [
       {
         path: 'overview',
         component: OverviewComponent
+      },
+      {
+        path: 'profile',
+        loadChildren: () => import('../profile/profile.module').then(m => m.ProfileModule)
       }
     ]
-  }
+  },
 ];
 
 @NgModule({
