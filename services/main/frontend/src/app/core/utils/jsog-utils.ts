@@ -6,6 +6,8 @@ import { OrganizationAccessRightVector } from '../models/organization-access-rig
 import { WorkspaceImage } from '../models/workspace-image';
 import { Settings } from '../models/settings';
 import { WorkspaceImageBuildJob } from '../models/workspace-image-build-job';
+import { GraphModelType } from '../models/graph-model-type';
+import { GitInformation } from '../models/git-information';
 
 /**
  * For each entity, reference the corresponding class
@@ -15,6 +17,9 @@ import { WorkspaceImageBuildJob } from '../models/workspace-image-build-job';
 const objectReferenceMap: any = {
   'FileReference': {
     cls: FileReference
+  },
+  'GitInformation': {
+    cls: GitInformation
   },
   'Organization': {
     cls: Organization,
@@ -38,7 +43,8 @@ const objectReferenceMap: any = {
       owner: User,
       organization: Organization,
       image: WorkspaceImage,
-      template: WorkspaceImage
+      template: WorkspaceImage,
+      graphModelTypes: GraphModelType
     }
   },
   'Settings': {
