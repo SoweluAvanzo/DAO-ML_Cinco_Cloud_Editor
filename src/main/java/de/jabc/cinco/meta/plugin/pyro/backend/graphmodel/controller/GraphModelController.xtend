@@ -1167,12 +1167,12 @@ class GraphModelController extends Generatable {
 			return createResponse(type,executer,user.id,graph.id,ccm.getRewriteRule());
 	    }
 	    
-		private void updateAppearance(PanacheEntity e, CommandExecuter executer) { // TODO: SAMI
+		private void updateAppearance(PanacheEntity e, CommandExecuter executer) {
 			graphmodel.IdentifiableElement element = TypeRegistry.getDBToApi(e, executer);
 			updateAppearance(element, executer);
 		}
 		
-		private void updateAppearance(graphmodel.IdentifiableElement e, CommandExecuter executer) { // TODO: SAMI
+		private void updateAppearance(graphmodel.IdentifiableElement e, CommandExecuter executer) {
 			if(e instanceof graphmodel.ModelElementContainer) {
 				executer.updateAppearance((graphmodel.ModelElementContainer) e);
 			} else {

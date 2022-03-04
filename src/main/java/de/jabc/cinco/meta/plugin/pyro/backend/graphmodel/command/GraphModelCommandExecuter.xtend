@@ -601,7 +601,9 @@ class GraphModelCommandExecuter extends Generatable {
 											«ENDIF»
 										«ENDIF»
 									) { // value changed?
-										dbEntity.«attr.name.escapeJava» = update.get«attr.name.escapeJava»();
+										apiEntity.set«attr.name.fuEscapeJava»(
+											update.get«attr.name.escapeJava»()
+										);
 										«e.triggerPostAttributeChangedHook(attr)»
 									}
 								«ENDIF»
@@ -995,11 +997,11 @@ class GraphModelCommandExecuter extends Generatable {
 	def getPrimitiveDefault(String string,Attribute attr) {
 		if(attr.defaultValue!==null) {
 			switch(string){
-				case "EInt": return '''«attr.defaultValue»L'''
+				case "EInt": return '''«attr.defaultValue»'''
 				case "ELong": return '''«attr.defaultValue»L'''
-				case "EBigInteger": return '''«attr.defaultValue»L'''
-				case "EByte": return '''«attr.defaultValue»L'''
-				case "EShort": return '''«attr.defaultValue»L'''
+				case "EBigInteger": return '''«attr.defaultValue»'''
+				case "EByte": return '''«attr.defaultValue»'''
+				case "EShort": return '''«attr.defaultValue»'''
 				case "EString": return '''"«attr.defaultValue»"'''
 				default: return '''«attr.defaultValue»'''
 			}
@@ -1007,12 +1009,12 @@ class GraphModelCommandExecuter extends Generatable {
 		switch(string){
 			case "EBoolean": return '''false'''
 			case "ELong": return '''0L'''
-			case "EBigInteger": return '''0L'''
-			case "EByte": return '''0L'''
-			case "EShort": return '''0L'''
+			case "EBigInteger": return '''0'''
+			case "EByte": return '''0'''
+			case "EShort": return '''0'''
 			case "EFloat": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
-			case "EInt": return '''0L'''
+			case "EInt": return '''0'''
 			case "EDouble": return '''0.0'''
 			default: return '''null'''
 		}
