@@ -1,0 +1,31 @@
+<div class="modal-header">
+  <h5 class="modal-title">Create a new organization</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="modal.dismiss()"></button>
+</div>
+<div class="modal-body">
+  <form (ngSubmit)="createOrganization()" [formGroup]="form" class="d-flex flex-column gap-3 mb-3">
+    <div>
+      <label class="form-label" for="name">Name</label>
+      <input
+        class="form-control"
+        formControlName="name"
+        id="name"
+        placeholder="Enter a name"
+        type="text">
+    </div>
+    <div>
+      <label class="form-label" for="description">Description</label>
+      <textarea
+        rows="3"
+        class="form-control"
+        formControlName="description"
+        id="description"
+        placeholder="Enter a description">
+      </textarea>
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+  <button type="button" class="btn btn-primary" [disabled]="form.invalid" (click)="createOrganization()">Create</button>
+</div>

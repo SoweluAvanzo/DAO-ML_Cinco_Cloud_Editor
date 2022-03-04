@@ -4,11 +4,15 @@ import { RouterModule, Routes } from '@angular/router';
 import { InternalComponent } from './internal.component';
 import { NavigationComponent } from './components/navigation/navigation.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faBars, faUserLock } from '@fortawesome/free-solid-svg-icons';
-import { NgbDropdownModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+import { faBars, faImage, faPlus, faUserLock } from '@fortawesome/free-solid-svg-icons';
+import { NgbDropdownModule, NgbModalModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { CoreModule } from '../../core/core.module';
 import { UserIsAdminGuard } from '../../core/guards/user-is-admin.guard';
 import { OverviewComponent } from './pages/overview/overview.component';
+import { CreateProjectModalComponent } from './components/create-project-modal/create-project-modal.component';
+import { CreateOrganizationModalComponent } from './components/create-organization-modal/create-organization-modal.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { OrganizationListComponent } from './components/organization-list/organization-list.component';
 
 const routes: Routes = [
   {
@@ -50,19 +54,24 @@ const routes: Routes = [
   declarations: [
     InternalComponent,
     NavigationComponent,
-    OverviewComponent
+    OverviewComponent,
+    CreateProjectModalComponent,
+    CreateOrganizationModalComponent,
+    OrganizationListComponent
   ],
   imports: [
     CommonModule,
     FontAwesomeModule,
     NgbDropdownModule,
     NgbNavModule,
+    NgbModalModule,
+    ReactiveFormsModule,
     RouterModule.forChild(routes),
     CoreModule
   ]
 })
 export class InternalModule {
   constructor(library: FaIconLibrary) {
-    library.addIcons(faBars, faUserLock);
+    library.addIcons(faBars, faUserLock, faPlus, faImage);
   }
 }

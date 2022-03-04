@@ -9,3 +9,32 @@
 html {
   font-size: .875rem;
 }
+
+.modal {
+  backdrop-filter: blur(3px);
+  color: #555;
+
+  .modal-title {
+    color: #555;
+  }
+}
+
+.list-group {
+  .list-group-item {
+    background: #525252;
+    color: #fff;
+
+    &.list-group-item-action {
+      cursor: pointer;
+      transition: background .2s ease-in-out;
+
+      &:hover {
+        background: lighten(#525252, 5);
+      }
+    }
+
+    .text-muted {
+      color: darken(#fff, 30) !important;
+    }
+  }
+}
