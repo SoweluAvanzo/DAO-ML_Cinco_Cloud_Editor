@@ -163,7 +163,6 @@ public class FileController {
 		}
 		return baseFolderPath;
     }
-
     
     /**
      * if the workspace-path is "/editor/workspace" on the filesystem, and the
@@ -184,21 +183,15 @@ public class FileController {
 		String workspaceAbsolutePath = Paths.get(workspaceStringPath).toString();
 		String targetFolderPath = Paths.get(workspaceAbsolutePath, relativeFolderPath).toString();
 		File dir = new File(targetFolderPath);
+		String sanitizedPath = sanitizePath(targetFolderPath);
 		if (!dir.exists()) {			
 			try {
-				String sanitizedPath = sanitizePath(targetFolderPath);
-				if(!dir.isDirectory()) { // dir is a File not a Folder
-					sanitizedPath = sanitizedPath.substring(0, sanitizedPath.lastIndexOf('/'));
-					java.nio.file.Files.createDirectories(Paths.get(sanitizedPath));
-				} else {
-					java.nio.file.Files.createDirectories(Paths.get(sanitizedPath));
-				}
-				return sanitizedPath;
+				java.nio.file.Files.createDirectories(Paths.get(sanitizedPath));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		return null;
+		return sanitizedPath;
     }
 
     /**
@@ -212,15 +205,15 @@ public class FileController {
 	}
     
 	/**
-	 * 
-	 * @param resourceStream				- the resource to copy as a stream.
-	 * @param relativeTargetPath 		- the relative-path inside the folder defined by "@generatable"-annotation (inside the workspace-folder).
-	 * 										Inside that folder, the "resourceFilePath" will be placed.
+	 * @param resourceStream			- the resource to copy as a stream.
+ 	 * @param relativeTargetPath 		- the relative-path inside the folder defined by "@generatable"-annotation (inside the workspace-folder).
+ 	 * 									Inside that folder, the "resourceFilePath" will be placed.
 	 * @throws IOException
 	 */
-	public static void copyResource(java.io.InputStream resourceStream, String relativeTargetPath) throws IOException {	
+	public static void copyResource(java.io.InputStream resourceStream, String relativeTargetPath) throws IOException {
 		String targetResourceName = getFileName(relativeTargetPath);
-		String folderPath = relativeTargetPath.substring(0, targetResourceName.length());
+		int index = relativeTargetPath.lastIndexOf(targetResourceName);
+		String folderPath = relativeTargetPath.substring(0, index <= 0 ? relativeTargetPath.length() : index);
 		String absoluteTargetFolderPath = createFolder(folderPath);
 		
 		String absoluteTargetResourcePath = Paths.get(absoluteTargetFolderPath, targetResourceName).toString();
@@ -229,8 +222,6 @@ public class FileController {
 	}
 	
 	/**
-	 * @param relativeResourcePath		- the relative of the resource-path inside the staticResourceFolder, as well as in the destination-path
-	 * 									after generation.
 	 * @param staticResourceBase		- the folder predefined by pyro. usualy "asset/[graphmodel.name]"
 	 * @param staticResourceFolder 		- defined by the "@pyroGeneratorResource"-annotation (That annotation can contain an array of possible folders).
 	 * @param relativeResourcePath		- the path of the resource, that will be preserved for the target path
@@ -305,8 +296,10 @@ public class FileController {
 	}
 	
 	public static File createFile(String relativeTargetFilePath, boolean overwrite) {
-		String absolutefolderPath = createFolder(relativeTargetFilePath);
 		String fileName = getFileName(relativeTargetFilePath);
+		int index = relativeTargetFilePath.lastIndexOf(fileName);
+		String relativeFolderPath = relativeTargetFilePath.substring(0, index <= 0? relativeTargetFilePath.length() : index);
+		String absolutefolderPath = createFolder(relativeFolderPath);
 		Path path = Paths.get(absolutefolderPath, fileName);
 		File file = new File(path.toString());
 		if(file.exists()) {
