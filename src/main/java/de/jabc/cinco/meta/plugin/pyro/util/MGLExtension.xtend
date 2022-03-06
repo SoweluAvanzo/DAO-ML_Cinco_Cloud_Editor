@@ -579,6 +579,10 @@ class MGLExtension {
 		}
 	}
 
+	def javaType(Attribute attr) {
+		javaType(attr, attr.MGLModel)
+	}
+
 	def javaType(Attribute attr, GraphModel g) {
 		javaType(attr, g.mglModel)
 	}
@@ -611,9 +615,9 @@ class MGLExtension {
 			}
 			case "ELong": {
 				if (attr.list) {
-					return '''Integer'''
+					return '''Long'''
 				}
-				return '''int'''
+				return '''long'''
 			}
 			case "EBigInteger": {
 				if (attr.list) {
@@ -655,17 +659,21 @@ class MGLExtension {
 				return '''String'''
 		}
 	}
-
-	def javaDBType(Attribute attr, GraphModel g) {
-		javaDBType(attr, g.mglModel)
+	
+	def javaRestType(Attribute attr) {
+		javaRestType(attr, attr.MGLModel)
 	}
 
-	def javaDBType(Attribute attr, MGLModel g) {
-		if (attr.attributeTypeName.getEnum(g) !== null) {
-			return g.apiFQN + "." + attr.attributeTypeName.fuEscapeJava
-		}
+	def javaRestType(Attribute attr, GraphModel g) {
+		javaRestType(attr, g.mglModel)
+	}
+
+	def javaRestType(Attribute attr, MGLModel g) {
 		if (!attr.isPrimitive) {
-			return '''«attr.attributeTypeName.fuEscapeJava»'''
+			return '''«attr.apiFQN»'''
+		}
+		if (attr.attributeTypeName.getEnum(g) !== null) {
+			return '''info.scce.pyro.core.graphmodel.PyroEnum'''
 		}
 		switch (attr.attributeTypeName) {
 			case "EBoolean": {
@@ -688,9 +696,90 @@ class MGLExtension {
 			}
 			case "ELong": {
 				if (attr.list) {
+					return '''Long'''
+				}
+				return '''long'''
+			}
+			case "EBigInteger": {
+				if (attr.list) {
 					return '''Integer'''
 				}
 				return '''int'''
+			}
+			case "EByte": {
+				if (attr.list) {
+					return '''Integer'''
+				}
+				return '''int'''
+			}
+			case "EShort": {
+				if (attr.list) {
+					return '''Integer'''
+				}
+				return '''int'''
+			}
+			case "EFloat": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			case "EFloatObject": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			case "EBigDecimal": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			default:
+				return '''String'''
+		}
+	}
+	
+	def javaDBType(Attribute attr) {
+		javaDBType(attr, attr.MGLModel)
+	}
+
+	def javaDBType(Attribute attr, GraphModel g) {
+		javaDBType(attr, g.mglModel)
+	}
+	
+	def javaDBType(Attribute attr, MGLModel g) {
+		if (attr.attributeTypeName.getEnum(g) !== null) {
+			return '''«attr.entityFQN»'''
+		}
+		if (!attr.isPrimitive) {
+			return '''«attr.entityFQN»'''
+		}
+		switch (attr.attributeTypeName) {
+			case "EBoolean": {
+				if (attr.list) {
+					return '''Boolean'''
+				}
+				return '''boolean'''
+			}
+			case "EInt": {
+				if (attr.list) {
+					return '''Integer'''
+				}
+				return '''int'''
+			}
+			case "EDouble": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			case "ELong": {
+				if (attr.list) {
+					return '''Long'''
+				}
+				return '''long'''
 			}
 			case "EBigInteger": {
 				if (attr.list) {

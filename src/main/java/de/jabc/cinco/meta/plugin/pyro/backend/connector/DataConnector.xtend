@@ -215,9 +215,9 @@ class DataConnector extends Generatable {
 		} else {
 			// no enum
 			if(attribute.isList) {
-				m.multiPrimitiveAttribute(attribute.name.escapeJava, attribute.attributeTypeName.getPrimitveObjectTypeLiteral)
+				m.multiPrimitiveAttribute(attribute.name.escapeJava, attribute.javaDBType)	// TODO: SAMI deprecate attribute.attributeTypeName.getPrimitveObjectTypeLiteral
 			} else {
-				m.singlePrimitiveAttribute(attribute.name.escapeJava, attribute.attributeTypeName.getPrimitveTypeLiteral)
+				m.singlePrimitiveAttribute(attribute.name.escapeJava, attribute.javaDBType) // TODO: SAMI deprecate attribute.attributeTypeName.getPrimitveTypeLiteral
 			}
 		}		
 	}
@@ -455,13 +455,13 @@ class DataConnector extends Generatable {
 						this.«attr.name.escapeJava».stream().forEach(
 							(path) -> {
 								if(path != null) {
-									info.scce.pyro.core.FileController.deleteFile(path);
+									info.scce.pyro.core.FileController.deleteBaseFile(path);
 								}
 							}
 						);
 					«ELSE»
 						if(this.«attr.name.escapeJava» != null && !this.«attr.name.escapeJava».isEmpty()) {
-							info.scce.pyro.core.FileController.deleteFile(this.«attr.name.escapeJava»);
+							info.scce.pyro.core.FileController.deleteBaseFile(this.«attr.name.escapeJava»);
 						}
 					«ENDIF»
 				«ENDFOR»
