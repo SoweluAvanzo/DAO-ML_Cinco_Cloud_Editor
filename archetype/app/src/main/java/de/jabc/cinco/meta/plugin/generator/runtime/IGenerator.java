@@ -84,10 +84,9 @@ public abstract class IGenerator<T extends GraphModel> {
         files.add(new GeneratedFile(filename,path,file));
     }
     
-    public final void generateFiles()  throws IOException {
-		String generationBaseFolderPath = getWorkspaceBasePath();    	
+    public final void generateFiles()  throws IOException {  	
     	for (GeneratedFile f : files) {
-    		Path targetPath = Paths.get(generationBaseFolderPath, f.getPath(), f.getFilename());
+    		Path targetPath = Paths.get(workspaceGenerationFolder, f.getPath(), f.getFilename());
     		FileController.writeFile(targetPath.toString(), f.getContent());
 		}
     }
@@ -96,6 +95,11 @@ public abstract class IGenerator<T extends GraphModel> {
     	copyStaticResources("");
     }
     
+    /**
+     * Copys the static Resource from the internal source into the relative path inside the workspaceGenerationFolder,
+     * defined via the generator-annotation.
+     * @param relativePath
+     */
     public final void copyStaticResources(String relativeTargetPath) {
     	try {
     		for (java.util.Map.Entry<String, String[]> staticResource : staticResources.entrySet()) {
@@ -113,43 +117,45 @@ public abstract class IGenerator<T extends GraphModel> {
 	}
     
     public String getWorkspaceBasePath() {
-		return FileController.createFolder(workspaceGenerationFolder);
+		return workspaceGenerationFolder;
     }
     
     /**
      * see info.scce.pyro.core.FileController.createFolder
+     * (the relativeFolderPath path will implicitly have a preceiding path of the workspaceGenerationFolder, defined via generator-annotation)
      * @param relativeFolderPath
      * @return
      */
     public String createFolder(String relativeFolderPath) {
-    	return FileController.createFolder(relativeFolderPath);
+		String workspacePath = Paths.get(workspaceGenerationFolder, relativeFolderPath).toString();
+    	return FileController.createFolder( workspacePath);
     }
     
     /**
      * see info.scce.pyro.core.FileController.copyResource
-     * @param relativeFolderPath
-     * @return
+     * (the relativeTargetPath path will implicitly have a preceiding path of the workspaceGenerationFolder, defined via generator-annotation)
      */
 	public void copyResource(String relativeSourcePath, String relativeTargetPath) throws IOException {
-		FileController.copyResource(relativeSourcePath, relativeTargetPath);
+		String workspacePath = Paths.get(workspaceGenerationFolder, relativeTargetPath).toString();
+		FileController.copyResource(relativeSourcePath, workspacePath);
 	}
 	
 	/**
      * see info.scce.pyro.core.FileController.copyResource
-     * @param relativeFolderPath
-     * @return
+     * (the relativeTargetPath path will implicitly have a preceiding path of the workspaceGenerationFolder, defined via generator-annotation)
      */
 	public void copyResource(java.io.InputStream resourceStream, String relativeTargetPath) throws IOException {
-		FileController.copyResource(resourceStream, relativeTargetPath);
+		String workspacePath = Paths.get(workspaceGenerationFolder, relativeTargetPath).toString();
+		FileController.copyResource(resourceStream, workspacePath);
 	}
 	
 	/**
      * see info.scce.pyro.core.FileController.copyInternalResource
-     * @param relativeFolderPath
-     * @return
+     * (the relativeTargetFolderPath path will implicitly have a preceiding path of the workspaceGenerationFolder, defined via generator-annotation)
      */
-	public void copyInternalResource(String staticResourceFolder, String relativeResourcePath, String relativeTargetFolderPath) throws IOException {	
-		FileController.copyInternalResource(staticInternalResourceBase, staticResourceFolder, relativeResourcePath, relativeTargetFolderPath);
+	public void copyInternalResource(String staticResourceFolder, String relativeResourcePath, String relativeTargetFolderPath) throws IOException {
+		String workspacePath = Paths.get(workspaceGenerationFolder, relativeTargetFolderPath).toString();
+		FileController.copyInternalResource(staticInternalResourceBase, staticResourceFolder, relativeResourcePath, workspacePath);
 	}
 	
 	/**
