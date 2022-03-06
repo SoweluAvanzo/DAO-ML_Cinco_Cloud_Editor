@@ -21,6 +21,7 @@ import java.io.File
 import java.util.HashMap
 import de.jabc.cinco.meta.plugin.generator.runtime.IGenerator
 import info.scce.pyro.core.FileController
+import java.io.IOException
 
 class ActivityGenerator extends WebStorySwitch<CharSequence> {
 	
@@ -92,7 +93,12 @@ class ActivityGenerator extends WebStorySwitch<CharSequence> {
 		val file = FileController.loadFile(
 			Long.parseLong(imageName)
 		)
-		generator.copyResource(file, imagePath);
+		
+		try{
+			generator.copyResource(file, imagePath);
+		} catch(IOException e) {
+			e.printStackTrace
+		}
 		
 		imagePath
 	}
