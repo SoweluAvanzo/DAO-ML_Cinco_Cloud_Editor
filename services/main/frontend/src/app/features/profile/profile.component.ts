@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { PasswordChangeComponent } from "./components/password-change/password-change.component";
+import { PersonalInformationComponent } from "./components/personal-information/personal-information.component";
 
 @Component({
   selector: 'cc-profile',
