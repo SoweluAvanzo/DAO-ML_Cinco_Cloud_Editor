@@ -1,0 +1,41 @@
+<div *ngIf="project != null" class="h-100 d-flex">
+  <div class="sidebar">
+    <cc-sidebar>
+      <ng-container items>
+        <cc-sidebar-item
+          [icon]="icons.thLarge"
+          [route]="['/app', 'projects', '' + project.id]"
+          text="Overview"
+        >
+        </cc-sidebar-item>
+        <cc-sidebar-item
+          [icon]="icons.code"
+          [route]="['/app', 'projects', '' + project.id, 'editor']"
+          text="Editor"
+        >
+        </cc-sidebar-item>
+        <cc-sidebar-item
+          [icon]="icons.users"
+          [route]="['/app', 'projects', '' + project.id, 'users']"
+          text="Members"
+        >
+        </cc-sidebar-item>
+        <cc-sidebar-item
+          [icon]="icons.history"
+          [route]="['/app', 'projects', '' + project.id, 'build-jobs']"
+          text="Build Jobs"
+        >
+        </cc-sidebar-item>
+        <cc-sidebar-item
+          [icon]="icons.cogs"
+          [route]="['/app', 'projects', '' + project.id, 'settings']"
+          text="Settings"
+        >
+        </cc-sidebar-item>
+      </ng-container>
+    </cc-sidebar>
+  </div>
+  <div class="page flex-grow-1 overflow-auto">
+    <router-outlet></router-outlet>
+  </div>
+</div>

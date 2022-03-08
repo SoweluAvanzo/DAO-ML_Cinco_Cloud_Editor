@@ -43,4 +43,8 @@ export class AuthApiService extends BaseApiService {
       map((body: any) => body as TicketResponse)
     );
   }
+
+  public getToken(): string {
+    return window.localStorage.getItem(AuthApiService.TOKEN_KEY);
+  }
 }

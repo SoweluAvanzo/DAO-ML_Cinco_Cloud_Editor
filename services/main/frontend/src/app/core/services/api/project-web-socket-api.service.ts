@@ -19,13 +19,13 @@ export class ProjectWebSocketApiService extends BaseApiService {
       next: ticketResponse => {
         const ticket = ticketResponse.ticket;
         const socket = new WebSocket(`${this.webSocketUrl}/project/${projectId}/${ticket}/private`);
-        socket.addEventListener('onopen', e => {
-          console.debug(`open projectWebsocket: ${e.toString()}`);
+        socket.addEventListener('open', e => {
+          console.log(`open projectWebsocket: ${e.toString()}`);
           subject.next(socket);
           subject.complete();
         });
-        socket.addEventListener('onerror', e => {
-          console.debug(`error opening projectWebsocket: ${e.toString()}`);
+        socket.addEventListener('error', e => {
+          console.log(`error opening projectWebsocket: ${e.toString()}`);
           throw e;
         });
       },

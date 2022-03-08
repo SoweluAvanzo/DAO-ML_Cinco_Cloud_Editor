@@ -34,7 +34,7 @@ export class ProjectApiService extends BaseApiService {
   }
 
   public deploy(project: Project): Observable<ProjectDeployment> {
-    return this.http.post(`${this.apiUrl}/project/${project.id}/deployments/private`, '', this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/project/${project.id}/deployments/private`, null, this.defaultHttpOptions).pipe(
       map((body: any) => body as ProjectDeployment)
     );
   }

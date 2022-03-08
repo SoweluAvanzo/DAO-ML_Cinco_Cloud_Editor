@@ -1,0 +1,21 @@
+<div *ngIf="deployment == null || deployment.status == 'DEPLOYING'" class="text-center my-4">
+  <div>
+    <fa-stack size="3x">
+      <fa-icon [icon]="['fas', 'cloud']" stackItemSize="2x"></fa-icon>
+      <fa-icon [icon]="['fas', 'cog']" [spin]="true" stackItemSize="1x" style="color: #313131;"></fa-icon>
+    </fa-stack>
+  </div>
+  <div>
+    <strong>Creating workspace</strong>
+  </div>
+</div>
+
+<ng-container *ngIf="editorUrl != null && deployment.status == 'READY'">
+  <iframe [src]="editorUrl" class="border-0 h-100 w-100"></iframe>
+</ng-container>
+
+<div *ngIf="deployment != null && deployment.status == 'FAILED'" class="container mt-3">
+  <div class="alert alert-danger">
+    Failed to deploy editor.
+  </div>
+</div>
