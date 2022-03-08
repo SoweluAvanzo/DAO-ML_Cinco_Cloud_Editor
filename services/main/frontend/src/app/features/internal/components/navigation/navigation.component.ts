@@ -7,7 +7,7 @@ import { User } from '../../../../core/models/user';
 @Component({
   selector: 'cc-navigation',
   templateUrl: './navigation.component.html',
-  styleUrls: ['./navigation.component.css']
+  styleUrls: ['./navigation.component.scss']
 })
 export class NavigationComponent implements OnInit {
 

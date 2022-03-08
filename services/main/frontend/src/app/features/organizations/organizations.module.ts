@@ -24,6 +24,10 @@ const routes: Routes = [
         },
         children: [
           {
+            path: '',
+            redirectTo: 'projects'
+          },
+          {
             path: 'projects',
             component: ProjectsComponent
           },
