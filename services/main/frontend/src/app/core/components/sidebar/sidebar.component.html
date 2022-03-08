@@ -1,0 +1,10 @@
+<aside class="sidebar d-flex flex-column h-100" [class.collapsed]="collapsed">
+  <div class="sidebar-header">
+    <ng-content select="[header]"></ng-content>
+  </div>
+  <div class="sidebar-items flex-grow-1 overflow-auto">
+    <ng-content select="[items]"></ng-content>
+  </div>
+  <div class="sidebar-footer d-flex">
+  </div>
+</aside>

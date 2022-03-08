@@ -1,5 +1,5 @@
 <div class="list-group">
-  <a *ngFor="let project of projects" class="list-group-item list-group-item-action d-flex">
+  <a *ngFor="let project of projects" class="list-group-item list-group-item-action d-flex" [routerLink]="['/app', 'projects', project.id]">
     <div class="flex-grow-1">
       <div>
         <strong>{{project.name}}</strong>

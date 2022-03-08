@@ -1,20 +1,65 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Routes, RouterModule } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { OrganizationsComponent } from './organizations.component';
-
+import { OrganizationComponent } from './pages/organization/organization.component';
+import { OrganizationResolver } from './resolvers/organization.resolver';
+import { CoreModule } from '../../core/core.module';
+import { UsersComponent } from './pages/users/users.component';
+import { AccessManagementComponent } from './pages/access-management/access-management.component';
+import { SettingsComponent } from './pages/settings/settings.component';
+import { ProjectsComponent } from './pages/projects/projects.component';
+import { InternalModule } from '../internal/internal.module';
 
 const routes: Routes = [
-  { path: '', component: OrganizationsComponent }
+  {
+    path: '',
+    component: OrganizationsComponent,
+    children: [
+      {
+        path: ':organizationId',
+        component: OrganizationComponent,
+        resolve: {
+          organization: OrganizationResolver
+        },
+        children: [
+          {
+            path: 'projects',
+            component: ProjectsComponent
+          },
+          {
+            path: 'users',
+            component: UsersComponent
+          },
+          {
+            path: 'access-management',
+            component: AccessManagementComponent
+          },
+          {
+            path: 'settings',
+            component: SettingsComponent
+          }
+        ]
+      }
+    ]
+  }
 ];
 
 @NgModule({
   declarations: [
-    OrganizationsComponent
+    OrganizationsComponent,
+    OrganizationComponent,
+    ProjectsComponent,
+    UsersComponent,
+    AccessManagementComponent,
+    SettingsComponent
   ],
   imports: [
     CommonModule,
-    RouterModule.forChild(routes)
+    RouterModule.forChild(routes),
+    CoreModule,
+    InternalModule
   ]
 })
-export class OrganizationsModule { }
+export class OrganizationsModule {
+}

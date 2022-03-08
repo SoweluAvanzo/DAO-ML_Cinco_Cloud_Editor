@@ -1,0 +1,35 @@
+<div *ngIf="organization != null" class="h-100 d-flex">
+  <div class="sidebar">
+    <cc-sidebar>
+      <ng-container items>
+        <cc-sidebar-item
+          [icon]="icons.folderOpen"
+          [route]="['/app', 'organizations', '' + organization.id, 'projects']"
+          text="Projects"
+        >
+        </cc-sidebar-item>
+        <cc-sidebar-item
+          [icon]="icons.users"
+          [route]="['/app', 'organizations', '' + organization.id, 'users']"
+          text="Members"
+        >
+        </cc-sidebar-item>
+        <cc-sidebar-item
+          [icon]="icons.userShield"
+          [route]="['/app', 'organizations', '' + organization.id, 'access-management']"
+          text="Access Management"
+        >
+        </cc-sidebar-item>
+        <cc-sidebar-item
+          [icon]="icons.cogs"
+          [route]="['/app', 'organizations', '' + organization.id, 'settings']"
+          text="Settings"
+        >
+        </cc-sidebar-item>
+      </ng-container>
+    </cc-sidebar>
+  </div>
+  <div class="page flex-grow-1 overflow-auto">
+    <router-outlet></router-outlet>
+  </div>
+</div>

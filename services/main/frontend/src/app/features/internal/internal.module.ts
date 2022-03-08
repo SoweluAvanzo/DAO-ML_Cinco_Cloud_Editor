@@ -61,6 +61,9 @@ const routes: Routes = [
     OrganizationListComponent,
     ProjectListComponent
   ],
+  exports: [
+    ProjectListComponent
+  ],
   imports: [
     CommonModule,
     FontAwesomeModule,

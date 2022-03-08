@@ -24,6 +24,6 @@ export class ProjectListComponent {
   }
 
   isUserOwnerOfProject(project: Project) {
-    return this.currentUser != null && project.owner.id === this.currentUser.id;
+    return this.currentUser != null && project.owner != null && project.owner.id === this.currentUser.id;
   }
 }

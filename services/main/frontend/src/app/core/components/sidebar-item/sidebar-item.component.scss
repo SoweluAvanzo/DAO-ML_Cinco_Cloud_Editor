@@ -1,0 +1,11 @@
+.sidebar-item {
+  color: #d4d4d4;
+  text-decoration: none;
+  transition: background .2s ease-in-out, color .2s ease-in-out;
+  cursor: pointer;
+
+  &:hover, &.active {
+    color: #fff;
+    background: rgba(0,0,0,0.2);
+  }
+}
