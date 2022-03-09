@@ -1,0 +1,10 @@
+.editor-widget {
+  background: #0d6efd;
+  color: #fff;
+  text-decoration: none;
+  transition: background .2s ease-in-out;
+
+  &:hover {
+    background: darken(#0d6efd, 10);
+  }
+}

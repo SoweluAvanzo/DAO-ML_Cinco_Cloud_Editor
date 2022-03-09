@@ -42,3 +42,24 @@ html {
     }
   }
 }
+
+.nav-tabs {
+  border-bottom: 1px solid #525252;
+
+  .nav-link {
+    color: #7e7e7e;
+
+    &:hover {
+      border-color: transparent;
+      background: #292929;
+      border-bottom: 1px solid #525252;
+      color: #b6b6b6;
+    }
+
+    &.active {
+      color: #d4d4d4;
+      background-color: #525252;
+      border-color: #525252;
+    }
+  }
+}

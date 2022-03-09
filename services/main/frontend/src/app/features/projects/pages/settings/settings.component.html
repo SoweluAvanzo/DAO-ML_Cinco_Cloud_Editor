@@ -1,1 +1,33 @@
-<p>settings works!</p>
+<div class="container mt-3">
+
+  <ul ngbNav #nav="ngbNav" class="nav-tabs">
+    <li [ngbNavItem]="1">
+      <a ngbNavLink>Properties</a>
+      <ng-template ngbNavContent>
+        <ul>
+          <li>Update name and description</li>
+        </ul>
+      </ng-template>
+    </li>
+    <li [ngbNavItem]="2">
+      <a ngbNavLink>Git</a>
+      <ng-template ngbNavContent>
+        <ul>
+          <li>Git credentials</li>
+        </ul>
+      </ng-template>
+    </li>
+    <li [ngbNavItem]="3">
+      <a ngbNavLink>Advanced</a>
+      <ng-template ngbNavContent>
+        <ul>
+          <li>Leave project as member</li>
+          <li>Delete project</li>
+        </ul>
+      </ng-template>
+    </li>
+  </ul>
+
+  <div [ngbNavOutlet]="nav" class="mt-2"></div>
+
+</div>

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { catchError, map, Observable, of, tap } from 'rxjs';
+import { catchError, map, mergeMap, Observable, of, tap } from 'rxjs';
 import { AuthApiService } from '../services/api/auth-api.service';
 import { AppStoreService } from '../services/stores/app-store.service';
 import { UserApiService } from '../services/api/user-api.service';
@@ -11,6 +11,7 @@ import { UserApiService } from '../services/api/user-api.service';
 export class UserIsLoggedInGuard implements CanActivate, CanActivateChild {
 
   constructor(private userApi: UserApiService,
+              private authApi: AuthApiService,
               private appStore: AppStoreService) {
   }
 
@@ -30,7 +31,8 @@ export class UserIsLoggedInGuard implements CanActivate, CanActivateChild {
     return this.userApi.getCurrent().pipe(
       tap(user => this.appStore.setUser(user)),
       map(_ => true),
-      catchError(_ => of(false))
+      catchError(_ => of(false)),
+      mergeMap(auth => auth ? of(true) : this.authApi.logout())
     );
   }
 }

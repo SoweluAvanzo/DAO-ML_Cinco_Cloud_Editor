@@ -10,7 +10,10 @@ import { ProjectResolver } from './resolvers/project.resolver';
 import { CoreModule } from '../../core/core.module';
 import { EditorComponent } from './pages/editor/editor.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCloud, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faCloud, faCode, faCog } from '@fortawesome/free-solid-svg-icons';
+import { OverviewComponent } from './pages/overview/overview.component';
+import { EditorWidgetComponent } from './pages/overview/components/editor-widget/editor-widget.component';
+import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 
 const routes: Routes = [
   {
@@ -24,6 +27,10 @@ const routes: Routes = [
           project: ProjectResolver
         },
         children: [
+          {
+            path: '',
+            component: OverviewComponent
+          },
           {
             path: 'users',
             component: UsersComponent
@@ -53,18 +60,21 @@ const routes: Routes = [
     BuildJobsComponent,
     SettingsComponent,
     ProjectComponent,
-    EditorComponent
+    EditorComponent,
+    OverviewComponent,
+    EditorWidgetComponent
   ],
   imports: [
     CommonModule,
     RouterModule.forChild(routes),
     FontAwesomeModule,
+    NgbNavModule,
     CoreModule
   ]
 })
 export class ProjectsModule {
 
   constructor(private library: FaIconLibrary) {
-    library.addIcons(faCloud, faCog);
+    library.addIcons(faCloud, faCog, faCode, faCircleNotch);
   }
 }
