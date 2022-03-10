@@ -8,6 +8,7 @@ import {UserLoginInput} from "../../../../core/models/forms/user-login-input";
 import {UserApiService} from "../../../../core/services/api/user-api.service";
 import {User} from "../../../../core/models/user";
 import {UpdateCurrentUserPasswordInput} from "../../../../core/models/forms/update-current-user-password-input";
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'cc-password-change',
@@ -26,7 +27,8 @@ export class PasswordChangeComponent implements OnInit {
   constructor(private authApi: AuthApiService,
               private settingsApi: SettingsApiService,
               private appStore: AppStoreService,
-              private userApi: UserApiService) {
+              private userApi: UserApiService,
+              private router: Router) {
 
   }
 
@@ -38,11 +40,13 @@ export class PasswordChangeComponent implements OnInit {
   }
 
   public change_password(): void{
-    //var user = this.appStore.getUser()
     const update: UpdateCurrentUserPasswordInput = new UpdateCurrentUserPasswordInput()
-    update.oldPassword = this.passwordChangeForm.get('password').toString()
-    update.newPassword = this.passwordChangeForm.get('new_password').toString()
-    this.userApi.updatePassword(update)
+    update.oldPassword = this.passwordChangeForm.get('password').value
+    update.newPassword = this.passwordChangeForm.get('new_password').value
+    this.userApi.updatePassword(update).subscribe({
+      next: () => this.router.navigate(['/app/overview']),
+      error: console.error
+    });
   }
 
 }

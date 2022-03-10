@@ -5,6 +5,7 @@ import { ProfileComponent } from './profile.component';
 import { PasswordChangeComponent } from './components/password-change/password-change.component';
 import { PersonalInformationComponent } from './components/personal-information/personal-information.component';
 import {ReactiveFormsModule} from "@angular/forms";
+import {CoreModule} from "../../core/core.module";
 
 
 const routes: Routes = [
@@ -17,10 +18,11 @@ const routes: Routes = [
     PasswordChangeComponent,
     PersonalInformationComponent
   ],
-  imports: [
-    CommonModule,
-    RouterModule.forChild(routes),
-    ReactiveFormsModule
-  ]
+    imports: [
+        CommonModule,
+        RouterModule.forChild(routes),
+        ReactiveFormsModule,
+        CoreModule
+    ]
 })
 export class ProfileModule { }
