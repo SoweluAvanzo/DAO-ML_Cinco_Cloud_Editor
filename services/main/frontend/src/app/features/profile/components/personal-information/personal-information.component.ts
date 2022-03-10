@@ -36,7 +36,7 @@ export class PersonalInformationComponent implements OnInit {
 
   }
 
-  public get currentUser(): User{
+  public get currentUser(): User {
     return this.appStore.getUser();
   }
 
@@ -73,7 +73,7 @@ export class PersonalInformationComponent implements OnInit {
     if (this.informationChangeForm.get('picture').value) {
       var file: File = this.informationChangeForm.get('fileSource').value
 
-      if(this.allowedFileTypes.some(x => x === file.type)){
+      if (this.allowedFileTypes.some(x => x === file.type)) {
         console.log("allowed image type")
         console.log(file.type)
         console.log(this.informationChangeForm.get('fileSource').value)
@@ -84,10 +84,19 @@ export class PersonalInformationComponent implements OnInit {
       console.log("no file")
     }
 
-    this.userApi.updateProfile(update).subscribe({
-      next: () => this.router.navigate(['/app/overview']),
-      error: console.error
-    })
+    //TODO: reihenfolge ändern sobald file upload funktioniert
+
+    //skip wenn alle 3 form felder leer sind
+    if ((!this.informationChangeForm.get('picture').value) &&
+      (!this.informationChangeForm.get('name').value) &&
+      (!this.informationChangeForm.get('email').value)) {
+
+    } else {
+      this.userApi.updateProfile(update).subscribe({
+        next: () => this.router.navigate(['/app/overview']),
+        error: console.error
+      })
+    }
   }
 
 }
