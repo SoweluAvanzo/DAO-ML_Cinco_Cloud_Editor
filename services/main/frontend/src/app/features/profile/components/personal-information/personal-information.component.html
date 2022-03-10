@@ -6,7 +6,7 @@
       </div>
       <div class="pyro-panel-body card-body _ngcontent-drf-10">
         <div class="row _ngcontent-drf-10">
-          <form (ngSubmit)="changeInformation()" [formGroup]="informationChangeForm"
+          <form id="changeInformationForm" (ngSubmit)="changeInformation()" [formGroup]="informationChangeForm"
                 class="d-flex flex-column gap-3 mb-3">
             <div>
               <label class="form-label" for="name">Name</label>
@@ -26,6 +26,15 @@
                 [placeholder]="currentUser.email"
                 type="email">
             </div>
+            <div>
+              <label for="picture">Profile Picture</label>
+              <input
+                formControlName="picture"
+                id="picture"
+                type="file"
+                class="form-control"
+                (change)="onFileChange($event)">
+            </div>
           </form>
           <cc-user-profile-image [user]="currentUser"></cc-user-profile-image>
         </div>
@@ -34,8 +43,9 @@
         <button
           class="btn-primary btn d-block"
           type="submit"
+          form="changeInformationForm"
         >
-          Update
+          Save
         </button>
       </div>
     </div>
