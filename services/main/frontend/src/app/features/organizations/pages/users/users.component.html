@@ -5,59 +5,58 @@
     <hr>
   </div>
 
-  <table class="table">
-    <thead>
-    <tr>
-      <th style="width: 1px">#</th>
-      <th>Name</th>
-      <th>Username</th>
-      <th>Email</th>
-      <th>Role</th>
-      <th>&nbsp;</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr *ngFor="let user of users">
-      <td>{{user.id}}</td>
-      <td>{{user.name}}</td>
-      <td>{{user.username}}</td>
-      <td>{{user.email}}</td>
-      <td>
-        <span class="badge bg-dark rounded-pill">
-          <span *ngIf="isOrganizationOwner(user); else member">Owner</span>
-          <ng-template #member>
-            <span>Member</span>
-          </ng-template>
-        </span>
-      </td>
-      <td class="text-end">
-        <div class="d-inline-block" ngbDropdown>
-          <button class="btn btn-sm btn-dark no-caret px-3" ngbDropdownToggle>
-            <fa-icon [icon]="['fas', 'ellipsis-v']"></fa-icon>
-          </button>
-          <div ngbDropdownMenu>
-            <button
-              (click)="organizationStore.makeUserMemberOfOrganization(user)"
-              *ngIf="isOrganizationOwner(user); else makeMember"
-              ngbDropdownItem
-            >
-              Make member
-            </button>
-            <ng-template #makeMember>
-              <button
-                (click)="organizationStore.makeUserOwnerOfOrganization(user)"
-                ngbDropdownItem
-              >
-                Make owner
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <table class="table mb-0">
+        <thead>
+        <tr>
+          <th style="width: 1px">#</th>
+          <th>Name</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>&nbsp;</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let user of organization?.allUsers">
+          <td>{{user.id}}</td>
+          <td>{{user.name}}</td>
+          <td>{{user.username}}</td>
+          <td>{{user.email}}</td>
+          <td>
+            <cc-organization-role-badge [user]="user" [organization]="organization"></cc-organization-role-badge>
+          </td>
+          <td class="text-end">
+            <div class="d-inline-block" ngbDropdown>
+              <button class="btn btn-sm btn-dark no-caret px-3" ngbDropdownToggle>
+                <fa-icon [icon]="['fas', 'ellipsis-v']"></fa-icon>
               </button>
-            </ng-template>
-            <div class="dropdown-divider"></div>
-            <button (click)="organizationStore.removeUserFromOrganization(user)" ngbDropdownItem>Remove</button>
-          </div>
-        </div>
-      </td>
-    </tr>
-    </tbody>
-  </table>
+              <div ngbDropdownMenu>
+                <button
+                  (click)="organizationStore.makeUserMemberOfOrganization(user)"
+                  *ngIf="organization.owners.includes(user); else makeMember"
+                  ngbDropdownItem
+                >
+                  Make member
+                </button>
+                <ng-template #makeMember>
+                  <button
+                    (click)="organizationStore.makeUserOwnerOfOrganization(user)"
+                    ngbDropdownItem
+                  >
+                    Make owner
+                  </button>
+                </ng-template>
+                <div class="dropdown-divider"></div>
+                <button (click)="organizationStore.removeUserFromOrganization(user)" ngbDropdownItem>Remove</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
 </div>

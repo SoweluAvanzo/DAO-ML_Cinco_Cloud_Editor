@@ -13,8 +13,9 @@ import { InternalModule } from '../internal/internal.module';
 import { AddUserModalComponent } from './pages/users/components/add-user-modal/add-user-modal.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faEllipsisV, faEnvelope, faUser } from '@fortawesome/free-solid-svg-icons';
-import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { faEllipsisV, faEnvelope, faTimes, faUser } from '@fortawesome/free-solid-svg-icons';
+import { NgbDropdownModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+import { OrganizationRoleBadgeComponent } from './pages/users/components/organization-role-badge/organization-role-badge.component';
 
 const routes: Routes = [
   {
@@ -62,7 +63,8 @@ const routes: Routes = [
     UsersComponent,
     AccessManagementComponent,
     SettingsComponent,
-    AddUserModalComponent
+    AddUserModalComponent,
+    OrganizationRoleBadgeComponent
   ],
   imports: [
     CommonModule,
@@ -70,6 +72,7 @@ const routes: Routes = [
     ReactiveFormsModule,
     FontAwesomeModule,
     NgbDropdownModule,
+    NgbNavModule,
     CoreModule,
     InternalModule
   ]
@@ -77,6 +80,6 @@ const routes: Routes = [
 export class OrganizationsModule {
 
   constructor(library: FaIconLibrary) {
-    library.addIcons(faEnvelope, faUser, faEllipsisV);
+    library.addIcons(faEnvelope, faUser, faEllipsisV, faTimes);
   }
 }

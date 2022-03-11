@@ -16,7 +16,7 @@ export class OrganizationAccessRightVectorApiService extends BaseApiService {
 
   public getAll(organizationId: number): Observable<OrganizationAccessRightVector[]> {
     return this.http.get(`${this.apiUrl}/organization/${organizationId}/accessRights`, this.defaultHttpOptions).pipe(
-      map(body => this.transformList(body as any[]))
+      map((body: any) => this.transformList(body))
     );
   }
 

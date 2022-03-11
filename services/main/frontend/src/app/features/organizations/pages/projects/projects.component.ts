@@ -21,10 +21,7 @@ export class ProjectsComponent implements OnInit {
 
   ngOnInit(): void {
     this.organizationStore.organization$.pipe(untilDestroyed(this)).subscribe({
-      next: org => {
-        this.organization = org;
-        console.log(this.organization);
-      }
+      next: org => this.organization = org
     });
   }
 

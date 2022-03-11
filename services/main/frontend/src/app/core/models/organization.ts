@@ -10,4 +10,8 @@ export class Organization extends BaseEntity {
   owners: User[] = [];
   members: User[] = [];
   projects: Project[] = [];
+
+  get allUsers(): User[] {
+    return [...this.owners, ...this.members];
+  }
 }

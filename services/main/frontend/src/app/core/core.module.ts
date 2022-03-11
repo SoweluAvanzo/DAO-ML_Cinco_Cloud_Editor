@@ -11,6 +11,7 @@ import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontaweso
 import { faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 import { RouterModule } from '@angular/router';
 import { SearchUserInputComponent } from './components/search-user-input/search-user-input.component';
+import { NormalizeEnumValuePipe } from './pipes/normalize-enum-value.pipe';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { SearchUserInputComponent } from './components/search-user-input/search-
     WorkspaceImageBadgeComponent,
     SidebarComponent,
     SidebarItemComponent,
-    SearchUserInputComponent
+    SearchUserInputComponent,
+    NormalizeEnumValuePipe
   ],
   providers: [],
   exports: [
@@ -28,7 +30,8 @@ import { SearchUserInputComponent } from './components/search-user-input/search-
     WorkspaceImageBadgeComponent,
     SidebarComponent,
     SidebarItemComponent,
-    SearchUserInputComponent
+    SearchUserInputComponent,
+    NormalizeEnumValuePipe
   ],
   imports: [
     CommonModule,
