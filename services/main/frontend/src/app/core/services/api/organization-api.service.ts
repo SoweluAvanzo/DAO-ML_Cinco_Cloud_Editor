@@ -52,7 +52,7 @@ export class OrganizationApiService extends BaseApiService {
   }
 
   public addOwner(organization: Organization, user: User): Observable<Organization> {
-    return this.http.post(`${this.apiUrl}/organization/${organization.id}/removeUser`, toJsog(user), this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/organization/${organization.id}/addOwner`, toJsog(user), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }

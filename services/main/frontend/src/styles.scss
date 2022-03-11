@@ -14,6 +14,12 @@ html {
   cursor: pointer;
 }
 
+.no-caret {
+  &:after {
+    content: none !important;
+  }
+}
+
 .modal {
   backdrop-filter: blur(3px);
   color: #555;
@@ -62,4 +68,16 @@ html {
       border-color: #525252;
     }
   }
+}
+
+.card {
+  background: #525252;
+
+  .card-header, .card-footer {
+    background: rgba(0,0,0,.15);
+  }
+}
+
+.table {
+  color: #d4d4d4;
 }

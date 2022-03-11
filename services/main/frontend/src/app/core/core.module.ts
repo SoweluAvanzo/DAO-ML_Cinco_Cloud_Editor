@@ -8,8 +8,9 @@ import { WorkspaceImageBadgeComponent } from './components/workspace-image-badge
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { SidebarItemComponent } from './components/sidebar-item/sidebar-item.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDoubleLeft, faAngleDoubleRight } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 import { RouterModule } from '@angular/router';
+import { SearchUserInputComponent } from './components/search-user-input/search-user-input.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { RouterModule } from '@angular/router';
     WorkspaceImageSearchInputComponent,
     WorkspaceImageBadgeComponent,
     SidebarComponent,
-    SidebarItemComponent
+    SidebarItemComponent,
+    SearchUserInputComponent
   ],
   providers: [],
   exports: [
@@ -25,7 +27,8 @@ import { RouterModule } from '@angular/router';
     WorkspaceImageSearchInputComponent,
     WorkspaceImageBadgeComponent,
     SidebarComponent,
-    SidebarItemComponent
+    SidebarItemComponent,
+    SearchUserInputComponent
   ],
   imports: [
     CommonModule,
@@ -38,6 +41,6 @@ import { RouterModule } from '@angular/router';
 export class CoreModule {
 
   constructor(private library: FaIconLibrary) {
-    library.addIcons(faAngleDoubleLeft, faAngleDoubleRight);
+    library.addIcons(faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch);
   }
 }

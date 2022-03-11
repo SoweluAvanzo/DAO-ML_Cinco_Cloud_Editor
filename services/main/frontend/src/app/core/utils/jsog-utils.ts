@@ -153,12 +153,14 @@ function toJsogInternal(obj: any, cache: any): any {
     // copy all properties to the target jsog object
     for (let prop of Object.getOwnPropertyNames(obj)) {
       const propValue = obj[prop];
-      if (isPrimitiveField(propValue)) {
+      if (propValue == null) {
+        jsog[prop] = null;
+      } else if (isPrimitiveField(propValue)) {
         jsog[prop] = propValue;
       } else if (isDateField(propValue)) {
         jsog[prop] = propValue.toISOString();
       } else if (isArrayField(propValue)) {
-        if (propValue == null || propValue.length === 0) {
+        if (propValue.length === 0) {
           jsog[prop] = [];
         } else {
           // we assume that do not have lists with mixed types

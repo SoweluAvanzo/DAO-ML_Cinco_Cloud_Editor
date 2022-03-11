@@ -10,6 +10,11 @@ import { AccessManagementComponent } from './pages/access-management/access-mana
 import { SettingsComponent } from './pages/settings/settings.component';
 import { ProjectsComponent } from './pages/projects/projects.component';
 import { InternalModule } from '../internal/internal.module';
+import { AddUserModalComponent } from './pages/users/components/add-user-modal/add-user-modal.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faEllipsisV, faEnvelope, faUser } from '@fortawesome/free-solid-svg-icons';
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 
 const routes: Routes = [
   {
@@ -56,14 +61,22 @@ const routes: Routes = [
     ProjectsComponent,
     UsersComponent,
     AccessManagementComponent,
-    SettingsComponent
+    SettingsComponent,
+    AddUserModalComponent
   ],
   imports: [
     CommonModule,
     RouterModule.forChild(routes),
+    ReactiveFormsModule,
+    FontAwesomeModule,
+    NgbDropdownModule,
     CoreModule,
     InternalModule
   ]
 })
 export class OrganizationsModule {
+
+  constructor(library: FaIconLibrary) {
+    library.addIcons(faEnvelope, faUser, faEllipsisV);
+  }
 }

@@ -1,11 +1,11 @@
 <div class="container">
   <div class="mt-3 mx-auto">
-    <div class="pyro-panel card mb-3 shadow-sm _ngcontent-drf-10">
-      <div class="pyro-panel-heading card-header _ngcontent-drf-10">
-        <p>Personal Information</p>
+    <div class="card mb-3 shadow-sm">
+      <div class="card-header">
+        <strong>Personal Information</strong>
       </div>
-      <div class="pyro-panel-body card-body _ngcontent-drf-10">
-        <div class="row _ngcontent-drf-10">
+      <div class="card-body">
+        <div class="row">
           <form id="changeInformationForm" (ngSubmit)="changeInformation()" [formGroup]="informationChangeForm"
                 class="d-flex flex-column gap-3 mb-3">
             <div>
@@ -39,9 +39,9 @@
           <cc-user-profile-image [user]="currentUser"></cc-user-profile-image>
         </div>
       </div>
-      <div class="pyro-panel-footer card-footer text-right _ngcontent-drf-10">
+      <div class="card-footer text-end">
         <button
-          class="btn-primary btn d-block"
+          class="btn-primary btn"
           type="submit"
           form="changeInformationForm"
         >

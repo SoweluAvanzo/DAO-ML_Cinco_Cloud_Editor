@@ -5,22 +5,18 @@
 <div class="modal-body">
   <div class="d-flex gap-3">
     <div (click)="withProjectImage = false" [class.active]="!withProjectImage"
-         class="option card cursor-pointer shadow-sm w-50">
-      <div class="card-body">
-        <h6>Empty project</h6>
-        <p class="text-muted m-0">
-          Create graphical DSLs for modeling environments.
-        </p>
-      </div>
+         class="option rounded-3 p-3 cursor-pointer shadow-sm w-50">
+      <h6>Empty project</h6>
+      <p class="text-muted m-0">
+        Create graphical DSLs for modeling environments.
+      </p>
     </div>
     <div (click)="withProjectImage = true" [class.active]="withProjectImage"
-         class="option card cursor-pointer shadow-sm w-50">
-      <div class="card-body">
-        <h6>From template</h6>
-        <p class="text-muted m-0">
-          Use an existing modeling environment.
-        </p>
-      </div>
+         class="option rounded-3 p-3 cursor-pointer shadow-sm w-50">
+      <h6>From template</h6>
+      <p class="text-muted m-0">
+        Use an existing modeling environment.
+      </p>
     </div>
   </div>
   <hr>
