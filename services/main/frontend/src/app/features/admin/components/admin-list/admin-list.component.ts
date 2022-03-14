@@ -4,14 +4,13 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'cc-admin-list',
-  templateUrl: './admin-list.component.html',
-  styleUrls: ['./admin-list.component.scss']
+  templateUrl: './admin-list.component.html'
 })
 export class AdminListComponent {
 
   icons = {
     times: faTimes,
-  }
+  };
 
   @Input()
   admins: User[] = [];

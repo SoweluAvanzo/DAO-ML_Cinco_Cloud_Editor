@@ -4,6 +4,7 @@ import { UserApiService } from '../../../../core/services/api/user-api.service';
 import { User } from '../../../../core/models/user';
 import { CreateUserModalComponent } from '../../components/create-user-modal/create-user-modal.component';
 import { AddAdminModalComponent } from '../../components/add-admin-modal/add-admin-modal.component';
+import { ModalUtilsService } from '../../../../core/services/utils/modal-utils.service';
 
 @Component({
   selector: 'cc-users',
@@ -18,7 +19,8 @@ export class UsersComponent implements OnInit {
   admins: User[] = [];
 
   constructor(private userApi: UserApiService,
-              private modalService: NgbModal) {
+              private modalService: NgbModal,
+              private modalUtils: ModalUtilsService) {
   }
 
   ngOnInit(): void {
@@ -27,7 +29,7 @@ export class UsersComponent implements OnInit {
         this.users = users;
         this.admins = users.filter(user => user.isAdmin);
       }
-    })
+    });
   }
 
   openCreateUserModal() {
@@ -47,23 +49,33 @@ export class UsersComponent implements OnInit {
   }
 
   deleteUser(user: User) {
-    this.userApi.delete(user).subscribe({
-      //TODO: add notification
-      next: () => {
-        this.users.splice(this.users.findIndex(u => u.id === user.id), 1);
-        if (user.isAdmin) {
-          this.admins.splice(this.admins.findIndex(a => a.id === user.id), 1);
+    this.modalUtils.confirm({
+      text: 'Do you really want to delete this user?',
+      confirmButtonText: 'Delete'
+    }).then(() => {
+      this.userApi.delete(user).subscribe({
+        //TODO: add notification
+        next: () => {
+          this.users.splice(this.users.findIndex(u => u.id === user.id), 1);
+          if (user.isAdmin) {
+            this.admins.splice(this.admins.findIndex(a => a.id === user.id), 1);
+          }
         }
-      }
-    })
+      });
+    }).catch(() => {})
   }
 
   removeAdmin(admin: User) {
-    this.userApi.removeAdminRole(admin).subscribe({
-      next: () => {
-        //TODO: add notification
-        this.admins.splice(this.admins.findIndex(a => a.id === admin.id), 1);
-      }
-    })
+    this.modalUtils.confirm({
+      text: 'Do you really want to remove admin rights from this user?',
+      confirmButtonText: 'Yes'
+    }).then(() => {
+      this.userApi.removeAdminRole(admin).subscribe({
+        next: () => {
+          //TODO: add notification
+          this.admins.splice(this.admins.findIndex(a => a.id === admin.id), 1);
+        }
+      });
+    }).catch(() => {})
   }
 }

@@ -16,6 +16,10 @@ export class AddAdminModalComponent {
               public modal: NgbActiveModal) {
   }
 
+  get canAddAdminRole(): boolean {
+    return this.selectedUser != null && !this.selectedUser.isAdmin;
+  }
+
   setSelectedUser(user: User) {
     this.selectedUser = user;
   }
@@ -24,10 +28,6 @@ export class AddAdminModalComponent {
     this.userApi.addAdminRole(this.selectedUser).subscribe({
       next: createdUser => this.modal.close(createdUser),
       error: console.error
-    })
-  }
-
-  get canAddAdminRole(): boolean {
-    return this.selectedUser != null && !this.selectedUser.isAdmin;
+    });
   }
 }

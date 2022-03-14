@@ -13,18 +13,19 @@ export class SettingsComponent implements OnInit {
   icons = {
     toggleOn: faToggleOn,
     toggleOff: faToggleOff
-  }
+  };
 
   settings: Settings;
 
-  constructor(private settingsService: SettingsApiService) { }
+  constructor(private settingsService: SettingsApiService) {
+  }
 
   ngOnInit(): void {
     this.settingsService.get().subscribe({
       next: settings => {
         this.settings = settings;
       }
-    })
+    });
   }
 
   saveSettings() {
@@ -33,7 +34,7 @@ export class SettingsComponent implements OnInit {
       next: settings => {
         this.settings = settings;
       }
-    })
+    });
   }
 
   setUserRegistration(allowPublicUserRegistration: boolean) {

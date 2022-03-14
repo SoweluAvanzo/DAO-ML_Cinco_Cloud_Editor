@@ -24,8 +24,8 @@
       <div class="d-flex align-items-center cursor-pointer">
         <span
           (click)="setUserRegistration(!settings.allowPublicUserRegistration)"
-          placement="top"
           [ngbTooltip]="settings.allowPublicUserRegistration ? 'Disable' : 'Enable'"
+          placement="top"
         >
           <fa-icon [icon]="settings.allowPublicUserRegistration ? icons.toggleOn : icons.toggleOff"></fa-icon>
         </span>

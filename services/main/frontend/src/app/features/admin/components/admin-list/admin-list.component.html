@@ -1,28 +1,32 @@
-<table *ngIf="admins.length > 0" class="table table-dark">
-  <thead>
-  <tr>
-    <th>#</th>
-    <th>Username</th>
-    <th>Email</th>
-    <th></th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr *ngFor="let admin of admins">
-    <td>{{admin.id}}</td>
-    <td>{{admin.username}}</td>
-    <td>{{admin.email}}</td>
-    <td class="text-right">
-      <div class="btn-group btn-group-sm">
-        <button
-          (click)="removeAdminRole(admin)"
-          class="btn btn-dark"
-          [ngbTooltip]="'Remove admin'"
-        >
-          <fa-icon [icon]="icons.times"></fa-icon>
-        </button>
-      </div>
-    </td>
-  </tr>
-  </tbody>
-</table>
+<div class="card">
+  <div class="card-body">
+    <table *ngIf="admins.length > 0" class="table">
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let admin of admins">
+        <td>{{admin.id}}</td>
+        <td>{{admin.username}}</td>
+        <td>{{admin.email}}</td>
+        <td class="text-end">
+          <div class="btn-group btn-group-sm">
+            <button
+              (click)="removeAdminRole(admin)"
+              [ngbTooltip]="'Remove admin'"
+              class="btn btn-dark"
+            >
+              <fa-icon [icon]="icons.times"></fa-icon>
+            </button>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

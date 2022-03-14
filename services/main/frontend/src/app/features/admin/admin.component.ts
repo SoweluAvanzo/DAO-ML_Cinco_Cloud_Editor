@@ -11,5 +11,5 @@ export class AdminComponent {
   icons = {
     users: faUsers,
     cogs: faCogs
-  }
+  };
 }

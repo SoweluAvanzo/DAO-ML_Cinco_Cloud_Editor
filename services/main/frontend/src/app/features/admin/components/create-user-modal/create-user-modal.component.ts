@@ -22,6 +22,10 @@ export class CreateUserModalComponent {
               public modal: NgbActiveModal) {
   }
 
+  get canCreateUser(): boolean {
+    return this.form.valid;
+  }
+
   createUser(): void {
     const newUser = new UserRegisterInput();
     newUser.name = this.form.value.name;
@@ -33,10 +37,6 @@ export class CreateUserModalComponent {
     this.userApi.create(newUser).subscribe({
       next: createdUser => this.modal.close(createdUser),
       error: console.error
-    })
-  }
-
-  get canCreateUser(): boolean {
-    return this.form.valid;
+    });
   }
 }
