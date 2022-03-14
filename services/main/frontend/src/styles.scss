@@ -82,3 +82,18 @@ html {
 .table {
   color: #e1e1e1;
 }
+
+.text-muted {
+  color: #959ea5 !important;
+}
+
+cc-sidebar > .sidebar {
+  &.collapsed {
+    width: 54px;
+
+    .sidebar-item-text,
+    .sidebar-collapse-button-text {
+      display: none;
+    }
+  }
+}

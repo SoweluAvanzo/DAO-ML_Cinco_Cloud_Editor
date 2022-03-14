@@ -2,3 +2,14 @@
   background: #292929;
   width: 240px;
 }
+
+.sidebar-collapse-button {
+  color: #d4d4d4;
+  border-top: 1px solid #333;
+  border-left: 4px solid transparent;
+
+  &:hover {
+    color: #fff;
+    background: rgba(0,0,0,0.2);
+  }
+}

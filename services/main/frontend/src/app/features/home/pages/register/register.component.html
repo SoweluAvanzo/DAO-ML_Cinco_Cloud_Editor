@@ -2,69 +2,74 @@
 
 <div class="container">
   <div class="mt-3 mx-auto" style="width: 300px;">
-    <form (ngSubmit)="register()" [formGroup]="registerForm" class="d-flex flex-column gap-3 mb-3">
-      <div>
-        <label class="form-label" for="name">Name</label>
-        <input
-          class="form-control"
-          formControlName="name"
-          id="name"
-          placeholder="Enter your name"
-          type="text">
-      </div>
-      <div>
-        <label class="form-label" for="username">Username</label>
-        <input
-          class="form-control"
-          formControlName="username"
-          id="username"
-          placeholder="Enter your username"
-          type="text">
-      </div>
-      <div>
-        <label class="form-label" for="email">Email address</label>
-        <input
-          class="form-control"
-          formControlName="email"
-          id="email"
-          placeholder="Enter your email address"
-          type="email">
-      </div>
-      <div>
-        <label class="form-label" for="password">Password</label>
-        <input
-          class="form-control"
-          formControlName="password"
-          id="password"
-          placeholder="Enter your password"
-          type="password">
-      </div>
-      <div>
-        <label class="form-label" for="passwordConfirm">Password (Confirmation)</label>
-        <input
-          class="form-control"
-          formControlName="passwordConfirm"
-          id="passwordConfirm"
-          placeholder="Confirm your password"
-          type="password">
-      </div>
-      <button
-        [disabled]="registerForm.invalid"
-        class="btn-primary btn d-block"
-        type="submit"
-      >
-        Register
-      </button>
-    </form>
+    <img class="d-block w-100 rounded-2 mb-3" src="assets/img/cinco-logo.png">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form (ngSubmit)="register()" [formGroup]="registerForm" class="d-flex flex-column gap-3 mb-3">
+          <div>
+            <label class="form-label" for="name">Name</label>
+            <input
+              class="form-control"
+              formControlName="name"
+              id="name"
+              placeholder="Enter your name"
+              type="text">
+          </div>
+          <div>
+            <label class="form-label" for="username">Username</label>
+            <input
+              class="form-control"
+              formControlName="username"
+              id="username"
+              placeholder="Enter your username"
+              type="text">
+          </div>
+          <div>
+            <label class="form-label" for="email">Email address</label>
+            <input
+              class="form-control"
+              formControlName="email"
+              id="email"
+              placeholder="Enter your email address"
+              type="email">
+          </div>
+          <div>
+            <label class="form-label" for="password">Password</label>
+            <input
+              class="form-control"
+              formControlName="password"
+              id="password"
+              placeholder="Enter your password"
+              type="password">
+          </div>
+          <div>
+            <label class="form-label" for="passwordConfirm">Password (Confirmation)</label>
+            <input
+              class="form-control"
+              formControlName="passwordConfirm"
+              id="passwordConfirm"
+              placeholder="Confirm your password"
+              type="password">
+          </div>
+          <button
+            [disabled]="registerForm.invalid"
+            class="btn-primary btn d-block"
+            type="submit"
+          >
+            Register
+          </button>
+        </form>
 
-    <div>
-      <hr>
-      <p class="m-0 text-center text-muted">
-        <small>
-          Already have an account?
-          <a routerLink="/login">Login!</a>
-        </small>
-      </p>
+        <div>
+          <hr>
+          <p class="m-0 text-center text-muted">
+            <small>
+              Already have an account?
+              <a routerLink="/login">Login!</a>
+            </small>
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
