@@ -8,8 +8,7 @@ import { User } from '../../../../core/models/user';
 @UntilDestroy()
 @Component({
   selector: 'cc-settings',
-  templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.css']
+  templateUrl: './settings.component.html'
 })
 export class SettingsComponent implements OnInit {
 

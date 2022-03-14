@@ -5,8 +5,7 @@ import { User } from '../../../../core/models/user';
 
 @Component({
   selector: 'cc-add-admin-modal',
-  templateUrl: './add-admin-modal.component.html',
-  styleUrls: ['./add-admin-modal.component.scss']
+  templateUrl: './add-admin-modal.component.html'
 })
 export class AddAdminModalComponent {
 

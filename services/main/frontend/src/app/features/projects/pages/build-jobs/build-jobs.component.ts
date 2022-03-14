@@ -16,8 +16,7 @@ import { Organization } from '../../../../core/models/organization';
 @UntilDestroy()
 @Component({
   selector: 'cc-build-jobs',
-  templateUrl: './build-jobs.component.html',
-  styleUrls: ['./build-jobs.component.css']
+  templateUrl: './build-jobs.component.html'
 })
 export class BuildJobsComponent implements OnInit {
 

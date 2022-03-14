@@ -6,8 +6,7 @@ import { UntilDestroy } from '@ngneat/until-destroy';
 @Component({
   selector: 'cc-organizations',
   templateUrl: './organizations.component.html',
-  providers: [OrganizationStoreService],
-  styleUrls: ['./organizations.component.scss']
+  providers: [OrganizationStoreService]
 })
 export class OrganizationsComponent {
 }

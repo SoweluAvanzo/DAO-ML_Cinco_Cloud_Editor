@@ -8,8 +8,7 @@ import { Observable } from 'rxjs';
 
 @Component({
   selector: 'cc-add-user-modal',
-  templateUrl: './add-user-modal.component.html',
-  styleUrls: ['./add-user-modal.component.css']
+  templateUrl: './add-user-modal.component.html'
 })
 export class AddUserModalComponent {
 

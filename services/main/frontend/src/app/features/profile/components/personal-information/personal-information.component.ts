@@ -1,9 +1,8 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AppStoreService} from "../../../../core/services/stores/app-store.service";
 import {AuthApiService} from "../../../../core/services/api/auth-api.service";
 import {SettingsApiService} from "../../../../core/services/api/settings-api.service";
 import {Settings} from "../../../../core/models/settings";
-import {UserProfileImageComponent} from "../../../../core/components/user-profile-image/user-profile-image.component";
 import {User} from "../../../../core/models/user";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {UpdateCurrentUserProfileInput} from "../../../../core/models/forms/update-current-user-profile-input";
@@ -13,8 +12,7 @@ import {Router} from "@angular/router";
 
 @Component({
   selector: 'cc-personal-information',
-  templateUrl: './personal-information.component.html',
-  styleUrls: ['./personal-information.component.css']
+  templateUrl: './personal-information.component.html'
 })
 export class PersonalInformationComponent implements OnInit {
 

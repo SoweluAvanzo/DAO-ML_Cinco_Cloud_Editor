@@ -4,15 +4,13 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Organization } from '../../../../core/models/organization';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CreateProjectModalComponent } from '../../../internal/components/create-project-modal/create-project-modal.component';
-import { OrganizationAccessRightVector } from '../../../../core/models/organization-access-right-vector';
 import { User } from '../../../../core/models/user';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 
 @UntilDestroy()
 @Component({
   selector: 'cc-projects',
-  templateUrl: './projects.component.html',
-  styleUrls: ['./projects.component.css']
+  templateUrl: './projects.component.html'
 })
 export class ProjectsComponent implements OnInit {
 

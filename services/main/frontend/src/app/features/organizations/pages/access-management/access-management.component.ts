@@ -9,8 +9,7 @@ import { OrganizationAccessRight } from '../../../../core/enums/organization-acc
 @UntilDestroy()
 @Component({
   selector: 'cc-access-management',
-  templateUrl: './access-management.component.html',
-  styleUrls: ['./access-management.component.css']
+  templateUrl: './access-management.component.html'
 })
 export class AccessManagementComponent implements OnInit {
 

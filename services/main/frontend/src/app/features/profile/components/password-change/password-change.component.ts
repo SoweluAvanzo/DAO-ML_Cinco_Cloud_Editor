@@ -4,16 +4,13 @@ import {AppStoreService} from "../../../../core/services/stores/app-store.servic
 import { AuthApiService } from "../../../../core/services/api/auth-api.service";
 import { SettingsApiService } from "../../../../core/services/api/settings-api.service";
 import { Settings } from "../../../../core/models/settings";
-import {UserLoginInput} from "../../../../core/models/forms/user-login-input";
 import {UserApiService} from "../../../../core/services/api/user-api.service";
-import {User} from "../../../../core/models/user";
 import {UpdateCurrentUserPasswordInput} from "../../../../core/models/forms/update-current-user-password-input";
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'cc-password-change',
-  templateUrl: './password-change.component.html',
-  styleUrls: ['./password-change.component.css']
+  templateUrl: './password-change.component.html'
 })
 export class PasswordChangeComponent implements OnInit {
 

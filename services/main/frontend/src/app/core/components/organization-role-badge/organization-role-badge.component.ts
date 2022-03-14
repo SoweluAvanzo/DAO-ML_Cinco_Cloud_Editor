@@ -4,8 +4,7 @@ import { Organization } from '../../models/organization';
 
 @Component({
   selector: 'cc-organization-role-badge',
-  templateUrl: './organization-role-badge.component.html',
-  styleUrls: ['./organization-role-badge.component.css']
+  templateUrl: './organization-role-badge.component.html'
 })
 export class OrganizationRoleBadgeComponent {
 

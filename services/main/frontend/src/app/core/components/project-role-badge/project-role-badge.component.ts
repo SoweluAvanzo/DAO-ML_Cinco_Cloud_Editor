@@ -4,8 +4,7 @@ import { Project } from '../../models/project';
 
 @Component({
   selector: 'cc-project-role-badge',
-  templateUrl: './project-role-badge.component.html',
-  styleUrls: ['./project-role-badge.component.css']
+  templateUrl: './project-role-badge.component.html'
 })
 export class ProjectRoleBadgeComponent {
 

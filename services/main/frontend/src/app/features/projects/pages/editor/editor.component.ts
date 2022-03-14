@@ -14,8 +14,8 @@ import { environment } from '../../../../../environments/environment';
 @UntilDestroy()
 @Component({
   selector: 'cc-editor',
-  templateUrl: './editor.component.html',
-  styleUrls: ['./editor.component.css']
+  templateUrl: './editor.component.html'
+
 })
 export class EditorComponent implements OnInit {
 

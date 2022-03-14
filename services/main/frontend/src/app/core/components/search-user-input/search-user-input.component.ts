@@ -6,8 +6,7 @@ import { User } from '../../models/user';
 
 @Component({
   selector: 'cc-search-user-input',
-  templateUrl: './search-user-input.component.html',
-  styleUrls: ['./search-user-input.component.css']
+  templateUrl: './search-user-input.component.html'
 })
 export class SearchUserInputComponent implements OnInit {
 

@@ -8,8 +8,7 @@ import { ModalUtilsService } from '../../../../core/services/utils/modal-utils.s
 
 @Component({
   selector: 'cc-users',
-  templateUrl: './users.component.html',
-  styleUrls: ['./users.component.scss']
+  templateUrl: './users.component.html'
 })
 export class UsersComponent implements OnInit {
 

@@ -4,8 +4,7 @@ import { Settings } from '../../../../core/models/settings';
 
 @Component({
   selector: 'cc-welcome',
-  templateUrl: './welcome.component.html',
-  styleUrls: ['./welcome.component.scss']
+  templateUrl: './welcome.component.html'
 })
 export class WelcomeComponent implements OnInit {
   public settings: Settings;

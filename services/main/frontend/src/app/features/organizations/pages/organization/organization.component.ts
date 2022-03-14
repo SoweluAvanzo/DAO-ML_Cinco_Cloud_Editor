@@ -10,8 +10,7 @@ import { AppStoreService } from '../../../../core/services/stores/app-store.serv
 @UntilDestroy()
 @Component({
   selector: 'cc-organization',
-  templateUrl: './organization.component.html',
-  styleUrls: ['./organization.component.css']
+  templateUrl: './organization.component.html'
 })
 export class OrganizationComponent implements OnInit {
 

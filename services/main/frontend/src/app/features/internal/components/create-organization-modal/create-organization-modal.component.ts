@@ -6,8 +6,7 @@ import { Organization } from '../../../../core/models/organization';
 
 @Component({
   selector: 'cc-create-organization-modal',
-  templateUrl: './create-organization-modal.component.html',
-  styleUrls: ['./create-organization-modal.component.scss']
+  templateUrl: './create-organization-modal.component.html'
 })
 export class CreateOrganizationModalComponent {
 

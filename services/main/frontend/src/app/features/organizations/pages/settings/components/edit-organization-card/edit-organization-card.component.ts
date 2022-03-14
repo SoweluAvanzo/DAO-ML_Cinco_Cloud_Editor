@@ -6,8 +6,7 @@ import { UpdateOrganizationInput } from '../../../../../../core/models/forms/upd
 
 @Component({
   selector: 'cc-edit-organization-card',
-  templateUrl: './edit-organization-card.component.html',
-  styleUrls: ['./edit-organization-card.component.css']
+  templateUrl: './edit-organization-card.component.html'
 })
 export class EditOrganizationCardComponent implements OnInit {
 

@@ -7,8 +7,7 @@ import { GitInformation } from '../../../../../../core/models/git-information';
 
 @Component({
   selector: 'cc-edit-git-information-card',
-  templateUrl: './edit-git-information-card.component.html',
-  styleUrls: ['./edit-git-information-card.component.css']
+  templateUrl: './edit-git-information-card.component.html'
 })
 export class EditGitInformationCardComponent implements OnInit {
 

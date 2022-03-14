@@ -7,8 +7,7 @@ import { Project } from '../../../../core/models/project';
 @Component({
   selector: 'cc-project',
   templateUrl: './project.component.html',
-  providers: [ProjectStoreService],
-  styleUrls: ['./project.component.css']
+  providers: [ProjectStoreService]
 })
 export class ProjectComponent implements OnInit, OnDestroy {
 

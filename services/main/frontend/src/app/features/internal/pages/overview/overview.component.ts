@@ -10,8 +10,7 @@ import { CreateOrganizationModalComponent } from '../../components/create-organi
 
 @Component({
   selector: 'cc-overview',
-  templateUrl: './overview.component.html',
-  styleUrls: ['./overview.component.scss']
+  templateUrl: './overview.component.html'
 })
 export class OverviewComponent implements OnInit {
 

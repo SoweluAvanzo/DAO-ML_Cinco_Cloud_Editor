@@ -3,8 +3,7 @@ import { faCogs, faUsers } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'cc-admin',
-  templateUrl: './admin.component.html',
-  styleUrls: ['./admin.component.css']
+  templateUrl: './admin.component.html'
 })
 export class AdminComponent {
 

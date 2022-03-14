@@ -3,8 +3,7 @@ import { WorkspaceImageBuildJob } from '../../../../../../core/models/workspace-
 
 @Component({
   selector: 'cc-project-build-job-status-badge',
-  templateUrl: './project-build-job-status-badge.component.html',
-  styleUrls: ['./project-build-job-status-badge.component.css']
+  templateUrl: './project-build-job-status-badge.component.html'
 })
 export class ProjectBuildJobStatusBadgeComponent {
 

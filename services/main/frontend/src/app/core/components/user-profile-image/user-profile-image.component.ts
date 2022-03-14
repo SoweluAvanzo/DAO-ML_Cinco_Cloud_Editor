@@ -3,8 +3,7 @@ import { User } from '../../models/user';
 
 @Component({
   selector: 'cc-user-profile-image',
-  templateUrl: './user-profile-image.component.html',
-  styleUrls: ['./user-profile-image.component.css']
+  templateUrl: './user-profile-image.component.html'
 })
 export class UserProfileImageComponent {
 

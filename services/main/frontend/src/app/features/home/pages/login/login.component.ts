@@ -8,8 +8,7 @@ import { AppStoreService } from '../../../../core/services/stores/app-store.serv
 
 @Component({
   selector: 'cc-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {
 

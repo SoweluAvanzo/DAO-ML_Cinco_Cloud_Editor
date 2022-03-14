@@ -6,8 +6,7 @@ import { UserRegisterInput } from '../../../../core/models/forms/user-register-i
 
 @Component({
   selector: 'cc-create-user-modal',
-  templateUrl: './create-user-modal.component.html',
-  styleUrls: ['./create-user-modal.component.scss']
+  templateUrl: './create-user-modal.component.html'
 })
 export class CreateUserModalComponent {
 

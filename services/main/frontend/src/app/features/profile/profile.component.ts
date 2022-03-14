@@ -1,11 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { PasswordChangeComponent } from "./components/password-change/password-change.component";
-import { PersonalInformationComponent } from "./components/personal-information/personal-information.component";
 
 @Component({
   selector: 'cc-profile',
-  templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss']
+  templateUrl: './profile.component.html'
 })
 export class ProfileComponent implements OnInit {
 

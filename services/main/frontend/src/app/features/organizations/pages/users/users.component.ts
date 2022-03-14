@@ -10,8 +10,7 @@ import { AppStoreService } from '../../../../core/services/stores/app-store.serv
 @UntilDestroy()
 @Component({
   selector: 'cc-users',
-  templateUrl: './users.component.html',
-  styleUrls: ['./users.component.css']
+  templateUrl: './users.component.html'
 })
 export class UsersComponent implements OnInit {
 

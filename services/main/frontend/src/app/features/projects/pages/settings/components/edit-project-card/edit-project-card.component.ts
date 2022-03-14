@@ -6,8 +6,7 @@ import { UpdateProjectInput } from '../../../../../../core/models/forms/update-p
 
 @Component({
   selector: 'cc-edit-project-card',
-  templateUrl: './edit-project-card.component.html',
-  styleUrls: ['./edit-project-card.component.css']
+  templateUrl: './edit-project-card.component.html'
 })
 export class EditProjectCardComponent implements OnInit {
 
