@@ -16,6 +16,7 @@ import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontaweso
 import { faEllipsisV, faEnvelope, faTimes, faUser } from '@fortawesome/free-solid-svg-icons';
 import { NgbDropdownModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { OrganizationRoleBadgeComponent } from './pages/users/components/organization-role-badge/organization-role-badge.component';
+import { EditOrganizationCardComponent } from './pages/settings/components/edit-organization-card/edit-organization-card.component';
 
 const routes: Routes = [
   {
@@ -64,7 +65,8 @@ const routes: Routes = [
     AccessManagementComponent,
     SettingsComponent,
     AddUserModalComponent,
-    OrganizationRoleBadgeComponent
+    OrganizationRoleBadgeComponent,
+    EditOrganizationCardComponent
   ],
   imports: [
     CommonModule,

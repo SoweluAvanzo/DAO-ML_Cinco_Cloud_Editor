@@ -46,7 +46,7 @@ export class OrganizationApiService extends BaseApiService {
   }
 
   public leave(organization: Organization): Observable<Organization> {
-    return this.http.post(`${this.apiUrl}/organization/${organization.id}/leave`, '', this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/organization/${organization.id}/leave`, null, this.defaultHttpOptions).pipe(
       map(body => organization)
     );
   }

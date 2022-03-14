@@ -1,0 +1,18 @@
+<form [formGroup]="form" (ngSubmit)="update()">
+  <div class="card">
+    <div class="card-header">
+      <h6 class="m-0">Update the organization</h6>
+    </div>
+    <div class="card-body">
+      <div class="mb-3">
+        <input class="form-control" type="text" placeholder="Enter the name for the organization" formControlName="name">
+      </div>
+      <div>
+        <textarea class="form-control" rows="3" placeholder="Enter a description for the organization" formControlName="description"></textarea>
+      </div>
+    </div>
+    <div class="card-footer text-end">
+      <button class="btn btn-sm btn-primary" [disabled]="form.invalid">Save</button>
+    </div>
+  </div>
+</form>

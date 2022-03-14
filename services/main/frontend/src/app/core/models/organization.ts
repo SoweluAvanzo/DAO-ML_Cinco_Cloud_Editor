@@ -14,4 +14,12 @@ export class Organization extends BaseEntity {
   get allUsers(): User[] {
     return [...this.owners, ...this.members];
   }
+
+  isUserMember(user: User): boolean {
+    return this.members.findIndex(u => u.id === user.id) > -1;
+  }
+
+  isUserOwner(user: User): boolean {
+    return this.owners.findIndex(u => u.id === user.id) > -1;
+  }
 }

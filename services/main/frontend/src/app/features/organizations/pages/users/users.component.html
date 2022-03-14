@@ -1,6 +1,6 @@
 <div class="container mt-3">
 
-  <div>
+  <div *ngIf="organizationStore.canAddUsers(currentUser)">
     <button (click)="openSearchUserModal()" class="btn btn-primary">Add User</button>
     <hr>
   </div>
@@ -28,30 +28,32 @@
             <cc-organization-role-badge [user]="user" [organization]="organization"></cc-organization-role-badge>
           </td>
           <td class="text-end">
-            <div class="d-inline-block" ngbDropdown>
-              <button class="btn btn-sm btn-dark no-caret px-3" ngbDropdownToggle>
-                <fa-icon [icon]="['fas', 'ellipsis-v']"></fa-icon>
-              </button>
-              <div ngbDropdownMenu>
-                <button
-                  (click)="organizationStore.makeUserMemberOfOrganization(user)"
-                  *ngIf="organization.owners.includes(user); else makeMember"
-                  ngbDropdownItem
-                >
-                  Make member
+            <ng-container *ngIf="organizationStore.canAddUsers(currentUser)">
+              <div class="d-inline-block" ngbDropdown>
+                <button class="btn btn-sm btn-dark no-caret px-3" ngbDropdownToggle>
+                  <fa-icon [icon]="['fas', 'ellipsis-v']"></fa-icon>
                 </button>
-                <ng-template #makeMember>
+                <div ngbDropdownMenu>
                   <button
-                    (click)="organizationStore.makeUserOwnerOfOrganization(user)"
+                    (click)="organizationStore.makeUserMemberOfOrganization(user)"
+                    *ngIf="organization.isUserOwner(user); else makeMember"
                     ngbDropdownItem
                   >
-                    Make owner
+                    Make member
                   </button>
-                </ng-template>
-                <div class="dropdown-divider"></div>
-                <button (click)="organizationStore.removeUserFromOrganization(user)" ngbDropdownItem>Remove</button>
+                  <ng-template #makeMember>
+                    <button
+                      (click)="organizationStore.makeUserOwnerOfOrganization(user)"
+                      ngbDropdownItem
+                    >
+                      Make owner
+                    </button>
+                  </ng-template>
+                  <div class="dropdown-divider"></div>
+                  <button (click)="organizationStore.removeUserFromOrganization(user)" ngbDropdownItem>Remove</button>
+                </div>
               </div>
-            </div>
+            </ng-container>
           </td>
         </tr>
         </tbody>

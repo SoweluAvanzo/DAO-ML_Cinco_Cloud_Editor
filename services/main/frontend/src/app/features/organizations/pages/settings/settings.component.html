@@ -1,25 +1,40 @@
 <div class="container mt-3">
 
-  <ul ngbNav #nav="ngbNav" class="nav-tabs">
-    <li [ngbNavItem]="1">
-      <a ngbNavLink>Properties</a>
-      <ng-template ngbNavContent>
-        <ul>
-          <li>Update logo, name and description</li>
-        </ul>
-      </ng-template>
-    </li>
-    <li [ngbNavItem]="2">
-      <a ngbNavLink>Advanced</a>
-      <ng-template ngbNavContent>
-        <ul>
-          <li>Leave organization</li>
-          <li>Delete organization</li>
-        </ul>
-      </ng-template>
-    </li>
-  </ul>
+  <cc-edit-organization-card
+    class="d-block mb-3"
+    [organization]="organization"
+    *ngIf="organizationStore.canUpdateOrganization(user)"
+  >
+  </cc-edit-organization-card>
 
-  <div [ngbNavOutlet]="nav" class="mt-2"></div>
+  <div class="list-group mb-3">
+    <div class="list-group-item d-flex">
+      <div class="flex-grow-1">
+        <h6 class="m-0">Leave the organization</h6>
+        <p class="text-muted m-0">By leaving the organization, you will loose access to all projects.</p>
+      </div>
+      <div class="ms-3">
+        <button
+          class="btn btn-sm btn-danger"
+          (click)="organizationStore.leaveOrganization()"
+          [disabled]="organizationStore.canLeaveOrganization(user)"
+        >
+          Leave
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-group" *ngIf="organizationStore.canDeleteOrganization(user)">
+    <div class="list-group-item d-flex">
+      <div class="flex-grow-1">
+        <h6 class="m-0">Delete the organization</h6>
+        <p class="text-muted m-0">Deleting the organization also deletes all associated projects.</p>
+      </div>
+      <div class="ms-3">
+        <button class="btn btn-sm btn-danger" (click)="organizationStore.deleteOrganization()">Delete</button>
+      </div>
+    </div>
+  </div>
 
 </div>

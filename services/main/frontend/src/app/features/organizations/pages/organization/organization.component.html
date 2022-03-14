@@ -15,6 +15,7 @@
         >
         </cc-sidebar-item>
         <cc-sidebar-item
+          *ngIf="organizationStore.canUpdateAccessRights(user)"
           [icon]="icons.userShield"
           [route]="['/app', 'organizations', '' + organization.id, 'access-management']"
           text="Access Management"
