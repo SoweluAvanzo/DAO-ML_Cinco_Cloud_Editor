@@ -1,0 +1,19 @@
+.nav-link {
+  background: rgba(0, 0, 0, 0.2);
+  color: #bdbdbd;
+
+  &.active {
+    background: rgba(0, 0, 0, 0.4);
+    color: #fff;
+
+    .badge {
+      color: #fff;
+    }
+  }
+
+  .badge {
+    background: rgba(0, 0, 0, 0.2);
+    margin-left: .5rem;
+    color: #bdbdbd;
+  }
+}

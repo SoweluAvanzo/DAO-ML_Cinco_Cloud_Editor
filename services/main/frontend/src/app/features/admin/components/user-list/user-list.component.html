@@ -1,0 +1,34 @@
+<div class="rounded-3">
+<table *ngIf="users.length > 0" class="table table-dark">
+  <thead>
+  <tr>
+    <th>#</th>
+    <th>Username</th>
+    <th>Email</th>
+    <th>Roles</th>
+    <th></th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let user of users">
+    <td>{{user.id}}</td>
+    <td>{{user.username}}</td>
+    <td>{{user.email}}</td>
+    <td>
+        <span *ngFor="let role of user.systemRoles" class="badge bg-secondary mr-1 mb-1">{{role}}</span>
+    </td>
+    <td class="text-right">
+      <div class="btn-group btn-group-sm">
+        <button
+          (click)="deleteUser(user)"
+          class="btn btn-dark"
+          [ngbTooltip]="'Delete User'"
+        >
+          <fa-icon [icon]="icons.trash"></fa-icon>
+        </button>
+      </div>
+    </td>
+  </tr>
+  </tbody>
+</table>
+</div>
