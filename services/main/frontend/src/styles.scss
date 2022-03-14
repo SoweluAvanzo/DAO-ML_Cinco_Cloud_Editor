@@ -10,6 +10,17 @@ html {
   font-size: .875rem;
 }
 
+body {
+  margin: 0 auto;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  background: #333;
+  color: #fff;
+}
+
+.navbar-bg-color {
+  background-color: #525252;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
