@@ -10,13 +10,14 @@ import { ProjectResolver } from './resolvers/project.resolver';
 import { CoreModule } from '../../core/core.module';
 import { EditorComponent } from './pages/editor/editor.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCircleNotch, faCloud, faCode, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faCloud, faCode, faCog, faEnvelope, faTrash, faUser } from '@fortawesome/free-solid-svg-icons';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { EditorWidgetComponent } from './pages/overview/components/editor-widget/editor-widget.component';
-import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModalModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { EditProjectCardComponent } from './pages/settings/components/edit-project-card/edit-project-card.component';
 import { EditGitInformationCardComponent } from './pages/settings/components/edit-git-information-card/edit-git-information-card.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { AddUserModalComponent } from './pages/users/components/add-user-modal/add-user-modal.component';
 
 const routes: Routes = [
   {
@@ -67,7 +68,8 @@ const routes: Routes = [
     OverviewComponent,
     EditorWidgetComponent,
     EditProjectCardComponent,
-    EditGitInformationCardComponent
+    EditGitInformationCardComponent,
+    AddUserModalComponent
   ],
   imports: [
     CommonModule,
@@ -75,12 +77,13 @@ const routes: Routes = [
     FontAwesomeModule,
     ReactiveFormsModule,
     NgbNavModule,
+    NgbModalModule,
     CoreModule
   ]
 })
 export class ProjectsModule {
 
   constructor(private library: FaIconLibrary) {
-    library.addIcons(faCloud, faCog, faCode, faCircleNotch);
+    library.addIcons(faCloud, faCog, faCode, faCircleNotch, faEnvelope, faUser, faTrash);
   }
 }

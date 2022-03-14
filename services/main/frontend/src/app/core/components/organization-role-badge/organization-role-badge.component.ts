@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { User } from '../../../../../../core/models/user';
-import { Organization } from '../../../../../../core/models/organization';
+import { User } from '../../models/user';
+import { Organization } from '../../models/organization';
 
 @Component({
   selector: 'cc-organization-role-badge',

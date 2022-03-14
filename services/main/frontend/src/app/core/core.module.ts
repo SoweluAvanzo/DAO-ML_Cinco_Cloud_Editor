@@ -12,26 +12,32 @@ import { faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch } from '@fortaweso
 import { RouterModule } from '@angular/router';
 import { SearchUserInputComponent } from './components/search-user-input/search-user-input.component';
 import { NormalizeEnumValuePipe } from './pipes/normalize-enum-value.pipe';
+import { OrganizationRoleBadgeComponent } from './components/organization-role-badge/organization-role-badge.component';
+import { ProjectRoleBadgeComponent } from './components/project-role-badge/project-role-badge.component';
 
 @NgModule({
   declarations: [
+    OrganizationRoleBadgeComponent,
     UserProfileImageComponent,
     WorkspaceImageSearchInputComponent,
     WorkspaceImageBadgeComponent,
     SidebarComponent,
     SidebarItemComponent,
     SearchUserInputComponent,
-    NormalizeEnumValuePipe
+    NormalizeEnumValuePipe,
+    ProjectRoleBadgeComponent
   ],
   providers: [],
   exports: [
+    OrganizationRoleBadgeComponent,
     UserProfileImageComponent,
     WorkspaceImageSearchInputComponent,
     WorkspaceImageBadgeComponent,
     SidebarComponent,
     SidebarItemComponent,
     SearchUserInputComponent,
-    NormalizeEnumValuePipe
+    NormalizeEnumValuePipe,
+    ProjectRoleBadgeComponent
   ],
   imports: [
     CommonModule,

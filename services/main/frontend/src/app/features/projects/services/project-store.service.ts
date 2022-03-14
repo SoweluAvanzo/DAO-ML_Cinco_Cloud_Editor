@@ -113,6 +113,16 @@ export class ProjectStoreService {
       || (project.organization != null && accessRights != null && accessRights.accessRights.includes(OrganizationAccessRight.DELETE_PROJECTS)));
   }
 
+  canAddUsers(user: User): boolean {
+    const project = this.project.value;
+    if (user == null || project == null) return false;
+    return project.owner != null && project.owner.id === user.id;
+  }
+
+  canDeleteUsers(user: User): boolean {
+    return this.canAddUsers(user);
+  }
+
   private afterLeaveOrDeleteProject(project: Project): void {
     this.project.next(null);
     this.accessRights.next(null);
