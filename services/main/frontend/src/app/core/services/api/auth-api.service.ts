@@ -33,9 +33,7 @@ export class AuthApiService extends BaseApiService {
     const options = { ...this.defaultHttpOptions, ...{ observe: 'response' } };
     return this.http.get(`${this.apiUrl}/user/current/logout`, options).pipe(
       map(_ => true),
-      tap(_ => {
-        window.localStorage.removeItem(AuthApiService.TOKEN_KEY);
-      })
+      tap(_ => this.removeToken())
     );
   }
 
@@ -47,5 +45,9 @@ export class AuthApiService extends BaseApiService {
 
   public getToken(): string {
     return window.localStorage.getItem(AuthApiService.TOKEN_KEY);
+  }
+
+  public removeToken(): void {
+    window.localStorage.removeItem(AuthApiService.TOKEN_KEY);
   }
 }

@@ -9,6 +9,8 @@ import { CoreModule } from './core/core.module';
 import { HomeModule } from './features/home/home.module';
 import { NotFoundComponent } from './features/home/pages/not-found/not-found.component';
 import { UserIsLoggedInGuard } from './core/guards/user-is-logged-in.guard';
+import { UnauthenticatedInterceptor } from './core/interceptors/unauthenticated.interceptor';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 const routes: Routes = [
   { path: '', loadChildren: () => import('./features/home/home.module').then(m => m.HomeModule) },
@@ -32,7 +34,13 @@ const routes: Routes = [
     RouterModule.forRoot(routes),
     CoreModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: UnauthenticatedInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {
