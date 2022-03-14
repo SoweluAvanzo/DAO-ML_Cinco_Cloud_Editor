@@ -1,0 +1,41 @@
+<form (ngSubmit)="update()" [formGroup]="form">
+  <div class="card">
+    <div class="card-header">
+      <h6 class="m-0">Update Git information</h6>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <label for="gitInformationType">Type</label>
+        <select class="form-control" formControlName="type" id="gitInformationType">
+          <option value="NONE">None</option>
+          <option value="BASIC">Basic</option>
+        </select>
+      </div>
+      <ng-container *ngIf="!(form.get('type').value === 'NONE')">
+        <div class="mb-3">
+          <label for="repositoryUrl">Repository Url</label>
+          <input class="form-control" formControlName="repositoryUrl" id="repositoryUrl" type="text">
+        </div>
+        <div class="mb-3">
+          <label for="username">Username</label>
+          <input class="form-control" formControlName="username" id="username" type="text">
+        </div>
+        <div class="mb-3">
+          <label for="password">Password</label>
+          <input class="form-control" formControlName="password" id="password" type="text">
+        </div>
+        <div class="mb-3">
+          <label for="branch">Branch</label>
+          <input class="form-control" formControlName="branch" id="branch" type="text">
+        </div>
+        <div>
+          <label for="genSubdirectory">Subdirectory</label>
+          <input class="form-control" formControlName="genSubdirectory" id="genSubdirectory" type="text">
+        </div>
+      </ng-container>
+    </div>
+    <div class="card-footer text-end">
+      <button class="btn btn-sm btn-primary">Save</button>
+    </div>
+  </div>
+</form>

@@ -16,7 +16,7 @@ export class EditOrganizationCardComponent implements OnInit {
 
   form = new FormGroup({
     name: new FormControl('', [Validators.required]),
-    description: new FormControl('', [Validators.required])
+    description: new FormControl('')
   });
 
   constructor(private organizationStore: OrganizationStoreService) {

@@ -1,0 +1,19 @@
+<form (ngSubmit)="update()" [formGroup]="form">
+  <div class="card">
+    <div class="card-header">
+      <h6>Update the project</h6>
+    </div>
+    <div class="card-body">
+      <div class="mb-3">
+        <input class="form-control" formControlName="name" placeholder="Enter a name for the project" type="text">
+      </div>
+      <div>
+        <textarea class="form-control" formControlName="description" placeholder="Enter a description for the project"
+                  rows="3"></textarea>
+      </div>
+    </div>
+    <div class="card-footer text-end">
+      <button class="btn btn-sm btn-primary">Save</button>
+    </div>
+  </div>
+</form>

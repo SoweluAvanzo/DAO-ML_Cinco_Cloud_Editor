@@ -40,6 +40,7 @@ const objectReferenceMap: any = {
   'Project': {
     cls: Project,
     fields: {
+      members: User,
       owner: User,
       organization: Organization,
       image: WorkspaceImage,

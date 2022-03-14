@@ -1,29 +1,45 @@
 <div class="container mt-3">
 
-  <ul ngbNav #nav="ngbNav" class="nav-tabs">
+  <ul #nav="ngbNav" class="nav-tabs" ngbNav>
     <li [ngbNavItem]="1">
       <a ngbNavLink>Properties</a>
       <ng-template ngbNavContent>
-        <ul>
-          <li>Update name and description</li>
-        </ul>
+        <cc-edit-project-card
+          *ngIf="projectStore.canUpdateProject(user)"
+          [project]="project"
+          class="d-block mb-3"
+        >
+        </cc-edit-project-card>
+
+        <div *ngIf="projectStore.canLeaveProject(user)" class="list-group mb-3">
+          <div class="list-group-item d-flex">
+            <div class="flex-grow-1">
+              <h6 class="m-0">Leave the project</h6>
+              <p class="text-muted m-0">By leaving the project you can no longer access the editor.</p>
+            </div>
+            <div class="ms-3">
+              <button (click)="projectStore.leaveProject()" class="btn btn-sm btn-danger">Leave</button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="projectStore.canDeleteProject(user)" class="list-group">
+          <div class="list-group-item d-flex">
+            <div class="flex-grow-1">
+              <h6 class="m-0">Delete the project</h6>
+              <p class="text-muted m-0">Deleting the organization also deletes editor related resources.</p>
+            </div>
+            <div class="ms-3">
+              <button (click)="projectStore.deleteProject()" class="btn btn-sm btn-danger">Delete</button>
+            </div>
+          </div>
+        </div>
       </ng-template>
     </li>
-    <li [ngbNavItem]="2">
+    <li *ngIf="projectStore.canUpdateProject(user) && project.template != null" [ngbNavItem]="2">
       <a ngbNavLink>Git</a>
       <ng-template ngbNavContent>
-        <ul>
-          <li>Git credentials</li>
-        </ul>
-      </ng-template>
-    </li>
-    <li [ngbNavItem]="3">
-      <a ngbNavLink>Advanced</a>
-      <ng-template ngbNavContent>
-        <ul>
-          <li>Leave project as member</li>
-          <li>Delete project</li>
-        </ul>
+
       </ng-template>
     </li>
   </ul>

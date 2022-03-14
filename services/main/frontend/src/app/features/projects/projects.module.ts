@@ -14,6 +14,9 @@ import { faCircleNotch, faCloud, faCode, faCog } from '@fortawesome/free-solid-s
 import { OverviewComponent } from './pages/overview/overview.component';
 import { EditorWidgetComponent } from './pages/overview/components/editor-widget/editor-widget.component';
 import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+import { EditProjectCardComponent } from './pages/settings/components/edit-project-card/edit-project-card.component';
+import { EditGitInformationCardComponent } from './pages/settings/components/edit-git-information-card/edit-git-information-card.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 const routes: Routes = [
   {
@@ -62,12 +65,15 @@ const routes: Routes = [
     ProjectComponent,
     EditorComponent,
     OverviewComponent,
-    EditorWidgetComponent
+    EditorWidgetComponent,
+    EditProjectCardComponent,
+    EditGitInformationCardComponent
   ],
   imports: [
     CommonModule,
     RouterModule.forChild(routes),
     FontAwesomeModule,
+    ReactiveFormsModule,
     NgbNavModule,
     CoreModule
   ]

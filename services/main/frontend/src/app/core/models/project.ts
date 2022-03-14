@@ -10,8 +10,13 @@ export class Project extends BaseEntity {
   name: string;
   description: string;
   owner: User;
+  members: User[] = [];
   organization: Organization;
   image: WorkspaceImage;
   template: WorkspaceImage;
   graphModelTypes: GraphModelType[] = [];
+
+  isUserMember(user: User): boolean {
+    return this.members.findIndex(u => u.id === user.id) > -1;
+  }
 }

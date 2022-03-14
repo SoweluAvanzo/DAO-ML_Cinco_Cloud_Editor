@@ -100,8 +100,8 @@ export class OrganizationStoreService {
 
   updateOrganization(input: UpdateOrganizationInput): void {
     const copy: Organization = fromJsog(toJsog(this.organization.value), Organization)
-    copy.name = input.name;
-    copy.description = input.description;
+    copy.name = input.name.trim();
+    copy.description = input.description.trim();
     this.organizationApi.update(copy).subscribe({
       next: updatedOrganization => this.organization.next(updatedOrganization),
       error: console.error
