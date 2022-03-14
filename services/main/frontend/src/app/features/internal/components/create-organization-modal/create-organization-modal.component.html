@@ -3,6 +3,9 @@
   <button (click)="modal.dismiss()" aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
 </div>
 <div class="modal-body">
+
+  <div class="alert alert-danger mb-3" *ngIf="errorMessage != null">{{ errorMessage }}</div>
+
   <form (ngSubmit)="createOrganization()" [formGroup]="form" class="d-flex flex-column gap-3 mb-3">
     <div>
       <label class="form-label" for="name">Name</label>

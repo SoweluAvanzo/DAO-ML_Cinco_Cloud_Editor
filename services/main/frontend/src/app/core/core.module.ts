@@ -15,6 +15,8 @@ import { NormalizeEnumValuePipe } from './pipes/normalize-enum-value.pipe';
 import { OrganizationRoleBadgeComponent } from './components/organization-role-badge/organization-role-badge.component';
 import { ProjectRoleBadgeComponent } from './components/project-role-badge/project-role-badge.component';
 import { ConfirmModalComponent } from './components/confirm-modal/confirm-modal.component';
+import { ToastsComponent } from './components/toasts/toasts.component';
+import { NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -27,7 +29,8 @@ import { ConfirmModalComponent } from './components/confirm-modal/confirm-modal.
     SearchUserInputComponent,
     NormalizeEnumValuePipe,
     ProjectRoleBadgeComponent,
-    ConfirmModalComponent
+    ConfirmModalComponent,
+    ToastsComponent
   ],
   providers: [],
   exports: [
@@ -39,14 +42,16 @@ import { ConfirmModalComponent } from './components/confirm-modal/confirm-modal.
     SidebarItemComponent,
     SearchUserInputComponent,
     NormalizeEnumValuePipe,
-    ProjectRoleBadgeComponent
+    ProjectRoleBadgeComponent,
+    ToastsComponent
   ],
   imports: [
     CommonModule,
     RouterModule,
     HttpClientModule,
     ReactiveFormsModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    NgbToastModule
   ]
 })
 export class CoreModule {

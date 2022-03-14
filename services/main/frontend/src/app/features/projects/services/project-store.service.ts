@@ -11,8 +11,8 @@ import { fromJsog, toJsog } from '../../../core/utils/jsog-utils';
 import { Router } from '@angular/router';
 import { AppStoreService } from '../../../core/services/stores/app-store.service';
 import { OrganizationAccessRight } from '../../../core/enums/organization-access-right';
-import { ConfirmModalComponent } from '../../../core/components/confirm-modal/confirm-modal.component';
 import { ModalUtilsService } from '../../../core/services/utils/modal-utils.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Injectable()
 export class ProjectStoreService {
@@ -26,7 +26,8 @@ export class ProjectStoreService {
               private organizationARVApi: OrganizationAccessRightVectorApiService,
               private appStore: AppStoreService,
               private router: Router,
-              private modalUtils: ModalUtilsService) {
+              private modalUtils: ModalUtilsService,
+              private toastService: ToastService) {
   }
 
   get project$(): Observable<Project> {

@@ -3,6 +3,7 @@ import { OrganizationApiService } from '../../../../core/services/api/organizati
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Organization } from '../../../../core/models/organization';
+import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'cc-create-organization-modal',
@@ -15,17 +16,29 @@ export class CreateOrganizationModalComponent {
     description: new FormControl('')
   });
 
+  errorMessage: string = null
+
   constructor(private organizationApi: OrganizationApiService,
+              private toastService: ToastService,
               public modal: NgbActiveModal) {
   }
 
   createOrganization(): void {
+    this.errorMessage = null;
     const newOrganization = new Organization();
     newOrganization.name = this.form.value.name;
     newOrganization.description = this.form.value.description;
     this.organizationApi.create(newOrganization).subscribe({
-      next: org => this.modal.close(org),
-      error: console.error
+      next: createdOrganization => {
+        this.toastService.show({
+          message: `The organization "${createdOrganization}" has been created.`,
+          type: ToastType.SUCCESS
+        });
+        this.modal.close(createdOrganization);
+      },
+      error: res => {
+        this.errorMessage = `The organization could not be created: ${res.error.message}`;
+      }
     });
   }
 }

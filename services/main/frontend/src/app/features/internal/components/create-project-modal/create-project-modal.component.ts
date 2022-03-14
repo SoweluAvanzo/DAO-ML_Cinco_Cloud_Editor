@@ -6,6 +6,7 @@ import { WorkspaceImage } from '../../../../core/models/workspace-image';
 import { Project } from '../../../../core/models/project';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 import { Organization } from '../../../../core/models/organization';
+import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'cc-create-project-modal',
@@ -24,9 +25,11 @@ export class CreateProjectModalComponent {
 
   withProjectImage: boolean = false;
   selectedProjectImage: WorkspaceImage;
+  errorMessage: string = null;
 
   constructor(private projectApi: ProjectApiService,
               private appStore: AppStoreService,
+              private toastService: ToastService,
               public modal: NgbActiveModal) {
   }
 
@@ -37,6 +40,7 @@ export class CreateProjectModalComponent {
   }
 
   createProject(): void {
+    this.errorMessage = null;
     const newProject = new Project();
     newProject.name = this.form.value.name;
     newProject.description = this.form.value.description;
@@ -46,8 +50,14 @@ export class CreateProjectModalComponent {
       newProject.template = this.selectedProjectImage;
     }
     this.projectApi.create(newProject).subscribe({
-      next: createdProject => this.modal.close(createdProject),
-      error: console.error
+      next: createdProject => {
+        this.toastService.show({
+          message: `The project "${createdProject.name}" has been created.`,
+          type: ToastType.SUCCESS
+        });
+        this.modal.close(createdProject);
+      },
+      error: () => this.errorMessage = 'The project could not be created'
     });
   }
 }
