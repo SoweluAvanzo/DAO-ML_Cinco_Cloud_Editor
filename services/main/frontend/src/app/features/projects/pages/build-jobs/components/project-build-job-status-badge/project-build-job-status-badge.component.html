@@ -1,0 +1,17 @@
+<div class="d-inline-block">
+  <span class="badge p-2 badge-success" *ngIf="job.status == 'FINISHED_WITH_SUCCESS'">
+    <i class="fas fa-fw mr-2 fa-check"></i> Success
+  </span>
+  <span class="badge p-2 badge-danger" *ngIf="job.status == 'FINISHED_WITH_FAILURE'">
+    <i class="fas fa-fw mr-2 fa-times"></i> Failed
+  </span>
+  <span class="badge p-2 badge-danger" *ngIf="job.status == 'ABORTED'">
+    <i class="fas fa-fw mr-2 fa-times"></i> Aborted
+  </span>
+  <span class="badge p-2 badge-light" *ngIf="job.status == 'PENDING'">
+    <i class="fas fa-fw mr-2 fa-pause"></i> Pending
+  </span>
+  <span class="badge p-2 badge-info" *ngIf="job.status == 'BUILDING'">
+    <i class="fas fa-fw mr-2 fa-spin fa-circle-o-notch"></i> Building
+  </span>
+</div>
