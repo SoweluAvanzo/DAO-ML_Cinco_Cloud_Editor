@@ -11,6 +11,8 @@ import { fromJsog, toJsog } from '../../../core/utils/jsog-utils';
 import { Router } from '@angular/router';
 import { AppStoreService } from '../../../core/services/stores/app-store.service';
 import { OrganizationAccessRight } from '../../../core/enums/organization-access-right';
+import { ConfirmModalComponent } from '../../../core/components/confirm-modal/confirm-modal.component';
+import { ModalUtilsService } from '../../../core/services/utils/modal-utils.service';
 
 @Injectable()
 export class ProjectStoreService {
@@ -23,7 +25,8 @@ export class ProjectStoreService {
               private projectApi: ProjectApiService,
               private organizationARVApi: OrganizationAccessRightVectorApiService,
               private appStore: AppStoreService,
-              private router: Router) {
+              private router: Router,
+              private modalUtils: ModalUtilsService) {
   }
 
   get project$(): Observable<Project> {
@@ -57,17 +60,27 @@ export class ProjectStoreService {
   }
 
   deleteProject(): void {
-    this.projectApi.remove(this.project.value).subscribe({
-      next: () => this.afterLeaveOrDeleteProject(this.project.value),
-      error: console.error
-    });
+    this.modalUtils.confirm({
+      text: 'Do you really want to delete this project?',
+      confirmButtonText: 'Delete'
+    }).then(() => {
+      this.projectApi.remove(this.project.value).subscribe({
+        next: () => this.afterLeaveOrDeleteProject(this.project.value),
+        error: console.error
+      });
+    }).catch(() => {});
   }
 
   leaveProject(): void {
-    this.projectApi.removeMember(this.project.value.id, this.appStore.getUser()).subscribe({
-      next: () => this.afterLeaveOrDeleteProject(this.project.value),
-      error: console.error
-    });
+    this.modalUtils.confirm({
+      text: 'Do you really want to leave this project?',
+      confirmButtonText: 'Leave'
+    }).then(() => {
+      this.projectApi.removeMember(this.project.value.id, this.appStore.getUser()).subscribe({
+        next: () => this.afterLeaveOrDeleteProject(this.project.value),
+        error: console.error
+      });
+    }).catch(() => {})
   }
 
   initWebSocket(): void {
@@ -88,9 +101,14 @@ export class ProjectStoreService {
   }
 
   removeProjectMember(user: User): void {
-    this.projectApi.removeMember(this.project.getValue().id, user).subscribe({
-      next: project => this.project.next(project)
-    });
+    this.modalUtils.confirm({
+      text: 'Do you really want to remove the user from the project?',
+      confirmButtonText: 'Remove'
+    }).then(() => {
+      this.projectApi.removeMember(this.project.getValue().id, user).subscribe({
+        next: project => this.project.next(project)
+      });
+    }).catch(() => {});
   }
 
   canUpdateProject(user: User): boolean {

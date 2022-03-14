@@ -9,6 +9,8 @@ import { OrganizationAccessRightVector } from '../../../core/models/organization
 import { UpdateOrganizationInput } from '../../../core/models/forms/update-organization-input';
 import { fromJsog, toJsog } from '../../../core/utils/jsog-utils';
 import { Router } from '@angular/router';
+import { ConfirmModalComponent } from '../../../core/components/confirm-modal/confirm-modal.component';
+import { ModalUtilsService, ConfirmModalData } from '../../../core/services/utils/modal-utils.service';
 
 @Injectable()
 export class OrganizationStoreService {
@@ -19,7 +21,8 @@ export class OrganizationStoreService {
 
   constructor(private organizationApi: OrganizationApiService,
               private organizationARVApi: OrganizationAccessRightVectorApiService,
-              private router: Router) {
+              private router: Router,
+              private modalUtils: ModalUtilsService) {
   }
 
   get organization$(): Observable<Organization> {
@@ -51,15 +54,20 @@ export class OrganizationStoreService {
   }
 
   removeUserFromOrganization(user: User): void {
-    this.organizationApi.removeUser(this.organization.value, user).subscribe({
-      next: organization => {
-        this.organization.next(organization);
-        const arvMap = this.organizationAccessRights.value;
-        arvMap.delete(user.id);
-        this.organizationAccessRights.next(arvMap);
-      },
-      error: console.error
-    });
+    this.modalUtils.confirm({
+      text: 'Do you really want to remove this user from the organization?',
+      confirmButtonText: 'Remove'
+    }).then(() => {
+      this.organizationApi.removeUser(this.organization.value, user).subscribe({
+        next: organization => {
+          this.organization.next(organization);
+          const arvMap = this.organizationAccessRights.value;
+          arvMap.delete(user.id);
+          this.organizationAccessRights.next(arvMap);
+        },
+        error: console.error
+      });
+    }).catch(() => {});
   }
 
   makeUserMemberOfOrganization(user: User): void {
@@ -109,23 +117,33 @@ export class OrganizationStoreService {
   }
 
   deleteOrganization(): void {
-    this.organizationApi.delete(this.organization.value).subscribe({
-      next: () => {
-        this.organization.next(null);
-        this.router.navigate(['/app']);
-      },
-      error: console.error
-    });
+    this.modalUtils.confirm({
+      text: 'Do you really want to delete this organization?',
+      confirmButtonText: 'Delete'
+    }).then(() => {
+      this.organizationApi.delete(this.organization.value).subscribe({
+        next: () => {
+          this.organization.next(null);
+          this.router.navigate(['/app']);
+        },
+        error: console.error
+      });
+    }).catch(() => {});
   }
 
   leaveOrganization(): void {
-    this.organizationApi.leave(this.organization.value).subscribe({
-      next: () => {
-        this.organization.next(null);
-        this.router.navigate(['/app']);
-      },
-      error: console.error
-    });
+    this.modalUtils.confirm({
+      text: 'Do you really want to delete this organization?',
+      confirmButtonText: 'Delete'
+    }).then(() => {
+      this.organizationApi.leave(this.organization.value).subscribe({
+        next: () => {
+          this.organization.next(null);
+          this.router.navigate(['/app']);
+        },
+        error: console.error
+      });
+    }).catch(() => {});
   }
 
   canDeleteOrganization(user: User): boolean {

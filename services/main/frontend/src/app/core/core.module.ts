@@ -14,6 +14,7 @@ import { SearchUserInputComponent } from './components/search-user-input/search-
 import { NormalizeEnumValuePipe } from './pipes/normalize-enum-value.pipe';
 import { OrganizationRoleBadgeComponent } from './components/organization-role-badge/organization-role-badge.component';
 import { ProjectRoleBadgeComponent } from './components/project-role-badge/project-role-badge.component';
+import { ConfirmModalComponent } from './components/confirm-modal/confirm-modal.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { ProjectRoleBadgeComponent } from './components/project-role-badge/proje
     SidebarItemComponent,
     SearchUserInputComponent,
     NormalizeEnumValuePipe,
-    ProjectRoleBadgeComponent
+    ProjectRoleBadgeComponent,
+    ConfirmModalComponent
   ],
   providers: [],
   exports: [
