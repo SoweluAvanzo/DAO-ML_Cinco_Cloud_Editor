@@ -1,1 +1,35 @@
-<p>settings works!</p>
+<div class="container mt-3">
+  <div class="d-flex flex-row justify-content-between settings-header">
+    <div>
+      <h4>Settings</h4>
+      <p class="text-muted">
+        System wide settings
+      </p>
+    </div>
+    <div class="d-flex align-items-center">
+      <button (click)="saveSettings()" class="btn btn-primary">Save</button>
+    </div>
+  </div>
+
+  <hr>
+
+  <div *ngIf="settings != null" class="list-group">
+    <div class="list-group-item d-flex flex-row">
+      <div class="w-100 mr-3">
+        <strong>Allow user registration</strong>
+        <p class="mb-0 text-muted">
+          When disabled, the registration is not possible for new users.
+        </p>
+      </div>
+      <div class="d-flex align-items-center cursor-pointer">
+        <span
+          (click)="setUserRegistration(!settings.allowPublicUserRegistration)"
+          placement="top"
+          [ngbTooltip]="settings.allowPublicUserRegistration ? 'Disable' : 'Enable'"
+        >
+          <fa-icon [icon]="settings.allowPublicUserRegistration ? icons.toggleOn : icons.toggleOff"></fa-icon>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

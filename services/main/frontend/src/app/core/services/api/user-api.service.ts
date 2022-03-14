@@ -24,6 +24,12 @@ export class UserApiService extends BaseApiService {
     );
   }
 
+  public create(input: UserRegisterInput): Observable<User> {
+    return this.http.post(`${this.apiUrl}/users/private`, input, this.defaultHttpOptions).pipe(
+      map(body => this.transformSingle(body))
+    );
+  }
+
   public getCurrent(): Observable<User> {
     return this.http.get(`${this.apiUrl}/user/current/private`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
@@ -50,13 +56,13 @@ export class UserApiService extends BaseApiService {
   }
 
   public addAdminRole(user: User): Observable<User> {
-    return this.http.post(`${this.apiUrl}/users/${user.id}/roles/addAdmin`, '', this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/users/${user.id}/roles/addAdmin`, {}, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public removeAdminRole(user: User): Observable<User> {
-    return this.http.post(`${this.apiUrl}/users/${user.id}/roles/removeAdmin`, '', this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/users/${user.id}/roles/removeAdmin`, {}, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
