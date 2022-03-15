@@ -9,8 +9,8 @@ import { OrganizationAccessRightVector } from '../../../core/models/organization
 import { UpdateOrganizationInput } from '../../../core/models/forms/update-organization-input';
 import { fromJsog, toJsog } from '../../../core/utils/jsog-utils';
 import { Router } from '@angular/router';
-import { ConfirmModalComponent } from '../../../core/components/confirm-modal/confirm-modal.component';
-import { ModalUtilsService, ConfirmModalData } from '../../../core/services/utils/modal-utils.service';
+import { ModalUtilsService } from '../../../core/services/utils/modal-utils.service';
+import { ToastService, ToastType } from '../../../core/services/toast.service';
 
 @Injectable()
 export class OrganizationStoreService {
@@ -22,7 +22,8 @@ export class OrganizationStoreService {
   constructor(private organizationApi: OrganizationApiService,
               private organizationARVApi: OrganizationAccessRightVectorApiService,
               private router: Router,
-              private modalUtils: ModalUtilsService) {
+              private modalUtils: ModalUtilsService,
+              private toastService: ToastService) {
   }
 
   get organization$(): Observable<Organization> {
@@ -60,27 +61,49 @@ export class OrganizationStoreService {
     }).then(() => {
       this.organizationApi.removeUser(this.organization.value, user).subscribe({
         next: organization => {
+          this.toastService.show({ type: ToastType.SUCCESS, message: `${user.name} has been removed from the organization.` });
           this.organization.next(organization);
           const arvMap = this.organizationAccessRights.value;
           arvMap.delete(user.id);
           this.organizationAccessRights.next(arvMap);
         },
-        error: console.error
+        error: res => {
+          this.toastService.show({
+            type: ToastType.SUCCESS,
+            message: `${user.name} could not be removed from the organization. ${res.data.message}`
+          });
+        }
       });
     }).catch(() => {});
   }
 
   makeUserMemberOfOrganization(user: User): void {
     this.organizationApi.addMember(this.organization.value, user).subscribe({
-      next: organization => this.setOrganization(organization),
-      error: console.error
+      next: organization => {
+        this.toastService.show({ type: ToastType.SUCCESS, message: `${user.name} is now a member of the organization.` });
+        this.setOrganization(organization)
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.SUCCESS,
+          message: `Could not make ${user.name} a member of the organization. ${res.data.message}`
+        });
+      }
     });
   }
 
   makeUserOwnerOfOrganization(user: User): void {
     this.organizationApi.addOwner(this.organization.value, user).subscribe({
-      next: organization => this.setOrganization(organization),
-      error: console.error
+      next: organization => {
+        this.toastService.show({ type: ToastType.SUCCESS, message: `${user.name} is now an owner of the organization.` });
+        this.setOrganization(organization)
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.SUCCESS,
+          message: `Could not make ${user.name} an owner of the organization. ${res.data.message}`
+        });
+      }
     });
   }
 
@@ -91,6 +114,12 @@ export class OrganizationStoreService {
         const arvMap = this.organizationAccessRights.value;
         arvMap.set(updatedArv.user.id, arv);
         this.organizationAccessRights.next(arvMap);
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Could not give user right ${accessRight}. ${res.data.message}`
+        });
       }
     });
   }
@@ -102,6 +131,12 @@ export class OrganizationStoreService {
         const arvMap = this.organizationAccessRights.value;
         arvMap.set(updatedArv.user.id, arv);
         this.organizationAccessRights.next(arvMap);
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Could remove right ${accessRight}. ${res.data.message}`
+        });
       }
     });
   }
@@ -111,8 +146,16 @@ export class OrganizationStoreService {
     copy.name = input.name.trim();
     copy.description = input.description.trim();
     this.organizationApi.update(copy).subscribe({
-      next: updatedOrganization => this.organization.next(updatedOrganization),
-      error: console.error
+      next: updatedOrganization => {
+        this.toastService.show({ type: ToastType.SUCCESS, message: `Organization ${updatedOrganization.name} has been updated.` });
+        this.organization.next(updatedOrganization)
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Organization ${copy.name} could not be updated. ${res.data.message}`
+        });
+      }
     });
   }
 
@@ -123,10 +166,19 @@ export class OrganizationStoreService {
     }).then(() => {
       this.organizationApi.delete(this.organization.value).subscribe({
         next: () => {
+          this.toastService.show({
+            type: ToastType.SUCCESS,
+            message: `The organization ${this.organization.value.name} has been deleted.`
+          });
           this.organization.next(null);
           this.router.navigate(['/app']);
         },
-        error: console.error
+        error: res => {
+          this.toastService.show({
+            type: ToastType.DANGER,
+            message: `The organization ${this.organization.value.name} could not be deleted. ${res.data.message}`
+          });
+        }
       });
     }).catch(() => {});
   }
@@ -138,10 +190,19 @@ export class OrganizationStoreService {
     }).then(() => {
       this.organizationApi.leave(this.organization.value).subscribe({
         next: () => {
+          this.toastService.show({
+            type: ToastType.SUCCESS,
+            message: `You left the organization ${this.organization.value.name}.`
+          });
           this.organization.next(null);
           this.router.navigate(['/app']);
         },
-        error: console.error
+        error: res => {
+          this.toastService.show({
+            type: ToastType.DANGER,
+            message: `Failed to leave organization ${this.organization.value.name}. ${res.data.message}`
+          });
+        }
       });
     }).catch(() => {});
   }

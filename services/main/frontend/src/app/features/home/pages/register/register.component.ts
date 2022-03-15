@@ -4,6 +4,7 @@ import { UserApiService } from '../../../../core/services/api/user-api.service';
 import { SettingsApiService } from '../../../../core/services/api/settings-api.service';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { UserRegisterInput } from '../../../../core/models/forms/user-register-input';
+import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'cc-register',
@@ -21,7 +22,8 @@ export class RegisterComponent implements OnInit {
 
   public constructor(private router: Router,
                      private userApi: UserApiService,
-                     private settingsApi: SettingsApiService) {
+                     private settingsApi: SettingsApiService,
+                     private toastService: ToastService) {
   }
 
   public ngOnInit(): void {
@@ -30,16 +32,26 @@ export class RegisterComponent implements OnInit {
         if (!settings.allowPublicUserRegistration) {
           this.router.navigate(['/']);
         }
-      },
-      error: console.error
+      }
     });
   }
 
   public register(): void {
     const input: UserRegisterInput = this.registerForm.value;
     this.userApi.register(input).subscribe({
-      next: () => this.router.navigate(['/login']),
-      error: console.error
+      next: () => {
+        this.router.navigate(['/login']);
+        this.toastService.show({
+          type: ToastType.SUCCESS,
+          message: 'Your account has been created.'
+        });
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Your account could not be be created. ${res.data.message}`
+        });
+      }
     });
   }
 }

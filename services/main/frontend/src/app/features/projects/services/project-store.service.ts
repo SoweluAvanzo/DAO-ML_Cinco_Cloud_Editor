@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 import { AppStoreService } from '../../../core/services/stores/app-store.service';
 import { OrganizationAccessRight } from '../../../core/enums/organization-access-right';
 import { ModalUtilsService } from '../../../core/services/utils/modal-utils.service';
-import { ToastService } from '../../../core/services/toast.service';
+import { ToastService, ToastType } from '../../../core/services/toast.service';
 
 @Injectable()
 export class ProjectStoreService {
@@ -56,7 +56,19 @@ export class ProjectStoreService {
     copy.name = input.name;
     copy.description = input.description;
     this.projectApi.update(copy).subscribe({
-      next: updatedProject => this.setProject(updatedProject)
+      next: updatedProject => {
+        this.toastService.show({
+          type: ToastType.SUCCESS,
+          message: 'The project has been updated.'
+        });
+        this.setProject(updatedProject)
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `The project could not be updated. ${res.data.message}`
+        });
+      }
     });
   }
 
@@ -66,8 +78,13 @@ export class ProjectStoreService {
       confirmButtonText: 'Delete'
     }).then(() => {
       this.projectApi.remove(this.project.value).subscribe({
-        next: () => this.afterLeaveOrDeleteProject(this.project.value),
-        error: console.error
+        next: () => {
+          this.afterLeaveOrDeleteProject(this.project.value);
+          this.toastService.show({ type: ToastType.SUCCESS, message: 'The project has been deleted.' });
+        },
+        error: () => {
+          this.toastService.show({ type: ToastType.DANGER, message: 'The project could not be deleted.' });
+        }
       });
     }).catch(() => {});
   }
@@ -78,8 +95,13 @@ export class ProjectStoreService {
       confirmButtonText: 'Leave'
     }).then(() => {
       this.projectApi.removeMember(this.project.value.id, this.appStore.getUser()).subscribe({
-        next: () => this.afterLeaveOrDeleteProject(this.project.value),
-        error: console.error
+        next: () => {
+          this.toastService.show({ type: ToastType.SUCCESS, message: 'You have left the project.' });
+          this.afterLeaveOrDeleteProject(this.project.value)
+        },
+        error: () => {
+          this.toastService.show({ type: ToastType.DANGER, message: 'Failed to leave project.' });
+        }
       });
     }).catch(() => {})
   }
@@ -87,7 +109,9 @@ export class ProjectStoreService {
   initWebSocket(): void {
     this.projectWebSocketApi.create(this.project.value.id).subscribe({
       next: ws => this.projectWebSocket.next(ws),
-      error: console.error
+      error: () => {
+        this.toastService.show({ type: ToastType.DANGER, message: 'Failed to connect with websocket.' });
+      }
     });
   }
 
@@ -97,7 +121,16 @@ export class ProjectStoreService {
 
   addProjectMember(user: User): void {
     this.projectApi.addMember(this.project.getValue().id, user).subscribe({
-      next: project => this.project.next(project)
+      next: project => {
+        this.toastService.show({ type: ToastType.SUCCESS, message: `${user.name} is now a member of the project.` });
+        this.project.next(project);
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `The user could not be added to the project. ${res.data.message}`
+        });
+      }
     });
   }
 
@@ -107,7 +140,13 @@ export class ProjectStoreService {
       confirmButtonText: 'Remove'
     }).then(() => {
       this.projectApi.removeMember(this.project.getValue().id, user).subscribe({
-        next: project => this.project.next(project)
+        next: project => {
+          this.toastService.show({ type: ToastType.SUCCESS, message: `${user.name} has been removed from the project.` });
+          this.project.next(project)
+        },
+        error: () => {
+          this.toastService.show({ type: ToastType.DANGER, message: 'The user could not be removed from the project' });
+        }
       });
     }).catch(() => {});
   }

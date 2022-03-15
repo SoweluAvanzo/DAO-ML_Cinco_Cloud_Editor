@@ -5,6 +5,7 @@ import { SettingsApiService } from '../../../../core/services/api/settings-api.s
 import { Settings } from '../../../../core/models/settings';
 import { UserLoginInput } from '../../../../core/models/forms/user-login-input';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
+import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'cc-login',
@@ -21,7 +22,8 @@ export class LoginComponent implements OnInit {
 
   constructor(private authApi: AuthApiService,
               private settingsApi: SettingsApiService,
-              private appStore: AppStoreService) {
+              private appStore: AppStoreService,
+              private toastService: ToastService) {
   }
 
   public get canRegister(): boolean {
@@ -38,6 +40,12 @@ export class LoginComponent implements OnInit {
   public login(): void {
     const input: UserLoginInput = this.loginForm.value;
     this.appStore.login(input).subscribe({
+      next: () => {
+        this.toastService.show({
+          message: `Hello ${this.appStore.getUser().name}!`,
+          type: ToastType.SUCCESS
+        });
+      },
       error: console.error
     });
   }

@@ -1,48 +1,36 @@
-import {Component, OnInit} from '@angular/core';
-import {AppStoreService} from "../../../../core/services/stores/app-store.service";
-import {AuthApiService} from "../../../../core/services/api/auth-api.service";
-import {SettingsApiService} from "../../../../core/services/api/settings-api.service";
-import {Settings} from "../../../../core/models/settings";
-import {User} from "../../../../core/models/user";
-import {FormControl, FormGroup, Validators} from "@angular/forms";
-import {UpdateCurrentUserProfileInput} from "../../../../core/models/forms/update-current-user-profile-input";
-import {UserApiService} from "../../../../core/services/api/user-api.service";
-import {Router} from "@angular/router";
+import { Component } from '@angular/core';
+import { AppStoreService } from '../../../../core/services/stores/app-store.service';
+import { AuthApiService } from '../../../../core/services/api/auth-api.service';
+import { User } from '../../../../core/models/user';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UpdateCurrentUserProfileInput } from '../../../../core/models/forms/update-current-user-profile-input';
+import { UserApiService } from '../../../../core/services/api/user-api.service';
+import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
 
 @Component({
   selector: 'cc-personal-information',
   templateUrl: './personal-information.component.html'
 })
-export class PersonalInformationComponent implements OnInit {
+export class PersonalInformationComponent {
 
-  public settings: Settings;
-  private allowedFileTypes = ['image/jpeg', 'image/png']
+  private allowedFileTypes = ['image/jpeg', 'image/png'];
 
   public informationChangeForm: FormGroup = new FormGroup({
     'name': new FormControl('', [Validators.minLength(1)]),
     'email': new FormControl('', [Validators.email]),
     'picture': new FormControl('', []),
     'fileSource': new FormControl('', [])
-  })
+  });
 
   constructor(private authApi: AuthApiService,
-              private settingsApi: SettingsApiService,
               private appStore: AppStoreService,
               private userApi: UserApiService,
-              private router: Router) {
-
+              private toastService: ToastService) {
   }
 
   public get currentUser(): User {
     return this.appStore.getUser();
-  }
-
-  ngOnInit(): void {
-    this.settingsApi.get().subscribe({
-      next: settings => this.settings = settings,
-      error: console.error
-    });
   }
 
   onFileChange(event) {
@@ -55,31 +43,31 @@ export class PersonalInformationComponent implements OnInit {
   }
 
   changeInformation(): void {
-    var update: UpdateCurrentUserProfileInput = new UpdateCurrentUserProfileInput()
-    var currentUser: User = this.appStore.getUser()
+    var update: UpdateCurrentUserProfileInput = new UpdateCurrentUserProfileInput();
+    var currentUser: User = this.appStore.getUser();
     if (this.informationChangeForm.get('name').value) {
-      update.name = this.informationChangeForm.get('name').value
+      update.name = this.informationChangeForm.get('name').value;
     } else {
-      update.name = currentUser.name
+      update.name = currentUser.name;
     }
     if (this.informationChangeForm.get('email').value) {
-      update.email = this.informationChangeForm.get('email').value
+      update.email = this.informationChangeForm.get('email').value;
     } else {
-      update.email = currentUser.email
+      update.email = currentUser.email;
     }
 
     if (this.informationChangeForm.get('picture').value) {
-      var file: File = this.informationChangeForm.get('fileSource').value
+      var file: File = this.informationChangeForm.get('fileSource').value;
 
       if (this.allowedFileTypes.some(x => x === file.type)) {
-        console.log("allowed image type")
-        console.log(file.type)
-        console.log(this.informationChangeForm.get('fileSource').value)
+        console.log('allowed image type');
+        console.log(file.type);
+        console.log(this.informationChangeForm.get('fileSource').value);
       } else {
-        console.log("please upload a jpeg/png")
+        console.log('please upload a jpeg/png');
       }
     } else {
-      console.log("no file")
+      console.log('no file');
     }
 
     //TODO: reihenfolge ändern sobald file upload funktioniert
@@ -91,9 +79,18 @@ export class PersonalInformationComponent implements OnInit {
 
     } else {
       this.userApi.updateProfile(update).subscribe({
-        next: () => this.router.navigate(['/app/overview']),
-        error: console.error
-      })
+        next: updatedUser => {
+          this.toastService.show({ type: ToastType.SUCCESS, message: 'Your profile has been updated.' });
+          this.appStore.setUser(updatedUser);
+          this.informationChangeForm.reset({
+            name: updatedUser.name,
+            email: updatedUser.email
+          });
+        },
+        error: res => {
+          this.toastService.show({ type: ToastType.DANGER, message: `The profile could not be updated. ${res.data.message}` });
+        }
+      });
     }
   }
 

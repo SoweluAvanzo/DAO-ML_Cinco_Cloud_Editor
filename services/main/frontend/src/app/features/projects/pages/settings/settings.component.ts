@@ -27,5 +27,4 @@ export class SettingsComponent implements OnInit {
       next: user => this.user = user
     });
   }
-
 }
