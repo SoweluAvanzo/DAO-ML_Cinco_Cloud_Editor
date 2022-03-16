@@ -985,9 +985,15 @@ class GraphModelElementImplementation extends Generatable {
 				containedTypes += directContainedTypes.map[it.resolveAllSubTypesAndType].flatten.toSet	
 			}
 		}
+		//TODO: JOEL fill the return result of canNew... method properly 
 		'''
 			«FOR em:containedTypes»
 				«IF !em.isIsAbstract»
+				@Override
+				public boolean canNew«em.name.fuEscapeJava»(){
+					return true;
+				};
+				
 					«IF em.isPrime»
 						
 						@Override
