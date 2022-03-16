@@ -1,7 +1,9 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import "assets/scss/bootstrap";
 @import "assets/scss/variables";
+
+/* -----------------------------------------
+ * global rules
+ */
 
 *, *::after, *::before {
   box-sizing: border-box;
@@ -14,13 +16,13 @@ html {
 body {
   margin: 0 auto;
   font-family: Roboto, Helvetica, Arial, sans-serif;
-  background: #333;
+  background: $color-darker;
   color: $text-color-light;
 }
 
-.navbar-bg-color {
-  background-color: #525252;
-}
+/* -----------------------------------------
+ * utilities not covered by bootstrap
+ */
 
 .cursor-pointer {
   cursor: pointer;
@@ -31,6 +33,18 @@ body {
     content: none !important;
   }
 }
+
+/* -----------------------------------------
+ * bootstrap utility overwrites
+ */
+
+.text-muted {
+  color: #959ea5 !important;
+}
+
+/* -----------------------------------------
+ * bootstrap component overwrites
+ */
 
 .modal {
   backdrop-filter: blur(3px);
@@ -43,7 +57,7 @@ body {
 
 .list-group {
   .list-group-item {
-    background: #525252;
+    background: $color-dark;
     color: $text-color-light;
 
     &.list-group-item-action {
@@ -51,18 +65,18 @@ body {
       transition: background .2s ease-in-out;
 
       &:hover {
-        background: lighten(#525252, 5);
+        background: lighten($color-dark, 5);
       }
     }
 
     .text-muted {
-      color: darken(#fff, 30) !important;
+      color: $gray-500 !important;
     }
   }
 }
 
 .nav-tabs {
-  border-bottom: 1px solid #525252;
+  border-bottom: 1px solid $color-dark;
 
   .nav-link {
     color: #7e7e7e;
@@ -70,21 +84,21 @@ body {
     &:hover {
       border-color: transparent;
       background: #292929;
-      border-bottom: 1px solid #525252;
+      border-bottom: 1px solid $color-dark;
       color: $text-color-light;
     }
 
     &.active {
       color: $text-color-light;
-      background-color: #525252;
-      border-color: #525252;
+      background-color: $color-dark;
+      border-color: $color-dark;
     }
   }
 }
 
 .card {
-  background: #525252;
-  border-color: #525252;
+  background: $color-dark;
+  border-color: $color-dark;
   color: $text-color-light;
 
   .card-header, .card-footer {
@@ -96,34 +110,19 @@ body {
   color: $text-color-light
 }
 
-.text-muted {
-  color: #959ea5 !important;
-}
-
-cc-sidebar > .sidebar {
-  &.collapsed {
-    width: 54px;
-
-    .sidebar-item-text,
-    .sidebar-collapse-button-text {
-      display: none;
-    }
-  }
-}
-
 ul[role=tablist] {
   &.nav-pills .nav-link {
     border-bottom: none;
   }
 
   .nav-link {
-    background: #464646;
+    background: $color-dark;
     color: $text-color-light;
     border: none;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid $text-color-light;
 
     &.active {
-      background: #212121;
+      background: $color-darkest;
       color: $text-color-light;
 
       .badge {
@@ -139,8 +138,6 @@ ul[role=tablist] {
   }
 }
 
-
-
 .form-control {
   padding: 0.375rem 0.75rem;
   font-size: 1rem;
@@ -149,18 +146,18 @@ ul[role=tablist] {
   color: $text-color-light;
   background-color: transparent;
   border: none;
-  border-bottom: 2px solid rgba(255,255,255,.2);
+  border-bottom: 1px solid rgba(255,255,255,.2);
   border-radius: 0;
 
   &::placeholder {
-    color: darken(#fff, 30);
+    color: $gray-400
   }
 
   &:focus, &:active {
     outline: none;
     background: transparent;
     box-shadow: none;
-    border-color: #0d6efd;
+    border-color: $primary;
     color: $text-color-light;
   }
 }
@@ -168,15 +165,36 @@ ul[role=tablist] {
 .light, form.light {
   .form-control {
     color: $text-color-dark;
-    border-bottom: 2px solid #ced4da;
+    border-bottom: 1px solid #ced4da;
 
     &::placeholder {
-      color: darken(#fff, 60);
+      color: $gray-600;
     }
 
     &:focus, &:active {
-      border-color: #0d6efd;
+      border-color: $primary;
       color: $text-color-dark;
+    }
+  }
+}
+
+.navbar {
+  &.navbar-dark {
+    background: $color-dark;
+  }
+}
+
+/* -----------------------------------------
+ * cinco cloud component styles
+ */
+
+cc-sidebar > .sidebar {
+  &.collapsed {
+    width: 54px;
+
+    .sidebar-item-text,
+    .sidebar-collapse-button-text {
+      display: none;
     }
   }
 }

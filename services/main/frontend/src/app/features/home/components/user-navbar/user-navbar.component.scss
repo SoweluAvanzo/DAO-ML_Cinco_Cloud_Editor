@@ -1,7 +1,9 @@
+@import "~src/assets/scss/bootstrap";
+
 a,
 a:focus,
 a:hover {
-  color: #fff;
+  color: $white;
 }
 
 .navbar {

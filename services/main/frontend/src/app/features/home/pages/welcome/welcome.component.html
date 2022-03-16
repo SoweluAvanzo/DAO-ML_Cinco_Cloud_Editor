@@ -1,11 +1,11 @@
 <cc-user-navbar></cc-user-navbar>
 
-<div class="mx-auto d-flex flex-column gap-3 mt-4" style="width: 300px">
+<div class="mx-auto d-flex flex-column gap-3 mt-3" style="width: 300px">
   <img class="d-block w-100 rounded-2" src="assets/img/cinco-logo.png">
-  <a class="d-block btn btn-primary login-button" routerLink="/login">Login</a>
+  <a class="d-block btn btn-primary py-2" routerLink="/login">Login</a>
   <a
     *ngIf="settings && settings.allowPublicUserRegistration"
-    class="d-block btn btn-secondary login-button"
+    class="d-block btn btn-secondary py-2"
     routerLink="/register"
   >
     Register

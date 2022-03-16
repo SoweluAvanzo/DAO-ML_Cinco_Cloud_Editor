@@ -1,2 +1,21 @@
+/* -----------------------------------------
+ * cinco cloud custom variables
+ */
+
+/* define the main colors for the dark theme */
+$color-dark: #525252;
+$color-darker: #333;
+$color-darkest: #212121;
+
 $text-color-light: #eeeeee;
-$text-color-dark: #212529;
+$text-color-dark: $color-darkest;
+
+/* -----------------------------------------
+ * bootstrap overwrites
+ */
+
+$dark: $color-darkest;
+$blue: #495bd9;
+$cyan: #29a2b4;
+$green: #118d55;
+$yellow: #d9a819;

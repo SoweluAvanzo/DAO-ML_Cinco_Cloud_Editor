@@ -1,3 +1,5 @@
+@import "~src/assets/scss/bootstrap";
+
 .image-badge {
   display: flex;
   flex-shrink: 0;
@@ -6,7 +8,7 @@
 .image-badge-name,
 .image-badge-version {
   font-size: .75rem;
-  color: #fff;
+  color: $white;
   padding: .125rem .5rem;
   font-weight: 500;
 }
@@ -14,7 +16,7 @@
 .image-badge-name {
   border-top-left-radius: .25rem;
   border-bottom-left-radius: .25rem;
-  background: #007bff;
+  background: $primary;
 }
 
 .image-badge-version {

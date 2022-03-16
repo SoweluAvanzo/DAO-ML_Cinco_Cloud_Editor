@@ -8,7 +8,7 @@ import { User } from '../../../../core/models/user';
 @Component({
   selector: 'cc-project-list',
   templateUrl: './project-list.component.html',
-  styleUrls: ['./project-list.component.css']
+  styleUrls: ['./project-list.component.scss']
 })
 export class ProjectListComponent {
 
