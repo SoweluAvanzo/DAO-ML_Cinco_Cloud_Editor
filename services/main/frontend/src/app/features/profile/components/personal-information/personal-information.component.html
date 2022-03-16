@@ -14,7 +14,7 @@
                 class="form-control"
                 formControlName="name"
                 id="name"
-                [placeholder]="currentUser.name"
+                placeholder="Enter your name"
                 type="text">
             </div>
             <div>
@@ -23,13 +23,12 @@
                 class="form-control"
                 formControlName="email"
                 id="email"
-                [placeholder]="currentUser.email"
+                placeholder="Enter your email"
                 type="email">
             </div>
             <div>
               <label for="picture">Profile Picture</label>
               <input
-                formControlName="picture"
                 id="picture"
                 type="file"
                 class="form-control"
@@ -44,6 +43,7 @@
           class="btn-primary btn"
           type="submit"
           form="changeInformationForm"
+          [disabled]="informationChangeForm.invalid"
         >
           Save
         </button>

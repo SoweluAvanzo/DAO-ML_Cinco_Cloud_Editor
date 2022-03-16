@@ -54,6 +54,7 @@ const objectReferenceMap: any = {
   'User': {
     cls: User,
     fields: {
+      profilePicture: FileReference,
       ownedProjects: Project
     }
   },
