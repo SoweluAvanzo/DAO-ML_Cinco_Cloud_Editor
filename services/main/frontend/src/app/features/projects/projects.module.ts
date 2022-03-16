@@ -19,6 +19,8 @@ import { EditGitInformationCardComponent } from './pages/settings/components/edi
 import { ReactiveFormsModule } from '@angular/forms';
 import { AddUserModalComponent } from './pages/users/components/add-user-modal/add-user-modal.component';
 import { ProjectBuildJobStatusBadgeComponent } from './pages/build-jobs/components/project-build-job-status-badge/project-build-job-status-badge.component';
+import { OverviewWidgetComponent } from './pages/overview/components/overview-widget/overview-widget.component';
+import { StatusWidgetComponent } from './pages/overview/components/status-widget/status-widget.component';
 
 const routes: Routes = [
   {
@@ -71,7 +73,9 @@ const routes: Routes = [
     EditProjectCardComponent,
     EditGitInformationCardComponent,
     AddUserModalComponent,
-    ProjectBuildJobStatusBadgeComponent
+    ProjectBuildJobStatusBadgeComponent,
+    OverviewWidgetComponent,
+    StatusWidgetComponent
   ],
   imports: [
     CommonModule,

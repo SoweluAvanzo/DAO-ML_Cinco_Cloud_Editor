@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
-import { AppStoreService } from '../../../../core/services/stores/app-store.service';
-import { AuthApiService } from '../../../../core/services/api/auth-api.service';
-import { User } from '../../../../core/models/user';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { UpdateCurrentUserProfileInput } from '../../../../core/models/forms/update-current-user-profile-input';
-import { UserApiService } from '../../../../core/services/api/user-api.service';
-import { ToastService, ToastType } from '../../../../core/services/toast.service';
+import {Component} from '@angular/core';
+import {AppStoreService} from '../../../../core/services/stores/app-store.service';
+import {AuthApiService} from '../../../../core/services/api/auth-api.service';
+import {User} from '../../../../core/models/user';
+import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {UpdateCurrentUserProfileInput} from '../../../../core/models/forms/update-current-user-profile-input';
+import {UserApiService} from '../../../../core/services/api/user-api.service';
+import {ToastService, ToastType} from '../../../../core/services/toast.service';
+import {HttpClient} from "@angular/common/http";
 
 
 @Component({
@@ -26,7 +27,8 @@ export class PersonalInformationComponent {
   constructor(private authApi: AuthApiService,
               private appStore: AppStoreService,
               private userApi: UserApiService,
-              private toastService: ToastService) {
+              private toastService: ToastService,
+              private client: HttpClient) {
   }
 
   public get currentUser(): User {
@@ -56,18 +58,45 @@ export class PersonalInformationComponent {
       update.email = currentUser.email;
     }
 
+    //TODO: schicke bild and http://cinco-cloud/api/files/create
     if (this.informationChangeForm.get('picture').value) {
-      var file: File = this.informationChangeForm.get('fileSource').value;
+      const file: File = this.informationChangeForm.get('fileSource').value;
+
+      const formData = new FormData();
+      formData.append('file', this.informationChangeForm.get('fileSource').value);
 
       if (this.allowedFileTypes.some(x => x === file.type)) {
-        console.log('allowed image type');
-        console.log(file.type);
-        console.log(this.informationChangeForm.get('fileSource').value);
+        console.log("allowed image type")
+        console.log(file.type)
+        console.log(this.informationChangeForm.get('fileSource').value)
+
+        let uploadPath = "http://cinco-cloud/api/files/create"
+
+        this.client.post(uploadPath, formData)
+
+          .subscribe(res => {
+
+            console.log(res);
+
+            alert('Uploaded Successfully.');
+
+          })
+        /*
+        var content = JSON.stringify({a: 1, b: 'test'})
+        const rawResponse = await fetch(myUrl, {
+          method: 'POST',
+          content: formData,
+          headers: {'Content-Type': 'image/*'}
+        });
+
+        const response = await rawResponse.json();
+        console.log(response);
+        */
       } else {
-        console.log('please upload a jpeg/png');
+        console.log("please upload a jpeg/png")
       }
     } else {
-      console.log('no file');
+      console.log("no file")
     }
 
     //TODO: reihenfolge ändern sobald file upload funktioniert
@@ -80,7 +109,7 @@ export class PersonalInformationComponent {
     } else {
       this.userApi.updateProfile(update).subscribe({
         next: updatedUser => {
-          this.toastService.show({ type: ToastType.SUCCESS, message: 'Your profile has been updated.' });
+          this.toastService.show({type: ToastType.SUCCESS, message: 'Your profile has been updated.'});
           this.appStore.setUser(updatedUser);
           this.informationChangeForm.reset({
             name: updatedUser.name,
@@ -88,10 +117,12 @@ export class PersonalInformationComponent {
           });
         },
         error: res => {
-          this.toastService.show({ type: ToastType.DANGER, message: `The profile could not be updated. ${res.data.message}` });
+          this.toastService.show({
+            type: ToastType.DANGER,
+            message: `The profile could not be updated. ${res.data.message}`
+          });
         }
       });
     }
   }
-
 }

@@ -1,0 +1,9 @@
+<div class="editor-widget d-flex align-items-center p-3 rounded-3 shadow-sm"
+   style="">
+  <fa-icon [icon]="['fas', 'code']" class="me-4 ms-2" size="lg"></fa-icon>
+  <div class="flex-grow-1 ps-3 py-1" style="border-left: 1px solid rgba(255,255,255,.5)">
+    <h6><strong>{{project.name}} Job Status</strong></h6>
+    <cc-project-build-job-status-badge *ngIf="job" [job]="job"></cc-project-build-job-status-badge>
+    <p *ngIf="job == null"> There are no build jobs for this Project, yet!</p>
+  </div>
+</div>
