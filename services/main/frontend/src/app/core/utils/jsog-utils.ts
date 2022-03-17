@@ -15,13 +15,13 @@ import { GitInformation } from '../models/git-information';
  * fields can be resolved to the correct class.
  */
 const objectReferenceMap: any = {
-  'FileReference': {
+  [FileReference.name]: {
     cls: FileReference
   },
-  'GitInformation': {
+  [GitInformation.name]: {
     cls: GitInformation
   },
-  'Organization': {
+  [Organization.name]: {
     cls: Organization,
     fields: {
       logo: FileReference,
@@ -30,14 +30,14 @@ const objectReferenceMap: any = {
       projects: Project
     }
   },
-  'OrganizationAccessRightVector': {
+  [OrganizationAccessRightVector.name]: {
     cls: OrganizationAccessRightVector,
     fields: {
       user: User,
       organization: Organization
     }
   },
-  'Project': {
+  [Project.name]: {
     cls: Project,
     fields: {
       members: User,
@@ -48,24 +48,24 @@ const objectReferenceMap: any = {
       graphModelTypes: GraphModelType
     }
   },
-  'Settings': {
+  [Settings.name]: {
     cls: Settings,
   },
-  'User': {
+  [User.name]: {
     cls: User,
     fields: {
       profilePicture: FileReference,
       ownedProjects: Project
     }
   },
-  'WorkspaceImage': {
+  [WorkspaceImage.name]: {
     cls: WorkspaceImage,
     fields: {
       user: User,
       project: Project
     }
   },
-  'WorkspaceImageBuildJob': {
+  [WorkspaceImageBuildJob.name]: {
     cls: WorkspaceImageBuildJob,
     fields: {
       project: Project

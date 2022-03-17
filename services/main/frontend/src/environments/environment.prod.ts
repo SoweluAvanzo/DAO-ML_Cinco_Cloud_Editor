@@ -1,6 +1,10 @@
+const httpProtocol = window.location.protocol;
+const wsProtocol = httpProtocol.endsWith('s:') ? 'wss:' : 'ws:';
+const host = window.location.host;
+
 export const environment = {
   production: true,
-  baseUrl: 'http://cinco-cloud',
-  webSocketUrl: 'ws://cinco-cloud/api/ws',
-  apiUrl: 'http://cinco-cloud/api'
+  baseUrl: `${httpProtocol}//${host}`,
+  webSocketUrl: `${wsProtocol}//${host}/api/ws`,
+  apiUrl: `${httpProtocol}//${host}/api`
 };
