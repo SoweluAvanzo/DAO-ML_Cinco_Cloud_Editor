@@ -7,10 +7,12 @@ import { UpdateCurrentUserProfileInput } from '../../../../core/models/forms/upd
 import { UserApiService } from '../../../../core/services/api/user-api.service';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
 import { FileApiService, Upload } from '../../../../core/services/api/file-api.service';
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
 @Component({
   selector: 'cc-personal-information',
-  templateUrl: './personal-information.component.html'
+  templateUrl: './personal-information.component.html',
+  styleUrls: ['./personal-information.scss']
 })
 export class PersonalInformationComponent implements OnInit {
 
@@ -29,6 +31,10 @@ export class PersonalInformationComponent implements OnInit {
               private fileApi: FileApiService) {
   }
 
+  public get trashIcon(){
+    return faTrash
+  }
+
   ngOnInit(): void {
     this.informationChangeForm.get('name').setValue(this.currentUser.name);
     this.informationChangeForm.get('email').setValue(this.currentUser.email);
@@ -38,11 +44,14 @@ export class PersonalInformationComponent implements OnInit {
     return this.appStore.getUser();
   }
 
-  onFileChange(event) {
-    if (event.target.files.length > 0) {
-      const file = event.target.files[0];
-      this.informationChangeForm.get('picture').setValue(file);
+  handleFileSelect(files: File[]): void {
+    if (files.length > 0) {
+      this.informationChangeForm.get('picture').setValue(files[0]);
     }
+  }
+
+  handleClear(): void {
+    this.informationChangeForm.get('picture').setValue(null);
   }
 
   changeInformation(): void {
@@ -90,5 +99,9 @@ export class PersonalInformationComponent implements OnInit {
         });
       }
     });
+  }
+
+  public removeImage(): void {
+    this.currentUser.profilePicture = null
   }
 }

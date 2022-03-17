@@ -1,0 +1,10 @@
+.pers-inf{
+  display: grid;
+  grid-gap: 1rem;
+  grid-template-rows: 1fr;
+  grid-template-columns: [first] 250px [second] auto [end] ;
+}
+
+.btn-rem{
+  margin-top: 10px;
+}

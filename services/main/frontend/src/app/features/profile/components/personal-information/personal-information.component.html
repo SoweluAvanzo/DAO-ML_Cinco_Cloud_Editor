@@ -5,7 +5,19 @@
         <strong>Personal Information</strong>
       </div>
       <div class="card-body">
-        <div class="row">
+        <div class="pers-inf">
+          <div>
+            <cc-user-profile-image [user]="currentUser"></cc-user-profile-image>
+            <div *ngIf="currentUser.profilePicture != null">
+              <button
+                type="button"
+                class="btn btn-dark btn-rem"
+                (click)="removeImage()"
+                title="Remove Profile Image">
+                <fa-icon [icon]="trashIcon"></fa-icon>
+              </button>
+            </div>
+          </div>
           <form id="changeInformationForm" (ngSubmit)="changeInformation()" [formGroup]="informationChangeForm"
                 class="d-flex flex-column gap-3 mb-3">
             <div>
@@ -37,15 +49,9 @@
               </cc-validation-error-message>
             </div>
             <div>
-              <label for="picture">Profile Picture</label>
-              <input
-                id="picture"
-                type="file"
-                class="form-control"
-                (change)="onFileChange($event)">
+              <cc-file-input #input (select)="handleFileSelect($event)" (clear)="handleClear()"></cc-file-input>
             </div>
           </form>
-          <cc-user-profile-image [user]="currentUser"></cc-user-profile-image>
         </div>
       </div>
       <div class="card-footer text-end">

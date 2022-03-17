@@ -6,6 +6,7 @@ import { PasswordChangeComponent } from './components/password-change/password-c
 import { PersonalInformationComponent } from './components/personal-information/personal-information.component';
 import {ReactiveFormsModule} from "@angular/forms";
 import {CoreModule} from "../../core/core.module";
+import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
 
 
 const routes: Routes = [
@@ -22,7 +23,8 @@ const routes: Routes = [
         CommonModule,
         RouterModule.forChild(routes),
         ReactiveFormsModule,
-        CoreModule
+        CoreModule,
+        FontAwesomeModule
     ]
 })
 export class ProfileModule { }
