@@ -278,6 +278,14 @@ class FileHandler {
 		root.collectFiles
 	}
 	
+	def static getAllPath(EObject res, String path) {
+		val root = getFileOrFolder(res,path)
+		val files = res.getAllFiles(path)
+		files.map[
+			root.absoluteFile.toPath.relativize(it.absoluteFile.toPath).toString
+		]
+	}
+	
 	def private static Iterable<File> collectFiles(File file) {
 		if(file.isDirectory) {
 			return file.listFiles.map[collectFiles].flatten

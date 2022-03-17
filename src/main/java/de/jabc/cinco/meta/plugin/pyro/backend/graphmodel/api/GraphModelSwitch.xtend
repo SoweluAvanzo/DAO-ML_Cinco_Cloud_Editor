@@ -15,15 +15,21 @@ class GraphModelSwitch extends Generatable {
 	
 	def filename(GraphModel g)'''«g.name.toCamelCase.fuEscapeJava»Switch.java'''
 	
-	
-	def createSwitchCase(String type)'''
-		if(element instanceof graphmodel.«type») {
-			result = case«type»((graphmodel.«type»)element);
-			if(result != null) {
-				return result;
-			}
+	def createSwitchCase(String type)
+	'''if(element instanceof graphmodel.«type») {
+		result = case«type»((graphmodel.«type»)element);
+		if(result != null) {
+			return result;
 		}
-	'''
+	}'''
+	
+	def createSwitchCase(String type, String packageFQN, CharSequence typeName)
+	'''if("«typeName»".equals(TypeRegistry.getTypeOf(element))) {
+		result = case«type»((«packageFQN».«type»)element);
+		if(result != null) {
+			return result;
+		}
+	}'''
 	
 	def createSwitchMethod(String type)'''
 		protected T case«type»(graphmodel.«type» element) {
@@ -41,25 +47,20 @@ class GraphModelSwitch extends Generatable {
 			
 				protected T doSwitch(graphmodel.IdentifiableElement element) {
 					T result = null;
-					«FOR e:g.elements»
-						if(element instanceof «e.apiFQN») {
-							result = case«e.name.escapeJava»((«e.apiFQN»)element);
-							if(result != null) {
-								return result;
-							}
-						}
-					«ENDFOR»
-					«"GraphModel".createSwitchCase»
-					«"Container".createSwitchCase»
-					«"Node".createSwitchCase»
-					«"Edge".createSwitchCase»
-					«"ModelElementContainer".createSwitchCase»
-					«"ModelElement".createSwitchCase»
-					«"IdentifiableElement".createSwitchCase»
+					«FOR e:g.elementsAndTypesAndGraphModels SEPARATOR " else "
+					»«e.name.escapeJava.createSwitchCase(e.modelPackage.apiFQNBase.toString, e.typeName)»«
+					ENDFOR»
+					else «"GraphModel".createSwitchCase»
+					else «"Container".createSwitchCase»
+					else «"Node".createSwitchCase»
+					else «"Edge".createSwitchCase»
+					else «"ModelElementContainer".createSwitchCase»
+					else «"ModelElement".createSwitchCase»
+					else «"IdentifiableElement".createSwitchCase»
 					return defaultCase(element);
 				}
 				
-				«FOR e:g.elements»
+				«FOR e:g.elementsAndTypesAndGraphModels»
 					protected T case«e.name.escapeJava»(«e.apiFQN» element) {
 						return null;
 					}

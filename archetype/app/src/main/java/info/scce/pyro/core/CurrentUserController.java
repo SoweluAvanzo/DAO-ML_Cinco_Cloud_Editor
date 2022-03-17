@@ -12,8 +12,6 @@ public class CurrentUserController {
 	@javax.inject.Inject
 	info.scce.pyro.rest.ObjectCache objectCache;
 
-	
-
 	@javax.ws.rs.GET
 	@javax.ws.rs.Path("private")
 	@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)

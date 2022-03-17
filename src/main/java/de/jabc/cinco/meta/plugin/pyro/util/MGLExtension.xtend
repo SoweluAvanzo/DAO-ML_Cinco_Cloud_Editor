@@ -49,7 +49,6 @@ import style.NodeStyle
 import style.Styles
 import java.util.regex.Pattern
 import java.util.ArrayList
-import de.jabc.cinco.meta.core.utils.MGLUtil
 import java.util.function.BiFunction
 
 class MGLExtension {
@@ -580,6 +579,10 @@ class MGLExtension {
 		}
 	}
 
+	def javaType(Attribute attr) {
+		javaType(attr, attr.MGLModel)
+	}
+
 	def javaType(Attribute attr, GraphModel g) {
 		javaType(attr, g.mglModel)
 	}
@@ -612,9 +615,9 @@ class MGLExtension {
 			}
 			case "ELong": {
 				if (attr.list) {
-					return '''Integer'''
+					return '''Long'''
 				}
-				return '''int'''
+				return '''long'''
 			}
 			case "EBigInteger": {
 				if (attr.list) {
@@ -656,17 +659,21 @@ class MGLExtension {
 				return '''String'''
 		}
 	}
-
-	def javaDBType(Attribute attr, GraphModel g) {
-		javaDBType(attr, g.mglModel)
+	
+	def javaRestType(Attribute attr) {
+		javaRestType(attr, attr.MGLModel)
 	}
 
-	def javaDBType(Attribute attr, MGLModel g) {
-		if (attr.attributeTypeName.getEnum(g) !== null) {
-			return g.apiFQN + "." + attr.attributeTypeName.fuEscapeJava
-		}
+	def javaRestType(Attribute attr, GraphModel g) {
+		javaRestType(attr, g.mglModel)
+	}
+
+	def javaRestType(Attribute attr, MGLModel g) {
 		if (!attr.isPrimitive) {
-			return '''«attr.attributeTypeName.fuEscapeJava»'''
+			return '''«attr.apiFQN»'''
+		}
+		if (attr.attributeTypeName.getEnum(g) !== null) {
+			return '''info.scce.pyro.core.graphmodel.PyroEnum'''
 		}
 		switch (attr.attributeTypeName) {
 			case "EBoolean": {
@@ -689,9 +696,90 @@ class MGLExtension {
 			}
 			case "ELong": {
 				if (attr.list) {
+					return '''Long'''
+				}
+				return '''long'''
+			}
+			case "EBigInteger": {
+				if (attr.list) {
 					return '''Integer'''
 				}
 				return '''int'''
+			}
+			case "EByte": {
+				if (attr.list) {
+					return '''Integer'''
+				}
+				return '''int'''
+			}
+			case "EShort": {
+				if (attr.list) {
+					return '''Integer'''
+				}
+				return '''int'''
+			}
+			case "EFloat": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			case "EFloatObject": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			case "EBigDecimal": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			default:
+				return '''String'''
+		}
+	}
+	
+	def javaDBType(Attribute attr) {
+		javaDBType(attr, attr.MGLModel)
+	}
+
+	def javaDBType(Attribute attr, GraphModel g) {
+		javaDBType(attr, g.mglModel)
+	}
+	
+	def javaDBType(Attribute attr, MGLModel g) {
+		if (attr.attributeTypeName.getEnum(g) !== null) {
+			return '''«attr.entityFQN»'''
+		}
+		if (!attr.isPrimitive) {
+			return '''«attr.entityFQN»'''
+		}
+		switch (attr.attributeTypeName) {
+			case "EBoolean": {
+				if (attr.list) {
+					return '''Boolean'''
+				}
+				return '''boolean'''
+			}
+			case "EInt": {
+				if (attr.list) {
+					return '''Integer'''
+				}
+				return '''int'''
+			}
+			case "EDouble": {
+				if (attr.list) {
+					return '''Double'''
+				}
+				return '''double'''
+			}
+			case "ELong": {
+				if (attr.list) {
+					return '''Long'''
+				}
+				return '''long'''
 			}
 			case "EBigInteger": {
 				if (attr.list) {
@@ -1938,26 +2026,19 @@ class MGLExtension {
 		ns.mainShape
 	}
 
-	def dispatch boolean hasAppearanceProvider(Node n, Styles styles) {
-		val styleForNode = n.styleFor(styles)
-		return !styleForNode.appearanceProvider.nullOrEmpty
+	def dispatch boolean hasAppearanceProvider(GraphicalModelElement n, Styles styles) {
+		val style = n.styleFor(styles)
+		return style !== null && !style.appearanceProvider.nullOrEmpty
 	}
 
-	def dispatch boolean hasAppearanceProvider(Edge n, Styles styles) {
-		val styleForEdge = n.styleFor(styles)
-		return !styleForEdge.appearanceProvider.nullOrEmpty
+	def dispatch boolean hasAppearanceProvider(GraphModel g, Styles styles) {
+		return !g.elementsAndTypesAndGraphModels.filter(GraphicalModelElement).filter[
+			it.hasAppearanceProvider(styles)
+		].isEmpty;
 	}
 
-	def dispatch boolean hasAppearanceProvider(GraphModel n, Styles styles) {
-		return false;
-	}
-
-	def dispatch styleFor(Node n, Styles styles) {
-		n.styling(styles) as NodeStyle
-	}
-
-	def dispatch styleFor(Edge n, Styles styles) {
-		n.styling(styles) as EdgeStyle
+	def styleFor(GraphicalModelElement n, Styles styles) {
+		n.styling(styles)
 	}
 
 	def isList(Attribute attr) {
@@ -1993,33 +2074,68 @@ class MGLExtension {
 	def Set<Edge> possibleOutgoing(Node node) {
 		val model =node.modelPackage as MGLModel;
 		var directOutgoing = !node.outgoingWildcards.empty?
-			model.edges : node.outgoingEdgeConnections.map[connectingEdges].flatten.toSet
-		if (node.outgoingEdgeConnections.exists[connectingEdges.empty]) {
-			return this.edges(model).toSet
+			model.edges :
+			node.outgoingEdgeConnections.map[connectingEdges].flatten.toSet
+		var outgoing = directOutgoing.toSet;
+		
+		// if node has no outgoing edges and it extends, take the inherited edges
+		if (outgoing.empty && node.extends !== null) {
+			outgoing = node.extends.possibleOutgoing
 		}
-		val subTypesOfDirectOutgoing = directOutgoing.map[n|n.name.subTypes(model)].flatten.filter(Edge)
-		/*
-			if (node.extends !== null) {
-				return (directOutgoing + subTypesOfDirectOutgoing + node.extends.possibleOutgoing ).toSet
-			}
-		*/
-		return (directOutgoing + subTypesOfDirectOutgoing).toSet
+		
+		// resolve subTypes of outgoing edges
+		val subTypesOfDirectOutgoing = outgoing.map[n|n.name.subTypes(model)].flatten.filter(Edge)
+		outgoing = (outgoing + subTypesOfDirectOutgoing).toSet
+		
+		return outgoing
+	}
+	
+	def Set<mgl.BoundedConstraint> possibleOutgoingConstraints(Node node) {
+		var directOutgoingConstraints =  new java.util.HashSet<mgl.BoundedConstraint>();
+		directOutgoingConstraints += node.outgoingWildcards
+		directOutgoingConstraints += node.outgoingEdgeConnections
+		
+		var outgoingConstraints = directOutgoingConstraints.filter(mgl.BoundedConstraint).toSet;
+		
+		// if node has no outgoing edges and it extends, take the inherited edges
+		if (outgoingConstraints.empty && node.extends !== null) {
+			outgoingConstraints = node.extends.possibleOutgoingConstraints
+		}
+		
+		return outgoingConstraints.filter(mgl.BoundedConstraint).toSet
 	}
 
 	def Set<Edge> possibleIncoming(Node node) {
 		val model =node.modelPackage as MGLModel;
 		var directIncoming = !node.incomingWildcards.empty?
 			model.edges : node.incomingEdgeConnections.map[connectingEdges].flatten.toSet
-		if (node.incomingEdgeConnections.exists[connectingEdges.empty]) {
-			return this.edges(model).toSet
+		var incoming = directIncoming.toSet;
+		
+		// if node has no outgoing edges and it extends, take the inherited edges
+		if (incoming.empty && node.extends !== null) {
+			incoming = node.extends.possibleIncoming.toSet
 		}
-		val subTypesOfDirectIncoming = directIncoming.map[n|n.name.subTypes(model)].flatten.filter(Edge)
-		/*
-			if (node.extends !== null) {
-				return (directIncoming + subTypesOfDirectIncoming + node.extends.possibleIncoming ).toSet
-			}
-		*/
-		return (directIncoming + subTypesOfDirectIncoming).toSet
+		
+		// resolve subTypes of outgoing edges
+		val subTypesOfDirectIncoming = incoming.map[n|n.name.subTypes(model)].flatten.filter(Edge)
+		incoming = (incoming + subTypesOfDirectIncoming).toSet
+		
+		return incoming
+	}
+	
+	def Set<mgl.BoundedConstraint> possibleIncomingConstraints(Node node) {
+		var directIncomingConstraints =  new java.util.HashSet<mgl.BoundedConstraint>();
+		directIncomingConstraints += node.incomingWildcards
+		directIncomingConstraints += node.incomingEdgeConnections
+		
+		var incomingConstraints = directIncomingConstraints.filter(mgl.BoundedConstraint).toSet;
+		
+		// if node has no outgoing edges and it extends, take the inherited edges
+		if (incomingConstraints.empty && node.extends !== null) {
+			incomingConstraints = node.extends.possibleIncomingConstraints
+		}
+		
+		return incomingConstraints.filter(mgl.BoundedConstraint).toSet
 	}
 
 	def Set<Node> possibleSources(Edge edge) {
@@ -2741,9 +2857,22 @@ class MGLExtension {
 		}
 	}
 
-	def getPrimitiveDefaultDart(Attribute attr) {
-		if (attr.attributeTypeName.getEnum(attr.MGLModel) !== null) {
-            return '''«attr.primitiveDartType(attr.MGLModel)».«attr.defaultValue»'''
+
+	def CharSequence getPrimitiveDefaultDart(Attribute attr) {
+		if(attr instanceof Enumeration) {
+		}
+		if (attr.attributeTypeName.getEnum(attr.MGLModel) !== null
+		) {
+			if(attr instanceof ComplexAttribute) {
+				if(attr.type instanceof Enumeration) {
+					var enumType = attr.type as Enumeration
+					var defaultValue = attr.defaultValue !== null
+						? attr.defaultValue
+						: enumType.literals.get(0)
+					return '''«attr.primitiveDartType(attr.MGLModel)».«defaultValue»'''
+				}
+			}
+            throw new RuntimeException("Cannot infer defaultValue of attribute: "+attr.typeName);
        	}
 
 		if (attr.defaultValue !== null) {
@@ -2752,6 +2881,7 @@ class MGLExtension {
 				default: return '''«attr.defaultValue»'''
 				}
 			}
+
 		
 		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''false'''

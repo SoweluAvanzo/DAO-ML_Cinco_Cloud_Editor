@@ -142,6 +142,22 @@ class GraphService extends Generatable {
 		    	throw new Error();
 			}
 			
+			Future<Message> loadAppearance(GraphModel g) async {
+				if(g == null)
+					return null;
+				var id = g.id;
+				var type = this.getGraphModelEndpoint(g.$type());
+				return html.HttpRequest.request("${getBaseUrl()}/${type}/appearance/${id}/private",
+					method: "GET",
+					requestHeaders: requestHeaders,
+					withCredentials: true
+				).then((response){
+					var p = Message.fromJSON(response.responseText);
+					print("[PYRO] load appearance for ${id}");
+					return p;
+				}).catchError(super.handleProgressEvent,test: (e) => e is html.ProgressEvent);
+			}
+			
 			/**
 			 * checks if the given type or fileExtension is related to a GraphModel.
 			 * Occurence of graphModels is sorted by typeName (packageName + ModelName).
@@ -180,6 +196,7 @@ class GraphService extends Generatable {
 									}
 									
 								«ENDIF»
+								
 								Future<Message> executeGraphmodelButton«g.name.escapeDart»(int id,«g.dartFQN» graph,String key,List<HighlightCommand> highlightings) async {
 									var data = {
 										'fqn':null,

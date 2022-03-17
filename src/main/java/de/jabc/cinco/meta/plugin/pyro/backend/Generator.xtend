@@ -403,7 +403,7 @@ class Generator extends FileGenerator {
 			val path = businessBasePath
 			val gen = new GraphModelElementImplementation(gc)
 			gc.mglModels.forEach[g|{
-				val styles = CincoUtil.getStyles(g)
+ 				val styles = CincoUtil.getStyles(g)
 				val graphPath = path+g.apiImplPath.toString;
 				clearDirectory(graphPath)
 				(#[g]+(g.elementsAndTypes)).filter(ModelElement).filter[!isIsAbstract].forEach[t|{
@@ -553,11 +553,14 @@ class Generator extends FileGenerator {
 		{
 			val path = businessBasePath+"info/scce/pyro/core"
 			gc.graphMopdels.filter[!isAbstract].forEach[g|{
-				val staticResourceFiles = new HashMap
+				val staticResourceFiles = new HashMap<String, Iterable<String>>
 				if(g.hasIncludeResourcesAnnotation) { 
 					g.annotations.filter[name.equals("pyroGeneratorResource")&&!value.isEmpty].forEach[ann|{
 						ann.value.forEach[v|{
-							staticResourceFiles.put(v,FileHandler.getAllFiles(ann,v))
+							staticResourceFiles.put(
+								v,
+								FileHandler.getAllPath(ann,v)
+							)
 						}]
 					}]
 				}
@@ -566,7 +569,7 @@ class Generator extends FileGenerator {
 				val gen = new GraphModelController(gc)
 				generateJavaFile(path,
 					gen.filename(g),
-					gen.content(g,styles,staticResourceFiles)
+					gen.content(g, styles, staticResourceFiles)
 				)
 			}]
 		}
@@ -608,9 +611,7 @@ class Generator extends FileGenerator {
 		}
 		//copy annotated included generator resources
 		{
-			val path = basePath+"src/main/resources/META-INF/resources/"
-
-			
+			val path = basePath + "/app/src/main/resources/META-INF/asset/"
 			gc.graphMopdels.filter[hasIncludeResourcesAnnotation].
 			forEach[g|{
 				val graphPath = path + g.name.lowEscapeDart+"/"
@@ -635,7 +636,7 @@ class Generator extends FileGenerator {
 		
 		//copy annotated additional JARs
 		{
-			val path = basePath+"/app/repo/info/scce/pyro/external/"
+			val path = basePath + "/app/repo/info/scce/pyro/external/"
 			gc.graphMopdels.filter[hasIncludeJARAnnotation].
 			forEach[g|{
 				val graphPath = path + g.name.lowEscapeJava+"/"

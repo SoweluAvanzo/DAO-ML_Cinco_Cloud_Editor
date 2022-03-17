@@ -650,7 +650,7 @@ class GraphModelElementImplementation extends Generatable {
 					}
 				«ENDIF»
 				«FOR attr:me.attributesExtended»
-					«val rawType = '''«attr.javaType(modelPackage)»'''»
+					«val rawType = '''«attr.javaType»'''»
 					«val attributeType = '''«IF attr.isList»java.util.List<«ENDIF»«rawType»«IF attr.isList»>«ENDIF»'''»«{
 						if(attr.name.fuEscapeJava == "Name" && !attributeType.equals("String"))
 							throw new RuntimeException("attribute \"name\" is predefined as \"String\" by cinco")
@@ -743,6 +743,23 @@ class GraphModelElementImplementation extends Generatable {
 									'''}»
 								«ENDIF»
 							«ELSE»
+								«IF attr.isFile»
+									«IF attr.list»
+										// delete the files
+										for(String old : this.delegate.«attr.name.escapeJava») {
+											if(old != null) {
+												info.scce.pyro.core.FileController.deleteBaseFile(old);
+											}
+										}
+									«ELSE»
+										// delete the file
+										String old = this.delegate.«attr.name.escapeJava»;
+										if(old != null && !old.equals(attr)) {
+											info.scce.pyro.core.FileController.deleteBaseFile(old);
+										}
+									«ENDIF»
+									
+								«ENDIF»
 								this.delegate.«attr.name.escapeJava» = «attr.primitiveSETConverter('''attr''')»;
 							«ENDIF»
 						«ELSE»
@@ -867,14 +884,17 @@ class GraphModelElementImplementation extends Generatable {
 	}
 	
 	def primitiveSETConverter(Attribute attribute, String string) {
+		'''«string»'''
+		/*
 		return switch(attribute.attributeTypeName) {
-			case "EInt":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''
+			case "EInt":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»«string»)«ENDIF»'''
 			case "EBigInteger":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''
 			case "ELong":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''
 			case "EByte":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''
 			case "EShort":'''«IF attribute.list»«string».stream().map(n->Long.valueOf(n)).collect(java.util.stream.Collectors.toList())«ELSE»Long.valueOf(«string»)«ENDIF»'''
 			default:'''«IF attribute.list»«string».stream().collect(java.util.stream.Collectors.toList())«ELSE»«string»«ENDIF»'''
 		}
+		*/
 	}
 	
 	def embeddedEdges(GraphModel g)
@@ -958,17 +978,22 @@ class GraphModelElementImplementation extends Generatable {
 		val g = ce.modelPackage as MGLModel
 		val superTypes = ce.resolveSuperTypesAndType
 		val containedTypes = new java.util.HashSet
-		
-		for(s:superTypes) {
-			if(s instanceof ContainingElement ){
-			val  directContainedTypes = (s as ContainingElement).possibleEmbeddingTypes(g)
-			containedTypes += directContainedTypes.map[it.resolveAllSubTypesAndType].flatten.toSet				
+		val containingElementsOfSuperTypes = superTypes.filter(ContainingElement)
+		for(s:containingElementsOfSuperTypes) {
+			if(s instanceof ContainingElement) {
+				val  directContainedTypes = s.possibleEmbeddingTypes(g)
+				containedTypes += directContainedTypes.map[it.resolveAllSubTypesAndType].flatten.toSet	
 			}
 		}
-		
+		//TODO: JOEL fill the return result of canNew... method properly 
 		'''
 			«FOR em:containedTypes»
 				«IF !em.isIsAbstract»
+				@Override
+				public boolean canNew«em.name.fuEscapeJava»(){
+					return true;
+				};
+				
 					«IF em.isPrime»
 						
 						@Override

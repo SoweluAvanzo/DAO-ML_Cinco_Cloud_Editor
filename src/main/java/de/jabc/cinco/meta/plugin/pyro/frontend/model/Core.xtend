@@ -77,22 +77,22 @@ class Core extends Generatable {
 		  
 		  void addElement(IdentifiableElement e)
 		  {
-		    var existing = null;
-		    for(var m in modelElements) {
-		      if(m.id == e.id) {
-		        existing = m;
-		        break;
-		      }
-		    }
-		    if(existing==null) {
-		      modelElements.add(e);
-		    }
+			var existing = null;
+			for(var m in modelElements) {
+			  if(m.id == e.id) {
+			    existing = m;
+			    break;
+			  }
+			}
+			if(existing==null) {
+			  modelElements.add(e);
+			}
 		  }
 		  
 		  void addAllElements(List<IdentifiableElement> elementList) {
-		  	for(var e in elementList) {
-		  		addElement(e);
-		  	}
+			for(var e in elementList) {
+				addElement(e);
+			}
 		  }
 		}
 		
@@ -289,18 +289,18 @@ class Core extends Generatable {
 		    map['y'] = y;
 		    return map;
 		  }
-		
-		
+		  
 		  BendingPoint fromJSOG(jsog, {Map cache}) {
 		    return new BendingPoint(cache: cache,jsog: jsog);
 		  }
+		  
 		  @override
 		  String $type() {
 		    return "core.BendingPoint";
 		  }
+		  
 		  @override
 		  void merge(PyroElement ie, {bool structureOnly: false, Map cache}) {
-		    // TODO: implement merge
 		  }
 		}
 		

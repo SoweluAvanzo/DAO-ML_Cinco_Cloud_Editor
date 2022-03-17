@@ -215,9 +215,9 @@ class DataConnector extends Generatable {
 		} else {
 			// no enum
 			if(attribute.isList) {
-				m.multiPrimitiveAttribute(attribute.name.escapeJava, attribute.attributeTypeName.getPrimitveObjectTypeLiteral)
+				m.multiPrimitiveAttribute(attribute.name.escapeJava, attribute.javaDBType)	// TODO: SAMI deprecate attribute.attributeTypeName.getPrimitveObjectTypeLiteral
 			} else {
-				m.singlePrimitiveAttribute(attribute.name.escapeJava, attribute.attributeTypeName.getPrimitveTypeLiteral)
+				m.singlePrimitiveAttribute(attribute.name.escapeJava, attribute.javaDBType) // TODO: SAMI deprecate attribute.attributeTypeName.getPrimitveTypeLiteral
 			}
 		}		
 	}
@@ -450,19 +450,18 @@ class DataConnector extends Generatable {
 			«ENDIF»
 			«IF me.attributesExtended.exists[annotations.exists[name.equals("file")]]»
 				// cleanup files
-				info.scce.pyro.core.FileController fC = new info.scce.pyro.core.FileController();
 				«FOR attr : me.attributesExtended.filter[isPrimitive && annotations.exists[name.equals("file")]]»
 					«IF attr.isList»
 						this.«attr.name.escapeJava».stream().forEach(
 							(path) -> {
 								if(path != null) {
-									fC.deleteFile(path);
+									info.scce.pyro.core.FileController.deleteBaseFile(path);
 								}
 							}
 						);
 					«ELSE»
 						if(this.«attr.name.escapeJava» != null && !this.«attr.name.escapeJava».isEmpty()) {
-							fC.deleteFile(this.«attr.name.escapeJava»);
+							info.scce.pyro.core.FileController.deleteBaseFile(this.«attr.name.escapeJava»);
 						}
 					«ENDIF»
 				«ENDFOR»

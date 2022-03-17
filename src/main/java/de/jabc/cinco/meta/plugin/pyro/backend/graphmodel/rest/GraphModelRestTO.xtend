@@ -571,12 +571,12 @@ class GraphModelRestTO extends Generatable{
 		if(attribute.isPrimitive){
 			if(attribute.isList){
 				if(attribute.attributeTypeName.getEnum(modelPackage)!==null) {
-					res += attribute.getToJavaType(modelPackage)
+					res += attribute.javaRestType()
 				} else {
-					res += attribute.getToJavaType(modelPackage).toFirstUpper
+					res += attribute.javaRestType().toFirstUpper
 				}
 			} else {
-				res += attribute.getToJavaType(modelPackage)
+				res += attribute.javaRestType()
 			}
 		}
 		else{
@@ -586,69 +586,6 @@ class GraphModelRestTO extends Generatable{
 			res += ">"
 		}
 		res
-	}
-	
-	def getToJavaType(Attribute attr, MGLModel modelPackage) {
-		if(attr.attributeTypeName.getEnum(modelPackage)!==null){
-			return "info.scce.pyro.core.graphmodel.PyroEnum"
-		}
-		switch(attr.attributeTypeName){
-			case "EBoolean": {
-				if(attr.list){
-					return '''Boolean'''
-				}
-				return '''boolean'''
-			}
-			case "EInt":{
-				if(attr.list){
-					return '''Long'''
-				}
-				return '''Long'''
-			} 
-			case "EDouble":{
-				if(attr.list) {
-					return '''Double'''
-				}
-				return '''Double'''
-			}
-			case "ELong": {
-				if(attr.list){
-					return '''Long'''
-				}
-				return '''Long'''
-			} 
-			case "EBigInteger":{
-				if(attr.list){
-					return '''Long'''
-				}
-				return '''Long'''
-			} 
-			case "EByte": {
-				if(attr.list){
-					return '''Long'''
-				}
-				return '''Long'''
-			} 
-			case "EShort": {
-				if(attr.list){
-					return '''Long'''
-				}
-				return '''Long'''
-			} 
-			case "EFloat":{
-				if(attr.list) {
-					return '''Double'''
-				}
-				return '''Double'''
-			}
-			case "EBigDecimal": {
-				if(attr.list) {
-					return '''Double'''
-				}
-				return '''Double'''
-			}
-			default: return '''String'''
-		}
 	}
 	
 	def serializeEdges(Node n,String attr)

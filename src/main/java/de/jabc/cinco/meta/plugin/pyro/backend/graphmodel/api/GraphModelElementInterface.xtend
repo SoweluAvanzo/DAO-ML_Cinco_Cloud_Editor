@@ -124,6 +124,7 @@ class GraphModelElementInterface extends Generatable {
 	'''
 		«FOR em:ce.possibleEmbeddingTypes(g)» 
 			«IF !em.isIsAbstract»
+							public boolean canNew«em.name.fuEscapeJava»();			
 				«IF em.isPrime || em.isEcorePrime»
 					«{
 						val refElem = (em as Node).primeReference.type
@@ -164,9 +165,9 @@ class GraphModelElementInterface extends Generatable {
 		«name.getMethod(type)»
 		«name.setMethod(type)»
 	'''
-	
+	/*TOCHECK:Joel, There can be types that contain boolean like BooleanVariable, which are not necessarily boolean*/
 	def getMethod(String name,String type)
-	'''«type» «IF type.toLowerCase.contains("boolean")»is«ELSE»get«ENDIF»«name.fuEscapeJava»();'''
+	'''«type» «IF type.toLowerCase.equals("boolean")»is«ELSE»get«ENDIF»«name.fuEscapeJava»();'''
 	
 	def setMethod(String name,String type)
 	'''void set«name.fuEscapeJava»(«type» «name.lowEscapeJava»);'''
