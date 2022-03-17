@@ -13,7 +13,7 @@ import { InternalModule } from '../internal/internal.module';
 import { AddUserModalComponent } from './pages/users/components/add-user-modal/add-user-modal.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faEllipsisV, faEnvelope, faTimes, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faEllipsisV, faEnvelope, faTimes, faTrash, faUser } from '@fortawesome/free-solid-svg-icons';
 import { NgbDropdownModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { EditOrganizationCardComponent } from './pages/settings/components/edit-organization-card/edit-organization-card.component';
 
@@ -80,6 +80,6 @@ const routes: Routes = [
 export class OrganizationsModule {
 
   constructor(library: FaIconLibrary) {
-    library.addIcons(faEnvelope, faUser, faEllipsisV, faTimes);
+    library.addIcons(faEnvelope, faUser, faEllipsisV, faTimes, faTrash);
   }
 }

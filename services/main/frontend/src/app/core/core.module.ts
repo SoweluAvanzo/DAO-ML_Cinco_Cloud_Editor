@@ -8,7 +8,12 @@ import { WorkspaceImageBadgeComponent } from './components/workspace-image-badge
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { SidebarItemComponent } from './components/sidebar-item/sidebar-item.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import {
+  faAngleDoubleLeft,
+  faAngleDoubleRight, faBriefcase, faChevronRight,
+  faCircleNotch,
+  faCloudUploadAlt
+} from '@fortawesome/free-solid-svg-icons';
 import { RouterModule } from '@angular/router';
 import { SearchUserInputComponent } from './components/search-user-input/search-user-input.component';
 import { NormalizeEnumValuePipe } from './pipes/normalize-enum-value.pipe';
@@ -17,6 +22,8 @@ import { ProjectRoleBadgeComponent } from './components/project-role-badge/proje
 import { ConfirmModalComponent } from './components/confirm-modal/confirm-modal.component';
 import { ToastsComponent } from './components/toasts/toasts.component';
 import { NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
+import { FileInputComponent } from './components/file-input/file-input.component';
+import { SidebarHeaderComponent } from './components/sidebar-header/sidebar-header.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +37,9 @@ import { NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
     NormalizeEnumValuePipe,
     ProjectRoleBadgeComponent,
     ConfirmModalComponent,
-    ToastsComponent
+    ToastsComponent,
+    FileInputComponent,
+    SidebarHeaderComponent
   ],
   providers: [],
   exports: [
@@ -43,7 +52,9 @@ import { NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
     SearchUserInputComponent,
     NormalizeEnumValuePipe,
     ProjectRoleBadgeComponent,
-    ToastsComponent
+    ToastsComponent,
+    FileInputComponent,
+    SidebarHeaderComponent
   ],
   imports: [
     CommonModule,
@@ -57,6 +68,6 @@ import { NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
 export class CoreModule {
 
   constructor(private library: FaIconLibrary) {
-    library.addIcons(faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch);
+    library.addIcons(faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch, faCloudUploadAlt, faChevronRight, faBriefcase);
   }
 }

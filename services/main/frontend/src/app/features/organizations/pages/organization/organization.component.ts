@@ -32,6 +32,9 @@ export class OrganizationComponent implements OnInit {
   ngOnInit(): void {
     this.organization = this.route.snapshot.data['organization'];
     this.organizationStore.setOrganization(this.organization);
+    this.organizationStore.organization$.pipe(untilDestroyed(this)).subscribe({
+      next: organization => this.organization = organization
+    });
     this.appStore.user$.pipe(untilDestroyed(this)).subscribe({
       next: user => this.user = user
     });

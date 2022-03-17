@@ -1,9 +1,10 @@
-<div class="editor-widget d-flex align-items-center p-3 rounded-3 shadow-sm"
-   style="">
+<div class="editor-widget d-flex align-items-center p-3 rounded-3 shadow-sm">
   <fa-icon [icon]="['fas', 'code']" class="me-4 ms-2" size="lg"></fa-icon>
   <div class="flex-grow-1 ps-3 py-1" style="border-left: 1px solid rgba(255,255,255,.5)">
     <h6><strong>{{project.name}} Overview</strong></h6>
-    <p> Owner: <strong>{{project.owner.name}}, {{project.owner.email}}</strong></p>
+    <ng-container *ngIf="project.owner != null">
+      <p> Owner: <strong>{{project.owner.name}}, {{project.owner.email}}</strong></p>
+    </ng-container>
     <p> Organization: <strong>{{project.organization == null ? "None" : project.organization.name}}</strong> </p>
     <p> Currently Assigned Users: <strong>{{project.allUsers.length}}</strong> </p>
   </div>

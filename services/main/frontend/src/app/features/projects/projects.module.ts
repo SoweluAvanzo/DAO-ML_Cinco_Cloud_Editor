@@ -10,7 +10,16 @@ import { ProjectResolver } from './resolvers/project.resolver';
 import { CoreModule } from '../../core/core.module';
 import { EditorComponent } from './pages/editor/editor.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCircleNotch, faCloud, faCode, faCog, faEnvelope, faTrash, faUser } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBriefcase,
+  faCircleNotch,
+  faCloud,
+  faCode,
+  faCog,
+  faEnvelope,
+  faTrash,
+  faUser
+} from '@fortawesome/free-solid-svg-icons';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { EditorWidgetComponent } from './pages/overview/components/editor-widget/editor-widget.component';
 import { NgbModalModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
@@ -90,6 +99,6 @@ const routes: Routes = [
 export class ProjectsModule {
 
   constructor(private library: FaIconLibrary) {
-    library.addIcons(faCloud, faCog, faCode, faCircleNotch, faEnvelope, faUser, faTrash);
+    library.addIcons(faCloud, faCog, faCode, faCircleNotch, faEnvelope, faUser, faTrash, faBriefcase);
   }
 }

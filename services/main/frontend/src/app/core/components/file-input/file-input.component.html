@@ -1,0 +1,27 @@
+<div (click)="input.click()" class="alert bg-dark py-2 cursor-pointer d-flex mb-0">
+  <div class="me-3">
+    <fa-icon [icon]="['fas', 'cloud-upload-alt']" [fixedWidth]="true"></fa-icon>
+  </div>
+  <div class="flex-grow-1 d-flex">
+    <div class="flex-grow-1">
+      <div>Select {{ multiple ? 'files' : 'a file' }} to upload</div>
+      <div *ngIf="files.length > 0">
+        <div *ngFor="let file of files" class="text-muted">
+          <fa-icon [icon]="['fas', 'chevron-right']" [fixedWidth]="true"></fa-icon>{{file.name}}
+        </div>
+      </div>
+    </div>
+    <div *ngIf="files.length === 0">
+      <em class="text-muted">none selected</em>
+    </div>
+    <div *ngIf="files.length > 0">
+      <button class="btn btn-sm btn-dark" (click)="$event.stopPropagation(); files = []">Remove files</button>
+    </div>
+  </div>
+  <input
+    #input
+    class="visually-hidden"
+    type="file"
+    (change)="handleChange($event)"
+    [multiple]="multiple">
+</div>

@@ -1,6 +1,9 @@
 <div *ngIf="project != null" class="h-100 d-flex">
   <div class="sidebar">
     <cc-sidebar>
+      <ng-container header>
+        <cc-sidebar-header [image]="null" [text]="project?.name" [subText]="project.organization?.name"></cc-sidebar-header>
+      </ng-container>
       <ng-container items>
         <cc-sidebar-item
           [icon]="icons.thLarge"

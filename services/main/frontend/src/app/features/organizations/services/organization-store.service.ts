@@ -145,6 +145,7 @@ export class OrganizationStoreService {
     const copy: Organization = fromJsog(toJsog(this.organization.value), Organization)
     copy.name = input.name.trim();
     copy.description = input.description.trim();
+    copy.logo = input.logo;
     this.organizationApi.update(copy).subscribe({
       next: updatedOrganization => {
         this.toastService.show({ type: ToastType.SUCCESS, message: `Organization ${updatedOrganization.name} has been updated.` });
@@ -185,8 +186,8 @@ export class OrganizationStoreService {
 
   leaveOrganization(): void {
     this.modalUtils.confirm({
-      text: 'Do you really want to delete this organization?',
-      confirmButtonText: 'Delete'
+      text: 'Do you really want to leave this organization?',
+      confirmButtonText: 'Leave'
     }).then(() => {
       this.organizationApi.leave(this.organization.value).subscribe({
         next: () => {

@@ -192,6 +192,7 @@ cc-sidebar > .sidebar {
   &.collapsed {
     width: 54px;
 
+    .sidebar-header-text,
     .sidebar-item-text,
     .sidebar-collapse-button-text {
       display: none;

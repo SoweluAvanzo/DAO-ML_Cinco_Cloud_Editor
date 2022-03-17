@@ -54,7 +54,7 @@ export class PersonalInformationComponent implements OnInit {
       const file: File = this.informationChangeForm.get('picture').value;
 
       if (this.allowedFileTypes.some(x => x === file.type)) {
-        this.fileApi.create(file).subscribe({
+        this.fileApi.upload(file).subscribe({
           next: (upload: Upload) => {
             if (upload.file != null) {
               input.profilePicture = upload.file;

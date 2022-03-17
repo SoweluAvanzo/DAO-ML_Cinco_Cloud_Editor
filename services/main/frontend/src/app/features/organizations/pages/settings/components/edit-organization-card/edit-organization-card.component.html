@@ -4,13 +4,25 @@
       <h6 class="m-0">Update the organization</h6>
     </div>
     <div class="card-body">
+      <div class="mb-3" *ngIf="logoReference != null">
+        <div class="logo rounded-3 d-flex" [ngStyle]="logoStyle" (click)="logoReference = null">
+          <div class="rounded-3">
+            <fa-icon [icon]="['fas', 'trash']"></fa-icon>
+          </div>
+        </div>
+        <hr>
+      </div>
       <div class="mb-3">
         <label>Name</label>
         <input class="form-control" type="text" placeholder="Enter the name for the organization" formControlName="name">
       </div>
-      <div>
+      <div class="mb-3">
         <label>Description</label>
         <textarea class="form-control" rows="3" placeholder="Enter a description for the organization" formControlName="description"></textarea>
+      </div>
+      <div>
+        <label class="mb-1">Logo</label>
+        <cc-file-input #input (select)="handleFileSelect($event)" (clear)="handleClear()"></cc-file-input>
       </div>
     </div>
     <div class="card-footer text-end">
