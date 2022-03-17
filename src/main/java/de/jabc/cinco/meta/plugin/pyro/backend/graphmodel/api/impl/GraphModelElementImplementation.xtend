@@ -587,10 +587,17 @@ class GraphModelElementImplementation extends Generatable {
 						}
 						return modelElements;
 					}
-						
+					
+	
 					@Override
 					public <T extends graphmodel.ModelElement> java.util.List<T> getModelElements(Class<T> clazz) {
 						return this.getModelElements().stream().filter(n->clazz.isInstance(n)).map(n->clazz.cast(n)).collect(java.util.stream.Collectors.toList());
+					}
+					
+					@Override
+					public <T extends graphmodel.ModelElement> java.util.List<T> find(Class<T> clazz) {
+						
+						return getModelElements(clazz);
 					}
 					
 					private java.util.List<graphmodel.ModelElement> getAllModelElements(graphmodel.ModelElementContainer cmc) {
