@@ -12,6 +12,7 @@ import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontaweso
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 import { RouterModule, Routes } from '@angular/router';
 import { LogoutComponent } from './pages/logout/logout.component';
+import { CoreModule } from '../../core/core.module';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -32,12 +33,13 @@ const routes: Routes = [
     NotFoundComponent,
     LogoutComponent,
   ],
-  imports: [
-    CommonModule,
-    RouterModule.forChild(routes),
-    ReactiveFormsModule,
-    FontAwesomeModule
-  ],
+    imports: [
+        CommonModule,
+        RouterModule.forChild(routes),
+        ReactiveFormsModule,
+        FontAwesomeModule,
+        CoreModule
+    ],
   exports: []
 })
 export class HomeModule {

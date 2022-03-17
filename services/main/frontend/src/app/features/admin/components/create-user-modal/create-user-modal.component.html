@@ -9,40 +9,56 @@
       <input
         class="form-control"
         formControlName="name"
+        [class.is-invalid]="!(form.get('name') | validateFormInput)"
         id="name"
         placeholder="Enter a name"
-        type="text"
-      >
+        type="text">
+      <cc-validation-error-message
+        [form]="form.get('name')"
+        [name]="'Name'">
+      </cc-validation-error-message>
     </div>
     <div>
       <label class="form-label" for="username">Username</label>
       <input
         class="form-control"
         formControlName="username"
+        [class.is-invalid]="!(form.get('username') | validateFormInput)"
         id="username"
         placeholder="Enter an username"
-        type="text"
-      >
+        type="text">
+      <cc-validation-error-message
+        [form]="form.get('username')"
+        [name]="'Username'">
+      </cc-validation-error-message>
     </div>
     <div>
       <label class="form-label" for="username">Email</label>
       <input
         class="form-control"
         formControlName="email"
+        [class.is-invalid]="!(form.get('email') | validateFormInput)"
         id="email"
         placeholder="Enter an email address"
-        type="email"
-      >
+        type="email">
+      <cc-validation-error-message
+        [form]="form.get('email')"
+        [name]="'Email'">
+      </cc-validation-error-message>
     </div>
     <div>
       <label class="form-label" for="username">Password</label>
       <input
         class="form-control"
         formControlName="password"
+        [class.is-invalid]="!(form.get('password') | validateFormInput)"
         id="password"
         placeholder="Enter a password"
-        type="password"
-      >
+        type="password">
+      <cc-validation-error-message
+        [form]="form.get('password')"
+        [name]="'Password'">
+      </cc-validation-error-message>
     </div>
   </form>
 </div>

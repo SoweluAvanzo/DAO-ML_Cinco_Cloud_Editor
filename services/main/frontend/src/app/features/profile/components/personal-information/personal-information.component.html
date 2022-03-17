@@ -13,18 +13,28 @@
               <input
                 class="form-control"
                 formControlName="name"
+                [class.is-invalid]="!(informationChangeForm.get('name') | validateFormInput)"
                 id="name"
                 placeholder="Enter your name"
                 type="text">
+              <cc-validation-error-message
+                [form]="informationChangeForm.get('name')"
+                [name]="'Name'">
+              </cc-validation-error-message>
             </div>
             <div>
               <label class="form-label" for="email">Email</label>
               <input
                 class="form-control"
                 formControlName="email"
+                [class.is-invalid]="!(informationChangeForm.get('email') | validateFormInput)"
                 id="email"
                 placeholder="Enter your email"
                 type="email">
+              <cc-validation-error-message
+                [form]="informationChangeForm.get('email')"
+                [name]="'Email'">
+              </cc-validation-error-message>
             </div>
             <div>
               <label for="picture">Profile Picture</label>

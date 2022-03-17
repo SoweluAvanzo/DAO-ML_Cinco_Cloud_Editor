@@ -12,9 +12,14 @@
       <input
         class="form-control"
         formControlName="name"
+        [class.is-invalid]="!(form.get('name') | validateFormInput)"
         id="name"
         placeholder="Enter a name"
         type="text">
+      <cc-validation-error-message
+        [form]="form.get('name')"
+        [name]="'Name'">
+      </cc-validation-error-message>
     </div>
     <div>
       <label class="form-label" for="description">Description</label>

@@ -24,6 +24,8 @@ import { ToastsComponent } from './components/toasts/toasts.component';
 import { NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
 import { FileInputComponent } from './components/file-input/file-input.component';
 import { SidebarHeaderComponent } from './components/sidebar-header/sidebar-header.component';
+import { ValidationErrorMessageComponent } from './components/validation-error-message/validation-error-message.component';
+import { ValidateFormInputPipe } from './pipes/validate-form-input.pipe';
 
 @NgModule({
   declarations: [
@@ -39,7 +41,9 @@ import { SidebarHeaderComponent } from './components/sidebar-header/sidebar-head
     ConfirmModalComponent,
     ToastsComponent,
     FileInputComponent,
-    SidebarHeaderComponent
+    SidebarHeaderComponent,
+    ValidationErrorMessageComponent,
+    ValidateFormInputPipe
   ],
   providers: [],
   exports: [
@@ -54,7 +58,9 @@ import { SidebarHeaderComponent } from './components/sidebar-header/sidebar-head
     ProjectRoleBadgeComponent,
     ToastsComponent,
     FileInputComponent,
-    SidebarHeaderComponent
+    SidebarHeaderComponent,
+    ValidateFormInputPipe,
+    ValidationErrorMessageComponent
   ],
   imports: [
     CommonModule,

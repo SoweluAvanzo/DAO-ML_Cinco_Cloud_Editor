@@ -14,11 +14,25 @@
       </div>
       <div class="mb-3">
         <label>Name</label>
-        <input class="form-control" type="text" placeholder="Enter the name for the organization" formControlName="name">
+        <input
+          class="form-control"
+          [class.is-invalid]="!(form.get('name') | validateFormInput)"
+          type="text"
+          placeholder="Enter the name for the organization"
+          formControlName="name">
+        <cc-validation-error-message
+          [form]="form.get('name')"
+          [name]="'Name'">
+        </cc-validation-error-message>
       </div>
       <div class="mb-3">
         <label>Description</label>
-        <textarea class="form-control" rows="3" placeholder="Enter a description for the organization" formControlName="description"></textarea>
+        <textarea
+          class="form-control"
+          rows="3"
+          placeholder="Enter a description for the organization"
+          formControlName="description">
+        </textarea>
       </div>
       <div>
         <label class="mb-1">Logo</label>
