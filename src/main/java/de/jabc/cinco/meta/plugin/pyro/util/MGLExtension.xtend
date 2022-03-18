@@ -3485,4 +3485,6 @@ class MGLExtension {
 			ENDFOR»
 		'''
 	}
- }
+	def getIsOrGetMethod(Attribute attr)
+	'''«IF attr.isPrimitive && attr.attributeTypeName.equals("EBoolean")»is«ELSE»get«ENDIF»'''
+	}

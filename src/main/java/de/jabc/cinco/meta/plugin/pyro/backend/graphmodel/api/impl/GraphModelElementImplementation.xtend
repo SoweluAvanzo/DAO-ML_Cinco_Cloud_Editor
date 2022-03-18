@@ -697,7 +697,7 @@ class GraphModelElementImplementation extends Generatable {
 							throw new RuntimeException("attribute \"name\" is predefined as \"String\" by cinco")
 					}»
 					@Override
-					public «attributeType» «IF attr.isPrimitive && attr.attributeTypeName.equals("EBoolean")»is«ELSE»get«ENDIF»«attr.name.fuEscapeJava»() {
+					public «attributeType» «attr.isOrGetMethod»«attr.name.fuEscapeJava»() {
 						«IF attr.isPrimitive»
 							«IF attr.attributeTypeName.getEnum(modelPackage)!==null»
 								«IF attr.list»

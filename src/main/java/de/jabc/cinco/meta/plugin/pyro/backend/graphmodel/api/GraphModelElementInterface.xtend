@@ -165,7 +165,6 @@ class GraphModelElementInterface extends Generatable {
 		«name.getMethod(type)»
 		«name.setMethod(type)»
 	'''
-	/*TOCHECK:Joel, There can be types that contain boolean like BooleanVariable, which are not necessarily boolean*/
 	def getMethod(String name,String type)
 	'''«type» «IF type.toLowerCase.equals("boolean")»is«ELSE»get«ENDIF»«name.fuEscapeJava»();'''
 	
