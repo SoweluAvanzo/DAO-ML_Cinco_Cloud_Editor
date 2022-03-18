@@ -17,18 +17,19 @@ public class PyroAppK8SIngressBackend extends PyroK8SResource<Ingress> {
 
   private final PyroAppK8SService service;
   private final String host;
+  private final String rootPath;
 
-  public PyroAppK8SIngressBackend(KubernetesClient client, PyroAppK8SService service,
-      ProjectDB project, String host) {
+  public PyroAppK8SIngressBackend(KubernetesClient client, PyroAppK8SService service, ProjectDB project, String host, String rootPath) {
     super(client, project);
     this.service = service;
     this.host = host;
+    this.rootPath = rootPath;
     this.resource = build();
   }
 
   @Override
   protected Ingress build() {
-    final var path = "/workspaces/" + getProjectName() + "/pyro(/|$)(.*)";
+    final var path = rootPath + "/" + getProjectName() + "/pyro(/|$)(.*)";
 
     return new IngressBuilder()
         .withNewMetadata()

@@ -44,7 +44,7 @@ export class WorkspaceImageBuildJobApiService extends BaseApiService {
     page.number = body.number;
     page.size = body.size;
     page.amountOfPages = body.amountOfPages;
-    page.items = this.transformList(page.items);
+    page.items = this.transformList(body.items);
     return page;
   }
 

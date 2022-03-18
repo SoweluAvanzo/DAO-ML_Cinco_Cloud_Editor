@@ -63,6 +63,15 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "development-k8s": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true,
+              "baseHref": "/frontend/"
             }
           },
           "defaultConfiguration": "production"
@@ -75,6 +84,9 @@
             },
             "development": {
               "browserTarget": "cinco-cloud-frontend:build:development"
+            },
+            "development-k8s": {
+              "browserTarget": "cinco-cloud-frontend:build:development-k8s"
             }
           },
           "defaultConfiguration": "development"

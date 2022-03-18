@@ -1,20 +1,14 @@
 ## build from parent directory: docker build -f main/Dockerfile .
 
 #
-# Build the angular dart frontend.
+# Build the angular frontend.
 #
-# Note: Get MissingPortFileException from the Dart compiler during then build
-#       if Linux Kernel > 5.4 is used on the host.
-#
-
-# TODO: uncomment this as soon as the branch is merged with the main branch
-#FROM docker.io/library/node:16.14.0-buster-slim as builder-frontend
-#WORKDIR /app/frontend
-#COPY ./main/frontend/package.json /app/frontend
-#COPY ./main/frontend/package-lock.json /app/frontend
-#RUN npm install
-#COPY ./main/frontend/ /app/frontend
-#RUN npm run build
+FROM docker.io/library/node:16.14.0-buster-slim as builder-frontend
+WORKDIR /app/frontend
+COPY ./main/frontend/*.json /app/frontend
+RUN npm install
+COPY ./main/frontend/src /app/frontend/src
+RUN env NG_BUILD_MANGLE=false npm run build --configuration=production
 
 #
 # Build the quarkus backend. Move static frontend files to the quarkus resource
@@ -28,8 +22,7 @@ COPY ./main/backend/mvnw /app/main/backend/
 COPY ./main/backend/pom.xml /app/main/backend/
 RUN ./mvnw verify
 COPY ./main/backend/src /app/main/backend/src
-# TODO: uncomment this as soon as the branch is merged with the main branch
-#COPY --from=builder-frontend /app/frontend/dist/cinco-cloud-frontend/ /app/main/backend/src/main/resources/META-INF/resources/
+COPY --from=builder-frontend /app/frontend/dist/cinco-cloud-frontend/ /app/main/backend/src/main/resources/META-INF/resources/
 RUN ./mvnw package -DskipTests
 
 #

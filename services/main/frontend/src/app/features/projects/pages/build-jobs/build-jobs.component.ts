@@ -1,17 +1,18 @@
-import { Component, OnInit } from '@angular/core';
-import { User } from '../../../../core/models/user';
-import { Project } from '../../../../core/models/project';
-import { WorkspaceImageBuildJob } from '../../../../core/models/workspace-image-build-job';
-import { Page } from '../../../../core/models/page';
-import { ProjectStoreService } from '../../services/project-store.service';
-import { AppStoreService } from '../../../../core/services/stores/app-store.service';
-import { WorkspaceImageBuildJobApiService } from '../../../../core/services/api/workspace-image-build-job-api.service';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { filter, fromEvent } from 'rxjs';
-import { WebSocketMessage } from '../../../../core/models/web-socket-message';
-import { WebSocketEvent } from '../../../../core/enums/web-socket-event';
-import { fromJsog } from '../../../../core/utils/jsog-utils';
-import { Organization } from '../../../../core/models/organization';
+import {Component, OnInit} from '@angular/core';
+import {User} from '../../../../core/models/user';
+import {Project} from '../../../../core/models/project';
+import {WorkspaceImageBuildJob} from '../../../../core/models/workspace-image-build-job';
+import {Page} from '../../../../core/models/page';
+import {ProjectStoreService} from '../../services/project-store.service';
+import {AppStoreService} from '../../../../core/services/stores/app-store.service';
+import {WorkspaceImageBuildJobApiService} from '../../../../core/services/api/workspace-image-build-job-api.service';
+import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
+import {filter, fromEvent} from 'rxjs';
+import {WebSocketMessage} from '../../../../core/models/web-socket-message';
+import {WebSocketEvent} from '../../../../core/enums/web-socket-event';
+import {fromJsog} from '../../../../core/utils/jsog-utils';
+import {Organization} from '../../../../core/models/organization';
+import {ToastService, ToastType} from "../../../../core/services/toast.service";
 
 @UntilDestroy()
 @Component({
@@ -30,7 +31,8 @@ export class BuildJobsComponent implements OnInit {
 
   constructor(private projectStore: ProjectStoreService,
               private appStore: AppStoreService,
-              private buildJobApi: WorkspaceImageBuildJobApiService) {
+              private buildJobApi: WorkspaceImageBuildJobApiService,
+              private toastSerivce: ToastService) {
   }
 
   ngOnInit(): void {
@@ -101,20 +103,33 @@ export class BuildJobsComponent implements OnInit {
 
   abortJob(job: WorkspaceImageBuildJob): void {
     this.buildJobApi.abort(this.project.id, job).subscribe({
-      next: abortedJob => job.status = abortedJob.status,
-      error: console.error
+      next: abortedJob => {
+        this.toastSerivce.show({ type: ToastType.SUCCESS, message: 'The job has been aborted.' });
+        job.status = abortedJob.status;
+      },
+      error: () => {
+        this.toastSerivce.show({ type: ToastType.DANGER, message: 'The job could not be aborted.' });
+      }
     });
   }
 
   deleteJob(job: WorkspaceImageBuildJob): void {
     this.buildJobApi.delete(this.project.id, job).subscribe({
-      next: () => this.buildJobsPage.items = this.buildJobsPage.items.filter(j => j.id !== job.id),
-      error: console.error
+      next: () => {
+        this.toastSerivce.show({ type: ToastType.SUCCESS, message: 'The job has been deleted.' });
+        this.buildJobsPage.items = this.buildJobsPage.items.filter(j => j.id !== job.id);
+      },
+      error: () => {
+        this.toastSerivce.show({ type: ToastType.DANGER, message: 'The job could not be deleted.' });
+      }
     });
   }
 
   getDurationAsString(job: WorkspaceImageBuildJob): string {
-    return '0min';
+    const milliseconds = job.finishedAt.getTime() - job.startedAt.getTime();
+    const minutes = Math.round(milliseconds / 60000);
+    const seconds = Math.round((milliseconds / 1000) % 60);
+    return `${minutes}min ${seconds}s`;
   }
 
   get organization(): Organization {

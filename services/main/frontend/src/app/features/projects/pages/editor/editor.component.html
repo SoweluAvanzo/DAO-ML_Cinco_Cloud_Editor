@@ -11,7 +11,7 @@
 </div>
 
 <ng-container *ngIf="editorUrl != null && deployment.status == 'READY'">
-  <iframe [src]="editorUrl" class="border-0 h-100 w-100"></iframe>
+  <iframe [src]="editorUrl" class="d-flex border-0 h-100 w-100"></iframe>
 </ng-container>
 
 <div *ngIf="deployment != null && deployment.status == 'FAILED'" class="container mt-3">

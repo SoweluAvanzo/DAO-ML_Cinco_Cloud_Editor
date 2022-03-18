@@ -1,4 +1,4 @@
-{{- if and (ne .Values.serverTier "local") (ne .Values.serverTier "local-ssl") }}
+{{- if ne .Values.serverTier "local" }}
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:

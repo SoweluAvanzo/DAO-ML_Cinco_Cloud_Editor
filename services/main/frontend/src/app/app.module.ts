@@ -11,6 +11,7 @@ import { NotFoundComponent } from './features/home/pages/not-found/not-found.com
 import { UserIsLoggedInGuard } from './core/guards/user-is-logged-in.guard';
 import { UnauthenticatedInterceptor } from './core/interceptors/unauthenticated.interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import {HashLocationStrategy, LocationStrategy} from "@angular/common";
 
 const routes: Routes = [
   { path: '', loadChildren: () => import('./features/home/home.module').then(m => m.HomeModule) },
@@ -39,6 +40,10 @@ const routes: Routes = [
       provide: HTTP_INTERCEPTORS,
       useClass: UnauthenticatedInterceptor,
       multi: true
+    },
+    {
+      provide: LocationStrategy,
+      useClass: HashLocationStrategy
     }
   ],
   bootstrap: [AppComponent]

@@ -21,6 +21,9 @@ const objectReferenceMap: any = {
   [GitInformation.name]: {
     cls: GitInformation
   },
+  [GraphModelType.name]: {
+    cls: GraphModelType
+  },
   [Organization.name]: {
     cls: Organization,
     fields: {
@@ -77,9 +80,9 @@ function isDateField(field: any): boolean {
   const type: string = field.constructor.name;
   if (type === 'Date') return true;
   if (type !== 'String') return false;
-  const isoDateRegex: RegExp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/;
-  const matches: RegExpMatchArray | null = type.match(isoDateRegex);
-  return matches != null && matches[0] === 'field';
+  const isoDateRegex: RegExp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3,6}Z/;
+  const matches: RegExpMatchArray | null = field.match(isoDateRegex);
+  return matches != null && matches[0] === field;
 }
 
 function isPrimitiveField(field: any): boolean {

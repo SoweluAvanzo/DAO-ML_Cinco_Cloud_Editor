@@ -11,18 +11,18 @@ import { CoreModule } from '../../core/core.module';
 import { EditorComponent } from './pages/editor/editor.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
-  faBriefcase,
-  faCircleNotch,
+  faBriefcase, faCalendar, faCheck,
+  faCircleNotch, faClock,
   faCloud,
   faCode,
-  faCog,
-  faEnvelope,
+  faCog, faEllipsisV,
+  faEnvelope, faPause, faTimes,
   faTrash,
   faUser
 } from '@fortawesome/free-solid-svg-icons';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { EditorWidgetComponent } from './pages/overview/components/editor-widget/editor-widget.component';
-import { NgbModalModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+import {NgbDropdownModule, NgbModalModule, NgbNavModule} from '@ng-bootstrap/ng-bootstrap';
 import { EditProjectCardComponent } from './pages/settings/components/edit-project-card/edit-project-card.component';
 import { EditGitInformationCardComponent } from './pages/settings/components/edit-git-information-card/edit-git-information-card.component';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -93,12 +93,14 @@ const routes: Routes = [
     ReactiveFormsModule,
     NgbNavModule,
     NgbModalModule,
+    NgbDropdownModule,
     CoreModule
   ]
 })
 export class ProjectsModule {
 
   constructor(private library: FaIconLibrary) {
-    library.addIcons(faCloud, faCog, faCode, faCircleNotch, faEnvelope, faUser, faTrash, faBriefcase);
+    library.addIcons(faCloud, faCog, faCode, faCircleNotch, faEnvelope, faUser, faTrash, faBriefcase, faEllipsisV,
+      faCheck, faPause, faTimes, faCircleNotch, faCalendar, faClock);
   }
 }

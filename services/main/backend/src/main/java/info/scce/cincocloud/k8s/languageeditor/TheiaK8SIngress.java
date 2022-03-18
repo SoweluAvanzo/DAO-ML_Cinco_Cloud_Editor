@@ -17,12 +17,14 @@ public class TheiaK8SIngress extends TheiaK8SResource<Ingress> {
 
   private final TheiaK8SService service;
   private final String host;
+  private final String rootPath;
 
-  public TheiaK8SIngress(KubernetesClient client, TheiaK8SService service, ProjectDB project,
-      String host) {
+  public TheiaK8SIngress(KubernetesClient client, TheiaK8SService service, ProjectDB project, String host,
+      String rootPath) {
     super(client, project);
     this.service = service;
     this.host = host;
+    this.rootPath = rootPath;
     this.resource = build();
   }
 
@@ -73,6 +75,6 @@ public class TheiaK8SIngress extends TheiaK8SResource<Ingress> {
   }
 
   public String getPath() {
-    return "/workspaces/" + getProjectName() + "/";
+    return rootPath + "/" + getProjectName() + "/";
   }
 }

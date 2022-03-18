@@ -3,14 +3,13 @@ kind: Ingress
 metadata:
   name: ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
     {{- if eq .Values.serverTier "production" }}
     nginx.ingress.kubernetes.io/configuration-snippet: |
       more_set_headers "X-Robots-Tag: noindex";
     {{- end }}
-    {{- if and (ne .Values.serverTier "local") (ne .Values.serverTier "local-ssl") }}
+    {{- if ne .Values.serverTier "local" }}
     cert-manager.io/issuer: "letsencrypt-{{ .Values.serverTier }}"
     {{- end }}
 spec:
@@ -18,7 +17,7 @@ spec:
   tls:
     - hosts:
         - {{ .Values.ingress.host }}
-      {{- if eq .Values.serverTier "local-ssl" }}
+      {{- if and (eq .Values.serverTier "local") (eq .Values.useSsl true) }}
       secretName: "cinco-cloud-local-ca-cert-secret"
       {{- else }}
       secretName: "letsencrypt-secret-{{ .Values.serverTier }}"
@@ -35,3 +34,12 @@ spec:
                 name: main-service
                 port:
                   name: main
+          {{- if eq .Values.devMode true }}
+          - path: /frontend
+            pathType: Prefix
+            backend:
+              service:
+                name: main-service
+                port:
+                  name: main-frontend
+          {{- end }}
