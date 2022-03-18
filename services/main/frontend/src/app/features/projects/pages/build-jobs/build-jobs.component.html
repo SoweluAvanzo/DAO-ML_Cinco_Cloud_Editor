@@ -28,7 +28,7 @@
                   <fa-icon [icon]="['fas', 'calendar']" [fixedWidth]="true"></fa-icon> {{job.startedAt | date:'short'}}
                 </div>
                 <div *ngIf="job.finishedAt != null" class="text-muted">
-                  <fa-icon [icon]="['fas', 'clock']" [fixedWidth]="true"></fa-icon> {{getDurationAsString(job)}}
+                  <fa-icon [icon]="['fas', 'clock']" [fixedWidth]="true"></fa-icon> {{job.duration}}
                 </div>
               </td>
               <td class="text-end">

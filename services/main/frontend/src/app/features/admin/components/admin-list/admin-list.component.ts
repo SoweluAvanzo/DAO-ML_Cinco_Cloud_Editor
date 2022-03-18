@@ -16,12 +16,12 @@ export class AdminListComponent {
   admins: User[] = [];
 
   @Output()
-  onRemoveAdminRoleRequest = new EventEmitter<any>();
+  removeAdminRoleRequest = new EventEmitter<any>();
 
   constructor() {
   }
 
   removeAdminRole(admin: User) {
-    this.onRemoveAdminRoleRequest.emit(admin);
+    this.removeAdminRoleRequest.emit(admin);
   }
 }

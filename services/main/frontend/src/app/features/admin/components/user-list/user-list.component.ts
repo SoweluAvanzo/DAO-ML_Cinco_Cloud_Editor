@@ -16,12 +16,9 @@ export class UserListComponent {
   users: User[] = [];
 
   @Output()
-  onUserDeletionRequest = new EventEmitter<any>();
-
-  constructor() {
-  }
+  userDeletionRequest = new EventEmitter<any>();
 
   deleteUser(user: User) {
-    this.onUserDeletionRequest.emit(user);
+    this.userDeletionRequest.emit(user);
   }
 }

@@ -61,6 +61,23 @@ build-wiki:
       - docs/vuepress/src/.vuepress/dist/*
     expire_in: 1 day
 
+install-main-frontend:
+  image: 'node:16.14.0'
+  cache:
+    paths:
+      - services/main/frontend/node_modules/
+  script:
+    - cd services/main/frontend
+    - npm install
+
+lint-main-frontend:
+  image: 'node:16.14.0'
+  needs: 
+    - install-main-frontend
+  script:
+    - cd services/main/frontend
+    - npm run lint
+
 lint-main-backend:
   extends: .maven-job
   script:
@@ -87,6 +104,7 @@ build-main:
   extends: .docker-build
   needs:
     - test-main-backend
+    - lint-main-frontend
   variables:
     CONTEXT: ./services
     DOCKERFILE: ./services/main/Dockerfile

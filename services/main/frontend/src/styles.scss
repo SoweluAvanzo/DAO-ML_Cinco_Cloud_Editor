@@ -177,6 +177,15 @@ ul[role=tablist] {
       box-shadow: none !important;
     }
   }
+
+  .list-group-item {
+    background: $white;
+    color: $text-color-dark;
+
+    &:focus, &:active {
+      color: $text-color-dark;
+    }
+  }
 }
 
 .navbar {

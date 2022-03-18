@@ -14,8 +14,7 @@ import { fromJsog } from '../../../../../../core/utils/jsog-utils';
 @UntilDestroy()
 @Component({
   selector: 'cc-status-widget',
-  templateUrl: './status-widget.component.html',
-  styleUrls: ['./status-widget.component.scss']
+  templateUrl: './status-widget.component.html'
 })
 export class StatusWidgetComponent implements OnInit {
 

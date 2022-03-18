@@ -1,11 +1,37 @@
-<div class="editor-widget d-flex align-items-center p-3 rounded-3 shadow-sm">
-  <fa-icon [icon]="['fas', 'code']" class="me-4 ms-2" size="lg"></fa-icon>
-  <div class="flex-grow-1 ps-3 py-1" style="border-left: 1px solid rgba(255,255,255,.5)">
-    <h6><strong>{{project.name}} Overview</strong></h6>
-    <ng-container *ngIf="project.owner != null">
-      <p> Owner: <strong>{{project.owner.name}}, {{project.owner.email}}</strong></p>
-    </ng-container>
-    <p> Organization: <strong>{{project.organization == null ? "None" : project.organization.name}}</strong> </p>
-    <p> Currently Assigned Users: <strong>{{project.allUsers.length}}</strong> </p>
+<div class="card shadow-sm rounded-3">
+  <div class="card-header">
+    <strong>Overview</strong>
+  </div>
+  <div class="card-body">
+    <table class="table mb-0">
+      <tbody>
+      <tr>
+        <td class="fw-bolder" style="width: 1px;">Name</td>
+        <td>{{project.name}}</td>
+      </tr>
+      <tr *ngIf="project.owner != null">
+        <td class="fw-bolder">Owner</td>
+        <td>{{project.owner.name}}</td>
+      </tr>
+      <tr *ngIf="project.organization != null">
+        <td class="fw-bolder">Organization</td>
+        <td>{{project.organization.name}}</td>
+      </tr>
+      <tr *ngIf="project.template == null">
+        <td class="fw-bolder">Languages</td>
+        <td>
+          <span class="badge rounded-pill bg-dark me-1" *ngFor="let l of project.graphModelTypes">{{l.typeName}}</span>
+        </td>
+      </tr>
+      <tr *ngIf="project.template != null">
+        <td class="fw-bolder">Template</td>
+        <td><cc-workspace-image-badge [image]="project.template"></cc-workspace-image-badge></td>
+      </tr>
+      <tr>
+        <td class="fw-bolder">Members</td>
+        <td>{{project.allUsers.length}}</td>
+      </tr>
+      </tbody>
+    </table>
   </div>
 </div>

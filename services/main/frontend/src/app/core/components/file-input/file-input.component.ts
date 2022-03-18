@@ -11,7 +11,7 @@ export class FileInputComponent {
   multiple = false;
 
   @Output()
-  select = new EventEmitter<File[]>();
+  selectFile = new EventEmitter<File[]>();
 
   @Output()
   clear = new EventEmitter<never>();
@@ -22,7 +22,7 @@ export class FileInputComponent {
     const files = event.target.files;
     if (files.length > 0) {
       this.files = files;
-      this.select.emit(this.files);
+      this.selectFile.emit(this.files);
     }
   }
 

@@ -125,13 +125,6 @@ export class BuildJobsComponent implements OnInit {
     });
   }
 
-  getDurationAsString(job: WorkspaceImageBuildJob): string {
-    const milliseconds = job.finishedAt.getTime() - job.startedAt.getTime();
-    const minutes = Math.round(milliseconds / 60000);
-    const seconds = Math.round((milliseconds / 1000) % 60);
-    return `${minutes}min ${seconds}s`;
-  }
-
   get organization(): Organization {
     return this.project == null ? null : this.project.organization;
   }

@@ -10,7 +10,7 @@
             There aren't any users yet.
           </div>
           <ng-template #userList>
-            <cc-user-list (onUserDeletionRequest)="deleteUser($event)" [users]="users"></cc-user-list>
+            <cc-user-list (userDeletionRequest)="deleteUser($event)" [users]="users"></cc-user-list>
           </ng-template>
         </ng-template>
       </li>
@@ -23,7 +23,7 @@
             There aren't any admins yet.
           </div>
           <ng-template #adminList>
-            <cc-admin-list (onRemoveAdminRoleRequest)="removeAdmin($event)" [admins]="admins"></cc-admin-list>
+            <cc-admin-list (removeAdminRoleRequest)="removeAdmin($event)" [admins]="admins"></cc-admin-list>
           </ng-template>
         </ng-template>
       </li>
