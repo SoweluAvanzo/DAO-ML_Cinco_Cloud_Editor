@@ -5,10 +5,8 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    {{- if ne .Values.serverTier "production" }}
     nginx.ingress.kubernetes.io/configuration-snippet: |
       more_set_headers "X-Robots-Tag: noindex";
-    {{- end }}
     {{- if ne .Values.serverTier "local" }}
     cert-manager.io/issuer: "letsencrypt-{{ .Values.serverTier }}"
     {{- end }}
