@@ -5,7 +5,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    {{- if eq .Values.serverTier "production" }}
+    {{- if ne .Values.serverTier "production" }}
     nginx.ingress.kubernetes.io/configuration-snippet: |
       more_set_headers "X-Robots-Tag: noindex";
     {{- end }}
@@ -13,11 +13,11 @@ metadata:
     cert-manager.io/issuer: "letsencrypt-{{ .Values.serverTier }}"
     {{- end }}
 spec:
-  {{- if ne .Values.serverTier "local" }}
+  {{- if eq .Values.useSsl true }}
   tls:
     - hosts:
         - {{ .Values.ingress.host }}
-      {{- if and (eq .Values.serverTier "local") (eq .Values.useSsl true) }}
+      {{- if eq .Values.serverTier "local" }}
       secretName: "cinco-cloud-local-ca-cert-secret"
       {{- else }}
       secretName: "letsencrypt-secret-{{ .Values.serverTier }}"
