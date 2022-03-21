@@ -11,7 +11,8 @@ import { User } from '../../../../core/models/user';
 })
 export class NavigationComponent implements OnInit {
 
-  public user: User;
+  user: User;
+  collapse = true;
 
   constructor(private appStore: AppStoreService) {
   }

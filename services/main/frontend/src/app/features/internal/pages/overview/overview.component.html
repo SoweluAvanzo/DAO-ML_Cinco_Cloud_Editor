@@ -1,5 +1,5 @@
 <div class="container mt-3">
-  <div class="d-flex align-items-center">
+  <div class="d-flex flex-column flex-md-row align-items-md-center">
     <ul #nav="ngbNav" class="nav nav-pills d-flex gap-2" ngbNav>
       <li class="nav-item" ngbNavItem="projects">
         <a class="nav-link" ngbNavLink>
@@ -28,7 +28,7 @@
         </ng-template>
       </li>
     </ul>
-    <div class="ms-auto">
+    <div class="mt-3 mt-md-0 ms-md-auto">
       <button
         (click)="openCreateProjectModal()"
         *ngIf="nav.activeId === 'projects'"

@@ -7,7 +7,7 @@ import { UpdateCurrentUserProfileInput } from '../../../../core/models/forms/upd
 import { UserApiService } from '../../../../core/services/api/user-api.service';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
 import { FileApiService, Upload } from '../../../../core/services/api/file-api.service';
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { FileReference } from '../../../../core/models/file-reference';
 
 @Component({
   selector: 'cc-personal-information',
@@ -18,11 +18,13 @@ export class PersonalInformationComponent implements OnInit {
 
   private allowedFileTypes = ['image/jpeg', 'image/png'];
 
-  public informationChangeForm: FormGroup = new FormGroup({
+  informationChangeForm: FormGroup = new FormGroup({
     'name': new FormControl('', [Validators.required]),
     'email': new FormControl('', [Validators.required, Validators.email]),
     'picture': new FormControl('')
   });
+
+  pictureReference: FileReference;
 
   constructor(private authApi: AuthApiService,
               private appStore: AppStoreService,
@@ -31,17 +33,10 @@ export class PersonalInformationComponent implements OnInit {
               private fileApi: FileApiService) {
   }
 
-  public get trashIcon(){
-    return faTrash
-  }
-
   ngOnInit(): void {
     this.informationChangeForm.get('name').setValue(this.currentUser.name);
     this.informationChangeForm.get('email').setValue(this.currentUser.email);
-  }
-
-  public get currentUser(): User {
-    return this.appStore.getUser();
+    this.pictureReference = this.currentUser.profilePicture;
   }
 
   handleFileSelect(files: File[]): void {
@@ -91,6 +86,7 @@ export class PersonalInformationComponent implements OnInit {
       next: updatedUser => {
         this.toastService.show({ type: ToastType.SUCCESS, message: 'Your profile has been updated.' });
         this.appStore.setUser(updatedUser);
+        this.pictureReference = updatedUser.profilePicture;
       },
       error: res => {
         this.toastService.show({
@@ -101,7 +97,16 @@ export class PersonalInformationComponent implements OnInit {
     });
   }
 
-  public removeImage(): void {
-    this.currentUser.profilePicture = null
+  get profilePictureStyle(): any {
+    return {
+      backgroundImage: `url(${this.pictureReference.downloadPath})`,
+      backgroundSize: 'cover',
+      width: '100px',
+      height: '100px'
+    };
+  }
+
+  get currentUser(): User {
+    return this.appStore.getUser();
   }
 }

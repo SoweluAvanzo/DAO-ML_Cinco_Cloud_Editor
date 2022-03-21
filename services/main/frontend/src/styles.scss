@@ -192,6 +192,20 @@ ul[role=tablist] {
   &.navbar-dark {
     background: $color-dark;
   }
+
+  .navbar-nav .nav-link {
+    border-radius: .5rem;
+
+    &:hover {
+      background: rgba(0,0,0,0.2);
+    }
+  }
+
+  .navbar-collapse.show {
+    .nav-link {
+      padding: .5rem .75rem;
+    }
+  }
 }
 
 /* -----------------------------------------

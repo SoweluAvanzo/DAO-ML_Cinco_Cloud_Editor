@@ -5,54 +5,49 @@
         <strong>Personal Information</strong>
       </div>
       <div class="card-body">
-        <div class="pers-inf">
-          <div>
-            <cc-user-profile-image [user]="currentUser"></cc-user-profile-image>
-            <div *ngIf="currentUser.profilePicture != null">
-              <button
-                type="button"
-                class="btn btn-dark btn-rem"
-                (click)="removeImage()"
-                title="Remove Profile Image">
-                <fa-icon [icon]="trashIcon"></fa-icon>
-              </button>
+        <div class="mb-3" *ngIf="pictureReference != null">
+          <div class="logo rounded-3 d-flex" [ngStyle]="profilePictureStyle" (click)="pictureReference = null">
+            <div class="rounded-3">
+              <fa-icon [icon]="['fas', 'trash']"></fa-icon>
             </div>
           </div>
-          <form id="changeInformationForm" (ngSubmit)="changeInformation()" [formGroup]="informationChangeForm"
-                class="d-flex flex-column gap-3 mb-3">
-            <div>
-              <label class="form-label" for="name">Name</label>
-              <input
-                class="form-control"
-                formControlName="name"
-                [class.is-invalid]="!(informationChangeForm.get('name') | validateFormInput)"
-                id="name"
-                placeholder="Enter your name"
-                type="text">
-              <cc-validation-error-message
-                [form]="informationChangeForm.get('name')"
-                [name]="'Name'">
-              </cc-validation-error-message>
-            </div>
-            <div>
-              <label class="form-label" for="email">Email</label>
-              <input
-                class="form-control"
-                formControlName="email"
-                [class.is-invalid]="!(informationChangeForm.get('email') | validateFormInput)"
-                id="email"
-                placeholder="Enter your email"
-                type="email">
-              <cc-validation-error-message
-                [form]="informationChangeForm.get('email')"
-                [name]="'Email'">
-              </cc-validation-error-message>
-            </div>
-            <div>
-              <cc-file-input #input (selectFile)="handleFileSelect($event)" (clear)="handleClear()"></cc-file-input>
-            </div>
-          </form>
+          <hr>
         </div>
+
+        <form id="changeInformationForm" (ngSubmit)="changeInformation()" [formGroup]="informationChangeForm"
+              class="d-flex flex-column gap-3">
+          <div>
+            <label class="form-label" for="name">Name</label>
+            <input
+              class="form-control"
+              formControlName="name"
+              [class.is-invalid]="!(informationChangeForm.get('name') | validateFormInput)"
+              id="name"
+              placeholder="Enter your name"
+              type="text">
+            <cc-validation-error-message
+              [form]="informationChangeForm.get('name')"
+              [name]="'Name'">
+            </cc-validation-error-message>
+          </div>
+          <div>
+            <label class="form-label" for="email">Email</label>
+            <input
+              class="form-control"
+              formControlName="email"
+              [class.is-invalid]="!(informationChangeForm.get('email') | validateFormInput)"
+              id="email"
+              placeholder="Enter your email"
+              type="email">
+            <cc-validation-error-message
+              [form]="informationChangeForm.get('email')"
+              [name]="'Email'">
+            </cc-validation-error-message>
+          </div>
+          <div>
+            <cc-file-input #input (selectFile)="handleFileSelect($event)" (clear)="handleClear()"></cc-file-input>
+          </div>
+        </form>
       </div>
       <div class="card-footer text-end">
         <button

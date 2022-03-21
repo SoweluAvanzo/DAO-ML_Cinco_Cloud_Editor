@@ -44,4 +44,5 @@ CMD cd /app/main/frontend && npm run start -- --host=0.0.0.0 --disable-host-chec
       -Dcincocloud.archetype.image.tag="${CINCO_CLOUD_ARCHETYPE_IMAGE_TAG}" \
       -Dcincocloud.use-ssl="${CINCO_CLOUD_USE_SSL}" \
       -Dquarkus.http.port=8000 \
-      -Dquarkus.http.host=0.0.0.0
+      -Dquarkus.http.host=0.0.0.0 \
+      -Dquarkus.http.cors=true

@@ -3,7 +3,6 @@ import { ProjectStoreService } from '../../services/project-store.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { filter, fromEvent } from 'rxjs';
 import { Project } from '../../../../core/models/project';
-import { WorkspaceImageBuildJobApiService } from '../../../../core/services/api/workspace-image-build-job-api.service';
 
 @UntilDestroy()
 @Component({
@@ -16,8 +15,7 @@ export class OverviewComponent implements OnInit {
   project: Project;
   projectWebSocket: WebSocket;
 
-  constructor(private projectStore: ProjectStoreService,
-              private workspaceImageBuildJobApi: WorkspaceImageBuildJobApiService) {
+  constructor(private projectStore: ProjectStoreService) {
   }
 
   ngOnInit(): void {

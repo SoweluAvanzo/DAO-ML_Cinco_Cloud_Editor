@@ -11,47 +11,49 @@
 
   <div class="card shadow-sm">
     <div class="card-body">
-      <table class="table mb-0">
-        <thead>
-        <tr>
-          <th style="width: 1px">#</th>
-          <th>Name</th>
-          <th>Username</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>&nbsp;</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr *ngFor="let user of project?.allUsers">
-          <td>{{user.id}}</td>
-          <td>{{user.name}}</td>
-          <td>{{user.username}}</td>
-          <td>{{user.email}}</td>
-          <td>
-            <cc-organization-role-badge
-              *ngIf="project.organization != null"
-              [organization]="project.organization"
-              [user]="user"
-            >
-            </cc-organization-role-badge>
-            <cc-project-role-badge
-              *ngIf="project.organization == null"
-              [project]="project"
-              [user]="user"
-            >
-            </cc-project-role-badge>
-          </td>
-          <td class="text-end">
-            <ng-container *ngIf="projectStore.canDeleteUsers(currentUser) && user.id !== currentUser.id">
-              <button (click)="projectStore.removeProjectMember(user)" class="btn btn-sm btn-dark no-caret px-3">
-                <fa-icon [icon]="['fas', 'trash']"></fa-icon>
-              </button>
-            </ng-container>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+          <tr>
+            <th style="width: 1px">#</th>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>&nbsp;</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let user of project?.allUsers">
+            <td>{{user.id}}</td>
+            <td>{{user.name}}</td>
+            <td>{{user.username}}</td>
+            <td>{{user.email}}</td>
+            <td>
+              <cc-organization-role-badge
+                *ngIf="project.organization != null"
+                [organization]="project.organization"
+                [user]="user"
+              >
+              </cc-organization-role-badge>
+              <cc-project-role-badge
+                *ngIf="project.organization == null"
+                [project]="project"
+                [user]="user"
+              >
+              </cc-project-role-badge>
+            </td>
+            <td class="text-end">
+              <ng-container *ngIf="projectStore.canDeleteUsers(currentUser) && user.id !== currentUser.id">
+                <button (click)="projectStore.removeProjectMember(user)" class="btn btn-sm btn-dark no-caret px-3">
+                  <fa-icon [icon]="['fas', 'trash']"></fa-icon>
+                </button>
+              </ng-container>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 

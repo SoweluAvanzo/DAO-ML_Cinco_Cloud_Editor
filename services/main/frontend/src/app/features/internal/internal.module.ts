@@ -4,8 +4,22 @@ import { RouterModule, Routes } from '@angular/router';
 import { InternalComponent } from './internal.component';
 import { NavigationComponent } from './components/navigation/navigation.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faBars, faCode, faImage, faPlus, faProjectDiagram, faUserLock } from '@fortawesome/free-solid-svg-icons';
-import { NgbDropdownModule, NgbModalModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+import {
+  faBars,
+  faCode,
+  faImage,
+  faPlus,
+  faProjectDiagram, faSignOutAlt,
+  faUser,
+  faUserLock
+} from '@fortawesome/free-solid-svg-icons';
+import {
+  NgbCollapse,
+  NgbCollapseModule,
+  NgbDropdownModule,
+  NgbModalModule,
+  NgbNavModule
+} from '@ng-bootstrap/ng-bootstrap';
 import { CoreModule } from '../../core/core.module';
 import { UserIsAdminGuard } from '../../core/guards/user-is-admin.guard';
 import { OverviewComponent } from './pages/overview/overview.component';
@@ -70,6 +84,7 @@ const routes: Routes = [
     NgbDropdownModule,
     NgbNavModule,
     NgbModalModule,
+    NgbCollapseModule,
     ReactiveFormsModule,
     RouterModule.forChild(routes),
     CoreModule
@@ -77,6 +92,6 @@ const routes: Routes = [
 })
 export class InternalModule {
   constructor(library: FaIconLibrary) {
-    library.addIcons(faBars, faUserLock, faPlus, faImage, faCode, faProjectDiagram);
+    library.addIcons(faBars, faUser, faUserLock, faPlus, faImage, faCode, faProjectDiagram, faSignOutAlt);
   }
 }

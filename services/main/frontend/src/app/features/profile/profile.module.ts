@@ -6,7 +6,8 @@ import { PasswordChangeComponent } from './components/password-change/password-c
 import { PersonalInformationComponent } from './components/personal-information/personal-information.component';
 import {ReactiveFormsModule} from "@angular/forms";
 import {CoreModule} from "../../core/core.module";
-import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
+import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 
 const routes: Routes = [
@@ -27,4 +28,9 @@ const routes: Routes = [
         FontAwesomeModule
     ]
 })
-export class ProfileModule { }
+export class ProfileModule {
+
+  constructor(library: FaIconLibrary) {
+    library.addIcons(faTrash);
+  }
+}
