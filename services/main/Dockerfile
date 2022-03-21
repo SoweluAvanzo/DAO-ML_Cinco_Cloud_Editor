@@ -5,7 +5,7 @@
 #
 FROM docker.io/library/node:16.14.0-buster-slim as builder-frontend
 WORKDIR /app/frontend
-COPY ./main/frontend/*.json /app/frontend
+COPY ./main/frontend/*.json /app/frontend/
 RUN npm install
 COPY ./main/frontend/src /app/frontend/src
 RUN env NG_BUILD_MANGLE=false npm run build --configuration=production
