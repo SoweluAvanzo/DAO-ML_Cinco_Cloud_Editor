@@ -79,6 +79,8 @@ install-main-frontend:
 
 lint-main-frontend:
   extends: .node-job-main
+  needs:
+    - install-main-frontend
   script:
     - cd services/main/frontend
     - npm install
