@@ -6,3 +6,4 @@ imageConfig:
   pullPolicy: IfNotPresent
 namespace: default
 devMode: false
+useSsl: true
