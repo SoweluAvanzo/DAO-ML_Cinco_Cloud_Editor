@@ -1,0 +1,17 @@
+@import "~src/assets/scss/bootstrap";
+
+.sidebar {
+  background: $color-darkest;
+  width: 240px;
+}
+
+.sidebar-collapse-button {
+  color: $text-color-light;
+  border-top: 1px solid #333;
+  border-left: 4px solid transparent;
+
+  &:hover {
+    color: $white;
+    background: rgba(0,0,0,0.2);
+  }
+}

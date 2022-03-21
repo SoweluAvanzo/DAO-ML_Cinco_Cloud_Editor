@@ -45,6 +45,9 @@ spec:
           ports:
             - containerPort: 8000
             - containerPort: 9000
+            {{ if eq .Values.serverTier "local" }}
+            - containerPort: 4200
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: main-config
@@ -79,6 +82,8 @@ spec:
           volumeMounts:
             - name: pv-data
               mountPath: /app/data
+            - name: pv-data
+              mountPath: /app/uploads
       volumes:
         - name: pv-data
           persistentVolumeClaim:
@@ -101,7 +106,12 @@ spec:
     - port: 9000
       name: main-grpc
       protocol: TCP
-  {{ if or (eq .Values.serverTier "local") (eq .Values.serverTier "local-ssl") }}
+    {{ if eq .Values.serverTier "local" }}
+    - port: 4200
+      name: main-frontend
+      protocol: TCP
+    {{- end }}
+  {{ if eq .Values.serverTier "local" }}
   type: NodePort
   {{- else -}}
   type: ClusterIP

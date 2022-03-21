@@ -1,0 +1,11 @@
+@import "~src/assets/scss/variables";
+
+.owner-column {
+  width: 47px;
+  text-align: right;
+}
+
+.project-type-badge {
+  background: $color-darker;
+  color: #d4d4d4;
+}

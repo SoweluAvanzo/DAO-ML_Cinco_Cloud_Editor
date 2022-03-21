@@ -17,12 +17,14 @@ public class PyroAppK8SIngressFrontend extends PyroK8SResource<Ingress> {
 
   private final PyroAppK8SService service;
   private final String host;
+  private final String rootPath;
 
   public PyroAppK8SIngressFrontend(KubernetesClient client, PyroAppK8SService service,
-      ProjectDB project, String host) {
+      ProjectDB project, String host, String rootPath) {
     super(client, project);
     this.service = service;
     this.host = host;
+    this.rootPath = rootPath;
     this.resource = build();
   }
 
@@ -64,6 +66,6 @@ public class PyroAppK8SIngressFrontend extends PyroK8SResource<Ingress> {
   }
 
   public String getPath() {
-    return "/workspaces/" + getProjectName() + "/theia/";
+    return rootPath + "/" + getProjectName() + "/theia/";
   }
 }

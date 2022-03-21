@@ -1,0 +1,68 @@
+<div class="modal-header">
+  <h5 class="modal-title">Create a new user</h5>
+  <button (click)="modal.dismiss()" aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+</div>
+<div class="modal-body light">
+  <form (ngSubmit)="createUser()" [formGroup]="form" class="d-flex flex-column gap-3 mb-3">
+    <div>
+      <label class="form-label" for="name">Name</label>
+      <input
+        class="form-control"
+        formControlName="name"
+        [class.is-invalid]="!(form.get('name') | validateFormInput)"
+        id="name"
+        placeholder="Enter a name"
+        type="text">
+      <cc-validation-error-message
+        [form]="form.get('name')"
+        [name]="'Name'">
+      </cc-validation-error-message>
+    </div>
+    <div>
+      <label class="form-label" for="username">Username</label>
+      <input
+        class="form-control"
+        formControlName="username"
+        [class.is-invalid]="!(form.get('username') | validateFormInput)"
+        id="username"
+        placeholder="Enter an username"
+        type="text">
+      <cc-validation-error-message
+        [form]="form.get('username')"
+        [name]="'Username'">
+      </cc-validation-error-message>
+    </div>
+    <div>
+      <label class="form-label" for="username">Email</label>
+      <input
+        class="form-control"
+        formControlName="email"
+        [class.is-invalid]="!(form.get('email') | validateFormInput)"
+        id="email"
+        placeholder="Enter an email address"
+        type="email">
+      <cc-validation-error-message
+        [form]="form.get('email')"
+        [name]="'Email'">
+      </cc-validation-error-message>
+    </div>
+    <div>
+      <label class="form-label" for="username">Password</label>
+      <input
+        class="form-control"
+        formControlName="password"
+        [class.is-invalid]="!(form.get('password') | validateFormInput)"
+        id="password"
+        placeholder="Enter a password"
+        type="password">
+      <cc-validation-error-message
+        [form]="form.get('password')"
+        [name]="'Password'">
+      </cc-validation-error-message>
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button (click)="modal.dismiss()" class="btn btn-secondary" type="button">Cancel</button>
+  <button (click)="createUser()" [disabled]="!canCreateUser" class="btn btn-primary" type="button">Create</button>
+</div>

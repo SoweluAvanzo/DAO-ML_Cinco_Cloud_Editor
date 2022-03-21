@@ -6,6 +6,7 @@ import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 import info.scce.cincocloud.k8s.K8SClientService;
 import info.scce.cincocloud.k8s.K8SException;
+import info.scce.cincocloud.k8s.K8SIngressService;
 import info.scce.cincocloud.k8s.K8SUtils;
 import info.scce.cincocloud.k8s.languageeditor.TheiaK8SDeployment;
 import info.scce.cincocloud.k8s.languageeditor.TheiaK8SIngress;
@@ -52,6 +53,9 @@ public class ProjectDeploymentService {
 
   @Inject
   K8SClientService clientService;
+
+  @Inject
+  K8SIngressService ingressService;
 
   @Inject
   Vertx vertx;
@@ -102,8 +106,10 @@ public class ProjectDeploymentService {
     final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
     final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim,
         getRegistryService(), host, useSsl, project);
-    final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host);
-    final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host);
+    final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host,
+        ingressService.getWorkspaceRootPath());
+    final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host,
+        ingressService.getWorkspaceRootPath());
 
     // create modeleditor database resources
     final var databaseService = new PyroDatabaseK8SService(client, project);
@@ -174,7 +180,7 @@ public class ProjectDeploymentService {
     final var persistentVolume = new TheiaK8SPersistentVolume(client, project);
     final var service = new TheiaK8SService(client, project);
     final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project, archetypeImageTag, useSsl);
-    final var ingress = new TheiaK8SIngress(client, service, project, host);
+    final var ingress = new TheiaK8SIngress(client, service, project, host, ingressService.getWorkspaceRootPath());
 
     final var deployedDeploymentOptional = client.apps().statefulSets().list().getItems().stream()
         .filter(pod -> pod.getMetadata() != null)
@@ -294,8 +300,10 @@ public class ProjectDeploymentService {
     final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
     final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim,
         getRegistryService(), host, useSsl, project);
-    final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host);
-    final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host);
+    final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host,
+        ingressService.getWorkspaceRootPath());
+    final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host,
+        ingressService.getWorkspaceRootPath());
 
     final var databaseService = new PyroDatabaseK8SService(client, project);
     final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client,
@@ -316,7 +324,7 @@ public class ProjectDeploymentService {
     final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
     final var service = new TheiaK8SService(client, project);
     final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project, archetypeImageTag, useSsl);
-    final var ingress = new TheiaK8SIngress(client, service, project, host);
+    final var ingress = new TheiaK8SIngress(client, service, project, host, ingressService.getWorkspaceRootPath());
 
     client.services().delete(service.getResource());
     client.apps().statefulSets().delete(deployment.getResource());

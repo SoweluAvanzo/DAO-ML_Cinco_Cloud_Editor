@@ -1,0 +1,33 @@
+<div class="list-group">
+  <a
+    *ngFor="let org of organizations"
+    [routerLink]="['/', 'app', 'organizations', org.id]"
+    class="list-group-item list-group-item-action d-flex">
+    <div class="me-3">
+      <div
+        *ngIf="org.logo == null; else logo"
+        class="logo d-flex justify-content-center align-items-center rounded-2"
+      >
+        <fa-icon [icon]="['fas', 'image']"></fa-icon>
+      </div>
+      <ng-template #logo>
+        <div [style]="getOrganizationBackgroundImageStyle(org)" class="logo rounded-2"></div>
+      </ng-template>
+    </div>
+    <div class="flex-grow-1 d-flex">
+      <div class="flex-grow-1">
+        <div>
+          <strong>{{org.name}}</strong>
+        </div>
+        <div *ngIf="org.description !== ''" class="text-muted">
+          <em>
+            <small>{{org.description}}</small>
+          </em>
+        </div>
+      </div>
+      <div *ngIf="isUserOwnerOfOrganization(org)">
+        <span class="badge bg-secondary">Owner</span>
+      </div>
+    </div>
+  </a>
+</div>

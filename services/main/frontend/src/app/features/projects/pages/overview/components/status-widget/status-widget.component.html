@@ -1,0 +1,32 @@
+<div class="card shadow-sm rounded-3">
+  <div class="card-header">
+    <strong>Build Status</strong>
+  </div>
+  <div class="card-body">
+    <table class="table mb-0" *ngIf="job != null">
+      <thead>
+      <tr>
+        <th>Status</th>
+        <th>Time</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td style="width: 1px">
+          <cc-project-build-job-status-badge [job]="job"></cc-project-build-job-status-badge>
+        </td>
+        <td>
+          <div class="text-muted">
+            <fa-icon [icon]="['fas', 'calendar']" [fixedWidth]="true"></fa-icon> {{job.startedAt | date:'short'}}
+          </div>
+          <div *ngIf="job.finishedAt != null" class="text-muted">
+            <fa-icon [icon]="['fas', 'clock']" [fixedWidth]="true"></fa-icon> {{job.duration}}
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div class="alert alert-info mb-0" *ngIf="job == null"> There are no build jobs for this project.</div>
+  </div>
+</div>

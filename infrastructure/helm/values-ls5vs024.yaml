@@ -5,3 +5,4 @@ serverTier: production
 imageConfig:
   pullPolicy: IfNotPresent
 namespace: default
+devMode: false

@@ -106,7 +106,7 @@ Install one of them.
 ## Run CincoCloud
 
 1. Ensure that the local cluster is running.
-  Run `minikube status` and check if the output looks like
+   Run `minikube status` and check if the output looks like
       ```
       minikube
       type: Control Plane
@@ -115,11 +115,24 @@ Install one of them.
       apiserver: Running
       kubeconfig: Configured
       ```
-2. In the root of the repository directory, execute `skaffold dev` and wait for all pods to be deployed.
+2. In the root of the repository directory, execute `skaffold dev -p local-dev` and wait for all pods to be deployed.
    All pods listed by `kubectl get pods` should have the status `running`.
    Thanks to skaffold, you can now change the code and skaffold automatically rebuilds and redeploys new images with the changes.
-3. Open `http://cinco-cloud` in a Web browser.
+3. Open `http://cinco-cloud/frontend` in a Web browser.
    **Please, either use *Chrome* or *Firefox*, as it seems that there is a bug with *Safari* where some resources cannot be loaded properly.**
+
+## Skaffold development profiles
+
+Use one of the following profiles in conjunction with `skaffold dev -p <profile>`.
+
+| No | Name             | SSL   | Hot reload | Frontend URL | API URL |
+|----|------------------|-------|------------|------------------------|
+| 1  | `local-dev`      | *no*  | *yes*      | `/frontend`  | `/`     |
+| 2  | `local-prod`     | *no*  | *no*       | `/`          | `/`     |
+| 3  | `local-prod-ssl` | *yes* | *no*       | `/`          | `/`     |
+
+1 provides a local development environment with hot reload.
+If you want to simulate a production build on your local machine use 2 or 3.
 
 ## (Optional) Enable local SSL
 
@@ -127,7 +140,7 @@ Install one of them.
 
 1. Install [cert-manager].
 
-2. Execute `skaffold dev -p local-ssl`.
+2. Execute `skaffold dev -p local-prod-ssl`.
 
 3. Open `https://cinco-cloud` in a Web browser.
 

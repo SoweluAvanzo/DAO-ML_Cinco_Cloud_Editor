@@ -1,0 +1,225 @@
+@import "assets/scss/bootstrap";
+@import "assets/scss/variables";
+
+/* -----------------------------------------
+ * global rules
+ */
+
+*, *::after, *::before {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: .875rem;
+}
+
+body {
+  margin: 0 auto;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  background: $color-darker;
+  color: $text-color-light;
+}
+
+/* -----------------------------------------
+ * utilities not covered by bootstrap
+ */
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.no-caret {
+  &:after {
+    content: none !important;
+  }
+}
+
+/* -----------------------------------------
+ * bootstrap utility overwrites
+ */
+
+.text-muted {
+  color: #959ea5 !important;
+}
+
+/* -----------------------------------------
+ * bootstrap component overwrites
+ */
+
+.modal {
+  backdrop-filter: blur(3px);
+  color: $text-color-dark;
+
+  .modal-title {
+    color: $text-color-dark;
+  }
+}
+
+.list-group {
+  .list-group-item {
+    background: $color-dark;
+    color: $text-color-light;
+
+    &.list-group-item-action {
+      cursor: pointer;
+      transition: background .2s ease-in-out;
+
+      &:hover {
+        background: lighten($color-dark, 5);
+      }
+    }
+
+    .text-muted {
+      color: $gray-500 !important;
+    }
+  }
+}
+
+.nav-tabs {
+  border-bottom: 1px solid $color-dark;
+
+  .nav-link {
+    color: #7e7e7e;
+
+    &:hover {
+      border-color: transparent;
+      background: #292929;
+      border-bottom: 1px solid $color-dark;
+      color: $text-color-light;
+    }
+
+    &.active {
+      color: $text-color-light;
+      background-color: $color-dark;
+      border-color: $color-dark;
+    }
+  }
+}
+
+.card {
+  background: $color-dark;
+  border-color: $color-dark;
+  color: $text-color-light;
+
+  .card-header, .card-footer {
+    background: rgba(0,0,0,.15);
+  }
+}
+
+.table {
+  color: $text-color-light
+}
+
+ul[role=tablist] {
+  &.nav-pills .nav-link {
+    border-bottom: none;
+  }
+
+  .nav-link {
+    background: $color-dark;
+    color: $text-color-light;
+    border: none;
+    border-bottom: 1px solid $text-color-light;
+
+    &.active {
+      background: $color-darkest;
+      color: $text-color-light;
+
+      .badge {
+        color: $text-color-light;
+      }
+    }
+
+    .badge {
+      background: rgba(0, 0, 0, 0.2);
+      margin-left: .5rem;
+      color: $text-color-light;
+    }
+  }
+}
+
+.form-control {
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: $text-color-light;
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,.2);
+  border-radius: 0;
+
+  &::placeholder {
+    color: $gray-400
+  }
+
+  &:focus, &:active {
+    outline: none;
+    background: transparent;
+    box-shadow: none !important;
+    border-color: $primary;
+    color: $text-color-light;
+  }
+}
+
+.light, form.light {
+  .form-control {
+    color: $text-color-dark;
+    border-bottom: 1px solid #ced4da;
+
+    &::placeholder {
+      color: $gray-600;
+    }
+
+    &:focus, &:active {
+      border-color: $primary;
+      color: $text-color-dark;
+      box-shadow: none !important;
+    }
+  }
+
+  .list-group-item {
+    background: $white;
+    color: $text-color-dark;
+
+    &:focus, &:active {
+      color: $text-color-dark;
+    }
+  }
+}
+
+.navbar {
+  &.navbar-dark {
+    background: $color-dark;
+  }
+
+  .navbar-nav .nav-link {
+    border-radius: .5rem;
+
+    &:hover {
+      background: rgba(0,0,0,0.2);
+    }
+  }
+
+  .navbar-collapse.show {
+    .nav-link {
+      padding: .5rem .75rem;
+    }
+  }
+}
+
+/* -----------------------------------------
+ * cinco cloud component styles
+ */
+
+cc-sidebar > .sidebar {
+  &.collapsed {
+    width: 54px;
+
+    .sidebar-header-text,
+    .sidebar-item-text,
+    .sidebar-collapse-button-text {
+      display: none;
+    }
+  }
+}

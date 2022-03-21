@@ -1,13 +1,8 @@
-{{- if and (ne .Values.serverTier "local") (ne .Values.serverTier "local-ssl") }}
+{{- if ne .Values.serverTier "local" }}
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  {{ if eq .Values.serverTier "staging" }}
-  name: letsencrypt-staging
-  {{ end }}
-  {{ if eq .Values.serverTier "production" }}
-  name: letsencrypt-production
-  {{ end }}
+  name: letsencrypt-{{ .Values.serverTier }}
   namespace: {{ .Release.Namespace }}
 spec:
   acme:
@@ -22,12 +17,7 @@ spec:
     email: {{ .Values.certManager.email }}
     # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
-      {{ if eq .Values.serverTier "staging" }}
-      name: letsencrypt-staging
-      {{ end }}
-      {{ if eq .Values.serverTier "production" }}
-      name: letsencrypt-production
-    {{ end }}
+      name: letsencrypt-{{ .Values.serverTier }}
     # Enable the HTTP-01 challenge provider
     solvers:
       - http01:

@@ -1,0 +1,30 @@
+<div>
+  <form (submit)="$event.preventDefault()" [formGroup]="form">
+    <input class="form-control" formControlName="searchTerm" placeholder="Enter a username or an email" type="text">
+  </form>
+
+  <div *ngIf="searching" class="alert alert-info mt-3 py-2 px-3">
+    <fa-icon [icon]="['fas', 'circle-notch']" [spin]="true" class="me-2"></fa-icon>
+    Searching...
+  </div>
+
+  <div *ngIf="notFound" class="alert alert-danger mt-3 py-2 px-3">
+    Could not find any user matching "{{form.controls['searchTerm'].value}}".
+  </div>
+
+  <div *ngIf="foundUser != null" class="mt-3 rounded-3 p-2 border d-flex">
+    <div class="rounded-3 overflow-hidden" style="height: 46px">
+      <cc-user-profile-image [user]="foundUser"></cc-user-profile-image>
+    </div>
+    <div class="ms-2">
+      <div class="mb-1">
+        <fa-icon [fixedWidth]="true" [icon]="['fas', 'user']"></fa-icon>
+        {{foundUser.name}} <span class="text-muted">(@{{foundUser.username}})</span>
+      </div>
+      <div>
+        <fa-icon [fixedWidth]="true" [icon]="['fas', 'envelope']"></fa-icon>
+        {{foundUser.email}}
+      </div>
+    </div>
+  </div>
+</div>
