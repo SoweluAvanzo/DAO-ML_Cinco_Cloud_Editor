@@ -20,7 +20,7 @@
     DOCKER_DRIVER: overlay2
 
 .node-job-main:
-  image: 'node:16.14.0'
+  image: node:16.14.0
 
 .docker-build:
   extends: .docker-job
@@ -72,15 +72,13 @@ build-wiki:
     expire_in: 1 day
 
 install-main-frontend:
-  image: .node-job-main
+  extends: .node-job-main
   script:
     - cd services/main/frontend
     - npm install
 
 lint-main-frontend:
   extends: .node-job-main
-  cache:
-    policy: pull
   script:
     - cd services/main/frontend
     - npm install
