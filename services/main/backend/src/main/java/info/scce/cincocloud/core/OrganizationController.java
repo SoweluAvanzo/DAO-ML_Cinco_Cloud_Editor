@@ -6,12 +6,9 @@ import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.OrganizationAccessRight;
 import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.OrganizationDB;
-import info.scce.cincocloud.db.ProjectDB;
-import info.scce.cincocloud.db.SettingsDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
@@ -39,7 +36,7 @@ import javax.ws.rs.core.SecurityContext;
 public class OrganizationController {
 
   @Inject
-  ProjectService projectService;
+  OrganizationService organizationService;
 
   @Inject
   ObjectCache objectCache;
@@ -296,27 +293,12 @@ public class OrganizationController {
       }
 
       if (isOwnerOf(subject, orgInDB)) {
-        deleteAllProjects(orgInDB, subject);
-        deleteAccessRightVectors(orgInDB);
-
-        orgInDB.members.clear();
-        orgInDB.owners.clear();
-        orgInDB.projects.clear();
-        orgInDB.delete();
+        organizationService.deleteOrganization(orgInDB);
         return Response.ok(OrganizationTO.fromEntity(orgInDB, objectCache)).build();
       }
     }
 
     return Response.status(Response.Status.FORBIDDEN).build();
-  }
-
-  private void deleteAllProjects(OrganizationDB org, UserDB subject) {
-    Iterator<ProjectDB> iter = org.projects.iterator();
-    while (iter.hasNext()) {
-      ProjectDB project = iter.next();
-      projectService.deleteById(subject, project.id);
-      iter = org.projects.iterator();
-    }
   }
 
   private OrganizationAccessRightVectorDB findAccessRightVector(
@@ -326,10 +308,6 @@ public class OrganizationController {
     final List<OrganizationAccessRightVectorDB> result = OrganizationAccessRightVectorDB
         .list("user = ?1 and organization = ?2", user, org);
     return result.size() == 1 ? result.get(0) : null;
-  }
-
-  private List<OrganizationAccessRightVectorDB> findAccessRightVectors(OrganizationDB org) {
-    return OrganizationAccessRightVectorDB.list("organization = ?1", org);
   }
 
   private boolean accessRightVectorExists(
@@ -360,17 +338,6 @@ public class OrganizationController {
   ) {
     final OrganizationAccessRightVectorDB arv = findAccessRightVector(user, org);
     arv.delete();
-  }
-
-  private void deleteAccessRightVectors(OrganizationDB org) {
-    List<OrganizationAccessRightVectorDB> accessRightVectors = findAccessRightVectors(org);
-    for (OrganizationAccessRightVectorDB e : accessRightVectors) {
-      e.accessRights.clear();
-      e.organization = null;
-      e.user = null;
-      e.persist();
-      e.delete();
-    }
   }
 
   private boolean isMemberOf(UserDB user, OrganizationDB org) {

@@ -1,8 +1,10 @@
 package info.scce.cincocloud;
 
+import info.scce.cincocloud.core.OrganizationService;
 import info.scce.cincocloud.core.RegistrationService;
 import info.scce.cincocloud.core.UserService;
 import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
+import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.SettingsDB;
 import info.scce.cincocloud.db.UserDB;
@@ -22,6 +24,9 @@ public abstract class AbstractCincoCloudTest {
   protected RegistrationService registrationService;
 
   @Inject
+  protected OrganizationService organizationService;
+
+  @Inject
   protected UserService userService;
 
   protected final Map<String, String> defaultHeaders = Map.of("content-type", "application/json");
@@ -34,10 +39,14 @@ public abstract class AbstractCincoCloudTest {
 
     ProjectDB.deleteAll();
 
-    UserDB.findAll().list().stream()
-        .map(u -> (UserDB) u)
-        .filter(u -> !u.systemRoles.contains(UserSystemRole.ADMIN))
-        .forEach(u -> userService.deleteUser(u));
+    OrganizationDB.listAll().stream()
+        .map(organization -> (OrganizationDB) organization)
+        .forEach(organization -> organizationService.deleteOrganization(organization));
+
+    UserDB.listAll().stream()
+        .map(user -> (UserDB) user)
+        .filter(user -> !user.systemRoles.contains(UserSystemRole.ADMIN))
+        .forEach(user -> userService.deleteUser(user));
 
     // create an admin account
     if (UserDB.findAll().count() == 0) {

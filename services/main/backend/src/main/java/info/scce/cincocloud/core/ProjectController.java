@@ -287,7 +287,7 @@ public class ProjectController {
     final ProjectDB project = ProjectDB.findById(id);
     projectService.checkIfProjectExists(project);
     if (canDeleteProject(subject, project)) {
-      projectService.deleteById(subject, id);
+      projectService.deleteById(id);
       projectDeploymentService.delete(project);
       return Response.ok("Removed").build();
     }
