@@ -19,6 +19,15 @@
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
 
+.node-job-main:
+  image: 'node:16.14.0'
+  cache:
+    - key:
+        files:
+          - services/main/frontend/package-lock.json
+      paths:
+        - services/main/frontend/node_modules/
+
 .docker-build:
   extends: .docker-job
   script:
@@ -62,18 +71,15 @@ build-wiki:
     expire_in: 1 day
 
 install-main-frontend:
-  image: 'node:16.14.0'
-  cache:
-    paths:
-      - services/main/frontend/node_modules/
+  extends: .node-job-main
   script:
     - cd services/main/frontend
     - npm install
 
 lint-main-frontend:
-  image: 'node:16.14.0'
-  needs: 
-    - install-main-frontend
+  extends: .node-job-main
+  cache:
+    policy: pull
   script:
     - cd services/main/frontend
     - npm run lint
