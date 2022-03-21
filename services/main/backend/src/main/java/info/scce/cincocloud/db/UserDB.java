@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Random;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -20,7 +21,9 @@ import javax.ws.rs.core.SecurityContext;
 public class UserDB extends PanacheEntity {
 
   public String name;
+  @Column(columnDefinition = "citext")
   public String username;
+  @Column(columnDefinition = "citext")
   public String email;
   public String password;
   public String activationKey;

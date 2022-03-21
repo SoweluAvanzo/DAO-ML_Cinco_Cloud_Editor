@@ -4,6 +4,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -14,6 +15,7 @@ import javax.persistence.OneToOne;
 @Entity
 public class OrganizationDB extends PanacheEntity {
 
+  @Column(columnDefinition = "citext")
   public String name;
   public String description;
 

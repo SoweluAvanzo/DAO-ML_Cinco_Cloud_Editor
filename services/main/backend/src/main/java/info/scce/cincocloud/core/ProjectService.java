@@ -22,11 +22,10 @@ public class ProjectService {
   @Inject
   ProjectRegistry projectRegistry;
 
-  public void deleteById(UserDB subject, final long id) {
+  public void deleteById(final long id) {
     final ProjectDB project = ProjectDB.findById(id);
-    checkPermission(project, subject);
 
-    if (subject.equals(project.owner)) {
+    if (project.owner != null) {
       project.owner.ownedProjects.remove(project);
       // Set to null to prevent cascading deletion of the owner
       project.owner = null;
