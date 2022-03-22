@@ -1,9 +1,10 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { Project } from '../../../../../../core/models/project';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { GitInformationApiService } from '../../../../../../core/services/api/git-information-api.service';
-import { fromJsog, toJsog } from '../../../../../../core/utils/jsog-utils';
-import { GitInformation } from '../../../../../../core/models/git-information';
+import {Component, Input, OnInit} from '@angular/core';
+import {Project} from '../../../../../../core/models/project';
+import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {GitInformationApiService} from '../../../../../../core/services/api/git-information-api.service';
+import {fromJsog, toJsog} from '../../../../../../core/utils/jsog-utils';
+import {GitInformation} from '../../../../../../core/models/git-information';
+import {ToastService, ToastType} from "../../../../../../core/services/toast.service";
 
 @Component({
   selector: 'cc-edit-git-information-card',
@@ -18,7 +19,8 @@ export class EditGitInformationCardComponent implements OnInit {
 
   info: GitInformation;
 
-  constructor(private gitInformationApi: GitInformationApiService) {
+  constructor(private gitInformationApi: GitInformationApiService,
+              private toastService: ToastService) {
   }
 
   ngOnInit(): void {
@@ -47,9 +49,23 @@ export class EditGitInformationCardComponent implements OnInit {
     copy.branch = form.branch;
     copy.genSubdirectory = form.genSubdirectory;
     this.gitInformationApi.update(copy).subscribe({
-      next: updatedInfo => this.info = updatedInfo,
-      error: console.error
+      next: updatedInfo => {
+        this.toastService.show({
+          type: ToastType.SUCCESS,
+          message: 'The information have been updated.'
+        });
+        this.info = updatedInfo;
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `The information could not be updated. ${res.data.message}`
+        });
+      }
     });
   }
 
+  get canSave(): boolean {
+    return this.form.get('type').value === 'NONE' || (this.form.get('type').value === 'BASIC' && this.form.valid);
+  }
 }
