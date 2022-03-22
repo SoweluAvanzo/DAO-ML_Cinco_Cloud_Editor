@@ -39,7 +39,7 @@
     <li *ngIf="projectStore.canUpdateProject(user) && project.template != null" [ngbNavItem]="2">
       <a ngbNavLink>Git</a>
       <ng-template ngbNavContent>
-
+        <cc-edit-git-information-card [project]="project" class="d-block mb-3"></cc-edit-git-information-card>
       </ng-template>
     </li>
   </ul>

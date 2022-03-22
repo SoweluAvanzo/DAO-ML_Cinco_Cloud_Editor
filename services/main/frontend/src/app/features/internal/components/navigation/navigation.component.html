@@ -16,20 +16,20 @@
     <div *ngIf="user != null" class="collapse navbar-collapse" [ngbCollapse]="collapse">
       <ul *ngIf="user.isAdmin" class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link text-white" routerLink="/app/admin">
+          <a class="nav-link text-white" routerLink="/app/admin" (click)="collapse = true">
             <fa-icon [fixedWidth]="true" [icon]="['fas', 'user-lock']"></fa-icon>
             <span class="ms-2">Admin</span>
           </a>
         </li>
         <ng-container *ngIf="!collapse">
           <li class="nav-item">
-            <a class="nav-link text-white" routerLink="/app/profile">
+            <a class="nav-link text-white" routerLink="/app/profile" (click)="collapse = true">
               <fa-icon [fixedWidth]="true" [icon]="['fas', 'user']"></fa-icon>
               <span class="ms-2">Profile</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white" routerLink="/logout">
+            <a class="nav-link text-white" routerLink="/logout" (click)="collapse = true">
               <fa-icon [fixedWidth]="true" [icon]="['fas', 'sign-out-alt']"></fa-icon>
               <span class="ms-2">Logout</span>
             </a>

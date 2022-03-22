@@ -116,13 +116,12 @@ ul[role=tablist] {
   }
 
   .nav-link {
-    background: $color-dark;
-    color: $text-color-light;
-    border: none;
-    border-bottom: 1px solid $text-color-light;
+    background: $color-darkest;
+    color: rgba(255,255,255,.75);
+    border-bottom: 1px solid rgba(255,255,255,.2);
 
     &.active {
-      background: $color-darkest;
+      background: $color-dark;
       color: $text-color-light;
 
       .badge {
@@ -160,6 +159,10 @@ ul[role=tablist] {
     border-color: $primary;
     color: $text-color-light;
   }
+}
+
+select.form-control option {
+  color: $text-color-dark;
 }
 
 .light, form.light {
@@ -201,7 +204,8 @@ ul[role=tablist] {
     }
   }
 
-  .navbar-collapse.show {
+  .navbar-collapse.show,
+  .navbar-collapse.collapsing {
     .nav-link {
       padding: .5rem .75rem;
     }
