@@ -91,7 +91,7 @@ class StyleService {
 	}
 	
 	if (_isValidColor(_style.bodyBgColor)) {
-	  css += "body, .org-body-bg-color {background-color: #${_style.bodyBgColor} !important;}";
+	  css += "body, .org-body-bg-color {background-color: #333 !important;}";
 	}
 	
 	if (_isValidColor(_style.bodyTextColor)) {

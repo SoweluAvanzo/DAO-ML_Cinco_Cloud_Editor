@@ -509,10 +509,10 @@ class CanvasComponent extends Generatable {
 		  			<h6 class="dropdown-header">Switch layout to...</h6>
 					<li>
 						<div *ngIf="layoutType != 'micro'">
-							<a class="dropdown-item"  (click)="changeLayoutSC.add('micro')">micro</a>
+							<a class="dropdown-item"  (click)="changeLayoutSC.add('micro')">Micro</a>
 						</div>
 						<div *ngIf="layoutType != 'classic'">
-							<a class="dropdown-item"  (click)="changeLayoutSC.add('classic')">classic</a>
+							<a class="dropdown-item"  (click)="changeLayoutSC.add('classic')">Classic</a>
 						</div>
 					</li>
 		  			<h6 class="dropdown-header">Layout</h6>
@@ -578,7 +578,7 @@ class CanvasComponent extends Generatable {
 			  «IF hasGenerator»
 			  	<template [ngIf]="isModelFile()&&hasGenerator()">
 			  		<template [ngIf]="getGenerators().length <= 1">
-			  			<button class="btn btn-sm" (click)="triggerGenerator(null,null)"	
+			  			<button class="btn btn-sm mr-2" (click)="triggerGenerator(null,null)"
 			  				data-toggle="tooltip" data-placement="bottom" title="Trigger the generation process"
 			  				*ngIf="«FOR g:gc.concreteGraphModels.filter[generating] SEPARATOR "||"»currentFile.$type()=='«g.typeName»'«ENDFOR»">
 			  				<i class="fas fa-fw fa-cog"></i> <strong>G</strong>
@@ -596,17 +596,19 @@ class CanvasComponent extends Generatable {
 			  		</template>
 			  	</template>
 			  «ENDIF»
-  			  <div *ngIf="isModelFile()" id="glue-toggle" class="btn-group btn-group-sm mr-2">
-  			   		<button type="button" (click)="toggleGluelines()" [class.active]="isGluelines" class="btn btn-sm btn-outline-secondary" data-toggle="tooltip" data-placement="bottom" title="Toggle the glue lines on canvas">
-  			   			<i class="fas fa-ruler-combined"></i>
-  			   		</button>
-  			   		<button type="button" (click)="jumpBackwards()" [class.disabled]="!canJumpBackwards()" [class.active]="!canJumpBackwards()" class="btn btn-sm btn-outline-primary" data-toggle="tooltip" data-placement="bottom" title="jump to previous model">
-						<i class="fas fa-angle-left"></i>
-					</button>
-					<button type="button" (click)="jumpForward()" [class.disabled]="!canJumpForward()" [class.active]="!canJumpForward()" class="btn btn-sm btn-outline-primary" data-toggle="tooltip" data-placement="bottom" title="jump to next model">
-						<i class="fas fa-angle-right"></i>
-					</button>
-  			   </div>
+  			  <ng-container *ngIf="isModelFile()">
+            <button id="glue-toggle" type="button" (click)="toggleGluelines()" [class.active]="isGluelines" class="btn btn-sm btn-outline-secondary mr-2" data-toggle="tooltip" data-placement="bottom" title="Toggle the glue lines on canvas">
+              <i class="fas fa-ruler-combined"></i>
+            </button>
+            <div class="btn-group btn-group-sm mr-2">
+              <button type="button" (click)="jumpBackwards()" [class.disabled]="!canJumpBackwards()" [class.active]="!canJumpBackwards()" class="btn btn-sm btn-outline-secondary" data-toggle="tooltip" data-placement="bottom" title="jump to previous model">
+                <i class="fas fa-angle-left"></i>
+              </button>
+              <button type="button" (click)="jumpForward()" [class.disabled]="!canJumpForward()" [class.active]="!canJumpForward()" class="btn btn-sm btn-outline-secondary" data-toggle="tooltip" data-placement="bottom" title="jump to next model">
+                <i class="fas fa-angle-right"></i>
+              </button>
+            </div>
+  			  </ng-container>
   			  <div *ngIf="getEditorButtons().isNotEmpty" class="btn-group btn-group-sm mr-2">
    			  	<button *ngFor="let b of getEditorButtons().entries" type="button" class="btn" (click)="executeGraphmodelButton(b.value)">
    			  	  {{b.value}}

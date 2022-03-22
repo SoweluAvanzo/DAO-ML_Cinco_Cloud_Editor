@@ -17,7 +17,7 @@ import 'package:angular_router/angular_router.dart';
 		    </div>
 		    <div class="card-body pyro-panel-body" style="max-width: inherit;
 		    overflow-x: scroll;">
-		      <ul *ngIf="treeView!=null" style="LIST-STYLE-TYPE: none;">
+		      <ul *ngIf="treeView!=null" style="list-style-type: none; padding-left: 0;">
 		          <li *ngFor="let entry of treeView.layer" style="white-space: nowrap;">
 		              <tree-view-node
 		                  [node]="entry"
@@ -141,7 +141,7 @@ class TreeViewComponent implements OnInit {
 		  [attr.data-elementid]="node.id"
 		  [attr.data-reference]="true"
 		  >{{node.label}}</a>
-		<ul [hidden]="!node.isOpen" style="LIST-STYLE-TYPE: none;">
+		<ul [hidden]="!node.isOpen" style="list-style-type: none; padding-left: 0;">
 		    <li *ngFor="let entry of node.children" style="white-space: nowrap;">
 		        <tree-view-node
 		            [node]="entry"
