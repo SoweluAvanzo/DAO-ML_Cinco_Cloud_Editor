@@ -244,12 +244,7 @@ class EditorComponent extends Generatable {
 				selected = view;
 			}
 	    }
-	    
-	    void toggleNav() {
-	    	showNav = !showNav;
-	    	window.localStorage['PYRO_EDITOR_SHOW_NAV'] = showNav?'true':'false';
-	    }
-	    
+
 	    void changedMainLayout(layout) {
 			mainLayout = layout;
 			window.localStorage['PYRO_EDITOR_MAIN_LAYOUT'] = layout;
@@ -515,7 +510,6 @@ class EditorComponent extends Generatable {
 		<div class="row" *ngIf="grid != null && mainLayout=='micro'" style="margin-right:0">
 			<div [style.width.px]="selected==null?'39':'265'" style="padding-right: 0;">
 				<div class="row" style="height: 100%">
-					<button id="menu-button" (click)="toggleNav()" class="btn btn-primary" style="width: 36px;height: 32px;margin-left: 34px;margin-top: 0px;"><i class="fas fa-list-ul _ngcontent-hvg-13"></i></button>
 			        <div id="scroll-menu" [style.top.px]="showNav?100:31" >
 			          <ul class="nav nav-tabs left-tabs sideways-tabs" style="margin-top:50px;">
 			        	<ng-container *ngFor="let widgetArea of grid.items; trackBy: trackByWidgetAreaId">
@@ -527,7 +521,7 @@ class EditorComponent extends Generatable {
 					              <a class="nav-link" [class.active]="selected=='check'" title="Show Checks" href (click)="selectView($event,'check')">Check</a>
 					            </li>
 					            <li *ngIf="widget.key=='command_history'" class="nav-item">
-					              <a class="nav-link" [class.active]="selected=='comman-history'" title="Show Command History" href (click)="selectView($event,'comman-history')">History</a>
+					              <a class="nav-link" [class.active]="selected=='command-history'" title="Show Command History" href (click)="selectView($event,'command-history')">History</a>
 					            </li>
 					            <li *ngIf="widget.key=='map'" class="nav-item">
 					              <a class="nav-link" [class.active]="selected=='map'" title="Show Map" href (click)="selectView($event,'map')">Map</a>
@@ -543,7 +537,12 @@ class EditorComponent extends Generatable {
 			        </div>
 		
 			        <div class="pyro-micor-menu" style="height: 100%;padding-left:0;width:210px;border: #57747b 2px solid;" *ngIf="selected!=null">
-			        	<h5 style="margin-top: 7px;margin-bottom:5px;text-align: center;">{{selected}}</h5>
+			        	<h5 style="margin-top: 7px;margin-bottom:5px;text-align: center;">
+			        	  <span *ngIf="selected === 'palette'">Palette</span>
+			        	  <span *ngIf="selected === 'check'">Checks</span>
+			        	  <span *ngIf="selected === 'command-history'">Command history</span>
+			        	  <span *ngIf="selected === 'map'">Map</span>
+                </h5>
 			        		<palette class="d-flex flex-column h-100"
 								*ngIf="selected=='palette' && isGraphModel"
 						        [currentGraphModel]="currentFile"
@@ -555,7 +554,7 @@ class EditorComponent extends Generatable {
 						        [currentGraphModel]="currentFile"
 					        ></check>
 					        <command-history class="d-flex flex-column h-100"
-					        	*ngIf="selected=='comman-history' && isGraphModel"
+					        	*ngIf="selected=='command-history' && isGraphModel"
 						        (reverted)="graphService.canvasComponent.undo()"
 					        ></command-history>
 					        <map class="d-flex flex-column h-100"
@@ -599,7 +598,7 @@ class EditorComponent extends Generatable {
 			</div>
 		</div>
 		
-	    <div class="grid-stack" *ngIf="mainLayout=='classic'&&grid != null">
+	    <div class="grid-stack mt-2" *ngIf="mainLayout=='classic'&&grid != null">
 	    
 	 		<ng-container *ngFor="let widgetArea of grid.items; trackBy: trackByWidgetAreaId">
 		    	<div 

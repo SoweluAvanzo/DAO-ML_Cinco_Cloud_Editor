@@ -81,6 +81,10 @@ pyro-canvas .body-direct-input textarea {
   background: #fff !important;
 }
 
+.grid-stack .nav-tabs .nav-link.active {
+  color: #fff !important;
+}
+
 
 /* Safari */
 @-webkit-keyframes spin {
@@ -91,4 +95,33 @@ pyro-canvas .body-direct-input textarea {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+
+/* overwrites so that the sidebar works as expected in micro mode */
+
+@media (min-width: 26em) and (max-width: 48em) {
+  .left-tabs.sideways-tabs {
+    left: -3.2rem !important;
+    align-content: start !important;
+  }
+
+  .sideways-tabs.left-tabs .nav-item {
+    transform: rotate(-90deg) !important;
+    height: 1rem !important;
+    margin-bottom: calc(8rem - 1rem) !important;
+  }
+}
+
+@media (max-width: 26em) {
+  .left-tabs.sideways-tabs {
+    left: -3.2rem !important;
+    align-content: start !important;
+  }
+
+  .sideways-tabs.left-tabs .nav-item {
+    transform: rotate(-90deg) !important;
+    height: 1rem !important;
+    margin-bottom: calc(8rem - 1rem) !important;
+  }
 }
