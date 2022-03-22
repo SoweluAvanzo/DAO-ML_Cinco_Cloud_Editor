@@ -47,10 +47,6 @@ ENV PYRO_SUBPATH=""
 ENV USE_SSL="false"
 # make readable for root only
 RUN chmod -R 750 /var/run/
-WORKDIR /editor
-COPY ./editor /editor
-RUN useradd -ms /bin/bash theia
-COPY --chown=theia:theia editor /editor
 
 # install node, yarn and other dependencies
 RUN apt update && \
@@ -67,6 +63,11 @@ RUN apt update && \
 RUN apt install -y python && python --version && sleep 10
 # install npm dependencies
 RUN npm install -g node-gyp && npm install -g typescript
+
+WORKDIR /editor
+RUN useradd -ms /bin/bash theia
+COPY --chown=theia:theia ./editor /editor
+
 # build theia-editor
 RUN yarn
 
