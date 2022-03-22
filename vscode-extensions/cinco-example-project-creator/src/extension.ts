@@ -3,7 +3,7 @@ import { createExample } from './example/exampleCreator';
 
 export let workbenchOutput: OutputChannel;
 export let extensionContext: ExtensionContext
-export const commandId = "info.scce.cinco-cloud.example-project.create";
+export const commandId = "info.scce.cinco-cloud.initialize-project";
 export function activate(context: ExtensionContext) {
 	extensionContext = context;
 	workbenchOutput = window.createOutputChannel("Example Project Creator");

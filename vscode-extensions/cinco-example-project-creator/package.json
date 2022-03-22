@@ -21,13 +21,13 @@
 	},
 	"activationEvents": [
 		"*",
-		"onCommand:info.scce.cinco-cloud.example-project.create"
+		"onCommand:info.scce.cinco-cloud.initialize-project"
 	],
 	"main": "./out/extension",
 	"contributes": {
 		"commands": [
 			{
-				"command": "info.scce.cinco-cloud.example-project.create",
+				"command": "info.scce.cinco-cloud.initialize-project",
 				"title": "Create Example",
 				"category": "Cinco Cloud"
 			}
