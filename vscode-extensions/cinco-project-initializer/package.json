@@ -1,6 +1,6 @@
 {
-	"name": "cinco-example-project-creator",
-	"displayName": "Cinco Example Project Creator",
+	"name": "cinco-project-initializer",
+	"displayName": "Cinco Project Initializer",
 	"description": "This extension registeres commands to create a predefined example project into the workspace.",
 	"author": "ls5",
 	"license": "MIT",

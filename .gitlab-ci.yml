@@ -47,10 +47,10 @@ test-build-cinco-extension:
   variables:
     EXTENSION_DIR: cinco-extension
 
-test-build-cinco-example-project-creator-extension:
+test-build-cinco-project-initializer-extension:
   extends: .theia-extension-build-job
   variables:
-    EXTENSION_DIR: cinco-example-project-creator
+    EXTENSION_DIR: cinco-project-initializer
 
 test-build-pyro-client-extension:
   extends: .theia-extension-build-job
@@ -63,7 +63,7 @@ build:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   needs:
     - test-build-cinco-extension
-    - test-build-cinco-example-project-creator-extension
+    - test-build-cinco-project-initializer-extension
     - test-build-pyro-client-extension
   variables:
     CONTEXT: .
