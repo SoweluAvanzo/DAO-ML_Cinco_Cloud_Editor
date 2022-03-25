@@ -1,13 +1,25 @@
-import { commands, ExtensionContext, OutputChannel, window } from 'vscode';
-import { createExample } from './example/exampleCreator';
+import * as vscode from 'vscode';
+import { openProjectInitializationView } from './example/projectInitialization';
 
-export let workbenchOutput: OutputChannel;
-export let extensionContext: ExtensionContext
-export const commandId = "info.scce.cinco-cloud.initialize-project";
-export function activate(context: ExtensionContext) {
-	extensionContext = context;
-	workbenchOutput = window.createOutputChannel("Example Project Creator");
-	// Generator
-    const generateCommand = commands.registerCommand(commandId, (workspaceFsPath: string) => createExample(workspaceFsPath));
-    context.subscriptions.push(generateCommand);
+export let workbenchOutput: vscode.OutputChannel;
+export let extensionContext: vscode.ExtensionContext
+export let currentPanel : vscode.WebviewPanel | null;
+const commandId = "info.scce.cinco-cloud.initialize-project";
+
+export function activate(context: vscode.ExtensionContext) {
+    workbenchOutput =
+        vscode.window.createOutputChannel("Project Initialization");
+    extensionContext = context;
+    currentPanel = null;
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            commandId,
+            (workspaceFsPath: string) =>
+                openProjectInitializationView(
+                    workspaceFsPath,
+                    currentPanel,
+                    panel => { currentPanel = panel; },
+                )
+        )
+    );
 }
