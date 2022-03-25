@@ -31,11 +31,19 @@ export function getWebviewContent() {
 </head>
 <body>
     <form>
-        <button class="type-button" id="create-new-cinco-language-button">
+        <button
+            type="button"
+            class="type-button"
+            id="create-new-cinco-language-button"
+        >
             Create New Cinco Language…
         </button>
         <p class="or">or</p>
-        <button class="type-button" id="initialize-example-project-button">
+        <button
+            type="button"
+            class="type-button"
+            id="initialize-example-project-button"
+        >
             Initialize Example Project
         </button>
     </form>
@@ -46,7 +54,7 @@ export function getWebviewContent() {
             document
                 .getElementById('initialize-example-project-button')
                 .addEventListener('click', () => {
-                    vscode.postMessage(null);
+                    vscode.postMessage({tag:'CreateExample'});
                 });
         })()
     </script>

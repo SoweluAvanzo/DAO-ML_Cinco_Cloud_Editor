@@ -2,6 +2,7 @@ import path = require('path');
 import * as vscode from 'vscode';
 import { workbenchOutput, extensionContext } from '../extension'
 import { copy } from '../helper/toolHelper';
+import { Command } from './common-types';
 import { getWebviewContent } from './webview';
 
 const exampleFolder = "exampleFiles/";
@@ -32,9 +33,16 @@ export async function openProjectInitializationView(
     panel.webview.html = getWebviewContent();
 
     panel.webview.onDidReceiveMessage(
-        _ => {
-            initializeExampleProject(workspaceFsPath);
-            panel.dispose();
+        (message: Command) => {
+            switch (message.tag) {
+                case 'CreateScaffold':
+                    workbenchOutput.appendLine("Create scaffold");
+                    break;
+                case 'CreateExample':
+                    initializeExampleProject(workspaceFsPath);
+                    panel.dispose();
+                    break;
+            }
         }
     )
 
