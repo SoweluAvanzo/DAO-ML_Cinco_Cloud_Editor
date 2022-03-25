@@ -17,7 +17,7 @@ export function getWebviewContent() {
             justify-content: center;
         }
 
-        .type-button {
+        .action-button {
             display: block;
             width: 400px;
             padding: 16px;
@@ -30,32 +30,54 @@ export function getWebviewContent() {
     </style>
 </head>
 <body>
-    <form>
-        <button
-            type="button"
-            class="type-button"
-            id="create-new-cinco-language-button"
-        >
-            Create New Cinco Language…
-        </button>
-        <p class="or">or</p>
-        <button
-            type="button"
-            class="type-button"
-            id="initialize-example-project-button"
-        >
-            Initialize Example Project
-        </button>
-    </form>
     <script>
         (() => {
             const vscode = acquireVsCodeApi();
 
-            document
-                .getElementById('initialize-example-project-button')
-                .addEventListener('click', () => {
-                    vscode.postMessage({tag:'CreateExample'});
-                });
+            const previousState = vscode.getState();
+            let state = previousState ? previousState : {tag:'Initial'}
+
+            renderPage();
+
+            function renderPage() {
+                document.body.innerHTML = '';
+
+                switch (state.tag) {
+                    case 'Initial':
+                        const form = document.createElement('form');
+                        document.body.appendChild(form);
+
+                        const createScaffoldButton =
+                            document.createElement('button');
+                        createScaffoldButton.type = 'button';
+                        createScaffoldButton.className = 'action-button';
+                        createScaffoldButton.innerText =
+                            "Create New Cinco Language…";
+                        form.appendChild(createScaffoldButton);
+
+                        const orLabel = document.createElement('p');
+                        orLabel.className = 'or';
+                        orLabel.innerText = 'or';
+                        form.appendChild(orLabel);
+
+                        const createExampleButton =
+                            document.createElement('button');
+                        createExampleButton.type = 'button';
+                        createExampleButton.className = 'action-button';
+                        createExampleButton.innerText =
+                            "Initialize Example Project";
+                        createExampleButton
+                            .addEventListener('click', () => {
+                                vscode.postMessage({tag:'CreateExample'});
+                            });
+                        form.appendChild(createExampleButton);
+
+                        break;
+                    case 'ScaffoldForm':
+                        const { data } = state;
+                        break;
+                }
+            }
         })()
     </script>
 </body>
