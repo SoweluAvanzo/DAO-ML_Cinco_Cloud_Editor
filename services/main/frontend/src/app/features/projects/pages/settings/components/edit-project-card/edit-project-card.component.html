@@ -16,15 +16,15 @@
         <label>Name</label>
         <input class="form-control" formControlName="name" placeholder="Enter a name for the project" type="text">
       </div>
-      <div>
+      <div class="mb-3">
         <label>Description</label>
         <textarea class="form-control" formControlName="description" placeholder="Enter a description for the project"
                   rows="3"></textarea>
       </div>
-    </div>
-    <div class="logo-div">
-      <label class="mb-1">Logo</label>
-      <cc-file-input #input (selectFile)="handleFileSelect($event)" (clear)="handleClear()"></cc-file-input>
+      <div>
+        <label class="mb-1">Logo</label>
+        <cc-file-input #input (selectFile)="handleFileSelect($event)" (clear)="handleClear()"></cc-file-input>
+      </div>
     </div>
     <div class="card-footer text-end">
       <button class="btn btn-sm btn-primary">Save</button>
