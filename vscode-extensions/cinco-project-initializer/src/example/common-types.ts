@@ -20,7 +20,7 @@ interface ScaffoldForm {
     data: ScaffoldData
 }
 
-interface ScaffoldData {
+export interface ScaffoldData {
     modelName: string
     packageName: string
 }

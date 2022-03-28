@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { workbenchOutput, extensionContext } from '../extension'
 import { copy } from '../helper/toolHelper';
 import { Command } from './common-types';
+import { initializeScaffold } from './scaffold';
 import { getWebviewContent } from './webview';
 
 const exampleFolder = "exampleFiles/";
@@ -36,7 +37,8 @@ export async function openProjectInitializationView(
         (message: Command) => {
             switch (message.tag) {
                 case 'CreateScaffold':
-                    workbenchOutput.appendLine(JSON.stringify(message.data));
+                    initializeScaffold(workspaceFsPath, message.data);
+                    panel.dispose();
                     break;
                 case 'CreateExample':
                     initializeExampleProject(workspaceFsPath);
@@ -53,14 +55,9 @@ export async function openProjectInitializationView(
     );
 }
 
-function initializeExampleProject(workspaceFsPath: string) {
+function initializeExampleProject(workspaceFsPath: string): void {
     const pathToExampleFiles = extensionContext.asAbsolutePath(path.join(exampleFolder));
     workbenchOutput.appendLine("Creating example project to: "+workspaceFsPath);
-    try {
-        workspaceFsPath = vscode.Uri.parse(workspaceFsPath).fsPath;
-    } catch(e) {
-        workbenchOutput.appendLine("can't use vscode.Uri. It is probably not implemented correctly...");    
-    }
     workbenchOutput.appendLine("CopyAll Files from: "+pathToExampleFiles+"\nto: "+workspaceFsPath);
     copy(pathToExampleFiles, workspaceFsPath, true).then(() => {
         workbenchOutput.appendLine("Example project successfully created.");
