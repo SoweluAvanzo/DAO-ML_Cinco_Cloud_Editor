@@ -4,28 +4,42 @@
     class="list-group-item list-group-item-action d-flex flex-column-reverse flex-md-row"
     [routerLink]="['/app', 'projects', project.id]"
   >
-    <div class="flex-grow-1">
-      <div>
-        <strong>{{project.name}}</strong>
+    <div class="flex-grow-1 d-flex">
+      <div class="me-3">
+        <div
+          *ngIf="project.logo == null; else logo"
+          class="logo d-flex justify-content-center align-items-center rounded-2"
+        >
+          <fa-icon [icon]="['fas', 'image']"></fa-icon>
+        </div>
+        <ng-template #logo>
+          <div [style]="getProjectBackgroundImageStyle(project)" class="logo rounded-2"></div>
+        </ng-template>
       </div>
-      <div *ngIf="project.description !== ''" class="text-muted">
-        <em>
-          <small>{{project.description}}</small>
-        </em>
+      <div class="flex-grow-1">
+        <div>
+          <strong>{{project.name}}</strong>
+        </div>
+        <div *ngIf="project.description !== ''" class="text-muted">
+          <em>
+            <small>{{project.description}}</small>
+          </em>
+        </div>
       </div>
-    </div>
-    <div class="d-flex align-items-center justify-content-end align-items-md-start">
-      <div>
+      <div class="d-flex align-items-center justify-content-end align-items-md-start">
+        <div>
         <span class="project-type-badge badge" *ngIf="project.template != null">
           <fa-icon [icon]="['fas', 'project-diagram']" class="me-1"></fa-icon>Model Editor
         </span>
-        <span class="project-type-badge badge" *ngIf="project.template == null">
+          <span class="project-type-badge badge" *ngIf="project.template == null">
           <fa-icon [icon]="['fas', 'code']" class="me-1"></fa-icon>Language Editor
         </span>
-      </div>
-      <div class="owner-column ms-1" *ngIf="isUserOwnerOfProject(project)">
-        <span class="badge bg-secondary">Owner</span>
+        </div>
+        <div class="owner-column ms-1" *ngIf="isUserOwnerOfProject(project)">
+          <span class="badge bg-secondary">Owner</span>
+        </div>
       </div>
     </div>
+
   </a>
 </div>

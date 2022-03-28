@@ -34,7 +34,7 @@ export class WorkspaceImageBuildJobApiService extends BaseApiService {
   }
 
   public abort(projectId: number, job: WorkspaceImageBuildJob): Observable<WorkspaceImageBuildJob> {
-    return this.http.post(`${this.apiUrl}/projects/${projectId}/build-jobs/${job.id}/abort/private`, '', this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/projects/${projectId}/build-jobs/${job.id}/abort/private`, null, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }

@@ -1,0 +1,19 @@
+.logo {
+  > div {
+    cursor: pointer;
+    background: rgba(0,0,0,0.7);
+    opacity: 0;
+    transition: opacity .2s ease-in-out;
+    color: #fff;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+  }
+
+  &:hover > div {
+    opacity: 1;
+  }
+}
