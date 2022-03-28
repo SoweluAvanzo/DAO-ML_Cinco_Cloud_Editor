@@ -21,5 +21,6 @@ interface ScaffoldForm {
 }
 
 interface ScaffoldData {
-
+    modelName: string
+    packageName: string
 }

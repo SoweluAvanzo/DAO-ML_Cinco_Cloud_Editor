@@ -36,7 +36,7 @@ export async function openProjectInitializationView(
         (message: Command) => {
             switch (message.tag) {
                 case 'CreateScaffold':
-                    workbenchOutput.appendLine("Create scaffold");
+                    workbenchOutput.appendLine(JSON.stringify(message.data));
                     break;
                 case 'CreateExample':
                     initializeExampleProject(workspaceFsPath);
