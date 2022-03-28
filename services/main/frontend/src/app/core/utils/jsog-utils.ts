@@ -45,6 +45,7 @@ const objectReferenceMap: any = {
     fields: {
       members: User,
       owner: User,
+      logo: FileReference,
       organization: Organization,
       image: WorkspaceImage,
       template: WorkspaceImage,
@@ -76,6 +77,13 @@ const objectReferenceMap: any = {
   }
 };
 
+export class JsogSerializationError extends Error {
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 function isDateField(field: any): boolean {
   const type: string = field.constructor.name;
   if (type === 'Date') return true;
@@ -95,6 +103,9 @@ function isArrayField(field: any): boolean {
 
 function fromJsogInternal<T>(obj: any, cls: any, cache: any): T {
   // create a new empty class instance for the target type
+  if (objectReferenceMap[cls.name] == null) {
+    throw new JsogSerializationError(`class ${cls.name} not found in serialization map`);
+  }
   const target = new objectReferenceMap[cls.name].cls();
 
   // create a cache entry for the target object based
@@ -123,6 +134,9 @@ function fromJsogInternal<T>(obj: any, cls: any, cache: any): T {
           target[prop] = propValue;
         } else {
           const type = objectReferenceMap[cls.name].fields[prop];
+          if (type == null) {
+            throw new JsogSerializationError(`field ${prop} is not defined for class ${cls.name}`);
+          }
           target[prop] = propValue.map((o: any) => {
             const ref = o['@ref'];
             return ref != null
@@ -133,9 +147,15 @@ function fromJsogInternal<T>(obj: any, cls: any, cache: any): T {
       }
     } else {
       const ref = propValue['@ref'];
-      target[prop] = ref != null
-        ? cache[ref]
-        : fromJsogInternal(propValue, objectReferenceMap[cls.name].fields[prop], cache);
+      if (ref != null) {
+        target[prop] = cache[ref];
+      } else {
+        const type = objectReferenceMap[cls.name].fields[prop];
+        if (type == null) {
+          throw new JsogSerializationError(`field ${prop} is not defined for class ${cls.name}`);
+        }
+        target[prop] = fromJsogInternal(propValue, type, cache);
+      }
     }
   }
   return target as T;

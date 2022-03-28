@@ -22,6 +22,7 @@ public class ProjectTO extends RESTBaseImpl {
   private String description;
   private List<UserTO> members = new ArrayList<>();
   private List<GraphModelTypeTO> graphModelTypes = new ArrayList<>();
+  private FileReferenceTO logo;
 
   public static ProjectTO fromEntity(final ProjectDB entity, final ObjectCache objectCache) {
 
@@ -63,6 +64,10 @@ public class ProjectTO extends RESTBaseImpl {
       result.setgraphModelTypes(entity.graphModelTypes.stream()
           .map(g -> GraphModelTypeTO.fromEntity(g, objectCache))
           .collect(Collectors.toList()));
+    }
+
+    if (entity.logo != null){
+      result.setLogo(new FileReferenceTO(entity.logo));
     }
 
     return result;
@@ -156,5 +161,15 @@ public class ProjectTO extends RESTBaseImpl {
   @JsonProperty("graphModelTypes")
   public void setgraphModelTypes(List<GraphModelTypeTO> graphModelTypes) {
     this.graphModelTypes = graphModelTypes;
+  }
+
+  @JsonProperty("logo")
+  public FileReferenceTO getLogo() {
+    return this.logo;
+  }
+
+  @JsonProperty("logo")
+  public void setLogo(final FileReferenceTO logo) {
+    this.logo = logo;
   }
 }

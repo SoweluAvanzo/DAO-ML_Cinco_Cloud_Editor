@@ -34,6 +34,9 @@ public class ProjectDB extends PanacheEntity {
   public String name;
   public String description;
 
+  @OneToOne(cascade = CascadeType.ALL)
+  public BaseFileDB logo;
+
   /**
    * If != null, the project is considered deleted.
    */

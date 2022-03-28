@@ -26,4 +26,10 @@ export class ProjectListComponent {
   isUserOwnerOfProject(project: Project) {
     return this.currentUser != null && project.owner != null && project.owner.id === this.currentUser.id;
   }
+
+  getProjectBackgroundImageStyle(project: Project): string {
+    return project.logo != null
+      ? `background-image: url(${project.logo.downloadPath}); background-size: cover`
+      : '';
+  }
 }

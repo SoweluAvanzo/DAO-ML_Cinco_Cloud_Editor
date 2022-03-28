@@ -130,6 +130,12 @@ public class ProjectController {
       project.description = ownedProject.getdescription();
       project.name = ownedProject.getname();
 
+      if (ownedProject.getLogo() != null) {
+        project.logo = BaseFileDB.findById(ownedProject.getLogo().getId());
+      } else {
+        project.logo = null;
+      }
+
       project.persist();
       return Response.ok(ProjectTO.fromEntity(project, objectCache)).build();
     }

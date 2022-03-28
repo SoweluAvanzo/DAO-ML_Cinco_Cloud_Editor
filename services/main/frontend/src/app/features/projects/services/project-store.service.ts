@@ -55,6 +55,7 @@ export class ProjectStoreService {
     const copy: Project = fromJsog(toJsog(this.project.value), Project);
     copy.name = input.name;
     copy.description = input.description;
+    copy.logo = input.logo;
     this.projectApi.update(copy).subscribe({
       next: updatedProject => {
         this.toastService.show({
@@ -66,7 +67,7 @@ export class ProjectStoreService {
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `The project could not be updated. ${res.data.message}`
+          message: `The project could not be updated. ${res.data?.message}`
         });
       }
     });

@@ -4,11 +4,13 @@ import { User } from './user';
 import { WorkspaceImage } from './workspace-image';
 import { ProjectType } from '../enums/project-type';
 import { GraphModelType } from './graph-model-type';
+import { FileReference } from './file-reference';
 
 export class Project extends BaseEntity {
   type: ProjectType;
   name: string;
   description: string;
+  logo: FileReference;
   owner: User;
   members: User[] = [];
   organization: Organization;
