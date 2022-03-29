@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { createWriteToFile } from '../helper/toolHelper';
+import * as fs from 'fs';
 import { ScaffoldData } from "./common-types";
 
 export function initializeScaffold(
@@ -7,19 +7,17 @@ export function initializeScaffold(
     data: ScaffoldData,
 ): void {
     const modelDirectory = path.join(workspaceFsPath, 'model');
-    createWriteToFile(
-        modelDirectory,
-        `${data.modelName}.cpd`,
+    fs.mkdirSync(modelDirectory, {recursive: true});
+    fs.writeFileSync(
+        path.join(modelDirectory, `${data.modelName}.cpd`),
         generateCPD(data.modelName),
     );
-    createWriteToFile(
-        modelDirectory,
-        `${data.modelName}.mgl`,
+    fs.writeFileSync(
+        path.join(modelDirectory, `${data.modelName}.mgl`),
         generateMGL(data),
     );
-    createWriteToFile(
-        modelDirectory,
-        `${data.modelName}.style`,
+    fs.writeFileSync(
+        path.join(modelDirectory, `${data.modelName}.style`),
         generateStyle(),
     );
 }
