@@ -1,19 +1,11 @@
 {
-	"compilerOptions": {
-		"lib": ["ES2019"],
-		"moduleResolution": "node",
-		"module": "commonjs",
-		"outDir": "out",
-		"rootDir": "src",
-		"sourceMap": true,
-		"strict": true,
-		"target": "es2019"
-	},
-	"include": [
-		"src"
-	],
-	"exclude": [
-		"node_modules",
-		".vscode-test"
-	]
+  "files": [],
+  "references": [
+  {
+    "path": "./extension"
+  },
+  {
+    "path": "./webview"
+  }
+ ]
 }

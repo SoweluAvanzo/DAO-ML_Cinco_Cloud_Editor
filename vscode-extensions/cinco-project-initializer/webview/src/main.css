@@ -1,0 +1,95 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wizard-form {
+    width: 100%;
+    max-width: 500px;
+}
+
+.action-button {
+    display: block;
+    width: 100%;
+    padding: 16px;
+}
+
+.form-title {
+    font-size: 20px;
+}
+
+.button-box {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+}
+
+.button {
+    border: none;
+    cursor: pointer;
+}
+
+.regular-button {
+    padding: 4px 9px;
+}
+
+.primary-button {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.primary-button:hover {
+    background: var(--vscode-button-hoverBackground);
+}
+
+.secondary-button {
+    background: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+}
+
+.secondary-button:hover {
+    background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.text-input-label {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.text-input-legend {
+    width: 150px;
+}
+
+.form-input {
+    flex: 1;
+}
+
+input[type="text"] {
+    padding: 2px 4px;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: var(--vscode-input-border);
+}
+
+input[type="text"]:focus {
+    background: var(--vscode-inputOption-activeBackground);
+    color: var(--vscode-inputOption-activeForeground);
+    border: var(--vscode-inputOption-activeBorder);
+}
+
+input[type="text"]::placeholder {
+    color: var(--vscode-input-placeholderForeground);
+}
+
+.or {
+    text-align: center;
+    margin: 12px 0;
+}

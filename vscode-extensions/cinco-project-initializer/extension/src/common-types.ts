@@ -9,17 +9,6 @@ interface CreateExample {
     tag: "CreateExample"
 }
 
-export type WebviewState = Initial | ScaffoldForm
-
-interface Initial {
-    tag: "Initial"
-}
-
-interface ScaffoldForm {
-    tag: "ScaffoldForm"
-    data: ScaffoldData
-}
-
 export interface ScaffoldData {
     modelName: string
     packageName: string

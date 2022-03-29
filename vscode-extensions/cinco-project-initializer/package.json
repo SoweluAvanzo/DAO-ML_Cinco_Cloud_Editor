@@ -23,7 +23,7 @@
 		"*",
 		"onCommand:info.scce.cinco-cloud.initialize-project"
 	],
-	"main": "./out/extension",
+	"main": "./extension/out/extension",
 	"contributes": {
 		"commands": [
 			{
@@ -36,8 +36,8 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"postinstall": "npm run compile && vsce package",
-		"compile": "tsc -b",
-		"watch": "tsc -b -w"
+		"compile": "tsc --build",
+		"watch": "tsc --build --watch"
 	},
 	"devDependencies": {
 		"@types/mocha": "^8.0.3",

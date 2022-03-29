@@ -1,0 +1,16 @@
+{
+    "extends": "../tsconfig.package-base.json",
+	"compilerOptions": {
+		"lib": ["ES2019"],
+		"moduleResolution": "node",
+		"module": "commonjs",
+		"rootDir": "src",
+		"outDir": "out",
+		"sourceMap": true,
+		"strict": true,
+		"target": "es2019"
+	},
+	"include": [
+		"src"
+	]
+}

@@ -1,10 +1,10 @@
 import path = require('path');
 import * as vscode from 'vscode';
-import { workbenchOutput, extensionContext } from '../extension'
-import { copy } from '../helper/toolHelper';
+import { workbenchOutput, extensionContext } from './extension'
+import { copy } from './helper/toolHelper';
 import { Command } from './common-types';
 import { initializeScaffold } from './scaffold';
-import { getWebviewContent } from './webview';
+import { getWebviewContent } from './webview-template';
 
 const exampleFolder = "exampleFiles/";
 
@@ -31,7 +31,24 @@ export async function openProjectInitializationView(
 
     setCurrentPanel(panel);
 
-    panel.webview.html = getWebviewContent();
+    panel.webview.html = getWebviewContent(
+        panel.webview.asWebviewUri(
+            vscode.Uri.file(
+                path.join(
+                    extensionContext.extensionPath,
+                    'webview', 'src', 'main.css'
+                )
+            )
+        ),
+        panel.webview.asWebviewUri(
+            vscode.Uri.file(
+                path.join(
+                    extensionContext.extensionPath,
+                    'webview', 'out', 'main.js'
+                )
+            )
+        ),
+    );
 
     panel.webview.onDidReceiveMessage(
         (message: Command) => {

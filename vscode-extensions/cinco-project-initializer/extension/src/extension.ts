@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { openProjectInitializationView } from './example/projectInitialization';
+import { openProjectInitializationView } from './projectInitialization';
 
 export let workbenchOutput: vscode.OutputChannel;
 export let extensionContext: vscode.ExtensionContext

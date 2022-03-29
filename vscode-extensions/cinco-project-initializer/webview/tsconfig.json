@@ -1,0 +1,19 @@
+{
+    "extends": "../tsconfig.package-base.json",
+	"compilerOptions": {
+		"lib": ["ES6", "DOM"],
+		"moduleResolution": "node",
+		"module": "ES6",
+        "rootDir": "src",
+		"outDir": "out",
+		"sourceMap": true,
+		"strict": true,
+		"target": "ES6",
+	},
+	"include": [
+		"src"
+	],
+    "references": [
+        {"path": "../extension"}
+    ]
+}
