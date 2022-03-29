@@ -15,13 +15,7 @@ export class CommandRegistrationContribution implements CommandContribution {
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(initializeProjectCommand, {
             execute: () => {
-                // deduce rootURI
-                const rootURI = this.workspaceService.getWorkspaceRootUri(undefined);
-                if (!rootURI) {
-                    alert('No workspace present.');
-                    return;
-                }
-                commands.executeCommand(initializeProjectCommand.triggers, rootURI.path.toString()).catch(() => {
+                commands.executeCommand(initializeProjectCommand.triggers).catch(() => {
                     alert('Openening project initialization dialog failed!');
                 });
             }

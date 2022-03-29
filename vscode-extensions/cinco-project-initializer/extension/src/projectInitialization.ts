@@ -5,15 +5,22 @@ import { copy } from './helper/toolHelper';
 import { Command } from './common-types';
 import { initializeScaffold } from './scaffold';
 import { getWebviewContent } from './webview-template';
+import { getWorkspaceFsPath } from './workspace';
 
 const exampleFolder = "exampleFiles/";
 
 export async function openProjectInitializationView(
-    workspaceFsPath: string,
     currentPanel: vscode.WebviewPanel | null,
     setCurrentPanel: (panel: vscode.WebviewPanel | null) => void,
 ) {
-    workbenchOutput.appendLine(workspaceFsPath);
+    const workspaceFsPath = getWorkspaceFsPath();
+
+    if (workspaceFsPath === null) {
+        workbenchOutput.appendLine(
+            'No workspace loaded, not showing initialization page'
+        );
+        return;
+    }
 
     if (currentPanel != null) {
         currentPanel.reveal();
