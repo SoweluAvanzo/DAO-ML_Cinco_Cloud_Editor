@@ -33,12 +33,18 @@ export async function openProjectInitializationView(
         vscode.ViewColumn.Active,
         {
             enableScripts: true,
+            localResourceRoots: [
+                vscode.Uri.file(
+                    path.join(extensionContext.extensionPath, 'webview')
+                ),
+            ],
         },
     );
 
     setCurrentPanel(panel);
 
     panel.webview.html = getWebviewContent(
+        panel.webview,
         panel.webview.asWebviewUri(
             vscode.Uri.file(
                 path.join(
