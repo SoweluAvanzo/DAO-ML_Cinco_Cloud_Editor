@@ -1,4 +1,4 @@
-import { Command, ScaffoldData } from "extension/src/common-types";
+import { Command, ScaffoldData } from "extension/src/common-types"
 
 declare function acquireVsCodeApi(): VsCodeApi
 
@@ -17,6 +17,12 @@ interface Initial {
 interface ScaffoldForm {
     tag: "ScaffoldForm"
     data: ScaffoldData
+    validation: ScaffoldFormValidation
+}
+
+interface ScaffoldFormValidation {
+    modelNameValid: boolean
+    packageNameValid: boolean
 }
 
 const vscode = acquireVsCodeApi();
@@ -48,6 +54,10 @@ function renderPage() {
                         modelName: 'SomeGraph',
                         packageName: 'info.scce.cinco.product.somegraph',
                     },
+                    validation: {
+                        modelNameValid: true,
+                        packageNameValid: true,
+                    }
                 };
                 renderPage();
                 vscode.setState(state);
@@ -73,7 +83,7 @@ function renderPage() {
             break;
         }
         case 'ScaffoldForm': {
-            const { data } = state;
+            const { data, validation } = state;
 
             const form = document.createElement('form');
             form.className = 'wizard-form';
@@ -93,15 +103,31 @@ function renderPage() {
             modelNameLegend.innerText = 'Model Name';
             modelNameLabel.appendChild(modelNameLegend);
 
+            const modelNameInputBox = document.createElement('div');
+            modelNameInputBox.className = 'form-input-box';
+            modelNameLabel.appendChild(modelNameInputBox);
+
             const modelNameInput = document.createElement('input');
             modelNameInput.type = 'text';
-            modelNameInput.className = 'form-input';
             modelNameInput.value = data.modelName;
             modelNameInput.addEventListener('input', (event: any) => {
                 data.modelName = event.target.value;
+                validation.modelNameValid = isValidIdentifier(data.modelName);
+                modelNameValidationDisplay.style.display =
+                    validation.modelNameValid ? 'none' : 'block';
+                modelNameInput.classList
+                    .toggle('error', !validation.modelNameValid);
+                updateSubmitButtonEnabledState();
                 vscode.setState(state);
             });
-            modelNameLabel.appendChild(modelNameInput);
+            modelNameInputBox.appendChild(modelNameInput);
+
+            const modelNameValidationDisplay = document.createElement('p');
+            modelNameValidationDisplay.className = 'validation-display';
+            modelNameValidationDisplay.innerText =
+                'Not a valid Java identifier.';
+            modelNameValidationDisplay.style.display = 'none';
+            modelNameInputBox.appendChild(modelNameValidationDisplay);
 
             const packageNameLabel = document.createElement('label');
             packageNameLabel.className = 'text-input-label';
@@ -112,15 +138,32 @@ function renderPage() {
             packageNameLegend.innerText = 'Package Name';
             packageNameLabel.appendChild(packageNameLegend);
 
+            const packageNameInputBox = document.createElement('div');
+            packageNameInputBox.className = 'form-input-box';
+            packageNameLabel.appendChild(packageNameInputBox);
+
             const packageNameInput = document.createElement('input');
             packageNameInput.type = 'text';
-            packageNameInput.className = 'form-input';
             packageNameInput.value = data.packageName;
             packageNameInput.addEventListener('input', (event: any) => {
                 data.packageName = event.target.value;
+                validation.packageNameValid =
+                    isValidPackageIdentifier(data.packageName);
+                packageNameValidationDisplay.style.display =
+                    validation.packageNameValid ? 'none' : 'block';
+                packageNameInput.classList
+                    .toggle('error', !validation.packageNameValid);
+                updateSubmitButtonEnabledState();
                 vscode.setState(state);
             });
-            packageNameLabel.appendChild(packageNameInput);
+            packageNameInputBox.appendChild(packageNameInput);
+
+            const packageNameValidationDisplay = document.createElement('p');
+            packageNameValidationDisplay.className = 'validation-display';
+            packageNameValidationDisplay.innerText =
+                'Not a valid Java package identifier.';
+            packageNameValidationDisplay.style.display = 'none';
+            packageNameInputBox.appendChild(packageNameValidationDisplay);
 
             const buttonBox = document.createElement('div');
             buttonBox.className = 'button-box';
@@ -150,7 +193,43 @@ function renderPage() {
             });
             buttonBox.appendChild(initializeProjectButton);
 
+            function updateSubmitButtonEnabledState() {
+                initializeProjectButton.disabled =
+                    !validation.modelNameValid || !validation.packageNameValid;
+            }
+
             break;
         }
     }
+}
+
+// Java identifiers specification:
+// https://docs.oracle.com/javase/specs/jls/se18/html/jls-3.html#jls-3.8
+
+const keywords = [
+    '_', 'abstract', 'assert', 'boolean', 'break', 'byte', 'case', 'catch',
+    'char', 'class', 'const', 'continue', 'default', 'do', 'double', 'else',
+    'enum', 'exports', 'extends', 'final', 'finally', 'float', 'for', 'goto',
+    'if', 'implements', 'import', 'instanceof', 'int', 'interface', 'long',
+    'module', 'native', 'new', 'non-sealed', 'open', 'opens', 'package',
+    'permits', 'private', 'protected', 'provides', 'public', 'record',
+    'requires', 'return', 'sealed', 'short', 'static', 'strictfp', 'super',
+    'switch', 'synchronized', 'this', 'throw', 'throws', 'to', 'transient',
+    'transitive', 'try', 'uses', 'var', 'void', 'volatile', 'while', 'with',
+    'yield',
+];
+
+const literals = ['true', 'false', 'null'];
+
+export function isValidIdentifier(input: string): boolean {
+    return /^[a-zA-Z_$][a-zA-Z_$0-9]*$/.test(input)
+        && !keywords.includes(input)
+        && !literals.includes(input);
+}
+
+// Java package identifier specification:
+// https://docs.oracle.com/javase/specs/jls/se18/html/jls-7.html#jls-7.4.1
+
+export function isValidPackageIdentifier(input: string): boolean {
+    return input.split('.').every(isValidIdentifier);
 }
