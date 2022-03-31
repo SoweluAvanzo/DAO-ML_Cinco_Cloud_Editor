@@ -57,7 +57,7 @@ export async function openProjectInitializationView(
             vscode.Uri.file(
                 path.join(
                     extensionContext.extensionPath,
-                    'webview', 'out', 'main.js'
+                    'webview', 'out', 'bundle.js'
                 )
             )
         ),
