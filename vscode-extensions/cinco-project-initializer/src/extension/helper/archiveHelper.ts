@@ -1,6 +1,6 @@
-import path = require('path');
-import { workbenchOutput } from '../extension';
-import { getFileExtension, getFileName, createFolder, remove } from './toolHelper';
+import * as path from 'path'
+import { workbenchOutput } from '../main'
+import { getFileExtension, getFileName, createFolder, remove } from './toolHelper'
 
 const pre = "[extracting] "
 

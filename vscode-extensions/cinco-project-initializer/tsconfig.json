@@ -2,10 +2,10 @@
   "files": [],
   "references": [
   {
-    "path": "./extension"
+    "path": "./src/extension"
   },
   {
-    "path": "./webview"
+    "path": "./src/webview"
   }
  ]
 }

@@ -1,5 +1,5 @@
-import { Command, ScaffoldData } from "extension/src/common-types"
-import * as java from './java'
+import { Command, ScaffoldData } from "../common/model"
+import * as java from '../common/java'
 
 declare function acquireVsCodeApi(): VsCodeApi
 

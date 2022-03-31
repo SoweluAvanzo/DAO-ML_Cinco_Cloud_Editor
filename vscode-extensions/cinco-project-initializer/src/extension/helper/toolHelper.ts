@@ -1,7 +1,6 @@
-
-import path = require('path');
-import { workbenchOutput } from '../extension';
-import * as fs from 'fs';
+import * as path from 'path'
+import { workbenchOutput } from '../main'
+import * as fs from 'fs'
 
 export function execShellCommand(cmd: string, args: string[], workingDirectory?: string, onOut?: (process: any, response: string) => void, onEnd?: (process: any, response: string) => void) : Promise<any> {
     const childProcess = require('child_process');

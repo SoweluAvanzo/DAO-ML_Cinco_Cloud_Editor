@@ -1,0 +1,10 @@
+{
+    "extends": "../../tsconfig.package-base.json",
+	"compilerOptions": {
+		"lib": ["ES6"],
+        "target": "ES6"
+	},
+	"include": [
+		"."
+	]
+}

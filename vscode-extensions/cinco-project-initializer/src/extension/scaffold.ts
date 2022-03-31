@@ -1,11 +1,24 @@
 import * as path from 'path'
 import * as fs from 'fs';
-import { ScaffoldData } from "./common-types";
+import * as java from '../common/java'
+import { ScaffoldData } from "../common/model";
+import { workbenchOutput } from './main'
 
 export function initializeScaffold(
     workspaceFsPath: string,
     data: ScaffoldData,
 ): void {
+    const dataValid =
+        java.isValidIdentifier(data.modelName) &&
+        java.isValidPackageIdentifier(data.packageName);
+
+    if (!dataValid) {
+        workbenchOutput.appendLine(
+            'Data received from webview is invalid, not scaffolding.'
+        )
+        return;
+    }
+
     const modelDirectory = path.join(workspaceFsPath, 'model');
     fs.mkdirSync(modelDirectory, {recursive: true});
     fs.writeFileSync(

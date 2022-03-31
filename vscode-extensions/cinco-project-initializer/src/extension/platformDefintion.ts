@@ -1,7 +1,6 @@
-
-import path = require("path");
-import { workbenchOutput } from './extension';
-import { execShellCommand, whichExecShellCommand } from './helper/toolHelper';
+import * as path from 'path'
+import { workbenchOutput } from './main'
+import { execShellCommand, whichExecShellCommand } from './helper/toolHelper'
 
 const windowsLink: string = 'win32-x64-archive';
 const linuxLink: string = 'linux-x64';

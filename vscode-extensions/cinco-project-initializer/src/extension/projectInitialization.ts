@@ -1,11 +1,11 @@
-import path = require('path');
-import * as vscode from 'vscode';
-import { workbenchOutput, extensionContext } from './extension'
-import { copy } from './helper/toolHelper';
-import { Command } from './common-types';
-import { initializeScaffold } from './scaffold';
-import { getWebviewContent } from './webview-template';
-import { getWorkspaceFsPath } from './workspace';
+import * as path from 'path'
+import * as vscode from 'vscode'
+import { workbenchOutput, extensionContext } from './main'
+import { copy } from './helper/toolHelper'
+import { Command } from '../common/model'
+import { initializeScaffold } from './scaffold'
+import { getWebviewContent } from './webview-template'
+import { getWorkspaceFsPath } from './workspace'
 
 const exampleFolder = "exampleFiles/";
 
@@ -34,9 +34,7 @@ export async function openProjectInitializationView(
         {
             enableScripts: true,
             localResourceRoots: [
-                vscode.Uri.file(
-                    path.join(extensionContext.extensionPath, 'webview')
-                ),
+                vscode.Uri.file(extensionContext.extensionPath),
             ],
         },
     );
@@ -49,7 +47,7 @@ export async function openProjectInitializationView(
             vscode.Uri.file(
                 path.join(
                     extensionContext.extensionPath,
-                    'webview', 'src', 'main.css'
+                    'src', 'webview', 'main.css'
                 )
             )
         ),
@@ -57,7 +55,7 @@ export async function openProjectInitializationView(
             vscode.Uri.file(
                 path.join(
                     extensionContext.extensionPath,
-                    'webview', 'out', 'bundle.js'
+                    'out', 'webview', 'bundle.js'
                 )
             )
         ),
