@@ -751,7 +751,7 @@ class Controller extends Generatable{
 			«{
 				val styleForNode = node.styling(styles) as NodeStyle
 				'''
-				if(cell.model.attributes.type==='«node.typeName»') {
+				if(cell.model.attributes.type==='«node.typeName»') {				
 					«styleForNode.updateStyleArgs(g.modelPackage as MGLModel)»
 				}
 				'''
@@ -1544,7 +1544,7 @@ class Controller extends Generatable{
 	def updateStyleArgs(NodeStyle ns,MGLModel g)
 	'''
 		«FOR textShape:new Shapes(gc).collectSelectorTags(ns.mainShape,"x",0).entrySet.filter[n|new Shapes(gc).getIsTextual(n.key)]»
-			cell.model.attr('«textShape.value»/text',"«textShape.key.value.parsePlaceholder»");
+			cell.model.attr('«textShape.value»/text',  vsprintf("«textShape.key.value»", styleArgs) );
 	    «ENDFOR»
 	'''
 	
@@ -1726,6 +1726,7 @@ class Controller extends Generatable{
 	}
 	
 	def parseIndexedPlaceholder(String s) {
+		//String::format(s, ) 
 		var result = ""
 		//%1$s
 		var m = Pattern.compile("%\\d+\\$s").matcher(s);
