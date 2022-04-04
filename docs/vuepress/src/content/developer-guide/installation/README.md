@@ -1,6 +1,6 @@
 # Installation
 
-On this page, you find a guide on how to run CincoCloud locally for development purposes on Linux, Windows and MacOS.
+On this page, you find a guide on how to run CincoCloud locally for development purposes on Linux, Windows and macOS.
 
 
 ## Preparations
@@ -22,7 +22,7 @@ Install the following software:
 
 Activate `hyper-v` in Windows. It will be used instead of docker. Also, you need atleast `60GB` of disk-storage and administrator-rights. Almost all commands need to be run with high privileges, because of the `hyper-v`-context.
 
-**On MacOS (additionally)**
+**On macOS (additionally)**
 
 Since the default Docker driver for minikube currently does not support Ingress very well, we need to install an additional driver.
 We tested it with `hyperkit` and `vmware` drivers.
@@ -50,7 +50,7 @@ Install one of them.
     * Start the cluster with the hyperv driver:<br>
     `minikube start --cpus 4 --memory 8192 --driver=hyperv --disk-size 60000mb`
 
-    **On MacOS**
+    **On macOS**
 
     * Start the cluster with the one of the drivers from the table above:<br>
     `minikube start --cpus 4 --memory 8192 --driver=hyperkit --disk-size 60000mb`
@@ -68,7 +68,7 @@ Install one of them.
     1. Execute `minikube ip` to retrieve the IP address of the cluster
     2. Add an entry `<IP> cinco-cloud` to the hosts file:
         * **Windows**: `C:\Windows\System32\drivers\etc\hosts`
-        * **Linux and MacOS**: `/etc/hosts`
+        * **Linux and macOS**: `/etc/hosts`
 
 
 ### 3. Get the Sources
@@ -118,8 +118,7 @@ Install one of them.
 2. In the root of the repository directory, execute `skaffold dev -p local-dev` and wait for all pods to be deployed.
    All pods listed by `kubectl get pods` should have the status `running`.
    Thanks to skaffold, you can now change the code and skaffold automatically rebuilds and redeploys new images with the changes.
-3. Open `http://cinco-cloud/frontend` in a Web browser.
-   **Please, either use *Chrome* or *Firefox*, as it seems that there is a bug with *Safari* where some resources cannot be loaded properly.**
+3. Open `http://cinco-cloud/frontend` in a web browser.
 
 ## Skaffold development profiles
 
@@ -142,7 +141,7 @@ If you want to simulate a production build on your local machine use 2 or 3.
 
 2. Execute `skaffold dev -p local-prod-ssl`.
 
-3. Open `https://cinco-cloud` in a Web browser.
+3. Open `https://cinco-cloud/frontend` in a web browser.
 
 
 [helm]: https://helm.sh/
