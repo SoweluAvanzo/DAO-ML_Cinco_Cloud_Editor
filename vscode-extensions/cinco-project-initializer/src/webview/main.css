@@ -10,9 +10,25 @@ body {
     justify-content: center;
 }
 
-.wizard-form {
+.page {
     width: 100%;
     max-width: 500px;
+}
+
+.error-box {
+    margin-bottom: 20px;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--vscode-errorBackground);
+}
+
+.error-display {
+    margin: 12px;
+    color: var(--vscode-errorForeground);
+}
+
+.error-close-button {
+    margin: 8px;
 }
 
 .action-button {

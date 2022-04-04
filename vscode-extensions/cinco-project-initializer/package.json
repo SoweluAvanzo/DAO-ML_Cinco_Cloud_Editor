@@ -23,7 +23,7 @@
 		"*",
 		"onCommand:info.scce.cinco-cloud.initialize-project"
 	],
-	"main": "./out/extension/main",
+	"main": "./out/extension/bundle",
 	"contributes": {
 		"commands": [
 			{
@@ -36,13 +36,18 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"postinstall": "npm run compile && vsce package",
-		"compile": "tsc --build && esbuild out/webview/main.js --bundle --outfile=out/webview/bundle.js"
+        "build": "tsc --build",
+        "bundle-extension": "esbuild out/extension/main.js --bundle --platform=node --external:vscode --format=cjs --outfile=out/extension/bundle.js",
+        "bundle-webview": "esbuild out/webview/main.js --bundle --outfile=out/webview/bundle.js",
+		"compile": "npm run build && npm run bundle-extension && npm run bundle-webview"
 	},
 	"devDependencies": {
+		"@types/fs-extra": "^9.0.13",
 		"@types/mocha": "^8.0.3",
 		"@types/node": "14.14.16",
 		"@types/vscode": "1.49.0",
 		"@typescript-eslint/parser": "^2.3.0",
+		"esbuild": "^0.14.29",
 		"eslint": "^6.4.0",
 		"mocha": "^8.1.1",
 		"run-script-os": "1.1.1",
@@ -52,7 +57,7 @@
 	"dependencies": {
 		"adm-zip": "0.4.16",
 		"copyfiles": "2.3.0",
-		"esbuild": "^0.14.29",
+		"fs-extra": "^10.0.1",
 		"graphviz": "0.0.9",
 		"gunzip-file": "0.1.1",
 		"lru-cache": "6.0.0",

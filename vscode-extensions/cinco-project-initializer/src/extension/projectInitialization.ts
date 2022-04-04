@@ -1,11 +1,12 @@
 import * as path from 'path'
+import * as fse from 'fs-extra'
 import * as vscode from 'vscode'
 import { workbenchOutput, extensionContext } from './main'
-import { copy } from './helper/toolHelper'
-import { Command } from '../common/model'
+import { MessageToClient, MessageToServer } from '../common/model'
 import { initializeScaffold } from './scaffold'
 import { getWebviewContent } from './webview-template'
 import { getWorkspaceFsPath } from './workspace'
+import { isDirectoryEmpty } from './filesystem-helper'
 
 const exampleFolder = "exampleFiles/";
 
@@ -39,6 +40,10 @@ export async function openProjectInitializationView(
         },
     );
 
+    function postMessage(message: MessageToClient): void {
+        panel.webview.postMessage(message);
+    }
+
     setCurrentPanel(panel);
 
     panel.webview.html = getWebviewContent(
@@ -62,15 +67,25 @@ export async function openProjectInitializationView(
     );
 
     panel.webview.onDidReceiveMessage(
-        (message: Command) => {
+        (message: MessageToServer) => {
             switch (message.tag) {
                 case 'CreateScaffold':
-                    initializeScaffold(workspaceFsPath, message.data);
-                    panel.dispose();
+                    const scaffoldInitiated =
+                        initializeScaffold(
+                            postMessage,
+                            workspaceFsPath,
+                            message.data,
+                        );
+                    if (scaffoldInitiated) {
+                        panel.dispose();
+                    }
                     break;
                 case 'CreateExample':
-                    initializeExampleProject(workspaceFsPath);
-                    panel.dispose();
+                    const exampleProjectInitiated =
+                        initializeExampleProject(postMessage, workspaceFsPath);
+                    if (exampleProjectInitiated) {
+                        panel.dispose();
+                    }
                     break;
             }
         }
@@ -83,13 +98,21 @@ export async function openProjectInitializationView(
     );
 }
 
-function initializeExampleProject(workspaceFsPath: string): void {
-    const pathToExampleFiles = extensionContext.asAbsolutePath(path.join(exampleFolder));
-    workbenchOutput.appendLine("Creating example project to: "+workspaceFsPath);
-    workbenchOutput.appendLine("CopyAll Files from: "+pathToExampleFiles+"\nto: "+workspaceFsPath);
-    copy(pathToExampleFiles, workspaceFsPath, true).then(() => {
-        workbenchOutput.appendLine("Example project successfully created.");
-    }).catch(()=> {
-        workbenchOutput.appendLine("Creation of example project failed.");
-    });
+function initializeExampleProject(
+    postMessage: (message: MessageToClient) => void,
+    workspaceFsPath: string,
+): boolean {
+    if (!isDirectoryEmpty(workspaceFsPath)) {
+        postMessage({
+            tag: 'ServerError',
+            error: 'Cannot create example project, workspace is not empty.'
+        });
+        return false;
+    }
+
+    const exampleDirectory =
+        extensionContext.asAbsolutePath(path.join(exampleFolder));
+    fse.copySync(exampleDirectory, workspaceFsPath);
+
+    return true;
 }

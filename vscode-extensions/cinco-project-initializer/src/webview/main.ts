@@ -1,4 +1,4 @@
-import { Command, ScaffoldData } from "../common/model"
+import { MessageToClient, MessageToServer, ScaffoldData } from "../common/model"
 import * as java from '../common/java'
 
 declare function acquireVsCodeApi(): VsCodeApi
@@ -6,7 +6,7 @@ declare function acquireVsCodeApi(): VsCodeApi
 interface VsCodeApi {
     getState(): WebviewState | undefined
     setState(state: WebviewState): void
-    postMessage(message: Command): void
+    postMessage(message: MessageToServer): void
 }
 
 type WebviewState = Initial | ScaffoldForm
@@ -31,17 +31,65 @@ const vscode = acquireVsCodeApi();
 const previousState = vscode.getState();
 let state: WebviewState = previousState ? previousState : {tag:'Initial'};
 
-renderPage();
+const pageElement = document.createElement('div');
+pageElement.className = 'page';
+document.body.appendChild(pageElement);
 
-function renderPage() {
-    document.body.innerHTML = '';
+const errorBoxDisplayDefault = 'flex';
+
+const errorBox = document.createElement('div');
+errorBox.className = 'error-box';
+errorBox.style.display = 'none';
+pageElement.appendChild(errorBox);
+
+const errorDisplay = renderErrorBox();
+
+function renderErrorBox() {
+    errorBox.innerHTML = '';
+
+    const errorDisplay = document.createElement('p');
+    errorDisplay.className = 'error-display';
+    errorBox.appendChild(errorDisplay);
+
+    const errorCloseButton = document.createElement('button');
+    errorCloseButton.type = 'button';
+    errorCloseButton.className =
+        'error-close-button button regular-button secondary-button';
+    errorCloseButton.setAttribute('aria-label', 'Close');
+    errorCloseButton.innerText = 'X';
+    errorCloseButton.addEventListener('click', () => {
+        errorBox.style.display = 'none';
+        errorDisplay.innerText = '';
+    });
+    errorBox.appendChild(errorCloseButton);
+
+    return errorDisplay;
+}
+
+const errorCloseButton = document.createElement('button');
+errorCloseButton
+
+const contentBox = document.createElement('div');
+contentBox.className = 'content-box';
+pageElement.appendChild(contentBox);
+
+renderContent();
+
+window.addEventListener('message', event => processIncomingMessage(event.data));
+
+function processIncomingMessage(message: MessageToClient) {
+    switch (message.tag) {
+        case 'ServerError':
+            errorBox.style.display = errorBoxDisplayDefault;
+            errorDisplay.innerText = message.error;
+    }
+}
+
+function renderContent() {
+    contentBox.innerHTML = '';
 
     switch (state.tag) {
         case 'Initial': {
-            const form = document.createElement('form');
-            form.className = 'wizard-form';
-            document.body.appendChild(form);
-
             const createScaffoldButton =
                 document.createElement('button');
             createScaffoldButton.type = 'button';
@@ -60,15 +108,15 @@ function renderPage() {
                         packageNameValid: true,
                     }
                 };
-                renderPage();
+                renderContent();
                 vscode.setState(state);
             });
-            form.appendChild(createScaffoldButton);
+            contentBox.appendChild(createScaffoldButton);
 
             const orText = document.createElement('p');
             orText.className = 'or';
             orText.innerText = 'or';
-            form.appendChild(orText);
+            contentBox.appendChild(orText);
 
             const createExampleButton =
                 document.createElement('button');
@@ -79,7 +127,7 @@ function renderPage() {
             createExampleButton.addEventListener('click', () => {
                 vscode.postMessage({tag:'CreateExample'});
             });
-            form.appendChild(createExampleButton);
+            contentBox.appendChild(createExampleButton);
 
             break;
         }
@@ -87,8 +135,14 @@ function renderPage() {
             const { data, validation } = state;
 
             const form = document.createElement('form');
-            form.className = 'wizard-form';
-            document.body.appendChild(form);
+            form.addEventListener('submit', event => {
+                event.preventDefault();
+                vscode.postMessage({
+                    tag: 'CreateScaffold',
+                    data
+                });
+            });
+            contentBox.appendChild(form);
 
             const title = document.createElement('p');
             title.className = 'form-title';
@@ -177,22 +231,16 @@ function renderPage() {
             backButton.innerText = 'Back';
             backButton.addEventListener('click', () => {
                 state = {tag:'Initial'};
-                renderPage();
+                renderContent();
                 vscode.setState(state);
             });
             buttonBox.appendChild(backButton);
 
             const initializeProjectButton = document.createElement('button');
-            initializeProjectButton.type = 'button';
+            initializeProjectButton.type = 'submit';
             initializeProjectButton.className =
                 'button regular-button primary-button';
             initializeProjectButton.innerText = 'Initialize Project';
-            initializeProjectButton.addEventListener('click', () => {
-                vscode.postMessage({
-                    tag: 'CreateScaffold',
-                    data
-                });
-            });
             buttonBox.appendChild(initializeProjectButton);
 
             function updateSubmitButtonEnabledState() {

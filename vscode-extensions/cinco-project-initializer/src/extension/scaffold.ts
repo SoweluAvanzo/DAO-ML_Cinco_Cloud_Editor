@@ -1,22 +1,32 @@
 import * as path from 'path'
 import * as fs from 'fs';
 import * as java from '../common/java'
-import { ScaffoldData } from "../common/model";
-import { workbenchOutput } from './main'
+import { MessageToClient, ScaffoldData } from "../common/model";
+import { isDirectoryEmpty } from './filesystem-helper';
 
 export function initializeScaffold(
+    postMessage: (message: MessageToClient) => void,
     workspaceFsPath: string,
     data: ScaffoldData,
-): void {
+): boolean {
     const dataValid =
         java.isValidIdentifier(data.modelName) &&
         java.isValidPackageIdentifier(data.packageName);
 
     if (!dataValid) {
-        workbenchOutput.appendLine(
-            'Data received from webview is invalid, not scaffolding.'
-        )
-        return;
+        postMessage({
+            tag: 'ServerError',
+            error: 'Cannot initialize project, input data is invalid.',
+        });
+        return false;
+    }
+
+    if (!isDirectoryEmpty(workspaceFsPath)) {
+        postMessage({
+            tag: 'ServerError',
+            error: 'Cannot initialize project, workspace is not empty.'
+        });
+        return false;
     }
 
     const modelDirectory = path.join(workspaceFsPath, 'model');
@@ -33,6 +43,8 @@ export function initializeScaffold(
         path.join(modelDirectory, `${data.modelName}.style`),
         generateStyle(),
     );
+
+    return true;
 }
 
 function generateCPD(modelName: string): string {
