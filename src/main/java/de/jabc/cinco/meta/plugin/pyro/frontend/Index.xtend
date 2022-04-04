@@ -89,6 +89,7 @@ class Index extends Generatable {
 	    <script type="application/javascript" src="js/gridstack.jQueryUI.min.js"></script>
 	    <script type="application/javascript" src="js/gluelines.js"></script>
 	    <script type="application/javascript" src="js/svgsaver.js"></script>
+	    <script type="application/javascript" src="js/sprintf.min.js"></script>
 	    <script type="application/javascript" src="js/pyro_core.js"></script>
 	    <script type="application/javascript" src="js/pyro_editor_grid.js"></script>
 	    
@@ -96,7 +97,7 @@ class Index extends Generatable {
 		<script type="application/javascript" src="«g.shapePath»"></script>
 		<script type="application/javascript" src="«g.controllerPath»"></script>
 	«ENDFOR»
-	    <script defer src="main.dart.js"></script>
+	    <script type="module" defer src="main.dart.js"></script>
 	    	</head>
 		  	<body class="org-body-bg-color org-body-text-color">
 			<pyro-app>
