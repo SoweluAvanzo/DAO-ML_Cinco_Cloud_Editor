@@ -1553,7 +1553,7 @@ class Controller extends Generatable{
 		cell.model.attributes.labels.forEach(function (label,idx) {
 		«FOR decorator:es.decorator.filter[n|n.decoratorShape instanceof Text ||n.decoratorShape instanceof MultiText].indexed»
 			if(label.attrs.hasOwnProperty('text.pyro«decorator.key»link')){
-				cell.model.prop(['labels',idx,'attrs','text.pyro«decorator.key»link','text'],"«decorator.value.decoratorShape.value.parsePlaceholder»");
+				cell.model.prop(['labels',idx,'attrs','text.pyro«decorator.key»link','text'], vsprintf("«decorator.value.decoratorShape.value»", styleArgs) );
 «««				label.attrs['text.pyro«decorator.key»link'].text = "«decorator.value.decoratorShape.value.parsePlaceholder»";
 			}
 	    «ENDFOR»
