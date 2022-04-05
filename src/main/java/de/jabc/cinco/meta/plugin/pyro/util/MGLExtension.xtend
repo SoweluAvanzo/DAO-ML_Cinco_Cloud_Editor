@@ -2857,8 +2857,11 @@ class MGLExtension {
 		}
 	}
 
-	def CharSequence getPrimitiveDefaultDart(Attribute attr) {
-		if(attr instanceof Enumeration) {
+
+
+	def getPrimitiveDefaultDart(Attribute attr) {
+		if (attr.attributeTypeName.getEnum(attr.MGLModel) !== null) {
+            return '''«attr.primitiveDartType(attr.MGLModel)».«attr.defaultValue»'''
 		}
 		if (attr.attributeTypeName.getEnum(attr.MGLModel) !== null
 		) {
@@ -2878,8 +2881,9 @@ class MGLExtension {
 			switch (attr.attributeTypeName) {
 				case "EString": return '''"«attr.defaultValue»"'''
 				default: return '''«attr.defaultValue»'''
+				}
 			}
-		}
+
 		
 		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''false'''
@@ -3483,4 +3487,6 @@ class MGLExtension {
 			ENDFOR»
 		'''
 	}
- }
+	def getIsOrGetMethod(Attribute attr)
+	'''«IF attr.isPrimitive && attr.attributeTypeName.equals("EBoolean")»is«ELSE»get«ENDIF»'''
+	}

@@ -402,6 +402,29 @@ class GraphModelElementImplementation extends Generatable {
 					}
 					
 					@Override
+					public void setX(int x) {
+						this.move(this.getX(), x);
+						
+					}
+				
+					@Override
+					public void setY(int y) {
+						this.move(this.getY(), y);
+						
+					}
+				
+					@Override
+					public void setWidth(int width) {
+						this.move(this.getWidth(), width);
+						
+					}
+				
+					@Override
+					public void setHeight(int height) {
+						this.move(this.getHeight(), height);
+						
+					}
+					@Override
 					public java.util.List<graphmodel.Edge> getIncoming() {
 						java.util.List<graphmodel.Edge> edges = new java.util.LinkedList<>();
 						java.util.Collection<«dbTypeName»> incoming = this.delegate.getIncoming();
@@ -587,10 +610,28 @@ class GraphModelElementImplementation extends Generatable {
 						}
 						return modelElements;
 					}
-						
+					
+	
 					@Override
 					public <T extends graphmodel.ModelElement> java.util.List<T> getModelElements(Class<T> clazz) {
 						return this.getModelElements().stream().filter(n->clazz.isInstance(n)).map(n->clazz.cast(n)).collect(java.util.stream.Collectors.toList());
+					}
+					
+					@Override
+					public <T extends graphmodel.IdentifiableElement> java.util.List<T> find(Class<T> clazz) {
+						if(clazz.isInstance(graphmodel.ModelElement.class) ){
+							return (java.util.List<T>) this.getModelElements();	
+						}
+						if(clazz.isInstance(graphmodel.Container.class) ){
+							return (java.util.List<T>) this.getAllContainers();
+						}
+						if(clazz.isInstance(graphmodel.Node.class) ){
+							return (java.util.List<T>) this.getAllNodes();
+						}
+						if(clazz.isInstance(graphmodel.Edge.class) ){
+							return (java.util.List<T>) this.getAllEdges();
+						}
+						return null;
 					}
 					
 					private java.util.List<graphmodel.ModelElement> getAllModelElements(graphmodel.ModelElementContainer cmc) {
@@ -656,7 +697,7 @@ class GraphModelElementImplementation extends Generatable {
 							throw new RuntimeException("attribute \"name\" is predefined as \"String\" by cinco")
 					}»
 					@Override
-					public «attributeType» «IF attr.isPrimitive && attr.attributeTypeName.equals("EBoolean")»is«ELSE»get«ENDIF»«attr.name.fuEscapeJava»() {
+					public «attributeType» «attr.isOrGetMethod»«attr.name.fuEscapeJava»() {
 						«IF attr.isPrimitive»
 							«IF attr.attributeTypeName.getEnum(modelPackage)!==null»
 								«IF attr.list»
