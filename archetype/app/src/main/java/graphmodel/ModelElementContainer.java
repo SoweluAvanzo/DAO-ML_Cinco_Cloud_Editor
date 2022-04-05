@@ -10,4 +10,5 @@ public interface ModelElementContainer extends IdentifiableElement {
 	<T extends Node> java.util.List<T> getNodes(Class<T> clazz);
 	<T extends Node> java.util.List<T> getNodes();
 	public void delete();
+	public <T extends IdentifiableElement> java.util.List<T> find(Class<T> clazz);
 }
