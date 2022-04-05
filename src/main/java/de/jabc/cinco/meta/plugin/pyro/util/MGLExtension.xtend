@@ -2858,7 +2858,6 @@ class MGLExtension {
 	}
 
 
-
 	def getPrimitiveDefaultDart(Attribute attr) {
 		if (attr.attributeTypeName.getEnum(attr.MGLModel) !== null) {
             return '''«attr.primitiveDartType(attr.MGLModel)».«attr.defaultValue»'''
