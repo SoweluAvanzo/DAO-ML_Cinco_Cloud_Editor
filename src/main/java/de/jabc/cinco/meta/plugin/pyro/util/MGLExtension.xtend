@@ -2857,29 +2857,19 @@ class MGLExtension {
 		}
 	}
 
-	def CharSequence getPrimitiveDefaultDart(Attribute attr) {
-		if(attr instanceof Enumeration) {
-		}
-		if (attr.attributeTypeName.getEnum(attr.MGLModel) !== null
-		) {
-			if(attr instanceof ComplexAttribute) {
-				if(attr.type instanceof Enumeration) {
-					var enumType = attr.type as Enumeration
-					var defaultValue = attr.defaultValue !== null
-						? attr.defaultValue
-						: enumType.literals.get(0)
-					return '''«attr.primitiveDartType(attr.MGLModel)».«defaultValue»'''
-				}
-			}
-            throw new RuntimeException("Cannot infer defaultValue of attribute: "+attr.typeName);
+
+	def getPrimitiveDefaultDart(Attribute attr) {
+		if (attr.attributeTypeName.getEnum(attr.MGLModel) !== null) {
+            return '''«attr.primitiveDartType(attr.MGLModel)».«attr.defaultValue»'''
        	}
 
 		if (attr.defaultValue !== null) {
 			switch (attr.attributeTypeName) {
 				case "EString": return '''"«attr.defaultValue»"'''
 				default: return '''«attr.defaultValue»'''
+				}
 			}
-		}
+
 		
 		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''false'''
