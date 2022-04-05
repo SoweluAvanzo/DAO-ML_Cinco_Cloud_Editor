@@ -26,7 +26,7 @@ class IndexHTML extends Generatable {
 	    <script type="application/javascript" src="vendor/web/js/lodash.js"></script>
 	    <script type="application/javascript" src="vendor/web/js/backbone.js"></script>
 	    <script type="application/javascript" src="vendor/web/js/joint.js"></script>
-	    <script type="application/javascript" src="vendor/web/js/pyro_core.js"></script>
+	    <script type="application/javascript" src="vendor/web/js/pyro_core.js"></script>	    
 	    «FOR g:gc.mglModels»
 	    	<script type="application/javascript" src="js/«g.name.lowEscapeDart»_shapes.js"></script>
 		«ENDFOR»
