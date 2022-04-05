@@ -2858,9 +2858,23 @@ class MGLExtension {
 	}
 
 
+
 	def getPrimitiveDefaultDart(Attribute attr) {
 		if (attr.attributeTypeName.getEnum(attr.MGLModel) !== null) {
             return '''«attr.primitiveDartType(attr.MGLModel)».«attr.defaultValue»'''
+		}
+		if (attr.attributeTypeName.getEnum(attr.MGLModel) !== null
+		) {
+			if(attr instanceof ComplexAttribute) {
+				if(attr.type instanceof Enumeration) {
+					var enumType = attr.type as Enumeration
+					var defaultValue = attr.defaultValue !== null
+						? attr.defaultValue
+						: enumType.literals.get(0)
+					return '''«attr.primitiveDartType(attr.MGLModel)».«defaultValue»'''
+				}
+			}
+            throw new RuntimeException("Cannot infer defaultValue of attribute: "+attr.typeName);
        	}
 
 		if (attr.defaultValue !== null) {
