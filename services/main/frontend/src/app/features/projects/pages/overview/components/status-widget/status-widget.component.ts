@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Project } from '../../../../../../core/models/project';
 import { Page } from '../../../../../../core/models/page';
 import { WorkspaceImageBuildJob } from '../../../../../../core/models/workspace-image-build-job';
@@ -12,14 +12,14 @@ import { filter, fromEvent } from 'rxjs';
 import { WebSocketMessage } from '../../../../../../core/models/web-socket-message';
 import { WebSocketEvent } from '../../../../../../core/enums/web-socket-event';
 import { fromJsog } from '../../../../../../core/utils/jsog-utils';
-import { ToastService, ToastType } from '../../../../../../core/services/toast.service';
+import { ToastService } from '../../../../../../core/services/toast.service';
 
 @UntilDestroy()
 @Component({
   selector: 'cc-status-widget',
   templateUrl: './status-widget.component.html'
 })
-export class StatusWidgetComponent implements OnInit, OnDestroy {
+export class StatusWidgetComponent implements OnInit {
 
   @Input()
   project: Project;
@@ -65,9 +65,4 @@ export class StatusWidgetComponent implements OnInit, OnDestroy {
       }
     });
   }
-
-  ngOnDestroy(): void {
-    this.projectStore.closeWebSocket();
-  }
-
 }

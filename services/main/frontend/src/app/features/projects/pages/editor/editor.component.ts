@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ProjectStoreService } from '../../services/project-store.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ProjectApiService } from '../../../../core/services/api/project-api.service';
@@ -24,7 +24,7 @@ import {
   styleUrls: ['./editor.component.scss']
 
 })
-export class EditorComponent implements OnInit, OnDestroy {
+export class EditorComponent implements OnInit {
 
   project: Project;
   deployment: ProjectDeployment;
@@ -92,9 +92,5 @@ export class EditorComponent implements OnInit, OnDestroy {
       },
       error: console.error
     });
-  }
-
-  ngOnDestroy(): void {
-    this.projectStore.closeWebSocket();
   }
 }
