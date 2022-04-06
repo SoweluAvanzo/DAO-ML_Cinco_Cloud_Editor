@@ -227,3 +227,13 @@ cc-sidebar > .sidebar {
     }
   }
 }
+
+/* -----------------------------------------
+ * fix bootstrap bg-light grey badge with grey font
+ */
+
+.badge {
+  &.bg-light {
+    color: $text-color-dark;
+  }
+}

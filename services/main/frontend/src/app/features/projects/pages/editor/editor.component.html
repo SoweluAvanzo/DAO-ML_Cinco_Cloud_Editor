@@ -2,7 +2,8 @@
   <div>
     <fa-stack size="3x">
       <fa-icon [icon]="['fas', 'cloud']" stackItemSize="2x"></fa-icon>
-      <fa-icon [icon]="['fas', 'cog']" [spin]="true" stackItemSize="1x" style="color: #313131;"></fa-icon>
+      <fa-icon [icon]="['fas', 'cog']" [spin]="true" stackItemSize="1x"
+               style="color: #313131;"></fa-icon>
     </fa-stack>
   </div>
   <div>
@@ -18,4 +19,15 @@
   <div class="alert alert-danger">
     Failed to deploy editor.
   </div>
+</div>
+
+<div class="owner-column ms-1 overlay-status"
+     *ngIf="currentJob != null && editorUrl != null && deployment.status == 'READY'">
+  <span class="badge p-2 bg-info" *ngIf="currentJob.status == 'BUILDING'">
+    <fa-icon
+      [icon]="['fas', 'circle-notch']"
+      [fixedWidth]="true"
+      [spin]="true"
+      class="d-inline-block me-2"></fa-icon> Building
+  </span>
 </div>
