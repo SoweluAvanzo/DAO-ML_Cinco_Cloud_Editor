@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 git clean -xdf
 cd cinco-ls
 git clean -xdf

@@ -7,12 +7,12 @@ COPY ./vscode-extensions/cinco-extension /cinco-extension
 RUN npm install -g vsce --unsafe-perm
 RUN yarn
 
-# build cinco-example-project-creator
+# build cinco-project-initializer
 # --------------------------------
-FROM docker.io/library/node:14.18-buster-slim as cinco-example-project-creator-builder
-WORKDIR /cinco-example-project-creator
-COPY ./vscode-extensions/cinco-example-project-creator /cinco-example-project-creator
-# outputs extension to /cinco-example-project-creator/cinco-example-project-creator-0.0.1.vsix
+FROM docker.io/library/node:14.18-buster-slim as cinco-project-initializer-builder
+WORKDIR /cinco-project-initializer
+COPY ./vscode-extensions/cinco-project-initializer /cinco-project-initializer
+# outputs extension to /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix
 RUN npm install -g vsce --unsafe-perm
 RUN yarn
 
@@ -47,10 +47,6 @@ ENV PYRO_SUBPATH=""
 ENV USE_SSL="false"
 # make readable for root only
 RUN chmod -R 750 /var/run/
-WORKDIR /editor
-COPY ./editor /editor
-RUN useradd -ms /bin/bash theia
-COPY --chown=theia:theia editor /editor
 
 # install node, yarn and other dependencies
 RUN apt update && \
@@ -67,12 +63,17 @@ RUN apt update && \
 RUN apt install -y python && python --version && sleep 10
 # install npm dependencies
 RUN npm install -g node-gyp && npm install -g typescript
+
+WORKDIR /editor
+RUN useradd -ms /bin/bash theia
+COPY --chown=theia:theia ./editor /editor
+
 # build theia-editor
 RUN yarn
 
 # copy vscode-extensions into plugins
 COPY --from=cinco-extension-builder /cinco-extension/cinco-extension-0.0.1.vsix /editor/browser-app/plugins
-COPY --from=cinco-example-project-creator-builder /cinco-example-project-creator/cinco-example-project-creator-0.0.1.vsix /editor/browser-app/plugins
+COPY --from=cinco-project-initializer-builder /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=pyro-client-builder /pyro-client-extension/pyro-client-extension-0.0.1.vsix /editor/browser-app/plugins
 # copy cinco-language-server into backend
 COPY --from=cinco-ls-builder /cinco-ls/de.jabc.cinco.meta.core.ide/target/language-server /editor/cinco-language-server-extension/language-server

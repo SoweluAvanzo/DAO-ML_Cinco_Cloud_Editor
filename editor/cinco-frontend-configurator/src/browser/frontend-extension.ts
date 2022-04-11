@@ -5,11 +5,11 @@ import { ContainerModule, interfaces } from 'inversify';
 
 import { CommandRegistrationContribution } from './commandRegistration';
 import { MenuCommandRemovalContribution } from './menu-command-removal-contribution';
-import { MenuExampleCreationContribution } from './menu-example-contribution';
+import { MenuProjectInitializationContribution } from './menu-project-initialization-contribution';
 
 export default new ContainerModule((bind: interfaces.Bind) => {
     bind(MenuContribution).to(MenuCommandRemovalContribution).inSingletonScope();
-    bind(MenuContribution).to(MenuExampleCreationContribution).inSingletonScope();
+    bind(MenuContribution).to(MenuProjectInitializationContribution).inSingletonScope();
     bind(CommandContribution).to(CommandRegistrationContribution).inSingletonScope();
     bind(FrontendApplicationContribution).to(MenuCommandRemovalContribution).inSingletonScope();
 });

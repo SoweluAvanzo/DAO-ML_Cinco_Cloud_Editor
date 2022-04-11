@@ -1,0 +1,136 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page {
+    width: 100%;
+    max-width: 500px;
+}
+
+.error-box {
+    margin-bottom: 20px;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--vscode-errorBackground);
+}
+
+.error-display {
+    margin: 12px;
+    color: var(--vscode-errorForeground);
+}
+
+.error-close-button {
+    margin: 8px;
+}
+
+.action-button {
+    display: block;
+    width: 100%;
+    padding: 16px;
+}
+
+.form-title {
+    font-size: 20px;
+}
+
+.button-box {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+}
+
+.button {
+    border: none;
+    cursor: pointer;
+}
+
+.regular-button {
+    padding: 4px 9px;
+}
+
+.primary-button {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+
+.primary-button:hover {
+    background: var(--vscode-button-hoverBackground);
+}
+
+.primary-button:disabled {
+    background: #253e4f;
+}
+
+.secondary-button {
+    background: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+}
+
+.secondary-button:hover {
+    background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.text-input-label {
+    display: flex;
+    margin: 8px 0;
+}
+
+.text-input-legend {
+    padding: 2px 0;
+    width: 150px;
+}
+
+.form-input-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.validation-display {
+    margin: 0;
+    margin-top: -1px;
+    z-index: -1;
+    padding: 2px 4px;
+    background: var(--vscode-inputValidation-errorBackground);
+    color: var(--vscode-inputValidation-errorForeground);
+    border: 1px solid;
+    border-color: var(--vscode-inputValidation-errorBorder);
+}
+
+input[type="text"] {
+    padding: 2px 4px;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid;
+    /* TODO: The variable --vscode-input-border does not seem to be set */
+    /* border-color: var(--vscode-input-border); */
+    border-color: #555;
+}
+
+input[type="text"].error {
+    border-color: var(--vscode-inputValidation-errorBorder);
+}
+
+input[type="text"]:focus {
+    background: var(--vscode-inputOption-activeBackground);
+    color: var(--vscode-inputOption-activeForeground);
+    border-color: var(--vscode-inputOption-activeBorder);
+}
+
+input[type="text"]::placeholder {
+    color: var(--vscode-input-placeholderForeground);
+}
+
+.or {
+    text-align: center;
+    margin: 12px 0;
+}

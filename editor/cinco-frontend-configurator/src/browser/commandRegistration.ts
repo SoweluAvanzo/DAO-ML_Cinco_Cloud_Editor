@@ -4,7 +4,7 @@ import { inject } from '@theia/core/shared/inversify';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { injectable } from 'inversify';
 
-import { newProjectRegistry } from './projectCreationRegistry';
+import { initializeProjectCommand } from './initializeProjectCommand';
 
 @injectable()
 export class CommandRegistrationContribution implements CommandContribution {
@@ -13,23 +13,12 @@ export class CommandRegistrationContribution implements CommandContribution {
     protected readonly workspaceService: WorkspaceService;
 
     registerCommands(commands: CommandRegistry): void {
-        // registering all commands from newProjectRegistry
-        for (const cmd of newProjectRegistry) {
-            commands.registerCommand(cmd, {
-                execute: () => {
-                    // deduce rootURI
-                    const rootURI = this.workspaceService.getWorkspaceRootUri(undefined);
-                    if (!rootURI) {
-                        alert('No workspace present.');
-                        return;
-                    }
-                    commands.executeCommand(cmd.triggers, rootURI.path.toString()).then(() => {
-                        alert('Project created!');
-                    }).catch(() => {
-                        alert('Creating project failed!');
-                    });
-                }
-            });
-        }
+        commands.registerCommand(initializeProjectCommand, {
+            execute: () => {
+                commands.executeCommand(initializeProjectCommand.triggers).catch(() => {
+                    alert('Openening project initialization dialog failed!');
+                });
+            }
+        });
     }
 }
