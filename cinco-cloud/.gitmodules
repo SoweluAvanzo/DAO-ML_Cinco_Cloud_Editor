@@ -1,3 +1,0 @@
-[submodule "editor/backend/releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.plugin.pyro.generator"]
-	path = editor/backend/releng/de.jabc.cinco.meta.core.parent/de.jabc.cinco.meta.plugin.pyro.generator
-	url = ../pyro-generator.git

@@ -1,0 +1,475 @@
+# ====================================
+# General Purpose Jobs
+# ====================================
+
+.docker-job:
+  image: docker:20.10.6
+  services:
+    - docker:20.10.6-dind
+  variables:
+    DOCKER_DRIVER: overlay
+
+.docker-build-job:
+  extends: .docker-job
+  script:
+    - mkdir "$IMAGE-$VERSION"
+    - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
+    - docker save "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" | gzip > "$IMAGE-$VERSION/image.tar.gz"
+  artifacts:
+    expire_in: 1 days
+    paths:
+      - $IMAGE-$VERSION/image.tar.gz
+
+.docker-push-job:
+  extends: .docker-job
+  before_script:
+    - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker load < $IMAGE-$VERSION/image.tar.gz
+    - |
+      for TAG in $PUSH_TAGS
+        do
+          docker tag $CI_REGISTRY_IMAGE/$IMAGE:$VERSION $CI_REGISTRY_IMAGE/$IMAGE:$TAG
+          docker push $CI_REGISTRY_IMAGE/$IMAGE:$TAG
+        done
+
+cache:
+  key:
+    files:
+      - ./cinco-cloud/services/main/frontend/package-lock.json
+  paths:
+    - ./cinco-cloud/services/main/frontend/node_modules/
+
+# ====================================
+# Cinco Cloud
+# ====================================
+
+.cinco-cloud-default-job-main:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - cinco-cloud/**/*
+
+.cinco-cloud-default-job-main-or-mr:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - cinco-cloud/**/*
+
+.cinco-cloud-maven-job:
+  image: maven:latest
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .m2/repository
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+.cinco-cloud-deploy-job:
+  image:
+    name: gcr.io/k8s-skaffold/skaffold:v1.27.0
+  script:
+    - kubectl config set-cluster ls5vs024-cluster --server=https://129.217.27.124:16443
+    - kubectl config set clusters.ls5vs024-cluster.certificate-authority-data $CLUSTER_CERT
+    - kubectl config set-credentials ls5vs024-admin --token=$CLUSTER_USER_TOKEN
+    - kubectl config set-context ls5vs024 --user=ls5vs024-admin --cluster=ls5vs024-cluster
+    - kubectl config use-context ls5vs024
+    - kubectl config get-contexts
+    - echo "$PROFILE, $NAMESPACE, $TAG"
+    - skaffold deploy -p $PROFILE -n $NAMESPACE -t $TAG --status-check=true
+
+.cinco-cloud-node-job-main:
+  image: node:16.14.0
+
+cinco-cloud-install-main-frontend:
+  extends:
+    - .cinco-cloud-default-job-main-or-mr
+    - .cinco-cloud-node-job-main
+  script:
+    - cd ./cinco-cloud/services/main/frontend
+    - npm install
+
+cinco-cloud-lint-main-frontend:
+  extends:
+    - .cinco-cloud-default-job-main-or-mr
+    - .cinco-cloud-node-job-main
+  needs:
+    - cinco-cloud-install-main-frontend
+  script:
+    - cd ./cinco-cloud/services/main/frontend
+    - npm install
+    - npm run lint
+
+cinco-cloud-lint-main-backend:
+  extends:
+    - .cinco-cloud-default-job-main-or-mr
+    - .cinco-cloud-maven-job
+  script:
+    - cd ./cinco-cloud/services/main/backend
+    - mvn checkstyle:check
+
+cinco-cloud-install-main-backend:
+  extends:
+    - .cinco-cloud-default-job-main-or-mr
+    - .cinco-cloud-maven-job
+  needs:
+    - cinco-cloud-lint-main-backend
+  script:
+    - cd ./cinco-cloud/services/main/backend
+    - mvn install -DskipTests
+
+cinco-cloud-test-main-backend:
+  extends:
+    - .cinco-cloud-default-job-main-or-mr
+    - .cinco-cloud-maven-job
+  needs:
+    - cinco-cloud-install-main-backend
+  script:
+    - cd ./cinco-cloud/services/main/backend
+    - mvn test
+
+cinco-cloud-build-main:
+  extends:
+    - .cinco-cloud-default-job-main
+    - .docker-build-job
+  needs:
+    - cinco-cloud-test-main-backend
+    - cinco-cloud-lint-main-frontend
+  variables:
+    CONTEXT: ./cinco-cloud/services
+    DOCKERFILE: ./cinco-cloud/services/main/Dockerfile
+    IMAGE: main
+    VERSION: latest
+
+cinco-cloud-build-registry:
+  extends:
+    - .cinco-cloud-default-job-main
+    - .docker-build-job
+  variables:
+    CONTEXT: ./cinco-cloud/services/registry
+    DOCKERFILE: ./cinco-cloud/services/registry/Dockerfile
+    IMAGE: registry
+    VERSION: latest
+
+cinco-cloud-lint-workspace-builder-backend:
+  extends:
+    - .cinco-cloud-default-job-main-or-mr
+    - .cinco-cloud-maven-job
+  script:
+    - cd ./cinco-cloud/services/workspace-builder
+    - mvn checkstyle:check
+
+cinco-cloud-install-workspace-builder-backend:
+  extends:
+    - .cinco-cloud-default-job-main-or-mr
+    - .cinco-cloud-maven-job
+  needs:
+    - cinco-cloud-lint-workspace-builder-backend
+  script:
+    - cd ./cinco-cloud/services/workspace-builder
+    - mvn install -DskipTests
+
+cinco-cloud-build-workspace-builder:
+  extends:
+    - .cinco-cloud-default-job-main
+    - .docker-build-job
+  needs:
+    - cinco-cloud-install-workspace-builder-backend
+  variables:
+    CONTEXT: ./cinco-cloud/services
+    DOCKERFILE: ../cinco-cloud/services/workspace-builder/Dockerfile
+    IMAGE: workspace-builder
+    VERSION: latest
+
+.cinco-cloud-push-image-job:
+  extends:
+    - .cinco-cloud-default-job-main
+    - .docker-push-job
+  needs:
+    - cinco-cloud-build-main
+    - cinco-cloud-build-registry
+    - cinco-cloud-build-workspace-builder
+
+cinco-cloud-push-image-main:
+  extends:
+    - .cinco-cloud-default-job-main
+    - .cinco-cloud-push-image-job
+  variables:
+    IMAGE: main
+    VERSION: latest
+    PUSH_TAGS: latest $CI_COMMIT_SHA
+
+cinco-cloud-push-image-registry:
+  extends:
+    - .cinco-cloud-default-job-main
+    - .cinco-cloud-push-image-job
+  variables:
+    IMAGE: registry
+    VERSION: latest
+    PUSH_TAGS: latest $CI_COMMIT_SHA
+
+cinco-cloud-push-image-workspace-builder:
+  extends:
+    - .cinco-cloud-default-job-main
+    - .cinco-cloud-push-image-job
+  variables:
+    IMAGE: workspace-builder
+    VERSION: latest
+    PUSH_TAGS: latest $CI_COMMIT_SHA
+
+deploy-testing:
+  extends:
+    - .cinco-cloud-default-job-main
+    - .cinco-cloud-deploy-job
+  needs:
+    - cinco-cloud-push-image-main
+    - cinco-cloud-push-image-registry
+    - cinco-cloud-push-image-workspace-builder
+  variables:
+    PROFILE: ls5vs024
+    NAMESPACE: default
+    TAG: $CI_COMMIT_SHA
+
+
+# ====================================
+# Cinco Cloud Archetype
+# ====================================
+
+.archetype-default-job-main:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - cinco-cloud-archetype/**/*
+
+.archetype-default-job-main-or-mr:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - cinco-cloud-archetype/**/*
+
+.archetype-default-job-feature:
+  rules:
+    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
+      changes:
+        - cinco-cloud-archetype/**/*
+
+.archetype-theia-extension-build-job:
+  image: node:14.18-buster-slim
+  cache:
+    paths:
+      - ./cinco-cloud-archetype/vscode-extensions/$EXTENSION_DIR/node_modules
+  script:
+    - cd ./cinco-cloud-archetype/vscode-extensions/$EXTENSION_DIR
+    - npm install -g vsce --unsafe-perm
+    - yarn
+
+archetype-test-build-cinco-extension:
+  extends:
+    - .archetype-default-job-main-or-mr
+    - .archetype-theia-extension-build-job
+  variables:
+    EXTENSION_DIR: cinco-extension
+
+archetype-test-build-cinco-project-initializer-extension:
+  extends:
+    - .archetype-default-job-main-or-mr
+    - .archetype-theia-extension-build-job
+  variables:
+    EXTENSION_DIR: cinco-project-initializer
+
+archetype-test-build-pyro-client-extension:
+  extends:
+    - .archetype-default-job-main-or-mr
+    - .archetype-theia-extension-build-job
+  variables:
+    EXTENSION_DIR: pyro-client-extension
+
+archetype-build:
+  extends:
+    - .archetype-default-job-main
+    - .docker-build-job
+  needs:
+    - archetype-test-build-cinco-extension
+    - archetype-test-build-cinco-project-initializer-extension
+    - archetype-test-build-pyro-client-extension
+  variables:
+    CONTEXT: ./cinco-cloud-archetype
+    DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
+    IMAGE: archetype
+    VERSION: latest
+    GIT_SUBMODULE_STRATEGY: recursive
+
+archetype-push:
+  extends:
+    - .archetype-default-job-main
+    - .docker-push-job
+  needs:
+    - archetype-build
+  variables:
+    IMAGE: archetype
+    VERSION: latest
+    PUSH_TAGS: latest $CI_COMMIT_SHA
+
+# feature-branch pipeline
+archetype-build-dev:
+  extends:
+    - .archetype-default-job-feature
+    - .docker-build-job
+  when: manual
+  variables:
+    CONTEXT: .
+    DOCKERFILE: ./Dockerfile
+    IMAGE: archetype
+    VERSION: dev
+    GIT_SUBMODULE_STRATEGY: recursive
+
+archetype-push-dev:
+  extends:
+    - .archetype-default-job-feature
+    - .docker-push-job
+  needs:
+    - archetype-build-dev
+  variables:
+    IMAGE: archetype
+    VERSION: dev
+    PUSH_TAGS: dev-$CI_COMMIT_REF_NAME
+
+
+# ====================================
+# Cinco Language Server
+# ====================================
+
+.cinco-ls-default-job:
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - cinco-language-server/**/*
+
+.cinco-ls-maven-job:
+  image: maven:3.8.1-jdk-11
+  cache:
+    paths:
+      - .m2/repository
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+.cinco-ls-dart-job:
+  image: google/dart:2.4.1
+  cache:
+    paths:
+      - /root/.pub-cache
+
+cinco-ls-install:
+  extends:
+    - .cinco-ls-default-job
+    - .cinco-ls-maven-job
+  cache:
+    paths:
+      - ./cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
+  script:
+    - cd ./cinco-language-server
+    - mvn clean install
+  artifacts:
+    expire_in: 1 days
+    paths:
+      - ./cinco-language-server/de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/*
+
+cinco-ls-test-compile-frontend:
+  extends:
+    - .cinco-ls-default-job
+    - .cinco-ls-dart-job
+  needs:
+    - cinco-ls-install
+  script:
+    - cd ./cinco-language-server/de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/webapp
+    - pub global activate webdev && pub get && /root/.pub-cache/bin/webdev build
+
+cinco-ls-test-compile-backend:
+  extends:
+    - .cinco-ls-default-job
+    - .cinco-ls-maven-job
+  needs:
+    - cinco-ls-install
+  script:
+    - cd ./cinco-language-server/de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/app
+    - mvn clean package -DskipTests
+
+
+# ====================================
+# Pyro Generator
+# ====================================
+
+.pyro-generator-default-job:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - pyro-generator/**/*
+
+.pyro-generator-maven-job:
+  image: maven:3.8.4-jdk-11
+  cache:
+    paths:
+      - .m2/repository
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+pyro-generator-compile:
+  extends:
+    - .pyro-generator-default-job
+    - .pyro-generator-maven-job
+  script:
+    - cd ./pyro-generator
+    - mvn compile
+
+pyro-generator-install:
+  extends:
+    - .pyro-generator-default-job
+    - .pyro-generator-maven-job
+  needs:
+    - pyro-generator-compile
+  script:
+    - cd ./pyro-generator
+    - mvn install
+
+
+# ====================================
+# GitLab Pages
+# ====================================
+
+.pages-default-job:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - ./docs/**/*
+
+pages-build:
+  extends: .pages-default-job
+  image: 'node:12.18.4'
+  cache:
+    paths:
+      - docs/vuepress/node_modules/
+  script:
+    - cd docs/vuepress
+    - rm src/.vuepress/env.default.js
+    - mv src/.vuepress/env.prod.js src/.vuepress/env.default.js
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - docs/vuepress/src/.vuepress/dist/*
+    expire_in: 1 day
+
+pages:
+  extends: .pages-default-job
+  needs:
+    - pages-build
+  image: 'node:12.18.4'
+  script:
+    - mkdir public
+    - mv docs/vuepress/src/.vuepress/dist/* public/
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 day
