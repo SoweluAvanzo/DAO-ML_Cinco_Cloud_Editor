@@ -1,0 +1,127 @@
+.link-tools .tool-options {
+    display: block;
+}
+
+.pyro_check_result_menu {
+	border: solid #808080 2px;
+    background: #fff;
+    padding: 7px;
+    z-index: 9999;
+    position: absolute;
+    border-radius: 5px;
+}
+
+.pyro_information_menu {
+	border: solid #808080 2px;
+    background: #fff;
+    padding: 7px;
+    z-index: 9999;
+    position: absolute;
+    border-radius: 5px;
+}
+
+.pyro_edge_highlight > .connection {
+    stroke: #d98824 !important;
+    stroke-dasharray: 5,5;
+}
+
+.pyro_edge_highlight > .marker-target {
+    fill: #d98824 !important;
+}
+
+.pyro_edge_highlight > .marker-source {
+    fill: #d98824 !important;
+}
+.label-input {
+    color: #333;
+    background: #fff;
+    height: 100%;
+    width:100%;
+    padding:0;
+}
+.joint-link .marker-arrowheads .marker-arrowhead,
+.joint-link .marker-vertex-group .marker-vertex,
+.joint-link .marker-vertex-group .marker-vertex:hover {
+    fill: #337ab7;
+}
+
+.joint-link .marker-arrowheads .marker-arrowhead:hover {
+    fill: #3d9de4;
+}
+
+[pyro-remove-disbaled] .link-tool .tool-remove circle {
+    fill: none;
+    opacity: 0;
+    display: none;
+}
+[pyro-remove-disbaled] .link-tool .tool-remove {
+    fill: none;
+    opacity: 0;
+    display: none;
+}
+div.dime-file-loader {
+  border: 8px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 8px solid #3498db;
+  width: 30px;
+  height: 30px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+}
+
+.grabbable {
+    cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+pyro-canvas .body-direct-input,
+pyro-canvas .body-direct-input textarea {
+  background: #fff !important;
+}
+
+.grid-stack .nav-tabs .nav-link.active {
+  color: #fff !important;
+}
+
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+/* overwrites so that the sidebar works as expected in micro mode */
+
+@media (min-width: 26em) and (max-width: 48em) {
+  .left-tabs.sideways-tabs {
+    left: -3.2rem !important;
+    align-content: start !important;
+  }
+
+  .sideways-tabs.left-tabs .nav-item {
+    transform: rotate(-90deg) !important;
+    height: 1rem !important;
+    margin-bottom: calc(8rem - 1rem) !important;
+  }
+}
+
+@media (max-width: 26em) {
+  .left-tabs.sideways-tabs {
+    left: -3.2rem !important;
+    align-content: start !important;
+  }
+
+  .sideways-tabs.left-tabs .nav-item {
+    transform: rotate(-90deg) !important;
+    height: 1rem !important;
+    margin-bottom: calc(8rem - 1rem) !important;
+  }
+}

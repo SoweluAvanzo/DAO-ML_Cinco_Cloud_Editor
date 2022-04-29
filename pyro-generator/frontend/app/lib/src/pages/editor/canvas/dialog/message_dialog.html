@@ -1,0 +1,20 @@
+<div class="modal show d-block fade in" tabindex="-1" role="dialog" aria-labelledby="messageDialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="border-radius: 0;" [style.background-color]="getDialogClass()" >
+            	<h4 class="modal-title" id="messageDialog">{{title}}</h4>
+                <button (click)="closeDialog($event)" type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <p>{{message}}</p>
+                <p *ngIf="timeLeft>=0"><small>This window automatically closes in {{timeLeft}} seconds.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button
+                        *ngFor="let btn of buttons"
+                        (click)="clickButton(btn,$event)" type="button" class="btn btn-primary">{{btn}}</button>
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" (click)="closeDialog($event)">{{closeLabel}}</button>
+            </div>
+        </div>
+    </div>
+</div>
