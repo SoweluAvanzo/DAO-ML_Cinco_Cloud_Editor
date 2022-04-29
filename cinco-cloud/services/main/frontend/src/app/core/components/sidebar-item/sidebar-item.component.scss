@@ -1,0 +1,22 @@
+@import "~src/assets/scss/bootstrap";
+
+.sidebar-item {
+  color: $gray-300;
+  text-decoration: none;
+  transition: background .2s ease-in-out, color .2s ease-in-out, border-left-color .2s ease-in-out;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+
+  &:hover, &.active {
+    color: $white;
+    background: rgba(0,0,0,0.2);
+  }
+
+  &:hover {
+    border-left-color: $white;
+  }
+
+  &.active {
+    border-left-color: $primary;
+  }
+}

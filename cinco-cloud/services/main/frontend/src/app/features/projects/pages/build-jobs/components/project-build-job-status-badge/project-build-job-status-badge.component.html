@@ -1,0 +1,34 @@
+<div class="d-inline-block">
+  <span class="badge p-2 bg-success" *ngIf="job.status == 'FINISHED_WITH_SUCCESS'">
+    <fa-icon
+      [icon]="['fas', 'check']"
+      [fixedWidth]="true"
+      class="d-inline-block me-2"
+    ></fa-icon> Success
+  </span>
+  <span class="badge p-2 bg-danger" *ngIf="job.status == 'FINISHED_WITH_FAILURE'">
+    <fa-icon
+      [icon]="['fas', 'times']"
+      [fixedWidth]="true"
+      class="d-inline-block me-2"></fa-icon> Failed
+  </span>
+  <span class="badge p-2 bg-danger" *ngIf="job.status == 'ABORTED'">
+    <fa-icon
+      [icon]="['fas', 'times']"
+      [fixedWidth]="true"
+      class="d-inline-block me-2"></fa-icon> Aborted
+  </span>
+  <span class="badge p-2 bg-light" *ngIf="job.status == 'PENDING'">
+    <fa-icon
+      [icon]="['fas', 'pause']"
+      [fixedWidth]="true"
+      class="d-inline-block me-2"></fa-icon> Pending
+  </span>
+  <span class="badge p-2 bg-info" *ngIf="job.status == 'BUILDING'">
+    <fa-icon
+      [icon]="['fas', 'circle-notch']"
+      [fixedWidth]="true"
+      [spin]="true"
+      class="d-inline-block me-2"></fa-icon> Building
+  </span>
+</div>

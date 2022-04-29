@@ -1,0 +1,61 @@
+<cc-user-navbar></cc-user-navbar>
+
+<div class="container">
+  <div class="mt-3 mx-auto" style="width: 300px;">
+    <img class="d-block w-100 rounded-2 mb-3" src="assets/img/cinco-logo.png">
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form (ngSubmit)="login()" [formGroup]="loginForm" class="d-flex flex-column gap-3 mb-3">
+          <div>
+            <label class="form-label" for="email">Email address</label>
+            <input
+              class="form-control"
+              formControlName="email"
+              [class.is-invalid]="!(loginForm.get('email') | validateFormInput)"
+              id="email"
+              placeholder="Enter your email address"
+              type="email">
+            <cc-validation-error-message
+              [form]="loginForm.get('email')"
+              [name]="'Email'">
+            </cc-validation-error-message>
+          </div>
+          <div>
+            <label class="form-label" for="password">Password</label>
+            <input
+              class="form-control"
+              formControlName="password"
+              [class.is-invalid]="!(loginForm.get('password') | validateFormInput)"
+              id="password"
+              placeholder="Enter your password"
+              type="password">
+            <cc-validation-error-message
+              [form]="loginForm.get('password')"
+              [name]="'Password'">
+            </cc-validation-error-message>
+          </div>
+          <button
+            [disabled]="loginForm.invalid"
+            class="btn-primary btn d-block"
+            type="submit"
+          >
+            Login
+          </button>
+        </form>
+
+        <div *ngIf="canRegister">
+          <hr>
+          <p class="m-0 text-center text-muted">
+            <small>
+              Do not have an account yet?
+              <a class="text-white" routerLink="/register">Create one!</a>
+            </small>
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+

@@ -1,0 +1,13 @@
+@import "~src/assets/scss/bootstrap";
+
+.editor-widget {
+  background: $primary;
+  color: $white;
+  text-decoration: none;
+  transition: background .2s ease-in-out;
+
+  &:hover {
+    color: $white;
+    background: darken($primary, 10);
+  }
+}

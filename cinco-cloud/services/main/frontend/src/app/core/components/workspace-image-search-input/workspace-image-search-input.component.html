@@ -1,0 +1,27 @@
+<div class="search-container">
+  <div class="form-group">
+    <form (submit)="$event.preventDefault()" [formGroup]="form">
+      <input
+        formControlName="input"
+        class="form-control"
+        id="search-term"
+        placeholder="Search for an image"
+        type="text"
+      >
+    </form>
+  </div>
+  <div class="list-group result-list overflow-auto" *ngIf="results.length > 0" style="max-height: 320px">
+    <div
+      class="list-group-item d-flex flex-row align-items-center cursor-pointer"
+      *ngFor="let image of results"
+      (click)="handleSelect(image)"
+    >
+      <div class="w-100 flex-grow-1">
+        <span>{{image.fullyQualifiedName}}</span>
+      </div>
+      <div>
+        <span class="badge bg-dark">{{image.imageVersion}}</span>
+      </div>
+    </div>
+  </div>
+</div>

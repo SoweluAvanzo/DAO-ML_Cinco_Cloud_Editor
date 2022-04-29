@@ -1,0 +1,18 @@
+@import "~src/assets/scss/bootstrap";
+
+.option {
+  border: 1px solid #cfcfcf;
+
+  &:hover {
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  &.active {
+    border: 1px solid $primary;
+    box-shadow: 0 0.125rem 0.25rem rgb(29, 120, 253, .2);
+
+    h6 {
+      color: $primary;
+    }
+  }
+}

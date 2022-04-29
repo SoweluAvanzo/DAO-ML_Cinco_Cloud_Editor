@@ -1,0 +1,46 @@
+<form [formGroup]="form" (ngSubmit)="update()">
+  <div class="card">
+    <div class="card-header">
+      <h6 class="m-0">Update the organization</h6>
+    </div>
+    <div class="card-body">
+      <div class="mb-3" *ngIf="logoReference != null">
+        <div class="logo rounded-3 d-flex" [ngStyle]="logoStyle" (click)="logoReference = null">
+          <div class="rounded-3">
+            <fa-icon [icon]="['fas', 'trash']"></fa-icon>
+          </div>
+        </div>
+        <hr>
+      </div>
+      <div class="mb-3">
+        <label>Name</label>
+        <input
+          class="form-control"
+          [class.is-invalid]="!(form.get('name') | validateFormInput)"
+          type="text"
+          placeholder="Enter the name for the organization"
+          formControlName="name">
+        <cc-validation-error-message
+          [form]="form.get('name')"
+          [name]="'Name'">
+        </cc-validation-error-message>
+      </div>
+      <div class="mb-3">
+        <label>Description</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          placeholder="Enter a description for the organization"
+          formControlName="description">
+        </textarea>
+      </div>
+      <div>
+        <label class="mb-1">Logo</label>
+        <cc-file-input #input (selectFile)="handleFileSelect($event)" (clear)="handleClear()"></cc-file-input>
+      </div>
+    </div>
+    <div class="card-footer text-end">
+      <button class="btn btn-sm btn-primary" [disabled]="form.invalid">Save</button>
+    </div>
+  </div>
+</form>

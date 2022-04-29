@@ -1,0 +1,62 @@
+<div class="container mt-3">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+          <tr>
+            <th style="width: 1px">#</th>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Permissions</th>
+            <th style="width: 1px">&nbsp;</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let user of organization?.allUsers">
+            <td>{{user.id}}</td>
+            <td>{{user.name}}</td>
+            <td>{{user.username}}</td>
+            <td>{{user.email}}</td>
+            <td>
+              <cc-organization-role-badge [organization]="organization" [user]="user"></cc-organization-role-badge>
+            </td>
+            <td>
+            <span
+              *ngFor="let arv of accessRightVectors.get(user.id)?.accessRights"
+              class="badge p-2 bg-dark me-1 mb-1 mb-md-0"
+            >
+              {{arv | normalizeEnumValue}}
+              <span
+                (click)="organizationStore.removeAccessRight(accessRightVectors.get(user.id), arv)"
+                class="cursor-pointer ms-1"
+              >
+                <fa-icon [icon]="['fas', 'times']"></fa-icon>
+              </span>
+            </span>
+            </td>
+            <td class="text-end">
+              <div class="d-inline-block ms-1" ngbDropdown container="body">
+                <button [disabled]="hasAllAccessRights(user)" class="btn btn-sm btn-dark no-caret px-2" ngbDropdownToggle>
+                  <fa-icon [icon]="['fas', 'plus']"></fa-icon>
+                </button>
+                <div ngbDropdownMenu>
+                  <button
+                    (click)="organizationStore.addAccessRight(accessRightVectors.get(user.id), arv)"
+                    *ngFor="let arv of getAssignableAccessRights(user)"
+                    ngbDropdownItem
+                  >
+                    {{ arv | normalizeEnumValue }}
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

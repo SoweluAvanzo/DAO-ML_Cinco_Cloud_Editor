@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workspace-builder-config
+  namespace: {{ .Values.namespace }}
+data:
+  AMPQ_HOST: "ampq-service"
+  AMPQ_PORT: "5672"
+  DOCKER_REGISTRY_HOST: "registry-service"
+  DOCKER_REGISTRY_PORT: "5000"
+  ARCHETYPE_REGISTRY_URL: "registry.gitlab.com"
+  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: "7bf5bbb92cee1004bc90dfd57a8b16fcb9c1a04d"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workspace-builder-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: workspace-builder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workspace-builder
+  template:
+    metadata:
+      labels:
+        app: workspace-builder
+    spec:
+      containers:
+        - name: workspace-builder
+          image: {{ .Values.workspaceBuilderImage }}
+          imagePullPolicy: {{ .Values.imageConfig.pullPolicy }}
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: workspace-builder-config
+          env:
+            - name: ARCHETYPE_REGISTRY_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-archetype-registry-credentials
+                  key: username
+            - name: ARCHETYPE_REGISTRY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-archetype-registry-credentials
+                  key: password
+            - name: AMPQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: artemisUser
+            - name: AMPQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: artemisPassword
+          securityContext:
+            privileged: true
+      imagePullSecrets:
+        - name: {{ .Values.registries.cincocloud.secret.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workspace-builder-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: workspace-builder
+spec:
+  ports:
+    - port: 8000
+      name: main
+      protocol: TCP
+  {{ if eq .Values.serverTier "local" }}
+  type: NodePort
+  {{- else -}}
+  type: ClusterIP
+  {{- end }}
+  selector:
+    app: workspace-builder

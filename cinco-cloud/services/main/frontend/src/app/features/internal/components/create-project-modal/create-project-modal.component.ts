@@ -1,0 +1,63 @@
+import { Component, Input } from '@angular/core';
+import { ProjectApiService } from '../../../../core/services/api/project-api.service';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { WorkspaceImage } from '../../../../core/models/workspace-image';
+import { Project } from '../../../../core/models/project';
+import { AppStoreService } from '../../../../core/services/stores/app-store.service';
+import { Organization } from '../../../../core/models/organization';
+import { ToastService, ToastType } from '../../../../core/services/toast.service';
+
+@Component({
+  selector: 'cc-create-project-modal',
+  templateUrl: './create-project-modal.component.html',
+  styleUrls: ['./create-project-modal.component.scss']
+})
+export class CreateProjectModalComponent {
+
+  @Input()
+  organization: Organization;
+
+  form = new FormGroup({
+    name: new FormControl('', [Validators.required]),
+    description: new FormControl('')
+  });
+
+  withProjectImage: boolean = false;
+  selectedProjectImage: WorkspaceImage;
+  errorMessage: string = null;
+
+  constructor(private projectApi: ProjectApiService,
+              private appStore: AppStoreService,
+              private toastService: ToastService,
+              public modal: NgbActiveModal) {
+  }
+
+  get canCreateProject(): boolean {
+    return this.withProjectImage
+      ? this.selectedProjectImage != null && this.form.valid
+      : this.form.valid;
+  }
+
+  createProject(): void {
+    this.errorMessage = null;
+    const newProject = new Project();
+    newProject.name = this.form.value.name;
+    newProject.description = this.form.value.description;
+    newProject.owner = this.appStore.getUser();
+    newProject.organization = this.organization;
+    if (this.withProjectImage && this.selectedProjectImage != null) {
+      newProject.template = this.selectedProjectImage;
+    }
+    this.projectApi.create(newProject).subscribe({
+      next: createdProject => {
+        this.toastService.show({
+          message: `The project "${createdProject.name}" has been created.`,
+          type: ToastType.SUCCESS
+        });
+        this.modal.close(createdProject);
+      },
+      error: () => this.errorMessage = 'The project could not be created'
+    });
+  }
+}

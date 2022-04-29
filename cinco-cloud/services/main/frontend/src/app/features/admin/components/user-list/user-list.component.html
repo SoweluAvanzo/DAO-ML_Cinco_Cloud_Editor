@@ -1,0 +1,36 @@
+<div class="card">
+  <div class="card-body">
+    <table *ngIf="users.length > 0" class="table">
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Roles</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{user.id}}</td>
+        <td>{{user.username}}</td>
+        <td>{{user.email}}</td>
+        <td>
+          <span *ngFor="let role of user.systemRoles" class="badge bg-dark rounded-pill">{{role}}</span>
+        </td>
+        <td class="text-end">
+          <div class="btn-group btn-group-sm">
+            <button
+              (click)="deleteUser(user)"
+              [ngbTooltip]="'Delete User'"
+              class="btn btn-dark"
+            >
+              <fa-icon [icon]="icons.trash"></fa-icon>
+            </button>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

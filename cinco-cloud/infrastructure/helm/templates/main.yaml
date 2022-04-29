@@ -1,0 +1,196 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: main-config
+  namespace: {{ .Values.namespace }}
+data:
+  DATABASE_URL: "postgres-service/cc"
+  AMPQ_HOST: "ampq-service"
+  AMPQ_PORT: "5672"
+  PODAN_REGISTRY_HOST: "registry-service"
+  PODAN_REGISTRY_PORT: "5000"
+  PODAN_REGISTRY_API_PORT: "8000"
+  KUBERNETES_NAMESPACE: {{ .Values.namespace }}
+  CINCO_CLOUD_HOST: {{ .Values.ingress.host }}
+  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: "7bf5bbb92cee1004bc90dfd57a8b16fcb9c1a04d"
+  {{ if eq .Values.serverTier "local" }}
+  CINCO_CLOUD_USE_SSL: "false"
+  {{- else -}}
+  CINCO_CLOUD_USE_SSL: "true"
+  {{- end }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: main-statefulset
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: main
+spec:
+  serviceName: main
+  replicas: 1
+  selector:
+    matchLabels:
+      app: main
+  template:
+    metadata:
+      labels:
+        app: main
+    spec:
+      serviceAccountName: main-sa
+      containers:
+        - name: main
+          image: {{ .Values.mainImage }}
+          imagePullPolicy: {{ .Values.imageConfig.pullPolicy }}
+          ports:
+            - containerPort: 8000
+            - containerPort: 9000
+            {{ if eq .Values.serverTier "local" }}
+            - containerPort: 4200
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: main-config
+          env:
+            - name: CINCO_CLOUD_PASSWORD_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: passwordSecret
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: databaseUser
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: databasePassword
+            - name: AMPQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: artemisUser
+            - name: AMPQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: artemisPassword
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: pv-data
+              mountPath: /app/data
+            - name: pv-data
+              mountPath: /app/uploads
+      volumes:
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: main-pv-claim
+      imagePullSecrets:
+        - name: {{ .Values.registries.cincocloud.secret.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: main
+spec:
+  ports:
+    - port: 8000
+      name: main
+      protocol: TCP
+    - port: 9000
+      name: main-grpc
+      protocol: TCP
+    {{ if eq .Values.serverTier "local" }}
+    - port: 4200
+      name: main-frontend
+      protocol: TCP
+    {{- end }}
+  {{ if eq .Values.serverTier "local" }}
+  type: NodePort
+  {{- else -}}
+  type: ClusterIP
+  {{- end }}
+  selector:
+    app: main
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: main-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "endpoints", "ingresses", "ingress", "deployments", "services", "configmaps", "statefulsets", "persistentvolumes", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
+  - apiGroups: [ "extensions" ]
+    resources: [ "deployments" ]
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "ingress"]
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: main
+  namespace: {{ .Values.namespace }}
+subjects:
+  - kind: ServiceAccount
+    namespace: {{ .Values.namespace }}
+    name: main-sa
+roleRef:
+  kind: ClusterRole
+  name: main-role
+  apiGroup: "rbac.authorization.k8s.io"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: main-sa
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: main-pv-volume
+  namespace: {{ .Values.namespace }}
+  labels:
+    type: local
+    app: main
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 20Gi
+  claimRef:
+    namespace: {{ .Values.namespace }}
+    name: main-pv-claim
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data/main"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: main-pv-claim
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: main
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi

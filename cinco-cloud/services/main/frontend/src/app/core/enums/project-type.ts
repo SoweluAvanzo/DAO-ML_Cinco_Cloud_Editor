@@ -1,0 +1,4 @@
+export enum ProjectType {
+  LANGUAGE_EDITOR = 'LANGUAGE_EDITOR',
+  MODEL_EDITOR = 'MODEL_EDITOR'
+}

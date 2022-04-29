@@ -1,0 +1,9 @@
+ingress:
+  host: ls5vs024.cs.tu-dortmund.de
+  class: public
+serverTier: production
+imageConfig:
+  pullPolicy: IfNotPresent
+namespace: default
+devMode: false
+useSsl: true

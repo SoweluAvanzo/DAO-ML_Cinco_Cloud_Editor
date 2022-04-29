@@ -1,0 +1,8 @@
+ingress:
+  host: cinco-cloud
+serverTier: local
+imageConfig:
+  pullPolicy: Never
+namespace: default
+devMode: true
+useSsl: false

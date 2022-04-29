@@ -1,0 +1,6 @@
+<span class="badge bg-dark rounded-pill">
+  <span *ngIf="project.owner.id === user.id; else member">Owner</span>
+  <ng-template #member>
+    <span>Member</span>
+  </ng-template>
+</span>

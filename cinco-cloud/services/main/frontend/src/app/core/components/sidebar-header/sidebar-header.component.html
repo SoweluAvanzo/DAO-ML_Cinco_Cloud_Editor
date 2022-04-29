@@ -1,0 +1,9 @@
+<div class="sidebar-header d-flex align-items-center p-2">
+  <div class="sidebar-header-image rounded-2 d-flex align-items-center justify-content-center" [ngStyle]="style">
+    <fa-icon [icon]="['fas', 'briefcase']" *ngIf="image == null"></fa-icon>
+  </div>
+  <div class="ms-3 sidebar-header-text">
+    <strong class="d-block truncate">{{ text }}</strong>
+    <small class="sidebar-header-sub-text text-muted" *ngIf="subText != null">{{ subText }}</small>
+  </div>
+</div>

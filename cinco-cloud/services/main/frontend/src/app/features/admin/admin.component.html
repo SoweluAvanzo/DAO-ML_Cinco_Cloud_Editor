@@ -1,0 +1,23 @@
+<div class="h-100 d-flex">
+  <div class="sidebar">
+    <cc-sidebar>
+      <ng-container items>
+        <cc-sidebar-item
+          [icon]="icons.users"
+          [route]="['/app', 'admin', 'users']"
+          text="Users"
+        >
+        </cc-sidebar-item>
+        <cc-sidebar-item
+          [icon]="icons.cogs"
+          [route]="['/app', 'admin', 'settings']"
+          text="Settings"
+        >
+        </cc-sidebar-item>
+      </ng-container>
+    </cc-sidebar>
+  </div>
+  <div class="page flex-grow-1 overflow-auto">
+    <router-outlet></router-outlet>
+  </div>
+</div>
