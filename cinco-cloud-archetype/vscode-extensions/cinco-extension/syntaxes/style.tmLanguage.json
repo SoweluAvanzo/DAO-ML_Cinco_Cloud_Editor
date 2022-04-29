@@ -1,0 +1,231 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "style",
+    "scopeName": "source.style",
+    "patterns": [
+        {
+            "include": "#root"
+        }
+    ],
+    "repository": {
+        "root": {
+            "patterns": [
+                {
+                    "include": "#comments"
+                },
+                {
+                    "include": "#strings"
+                },
+                {
+                    "include": "#colors"
+                },
+                {
+                    "include": "#keywords"
+                },
+                {
+                    "include": "#appearances"
+                },
+                {
+                    "include": "#styles"
+                },
+                {
+                    "include": "#properties"
+                }
+            ]
+        },
+        "appearances": {
+            "name": "appearance.style",
+            "begin": "\\b(\\s)*(appearance)(\\s)*\\b",
+            "end": "}",
+            "beginCaptures": {
+                "0": { "name": "keyword.control.style" }
+            },
+			"patterns": [
+                {
+                    "match": "{"
+                },
+                {
+                    "include": "#root"
+                }
+            ]
+        },
+        "styles": {
+            "name": "entityStyle.style",
+            "begin": "\\b(\\s)*(nodeStyle|edgeStyle)(\\s)*\\b",
+            "end": "}",
+            "beginCaptures": {
+                "0": { "name": "keyword.control.style" }
+            },
+			"patterns": [
+                {
+                    "match": "{"
+                },
+                {
+                    "include": "#structs"
+                },
+                {
+                    "include": "#root"
+                }
+            ]
+        },
+        "structs":{
+            "name": "entityStyle.style",
+            "begin": "\\b(\\s)*(ellipse|polygon|rectangle|roundedRectangle|decorator|text|multiText|polyline|image|appearance)(\\s)*\\b",
+            "end": "}",
+            "beginCaptures": {
+                "0": { "name": "keyword.other.style" }
+            },
+			"patterns": [
+                {
+                    "match": "{"
+                },
+                {
+                    "include": "#structs"
+                },
+                {
+                    "include": "#root"
+                }
+            ]
+        },
+        "keywords":{
+            "patterns":
+            [{
+                "name": "keyword.control.style",
+                "match": "\\b(\\s)*(extends)(\\s)*\\b"
+            }]
+        },
+        "properties":{
+            "patterns":[
+                {
+                    "include": "#structs"
+                },
+                {
+                    "include": "#appearanceProperties"
+                },
+                {
+                    "include": "#styleProperties"
+                },
+                {
+                    "include": "#connectionTypes"
+                },
+                {
+                    "include": "#constants"
+                },
+                {
+                    "include": "#booleanConstants"
+                }
+            ]
+        },
+        "appearanceProperties":{
+            "patterns":
+            [{
+                "name": "support.function.style",
+                "match": "\\b(\\s)*(background|foreground|font|lineStyle|lineWidth|transparency|filled|imagePath)(\\s)*\\b"
+            }]
+        },
+        "styleProperties":{
+            "patterns":
+            [{
+                "name": "support.function.style",
+                "match": "\\b(\\s)*(appearanceProvider|fixed|type|anchor|position|size|corner|value|path|points|location|fix|movable|transparency)(\\s)*\\b"
+            }]
+        },
+        "connectionTypes":{
+            "patterns":
+            [{
+                "name": "support.function.style",
+                "match": "\\b(\\s)*(freeform|manhatten|curved|composite)(\\s)*\\b"
+            }]
+        },
+        "constants":{
+            "patterns":
+            [{
+                "name": "support.function.style",
+                "match": "\\b(\\s)*(ARROW|BOLD|BOTTOM|CENTER|CIRCLE|DASH|DASHDOT|DASHDOTDOT|DIAMOND|DOT|ITALIC|LEFT|MIDDLE|RIGHT|SOLID|TOP|TRIANGLE)(\\s)*\\b"
+            }]
+        },
+        "booleanConstants":{
+            "patterns":
+            [{
+                "name": "support.function.style",
+                "match": "\\b(\\s)*(true|false)(\\s)*\\b"
+            }]
+        },
+        "colors": {
+            "patterns":
+            [{ 
+                "name": "constant.numeric.cpd",
+                "match": "\\((.)*\\)"
+            }]
+        },
+        "strings": {
+            "patterns":
+            [
+                { 
+                    "include": "#doubleQuotedString"
+                },
+                {
+                    "include": "#singleQuotedString"
+                }
+            ]
+        },
+        "doubleQuotedString": {
+			"name": "string.quoted.double",
+			"begin": "(\")",
+			"end": "(\")",
+			"patterns": [
+				{
+					"name": "constant.character.escape.bnf",
+					"match": "\\\\."
+				},
+                {
+                    "include": "#singleQuotedString"
+                }
+			]
+		},
+        "singleQuotedString": {
+			"name": "string.quoted.double",
+			"begin": "(')",
+			"end": "(')",
+			"patterns": [
+				{
+					"name": "constant.character.escape.bnf",
+					"match": "\\\\."
+				},
+                { 
+                    "include": "#doubleQuotedString"
+                }
+			]
+		},
+        "comments":{
+            "patterns":
+            [{ 
+                "include": "#commentBlock"
+            },{
+                "include": "#comment"
+            }]
+        },
+        "commentBlock": {
+            "begin": "\\/\\*",
+            "end": "\\*\\/",
+            "beginCaptures": {
+                "0": { "name": "comment.block" }
+            },
+            "endCaptures": {
+                "0": { "name": "comment.block" }
+            },
+            "patterns":
+            [{ 
+                "name": "comment.block",
+                "match": "."
+            }]
+        },
+        "comment": {
+            "patterns":
+            [{ 
+                "name": "comment.block",
+                "match": "\\/\\/(.)*"
+            }]
+        }
+    }
+}

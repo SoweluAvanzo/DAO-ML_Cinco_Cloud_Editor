@@ -1,0 +1,275 @@
+import { workbenchOutput } from "../extension";
+import path = require('path');
+
+/**
+ * This file is a repository of functions that could maybe be
+ * relevant in the future, but could also very well be deleted.
+ * 
+ * It consists of functions that were gathered in the process of
+ * the pg636.
+ */
+
+export function execShellCommand(cmd: string, args: string[], workingDirectory: string, onOut?: (process: any, response: string) => void, onEnd?: (process: any, response: string) => void) : Promise<any> {
+    const childProcess = require('child_process');
+    return new Promise<void>((resolve, reject) => {
+        console.log("executing: " + cmd + " | with: " + args + " | at: "+workingDirectory);
+        //console.log("PATH: "+process.env.PATH);
+        var child = childProcess.spawn(cmd, args, { cwd: workingDirectory, env: process.env });
+        var response: string = "";
+
+        // use 'child.stdin.write()' and 'child.stdin.end() for input
+        child.stdout.on('data', (buffer: any) => { 
+            if(buffer.toString() !== "")
+                console.log("["+cmd+"] received: "+buffer.toString());
+            response += buffer.toString();
+            if(onOut) {
+                onOut(child, buffer.toString());
+            } 
+        });
+        
+        // use 'child.stdin.write()' and 'child.stdin.end() for input
+        child.stdout.on('end', (_: any) => { 
+            if(onEnd) {
+                onEnd(child, response);
+            }
+        });
+        
+        child.stderr.on('data', (e: string) => { 
+            console.log(e.toString());
+        });
+
+        child.on('error', (e: string) => {
+            console.log("Process ["+cmd+"] closed with error ["+e+"]");
+            reject(e.toString());
+            throw e;
+        })
+
+        child.on('close', (code: string | number) => {
+            if(code !== 0) {
+                console.log("Process ["+cmd+"] closed with ["+code+"]");
+                reject(code);
+            } else
+                resolve();
+        });
+    });
+}
+
+export function whichExecShellCommand(cmd: string, args: string[], workingDirectory: string, onOut?: (process: any, response: string) => void, onEnd?: (process: any, response: string) => void) : Promise<any> {
+    const childProcess = require('child_process');
+    var which = require('which');
+    return new Promise<void>((resolve, reject) => {
+        console.log("executing: " + cmd + " | with: " + args + " | at: "+workingDirectory);
+        //console.log("PATH: "+process.env.PATH);
+        which(cmd, (_error: any, path: any)  => {
+            var child = childProcess.spawn(path, args, { cwd: workingDirectory, env: process.env });
+            var response: string = "";
+
+            // use 'child.stdin.write()' and 'child.stdin.end() for input
+            child.stdout.on('data', (buffer: any) => { 
+                if(buffer.toString() !== "")
+                    console.log("["+cmd+"] received: "+buffer.toString());
+                response += buffer.toString();
+                if(onOut) {
+                    onOut(child, buffer.toString());
+                } 
+            });
+            
+            // use 'child.stdin.write()' and 'child.stdin.end() for input
+            child.stdout.on('end', (_: any) => { 
+                if(onEnd) {
+                    onEnd(child, response);
+                }
+            });
+            
+            child.stderr.on('data', (e: string) => { 
+                console.log(e);
+            });
+
+            child.on('error', (e: string) => {
+                console.log("Process ["+cmd+"] closed with error ["+e+"]");
+                reject(e);
+                throw e;
+            })
+
+            child.on('close', (code: string | number) => {
+                if(code !== 0) {
+                    console.log("Process ["+cmd+"] closed with ["+code+"]");
+                    reject(code);
+                } else
+                    resolve();
+            });
+        });
+    });
+}
+
+export function download(targetPath: string, url: string, fileName: string ) {
+    const request = require('request');
+    const progress = require('request-progress');
+    const pre = '[downloading] ';
+    workbenchOutput.appendLine(pre+url);
+    
+    return new Promise<void>((resolve, reject) => {
+        const fs = require('fs');
+        createFolder(targetPath).then( () => {
+            const file = fs.createWriteStream(targetPath+path.sep+fileName);
+            var stream = progress( request( url ), {
+                throttle: 500
+            }).on( 'progress', function ( state: { percent: number; } ) {
+                //workbenchOutput.appendLine( pre + '' + ( Math.round( state.percent * 100 ) ) + "%" );
+            }).on( 'error', function ( err: string ) {
+                workbenchOutput.appendLine( 'error : ' + err );
+                workbenchOutput.show();
+                reject(err);
+            }).on( 'end', function () {
+                workbenchOutput.appendLine( pre + '100% Download Completed' );
+            }).pipe( file );
+            stream.on('finish', () => resolve());
+        })
+    });
+}
+
+export function createFolder(folderPath: string) {
+    const fs = require('original-fs');
+    return new Promise<void>((resolve, reject) => {
+            var e = fs.mkdirSync(folderPath, { recursive: true });
+            resolve();  
+        }
+    );
+}
+
+export function remove(fileSystemPath: string) {
+    return new Promise<void>((resolve, reject) => {
+        const rimraf = require("rimraf");
+        const fs = require("original-fs");
+        rimraf(fileSystemPath, fs, (err: any) => {
+            if(err) {
+                workbenchOutput.appendLine("error: "+err);
+                reject(err);
+            } else {
+                console.log("removed from fileSystem: "+fileSystemPath);
+                resolve();
+            }
+        })
+    });
+}
+
+export function getFileName(filePath: string) {
+    return filePath.substring(filePath.lastIndexOf(path.sep) + 1)
+}
+
+export function getFileLocation(filePath: string) {
+    return filePath.substring(0, filePath.lastIndexOf(path.sep))
+}
+
+export function getFileExtension(filePath: string) {
+    if(filePath.indexOf('.') > -1)
+        return filePath.substr(filePath.lastIndexOf('.') + 1);
+    return null;
+}
+
+export function copyAll(fromAbs: string, toAbs: string, excludeREs?: string[]) {
+    // is copying not needed?
+    if(fromAbs === toAbs)
+        return new Promise<void>( (resolve, _) => resolve());
+    // dependency check
+    var copyfiles = require('copyfiles');
+    
+    // resolve paths
+    var name = path.parse(fromAbs).name;
+    var to = path.relative(fromAbs, toAbs) + path.sep + name;
+    var toCopyString = "." + path.sep + "**" + path.sep + "*"; // "copy all"-string
+    var priorCwd = process.cwd();   // cache currentWorkingDirectory
+
+    return new Promise<void>((resolve, reject) => {
+        process.chdir(fromAbs); // set directory to copy from to currentWorkingDirectory
+        var toCopy= [ toCopyString, to];
+        if(!excludeREs || excludeREs === null)
+            excludeREs = [];
+        var options = { 
+            all: true, 
+            error: true, 
+            verbose: true, 
+            follow: true,
+            exclude: excludeREs
+        };
+        copyfiles(toCopy, options, (message: any) => {
+            console.log(message);
+            process.chdir(priorCwd);    // return to prior workingDirectory
+            resolve();
+        })
+    });
+}
+
+export function copy(from: string, to: string) {
+    return new Promise<void>((resolve, reject) => {
+        const fs = require('original-fs');
+        try {
+            copyFolderRecursiveSync(fs, from, to);
+        } catch(e) {
+            reject(e);
+        }
+        resolve();
+    });
+}
+
+function copyFolderRecursiveSync(fs: any, source: string, target: string) {
+    if(target === source) {
+        return;
+    }
+    var files = [];
+    //check if folder needs to be created or integrated
+    var targetFolder = path.join( target, path.basename( source ) );
+    createFolder(targetFolder).then( () => {
+        //copy
+        if ( fs.lstatSync( source ).isDirectory() ) {
+            files = fs.readdirSync( source );
+            files.forEach( function ( file ) {
+                var curSource = path.join( source, file );
+                if ( fs.lstatSync( curSource ).isDirectory() ) {
+                    copyFolderRecursiveSync(fs, curSource, targetFolder);
+                } else {
+                    copyFileSync(fs, curSource, targetFolder );
+                }
+            } );
+        }
+    });
+}
+
+function copyFileSync(fs: any, source: string, target: string) {
+    var targetFile = target;
+
+    //if target is a directory a new file with the same name will be created (overwrite)
+    if ( fs.existsSync( target ) ) {
+        if ( fs.lstatSync( target ).isDirectory() ) {
+            targetFile = path.join( target, path.basename( source ) );
+        }
+    }
+
+    fs.writeFileSync(targetFile, fs.readFileSync(source));
+}
+
+export function readFile(path: string) : string {
+    const fs = require('original-fs');
+    return fs.readFileSync(path)
+}
+
+export async function createWriteToFile(targetPath: string, fileName: string, content: string) {
+    await createFolder(targetPath);
+    return new Promise<string>((resolve, reject) => {
+        const fs = require('original-fs');
+        var targetFile = path.join(targetPath, fileName);
+        fs.writeFileSync(targetFile, content);
+        resolve(targetFile);
+    });
+}
+
+export function renameFolder(sourcePathAbs: string, targetPathAbs: string) {
+    return new Promise<string|void>( (resolve, reject) => {
+        const fs = require("fs");
+        fs.rename(sourcePathAbs, targetPathAbs, (err) => {
+            if(err)
+                reject(err);
+            resolve();
+        });
+    });
+}
