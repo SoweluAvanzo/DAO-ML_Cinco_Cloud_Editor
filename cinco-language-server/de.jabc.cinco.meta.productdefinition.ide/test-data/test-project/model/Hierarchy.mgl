@@ -1,0 +1,177 @@
+id info.scce.cinco.product.hierarchy
+stylePath "model/Empty.style"
+
+graphModel HierarchyA extends HierarchyB {
+	diagramExtension "hierarchyA"	
+	containableElements(ContA[0,2])
+	attr EString as ofA
+	attr TA as ta
+	attr TA as taList [0, *]
+}
+
+abstract graphModel HierarchyB extends HierarchyC {
+	diagramExtension "hierarchyB"	
+	containableElements(ContB[0,2])
+	attr EString as ofB
+	attr TB as tb
+	attr TB as tbList [0, *]
+}
+
+abstract graphModel HierarchyC extends HierarchyD {
+	diagramExtension "hierarchyC"
+	containableElements(ContC[0,2])
+	attr EString as ofC
+	attr TC as tc
+	attr TC as tcList [0, *]
+}
+
+graphModel HierarchyD {
+	diagramExtension "hierarchyD"
+	containableElements(ContD[0,2])
+	attr EString as ofD
+	attr TD as td
+	attr TD as tdList [0, *]
+}
+
+/*
+ * WILDCARD-AND-ABSTRACT-EDGE-CASES
+ */
+
+node NodeAbstractEdgeB extends A {
+	style blueTextRectangle("${ofB}")
+	outgoingEdges (EdgeB[1,*])
+	incomingEdges (EdgeB[1,*])
+}
+
+node NodeAbstractEdgeC extends A {
+	style blueTextRectangle("${ofC}")
+	outgoingEdges (EdgeC[1,*])
+	incomingEdges (EdgeC[1,*])
+}
+
+node NodeWildcardEdge extends A {
+	style blueTextRectangle("${ofC}")
+	outgoingEdges (*[0,*])
+	incomingEdges (*[0,*])
+}
+
+container WildcardCont extends Cont {
+	style swimlane("${ofContA}")
+	containableElements(*[0,*])
+}
+
+/*
+ * Node-Chain
+ */
+
+node A extends B {
+	style blueTextRectangle("${ofD}")
+	attr EString as ofA
+	attr TA as ta
+	attr TA as taList [0, *]
+	outgoingEdges (EdgeA[1,*])
+	incomingEdges (EdgeA[1,*])
+}
+
+abstract node B extends C {
+	attr EString as ofB
+	attr TB as tb
+	attr TB as tbList [0, *]
+	outgoingEdges (EdgeB[1,*])
+	incomingEdges (EdgeB[1,*])
+}
+
+abstract node C extends D {
+	attr EString as ofC
+	attr TC as tc
+	attr TC as tcList [0, *]
+	outgoingEdges (EdgeC[1,*])
+	incomingEdges (EdgeC[1,*])
+}
+
+node D {
+	style blueTextRectangle("${ofD}")
+	attr EString as ofD
+	attr TD as td
+	attr TD as tdList [0, *]
+	outgoingEdges (EdgeD[1,*])
+	incomingEdges (EdgeD[1,*])
+}
+
+container Cont extends ContA {
+	style swimlane("${ofContA}")
+	containableElements(A[0,1], B[0,2], C[0,3], D[0,4]) // TODO: SAMI: explicitly one A allowed. Chain condition.
+	attr EString as ofCont
+}
+
+container ContA extends ContB {
+	style swimlane("${ofContD}")
+	containableElements(A[0,2])
+	attr EString as ofContA
+	attr TA as ta
+	attr TA as taList [0, *]
+}
+
+abstract container ContB extends ContC {
+	containableElements(B[0,2])
+	attr EString as ofContB
+	attr TB as tb
+	attr TB as tbList [0, *]
+}
+
+abstract container ContC extends ContD {
+	containableElements(C[0,2])
+	attr EString as ofContC
+	attr TC as tc
+	attr TC as tcList [0, *]
+}
+
+container ContD {
+	style swimlane("${ofContD}")
+	containableElements(D[0,2])
+	attr EString as ofContD
+	attr TD as td
+	attr TD as tdList [0, *]
+}
+
+edge EdgeA extends EdgeB {
+	style labeledArrow("${ofD}")
+	attr EString as ofA
+	attr TA as ta
+	attr TA as taList [0, *]
+}
+
+abstract edge EdgeB extends EdgeC {
+	attr EString as ofB
+	attr TB as tb
+	attr TB as tbList [0, *]
+}
+
+abstract edge EdgeC extends EdgeD{
+	attr EString as ofC
+	attr TC as tc
+	attr TC as tcList [0, *]
+}
+
+edge EdgeD {
+	style labeledArrow("${ofD}")
+	attr EString as ofD
+	attr TD as td
+	attr TD as tdList [0, *]
+}
+
+type TA extends TB {
+	attr EString as ofTA
+}
+
+abstract type TB extends TC {
+	attr EString as ofTB
+}
+
+abstract type TC extends TD {
+	attr EString as ofTC
+}
+
+type TD {
+	attr EString as ofTD
+}

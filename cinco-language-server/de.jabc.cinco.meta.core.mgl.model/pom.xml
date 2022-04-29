@@ -1,0 +1,137 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<!-- 
+		TODO:SAMI:
+		- this file has changed
+			- packaging to jar
+			- changed parent-version
+			- changed tycho phase of executions to clean
+			- maven-clean-plugin, version removed
+			- added dependencies
+		- the GraphModel.ecore changed:
+			- IdentifiableElement.transact
+			- NodeImpl.getOutgoing
+			- NodeImpl.getIncoming
+		- Manifest.MF: org.eclipse.emf.transaction;resolution:=optional
+	-->
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<relativePath>../pom.xml</relativePath>
+		<groupId>de.jabc.cinco</groupId>
+		<artifactId>de.jabc.cinco.meta.parent</artifactId>
+		<version>2.1.0-SNAPSHOT</version> <!-- TODO:SAMI: changed -->
+	</parent>
+	<artifactId>de.jabc.cinco.meta.core.mgl.model</artifactId>
+	<packaging>jar</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho.extras</groupId>
+				<artifactId>tycho-eclipserun-plugin</artifactId>
+				<version>${tycho.version}</version>
+				<configuration>
+					<dependencies>
+						<dependency>
+							<artifactId>org.eclipse.emf.codegen.ecore</artifactId>
+							<type>eclipse-plugin</type>
+						</dependency>
+					</dependencies>
+					<repositories>
+						<repository>
+							<id>photon</id>
+							<layout>p2</layout>
+							<url>${photon-repo.url}</url>
+						</repository>
+					</repositories>
+				</configuration>
+				<executions>
+					<execution>
+						<id>graphModel</id>
+						<goals>
+							<goal>eclipse-run</goal>
+						</goals>
+						<phase>generate-sources</phase>
+						<configuration>
+							<!-- linebreaks not permitted in this arg line -->
+								<!--<appArgLine>-data ${project.basedir}/../workspace-emf-tmp/ -application org.eclipse.emf.codegen.ecore.Generator -projects ${project.basedir} -model ${project.basedir}/model/GraphModel.genmodel ${project.basedir}/ -consolelog -debug</appArgLine>-->
+								<!--<appArgLine>-application org.eclipse.emf.codegen.ecore.Generator -projects ${project.basedir} -model ${project.basedir}/model/GraphModel.genmodel ${project.basedir}/ -consolelog -debug</appArgLine>-->
+							<!--<work>/data ${project.basedir}/../workspace-emf-tmp</work>-->
+							<applicationsArgs>
+								<args>-data ${project.basedir}/../workspace-emf-tmp</args>
+								<args>-application org.eclipse.emf.codegen.ecore.Generator</args>
+								<args>-projects ${project.basedir}</args>
+								<args>-model ${project.basedir}/model/GraphModel.genmodel ${project.basedir}/</args>
+								<args>-consolelog</args>
+								<args>-debug</args>
+								<args>-clean</args>
+							</applicationsArgs>								
+						</configuration>
+					</execution>
+					<execution>
+						<id>mgl</id>
+						<goals>
+							<goal>eclipse-run</goal>
+						</goals>
+						<phase>generate-sources</phase>
+						<configuration>
+							<!-- linebreaks not permitted in this arg line -->
+							<appArgLine>-data ${project.basedir}/../workspace-emf-tmp -application org.eclipse.emf.codegen.ecore.Generator -projects ${project.basedir} -model ${project.basedir}/model/MGL.genmodel ${project.basedir}/</appArgLine>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>${build-helper.version}</version>
+				<executions>
+					<execution>
+						<id>add-src</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.basedir}/src-gen</source>
+								<source>${project.basedir}/src</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<!-- <version>2.5</version> -->
+				<configuration>
+					<filesets combine.children="append">
+						<fileset>
+							<directory>${project.basedir}/src-gen/</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+						<fileset>
+							<directory>${project.basedir}/xtend-gen/</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies><!-- TODO:SAMI: added -->
+      <dependency>
+        <groupId>org.eclipse.emf</groupId>
+        <artifactId>org.eclipse.emf.ecore</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.emf</groupId>
+        <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+      </dependency>
+	</dependencies>
+</project> 

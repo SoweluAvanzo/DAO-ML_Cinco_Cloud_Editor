@@ -1,0 +1,51 @@
+.default-job:
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+
+.maven-job:
+  extends: .default-job
+  image: maven:3.8.1-jdk-11
+  cache:
+    paths:
+      - .m2/repository
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+.dart-job:
+  extends: .default-job
+  image: google/dart:2.4.1
+  cache:
+    paths:
+      - /root/.pub-cache
+    
+install:
+  extends: .maven-job
+  cache:
+    paths:
+      - ./de.jabc.cinco.meta.plugin.pyro.generator
+  script:
+    - mvn clean install
+  artifacts:
+    expire_in: 1 days
+    paths:
+      - ./de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/*
+
+test-compile-frontend:
+  extends: .dart-job
+  needs:
+    - install
+  script:
+    - cd ./de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/webapp
+    - pub global activate webdev && pub get && /root/.pub-cache/bin/webdev build
+
+test-compile-backend:
+  extends: .maven-job
+  needs:
+    - install
+  script:
+    - cd ./de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/app
+    - mvn clean package -DskipTests
+
