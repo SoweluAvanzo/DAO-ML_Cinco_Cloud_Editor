@@ -1,3 +1,0 @@
-[submodule "pyro-generator"]
-	path = de.jabc.cinco.meta.plugin.pyro.generator
-	url = ../pyro-generator.git

@@ -297,7 +297,6 @@ archetype-build:
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
     IMAGE: archetype
     VERSION: latest
-    GIT_SUBMODULE_STRATEGY: recursive
 
 archetype-push:
   extends:
@@ -321,7 +320,6 @@ archetype-build-dev:
     DOCKERFILE: ./Dockerfile
     IMAGE: archetype
     VERSION: dev
-    GIT_SUBMODULE_STRATEGY: recursive
 
 archetype-push-dev:
   extends:
@@ -340,8 +338,6 @@ archetype-push-dev:
 # ====================================
 
 .cinco-ls-default-job:
-  variables:
-    GIT_SUBMODULE_STRATEGY: normal
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:

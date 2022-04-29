@@ -1,3 +1,0 @@
-[submodule "cinco-language-server"]
-	path = cinco-ls
-	url = ../cinco-language-server.git
