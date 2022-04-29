@@ -125,7 +125,7 @@ Install one of them.
 Use one of the following profiles in conjunction with `skaffold dev -p <profile>`.
 
 | No | Name             | SSL   | Hot reload | Frontend URL | API URL |
-|----|------------------|-------|------------|------------------------|
+|----|------------------|-------|------------|--------------|---------|
 | 1  | `local-dev`      | *no*  | *yes*      | `/frontend`  | `/`     |
 | 2  | `local-prod`     | *no*  | *no*       | `/`          | `/`     |
 | 3  | `local-prod-ssl` | *yes* | *no*       | `/`          | `/`     |
