@@ -150,6 +150,6 @@ If you want to simulate a production build on your local machine use 2 or 3.
 [skaffold]: https://skaffold.dev/
 [minikube]: https://minikube.sigs.k8s.io/
 [docker-secret]: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-[cinco-cloud-repository]: https://gitlab.com/scce/cinco-cloud-mono
+[cinco-cloud-repository]: https://gitlab.com/scce/cinco-cloud
 [kubectl]: https://kubernetes.io/docs/reference/kubectl/overview/
 [cert-manager]: https://cert-manager.io/docs/installation/helm/#

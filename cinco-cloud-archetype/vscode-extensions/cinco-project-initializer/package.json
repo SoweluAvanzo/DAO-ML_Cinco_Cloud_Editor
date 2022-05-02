@@ -1,12 +1,12 @@
 {
 	"name": "cinco-project-initializer",
 	"displayName": "Cinco Project Initializer",
-	"description": "This extension registeres commands to create a predefined example project into the workspace.",
+	"description": "This extension registers commands to create a predefined example project into the workspace.",
 	"author": "ls5",
 	"license": "MIT",
 	"version": "0.0.1",
 	"publisher": "ls5",
-	"repository": "https://gitlab.com/scce/cinco-cloud-mono",
+	"repository": "https://gitlab.com/scce/cinco-cloud",
 	"categories": [
 		"Other"
 	],

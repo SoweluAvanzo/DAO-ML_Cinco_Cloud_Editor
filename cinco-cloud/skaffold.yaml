@@ -7,9 +7,9 @@ deploy:
     releases:
       - name: release
         artifactOverrides:
-          mainImage: registry.gitlab.com/scce/cinco-cloud-mono/main
-          registryImage: registry.gitlab.com/scce/cinco-cloud-mono/registry
-          workspaceBuilderImage: registry.gitlab.com/scce/cinco-cloud-mono/workspace-builder
+          mainImage: registry.gitlab.com/scce/cinco-cloud/main
+          registryImage: registry.gitlab.com/scce/cinco-cloud/registry
+          workspaceBuilderImage: registry.gitlab.com/scce/cinco-cloud/workspace-builder
         chartPath: ./infrastructure/helm
         valuesFiles:
           - ./infrastructure/helm/values.yaml
@@ -20,18 +20,18 @@ build:
   local:
     useBuildkit: true
   artifacts:
-    - image: registry.gitlab.com/scce/cinco-cloud-mono/main
+    - image: registry.gitlab.com/scce/cinco-cloud/main
       context: ./services
       docker:
         dockerfile: ./main/Dockerfile
       sync:
         infer:
           - '**/*.{ts,html,scss,css,png,jpg,jpeg}'
-    - image: registry.gitlab.com/scce/cinco-cloud-mono/registry
+    - image: registry.gitlab.com/scce/cinco-cloud/registry
       context: ./services/registry
       docker:
         dockerfile: Dockerfile
-    - image: registry.gitlab.com/scce/cinco-cloud-mono/workspace-builder
+    - image: registry.gitlab.com/scce/cinco-cloud/workspace-builder
       context: ./services
       docker:
         dockerfile: ./workspace-builder/Dockerfile

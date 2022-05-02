@@ -1,7 +1,7 @@
 # base values file
 registries:
   cincocloud:
-    base: registry.gitlab.com/scce/cinco-cloud-mono
+    base: registry.gitlab.com/scce/cinco-cloud
     secret:
       name: cinco-cloud-registry-secret
 certManager:

@@ -50,7 +50,7 @@ module.exports = {
       },
       {
         text: 'CincoCloud@GitLab',
-        link: 'https://gitlab.com/scce/cinco-cloud-mono'
+        link: 'https://gitlab.com/scce/cinco-cloud'
       }
     ],
     sidebar: [

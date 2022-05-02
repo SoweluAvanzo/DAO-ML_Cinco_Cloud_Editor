@@ -42,7 +42,7 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
    * <p>
    * apiVersion: apps/v1 kind: StatefulSet metadata: name: {name}-statefulset namespace: default labels: app: {name}
    * spec: serviceName: {name} replicas: 1 selector: matchLabels: app: {name} template: metadata: labels: app: {name}
-   * spec: containers: - name: {name} image: registry.gitlab.com/scce/cinco-cloud-mono/archetype:{archetypeImageTag}
+   * spec: containers: - name: {name} image: registry.gitlab.com/scce/cinco-cloud/archetype:{archetypeImageTag}
    * imagePullPolicy: IfNotPresent ports: - containerPort: 3000 volumeMounts: - name: pv-data mountPath: /var/lib/{name}
    * volumes: - name: pv-data persistentVolumeClaim: claimName: {name}-pv-claim imagePullSecrets: - name:
    * gitlab-registry-secret
@@ -70,7 +70,7 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                 .withSpec(new PodSpecBuilder()
                     .withContainers(new ContainerBuilder()
                         .withName(getProjectName())
-                        .withImage("registry.gitlab.com/scce/cinco-cloud-mono/archetype:" + archetypeImageTag)
+                        .withImage("registry.gitlab.com/scce/cinco-cloud/archetype:" + archetypeImageTag)
                         .withImagePullPolicy("IfNotPresent")
                         .withPorts(new ContainerPortBuilder()
                             .withContainerPort(3000)
