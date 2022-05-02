@@ -57,7 +57,7 @@ cache:
         - cinco-cloud/**/*
 
 .cinco-cloud-maven-job:
-  image: maven:latest
+  image: maven:3.8.1-jdk-11
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
@@ -177,7 +177,7 @@ cinco-cloud-build-workspace-builder:
     - cinco-cloud-install-workspace-builder-backend
   variables:
     CONTEXT: ./cinco-cloud/services
-    DOCKERFILE: ../cinco-cloud/services/workspace-builder/Dockerfile
+    DOCKERFILE: ./cinco-cloud/services/workspace-builder/Dockerfile
     IMAGE: workspace-builder
     VERSION: latest
 
