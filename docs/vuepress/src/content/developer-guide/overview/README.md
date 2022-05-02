@@ -13,7 +13,7 @@ The *Cinco-Cloud repository* contains the *main-app*, which orchestrates the ima
 [**Cinco Cloud Archetype**](https://gitlab.com/scce/cinco-cloud-archetype):
 The *Cinco-Cloud Archetype repository* holds the sources for the static editor, which is based on *Eclipse Theia*, including all *theia and visual-studio-code* based *extensions*.
 One of these extensions can execute the *Cinco Language Server*, thus the project also contains the *Cinco Language Server*-repository as a submodule.
-Since this repository represents the most basic deployable Editor for a Cinco-Cloud project, it is continuously built to a docker-image via a CICD pipeline and put into a docker registry (registry.gitlab.com/scce/cinco-cloud-archetype/archetype:latest).
+Since this repository represents the most basic deployable Editor for a Cinco-Cloud project, it is continuously built to a docker-image via a CICD pipeline and put into a docker registry (registry.gitlab.com/scce/cinco-cloud-mono/archetype:latest).
 This image will be reused and further expressed for new *Cinco Cloud projects*.
 
 [**Cinco Language Server**](https://gitlab.com/scce/cinco-language-server):

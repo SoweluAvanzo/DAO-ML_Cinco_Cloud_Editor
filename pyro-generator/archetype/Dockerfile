@@ -23,7 +23,7 @@ RUN /pyro-server/compileBackend.sh
 
 # STEP 2: integrate
 # --------------------------------
-FROM registry.gitlab.com/scce/cinco-cloud-archetype/archetype:${ARCHETYPE_IMAGE_TAG} as cinco-cloud-archetype
+FROM registry.gitlab.com/scce/cinco-cloud-mono/archetype:${ARCHETYPE_IMAGE_TAG} as cinco-cloud-archetype
 # set baseHref path for static resources of frontend
 ENV PYRO_SUBPATH=/
 ENV WORKSPACE_PATH=/editor/workspace
