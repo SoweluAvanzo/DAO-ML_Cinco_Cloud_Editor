@@ -235,19 +235,29 @@ deploy-testing:
 # Cinco Cloud Archetype
 # ====================================
 
+.archetype-job:
+  before_script:
+    - rm cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
+    - cp -r pyro-generator cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
+    - rm cinco-cloud-archetype/cinco-ls
+    - cp -r cinco-language-server cinco-cloud-archetype/cinco-ls
+
 .archetype-default-job-main:
+  extends: .archetype-job
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       changes:
         - cinco-cloud-archetype/**/*
 
 .archetype-default-job-main-or-mr:
+  extends: .archetype-job
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:
         - cinco-cloud-archetype/**/*
 
 .archetype-default-job-feature:
+  extends: .archetype-job
   rules:
     - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
       changes:
@@ -342,6 +352,9 @@ archetype-push-dev:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:
         - cinco-language-server/**/*
+  before_script:
+    - rm cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
+    - cp -r pyro-generator cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
 
 .cinco-ls-maven-job:
   image: maven:3.8.1-jdk-11
