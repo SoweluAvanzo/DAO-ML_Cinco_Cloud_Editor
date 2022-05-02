@@ -106,7 +106,7 @@ cinco-cloud-lint-main-backend:
     - .cinco-cloud-maven-job
   script:
     - cd ./cinco-cloud/services/main/backend
-    - mvn checkstyle:check
+    - ./mvnw checkstyle:check
 
 cinco-cloud-install-main-backend:
   extends:
@@ -116,7 +116,7 @@ cinco-cloud-install-main-backend:
     - cinco-cloud-lint-main-backend
   script:
     - cd ./cinco-cloud/services/main/backend
-    - mvn install -DskipTests
+    - ./mvnw install -DskipTests
 
 cinco-cloud-test-main-backend:
   extends:
@@ -126,7 +126,7 @@ cinco-cloud-test-main-backend:
     - cinco-cloud-install-main-backend
   script:
     - cd ./cinco-cloud/services/main/backend
-    - mvn test
+    - ./mvnw test
 
 cinco-cloud-build-main:
   extends:
