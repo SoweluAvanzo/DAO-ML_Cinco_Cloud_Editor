@@ -7,7 +7,7 @@
     "name": "Alexander Bainczyk",
     "email": "alexander.bainczyk@tu-dortmund.de"
   },
-  "repository": "https://gitlab.com/scce/cinco-cloud/cinco-cloud-docs",
+  "repository": "https://gitlab.com/scce/cinco-cloud-mono",
   "scripts": {
     "dev": "vuepress dev src",
     "build": "vuepress build src"

@@ -1,28 +1,28 @@
 # Overview
 
-## Repositories
+## Directories
 
-There are several repositories involved in the concept of Cinco Cloud.
-Here you see a quick overview of all the repositories and their relations:
+There are several projects involved in the concept of Cinco Cloud that can be found in the repository.
+Here you see a quick overview of all the directories and their relations:
 
 ![Cinco Cloud Repositories](./assets/repository-overview.png)
 
-[**Cinco Cloud**](https://gitlab.com/scce/cinco-cloud):
-The *Cinco-Cloud repository* contains the *main-app*, which orchestrates the image deployment of editors and functions as central administration instances for the user- and project management.
+[**Cinco Cloud**](https://gitlab.com/scce/cinco-cloud-mono/-/tree/main/cinco-cloud):
+The *cinco-cloud* directory contains the *main-app*, which orchestrates the image deployment of editors and functions as central administration instances for the user- and project management.
 
-[**Cinco Cloud Archetype**](https://gitlab.com/scce/cinco-cloud-archetype):
-The *Cinco-Cloud Archetype repository* holds the sources for the static editor, which is based on *Eclipse Theia*, including all *theia and visual-studio-code* based *extensions*.
-One of these extensions can execute the *Cinco Language Server*, thus the project also contains the *Cinco Language Server*-repository as a submodule.
-Since this repository represents the most basic deployable Editor for a Cinco-Cloud project, it is continuously built to a docker-image via a CICD pipeline and put into a docker registry (registry.gitlab.com/scce/cinco-cloud-mono/archetype:latest).
+[**Cinco Cloud Archetype**](https://gitlab.com/scce/cinco-cloud-mono/-/tree/main/cinco-cloud-archetype):
+The *cinco-cloud-archetype* directory holds the sources for the static editor, which is based on *Eclipse Theia*, including all *theia and visual-studio-code* based *extensions*.
+One of these extensions can execute the *Cinco Language Server*, thus the project also contains the *Cinco Language Server*-project as a sub-directory.
+Since this directory represents the most basic deployable Editor for a Cinco-Cloud project, it is continuously built to a docker-image via a CICD pipeline and put into a docker registry (registry.gitlab.com/scce/cinco-cloud-mono/archetype:latest).
 This image will be reused and further expressed for new *Cinco Cloud projects*.
 
-[**Cinco Language Server**](https://gitlab.com/scce/cinco-language-server):
-The *Cinco language Server* itself first and foremost is a standalone Java executable.
+[**Cinco Language Server**](https://gitlab.com/scce/cinco-cloud-mono/-/tree/main/cinco-language-server):
+The *cinco-language-server* itself is a standalone Java executable.
 It serves language support for the *Cinco Languages* (CPD, MGL, Style/MSL) and a Generator to express new *Cinco Cloud Projects* based on these languages.
-A great part of this repository is based on the *Cinco*-repository, but without the *Eclipse-IDE dependencies*.
+A great part of this project is based on the *Cinco*-repository, but without the *Eclipse-IDE dependencies*.
 
-[**Pyro Generator**](https://gitlab.com/scce/pyro-generator):
-The *Pyro Generator* is a maven-submodule for both *Cinco* and the *Cinco Language Server*.
+[**Pyro Generator**](https://gitlab.com/scce/cinco-cloud-mono/-/tree/main/pyro-generator):
+The *pyro-generator* is a sub-directory for the *Cinco Language Server*.
 It expresses *Cinco Cloud Projects* based on the *Cinco Languages*.
 It is based on the formally known *Pyro*-repository.
 
@@ -54,7 +54,7 @@ Additionally, the Python web service offers a single endpoint for triggering the
 **Theia Editor**
 The *Theia Editor* is a framework for IDEs, based on [Eclipse Theia](https://github.com/eclipse-theia/theia).
 It represents the artifact that can be built by the *Workspace Builder* and deployed by the *Kubernetes API*.
-Its most basic form for the *Cinco-Cloud*, without specialization for a language, can be found inside the [*Cinco Cloud Archetype*](https://gitlab.com/scce/cinco-cloud-archetype).
+Its most basic form for the *Cinco-Cloud*, without specialization for a language, can be found inside the [*Cinco Cloud Archetype*](https://gitlab.com/scce/cinco-cloud-mono/-/tree/main/cinco-cloud-archetype).
 Each project that is deployed by a user via the CincoCloud frontend corresponds to exactly one Theia-based workspace.
 There are two kinds of editors that can be deployed: for the meta-level, a **Language Editor** is deployed that behaves similar to Cinco in a sense that we can define our graphical languages and write our generators here.
 The other one is a concrete **Model Editor** that uses parts of the Pyro front- and backend and allows graphical modelling.
@@ -63,19 +63,15 @@ In contrast to the language editor, the model editor is deployed together with a
 
 ## Secrets
 
-CincoCloud uses private GitLab repositories and its container registries.
-In order to pull images from these registries, we need to have the following three secrets (see the instruction on how to create and apply them [here](../installation/)) in the cluster:
+CincoCloud uses a private GitLab repository and its container registry.
+In order to pull images from its registry, we need to have the following secrets (see the instruction on how to create and apply them [here](../installation/)) in the cluster:
 
 * `cinco-cloud-registry-secret` <br>
-  Needed so that images for the *main service*, the *workspace builder* and the *image registry* can be pulled from the [Cinco Cloud Container Registry][cinco-cloud-container-registry] from within the Kubernetes cluster.
+  Needed so that images for the *main service*, the *workspace builder*, the *image registry* and the archetype can be pulled from the [Cinco Cloud Container Registry][cinco-cloud-container-registry] from within the Kubernetes cluster.
   The secret has the type `kubernetes.io/dockerconfigjson`.
 
-* `cinco-cloud-archetype-registry-secret` <br>
-  Needed so that images for the *Theia editor* can be pulled from the [Cinco Cloud Archetype Container Registry][cinco-cloud-archetype-container-registry] from within the cluster.
-  The secret has the type `kubernetes.io/dockerconfigjson`.
-
-* `cinco-cloud-archetype-registry-credentials` <br>
-  Needed by the *workspace builder* and contains the base64 encoded username and password to login to the [Cinco Cloud Archetype Container Registry][cinco-cloud-archetype-container-registry] in order to pull the archetype image.
+* `cinco-cloud-registry-credentials` <br>
+  Needed by the *workspace builder* and contains the base64 encoded username and password to login to the [Cinco Cloud Container Registry][cinco-cloud-container-registry] in order to pull the archetype image.
   The secret is of type `opaque`.
 
 * `cinco-cloud-main-secrets` <br>
@@ -83,7 +79,6 @@ In order to pull images from these registries, we need to have the following thr
   For now, it only contains the secret that is used to hash user passwords.
   The secret is of type `opaque`.
 
-[cinco-cloud-archetype-container-registry]: https://gitlab.com/scce/cinco-cloud-archetype/container_registry
 [cinco-cloud-container-registry]: https://gitlab.com/scce/cinco-cloud/container_registry
 [grpc]: https://grpc.io/
 [podman]: https://podman.io/

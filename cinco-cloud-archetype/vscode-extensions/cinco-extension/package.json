@@ -4,7 +4,7 @@
     "description": "Language support for the CINCO Languages (CPD, MGL and MSL)",
     "version": "0.0.1",
     "publisher": "ls5",
-    "repository": "https://gitlab.com/scce/cinco-cloud",
+    "repository": "https://gitlab.com/scce/cinco-cloud-mono",
     "license": "MIT",
     "engines": {
         "vscode": "^1.50.0"
