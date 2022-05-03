@@ -252,6 +252,8 @@ deploy-testing:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       changes:
+        - pyro-generator/**/*
+        - cinco-language-server/**/*
         - cinco-cloud-archetype/**/*
 
 .archetype-default-job-main-or-mr:
@@ -259,6 +261,8 @@ deploy-testing:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:
+        - pyro-generator/**/*
+        - cinco-language-server/**/*
         - cinco-cloud-archetype/**/*
 
 .archetype-default-job-feature:
@@ -266,6 +270,8 @@ deploy-testing:
   rules:
     - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
       changes:
+        - pyro-generator/**/*
+        - cinco-language-server/**/*
         - cinco-cloud-archetype/**/*
 
 .archetype-theia-extension-build-job:
@@ -307,6 +313,9 @@ archetype-build:
     - archetype-test-build-cinco-extension
     - archetype-test-build-cinco-project-initializer-extension
     - archetype-test-build-pyro-client-extension
+    - cinco-ls-test-compile-frontend
+    - cinco-ls-test-compile-backend
+    - pyro-generator-install
   variables:
     CONTEXT: ./cinco-cloud-archetype
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
@@ -356,7 +365,10 @@ archetype-push-dev:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:
+        - pyro-generator/**/*
         - cinco-language-server/**/*
+        - cinco-cloud-archetype/**/*
+
   before_script:
     - rm cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
     - cp -r pyro-generator cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
@@ -420,6 +432,8 @@ cinco-ls-test-compile-backend:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:
         - pyro-generator/**/*
+        - cinco-language-server/**/*
+        - cinco-cloud-archetype/**/*
 
 .pyro-generator-maven-job:
   image: maven:3.8.4-jdk-11
