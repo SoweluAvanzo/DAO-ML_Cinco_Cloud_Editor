@@ -81,6 +81,7 @@ cache:
     - kubectl config use-context ls5vs024
     - kubectl config get-contexts
     - echo "$PROFILE, $NAMESPACE, $TAG"
+    - cd cinco-cloud
     - skaffold deploy -p $PROFILE -n $NAMESPACE -t $TAG --status-check=true
 
 .cinco-cloud-node-job-main:
