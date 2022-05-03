@@ -10,6 +10,7 @@ import mgl.MGLModel
 import mgl.ModelElement
 import mgl.Node
 import mgl.Type
+import mgl.Attribute
 
 class GraphModelElementInterface extends Generatable {
 	
@@ -76,7 +77,7 @@ class GraphModelElementInterface extends Generatable {
 					«embeddedNodeMethods(me,g, isTransient)»
 				«ENDIF»
 				«FOR attr:me.attributes»					
-					«attr.name.getSet('''«IF attr.isList»java.util.List<«ENDIF»«attr.javaType(g)»«IF attr.list»>«ENDIF»''')»
+					«attr.getSet»
 					«IF attr.isPrimitive && attr.annotations.exists[name.equals("file")]»
 						«IF attr.isList»
 							public java.util.List<java.io.File> get«attr.name.fuEscapeJava»File();
@@ -160,18 +161,28 @@ class GraphModelElementInterface extends Generatable {
 		«ENDFOR»
 	'''
 	
-	def getSet(String name,String type)
+	def getSet(Attribute attr)
 	'''
-		«name.getMethod(type)»
-		«name.setMethod(type)»
+		«attr.getMethod»
+		«attr.setMethod»
 	'''
+	
+	def getMethod(Attribute attr) {
+		val type = '''«IF attr.list»java.util.List<«ENDIF»«attr.javaType»«IF attr.list»>«ENDIF»'''
+		'''«type» «attr.isOrGetMethod»«attr.name.fuEscapeJava»();'''
+	}
+
+	def setMethod(Attribute attr) {
+		val type = '''«IF attr.list»java.util.List<«ENDIF»«attr.javaType»«IF attr.list»>«ENDIF»'''
+		'''void set«attr.name.fuEscapeJava»(«type» «attr.name.lowEscapeJava»);'''
+	}
+	
 	def getMethod(String name,String type)
 	'''«type» «IF type.toLowerCase.equals("boolean")»is«ELSE»get«ENDIF»«name.fuEscapeJava»();'''
-	
+
 	def setMethod(String name,String type)
 	'''void set«name.fuEscapeJava»(«type» «name.lowEscapeJava»);'''
 	
 	def voidMethod(String name,String args)
 	'''void «name»(«args»);'''
-	
 }
