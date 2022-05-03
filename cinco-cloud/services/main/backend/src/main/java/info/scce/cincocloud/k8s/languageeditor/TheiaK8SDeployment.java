@@ -102,7 +102,7 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                             .build())
                         .build())
                     .withImagePullSecrets(new LocalObjectReferenceBuilder()
-                        .withName("cinco-cloud-archetype-registry-secret")
+                        .withName("cinco-cloud-registry-secret")
                         .build())
                     .build())
                 .build())
