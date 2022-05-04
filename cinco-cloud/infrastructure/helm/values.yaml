@@ -6,3 +6,5 @@ registries:
       name: cinco-cloud-registry-secret
 certManager:
   email: alexander.bainczyk@tu-dortmund.de
+archetype:
+  tag: cb8b9cfaeb8c989d8d11b0d4964f7ddba826a2a5
