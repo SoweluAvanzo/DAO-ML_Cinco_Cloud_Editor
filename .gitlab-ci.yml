@@ -80,7 +80,6 @@ cache:
     - kubectl config set-context ls5vs024 --user=ls5vs024-admin --cluster=ls5vs024-cluster
     - kubectl config use-context ls5vs024
     - kubectl config get-contexts
-    - echo "$PROFILE, $NAMESPACE, $TAG"
     - cd cinco-cloud
     - skaffold deploy -p $PROFILE -n $NAMESPACE -t $TAG --status-check=true
 
@@ -223,7 +222,7 @@ cinco-cloud-push-image-workspace-builder:
     VERSION: latest
     PUSH_TAGS: latest $CI_COMMIT_SHA
 
-deploy-testing:
+cinco-cloud-deploy-testing:
   extends:
     - .cinco-cloud-default-job-main
     - .cinco-cloud-deploy-job
