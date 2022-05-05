@@ -115,8 +115,8 @@ Install one of them.
       kubelet: Running
       apiserver: Running
       kubeconfig: Configured
-      ```
-2. In the root of the repository directory, execute `skaffold dev -p local-dev` and wait for all pods to be deployed.
+      ``
+2. In the cinco-cloud directory, execute `skaffold dev -p local-dev` and wait for all pods to be deployed.
    All pods listed by `kubectl get pods` should have the status `running`.
    Thanks to skaffold, you can now change the code and skaffold automatically rebuilds and redeploys new images with the changes.
 3. Open `http://cinco-cloud/frontend` in a web browser.
@@ -140,7 +140,7 @@ If you want to simulate a production build on your local machine use 2 or 3.
 
 1. Install [cert-manager].
 
-2. Execute `skaffold dev -p local-prod-ssl`.
+2. In the cinco-cloud directory, execute `skaffold dev -p local-prod-ssl`.
 
 3. Open `https://cinco-cloud/frontend` in a web browser.
 
