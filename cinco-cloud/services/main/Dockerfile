@@ -47,6 +47,6 @@ CMD java \
     -Dcincocloud.host="${CINCO_CLOUD_HOST}" \
     -Dcincocloud.password.secret="${CINCO_CLOUD_PASSWORD_SECRET}" \
     -Dcincocloud.archetype.image.tag="${CINCO_CLOUD_ARCHETYPE_IMAGE_TAG}" \
-    -Dcincocloud.use-ssl="${CINCO_CLOUD_USE_SSL}" \
+    -Dcincocloud.environment="${ENVIRONMENT}" \
     -Dquarkus.http.port=8000 \
     -jar quarkus-run.jar

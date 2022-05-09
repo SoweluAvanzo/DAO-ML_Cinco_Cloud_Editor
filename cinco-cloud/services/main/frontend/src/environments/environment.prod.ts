@@ -1,6 +1,4 @@
-const httpProtocol = window.location.protocol;
-const wsProtocol = httpProtocol.endsWith('s:') ? 'wss:' : 'ws:';
-const host = window.location.host;
+import { httpProtocol, wsProtocol, host } from './vars';
 
 export const environment = {
   production: true,

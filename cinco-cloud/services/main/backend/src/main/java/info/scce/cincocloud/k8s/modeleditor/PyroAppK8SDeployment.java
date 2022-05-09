@@ -23,21 +23,21 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
 
   private final String host;
 
-  private final boolean useSsl;
+  private final String environment;
 
   public PyroAppK8SDeployment(
       KubernetesClient client,
       PyroAppK8SPersistentVolumeClaim persistentVolumeClaim,
       Service registryService,
       String host,
-      boolean useSsl,
+      String environment,
       ProjectDB project
   ) {
     super(client, project);
     this.persistentVolumeClaim = persistentVolumeClaim;
     this.registryService = registryService;
     this.host = host;
-    this.useSsl = useSsl;
+    this.environment = environment;
     this.resource = build();
   }
 
@@ -74,7 +74,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                         .withContainerPort(3000)
                         .build(),
                     new ContainerPortBuilder()
-                        .withContainerPort(useSsl ? 443 : 80)
+                        .withContainerPort(443)
                         .build()
                 )
                 .withVolumeMounts(new VolumeMountBuilder()
@@ -107,12 +107,16 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                         .withValue("true")
                         .build(),
                     new EnvVarBuilder()
+                        .withName("ENVIRONMENT")
+                        .withValue(environment)
+                        .build(),
+                    new EnvVarBuilder()
                         .withName("PYRO_HOST")
                         .withValue(host)
                         .build(),
                     new EnvVarBuilder()
                         .withName("PYRO_PORT")
-                        .withValue(String.valueOf(useSsl ? 443 : 80))
+                        .withValue("443")
                         .build(),
                     new EnvVarBuilder()
                         .withName("PYRO_SUBPATH")
@@ -120,7 +124,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                         .build(),
                     new EnvVarBuilder()
                         .withName("USE_SSL")
-                        .withValue(String.valueOf(useSsl))
+                        .withValue("true")
                         .build()
                 )
                 .build()

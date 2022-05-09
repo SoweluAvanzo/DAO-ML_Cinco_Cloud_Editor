@@ -21,19 +21,19 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
 
   private final TheiaK8SPersistentVolumeClaim persistentVolumeClaim;
   private final String archetypeImageTag;
-  private final boolean useSsl;
+  private final String environment;
 
   public TheiaK8SDeployment(
       KubernetesClient client,
       TheiaK8SPersistentVolumeClaim persistentVolumeClaim,
       ProjectDB project,
       String archetypeImageTag,
-      boolean useSsl
+      String environment
   ) {
     super(client, project);
     this.persistentVolumeClaim = persistentVolumeClaim;
     this.archetypeImageTag = archetypeImageTag;
-    this.useSsl = useSsl;
+    this.environment = environment;
     this.resource = build();
   }
 
@@ -89,8 +89,12 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                                 .withValue("8000")
                                 .build(),
                             new EnvVarBuilder()
+                                .withName("ENVIRONMENT")
+                                .withValue(environment)
+                                .build(),
+                            new EnvVarBuilder()
                                 .withName("USE_SSL")
-                                .withValue(String.valueOf(useSsl))
+                                .withValue("true")
                                 .build()
                         )
                         .build())

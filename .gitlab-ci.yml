@@ -268,7 +268,7 @@ cinco-cloud-deploy-testing:
 .archetype-default-job-feature:
   extends: .archetype-job
   rules:
-    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
       changes:
         - pyro-generator/**/*
         - cinco-language-server/**/*
@@ -340,8 +340,8 @@ archetype-build-dev:
     - .docker-build-job
   when: manual
   variables:
-    CONTEXT: .
-    DOCKERFILE: ./Dockerfile
+    CONTEXT: ./cinco-cloud-archetype
+    DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
     IMAGE: archetype
     VERSION: dev
 
@@ -354,7 +354,7 @@ archetype-push-dev:
   variables:
     IMAGE: archetype
     VERSION: dev
-    PUSH_TAGS: dev-$CI_COMMIT_REF_NAME
+    PUSH_TAGS: dev $CI_COMMIT_SHA
 
 
 # ====================================
