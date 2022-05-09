@@ -420,7 +420,7 @@ cinco-ls-test-compile-backend:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       changes:
-        - ./docs/**/*
+        - docs/**/*
 
 pages-build:
   extends: .pages-default-job
