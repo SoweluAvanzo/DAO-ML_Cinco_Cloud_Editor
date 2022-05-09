@@ -129,13 +129,13 @@ Install one of them.
 
 Use one of the following profiles in conjunction with `skaffold dev -p <profile>`.
 
-| No | Name             | SSL   | Hot reload | Frontend URL | API URL |
-|----|------------------|-------|------------|--------------|---------|
-| 1  | `local-dev`      | *yes*  | *yes*      | `/frontend`  | `/`     |
-| 2  | `local-prod`     | *yes*  | *no*       | `/`          | `/`     |
+| No  | Name             | SSL   | Hot reload | Frontend URL | API URL |
+|-----|------------------|-------|------------|--------------|---------|
+| 1)  | `local-dev`      | *yes*  | *yes*      | `/frontend`  | `/`     |
+| 2)  | `local-prod`     | *yes*  | *no*       | `/`          | `/`     |
 
-1 provides a local development environment with hot reload.
-If you want to simulate a production build on your local machine use 2.
+1) provides a local development environment with hot reload.
+If you want to simulate a production build on your local machine use 2).
 
 
 [helm]: https://helm.sh/
