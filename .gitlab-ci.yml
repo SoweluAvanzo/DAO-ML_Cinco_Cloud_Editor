@@ -242,8 +242,6 @@ cinco-cloud-deploy-testing:
 
 .archetype-job:
   before_script:
-    - rm cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
-    - cp -r pyro-generator cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
     - rm cinco-cloud-archetype/cinco-ls
     - cp -r cinco-language-server cinco-cloud-archetype/cinco-ls
 
@@ -252,7 +250,6 @@ cinco-cloud-deploy-testing:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       changes:
-        - pyro-generator/**/*
         - cinco-language-server/**/*
         - cinco-cloud-archetype/**/*
 
@@ -261,7 +258,6 @@ cinco-cloud-deploy-testing:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:
-        - pyro-generator/**/*
         - cinco-language-server/**/*
         - cinco-cloud-archetype/**/*
 
@@ -270,7 +266,6 @@ cinco-cloud-deploy-testing:
   rules:
     - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
       changes:
-        - pyro-generator/**/*
         - cinco-language-server/**/*
         - cinco-cloud-archetype/**/*
 
@@ -315,7 +310,6 @@ archetype-build:
     - archetype-test-build-pyro-client-extension
     - cinco-ls-test-compile-frontend
     - cinco-ls-test-compile-backend
-    - pyro-generator-install
   variables:
     CONTEXT: ./cinco-cloud-archetype
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
@@ -365,13 +359,8 @@ archetype-push-dev:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:
-        - pyro-generator/**/*
         - cinco-language-server/**/*
         - cinco-cloud-archetype/**/*
-
-  before_script:
-    - rm cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
-    - cp -r pyro-generator cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
 
 .cinco-ls-maven-job:
   image: maven:3.8.1-jdk-11
@@ -421,45 +410,6 @@ cinco-ls-test-compile-backend:
   script:
     - cd ./cinco-language-server/de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/app
     - mvn clean package -DskipTests
-
-
-# ====================================
-# Pyro Generator
-# ====================================
-
-.pyro-generator-default-job:
-  rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
-      changes:
-        - pyro-generator/**/*
-        - cinco-language-server/**/*
-        - cinco-cloud-archetype/**/*
-
-.pyro-generator-maven-job:
-  image: maven:3.8.4-jdk-11
-  cache:
-    paths:
-      - .m2/repository
-  variables:
-    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
-
-pyro-generator-compile:
-  extends:
-    - .pyro-generator-default-job
-    - .pyro-generator-maven-job
-  script:
-    - cd ./pyro-generator
-    - mvn compile
-
-pyro-generator-install:
-  extends:
-    - .pyro-generator-default-job
-    - .pyro-generator-maven-job
-  needs:
-    - pyro-generator-compile
-  script:
-    - cd ./pyro-generator
-    - mvn install
 
 
 # ====================================

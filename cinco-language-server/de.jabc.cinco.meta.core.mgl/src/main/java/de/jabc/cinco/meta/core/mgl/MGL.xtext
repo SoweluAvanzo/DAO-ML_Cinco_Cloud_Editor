@@ -2,7 +2,7 @@
 grammar de.jabc.cinco.meta.core.mgl.MGL hidden(WS, ML_COMMENT, SL_COMMENT)
 
 /**
- * TODO:SAMI: Needed changes:
+ * Needed changes:
  * 1. referenced and used Ecore.ecore of MGL (otherwise ReferencedEClass.type has an error)
  * 2. imported terminals directly and made WS(etc.) hidden
  * 3. Made Terminal-ID return ecore::EString

@@ -1,21 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<!-- 
-		TODO:SAMI:
-		- this file has changed
-			- packaging to jar
-			- changed parent-version
-			- changed tycho phase of executions to clean
-			- maven-clean-plugin, version removed
-			- added dependencies
-		- the GraphModel.ecore changed:
-			- IdentifiableElement.transact
-			- NodeImpl.getOutgoing
-			- NodeImpl.getIncoming
-			
-		KNOWN ISSUES:
-		- Manifest.MF has errors
-	-->
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<relativePath>../pom.xml</relativePath>
@@ -108,7 +92,7 @@
 			</plugin>
 		</plugins>
 	</build>
-	<dependencies><!-- TODO:SAMI: added -->
+	<dependencies>
       <dependency>
         <groupId>org.eclipse.emf</groupId>
         <artifactId>org.eclipse.emf.ecore</artifactId>

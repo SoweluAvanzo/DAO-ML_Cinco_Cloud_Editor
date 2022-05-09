@@ -418,7 +418,7 @@ class GraphModelExtension {
 		MGLModel:  '''«mglModel.package»'''
 		default: {
 				val uri = mglModel.eResource.URI
-				val fileName = uri.segment(uri.segmentCount - 2) // TODO:SAMI: test needed
+				val fileName = uri.segment(uri.segmentCount - 2)
 				'''«mglModel.package».«fileName».toLowerCase»'''
 			}
 	}]

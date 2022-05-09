@@ -30,6 +30,6 @@ class CPDParsingTest {
 		*/
 	}
 }
-/* TODO:SAMI: This test does not work, since this package, needs to inject a workspace-root-path, received from the ide context.
+/* SAMI: This test does not work, since this package, needs to inject a workspace-root-path, received from the ide context.
  * Thus, there needs to be a Fallback way, to let this package work as standalone or the test create such workspace-root-path.
  */

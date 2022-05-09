@@ -29,7 +29,7 @@ abstract node Activity {}
 @icon("icons/Screen.png")
 container Screen extends Activity {
 	style screen
-	@file("jpg", "JPG", "png") // TODO: SAMI - limit input of filePicker
+	@file("jpg", "JPG", "png")
 	attr EString as backgroundImage
 	containableElements (Area)
 	incomingEdges (Transition, TrueTransition, FalseTransition)

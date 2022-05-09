@@ -1,0 +1,194 @@
+import "model/JupyterFunctions.ecore" as functionLibrary
+
+id info.scce.cinco.product.ml.process
+stylePath "model/MLProcess.style"
+
+@mcam("check")
+@mcam_checkmodule("info.scce.cinco.product.ml.process.checks.CheckConstantPorts")
+@mcam_checkmodule("info.scce.cinco.product.ml.process.checks.CheckDataFlowTypes")
+@mcam_checkmodule("info.scce.cinco.product.ml.process.checks.CheckDataFlowExists")
+@mcam_checkmodule("info.scce.cinco.product.ml.process.checks.CheckSynchronizedFunctions")
+@contextMenuAction("info.scce.cinco.product.ml.process.ExecuteML")
+@contextMenuAction("info.scce.cinco.product.ml.process.actions.CreateInputsOutputsContextMenu")
+@postCreate("info.scce.cinco.product.ml.process.MLProcessPostCreate")
+@pyroEditorButton("info.scce.cinco.product.ml.process.Synchronize","Synchronize Functions")
+@pyroEcoreRootType("FunctionGroup")
+@pyroEcoreExcludeType("Parameter")
+graphModel MLProcess {
+	iconPath "icons/mlprocess_icon_smallabstract.png"
+	diagramExtension "ml"
+	
+	containableElements (
+		Inputs[0,1],
+		Outputs[0,1],
+		DataService[0,*],
+		ConstantPort[0,*]
+	)
+	attr EString as name
+	attr EString as documentation
+}
+
+abstract container Closure {}
+
+@disable(resize)
+@postCreate("info.scce.cinco.product.ml.process.hooks.CreateInferredPort_PostCreate")
+@doubleClickAction("info.scce.cinco.product.ml.process.CreateInferredPort")
+@palette("Closure")
+container Inputs extends Closure {
+	style inputs
+	containableElements(StartOutputPort [0,*])
+}
+
+@disable(resize)
+@postCreate("info.scce.cinco.product.ml.process.hooks.CreateInferredPort_PostCreate")
+@doubleClickAction("info.scce.cinco.product.ml.process.CreateInferredPort")
+@palette("Closure")
+container Outputs extends Closure {
+	style outputs
+	containableElements(EndInputPort [0,*])
+}
+
+abstract container DataService {
+	containableElements(TypedPort)
+}
+
+@disable(resize)
+@contextMenuAction("info.scce.cinco.product.ml.process.ServiceUpdate")
+@postCreate("info.scce.cinco.product.ml.process.ServicePostCreate")
+container ExternalService extends DataService {
+	style externalservice("${fun.name}")
+	
+	@pyroInformation
+	attr EString as documentation
+	prime functionLibrary.Function as fun
+}
+
+@disable(resize)
+@contextMenuAction("info.scce.cinco.product.ml.process.ServiceUpdate")
+@postCreate("info.scce.cinco.product.ml.process.ServicePostCreate")
+@jumpToPrime
+container InternalService extends DataService {
+	style internalservice("${proMod.name}")
+
+	@pyroInformation
+	attr EString as documentation
+	prime this::MLProcess as proMod
+}
+
+abstract node Port {}
+abstract node TypedPort extends Port {}
+abstract node InferredPort extends Port {
+	attr EString as name 
+}
+
+/*
+* Function depending Ports
+*/
+
+@disable(create,delete,resize,move)
+node InputPort extends TypedPort {
+	style inputPort("${parameter.name}:${parameter.typeName}")
+	prime functionLibrary.Parameter as parameter
+	incomingEdges ({DataFlow,InferredStartDataFlow}[0,1])
+}
+
+@disable(create,delete,resize,move)
+node OutputPort extends TypedPort {
+	style outputPort("${parameter.name}:${parameter.typeName}")
+	prime functionLibrary.Parameter as parameter
+	outgoingEdges ({DataFlow,InferredEndDataFlow}[0,*])
+}
+
+/*
+* User definable Ports
+* Types are inferred
+*/
+
+@postCreate("info.scce.cinco.product.ml.process.IOPortPostCreate")
+@preDelete("info.scce.cinco.product.ml.process.IOPortPreDelete")
+@disable(resize,move)
+@palette("Closure")
+node StartOutputPort extends InferredPort {
+	style outputPort("${name}")
+	outgoingEdges ({InferredStartDataFlow}[0,*])
+}
+
+@postCreate("info.scce.cinco.product.ml.process.IOPortPostCreate")
+@preDelete("info.scce.cinco.product.ml.process.IOPortPreDelete")
+@disable(resize,move)
+@palette("Closure")
+node EndInputPort extends InferredPort {
+	style inputPort("${name}")
+	incomingEdges ({InferredEndDataFlow}[0,1])
+}
+
+abstract node ConstantPort {
+	outgoingEdges ({InferredStartDataFlow}[0,*])
+}
+
+@palette("Constants")
+node TextConstant extends ConstantPort {
+	style constant("${value}")
+	@pyroDirectEdit
+	attr EString as value
+}
+
+@palette("Constants")
+node NumberConstant extends ConstantPort {
+	style constant("${value}")
+	@pyroDirectEdit
+	attr EString as value
+}
+
+@palette("Constants")
+node BoolConstant extends ConstantPort {
+	style constant("${value}")
+	attr EBoolean as value
+}
+
+@palette("Constants")
+node FilePathConstant extends ConstantPort {
+	style constant("${path}")
+	@pyroDirectEdit
+	attr EString as path
+}
+
+@palette("Constants")
+node ListConstant extends ConstantPort {
+	style constant("List of ${entries.length}")
+	attr Entry as entries[0,*]
+	@propertiesViewHidden
+	attr Entry as entry
+}
+
+abstract type Entry {}
+
+type TextEntry extends Entry {
+	attr EString as value
+}
+
+type NumberEntry extends Entry {
+	attr EString as value
+}
+
+type BoolEntry extends Entry {
+	attr EBoolean as value
+}
+
+type FilePathEntry extends Entry {
+	attr EString as value
+}
+
+edge DataFlow {
+	style dataFlow
+}
+
+abstract edge InferredDataFlow {}
+
+edge InferredStartDataFlow extends InferredDataFlow {
+	style dataFlow
+}
+
+edge InferredEndDataFlow extends InferredDataFlow {
+	style dataFlow
+}

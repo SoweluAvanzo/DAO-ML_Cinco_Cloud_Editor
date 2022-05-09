@@ -28,7 +28,6 @@
 		</plugins>
 	</build>
 	<dependencies>
-		<!-- TODO: check which dependencies are not needed -->
 	    <dependency>
 	        <groupId>org.junit.jupiter</groupId>
 	        <artifactId>junit-jupiter-engine</artifactId>

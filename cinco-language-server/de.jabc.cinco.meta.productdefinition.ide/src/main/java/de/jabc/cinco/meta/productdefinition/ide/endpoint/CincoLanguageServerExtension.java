@@ -114,15 +114,7 @@ public class CincoLanguageServerExtension implements ILanguageServerExtension, G
 
 		// mgls:
 		Set<MGLModel> mgls = parsedResources.values().stream().map((Resource r) -> r.getContents().get(0))
-				.filter((EObject e) -> e instanceof MGLModel).map((m) -> (MGLModel) m).filter((m) ->
-				// only take imported mgls from the set of all mgls in the workspace
-				cpd.getMgls().stream().anyMatch((mglDescriptor) -> {
-					String relativePath = mglDescriptor.getMglPath();
-					URI mglUri = IWorkspaceContext.getLocalInstance().getFileURI(relativePath);
-					String importPath = mglUri.devicePath();
-					String mglPath = m.eResource().getURI().devicePath();
-					return compare(importPath, mglPath);
-				})).collect(Collectors.toSet());
+				.filter((EObject e) -> e instanceof MGLModel).map((m) -> (MGLModel) m).collect(Collectors.toSet());
 
 		// execute generation
 		LogHelper.log(access, "starting pyro-generator...");
