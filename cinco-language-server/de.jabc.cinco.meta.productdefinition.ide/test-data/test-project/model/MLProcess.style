@@ -1,0 +1,199 @@
+appearance default {
+	lineWidth 2
+	background (229,229,229)
+}
+
+appearance labelFont {
+	font ("Sans",10)
+}
+
+appearance labelFontItalics {
+	font ("Sans",ITALIC,10)
+}
+
+
+appearance dataFlowAppearance extends default {
+	lineStyle SOLID
+	foreground (144,144,144)
+}
+
+
+nodeStyle inputPort (1) {
+	roundedRectangle {
+		appearance {
+			background (255,255,255)
+			foreground (255,255,255)
+		}
+		size (90,18)
+		corner (5,5)
+		image {
+			position(LEFT 1, MIDDLE)
+			size (fix 16,fix 16)
+			path ("icons/input.png")
+		}
+		text {
+			position ( LEFT 22, MIDDLE 1)
+			value "%s"			
+		}
+	}
+}
+
+nodeStyle outputPort(1) {
+	roundedRectangle {
+		appearance {
+			background (255,255,255)
+			foreground (255,255,255)
+		}
+		size (90,18)
+		corner (5,5)
+		text {
+			position ( LEFT 4, MIDDLE 1)
+			value "%s"			
+		}
+        image {
+			position(RIGHT -1, MIDDLE)
+			size (fix 16,fix 16)
+			path ("icons/output.png")
+		}
+	}
+}
+
+
+nodeStyle constant(1) {
+	roundedRectangle {
+		appearance {
+			background (163,188,199)
+			foreground (163,188,199)
+		}
+		size (70,40)
+		corner (5,5)
+		text {
+			position ( CENTER -5 , MIDDLE 1)
+			value "%s"			
+		}
+        image {
+			position(RIGHT -1, MIDDLE)
+			size (fix 16,fix 16)
+			path ("icons/output.png")
+		}
+	}
+}
+
+
+
+
+nodeStyle externalservice(1) {
+	roundedRectangle {
+		appearance {
+			background (52, 114, 166)
+			foreground (52, 114, 166)
+		}
+		size (120,65)
+		corner (10,10)
+		text {
+			appearance extends labelFont {
+				foreground (255,255,255)
+			}
+			position ( CENTER, TOP 4 )	
+		 	value "%s"
+		}
+        polyline {
+        	appearance {
+				foreground (255,255,255)
+			}
+			points [ (5,20) (115,20) ]
+		}
+		image{
+			position (RIGHT 18, TOP -5)
+			size(fix 16, fix 16)
+			path("icons/python.png")
+		}
+	}
+}
+
+nodeStyle internalservice(1) {
+	roundedRectangle {
+		appearance {
+			background (53,142,172)
+			foreground (53,142,172)
+		}
+		size (120,65)
+		corner (10,10)
+		text {
+			appearance extends labelFont {
+				foreground (255,255,255)
+			}
+			position ( CENTER, TOP 4 )	
+		 	value "%s"
+		}
+        polyline {
+        	appearance {
+				foreground (255,255,255)
+			}
+			points [ (5,20) (115,20) ]
+		}
+		image{
+			position (RIGHT 18, TOP -5)
+			size(fix 16, fix 16)
+			path("icons/mlprocess_icon_smallabstract.png")
+		}
+	}
+}
+
+
+nodeStyle inputs {
+	rectangle {
+		appearance {
+			background (17,122,139)
+			foreground (17,122,139)
+		}
+		size (100,65)
+		text {
+			appearance extends labelFontItalics {
+				foreground (255,255,255)
+			}
+		 	position ( CENTER, TOP 4 )	
+		 	value "Inputs"
+		}
+        polyline {
+        	appearance {
+				foreground (255,255,255)
+			}
+			points [ (5,20) (95,20) ]
+		}
+	}
+}
+nodeStyle outputs {
+	rectangle {
+		appearance {
+			foreground (0,91,150)
+			background (0,91,150)
+		}
+		size (100,65)
+		text {
+			appearance extends labelFontItalics {
+				foreground (255,255,255)
+			}
+		 	position ( CENTER, TOP 4 )	
+		 	value "Outputs"
+		}
+        polyline {
+        	appearance {
+				foreground (255,255,255)
+			}
+			points [ (5,20) (95,20) ]
+		}
+	}
+}
+
+edgeStyle dataFlow {	
+	appearance dataFlowAppearance
+	decorator {
+		location (1.0) // at the end of the edge
+		ARROW
+		appearance extends dataFlowAppearance {
+			lineWidth 2
+		}
+	}
+}
+

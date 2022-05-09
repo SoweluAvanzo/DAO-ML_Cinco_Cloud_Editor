@@ -1,7 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<!-- 
-		TODO:SAMI:
 		- this file has changed
 			- packaging to jar
 			- changed parent-version
@@ -19,7 +18,7 @@
 		<relativePath>../pom.xml</relativePath>
 		<groupId>de.jabc.cinco</groupId>
 		<artifactId>de.jabc.cinco.meta.parent</artifactId>
-		<version>2.1.0-SNAPSHOT</version> <!-- TODO:SAMI: changed -->
+		<version>2.1.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>de.jabc.cinco.meta.core.mgl.model</artifactId>
 	<packaging>jar</packaging>
@@ -124,7 +123,7 @@
 			</plugin>
 		</plugins>
 	</build>
-	<dependencies><!-- TODO:SAMI: added -->
+	<dependencies>
       <dependency>
         <groupId>org.eclipse.emf</groupId>
         <artifactId>org.eclipse.emf.ecore</artifactId>

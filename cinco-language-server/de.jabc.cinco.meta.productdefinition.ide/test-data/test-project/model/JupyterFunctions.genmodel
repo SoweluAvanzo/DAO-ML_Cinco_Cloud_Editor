@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/info.scce.cinco.product.ml.process/src" modelPluginID="info.scce.cinco.product.ml.process"
+    modelName="JupyterFunctions" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    importerID="org.eclipse.emf.importer.ecore" complianceLevel="8.0" copyrightFields="false"
+    operationReflection="true" importOrganizing="true">
+  <foreignModel>JupyterFunctions.ecore</foreignModel>
+  <genPackages prefix="Jupyter" disposableProviderFactory="true" ecorePackage="JupyterFunctions.ecore#/">
+    <genClasses ecoreClass="JupyterFunctions.ecore#//Function">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute JupyterFunctions.ecore#//Function/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute JupyterFunctions.ecore#//Function/documentation"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute JupyterFunctions.ecore#//Function/import"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference JupyterFunctions.ecore#//Function/inputs"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference JupyterFunctions.ecore#//Function/output"/>
+    </genClasses>
+    <genClasses ecoreClass="JupyterFunctions.ecore#//Parameter">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute JupyterFunctions.ecore#//Parameter/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute JupyterFunctions.ecore#//Parameter/typeName"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>
