@@ -13,11 +13,7 @@ data:
   KUBERNETES_NAMESPACE: {{ .Values.namespace }}
   CINCO_CLOUD_HOST: {{ .Values.ingress.host }}
   CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: {{ .Values.archetype.tag }}
-  {{ if eq .Values.serverTier "local" }}
-  CINCO_CLOUD_USE_SSL: "false"
-  {{- else -}}
-  CINCO_CLOUD_USE_SSL: "true"
-  {{- end }}
+  ENVIRONMENT: {{ .Values.serverTier }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet

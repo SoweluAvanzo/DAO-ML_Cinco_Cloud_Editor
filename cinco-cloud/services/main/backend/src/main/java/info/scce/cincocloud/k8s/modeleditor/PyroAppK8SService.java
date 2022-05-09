@@ -10,11 +10,8 @@ import java.util.Map;
 
 public class PyroAppK8SService extends PyroK8SResource<Service> {
 
-  private final boolean useSsl;
-
-  public PyroAppK8SService(KubernetesClient client, ProjectDB project, boolean useSsl) {
+  public PyroAppK8SService(KubernetesClient client, ProjectDB project) {
     super(client, project);
-    this.useSsl = useSsl;
     this.resource = build();
   }
 
@@ -50,6 +47,6 @@ public class PyroAppK8SService extends PyroK8SResource<Service> {
   }
 
   public int getBackendPort() {
-    return useSsl ? 443 : 80;
+    return 443;
   }
 }

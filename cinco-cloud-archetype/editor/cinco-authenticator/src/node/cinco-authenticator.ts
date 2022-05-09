@@ -150,11 +150,13 @@ function isWebviewHost(req: any): boolean {
     const PYRO_PORT = process.env.PYRO_PORT ? process.env.PYRO_PORT : '8000';
     const PYRO_HOST = process.env.PYRO_HOST ? process.env.PYRO_HOST : 'localhost';
     const PYRO_SUBPATH = process.env.PYRO_SUBPATH ? process.env.PYRO_SUBPATH : '';
+    const ENVIRONMENT = process.env.ENVIRONMENT ? process.env.ENVIRONMENT : '';
     console.log('isWebviewHost: PYRO_HOST=' + PYRO_HOST);
     console.log('isWebviewHost: host=' + host);
     console.log('isWebviewHost: PYRO_SUBPATH=' + PYRO_SUBPATH);
     console.log('isWebviewHost: path=' + path);
     console.log('isWebviewHost: PYRO_PORT=' + PYRO_PORT);
+    console.log('isWebviewHost: ENVIRONMENT=' + ENVIRONMENT);
     if (isDebugging()) {
         return true;
     }

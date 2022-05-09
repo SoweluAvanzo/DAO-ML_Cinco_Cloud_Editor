@@ -11,7 +11,6 @@ metadata:
     cert-manager.io/issuer: "letsencrypt-{{ .Values.serverTier }}"
     {{- end }}
 spec:
-  {{- if eq .Values.useSsl true }}
   tls:
     - hosts:
         - {{ .Values.ingress.host }}
@@ -20,7 +19,6 @@ spec:
       {{- else }}
       secretName: "letsencrypt-secret-{{ .Values.serverTier }}"
       {{- end }}
-  {{- end }}
   rules:
     - host: {{ .Values.ingress.host }}
       http:
