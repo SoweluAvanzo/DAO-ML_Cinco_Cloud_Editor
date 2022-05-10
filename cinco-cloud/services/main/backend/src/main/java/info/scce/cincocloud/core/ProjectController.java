@@ -7,11 +7,9 @@ import info.scce.cincocloud.db.*;
 import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.rest.ObjectCache;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -70,7 +68,7 @@ public class ProjectController {
     if (imageOptional.isPresent()) {
       final WorkspaceImageDB image = imageOptional.get();
       if (!image.published && !projectService.userOwnsProject(subject, image.project)) {
-        return Response.status(Response.Status.BAD_REQUEST).build();
+        throw new RestException(Response.Status.BAD_REQUEST, "You are not allowed to use this image.");
       }
     }
 

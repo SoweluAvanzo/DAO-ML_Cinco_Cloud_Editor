@@ -30,11 +30,11 @@ public class AuthService {
   public AuthResponseTO login(UserLoginInput login) {
     final UserDB user = UserDB.find("email", login.email).firstResult();
     if (user == null) {
-      throw new RestException(Status.UNAUTHORIZED, "the user could not be found");
+      throw new RestException(Status.UNAUTHORIZED, "Invalid Credentials!");
     }
 
     if (!user.password.equals(passwordEncoder.encode(login.password))) {
-      throw new RestException(Status.UNAUTHORIZED, "the password is not correct");
+      throw new RestException(Status.UNAUTHORIZED, "Invalid Credentials!");
     }
 
     return generateToken(user);
