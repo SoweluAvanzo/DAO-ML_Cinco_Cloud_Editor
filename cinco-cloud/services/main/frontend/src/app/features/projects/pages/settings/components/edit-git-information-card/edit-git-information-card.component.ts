@@ -1,10 +1,12 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {Project} from '../../../../../../core/models/project';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {GitInformationApiService} from '../../../../../../core/services/api/git-information-api.service';
-import {fromJsog, toJsog} from '../../../../../../core/utils/jsog-utils';
-import {GitInformation} from '../../../../../../core/models/git-information';
-import {ToastService, ToastType} from "../../../../../../core/services/toast.service";
+import { Component, Input, OnInit } from '@angular/core';
+import { Project } from '../../../../../../core/models/project';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  GitInformationApiService
+} from '../../../../../../core/services/api/git-information-api.service';
+import { fromJsog, toJsog } from '../../../../../../core/utils/jsog-utils';
+import { GitInformation } from '../../../../../../core/models/git-information';
+import { ToastService, ToastType } from '../../../../../../core/services/toast.service';
 
 @Component({
   selector: 'cc-edit-git-information-card',

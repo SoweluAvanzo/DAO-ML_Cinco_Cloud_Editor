@@ -3,6 +3,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { UserApiService } from '../../../../core/services/api/user-api.service';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { UserRegisterInput } from '../../../../core/models/forms/user-register-input';
+import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'cc-create-user-modal',
@@ -18,7 +19,8 @@ export class CreateUserModalComponent {
   });
 
   constructor(private userApi: UserApiService,
-              public modal: NgbActiveModal) {
+              public modal: NgbActiveModal,
+              private toastService: ToastService) {
   }
 
   get canCreateUser(): boolean {
@@ -35,7 +37,13 @@ export class CreateUserModalComponent {
 
     this.userApi.create(newUser).subscribe({
       next: createdUser => this.modal.close(createdUser),
-      error: console.error
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Could not create user.`
+        });
+        console.error(res.data.message);
+      }
     });
   }
 }

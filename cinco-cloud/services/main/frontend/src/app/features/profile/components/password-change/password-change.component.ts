@@ -3,7 +3,9 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 import { AuthApiService } from '../../../../core/services/api/auth-api.service';
 import { UserApiService } from '../../../../core/services/api/user-api.service';
-import { UpdateCurrentUserPasswordInput } from '../../../../core/models/forms/update-current-user-password-input';
+import {
+  UpdateCurrentUserPasswordInput
+} from '../../../../core/models/forms/update-current-user-password-input';
 import { Router } from '@angular/router';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
@@ -25,17 +27,23 @@ export class PasswordChangeComponent {
               private toastService: ToastService) {
   }
 
-  public change_password(): void{
+  public change_password(): void {
     const update: UpdateCurrentUserPasswordInput = new UpdateCurrentUserPasswordInput()
     update.oldPassword = this.passwordChangeForm.get('password').value
     update.newPassword = this.passwordChangeForm.get('new_password').value
     this.userApi.updatePassword(update).subscribe({
       next: () => {
-        this.toastService.show({ type: ToastType.SUCCESS, message: 'Your password has been changed. Please login again.' });
+        this.toastService.show({
+          type: ToastType.SUCCESS,
+          message: 'Your password has been changed. Please login again.'
+        });
         this.router.navigate(['/logout']);
       },
       error: () => {
-        this.toastService.show({ type: ToastType.DANGER, message: 'The password could not be changed.' });
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: 'The password could not be changed.'
+        });
       }
     });
   }

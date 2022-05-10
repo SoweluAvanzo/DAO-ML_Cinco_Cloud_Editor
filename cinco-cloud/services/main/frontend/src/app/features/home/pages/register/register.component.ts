@@ -32,6 +32,13 @@ export class RegisterComponent implements OnInit {
         if (!settings.allowPublicUserRegistration) {
           this.router.navigate(['/']);
         }
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Could not fetch application settings.`
+        });
+        console.error(res.data.message);
       }
     });
   }
@@ -49,7 +56,7 @@ export class RegisterComponent implements OnInit {
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `Your account could not be be created. ${res.data.message}`
+          message: `Your account could not be created. ${res.data.message}`
         });
       }
     });

@@ -51,7 +51,10 @@ export class EditProjectCardComponent implements OnInit {
           this.logoReference = file;
           this.input.reset();
         },
-        error: () => this.toastService.show({type: ToastType.DANGER, message: 'The logo could not be uploaded.'})
+        error: err => {
+          this.toastService.show({type: ToastType.DANGER, message: `The logo could not be uploaded.\n ${err.message}`});
+          console.log(err);
+        }
       });
     } else {
       this.projectStore.updateProject(input);

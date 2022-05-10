@@ -2,9 +2,12 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { NgbModal, NgbNav } from '@ng-bootstrap/ng-bootstrap';
 import { UserApiService } from '../../../../core/services/api/user-api.service';
 import { User } from '../../../../core/models/user';
-import { CreateUserModalComponent } from '../../components/create-user-modal/create-user-modal.component';
+import {
+  CreateUserModalComponent
+} from '../../components/create-user-modal/create-user-modal.component';
 import { AddAdminModalComponent } from '../../components/add-admin-modal/add-admin-modal.component';
 import { ModalUtilsService } from '../../../../core/services/utils/modal-utils.service';
+import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'cc-users',
@@ -19,7 +22,8 @@ export class UsersComponent implements OnInit {
 
   constructor(private userApi: UserApiService,
               private modalService: NgbModal,
-              private modalUtils: ModalUtilsService) {
+              private modalUtils: ModalUtilsService,
+              private toastService: ToastService) {
   }
 
   ngOnInit(): void {
@@ -53,15 +57,25 @@ export class UsersComponent implements OnInit {
       confirmButtonText: 'Delete'
     }).then(() => {
       this.userApi.delete(user).subscribe({
-        //TODO: add notification
         next: () => {
           this.users.splice(this.users.findIndex(u => u.id === user.id), 1);
           if (user.isAdmin) {
             this.admins.splice(this.admins.findIndex(a => a.id === user.id), 1);
           }
+          this.toastService.show({
+            type: ToastType.SUCCESS,
+            message: 'User has been deleted.'
+          });
+        },
+        error: res => {
+          this.toastService.show({
+            type: ToastType.DANGER,
+            message: `User could not be deleted. ${res.data.message}`
+          });
         }
       });
-    }).catch(() => {})
+    }).catch(() => {
+    })
   }
 
   removeAdmin(admin: User) {
@@ -71,10 +85,20 @@ export class UsersComponent implements OnInit {
     }).then(() => {
       this.userApi.removeAdminRole(admin).subscribe({
         next: () => {
-          //TODO: add notification
           this.admins.splice(this.admins.findIndex(a => a.id === admin.id), 1);
+          this.toastService.show({
+            type: ToastType.SUCCESS,
+            message: 'Admin rights have been removed for the user.'
+          });
+        },
+        error: res => {
+          this.toastService.show({
+            type: ToastType.DANGER,
+            message: `Admin rights could not be removed. ${res.data.message}`
+          });
         }
       });
-    }).catch(() => {})
+    }).catch(() => {
+    })
   }
 }
