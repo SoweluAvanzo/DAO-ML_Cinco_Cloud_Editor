@@ -324,26 +324,18 @@ class Generator {
 		ecores
 	}
 
-	private def Resource findImportModels(Import import1, MGLModel masterModel) {
-		val path = import1.getImportURI();
-		val uri = URI.createURI(path, true);
+	private def Resource findImportModels(Import import1, MGLModel mgl) {
+		val path = import1.getImportURI()
+		val workspaceContext = IWorkspaceContext.localInstance
+		val uri = workspaceContext.getFileURI(path)
 		try {
 			var Resource res = null;
-			if (uri.isPlatformResource()) {
-				res = new ResourceSetImpl().getResource(uri, true);
-			} else {
-				val projectURI = URI.createFileURI(projectLocation + "/")
-				val absoluteURI = uri.resolve(projectURI)
-				val File file = new File(absoluteURI.toFileString).getAbsoluteFile();
-				if (file.exists()) {
-					res = new ResourceSetImpl().getResource(absoluteURI, true);
-				} else {
-					return null;
-				}
+			if (uri.isPlatformResource()
+				|| workspaceContext.fileExists(uri)
+			) {
+				res = mgl.eResource().getResourceSet().getResource(uri, true);
 			}
-
 			return res;
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
