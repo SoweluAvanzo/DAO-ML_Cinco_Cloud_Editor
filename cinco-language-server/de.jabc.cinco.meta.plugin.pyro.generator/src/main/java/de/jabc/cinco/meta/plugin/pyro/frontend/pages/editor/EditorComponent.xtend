@@ -124,7 +124,7 @@ class EditorComponent extends Generatable {
 	    final EditorDataService _editorDataService;
 	    String selected = null;
 	    bool showNav = false;
-	    String mainLayout = "classic";
+	    String mainLayout = "micro";
 	    
 	    EditorComponent(this._editorGridService, this.graphService, this._router, this._userService, this._notificationService, 
 	    				    this._styleService, this._permissionService, this._editorDataService) {
