@@ -5,7 +5,6 @@ import { CINCO_CLOUD_HOST, CINCO_CLOUD_PORT, DATABASE_PASSWORD, DATABASE_URL, DA
 
 export const serverPath = path.resolve(__dirname, '..', '..', 'pyro-server');
 export const serverFile = 'app.jar';
-export const serverName = 'pyro-model-server';
 export const cmdExec = 'java';
 export const cmdArgs = [
     '-Dquarkus.datasource.jdbc.url="jdbc:postgresql://' + DATABASE_URL + '"',
