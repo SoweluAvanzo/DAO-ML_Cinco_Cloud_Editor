@@ -33,7 +33,13 @@ export class LoginComponent implements OnInit {
   public ngOnInit(): void {
     this.settingsApi.get().subscribe({
       next: settings => this.settings = settings,
-      error: console.error
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Could not fetch application settings.`
+        });
+        console.error(res.data.message);
+      }
     });
   }
 
@@ -46,7 +52,11 @@ export class LoginComponent implements OnInit {
           type: ToastType.SUCCESS
         });
       },
-      error: console.error
+      error: err => {
+        console.log('Fehler');
+        this.toastService.show({type: ToastType.DANGER, message: `Login denied.\n ${err.message}`});
+        console.log(err);
+      }
     });
   }
 }

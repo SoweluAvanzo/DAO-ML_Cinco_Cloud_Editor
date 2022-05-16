@@ -94,7 +94,7 @@ public class OrganizationController {
     final OrganizationDB org = OrganizationDB.findById(orgId);
     if (subject != null) {
       if (!removeFromOrganization(subject, org)) {
-        return Response.status(Response.Status.BAD_REQUEST).build();
+        throw new RestException(Response.Status.BAD_REQUEST, "Could not leave organization you are not part of.");
       }
       org.persist();
       subject.persist();
@@ -123,7 +123,7 @@ public class OrganizationController {
 
       if (org.owners.contains(member)) {
         if (org.owners.size() == 1) { // do not make the ownly owner a member of the org
-          return Response.status(Response.Status.BAD_REQUEST).build();
+          throw new RestException(Response.Status.BAD_REQUEST, "Cannot demote the only organization owner to member.");
         }
         org.owners.remove(member);
       }
@@ -187,7 +187,8 @@ public class OrganizationController {
       }
 
       if (!removeFromOrganization(userToRemove, org)) {
-        return Response.status(Response.Status.BAD_REQUEST).build();
+        throw new RestException(Response.Status.BAD_REQUEST,"Could not remove user from organization."
+                + "\nEither the user is the only owner or not part of the organization.");
       }
       org.persist();
 
@@ -258,7 +259,8 @@ public class OrganizationController {
       }
 
       if ((orgInDB.id != organization.getId()) || organization.getname().trim().equals("")) {
-        return Response.status(Response.Status.BAD_REQUEST).build();
+        throw new RestException(Response.Status.BAD_REQUEST, "Could not update organization.\n"
+                + "ID or name does not match the database");
       }
 
       if (isOwnerOf(subject, orgInDB)) {

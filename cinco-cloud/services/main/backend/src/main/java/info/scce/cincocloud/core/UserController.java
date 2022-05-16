@@ -5,6 +5,7 @@ import info.scce.cincocloud.core.rest.inputs.UserSearchInput;
 import info.scce.cincocloud.core.rest.tos.UserTO;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
+import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
@@ -117,7 +118,7 @@ public class UserController {
     if (subject != null && subject.isAdmin()) {
       final UserDB userToDelete = UserDB.findById(userId);
       if (subject.equals(userToDelete)) { // an admin should not delete himself
-        return Response.status(Response.Status.BAD_REQUEST).build();
+        throw new RestException(Response.Status.BAD_REQUEST, "Could not delete user. An admin cannot delete himself.");
       }
       userService.deleteUser(userToDelete);
       return Response.ok().build();
@@ -163,7 +164,7 @@ public class UserController {
 
       // an admin should not remove his own admin rights
       if (user.isAdmin() && user.id.equals(subject.id)) {
-        return Response.status(Response.Status.BAD_REQUEST).build();
+        throw new RestException(Response.Status.BAD_REQUEST, "Cannot remove admin rights from oneself.");
       }
 
       user.systemRoles.remove(UserSystemRole.ADMIN);

@@ -18,7 +18,13 @@ export class LogoutComponent implements OnInit {
         message: 'You have been logged out.',
         type: ToastType.INFO
       }),
-      error: console.error
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Log out failed.`
+        });
+        console.error(res.data.message);
+      }
     });
   }
 }

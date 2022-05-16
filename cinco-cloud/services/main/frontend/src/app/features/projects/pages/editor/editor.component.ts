@@ -16,6 +16,7 @@ import { Page } from '../../../../core/models/page';
 import {
   WorkspaceImageBuildJobApiService
 } from '../../../../core/services/api/workspace-image-build-job-api.service';
+import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
 @UntilDestroy()
 @Component({
@@ -36,7 +37,8 @@ export class EditorComponent implements OnInit {
               private authApi: AuthApiService,
               private projectApi: ProjectApiService,
               private domSanitizer: DomSanitizer,
-              private buildJobApi: WorkspaceImageBuildJobApiService) {
+              private buildJobApi: WorkspaceImageBuildJobApiService,
+              private toastService: ToastService) {
   }
 
   ngOnInit(): void {
@@ -45,7 +47,13 @@ export class EditorComponent implements OnInit {
         this.project = project;
         this.deploy();
       },
-      error: console.error
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Could not connect to the project.`
+        });
+        console.log(res.data.message)
+      }
     });
 
     this.buildJobApi.getAll(this.project.id, 0, 1).subscribe({
@@ -90,7 +98,13 @@ export class EditorComponent implements OnInit {
         const url = environment.baseUrl + deployment.url + '?jwt=' + this.authApi.getToken() + '&projectId=' + this.project.id;
         this.editorUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(url);
       },
-      error: console.error
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Could not deploy the project.`
+        });
+        console.log(res.data.message)
+      }
     });
   }
 }

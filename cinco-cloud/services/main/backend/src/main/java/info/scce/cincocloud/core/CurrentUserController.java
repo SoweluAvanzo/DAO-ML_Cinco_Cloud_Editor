@@ -7,6 +7,7 @@ import info.scce.cincocloud.core.rest.inputs.UserLoginInput;
 import info.scce.cincocloud.core.rest.tos.UserTO;
 import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 import javax.annotation.security.PermitAll;
@@ -26,7 +27,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
 @Transactional
@@ -68,10 +68,9 @@ public class CurrentUserController {
       // remove association between e.g. UserPrincipal and the SessionContext
       request.logout();
       return Response.status(Response.Status.OK).build();
-    } catch (ServletException e) {
-      e.printStackTrace();
+    } catch (ServletException servletException) {
+      throw new RestException(Response.Status.BAD_REQUEST, servletException.getMessage());
     }
-    return Response.status(Response.Status.BAD_REQUEST).build();
   }
 
   @GET
@@ -135,7 +134,7 @@ public class CurrentUserController {
     }
 
     if (!subject.password.equals(passwordEncoder.encode(input.oldPassword))) {
-      return Response.status(Status.BAD_REQUEST).build();
+      throw new RestException(Response.Status.BAD_REQUEST, "Current password incorrect!");
     }
 
     subject.password = passwordEncoder.encode(input.newPassword);

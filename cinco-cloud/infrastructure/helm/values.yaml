@@ -7,4 +7,4 @@ registries:
 certManager:
   email: alexander.bainczyk@tu-dortmund.de
 archetype:
-  tag: 821bea1f77e04e7ef675c4280acdf50ce22f1e63
+  tag: c98589aac61d3f285e9d08bf996fabd1a0e74162

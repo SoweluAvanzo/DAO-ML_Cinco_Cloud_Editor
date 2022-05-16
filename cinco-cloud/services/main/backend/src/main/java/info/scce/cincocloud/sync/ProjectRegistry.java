@@ -1,6 +1,7 @@
 package info.scce.cincocloud.sync;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,12 +26,12 @@ public class ProjectRegistry extends WebSocketRegistry {
   }
 
   public void send(long projectId, WebSocketMessage message) {
-    currentOpenSockets.getOrDefault(projectId, new ArrayList<>())
+    currentOpenSockets.getOrDefault(projectId, Collections.synchronizedList(new ArrayList<>()))
         .forEach(session -> send(session, message));
   }
 
   public void addSession(long projectId, Session session) {
-    currentOpenSockets.putIfAbsent(projectId, new ArrayList<>());
+    currentOpenSockets.putIfAbsent(projectId, Collections.synchronizedList(new ArrayList<>()));
     currentOpenSockets.get(projectId).add(session);
   }
 
@@ -41,7 +42,7 @@ public class ProjectRegistry extends WebSocketRegistry {
   }
 
   public void closeSessions(long projectId) {
-    currentOpenSockets.getOrDefault(projectId, new ArrayList<>())
+    ImmutableList.copyOf(currentOpenSockets.getOrDefault(projectId, new ArrayList<>()))
         .forEach(session -> {
           try {
             session.close();

@@ -37,7 +37,11 @@ export class CreateOrganizationModalComponent {
         this.modal.close(createdOrganization);
       },
       error: res => {
-        this.errorMessage = `The organization could not be created: ${res.error.message}`;
+        this.toastService.show({
+          message: `The organization could not be created: ${res.error.message}`,
+          type: ToastType.DANGER
+        });
+        console.log(res);
       }
     });
   }

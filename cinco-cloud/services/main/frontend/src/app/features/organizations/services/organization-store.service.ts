@@ -46,11 +46,23 @@ export class OrganizationStoreService {
         accessRights.forEach(arv => map.set(arv.user.id, arv));
         this.organizationAccessRights.next(map);
       },
-      error: console.error
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Could not fetch organizations.`
+        });
+        console.error(res.data.message);
+      }
     });
     this.organizationARVApi.getMy(organization.id).subscribe({
       next: accessRights => this.userOrganizationAccessRights.next(accessRights),
-      error: console.error
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Could not fetch access rights for organization ${organization.name}`
+        });
+        console.error(res.data.message);
+      }
     });
   }
 

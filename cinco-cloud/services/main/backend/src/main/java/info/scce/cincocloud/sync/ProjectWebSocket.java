@@ -81,11 +81,16 @@ public class ProjectWebSocket {
 
   private void createStopProjectPodsTask(long projectId) {
     try {
-      transactionManager.begin();
       final var task = new StopProjectPodsTaskDB();
       task.setProjectId(projectId);
-      StopProjectPodsTaskDB.persist(task);
-      transactionManager.commit();
+
+      if (transactionManager.getTransaction() == null) {
+        transactionManager.begin();
+        StopProjectPodsTaskDB.persist(task);
+        transactionManager.commit();
+      } else {
+        StopProjectPodsTaskDB.persist(task);
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }

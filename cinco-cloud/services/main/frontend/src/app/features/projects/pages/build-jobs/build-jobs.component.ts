@@ -34,7 +34,7 @@ export class BuildJobsComponent implements OnInit {
   constructor(private projectStore: ProjectStoreService,
               private appStore: AppStoreService,
               private buildJobApi: WorkspaceImageBuildJobApiService,
-              private toastSerivce: ToastService) {
+              private toastService: ToastService) {
   }
 
   ngOnInit(): void {
@@ -89,7 +89,13 @@ export class BuildJobsComponent implements OnInit {
   loadPage(): void {
     this.buildJobApi.getAll(this.project.id, this.pageNumber, this.pageSize).subscribe({
       next: page => this.buildJobsPage = page,
-      error: console.error
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `Could not fetch build-jobs.`
+        });
+        console.error(res.data.message);
+      }
     });
   }
 
@@ -106,11 +112,11 @@ export class BuildJobsComponent implements OnInit {
   abortJob(job: WorkspaceImageBuildJob): void {
     this.buildJobApi.abort(this.project.id, job).subscribe({
       next: abortedJob => {
-        this.toastSerivce.show({type: ToastType.SUCCESS, message: 'The job has been aborted.'});
+        this.toastService.show({type: ToastType.SUCCESS, message: 'The job has been aborted.'});
         job.status = abortedJob.status;
       },
       error: () => {
-        this.toastSerivce.show({type: ToastType.DANGER, message: 'The job could not be aborted.'});
+        this.toastService.show({type: ToastType.DANGER, message: 'The job could not be aborted.'});
       }
     });
   }
@@ -118,11 +124,11 @@ export class BuildJobsComponent implements OnInit {
   deleteJob(job: WorkspaceImageBuildJob): void {
     this.buildJobApi.delete(this.project.id, job).subscribe({
       next: () => {
-        this.toastSerivce.show({type: ToastType.SUCCESS, message: 'The job has been deleted.'});
+        this.toastService.show({type: ToastType.SUCCESS, message: 'The job has been deleted.'});
         this.buildJobsPage.items = this.buildJobsPage.items.filter(j => j.id !== job.id);
       },
       error: () => {
-        this.toastSerivce.show({type: ToastType.DANGER, message: 'The job could not be deleted.'});
+        this.toastService.show({type: ToastType.DANGER, message: 'The job could not be deleted.'});
       }
     });
   }
