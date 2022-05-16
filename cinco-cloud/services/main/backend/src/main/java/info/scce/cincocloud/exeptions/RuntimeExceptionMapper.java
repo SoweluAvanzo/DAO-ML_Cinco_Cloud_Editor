@@ -10,6 +10,7 @@ public class RuntimeExceptionMapper implements ExceptionMapper<RuntimeException>
 
   @Override
   public Response toResponse(RuntimeException runtimeException) {
+    runtimeException.printStackTrace();
     return Response.status(Status.BAD_REQUEST)
         .entity(new RestErrorResponse(runtimeException.getMessage(), Status.BAD_REQUEST.getStatusCode()))
         .build();

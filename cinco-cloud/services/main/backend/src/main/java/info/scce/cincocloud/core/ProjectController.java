@@ -293,7 +293,7 @@ public class ProjectController {
     if (canDeleteProject(subject, project)) {
       projectService.deleteById(id);
       projectDeploymentService.delete(project);
-      return Response.ok("Removed").build();
+      return Response.status(Status.NO_CONTENT).build();
     }
     return Response.status(Response.Status.FORBIDDEN).build();
   }
