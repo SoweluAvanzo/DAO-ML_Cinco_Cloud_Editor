@@ -70,10 +70,6 @@ Install one of them.
         * **Windows**: `C:\Windows\System32\drivers\etc\hosts`
         * **Linux and macOS**: `/etc/hosts`
 
-4. **macOS** users also have to do the following:
-    1. Install [CoreDNS](https://coredns.io) (you can use `brew install coredns`)
-    2. Execute the installation step 4 (Configure in-cluster DNS server to resolve local DNS names inside cluster) of [the minikube Ingress DNS docs](https://minikube.sigs.k8s.io/docs/handbook/addons/ingress-dns/#installation)
-
 ### 3. Get the Sources
 
 1. Clone the CincoCloud [repository][cinco-cloud-repository]

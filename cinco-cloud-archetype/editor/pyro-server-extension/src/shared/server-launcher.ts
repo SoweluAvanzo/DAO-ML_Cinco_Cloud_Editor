@@ -18,7 +18,7 @@ import { ILogger, MaybePromise } from '@theia/core';
 import { BackendApplicationContribution } from '@theia/core/lib/node';
 import { IProcessExitEvent, ProcessErrorEvent } from '@theia/process/lib/node/process';
 import { RawProcess, RawProcessFactory } from '@theia/process/lib/node/raw-process';
-import { PYRO_SERVER_BINARIES_FILE, PYRO_SUBPATH } from '../node/environment-vars';
+import { PYRO_SERVER_BINARIES_FILE, EXTERNAL_PYRO_SUBPATH } from '../node/environment-vars';
 import { LogServer } from './log-protocol';
 import { createClient } from './minio-client';
 
@@ -54,7 +54,7 @@ export class ServerLauncher implements BackendApplicationContribution {
                 this.logInfo('Fetched pyro-server binaries');
                 const unpackScriptPath = path.resolve(__dirname, '..', '..', 'unpack-pyro-server.sh');
                 cp.spawnSync('chmod', ['+X', unpackScriptPath.toString()]);
-                const buffer = cp.spawnSync('sh', [unpackScriptPath.toString(), PYRO_SUBPATH]);
+                const buffer = cp.spawnSync('sh', [unpackScriptPath.toString(), EXTERNAL_PYRO_SUBPATH]);
                 this.logInfo(String(buffer.stdout));
                 this.logError(String(buffer.stderr));
 

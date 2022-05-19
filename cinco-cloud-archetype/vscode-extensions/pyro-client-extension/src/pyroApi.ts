@@ -1,6 +1,6 @@
 import * as http from 'http';
 import * as https from 'https';
-import { PYRO_HOST, PYRO_PORT, PYRO_SUBPATH } from "./env_var";
+import { INTERNAL_PYRO_HOST, INTERNAL_PYRO_PORT, INTERNAL_PYRO_SUBPATH, INTERNAL_USE_SSL } from "./env_var";
 import { isEmpty } from './fileNameUtils';
 import { PyroEditorProvider } from './pyroEditor';
 
@@ -10,10 +10,9 @@ export abstract class PyroApi {
 	protected TOKEN: string | undefined;
 	protected PROJECT_ID: number | undefined = undefined;
 
-	private static async performRequest(options: http.RequestOptions,data?:any):Promise<any> {
-		PyroEditorProvider.logging("REQUESTING:\n"+options.path);
+	private static async performRequest(httpOptions: http.RequestOptions,data?:any):Promise<any> {
+		PyroEditorProvider.logging("REQUESTING:\n"+JSON.stringify(httpOptions));
 		return new Promise((resolve, reject) => {
-			const httpOptions = this.applyHttpsOptions(options);
 			const req = http.request(httpOptions,(response: http.IncomingMessage) => {
 					if (response.statusCode != 200) {
 						PyroEditorProvider.logging('REQUEST FAILED:\n'+httpOptions.hostname+'\n'+httpOptions.path+'\n'+httpOptions.port);
@@ -37,6 +36,11 @@ export abstract class PyroApi {
 					});
 				}
 			);
+            req.on('error', error => {
+                PyroEditorProvider.logging(
+                    `Request error ${error.name}: ${error.message}`
+                );
+            });
 			if(data && !isEmpty(data.toString())) {
 				req.write(JSON.stringify(data));
 			}
@@ -45,10 +49,12 @@ export abstract class PyroApi {
 	}
 
 	public static async createModel(name :string|undefined, modelType:string|undefined, token: string): Promise<any> {
-		const options = {
-			hostname: PYRO_HOST,
-			port: PYRO_PORT,
-			path: PYRO_SUBPATH+'/api/'+PyroApi.getRestEndpoint(modelType)+'/create/private',
+		const options: http.RequestOptions = {
+            agent: INTERNAL_USE_SSL ? https.globalAgent : undefined,
+            protocol: `${INTERNAL_USE_SSL ? 'https' : 'http'}:`,
+			hostname: INTERNAL_PYRO_HOST,
+			port: INTERNAL_PYRO_PORT,
+			path: INTERNAL_PYRO_SUBPATH+'/api/'+PyroApi.getRestEndpoint(modelType)+'/create/private',
 			method: 'POST',
 			'headers': {
 				'Authorization': token,
@@ -62,9 +68,11 @@ export abstract class PyroApi {
 
 	public static async removeModel(modelType:string|undefined, id: string, token: string): Promise<any> {
 		const options = {
-			hostname: PYRO_HOST,
-			port: PYRO_PORT,
-			path: PYRO_SUBPATH+'/api/'+PyroApi.getRestEndpoint(modelType)+'/remove/'+id+'/private',
+            agent: INTERNAL_USE_SSL ? https.globalAgent : undefined,
+            protocol: `${INTERNAL_USE_SSL ? 'https' : 'http'}:`,
+			hostname: INTERNAL_PYRO_HOST,
+			port: INTERNAL_PYRO_PORT,
+			path: INTERNAL_PYRO_SUBPATH+'/api/'+PyroApi.getRestEndpoint(modelType)+'/remove/'+id+'/private',
 			method: 'GET',
 			'headers': {
 				'Authorization': token,
@@ -76,9 +84,11 @@ export abstract class PyroApi {
 
 	public static async getModelTypes(token: string): Promise<Map<string, string>> {
 		const options = {
-			hostname: PYRO_HOST,
-			port: PYRO_PORT,
-			path: PYRO_SUBPATH+'/api/graph/list/private',
+            agent: INTERNAL_USE_SSL ? https.globalAgent : undefined,
+            protocol: `${INTERNAL_USE_SSL ? 'https' : 'http'}:`,
+			hostname: INTERNAL_PYRO_HOST,
+			port: INTERNAL_PYRO_PORT,
+			path: INTERNAL_PYRO_SUBPATH+'/api/graph/list/private',
 			method: 'GET',
 			'headers': {
 				'Authorization': token,
@@ -101,17 +111,6 @@ export abstract class PyroApi {
 		return result;
 	}
 	
-	public static applyHttpsOptions(options: http.RequestOptions): http.RequestOptions {
-		if (process.env.USE_SSL === 'true') {
-			return { ...options, ...{
-					protocol: 'https:',
-					agent: https.globalAgent
-				}};
-		} else {
-			return options;
-		}
-	}
-
 	public static getRestEndpoint(modelType: string | undefined) {
 		if(!modelType)
 			throw new Error("ModelType missing!");

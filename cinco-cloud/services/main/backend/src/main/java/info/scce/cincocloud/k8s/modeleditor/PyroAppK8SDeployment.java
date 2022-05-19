@@ -126,15 +126,35 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                         .withValue(environment)
                         .build(),
                     new EnvVarBuilder()
-                        .withName("PYRO_HOST")
-                        .withValue(host)
+                        .withName("INTERNAL_USE_SSL")
+                        .withValue("false")
                         .build(),
                     new EnvVarBuilder()
-                        .withName("PYRO_PORT")
+                        .withName("INTERNAL_PYRO_HOST")
+                        .withValue("localhost")
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("INTERNAL_PYRO_PORT")
                         .withValue("443")
                         .build(),
                     new EnvVarBuilder()
-                        .withName("PYRO_SUBPATH")
+                        .withName("INTERNAL_PYRO_SUBPATH")
+                        .withValue("")
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("EXTERNAL_USE_SSL")
+                        .withValue("true")
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("EXTERNAL_PYRO_HOST")
+                        .withValue(host)
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("EXTERNAL_PYRO_PORT")
+                        .withValue("443")
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("EXTERNAL_PYRO_SUBPATH")
                         .withValue("/workspaces/" + getProjectName() + "/pyro/")
                         .build(),
                     new EnvVarBuilder()
@@ -156,10 +176,6 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                     new EnvVarBuilder()
                         .withName("MINIO_SECRET_KEY")
                         .withValue(minioSecretKey)
-                        .build(),
-                    new EnvVarBuilder()
-                        .withName("USE_SSL")
-                        .withValue("true")
                         .build()
                 )
                 .build()
