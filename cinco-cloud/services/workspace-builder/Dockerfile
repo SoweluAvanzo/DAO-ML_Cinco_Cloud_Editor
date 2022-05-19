@@ -8,14 +8,12 @@ COPY ./workspace-builder/.mvn /app/workspace-builder/.mvn
 COPY ./workspace-builder/mvnw /app/workspace-builder/mvnw
 RUN cd /app/workspace-builder && ./mvnw verify
 COPY ./workspace-builder /app/workspace-builder
-RUN ls -all
 RUN cd /app/workspace-builder && ./mvnw clean install package -DskipTests
-RUN cd /app/workspace-builder/target && ls -all
+RUN cd /app/workspace-builder/target
 
-FROM docker.io/library/ubuntu:21.10
+FROM quay.io/buildah/stable:v1.23.3
 WORKDIR /app
-RUN apt-get -y update
-RUN apt-get -y install crun buildah openjdk-11-jdk
+RUN dnf install -y java-11-openjdk.x86_64
 COPY --from=builder /app/workspace-builder/target/quarkus-app/ /app
 EXPOSE 8000
 CMD java \
