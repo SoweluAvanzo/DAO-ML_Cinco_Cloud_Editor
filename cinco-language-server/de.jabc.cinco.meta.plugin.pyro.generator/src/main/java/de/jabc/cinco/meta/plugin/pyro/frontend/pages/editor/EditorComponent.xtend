@@ -244,8 +244,8 @@ class EditorComponent extends Generatable {
 			} else {
 				window.localStorage['PYRO_EDITOR_SELECTED'] = view;
 				selected = view;
-				js.context.callMethod("initializeResizeParameter", [this.currentFile.$lower_type()]);
 			}
+			js.context.callMethod("initializeResizeParameter", [this.currentFile.$lower_type()]);
 	    }
 
 	    void changedMainLayout(layout) {

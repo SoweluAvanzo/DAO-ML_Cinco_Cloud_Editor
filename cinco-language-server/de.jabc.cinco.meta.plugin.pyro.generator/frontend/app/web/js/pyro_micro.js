@@ -65,7 +65,9 @@ const mouseMoveHandler = function (e) {
     rightSide.style.width = `${newRightWidth}%`;
 
     // readjust map
-    // window["reaAdjustDimensions_"+currentType]();
+    if(currentType) {
+        window["reaAdjustDimensions_"+currentType]();
+    }
 };
 
 const mouseUpHandler = function () {
@@ -88,5 +90,10 @@ function initializeResizeParameter(currentType) {
     resizer = document.getElementById('separator');
     if(resizer) {
        resizer.addEventListener('mousedown', mouseDownHandler);
+    }
+
+    // readjust map
+    if(currentType) {
+        window["reaAdjustDimensions_"+currentType]();
     }
 }
