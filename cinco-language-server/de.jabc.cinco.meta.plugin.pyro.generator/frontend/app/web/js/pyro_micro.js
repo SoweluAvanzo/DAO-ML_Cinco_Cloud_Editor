@@ -12,18 +12,23 @@ var resizer = null;
 var leftSide = null;
 var rightSide = null;
 
+var currentType = null;
+
 // Handle the mousedown event
 // that's triggered when user drags the resizer
 const mouseDownHandler = function (e) {
-    // Get the current mouse position
-    x = e.clientX;
-    y = e.clientY;
-
     // fetch current width
     rightSide = document.getElementById('canvas-area');
     leftSide = document.getElementById('pyro-micro-menu');
+    if(!rightSide || !leftSide) {
+        return;
+    }
+
     leftWidth = leftSide.getBoundingClientRect().width;
     rightWidth = rightSide.getBoundingClientRect().width;
+    // Get the current mouse position
+    x = e.clientX;
+    y = e.clientY;
 
     // Attach the listeners to `document`
     document.addEventListener('mousemove', mouseMoveHandler);
@@ -31,8 +36,12 @@ const mouseDownHandler = function (e) {
 };
 
 const mouseMoveHandler = function (e) {
+    // fetch current width
     rightSide = document.getElementById('canvas-area');
     leftSide = document.getElementById('pyro-micro-menu');
+    if(!rightSide || !leftSide) {
+        return;
+    }
     const w = resizer.parentNode.getBoundingClientRect().width;
 
     // How far the mouse has been moved
@@ -54,12 +63,12 @@ const mouseMoveHandler = function (e) {
     // apply
     leftSide.style.width = `${newLeftWidth}%`;
     rightSide.style.width = `${newRightWidth}%`;
+
+    // readjust map
+    // window["reaAdjustDimensions_"+currentType]();
 };
 
 const mouseUpHandler = function () {
-    rightSide = document.getElementById('canvas-area');
-    leftSide = document.getElementById('pyro-micro-menu');
-
     // Remove the handlers of `mousemove` and `mouseup`
     document.removeEventListener('mousemove', mouseMoveHandler);
     document.removeEventListener('mouseup', mouseUpHandler);
@@ -72,7 +81,9 @@ $( window ).on( "change", function() {
     initializeResizeParameter();
 });
 
-function initializeResizeParameter() {
+function initializeResizeParameter(currentType) {
+    this.currentType = currentType;
+
     // Query the element
     resizer = document.getElementById('separator');
     if(resizer) {

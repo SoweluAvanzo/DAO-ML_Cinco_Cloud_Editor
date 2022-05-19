@@ -716,9 +716,9 @@ class CanvasComponent extends Generatable {
 			«ENDIF»
 			<div class="card-header d-flex flex-row align-items-center pyro-panel-heading">
 				<template [ngIf]="isModelFile()">
-					<bs-dropdown class="mr-2">
-						<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="tooltip" data-placement="bottom" title="Choose to change view mode">View</button>
-						<bs-dropdown-menu>
+					<bs-dropdown class="mr-2 dropdown">
+						<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-placement="bottom" title="Choose to change view mode">View</button>
+						<bs-dropdown-menu class="dropdown-menu">
 							<h6 class="dropdown-header">Switch layout to...</h6>
 							<li>
 								<div *ngIf="layoutType != 'micro'">
@@ -735,21 +735,21 @@ class CanvasComponent extends Generatable {
 							<li><a class="dropdown-item"  (click)="changeLayoutSC.add('COMPLETE')">Complete</a></li>
 						</bs-dropdown-menu>
 					</bs-dropdown>
-					<bs-dropdown class="mr-2">
-						<button type="button" class="btn btn-sm dropdown-toggle" >
+					<bs-dropdown class="mr-2 dropdown">
+						<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						  Export
 						</button>
-						<bs-dropdown-menu>
+						<bs-dropdown-menu class="dropdown-menu">
 						  <li><a class="dropdown-item" href="#" (click)="export($event, 'svg')">Export as SVG</a></li>
 						  <li><a class="dropdown-item" href="#" (click)="export($event, 'png')">Export as PNG</a></li>
 						  <!--<li><a class="dropdown-item" href="#" [attr.download]="currentFile.filename+'.'+currentFile.extension">Export for CINCO</a></li>-->
 						</bs-dropdown-menu>
 					</bs-dropdown>
-					<bs-dropdown class="mr-2">
-						<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="tooltip" data-placement="bottom" title="Choose from different edge routing algorithms">
+					<bs-dropdown class="mr-2 dropdown">
+						<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-placement="bottom" title="Choose from different edge routing algorithms">
 						  Routing
 						</button>
-						<bs-dropdown-menu>
+						<bs-dropdown-menu class="dropdown-menu">
 						  <h6 class="dropdown-header">Routing modes</h6>
 						  <a class="dropdown-item" [class.active]="isActiveRouter(null)" href (click)="changeRouteLayout(null,$event)">Default</a>
 						  <a class="dropdown-item" [class.active]="isActiveRouter('orthogonal')" href (click)="changeRouteLayout('orthogonal',$event)">Orthogonal</a>
@@ -787,27 +787,27 @@ class CanvasComponent extends Generatable {
 				    		</button>
 				    	</div>
 				    «ENDIF»
-				    «IF hasGenerator»
-				    	<template [ngIf]="isModelFile()&&hasGenerator()">
-				    		<template [ngIf]="getGenerators().length <= 1">
-				    			<button class="btn btn-sm" (click)="triggerGenerator(null,null)"	
-				    				data-toggle="tooltip" data-placement="bottom" title="Trigger the generation process"
-				    				*ngIf="«FOR g:gc.concreteGraphModels.filter[generating] SEPARATOR "||"»currentFile.$type()=='«g.typeName»'«ENDFOR»">
-				    				<i class="fas fa-fw fa-cog"></i> <strong>G</strong>
-				    			</button>
-				    		</template>
-				    		<template [ngIf]="getGenerators().length > 1">
-				    			<bs-dropdown class="mr-2">
-				    				<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="tooltip" data-placement="bottom" title="Choose from different generators">
-				    					<i class="fas fa-fw fa-cog"></i> <strong>G</strong>
-				    				</button>
-				    				<bs-dropdown-menu>
-				    					<a *ngFor="let g of getGenerators().entries" class="dropdown-item" href (click)="triggerGenerator(g.key,$event)">{{g.value}}</a>
-				    				</bs-dropdown-menu>
-				    			</bs-dropdown>
-				    		</template>
-				    	</template>
-				    «ENDIF»
+					«IF hasGenerator»
+						<template [ngIf]="isModelFile()&&hasGenerator()">
+							<template [ngIf]="getGenerators().length <= 1">
+								<button class="btn btn-sm" (click)="triggerGenerator(null,null)"	
+									data-toggle="tooltip" data-placement="bottom" title="Trigger the generation process"
+									*ngIf="«FOR g:gc.concreteGraphModels.filter[generating] SEPARATOR "||"»currentFile.$type()=='«g.typeName»'«ENDFOR»">
+									<i class="fas fa-fw fa-cog"></i> <strong>G</strong>
+								</button>
+							</template>
+							<template [ngIf]="getGenerators().length > 1">
+								<bs-dropdown class="mr-2 dropdown">
+									<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-placement="bottom" title="Choose from different generators">
+										<i class="fas fa-fw fa-cog"></i> <strong>G</strong>
+									</button>
+									<bs-dropdown-menu class="dropdown-menu">
+										<a *ngFor="let g of getGenerators().entries" class="dropdown-item" href (click)="triggerGenerator(g.key,$event)">{{g.value}}</a>
+									</bs-dropdown-menu>
+								</bs-dropdown>
+							</template>
+						</template>
+					«ENDIF»
 					<div *ngIf="isModelFile()" id="glue-toggle" class="btn-group btn-group-sm mr-2">
 			    		<button type="button" (click)="toggleGluelines()" [class.active]="isGluelines" class="btn btn-sm btn-outline-secondary" data-toggle="tooltip" data-placement="bottom" title="Toggle the glue lines on canvas">
 			    			<i class="fas fa-ruler-combined"></i>
@@ -820,11 +820,11 @@ class CanvasComponent extends Generatable {
 						</button>
 					</div>
 					«IF !gc.projectServices.empty»
-						<bs-dropdown class="mr-2">
-							<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="tooltip" data-placement="bottom" title="Choose service to start">
+						<bs-dropdown class="mr-2 dropdown">
+							<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-placement="bottom" title="Choose service to start">
 								Services
 							</button>
-							<bs-dropdown-menu *ngIf="getServices().isNotEmpty" class="mr-2">
+							<bs-dropdown-menu class="dropdown-menu" *ngIf="getServices().isNotEmpty">
 								<h6 class="dropdown-header">Active</h6>
 								<a *ngFor="let service of getServices()['active']" class="dropdown-item">
 									<button type="button" class="btn" (click)="triggerService(service)">

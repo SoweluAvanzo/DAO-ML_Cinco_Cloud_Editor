@@ -190,7 +190,7 @@ class EditorComponent extends Generatable {
 					}
 				});
 			} else if(mainLayout == 'micro') {
-				js.context.callMethod("initializeResizeParameter");
+				js.context.callMethod("initializeResizeParameter", [this.currentFile.$lower_type()]);
 			}
 			loadAppearance();
 		}
@@ -244,7 +244,7 @@ class EditorComponent extends Generatable {
 			} else {
 				window.localStorage['PYRO_EDITOR_SELECTED'] = view;
 				selected = view;
-				js.context.callMethod("initializeResizeParameter");
+				js.context.callMethod("initializeResizeParameter", [this.currentFile.$lower_type()]);
 			}
 	    }
 
@@ -575,7 +575,7 @@ class EditorComponent extends Generatable {
 			</div>
 			<div class="y-resizer" id="separator"></div>
 			<div id="canvas-area"
-				[style.width]="selected==null? 'calc(100vw - 44px)' : 'calc(100vw - 254px)'"
+				[style.width]="selected==null? 'calc(100vw - 46px)' : 'calc(100vw - 256px)'"
 			>
 				<pyro-canvas
 					class="d-flex flex-column h-100" 
