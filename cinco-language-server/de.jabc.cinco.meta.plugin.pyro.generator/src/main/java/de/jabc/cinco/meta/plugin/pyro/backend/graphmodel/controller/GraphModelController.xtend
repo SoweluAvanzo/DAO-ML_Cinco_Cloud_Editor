@@ -482,6 +482,7 @@ class GraphModelController extends Generatable {
 				return this.propagateAppearance(graph, user, executer);
 			«ELSE»
 				Response response = createResponse("basic_valid_answer",executer,user.id,graph.id, java.util.Collections.emptyList());
+				propagateChange(id, user.id, response.getEntity());
 				return response;
 			«ENDIF»
 		}
