@@ -44,8 +44,8 @@ class CanvasComponent extends Generatable {
 		templateUrl: 'canvas_component.html',
 		styleUrls: const ['package:«gc.projectName.escapeDart»/src/pages/editor/editor_component.css'],
 		directives: const [
-				bsDropdownDirectives,
-			coreDirectives,formDirectives
+			coreDirectives,
+			formDirectives
 			«FOR g:gc.concreteGraphModels BEFORE "," SEPARATOR ","»
 				«g.modelPackage.name.lowEscapeDart».«g.name.fuEscapeDart»CanvasComponent
 			«ENDFOR»
