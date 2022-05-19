@@ -92,6 +92,7 @@ class Index extends Generatable {
 	    <script type="application/javascript" src="js/sprintf.min.js"></script>
 	    <script type="application/javascript" src="js/pyro_core.js"></script>
 	    <script type="application/javascript" src="js/pyro_editor_grid.js"></script>
+	    <script type="application/javascript" src="js/pyro_micro.js"></script>
 	    
 	«FOR g:gc.concreteGraphModels»
 		<script type="application/javascript" src="«g.shapePath»"></script>
