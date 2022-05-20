@@ -1,5 +1,3 @@
-## build from parent directory: docker build -f workspace-builder/Dockerfile .
-
 FROM docker.io/library/openjdk:11-slim-buster as builder
 WORKDIR /app
 COPY ./resources /app/resources
@@ -13,8 +11,10 @@ RUN cd /app/workspace-builder/target
 
 FROM quay.io/buildah/stable:v1.23.3
 WORKDIR /app
-RUN dnf install -y java-11-openjdk.x86_64
 COPY --from=builder /app/workspace-builder/target/quarkus-app/ /app
+ENV JAVA_HOME=/opt/java/openjdk
+COPY --from=eclipse-temurin:11 $JAVA_HOME $JAVA_HOME
+ENV PATH "${JAVA_HOME}/bin:${PATH}"
 EXPOSE 8000
 CMD java \
     -Damqp-host="${AMPQ_HOST}" \
