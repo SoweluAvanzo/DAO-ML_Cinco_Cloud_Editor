@@ -325,7 +325,7 @@ archetype-push:
   variables:
     IMAGE: archetype
     VERSION: latest
-    PUSH_TAGS: latest $CI_COMMIT_SHA
+    PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
 
 # feature-branch pipeline
 archetype-build-dev:
