@@ -3,11 +3,13 @@
 This project represents an archetypical theia-editor for a cinco-cloud product.
 
 ## Structure
+
 - `vscode-extensions` contains all extensions, that can be developed within vscode. They are used inside the theia editor by installing the packaged *.vsix into the `editor/browser-app/plugins`-folder.
 - `editor` contains a eclipse theia-editor-project with all needed theia-extensions and files
 - `cinco-ls` contains the language-server project for the Cinco-DSLs (CPD, MGL, Style)
 
 ## Getting started
+
 USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
 
 1. to compile the docker image execute:
