@@ -202,7 +202,7 @@ cinco-cloud-push-image-main:
   variables:
     IMAGE: main
     VERSION: latest
-    PUSH_TAGS: latest $CI_COMMIT_SHA
+    PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
 
 cinco-cloud-push-image-registry:
   extends:
@@ -211,7 +211,7 @@ cinco-cloud-push-image-registry:
   variables:
     IMAGE: registry
     VERSION: latest
-    PUSH_TAGS: latest $CI_COMMIT_SHA
+    PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
 
 cinco-cloud-push-image-workspace-builder:
   extends:
@@ -220,7 +220,7 @@ cinco-cloud-push-image-workspace-builder:
   variables:
     IMAGE: workspace-builder
     VERSION: latest
-    PUSH_TAGS: latest $CI_COMMIT_SHA
+    PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
 
 cinco-cloud-deploy-testing:
   extends:
@@ -233,7 +233,7 @@ cinco-cloud-deploy-testing:
   variables:
     PROFILE: ls5vs024
     NAMESPACE: default
-    TAG: $CI_COMMIT_SHA
+    TAG: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
 
 
 # ====================================
@@ -348,7 +348,7 @@ archetype-push-dev:
   variables:
     IMAGE: archetype
     VERSION: dev
-    PUSH_TAGS: dev $CI_COMMIT_SHA
+    PUSH_TAGS: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
 
 
 # ====================================
