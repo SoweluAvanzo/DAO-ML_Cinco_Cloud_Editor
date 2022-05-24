@@ -137,3 +137,7 @@
   flex-direction: column;
   display: flex;
 }
+
+.nav-tabs .nav-link.active {
+  color: #eaeaea;
+}
