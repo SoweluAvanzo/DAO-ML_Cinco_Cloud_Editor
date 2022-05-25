@@ -35,11 +35,11 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: cinco-cloud-local-development-cert
+  name: cinco-cloud-local-ca-cert
   namespace: {{ .Release.Namespace }}
 spec:
   isCA: true
-  commonName: {{ .Values.ingress.host }}
+  commonName: {{ .Values.ingress.host }}-local-rootCA
   dnsNames:
     - {{ .Values.ingress.host }}
   subject:
@@ -51,6 +51,36 @@ spec:
     size: 256
   issuerRef:
     name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: cinco-cloud-local-ca-issuer
+spec:
+  ca:
+    secretName: cinco-cloud-local-ca-cert-secret
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cinco-cloud-local-development-cert
+  namespace: {{ .Release.Namespace }}
+spec:
+  isCA: false
+  commonName: {{ .Values.ingress.host }}-local-development-cert
+  dnsNames:
+    - {{ .Values.ingress.host }}
+  subject:
+    organizations:
+      - Cinco Cloud Local Development Org.
+  secretName: cinco-cloud-local-cert-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: cinco-cloud-local-ca-issuer
     kind: Issuer
     group: cert-manager.io
 {{ end }}
