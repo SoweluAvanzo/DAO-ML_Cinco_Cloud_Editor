@@ -15,7 +15,7 @@ spec:
     - hosts:
         - {{ .Values.ingress.host }}
       {{- if eq .Values.serverTier "local" }}
-      secretName: "cinco-cloud-local-ca-cert-secret"
+      secretName: "cinco-cloud-local-cert-secret"
       {{- else }}
       secretName: "letsencrypt-secret-{{ .Values.serverTier }}"
       {{- end }}
