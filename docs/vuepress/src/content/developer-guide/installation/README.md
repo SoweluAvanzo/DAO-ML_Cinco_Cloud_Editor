@@ -121,8 +121,13 @@ Install one of them.
 2. In the cinco-cloud directory, execute `skaffold dev -p local-dev` and wait for all pods to be deployed.
    All pods listed by `kubectl get pods` should have the status `running`.
    Thanks to skaffold, you can now change the code and skaffold automatically rebuilds and redeploys new images with the changes.
-3. Open `https://cinco-cloud/frontend` in a web browser.
-4. After the first start, your browser will reject the self-signed certificate from the `cert-manager` and we have to add it to the browser's certificate store.
+3. After the first start, extract the root certificate from the cluster:<br>
+   * **Windows:**<br>
+   `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath={.data.'tls\.crt'} | ForEach-Object {[System.Text.Encoding]::Unicode.GetString({System.Convert]::FromBase64String($_))} > cinco-cloud-local-rootCA.pem`<br>
+   * **Linux/macOS:**<br>
+   `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath={.data.'tls\.crt'} | base64 -d > cinco-cloud-local-rootCA.pem`
+4. Add `cinco-cloud-local-rootCA.pem` to your browser's certificate store.
+5. Open `https://cinco-cloud/frontend` in a web browser.
 
 
 ## Skaffold development profiles
