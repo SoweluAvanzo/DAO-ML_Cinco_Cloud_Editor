@@ -14,7 +14,7 @@ import { FrontendApplicationContribution, WebSocketConnectionProvider } from '@t
 import { OutputChannelManager, OutputChannel } from '@theia/output/lib/browser/output-channel';
 
 export let output: OutputChannel;
-const CHANNEL_NAME = 'PYRO';
+const CHANNEL_NAME = 'CINCO';
 
 export default new ContainerModule(bind => {
     /**
@@ -27,7 +27,7 @@ export default new ContainerModule(bind => {
             }
         };
         const connection = ctx.container.get(WebSocketConnectionProvider);
-        return connection.createProxy<LogServer>(ENDPOINT + 'pyro', client);
+        return connection.createProxy<LogServer>(ENDPOINT + 'cinco', client);
     }).inSingletonScope();
     bind(FrontendApplicationContribution).to(FrontendLoggerContribution);
 });

@@ -8,45 +8,42 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR MIT
  */
+import * as cp from 'child_process';
+import * as http from 'http';
+import * as https from 'https';
+import { inject, injectable } from 'inversify';
 import { MaybePromise } from '@theia/core';
 import { BackendApplicationContribution } from '@theia/core/lib/node';
 import { IProcessExitEvent, ProcessErrorEvent } from '@theia/process/lib/node/process';
 import { RawProcess, RawProcessFactory } from '@theia/process/lib/node/raw-process';
-import * as cp from 'child_process';
-import * as glob from 'glob';
-import * as http from 'http';
-import * as https from 'https';
-import { inject, injectable } from 'inversify';
-import * as path from 'path';
-import { PyroLogServer } from '../shared/log-protocol';
-
-import { isDebugging } from './debugHandler';
-import { cmdArgs, cmdDebugArgs, cmdExec, serverFile, serverPath } from './execVars';
+import { LogServer } from './log-protocol';
 
 let rawProcess: RawProcess;
-export let LOG = '';
 
 @injectable()
 export class ServerLauncher implements BackendApplicationContribution {
     @inject(RawProcessFactory) protected readonly processFactory: RawProcessFactory;
-    @inject(PyroLogServer) logger: PyroLogServer;
+    @inject(LogServer) logger: LogServer;
+
+    static FILE_PATH: string;
+    static CMD_EXEC: string;
+    static ARGS: string[];
+    static LOG = '';
 
     onStart?(server: http.Server | https.Server): MaybePromise<void> {
-        this.logInfo('*** starting model-server ***');
+        const msg = '*** starting server "' + ServerLauncher.FILE_PATH + '" ***';
+        this.logInfo(msg);
     }
 
     initialize(): void {
-        const execPaths = glob.sync('**/' + serverFile, { cwd: serverPath });
-        if (execPaths.length === 0) {
-            const msg = '*** server launcher not found ***';
+        if (!ServerLauncher.FILE_PATH) {
+            const msg = '*** server launcher "' + ServerLauncher.FILE_PATH + '" not found ***';
             this.logError(msg);
             throw new Error(msg);
         }
-        const execPath = path.resolve(serverPath, serverFile);
-        this.logInfo('*** spawn server process from "' + execPath + '" ***');
         this.spawnProcessAsync(
-            cmdExec,
-            (isDebugging() ? cmdDebugArgs : cmdArgs).concat(execPath),
+            ServerLauncher.CMD_EXEC,
+            ServerLauncher.ARGS,
             {
                 detached: false,
                 shell: true,
@@ -60,7 +57,7 @@ export class ServerLauncher implements BackendApplicationContribution {
         rawProcess.errorStream.on('data', this.logError.bind(this));
         rawProcess.outputStream.on('data', this.logInfo.bind(this));
         return new Promise<RawProcess>((resolve, reject) => {
-            LOG = '';
+            ServerLauncher.LOG = '';
             rawProcess.onError((error: ProcessErrorEvent) => {
                 this.onDidFailSpawnProcess(error);
                 if (error.code === 'ENOENT') {
@@ -76,7 +73,7 @@ export class ServerLauncher implements BackendApplicationContribution {
                 this.logError(`${error}`);
             });
             rawProcess.onExit((exit: IProcessExitEvent) => {
-                this.logError(`${exit}`);
+                this.logInfo(`${exit}`);
             });
             process.nextTick(() => resolve(rawProcess));
         });
@@ -105,6 +102,6 @@ export class ServerLauncher implements BackendApplicationContribution {
     }
 
     protected appendToLog(msg: string | Buffer): void {
-        LOG += msg;
+        ServerLauncher.LOG += msg;
     }
 }

@@ -33,7 +33,8 @@
   },
   "theiaExtensions": [
     {
-      "backend": "lib/node/backend-extension"
+      "backend": "lib/node/backend-extension",
+      "frontend": "lib/browser/frontend-extension"
     }
   ]
 }
