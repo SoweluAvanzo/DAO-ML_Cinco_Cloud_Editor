@@ -14,34 +14,18 @@ class GeneratorCompound {
 	public final Set<MGLModel> mglModels
 	public final Set<EPackage> ecores
 	public final String projectLocation;
-	
 	public final List<String> rootPostCreate;
-	public final List<String> organizationPostCreate;
 	public final List<String> projectPostCreate;
 	public final List<String> editorLayout;
-	public final List<String> initialOrganizations;
-	
 	public final List<Annotation> projectServices;
 	public final List<Annotation> projectActions;
-	
-	public final List<String> projectPerUser;
-	public final boolean organizationPerUser;
-	
-	public final OAuthCompound authCompound;
-	
 	public final Map<String, MGLModel> transientAPIs;
-	
 	public final CincoProduct cpd;
 	
 	new(String projectName, Set<MGLModel> mglModels, Set<EPackage> ecores, String projectLocation,
 		List<String> rootPostCreate,
-		List<String> organizationPostCreate,
 		List<String> projectPostCreate,
-		OAuthCompound authCompound,
 		List<String> editorLayout,
-		List<String> initialOrganizations,
-		List<String> projectPerUser,
-		boolean organizationPerUser,
 		List<Annotation> projectServices,
 		List<Annotation> projectActions,
 		Map<String, MGLModel> transientAPIs,
@@ -55,17 +39,9 @@ class GeneratorCompound {
 		this.mglExtension = MGLExtension.instance;
 		
 		this.rootPostCreate = rootPostCreate;
-		this.organizationPostCreate = organizationPostCreate;
 		this.projectPostCreate = projectPostCreate;
 		
-		this.authCompound = authCompound
-		
 		this.editorLayout = editorLayout
-		
-		this.initialOrganizations = initialOrganizations
-		
-		this.projectPerUser = projectPerUser
-		this.organizationPerUser = organizationPerUser
 		
 		this.projectServices = projectServices
 		this.projectActions = projectActions
@@ -73,8 +49,7 @@ class GeneratorCompound {
 		
 		this.cpd = cpd
 	}
-
-	// TODO:SAMI: refactor name after migration
+	
 	def getGraphMopdels() {
 		mglModels.map[it.graphModels].flatten.toSet.sortBy[g| mglExtension.typeName(g).toString]
 	}
