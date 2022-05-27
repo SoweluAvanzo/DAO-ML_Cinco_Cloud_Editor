@@ -3,7 +3,7 @@ package info.scce.cinco.product.extendedflowgraph.action;
 import info.scce.cinco.product.extendedflowgraph.extendedflowgraph.Start;
 import de.jabc.cinco.meta.runtime.action.CincoCustomAction;
 
-public class ShortestPathToEnd extends CincoCustomAction<Start> {
+public class EcoreCreator extends CincoCustomAction<Start> {
 	static int index = 0;
 	
 	@Override
