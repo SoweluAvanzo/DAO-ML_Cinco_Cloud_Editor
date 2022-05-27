@@ -11,7 +11,7 @@ class Generator extends FileGenerator {
 		super(base)
 	}
 	
-	def generate(GeneratorCompound gc) {
+	def void generate(GeneratorCompound gc) {
 		//generate html file
 		{
 			//preview
