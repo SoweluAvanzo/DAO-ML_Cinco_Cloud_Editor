@@ -13,8 +13,8 @@ graphModel ExtendedFlowGraph {
 	attr EString as modelName
 }
 
-@contextMenuAction("info.scce.cinco.product.extendedflowgraph.action.ShortestPathToEnd")
-@doubleClickAction("info.scce.cinco.product.extendedflowgraph.action.ShortestPathToEnd")
+@contextMenuAction("info.scce.cinco.product.extendedflowgraph.action.EcoreCreator")
+@doubleClickAction("info.scce.cinco.product.extendedflowgraph.action.EcoreCreator")
 @icon("icons/Start.png")
 @palette("Round Elements")
 node Start {

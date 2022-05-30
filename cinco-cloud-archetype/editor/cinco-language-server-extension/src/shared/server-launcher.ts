@@ -8,46 +8,47 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR MIT
  */
-import { ILogger, MaybePromise } from '@theia/core';
-import { BackendApplicationContribution } from '@theia/core/lib/node';
-import { IProcessExitEvent, ProcessErrorEvent } from '@theia/process/lib/node/process';
-import { RawProcess, RawProcessFactory } from '@theia/process/lib/node/raw-process';
 import * as cp from 'child_process';
-import * as glob from 'glob';
 import * as http from 'http';
 import * as https from 'https';
 import { inject, injectable } from 'inversify';
-import * as path from 'path';
+import { MaybePromise } from '@theia/core';
+import { BackendApplicationContribution } from '@theia/core/lib/node';
+import { IProcessExitEvent, ProcessErrorEvent } from '@theia/process/lib/node/process';
+import { RawProcess, RawProcessFactory } from '@theia/process/lib/node/raw-process';
+import { LogServer } from './log-protocol';
 
-import { isDebugging } from './debugHandler';
-import { cmdArgs, cmdDebugArgs, cmdExec, serverFile, serverName, serverPath } from './execVars';
-
-const LOG_NAME = '[' + serverName + ']';
 let rawProcess: RawProcess;
 
 @injectable()
 export class ServerLauncher implements BackendApplicationContribution {
     @inject(RawProcessFactory) protected readonly processFactory: RawProcessFactory;
-    @inject(ILogger) private readonly logger: ILogger;
+    @inject(LogServer) logger: LogServer;
+
+    static FILE_PATH: string;
+    static CMD_EXEC: string;
+    static ARGS: string[];
+    static LOG = '';
 
     onStart?(server: http.Server | https.Server): MaybePromise<void> {
-        this.logger.info(LOG_NAME + 'starting Pyro-Model-Server!');
+        const msg = '*** starting server "' + ServerLauncher.FILE_PATH + '" ***';
+        this.logInfo(msg);
     }
 
     initialize(): void {
-        const execPaths = glob.sync('**/' + serverFile, { cwd: serverPath });
-        if (execPaths.length === 0) {
-            throw new Error(LOG_NAME + 'Server launcher not found.');
+        if (!ServerLauncher.FILE_PATH) {
+            const msg = '*** server launcher "' + ServerLauncher.FILE_PATH + '" not found ***';
+            this.logError(msg);
+            throw new Error(msg);
         }
-        const execPath = path.resolve(serverPath, serverFile);
-        this.logger.info(LOG_NAME + 'Spawn Server Process from ' + execPath);
         this.spawnProcessAsync(
-            cmdExec,
-            (isDebugging() ? cmdDebugArgs : cmdArgs).concat(execPath), {
-            detached: false,
-            shell: true,
-            stdio: ['inherit', 'pipe']
-        }
+            ServerLauncher.CMD_EXEC,
+            ServerLauncher.ARGS,
+            {
+                detached: false,
+                shell: true,
+                stdio: ['inherit', 'pipe']
+            }
         );
     }
 
@@ -56,6 +57,7 @@ export class ServerLauncher implements BackendApplicationContribution {
         rawProcess.errorStream.on('data', this.logError.bind(this));
         rawProcess.outputStream.on('data', this.logInfo.bind(this));
         return new Promise<RawProcess>((resolve, reject) => {
+            ServerLauncher.LOG = '';
             rawProcess.onError((error: ProcessErrorEvent) => {
                 this.onDidFailSpawnProcess(error);
                 if (error.code === 'ENOENT') {
@@ -68,10 +70,10 @@ export class ServerLauncher implements BackendApplicationContribution {
                 reject(error);
             });
             rawProcess.onClose((error: IProcessExitEvent) => {
-                this.logger.info(LOG_NAME + `: ${error}`);
+                this.logError(`${error}`);
             });
             rawProcess.onExit((exit: IProcessExitEvent) => {
-                this.logger.info(LOG_NAME + `: ${exit}`);
+                this.logInfo(`${exit}`);
             });
             process.nextTick(() => resolve(rawProcess));
         });
@@ -82,14 +84,24 @@ export class ServerLauncher implements BackendApplicationContribution {
     }
 
     protected logError(data: string | Buffer): void {
+        this.appendToLog(data);
         if (data) {
-            this.logger.error(LOG_NAME + `: ${data}`);
+            if (this.logger) {
+                this.logger!.info(`${data}`);
+            }
         }
     }
 
     protected logInfo(data: string | Buffer): void {
+        this.appendToLog(data);
         if (data) {
-            this.logger.info(LOG_NAME + `: ${data}`);
+            if (this.logger) {
+                this.logger!.info(`${data}`);
+            }
         }
+    }
+
+    protected appendToLog(msg: string | Buffer): void {
+        ServerLauncher.LOG += msg;
     }
 }

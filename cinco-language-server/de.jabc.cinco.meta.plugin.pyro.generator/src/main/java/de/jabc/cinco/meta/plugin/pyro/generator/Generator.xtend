@@ -1,10 +1,8 @@
 package de.jabc.cinco.meta.plugin.pyro.generator
 
-import de.jabc.cinco.meta.plugin.pyro.util.Escaper
 import de.jabc.cinco.meta.plugin.pyro.util.FileHandler
 import de.jabc.cinco.meta.plugin.pyro.util.GeneratorCompound
 import de.jabc.cinco.meta.plugin.pyro.util.MGLExtension
-import de.jabc.cinco.meta.plugin.pyro.util.OAuthCompound
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -31,7 +29,6 @@ import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EPackage
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
 import productDefinition.Annotation
 import productDefinition.CincoProduct
 import java.io.FileOutputStream
@@ -49,7 +46,7 @@ class Generator {
 
 	def generate(Set<MGLModel> allWorkspaceMglModels, CincoProduct cpd, String base, String projectLocation) {
 		var mglModels = allWorkspaceMglModels.stream.filter[m |
-			// only take imported mgls from the set of all mgls in the workspace
+			// only take imported MGLs from the set of all MGLs in the workspace
 			cpd.getMgls().stream().anyMatch[mglDescriptor|
 				var relativePath = mglDescriptor.mglPath
 				var mglUri = IWorkspaceContext.localInstance.getFileURI(relativePath)
@@ -59,22 +56,16 @@ class Generator {
 			]
 		].collect(Collectors.toSet())
 		
-		// val fileHelper = new FileExtension
 		val rootPostCreate = new LinkedList<String>();
-		val organizationPostCreate = new LinkedList<String>();
 		val editorLayout = new LinkedList<String>();
 		val projectPostCreate = new LinkedList<String>();
-		val initialOrganizations = new LinkedList<String>();
 		val projectServices = new LinkedList<Annotation>();
 		val projectActions = new LinkedList<Annotation>();
-		var organizationPerUser = false
-		var List<String> projetcsPerUser = null
-		var OAuthCompound oauth = null
 		var Map<String, MGLModel> transientAPIs = new HashMap
 		val javaPath = base + "/app/src/main/java/"
 		this.projectLocation = projectLocation
 		
-		for (a : cpd.annotations) { // TODO: SAMI - some of these annotation do not exist anymore
+		for (a : cpd.annotations) {
 
 			if (a.name == "pyroProjectService" && a.value.size >= 3) {
 				// FQN, ServiceName, Arguments...
@@ -86,13 +77,6 @@ class Generator {
 				// FQN, Action Name
 				projectActions.add(a)
 				FileHandler.copyAnnotatedClasses(a, javaPath, projectLocation)
-			}
-
-			if (a.name == "pyroInitialOrganizations") {
-				if (a.getValue().size() > 0) {
-
-					initialOrganizations.addAll(a.value)
-				}
 			}
 
 			if (a.name == "pyroTransientAPI") {
@@ -107,26 +91,10 @@ class Generator {
 				}
 			}
 
-			if (a.name == "pyroProjectPerUser") {
-				projetcsPerUser = new LinkedList<String>()
-				projetcsPerUser.addAll(a.value)
-			}
-
-			if (a.name == "pyroOrganizationPerUser") {
-				organizationPerUser = true
-			}
-
 			if (a.name == "pyroProjectPostCreate") {
 				if (a.getValue().size() == 1) {
 					FileHandler.copyAnnotatedClasses(a, javaPath, projectLocation)
 					projectPostCreate.add(a.value.get(0))
-				}
-			}
-
-			if (a.name == "pyroOrganizationPostCreate") {
-				if (a.getValue().size() == 1) {
-					FileHandler.copyAnnotatedClasses(a, javaPath, projectLocation)
-					organizationPostCreate.add(a.value.get(0))
 				}
 			}
 
@@ -143,29 +111,6 @@ class Generator {
 					rootPostCreate.add(a.value.get(0))
 				}
 			}
-
-			if (a.name == "pyroOAuth") {
-				if (a.getValue().size() == 1) {
-					val p = FileHandler.getPropertiesFile(a)
-					if (p !== null) {
-						oauth = new OAuthCompound(
-							p.getProperty("name", "OAuth"),
-							p.getProperty("callbackURL", ""),
-							p.getProperty("clientID", ""),
-							p.getProperty("clientSecret", ""),
-							p.getProperty("scope", "user"),
-							p.getProperty("signinURL", ""),
-							p.getProperty("authURL", ""),
-							p.getProperty("userURL", ""),
-							p.getProperty("userAccountIdentifier", ""),
-							p.getProperty("userAccountName", ""),
-							p.getProperty("admins", ""),
-							Escaper.randomString(10) as String
-						);
-					}
-				}
-			}
-
 		}
 		
 		val allProjectMGLModels = (mglModels + transientAPIs.values).toSet;
@@ -183,13 +128,9 @@ class Generator {
 			ecores,
 			projectLocation,
 			rootPostCreate,
-			organizationPostCreate,
 			projectPostCreate,
-			oauth,
+			//oauth,
 			editorLayout,
-			initialOrganizations,
-			projetcsPerUser,
-			organizationPerUser,
 			projectServices,
 			projectActions,
 			transientAPIs,

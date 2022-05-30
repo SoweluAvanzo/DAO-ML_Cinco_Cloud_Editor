@@ -821,7 +821,6 @@ class GraphModelElementImplementation extends Generatable {
 					«ENDIF»
 				«ENDIF»
 				«IF me instanceof ContainingElement»
-					
 					private void removeNodes() {
 						java.util.List<graphmodel.Node> nodes = this.getModelElements(graphmodel.Node.class);
 						
@@ -849,7 +848,7 @@ class GraphModelElementImplementation extends Generatable {
 						return modelElements;
 					}
 					
-	
+				
 					@Override
 					public <T extends graphmodel.ModelElement> java.util.List<T> getModelElements(Class<T> clazz) {
 						return this.getModelElements().stream().filter(n->clazz.isInstance(n)).map(n->clazz.cast(n)).collect(java.util.stream.Collectors.toList());

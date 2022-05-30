@@ -8,17 +8,20 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Browser Backend Windows",
-      "runtimeExecutable": "npm",
+      "envFile": "${workspaceRoot}/.env",
+      "runtimeExecutable": "yarn",
       "cwd": "${workspaceFolder}/browser-app",
       "runtimeArgs": [
-        "run-script",
         "debug"
       ],
-      "port": 9229,
+      "env": {
+        "NODE_ENV": "development",
+        "CINCO_CLOUD_DEBUG": "true"
+      },
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "envFile": "${workspaceRoot}/.env",
+      "sourceMaps": true,
       "outFiles": [
         "${workspaceRoot}/node_modules/@theia/*/lib/**/*.js",
         "${workspaceRoot}/browser-app/lib/**/*.js",
@@ -26,7 +29,8 @@
         "${workspaceRoot}/cinco-language-server-extension/lib/**/*.js",
         "${workspaceRoot}/cinco-authenticator/lib/**/*.js",
         "${workspaceRoot}/cinco-frontend-configurator/lib/**/*.js",
-        "${workspaceRoot}/cinco-branding/lib/**/*.js"
+        "${workspaceRoot}/cinco-branding/lib/**/*.js",
+        "${workspaceRoot}/pyro-server-extension/lib/**/*.js"
       ],
       "smartStep": true,
       "internalConsoleOptions": "openOnSessionStart",
@@ -36,14 +40,16 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Browser Backend",
-      "program": "${workspaceRoot}/browser-app/src-gen/backend/main.js",
       "envFile": "${workspaceRoot}/.env",
+      "program": "${workspaceRoot}/browser-app/src-gen/backend/main.js",
       "args": [
         "--loglevel=debug",
-        "--port=3000",
+        "--hostname=localhost",
         "--no-cluster",
+        "--port=3000",
+        "--remote-debugging-port=9222",
         "--app-project-path=${workspaceRoot}",
-        "--root-dir=../examples/flowgraph",
+        "--root-dir=${workspaceRoot}/workspace",
         "--plugins=local-dir:${workspaceRoot}/browser-app/plugins"
       ],
       "env": {
@@ -58,7 +64,8 @@
         "${workspaceRoot}/cinco-language-server-extension/lib/**/*.js",
         "${workspaceRoot}/cinco-authenticator/lib/**/*.js",
         "${workspaceRoot}/cinco-frontend-configurator/lib/**/*.js",
-        "${workspaceRoot}/cinco-branding/lib/**/*.js"
+        "${workspaceRoot}/cinco-branding/lib/**/*.js",
+        "${workspaceRoot}/pyro-server-extension/lib/**/*.js"
       ],
       "smartStep": true,
       "internalConsoleOptions": "openOnSessionStart",

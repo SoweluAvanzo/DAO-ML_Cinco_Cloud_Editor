@@ -8,10 +8,36 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR MIT
  */
-import { BackendApplicationContribution } from '@theia/core/lib/node/backend-application';
+
+import * as path from 'path';
 import { ContainerModule } from 'inversify';
-import { CincoLSPServerLauncher } from './cinco-lsp-launcher';
+import { BackendApplicationContribution } from '@theia/core/lib/node/backend-application';
+import { ConnectionHandler, JsonRpcConnectionHandler } from '@theia/core';
+import { ENDPOINT, LogClient, LogServer, LogServerNode } from '../shared/log-protocol';
+import { ServerLauncher } from '../shared/server-launcher';
 
 export default new ContainerModule(bind => {
-    bind(BackendApplicationContribution).to(CincoLSPServerLauncher).inSingletonScope();
+    const languageServerPath = path.resolve(__dirname, '..', '..', 'language-server', 'bin', 'cinco-language-server');
+
+    // setting static values for server
+    ServerLauncher.FILE_PATH = languageServerPath;
+    ServerLauncher.CMD_EXEC = languageServerPath;
+    ServerLauncher.ARGS = [];
+
+    /**
+     * binding language-server-launcher
+     */
+    bind(BackendApplicationContribution).to(ServerLauncher).inSingletonScope();
+    /**
+     * Initialize logging-server to forward it to the frontend's output-channel
+     */
+    bind(LogServer).to(LogServerNode).inSingletonScope();
+    bind(ConnectionHandler).toDynamicValue(ctx =>
+        new JsonRpcConnectionHandler<LogClient>(ENDPOINT + 'cinco', client => {
+            const logServer = ctx.container.get<LogServer>(LogServer);
+            logServer.setClient(client);
+            logServer.info(ServerLauncher.LOG);
+            return logServer;
+        })
+    ).inSingletonScope();
 });

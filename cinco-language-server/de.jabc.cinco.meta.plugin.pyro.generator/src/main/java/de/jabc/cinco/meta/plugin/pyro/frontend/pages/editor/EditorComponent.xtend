@@ -124,7 +124,7 @@ class EditorComponent extends Generatable {
 	    final EditorDataService _editorDataService;
 	    String selected = null;
 	    bool showNav = false;
-	    String mainLayout = "classic";
+	    String mainLayout = "micro";
 	    
 	    EditorComponent(this._editorGridService, this.graphService, this._router, this._userService, this._notificationService, 
 	    				    this._styleService, this._permissionService, this._editorDataService) {
@@ -189,6 +189,8 @@ class EditorComponent extends Generatable {
 						initEditorGrid();
 					}
 				});
+			} else if(mainLayout == 'micro') {
+				js.context.callMethod("initializeResizeParameter", [this.currentFile.$lower_type()]);
 			}
 			loadAppearance();
 		}
@@ -243,6 +245,7 @@ class EditorComponent extends Generatable {
 				window.localStorage['PYRO_EDITOR_SELECTED'] = view;
 				selected = view;
 			}
+			js.context.callMethod("initializeResizeParameter", [this.currentFile.$lower_type()]);
 	    }
 
 	    void changedMainLayout(layout) {
@@ -496,7 +499,7 @@ class EditorComponent extends Generatable {
 	'''
 	def contentEditorTemplate()
 	'''
-	<div *ngIf="user!=null">
+	<div *ngIf="user!=null" [style.overflow]="mainLayout=='micro'? 'hidden' : 'auto'">
 		<properties
 			*ngIf="isGraphModel"
 		    [user]="user"
@@ -507,94 +510,93 @@ class EditorComponent extends Generatable {
 		    (hasClosed)="selectionChangedModal(null)"
 		>
 		</properties>
-		<div class="row" *ngIf="grid != null && mainLayout=='micro'" style="margin-right:0">
-			<div [style.width.px]="selected==null?'39':'265'" style="padding-right: 0;">
-				<div class="row" style="height: 100%">
-			        <div id="scroll-menu" [style.top.px]="showNav?100:31" >
-			          <ul class="nav nav-tabs left-tabs sideways-tabs" style="margin-top:50px;">
-			        	<ng-container *ngFor="let widgetArea of grid.items; trackBy: trackByWidgetAreaId">
-			        		<ng-container *ngFor="let widget of widgetArea.widgets; trackBy: trackByWidgetId">
-					            <li *ngIf="widget.key=='palette'" class="nav-item">
-					              <a class="nav-link" [class.active]="selected=='palette'" title="Show Palette" href (click)="selectView($event,'palette')">Palette</a>
-					            </li>
-					            <li *ngIf="widget.key=='checks'" class="nav-item">
-					              <a class="nav-link" [class.active]="selected=='check'" title="Show Checks" href (click)="selectView($event,'check')">Check</a>
-					            </li>
-					            <li *ngIf="widget.key=='command_history'" class="nav-item">
-					              <a class="nav-link" [class.active]="selected=='command-history'" title="Show Command History" href (click)="selectView($event,'command-history')">History</a>
-					            </li>
-					            <li *ngIf="widget.key=='map'" class="nav-item">
-					              <a class="nav-link" [class.active]="selected=='map'" title="Show Map" href (click)="selectView($event,'map')">Map</a>
-					            </li>
-							    «FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
-							        <li *ngIf="widget.key=='«pc.key»'" class="nav-item">
-							          <a class="nav-link" [class.active]="selected=='«pc.tab»'" title="Show «pc.tab»" href (click)="selectView($event,'«pc.tab»')">«pc.tab»</a>
-							        </li>
-							    «ENDFOR»
-				            </ng-container>
-			            </ng-container>
-			          </ul>
-			        </div>
-		
-			        <div class="pyro-micro-menu" style="height: 100%;width:210px;border: #57747b 2px solid;" *ngIf="selected!=null">
-			        	<h5 style="margin-top: 7px;margin-bottom:5px;text-align: center;">{{selected}}</h5>
-						<palette class="d-flex flex-column h-100"
-							*ngIf="selected=='palette' && isGraphModel"
-							[currentGraphModel]="currentFile"
-							[permissionVectors]="permissionVectors"
-							(dragged)="currentDragging($event)"
-						></palette>
-						<check class="d-flex flex-column h-100"
-							*ngIf="selected=='check' && isGraphModel"
-							[currentGraphModel]="currentFile"
-						></check>
-						<command-history class="d-flex flex-column h-100"
-							*ngIf="selected=='command-history' && isGraphModel"
-							(reverted)="graphService.canvasComponent.undo()"
-						></command-history>
-						<map class="d-flex flex-column h-100"
-							*ngIf="selected=='map' && isGraphModel"
-							[currentGraphModel]="currentFile"
-						></map>
-						«FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
-								<tree-view
-									*ngIf="selected=='«pc.tab»'&&isGraphModel"
-									[user]="user"
-									[currentGraphModel]="currentFile"
-									[name]="'«pc.tab»'"
-									[fetchUrl]="'«pc.fetchURL»'"
-									[clickUrl]="'«pc.clickURL»'"
-									[dbClickUrl]="'«pc.dbClickURL»'"
-									[parent]="instance"
-									style="height: 100%;"
-									>
-								</tree-view>
-						«ENDFOR»
-			        </div>
-				</div>
+		<div id="micro-editor" class="row" *ngIf="grid != null && mainLayout == 'micro'">
+			<div id="scroll-menu">
+				<ul class="nav nav-tabs left-tabs sideways-tabs" style="margin-top: 67px; height: max-content;">
+				  <ng-container *ngFor="let widgetArea of grid.items; trackBy: trackByWidgetAreaId">
+					  <ng-container *ngFor="let widget of widgetArea.widgets; trackBy: trackByWidgetId">
+						  <li *ngIf="widget.key=='palette'" class="nav-item">
+							<a class="nav-link" [class.active]="selected=='palette'" title="Show Palette" href (click)="selectView($event,'palette')">Palette</a>
+						  </li>
+						  <li *ngIf="widget.key=='checks'" class="nav-item">
+							<a class="nav-link" [class.active]="selected=='check'" title="Show Checks" href (click)="selectView($event,'check')">Check</a>
+						  </li>
+						  <li *ngIf="widget.key=='command_history'" class="nav-item">
+							<a class="nav-link" [class.active]="selected=='command-history'" title="Show Command History" href (click)="selectView($event,'command-history')">History</a>
+						  </li>
+						  <li *ngIf="widget.key=='map'" class="nav-item">
+							<a class="nav-link" [class.active]="selected=='map'" title="Show Map" href (click)="selectView($event,'map')">Map</a>
+						  </li>
+						  «FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
+						  	<li *ngIf="widget.key=='«pc.key»'" class="nav-item">
+						  		<a class="nav-link" [class.active]="selected=='«pc.tab»'" title="Show «pc.tab»" href (click)="selectView($event,'«pc.tab»')">«pc.tab»</a>
+						  	</li>
+						  «ENDFOR»
+					  </ng-container>
+				  </ng-container>
+				</ul>
 			</div>
-			<div [class.micro-column-right-xl]="selected==null" [class.micro-column-right-sm]="selected!=null" style="height: calc(100vh + 28px);overflow: hidden;padding-left: 0;">
+			<div id="pyro-micro-menu" *ngIf="selected != null">
+				<h5 style="margin-top: 15px;margin-bottom:12px;text-align: center;">
+					{{selected[0].toUpperCase() + selected.substring(1)}}
+				</h5>
+				<palette class="d-flex flex-column h-100"
+					*ngIf="selected=='palette' && isGraphModel"
+					[currentGraphModel]="currentFile"
+					[permissionVectors]="permissionVectors"
+					(dragged)="currentDragging($event)"
+				></palette>
+				<check class="d-flex flex-column h-100"
+					*ngIf="selected=='check' && isGraphModel"
+					[currentGraphModel]="currentFile"
+				></check>
+				<command-history class="d-flex flex-column h-100"
+					*ngIf="selected=='command-history' && isGraphModel"
+					(reverted)="graphService.canvasComponent.undo()"
+				></command-history>
+				<map class="d-flex flex-column h-100"
+					*ngIf="selected=='map' && isGraphModel"
+					[currentGraphModel]="currentFile"
+				></map>
+				«FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
+						<tree-view
+							*ngIf="selected=='«pc.tab»'&&isGraphModel"
+							[user]="user"
+							[currentGraphModel]="currentFile"
+							[name]="'«pc.tab»'"
+							[fetchUrl]="'«pc.fetchURL»'"
+							[clickUrl]="'«pc.clickURL»'"
+							[dbClickUrl]="'«pc.dbClickURL»'"
+							[parent]="instance"
+							style="height: 100%;"
+							>
+						</tree-view>
+				«ENDFOR»
+			</div>
+			<div class="y-resizer" id="separator"></div>
+			<div id="canvas-area"
+				[style.width]="selected==null? 'calc(100vw - 46px)' : 'calc(100vw - 256px)'"
+			>
 				<pyro-canvas
-		    	    class="d-flex flex-column h-100" 
-		    	    style="overflow: hidden"
-		        	#canvas
-		        	[user]="user"
+					class="d-flex flex-column h-100" 
+					style="overflow: hidden"
+					#canvas
+					[user]="user"
 					[redirectionStack]="redirectionStack"
-		            [currentFile]="currentFile"
-		            [currentLocalSettings]="currentLocalSettings"
-		            [permissionVectors]="permissionVectors"
+					[currentFile]="currentFile"
+					[currentLocalSettings]="currentLocalSettings"
+					[permissionVectors]="permissionVectors"
 					[layoutType]="mainLayout"
-		            (selectionChanged)="selectionChanged($event)"
-		            (selectionChangedModal)="selectionChangedModal($event)"
-		            (hasChanged)="changedData($event)"
-		            (jumpTo)="jumpToPrime($event)"
-		            (changeLayout)="changeGridLayout($event)"
-		          ></pyro-canvas>
+					(selectionChanged)="selectionChanged($event)"
+					(selectionChangedModal)="selectionChangedModal($event)"
+					(hasChanged)="changedData($event)"
+					(jumpTo)="jumpToPrime($event)"
+					(changeLayout)="changeGridLayout($event)"
+				></pyro-canvas>
 			</div>
 		</div>
 		
 	    <div class="grid-stack mt-2" *ngIf="mainLayout=='classic'&&grid != null">
-	    
 	 		<ng-container *ngFor="let widgetArea of grid.items; trackBy: trackByWidgetAreaId">
 		    	<div 
 					class="grid-stack-item" 
@@ -603,134 +605,122 @@ class EditorComponent extends Generatable {
 					[class.hidden]="!showWidget(widgetArea.id)"
 					[attr.data-gs-id]="widgetArea.id"
 				>
-				  <div class="grid-stack-item-content">
-					<div class="grid-stack-item-header d-flex align-items-center justify-content-end" style="min-height: 25px"> 
-					  <i class="fas fa-trash" 
-					  	 (click)="removeWidgetArea($event, widgetArea)"
-					  	 *ngIf="!isFullscreen(widgetArea.id)"
-					  ></i>
-	 				  <i class="ml-3 fas" 
-	 				  	 [class.fa-compress]="isFullscreen(widgetArea.id)"
-	 				  	 [class.fa-expand]="!isFullscreen(widgetArea.id)"
-	 				  	 (click)="toggleFullscreen(widgetArea.id)"
-	 				  ></i>
+					<div class="grid-stack-item-content">
+						<div class="grid-stack-item-header d-flex align-items-center justify-content-end" style="min-height: 25px"> 
+						  <i class="fas fa-trash" 
+						  	 (click)="removeWidgetArea($event, widgetArea)"
+						  	 *ngIf="!isFullscreen(widgetArea.id)"
+						  ></i>
+		 				  <i class="ml-3 fas" 
+		 				  	 [class.fa-compress]="isFullscreen(widgetArea.id)"
+		 				  	 [class.fa-expand]="!isFullscreen(widgetArea.id)"
+		 				  	 (click)="toggleFullscreen(widgetArea.id)"
+		 				  ></i>
+						</div>
+					    <div class="grid-stack-item-body" *ngIf="widgetArea.widgets.length > 0">
+							<editor-tabs-dropzone [area]="widgetArea" (drop)="moveWidget($event)">
+							    <bs-tabs #tabs>
+							  		<ng-container *ngFor="let widget of widgetArea.widgets; trackBy: trackByWidgetId">
+							  		  <template bsTab [select]="widget.key">
+							  		  	<editor-tabs-draggable 
+							  		  		[widget]="widget" 
+							  		  		(close)="removeWidget(null, widgetArea, $event)"
+							  		  		(detach)="createWidgetArea($event)"
+							  		  	>
+									      {{widget.tab}} <small (click)="removeWidget($event, widgetArea, widget)"><i class="remove-widget fas fa-times ml-1"></i></small>
+									    </editor-tabs-draggable>
+									  </template>
+								    </ng-container>
+							    </bs-tabs>
+							</editor-tabs-dropzone>
+							<bs-tab-content [for]="tabs" style="height: 100%;">
+								<ng-container *ngFor="let widget of widgetArea.visibleWidgets; trackBy: trackByWidgetId">
+									<template bs-tab-panel [name]="widget.key">
+										<div [ngSwitch]="widget.key" style="height: 100%;">
+											<ng-container *ngSwitchCase="'canvas'">
+												<pyro-canvas
+													class="d-flex flex-column h-100" 
+												    style="overflow: hidden"
+													#canvas
+													[user]="user"
+												    [currentFile]="currentFile"
+													[redirectionStack]="redirectionStack"
+												    [currentLocalSettings]="currentLocalSettings"
+												    [permissionVectors]="permissionVectors"
+												    [layoutType]="mainLayout"
+												    (selectionChanged)="selectionChanged($event)"
+												    (selectionChangedModal)="selectionChangedModal($event)"
+												    (hasChanged)="changedData($event)"
+												    (jumpTo)="jumpToPrime($event)"
+												    (changeLayout)="changeGridLayout($event)"
+												></pyro-canvas>
+											</ng-container>
+											<ng-container *ngSwitchCase="'properties'">
+												<properties
+													class="d-flex flex-column h-100"
+									                *ngIf="currentFile != null && selectedElement != null && isGraphModel"
+									                [user]="user"
+									                [currentGraphModel]="currentFile"
+									                [currentGraphElement]="selectedElement"
+									                (hasChanged)="changedProperties($event)"
+									            >
+									            </properties>
+									        </ng-container>
+						            		<ng-container *ngSwitchCase="'palette'">
+									            <palette class="d-flex flex-column h-100"
+													*ngIf="isGraphModel"
+											        [currentGraphModel]="currentFile"
+											        [permissionVectors]="permissionVectors"
+											        (dragged)="currentDragging($event)"
+										        ></palette>
+						            		</ng-container>
+								            <ng-container *ngSwitchCase="'checks'">
+									            <check
+								            	    class="d-flex flex-column h-100"
+								                	*ngIf="isGraphModel"
+								                    [currentGraphModel]="currentFile"
+								                ></check>
+								            </ng-container>
+								            <ng-container *ngSwitchCase="'command_history'">
+									              <command-history class="d-flex flex-column h-100"
+								            	    (reverted)="graphService.canvasComponent.undo()"
+								                	*ngIf="isGraphModel"
+								                ></command-history>
+								            </ng-container>
+								            <ng-container *ngSwitchCase="'map'">
+								            	<map class="d-flex flex-column h-100"
+								            		*ngIf="isGraphModel"
+								            		[currentGraphModel]="currentFile"
+								            	></map>
+								            </ng-container>
+											«FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
+												
+												<ng-container *ngSwitchCase="'«pc.key»'">
+												    <tree-view
+												        *ngIf="isGraphModel"
+														[user]="user"
+														[currentGraphModel]="currentFile"
+												        [name]="'«pc.tab»'"
+														[fetchUrl]="'«pc.fetchURL»'"
+														[clickUrl]="'«pc.clickURL»'"
+														[dbClickUrl]="'«pc.dbClickURL»'"
+														[parent]="instance"
+														style="height: 100%;"
+													>
+													</tree-view>
+												</ng-container>
+											«ENDFOR»
+											<div *ngSwitchDefault>
+											  No widget available
+											</div>
+								  		</div>
+							       	</template>
+							    </ng-container>
+							</bs-tab-content>
+						</div>
 					</div>
-				    <div class="grid-stack-item-body" *ngIf="widgetArea.widgets.length > 0">
-				    
-					<editor-tabs-dropzone [area]="widgetArea" (drop)="moveWidget($event)">
-					    <bs-tabs #tabs>
-					  		<ng-container *ngFor="let widget of widgetArea.widgets; trackBy: trackByWidgetId">
-					  		  <template bsTab [select]="widget.key">
-					  		  	<editor-tabs-draggable 
-					  		  		[widget]="widget" 
-					  		  		(close)="removeWidget(null, widgetArea, $event)"
-					  		  		(detach)="createWidgetArea($event)"
-					  		  	>
-							      {{widget.tab}} <small (click)="removeWidget($event, widgetArea, widget)"><i class="remove-widget fas fa-times ml-1"></i></small>
-							    </editor-tabs-draggable>
-							  </template>
-						    </ng-container>
-					    </bs-tabs>
-					</editor-tabs-dropzone>
-						
-					  <bs-tab-content [for]="tabs" style="height: 100%;">
-					    <ng-container *ngFor="let widget of widgetArea.visibleWidgets; trackBy: trackByWidgetId">
-					      <template bs-tab-panel [name]="widget.key">
-					       
-					       <div [ngSwitch]="widget.key" style="height: 100%;">
-							<ng-container *ngSwitchCase="'canvas'">
-							  <pyro-canvas
-							    class="d-flex flex-column h-100" 
-							    style="overflow: hidden"
-								#canvas
-								[user]="user"
-							    [currentFile]="currentFile"
-								[redirectionStack]="redirectionStack"
-							    [currentLocalSettings]="currentLocalSettings"
-							    [permissionVectors]="permissionVectors"
-							    [layoutType]="mainLayout"
-							    (selectionChanged)="selectionChanged($event)"
-							    (selectionChangedModal)="selectionChangedModal($event)"
-							    (hasChanged)="changedData($event)"
-							    (jumpTo)="jumpToPrime($event)"
-							    (changeLayout)="changeGridLayout($event)"
-							  ></pyro-canvas>
-							</ng-container>
-				            
-				            <ng-container *ngSwitchCase="'properties'">
-					            <properties
-				            	    class="d-flex flex-column h-100"
-					                *ngIf="currentFile != null && selectedElement != null && isGraphModel"
-					                [user]="user"
-					                [currentGraphModel]="currentFile"
-					                [currentGraphElement]="selectedElement"
-					                (hasChanged)="changedProperties($event)"
-					            >
-					            </properties>
-				            </ng-container>
-				            
-				            <ng-container *ngSwitchCase="'palette'">
-					            <palette class="d-flex flex-column h-100"
-									*ngIf="isGraphModel"
-							        [currentGraphModel]="currentFile"
-							        [permissionVectors]="permissionVectors"
-							        (dragged)="currentDragging($event)"
-						        ></palette>
-				            </ng-container>
-				            
-				            <ng-container *ngSwitchCase="'checks'">
-					            <check
-				            	    class="d-flex flex-column h-100"
-				                	*ngIf="isGraphModel"
-				                    [currentGraphModel]="currentFile"
-				                ></check>
-				            </ng-container>
-				            
-				            <ng-container *ngSwitchCase="'command_history'">
-					              <command-history class="d-flex flex-column h-100"
-				            	    (reverted)="graphService.canvasComponent.undo()"
-				                	*ngIf="isGraphModel"
-				                ></command-history>
-				            </ng-container>
-				            
-				            <ng-container *ngSwitchCase="'map'">
-				            	<map class="d-flex flex-column h-100"
-				            		*ngIf="isGraphModel"
-				            		[currentGraphModel]="currentFile"
-				            	></map>
-				            </ng-container>
-							«FOR pc:eps.filter[pluginComponent.fetchURL!==null].map[pluginComponent]»
-								
-								<ng-container *ngSwitchCase="'«pc.key»'">
-								    <tree-view
-								        *ngIf="isGraphModel"
-										[user]="user"
-										[currentGraphModel]="currentFile"
-								        [name]="'«pc.tab»'"
-										[fetchUrl]="'«pc.fetchURL»'"
-										[clickUrl]="'«pc.clickURL»'"
-										[dbClickUrl]="'«pc.dbClickURL»'"
-										[parent]="instance"
-										style="height: 100%;"
-									>
-									</tree-view>
-								</ng-container>
-							«ENDFOR»
-				            		
-							<div *ngSwitchDefault>
-							  No widget available
-							</div>
-						  </div>
-					       
-					      </template>
-					    </ng-container>
-					  </bs-tab-content>
-				   
-				    </div>
-				  </div>
 				</div>
-			</ng-container>  
-	    		    
+			</ng-container>
 	    </div>
 	</div>
 	'''

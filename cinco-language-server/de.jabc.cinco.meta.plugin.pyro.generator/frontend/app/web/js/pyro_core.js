@@ -1817,9 +1817,10 @@ function adjustDimensions(paper) {
         var height = 1.1 * (container.clientHeight - sibling.clientHeight);
         paper.setDimensions(width, height);
     } else {
-        var width = 1.1 * container.clientWidth;
-        var height = 1.1 * container.clientHeight;
-        paper.setDimensions(width, height);
+        paper.setDimensions(
+            viewportToPixels('100vw'),
+            viewportToPixels('100vh')
+        );
     }
 }
 
@@ -1834,7 +1835,7 @@ function adjustMapDimensions(paperMap) {
 	var mapHeight;
 	if(container == null) {
 		container = paper_map_obj.parentElement; // 'micro' layout-container
-		mapWidth = 206;
+		mapWidth = container.clientWidth;
 		mapHeight = container.clientHeight;
 	} else {
         container.style.overflow = 'hidden';
@@ -1853,4 +1854,11 @@ function adjustMapDimensions(paperMap) {
 	}
 	paperMap.setDimensions(mapWidth, mapHeight);
     paperMap.scaleContentToFit();
+}
+
+function viewportToPixels(value) {
+    var parts = value.match(/([0-9\.]+)(vh|vw)/)
+    var q = Number(parts[1])
+    var side = window[['innerHeight', 'innerWidth'][['vh', 'vw'].indexOf(parts[2])]]
+    return side * (q/100)
 }

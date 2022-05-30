@@ -1273,8 +1273,7 @@ class MGLExtension {
 	 */
 	def importedMGLs(MGLModel mgl) {
 		val mglSet = new HashSet<MGLModel>
-		val imports = mgl.imports
-		val importURIs = imports.map[it.importURI]
+		// val importURIs = mgl.imports.map[it.importURI]
 		// TODO: SAMI: I will make this work
 		return mglSet
 	}

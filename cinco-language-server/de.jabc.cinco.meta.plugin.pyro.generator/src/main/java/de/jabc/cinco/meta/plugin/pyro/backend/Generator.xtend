@@ -17,7 +17,6 @@ import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.TypeRegistry
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.impl.GraphModelElementImplementation
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.impl.GraphModelFactoryImplementation
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.impl.GraphModelInterpreter
-import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.auth.OAuthController
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.command.GraphModelCommandExecuter
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.controller.EcoreController
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.controller.GraphModelController
@@ -134,21 +133,6 @@ class Generator extends FileGenerator {
 			}
 		}
 		
-		
-		
-		// create OAuth Authenticator
-		{
-			if(gc.authCompound !== null) {
-				
-				val path = businessBasePath+"info/scce/pyro/auth"
-				val gen = new OAuthController(gc)
-				generateJavaFile(path,
-					gen.filename(),
-					gen.content()
-				)
-			}
-		}
-		
 		// create CINCO Exporter
 		{
 				
@@ -162,8 +146,6 @@ class Generator extends FileGenerator {
 				)
 			}]
 		}
-		
-		// create CINCO Exporter
 		
 		// create GraphModelController
 		{

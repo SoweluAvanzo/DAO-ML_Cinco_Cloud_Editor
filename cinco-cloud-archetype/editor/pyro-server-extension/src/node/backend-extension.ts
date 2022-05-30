@@ -8,10 +8,35 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR MIT
  */
-import { BackendApplicationContribution } from '@theia/core/lib/node/backend-application';
+import * as path from 'path';
 import { ContainerModule } from 'inversify';
-import { ServerLauncher } from './server-launcher';
+import { ConnectionHandler, JsonRpcConnectionHandler } from '@theia/core';
+import { BackendApplicationContribution } from '@theia/core/lib/node/backend-application';
+import { ENDPOINT, LogClient, LogServer, LogServerNode } from '../shared/log-protocol';
+import { ServerLauncher } from '../shared/server-launcher';
+import { isDebugging } from './debugHandler';
+import { cmdArgs, cmdDebugArgs, cmdExec, serverFile, serverPath } from './execVars';
 
 export default new ContainerModule(bind => {
+    // setting static values for server
+    ServerLauncher.FILE_PATH = path.resolve(serverPath, serverFile);
+    ServerLauncher.CMD_EXEC = cmdExec;
+    ServerLauncher.ARGS = (isDebugging() ? cmdDebugArgs : cmdArgs).concat(ServerLauncher.FILE_PATH);
+
+    /**
+     * binding model-server-launcher
+     */
     bind(BackendApplicationContribution).to(ServerLauncher).inSingletonScope();
+    /**
+     * Initialize logging-server to forward it to the frontend's output-channel
+     */
+    bind(LogServer).to(LogServerNode).inSingletonScope();
+    bind(ConnectionHandler).toDynamicValue(ctx =>
+        new JsonRpcConnectionHandler<LogClient>(ENDPOINT + 'pyro', client => {
+            const logServer = ctx.container.get<LogServer>(LogServer);
+            logServer.setClient(client);
+            logServer.info(ServerLauncher.LOG);
+            return logServer;
+        })
+    ).inSingletonScope();
 });
