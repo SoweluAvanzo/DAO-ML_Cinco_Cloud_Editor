@@ -289,7 +289,7 @@ archetype-build:
     - cinco-ls-test-compile-frontend
     - cinco-ls-test-compile-backend
   variables:
-    CONTEXT: ./cinco-cloud-archetype
+    CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
     IMAGE: archetype
     VERSION: latest
@@ -312,7 +312,7 @@ archetype-build-dev:
     - .docker-build-job
   when: manual
   variables:
-    CONTEXT: ./cinco-cloud-archetype
+    CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
     IMAGE: archetype
     VERSION: dev
