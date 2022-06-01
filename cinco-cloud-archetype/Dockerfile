@@ -2,7 +2,7 @@
 # --------------------------------
 FROM docker.io/library/node:14.18-buster-slim as cinco-extension-builder
 WORKDIR /cinco-extension
-COPY ./vscode-extensions/cinco-extension /cinco-extension
+COPY ./cinco-cloud-archetype/vscode-extensions/cinco-extension /cinco-extension
 # outputs extension to /cinco-extension/cinco-extension-0.0.1.vsix
 RUN npm install -g vsce --unsafe-perm
 RUN yarn
@@ -11,7 +11,7 @@ RUN yarn
 # --------------------------------
 FROM docker.io/library/node:14.18-buster-slim as cinco-project-initializer-builder
 WORKDIR /cinco-project-initializer
-COPY ./vscode-extensions/cinco-project-initializer /cinco-project-initializer
+COPY ./cinco-cloud-archetype/vscode-extensions/cinco-project-initializer /cinco-project-initializer
 # outputs extension to /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix
 RUN npm install -g vsce --unsafe-perm
 RUN yarn
@@ -20,7 +20,7 @@ RUN yarn
 # --------------------------------
 FROM docker.io/library/node:14.18-buster-slim as pyro-client-builder
 WORKDIR /pyro-client-extension
-COPY ./vscode-extensions/pyro-client-extension /pyro-client-extension
+COPY ./cinco-cloud-archetype/vscode-extensions/pyro-client-extension /pyro-client-extension
 # outputs extension to /pyro-client-extension/pyro-client-extension-0.0.1.vsix
 RUN npm install -g vsce --unsafe-perm
 RUN yarn
@@ -29,7 +29,7 @@ RUN yarn
 # --------------------------------
 FROM docker.io/library/maven:3.8.1-jdk-11-openj9 as cinco-ls-builder
 WORKDIR /cinco-ls
-COPY ./cinco-ls /cinco-ls
+COPY ./cinco-language-server /cinco-ls
 RUN mvn clean install
 
 # build the theia editor
@@ -40,10 +40,15 @@ ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV CINCO_CLOUD_HOST=cinco-cloud
 ENV CINCO_CLOUD_PORT=80
 ENV CINCO_CLOUD_DEBUG=false
+ENV MINIO_HOST='minio-service'
+ENV MINIO_PORT=9000
+ENV MINIO_ACCESS_KEY=''
+ENV MINIO_SECRET_KEY=''
 ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT='{{hostname}}'
 ENV PYRO_HOST="localhost"
 ENV PYRO_PORT=8000
 ENV PYRO_SUBPATH=""
+ENV PYRO_SERVER_BINARIES_FILE=""
 ENV USE_SSL="false"
 ENV ENVIRONMENT="local"
 # make readable for root only
@@ -60,6 +65,8 @@ RUN apt update && \
     apt install -y libsecret-1-dev && \
     apt autoremove -y
 
+# install unzip
+RUN apt install -y unzip
 # install python
 RUN apt install -y python && python --version && sleep 10
 # install npm dependencies
@@ -67,7 +74,7 @@ RUN npm install -g node-gyp && npm install -g typescript
 
 WORKDIR /editor
 RUN useradd -ms /bin/bash theia
-COPY --chown=theia:theia ./editor /editor
+COPY --chown=theia:theia ./cinco-cloud-archetype/editor /editor
 
 # build theia-editor
 RUN yarn
@@ -93,11 +100,16 @@ CMD cd /editor/browser-app && \
     CINCO_CLOUD_DEBUG=${CINCO_CLOUD_DEBUG} \
     CINCO_CLOUD_HOST="${CINCO_CLOUD_HOST}" \
     CINCO_CLOUD_PORT="${CINCO_CLOUD_PORT}" \
+    MINIO_HOST="${MINIO_HOST}" \
+    MINIO_PORT="${MINIO_PORT}" \
+    MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY}" \
+    MINIO_SECRET_KEY="${MINIO_SECRET_KEY}" \
     THEIA_WEBVIEW_EXTERNAL_ENDPOINT='{{hostname}}' \
     THEIA_MINI_BROWSER_HOST_PATTERN={{hostname}} \
     PYRO_HOST="${PYRO_HOST}" \
     PYRO_PORT="${PYRO_PORT}" \
     PYRO_SUBPATH="${PYRO_SUBPATH}" \
+    PYRO_SERVER_BINARIES_FILE="${PYRO_SERVER_BINARIES_FILE}" \
     ENVIRONMENT="${ENVIRONMENT}" \
     USE_SSL="${USE_SSL}" \
     yarn run theia start --port=3000 --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0

@@ -82,29 +82,41 @@ Install one of them.
 
 1. Create a deploy token in the [cinco cloud repository][cinco-cloud-repository] with `read_registry` rights
 
-2. In the cinco-cloud directory, create the file `infrastructure/helm/secrets.yaml` and add the following secret, for `<USERNAME>` and `<PASSWORD>` base64 encode and enter the credentials from the previous step:
-
-    ```
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: cinco-cloud-registry-credentials
-    type: Opaque
-    data:
-      username: <USERNAME>
-      password: <PASSWORD>
-    ```
+2. In the cinco-cloud directory, create the file `infrastructure/helm/secrets.yaml`
 
 3. Create and apply secrets for the GitLab registry
     1. Create a secret for the cinco cloud repository:<br>
        `kubectl create secret docker-registry cinco-cloud-registry-secret --docker-server=registry.gitlab.com --docker-username=<USERNAME> --docker-password=<USERNAME> --dry-run=client -o yaml`
     2. Copy the terminal output in the`secrets.yaml` file
 
-4. Ensure that you separate all secrets in the `secrets.yaml` file with a new line containing `---`.
+4. Add a secret with the name `cinco-cloud-main-secrets` to the `secrets.yaml` file with the following contents and replace the placeholders with actual values of your choice:
+
+```yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cinco-cloud-main-secrets
+type: Opaque
+data:
+  passwordSecret: <BASE64_ENCODED_SECRET>
+  databaseUser: <BASE64_ENCODED_DB_USER>
+  databasePassword: <BASE64_ENCODED_DB_PASSWORD>
+  artemisUser: <BASE64_ENCODED_ARTEMIS_USER>
+  artemisPassword: <BASE64_ENCODED_ARTEMIS_USER>
+  minioRootUser: <BASE64_ENCODED_MINIO_USER>
+  minioRootAdmin: <BASE64_ENCODED_MINIO_PASSWORD>
+  minioAccessKey: <BASE64_ENCODED_MINIO_SERVICE_ACCOUNT_ACCESS>
+  minioSecretKey: <BASE64_ENCODED_MINIO_SERVICE_ACCOUNT_SECRET>
+```
+
+*We will create the access key and the secret key for Minio later on.*
 
 5. Apply the secret to the cluster: `kubectl apply -f infrastructure/helm/secrets.yaml`.
 
-6. Install [cert-manager].
+### 5. Install Cert Manager
+
+1. Follow the following guide to install the cert manager for local SSL support: [cert-manager].
 
 ## Run CincoCloud
 
@@ -118,7 +130,7 @@ Install one of them.
       apiserver: Running
       kubeconfig: Configured
       ``
-2. In the cinco-cloud directory, execute `skaffold dev -p local-dev` and wait for all pods to be deployed.
+2. In the root directory, execute `skaffold dev -p local-dev` and wait for all pods to be deployed.
    All pods listed by `kubectl get pods` should have the status `running`.
    Thanks to skaffold, you can now change the code and skaffold automatically rebuilds and redeploys new images with the changes.
 3. After the first start, extract the root certificate from the cluster:<br>
@@ -127,8 +139,13 @@ Install one of them.
    * **Linux/macOS:**<br>
    `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath={.data.'tls\.crt'} | base64 -d > cinco-cloud-local-rootCA.pem`
 4. Add `cinco-cloud-local-rootCA.pem` to your browser's certificate store.
-5. Open `https://cinco-cloud/frontend` in a web browser.
-
+5. Open `https://cinco-cloud/frontend` in a web browser to check if CincoCloud is reachable.
+6. Setup Minio Storage Server *(only once)*
+    1. Get the port of the [Minio][minio] Service: `kubectl get service minio-service -o jsonpath={.spec.ports[1].nodePort}`
+    2. Open `http://cinco-cloud:<PORT>` with the port obtained from the previous step
+    3. Login with the credentials provided in `cinco-cloud-main-secrets`
+    4. Navigate to *Identity > Service Accounts* and click on *Create service account*
+    5. Create a service key with the details provided in `cinco-cloud-main-secrets` and click on `create`
 
 ## Skaffold development profiles
 
@@ -147,6 +164,7 @@ If you want to simulate a production build on your local machine use 2).
 [docker]: https://docs.docker.com/get-docker/
 [skaffold]: https://skaffold.dev/
 [minikube]: https://minikube.sigs.k8s.io/
+[minio]: https://min.io/
 [docker-secret]: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 [cinco-cloud-repository]: https://gitlab.com/scce/cinco-cloud
 [kubectl]: https://kubernetes.io/docs/reference/kubectl/overview/

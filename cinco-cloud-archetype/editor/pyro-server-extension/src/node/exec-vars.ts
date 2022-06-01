@@ -1,7 +1,7 @@
 /* eslint-disable header/header */
 import * as path from 'path';
 
-import { CINCO_CLOUD_HOST, CINCO_CLOUD_PORT, DATABASE_PASSWORD, DATABASE_URL, DATABASE_USER, PYRO_PORT } from './environmentVars';
+import { CINCO_CLOUD_HOST, CINCO_CLOUD_PORT, DATABASE_PASSWORD, DATABASE_URL, DATABASE_USER, PYRO_PORT } from './environment-vars';
 
 export const serverPath = path.resolve(__dirname, '..', '..', 'pyro-server');
 export const serverFile = 'app.jar';

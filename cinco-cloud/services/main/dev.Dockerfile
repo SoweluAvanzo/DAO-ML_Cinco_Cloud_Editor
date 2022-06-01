@@ -22,7 +22,7 @@ COPY ./resources /app/resources
 COPY ./main/backend/.mvn /app/main/backend/.mvn
 COPY ./main/backend/mvnw /app/main/backend/
 COPY ./main/backend/pom.xml /app/main/backend/
-RUN cd ./backend && ./mvnw verify
+RUN cd ./backend && ./mvnw clean verify -DskipTests
 COPY ./main/backend/src /app/main/backend/src
 # run the frontend and the backend
 EXPOSE 4200 8000 9000
@@ -35,14 +35,16 @@ CMD cd /app/main/frontend && npm run start -- --host=0.0.0.0 --disable-host-chec
       -Damqp-port="${AMPQ_PORT}" \
       -Damqp-username="${AMPQ_USERNAME}" \
       -Damqp-password="${AMPQ_PASSWORD}" \
-      -Dpodman.registry.host="${PODAN_REGISTRY_HOST}" \
-      -Dpodman.registry.port="${PODAN_REGISTRY_PORT}" \
       -Dpodman.registry.api.port="${PODAN_REGISTRY_API_PORT}" \
       -Dkubernetes.namespace="${KUBERNETES_NAMESPACE}" \
       -Dcincocloud.host="${CINCO_CLOUD_HOST}" \
       -Dcincocloud.password.secret="${CINCO_CLOUD_PASSWORD_SECRET}" \
-      -Dcincocloud.archetype.image.tag="${CINCO_CLOUD_ARCHETYPE_IMAGE_TAG}" \
+      -Dcincocloud.archetype.image="${CINCO_CLOUD_ARCHETYPE_IMAGE}" \
       -Dcincocloud.environment="${ENVIRONMENT}" \
+      -Dminio.host="${MINIO_HOST}" \
+      -Dminio.port="${MINIO_PORT}" \
+      -Dminio.access-key="${MINIO_ACCESS_KEY}" \
+      -Dminio.secret-key="${MINIO_SECRET_KEY}" \
       -Dquarkus.http.port=8000 \
       -Dquarkus.http.host=0.0.0.0 \
       -Dquarkus.http.cors=true

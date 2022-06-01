@@ -14,8 +14,8 @@ import { ConnectionHandler, JsonRpcConnectionHandler } from '@theia/core';
 import { BackendApplicationContribution } from '@theia/core/lib/node/backend-application';
 import { ENDPOINT, LogClient, LogServer, LogServerNode } from '../shared/log-protocol';
 import { ServerLauncher } from '../shared/server-launcher';
-import { isDebugging } from './debugHandler';
-import { cmdArgs, cmdDebugArgs, cmdExec, serverFile, serverPath } from './execVars';
+import { isDebugging } from './debug-handler';
+import { cmdArgs, cmdDebugArgs, cmdExec, serverFile, serverPath } from './exec-vars';
 
 export default new ContainerModule(bind => {
     // setting static values for server

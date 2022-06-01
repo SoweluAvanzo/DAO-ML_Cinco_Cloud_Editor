@@ -70,10 +70,6 @@ In order to pull images from its registry, we need to have the following secrets
   Needed so that images for the *main service*, the *workspace builder*, the *image registry* and the archetype can be pulled from the [Cinco Cloud Container Registry][cinco-cloud-container-registry] from within the Kubernetes cluster.
   The secret has the type `kubernetes.io/dockerconfigjson`.
 
-* `cinco-cloud-registry-credentials` <br>
-  Needed by the *workspace builder* and contains the base64 encoded username and password to login to the [Cinco Cloud Container Registry][cinco-cloud-container-registry] in order to pull the archetype image.
-  The secret is of type `opaque`.
-
 * `cinco-cloud-main-secrets` <br>
   Secrets as key value pairs  that are solely used by the *main service*.
   For now, it only contains the secret that is used to hash user passwords.

@@ -40,13 +40,14 @@ CMD java \
     -Damqp-port="${AMPQ_PORT}" \
     -Damqp-username="${AMPQ_USERNAME}" \
     -Damqp-password="${AMPQ_PASSWORD}" \
-    -Dpodman.registry.host="${PODAN_REGISTRY_HOST}" \
-    -Dpodman.registry.port="${PODAN_REGISTRY_PORT}" \
-    -Dpodman.registry.api.port="${PODAN_REGISTRY_API_PORT}" \
     -Dkubernetes.namespace="${KUBERNETES_NAMESPACE}" \
     -Dcincocloud.host="${CINCO_CLOUD_HOST}" \
     -Dcincocloud.password.secret="${CINCO_CLOUD_PASSWORD_SECRET}" \
-    -Dcincocloud.archetype.image.tag="${CINCO_CLOUD_ARCHETYPE_IMAGE_TAG}" \
+    -Dcincocloud.archetype.image="${CINCO_CLOUD_ARCHETYPE_IMAGE}" \
     -Dcincocloud.environment="${ENVIRONMENT}" \
+    -Dminio.host="${MINIO_HOST}" \
+    -Dminio.port="${MINIO_PORT}" \
+    -Dminio.access-key="${MINIO_ACCESS_KEY}" \
+    -Dminio.secret-key="${MINIO_SECRET_KEY}" \
     -Dquarkus.http.port=8000 \
     -jar quarkus-run.jar

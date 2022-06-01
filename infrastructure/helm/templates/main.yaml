@@ -7,12 +7,15 @@ data:
   DATABASE_URL: "postgres-service/cc"
   AMPQ_HOST: "ampq-service"
   AMPQ_PORT: "5672"
-  PODAN_REGISTRY_HOST: "registry-service"
-  PODAN_REGISTRY_PORT: "5000"
-  PODAN_REGISTRY_API_PORT: "8000"
+  MINIO_HOST: "minio-service"
+  MINIO_PORT: "9000"
   KUBERNETES_NAMESPACE: {{ .Values.namespace }}
   CINCO_CLOUD_HOST: {{ .Values.ingress.host }}
-  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: {{ .Values.archetype.tag }}
+  {{ if eq .Values.serverTier "local" }}
+  CINCO_CLOUD_ARCHETYPE_IMAGE: registry.gitlab.com/scce/cinco-cloud/archetype:local
+  {{- else -}}
+  CINCO_CLOUD_ARCHETYPE_IMAGE: {{ .Values.archetypeImage }}
+  {{- end }}
   ENVIRONMENT: {{ .Values.serverTier }}
 ---
 apiVersion: apps/v1
@@ -73,6 +76,16 @@ spec:
                 secretKeyRef:
                   name: cinco-cloud-main-secrets
                   key: artemisPassword
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: minioAccessKey
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: minioSecretKey
           securityContext:
             privileged: true
           volumeMounts:

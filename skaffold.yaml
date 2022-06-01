@@ -8,33 +8,34 @@ deploy:
       - name: release
         artifactOverrides:
           mainImage: registry.gitlab.com/scce/cinco-cloud/main
-          registryImage: registry.gitlab.com/scce/cinco-cloud/registry
           workspaceBuilderImage: registry.gitlab.com/scce/cinco-cloud/workspace-builder
+          archetypeImage: registry.gitlab.com/scce/cinco-cloud/archetype
         chartPath: ./infrastructure/helm
         valuesFiles:
           - ./infrastructure/helm/values.yaml
 
 build:
   tagPolicy:
-    gitCommit: { }
+    customTemplate:
+      template: "local"
   local:
     useBuildkit: true
   artifacts:
     - image: registry.gitlab.com/scce/cinco-cloud/main
-      context: ./services
+      context: ./cinco-cloud/services
       docker:
         dockerfile: ./main/Dockerfile
       sync:
         infer:
           - '**/*.{ts,html,scss,css,png,jpg,jpeg}'
-    - image: registry.gitlab.com/scce/cinco-cloud/registry
-      context: ./services/registry
-      docker:
-        dockerfile: Dockerfile
     - image: registry.gitlab.com/scce/cinco-cloud/workspace-builder
-      context: ./services
+      context: ./cinco-cloud/services
       docker:
         dockerfile: ./workspace-builder/Dockerfile
+    - image: registry.gitlab.com/scce/cinco-cloud/archetype
+      context: .
+      docker:
+        dockerfile: ./cinco-cloud-archetype/Dockerfile
 
 profiles:
   - name: local-dev
