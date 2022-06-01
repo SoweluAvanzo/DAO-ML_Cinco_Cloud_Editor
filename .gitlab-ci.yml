@@ -80,7 +80,6 @@ cache:
     - kubectl config set-context ls5vs024 --user=ls5vs024-admin --cluster=ls5vs024-cluster
     - kubectl config use-context ls5vs024
     - kubectl config get-contexts
-    - cd cinco-cloud
     - skaffold deploy -p $PROFILE -n $NAMESPACE -t $TAG --status-check=true
 
 .cinco-cloud-node-job-main:
@@ -146,16 +145,6 @@ cinco-cloud-build-main:
     IMAGE: main
     VERSION: latest
 
-cinco-cloud-build-registry:
-  extends:
-    - .cinco-cloud-default-job-main
-    - .docker-build-job
-  variables:
-    CONTEXT: ./cinco-cloud/services/registry
-    DOCKERFILE: ./cinco-cloud/services/registry/Dockerfile
-    IMAGE: registry
-    VERSION: latest
-
 cinco-cloud-lint-workspace-builder-backend:
   extends:
     - .cinco-cloud-default-job-main-or-mr
@@ -192,7 +181,6 @@ cinco-cloud-build-workspace-builder:
     - .docker-push-job
   needs:
     - cinco-cloud-build-main
-    - cinco-cloud-build-registry
     - cinco-cloud-build-workspace-builder
 
 cinco-cloud-push-image-main:
@@ -201,15 +189,6 @@ cinco-cloud-push-image-main:
     - .cinco-cloud-push-image-job
   variables:
     IMAGE: main
-    VERSION: latest
-    PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
-
-cinco-cloud-push-image-registry:
-  extends:
-    - .cinco-cloud-default-job-main
-    - .cinco-cloud-push-image-job
-  variables:
-    IMAGE: registry
     VERSION: latest
     PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
 
@@ -228,7 +207,6 @@ cinco-cloud-deploy-testing:
     - .cinco-cloud-deploy-job
   needs:
     - cinco-cloud-push-image-main
-    - cinco-cloud-push-image-registry
     - cinco-cloud-push-image-workspace-builder
   variables:
     PROFILE: ls5vs024

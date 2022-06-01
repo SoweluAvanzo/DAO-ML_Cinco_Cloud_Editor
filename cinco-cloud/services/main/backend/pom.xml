@@ -17,6 +17,7 @@
         <json.version>20151123</json.version>
         <kubernetes-client.version>5.4.1</kubernetes-client.version>
         <maven-checkstyle.version>3.1.2</maven-checkstyle.version>
+        <minio.version>7.1.4</minio.version>
         <os-maven-plugin.version>1.6.1</os-maven-plugin.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -109,6 +110,11 @@
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-client</artifactId>
             <version>${kubernetes-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>${minio.version}</version>
         </dependency>
 
         <!-- testing -->

@@ -16,7 +16,7 @@ export class CommandRegistrationContribution implements CommandContribution {
         commands.registerCommand(initializeProjectCommand, {
             execute: () => {
                 commands.executeCommand(initializeProjectCommand.triggers).catch(() => {
-                    alert('Openening project initialization dialog failed!');
+                    alert('Opening project initialization dialog failed!');
                 });
             }
         });

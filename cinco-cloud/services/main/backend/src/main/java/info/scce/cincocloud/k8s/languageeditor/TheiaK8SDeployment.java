@@ -20,20 +20,33 @@ import java.util.Map;
 public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
 
   private final TheiaK8SPersistentVolumeClaim persistentVolumeClaim;
-  private final String archetypeImageTag;
+  private final String archetypeImage;
   private final String environment;
+
+  private final String minioHost;
+  private final String minioPort;
+  private final String minioAccessKey;
+  private final String minioSecretKey;
 
   public TheiaK8SDeployment(
       KubernetesClient client,
       TheiaK8SPersistentVolumeClaim persistentVolumeClaim,
       ProjectDB project,
-      String archetypeImageTag,
-      String environment
+      String archetypeImage,
+      String environment,
+      String minioHost,
+      String minioPort,
+      String minioAccessKey,
+      String minioSecretKey
   ) {
     super(client, project);
     this.persistentVolumeClaim = persistentVolumeClaim;
-    this.archetypeImageTag = archetypeImageTag;
+    this.archetypeImage = archetypeImage;
     this.environment = environment;
+    this.minioHost = minioHost;
+    this.minioPort = minioPort;
+    this.minioAccessKey = minioAccessKey;
+    this.minioSecretKey = minioSecretKey;
     this.resource = build();
   }
 
@@ -42,7 +55,7 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
    * <p>
    * apiVersion: apps/v1 kind: StatefulSet metadata: name: {name}-statefulset namespace: default labels: app: {name}
    * spec: serviceName: {name} replicas: 1 selector: matchLabels: app: {name} template: metadata: labels: app: {name}
-   * spec: containers: - name: {name} image: registry.gitlab.com/scce/cinco-cloud/archetype:{archetypeImageTag}
+   * spec: containers: - name: {name} image: registry.gitlab.com/scce/cinco-cloud/archetype:tag
    * imagePullPolicy: IfNotPresent ports: - containerPort: 3000 volumeMounts: - name: pv-data mountPath: /var/lib/{name}
    * volumes: - name: pv-data persistentVolumeClaim: claimName: {name}-pv-claim imagePullSecrets: - name:
    * gitlab-registry-secret
@@ -51,6 +64,12 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
    */
   @Override
   protected StatefulSet build() {
+    // if we are in a local development environment, we build the archetype ourselves
+    // and pull it from the internal registry, hence, we use "Never" in this case.
+    final var imagePullPolicy = environment.equals("local")
+        ? "Never"
+        : "IfNotPresent";
+
     return new StatefulSetBuilder()
         .withNewMetadata()
         .withName(getProjectName() + "-statefulset")
@@ -70,8 +89,8 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                 .withSpec(new PodSpecBuilder()
                     .withContainers(new ContainerBuilder()
                         .withName(getProjectName())
-                        .withImage("registry.gitlab.com/scce/cinco-cloud/archetype:" + archetypeImageTag)
-                        .withImagePullPolicy("IfNotPresent")
+                        .withImage(archetypeImage)
+                        .withImagePullPolicy(imagePullPolicy)
                         .withPorts(new ContainerPortBuilder()
                             .withContainerPort(3000)
                             .build())
@@ -91,6 +110,22 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                             new EnvVarBuilder()
                                 .withName("ENVIRONMENT")
                                 .withValue(environment)
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("MINIO_HOST")
+                                .withValue(minioHost)
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("MINIO_PORT")
+                                .withValue(minioPort)
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("MINIO_ACCESS_KEY")
+                                .withValue(minioAccessKey)
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("MINIO_SECRET_KEY")
+                                .withValue(minioSecretKey)
                                 .build(),
                             new EnvVarBuilder()
                                 .withName("USE_SSL")

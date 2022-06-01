@@ -11,10 +11,10 @@ import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
 import io.quarkus.test.common.QuarkusTestResource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import org.gradle.internal.service.scopes.Scopes.Project;
 
 @QuarkusTestResource(PostgresResource.class)
 @QuarkusTestResource(ArtemisResource.class)
@@ -33,8 +33,14 @@ public abstract class AbstractCincoCloudTest {
 
   @Transactional
   public void reset() {
-    final var settings = (SettingsDB) SettingsDB.findAll().list().get(0);
-    settings.allowPublicUserRegistration = true;
+    final List<SettingsDB> allSettings = SettingsDB.findAll().list();
+    final SettingsDB settings;
+    if (allSettings.isEmpty()) {
+      settings = new SettingsDB();
+    } else {
+      settings = allSettings.get(0);
+      settings.allowPublicUserRegistration = true;
+    }
     settings.persist();
 
     ProjectDB.deleteAll();

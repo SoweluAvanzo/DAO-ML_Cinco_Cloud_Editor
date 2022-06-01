@@ -3,6 +3,8 @@ package info.scce.cincocloud;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.proto.MainServiceGrpc;
+import io.minio.GetObjectArgs;
+import io.minio.UploadObjectArgs;
 import io.quarkus.grpc.runtime.annotations.GrpcService;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
@@ -17,7 +19,6 @@ import javax.validation.ValidationException;
 import javax.validation.Validator;
 import net.lingala.zip4j.ZipFile;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
@@ -42,24 +43,6 @@ public class WorkspaceImageBuilder {
   @GrpcService("main")
   MainServiceGrpc.MainServiceBlockingStub mainService;
 
-  @ConfigProperty(name = "cincocloud.docker.registry.host")
-  String dockerRegistryHost;
-
-  @ConfigProperty(name = "cincocloud.docker.registry.port")
-  Integer dockerRegistryPort;
-
-  @ConfigProperty(name = "cincocloud.archetype.registry.url")
-  String archetypeRegistryUrl;
-
-  @ConfigProperty(name = "cincocloud.archetype.registry.username")
-  String archetypeRegistryUsername;
-
-  @ConfigProperty(name = "cincocloud.archetype.registry.password")
-  String archetypeRegistryPassword;
-
-  @ConfigProperty(name = "cincocloud.archetype.image.tag")
-  String archetypeImageTag;
-
   @Inject
   Validator validator;
 
@@ -67,6 +50,9 @@ public class WorkspaceImageBuilder {
   @Channel("workspaces-jobs-results")
   @OnOverflow(value = OnOverflow.Strategy.NONE)
   Emitter<BuildResult> buildResultEmitter;
+
+  @Inject
+  MinioService minio;
 
   /**
    * The build job that is currently dealt with.
@@ -160,21 +146,22 @@ public class WorkspaceImageBuilder {
     final var tmpImageDir = Files.createTempDirectory("image");
 
     // fetch archive
-    final var response = mainService.getGeneratedAppArchive(CincoCloudProtos.GetGeneratedAppArchiveRequest.newBuilder()
-        .setProjectId(job.projectId)
-        .build());
+    final var archive = Files.createTempFile("sources", ".zip").toFile();
+    final var archiveBytes = minio.getClient().getObject(GetObjectArgs.builder()
+        .bucket(MinioBuckets.PROJECTS_KEY)
+        .object("project-" + job.projectId + "-pyro-server-sources.zip")
+        .build())
+        .readAllBytes();
+    FileUtils.writeByteArrayToFile(archive, archiveBytes);
 
-    logger.info("received archive.zip for (projectId: {})", response.getProjectId());
-
-    final var archive = Path.of(tmpImageDir.toString()).resolve("archive.zip").toFile();
-    FileUtils.writeByteArrayToFile(archive, response.getArchive().toByteArray());
+    logger.info("received archive with pyro sources for (projectId: {})", job.projectId);
 
     // unzip and delete archive
     new ZipFile(archive).extractAll(tmpImageDir.toString());
     FileUtils.deleteQuietly(archive);
 
     // build image and push to registry
-    buildImage(response.getProjectId(), tmpImageDir, job.getImageTag());
+    buildImage(job.projectId, tmpImageDir, job.getImageTag());
 
     return new BuildResult(job.projectId, job.jobId, true, "success", job.uuid);
   }
@@ -182,31 +169,20 @@ public class WorkspaceImageBuilder {
   private void buildImage(Long projectId, Path sourceDir, String tag) throws Exception {
     logger.info("build image (projectId: {}, archive: {}, tag: {})", projectId, sourceDir, tag);
 
-    final var registryUsername = archetypeRegistryUsername
-        .replace("\n", "")
-        .replace("\r", "");
+    executeCommand("cp /app/scripts/build.sh " + sourceDir);
+    executeCommand("cd " + sourceDir + " && sh build.sh");
 
-    final var registryPassword = archetypeRegistryPassword
-        .replace("\n", "")
-        .replace("\r", "");
+    // the build.sh script creates an archive 'pyro-server.zip` which we upload to minio
+    final var zip = sourceDir.resolve("pyro-server.zip").toFile();
 
-    executeCommand("buildah --storage-driver vfs login -u=" + registryUsername + " -p=" + registryPassword + " "
-        + archetypeRegistryUrl);
-    executeCommand("cd " + sourceDir.toString() + " && buildah --storage-driver vfs bud --build-arg ARCHETYPE_IMAGE_TAG=" + archetypeImageTag + " -t " + tag + " .");
-    executeCommand("buildah --storage-driver vfs images");
+    minio.getClient().uploadObject(UploadObjectArgs.builder()
+        .bucket(MinioBuckets.PROJECTS_KEY)
+        .object("project-" + projectId + "-pyro-server-binaries.zip")
+        .filename(zip.getAbsolutePath())
+        .build());
 
-    logger.info("push image to registry (projectId: {}, tag: {})", projectId, tag);
-    final var registryUrl = dockerRegistryHost + ":" + dockerRegistryPort;
-    final var registryPushUrl = dockerRegistryHost + ":" + dockerRegistryPort + "/" + tag;
-    final var loginCommand = "buildah --storage-driver vfs login --tls-verify=false -u= -p= " + registryUrl;
-    final var pushCommand = "buildah --storage-driver vfs push --tls-verify=false " + tag + " " + registryPushUrl;
-    executeCommand(loginCommand + " && " + pushCommand);
-
-    final var logoutCommand = "buildah --storage-driver vfs logout " + registryUrl;
-    executeCommand(logoutCommand);
-
-    final var deleteLocalImageCommand = "buildah --storage-driver vfs rmi -f " + tag;
-    executeCommand(deleteLocalImageCommand);
+    logger.info("upload file (projectId: {}, archive: {}, tag: {})", projectId, sourceDir, tag);
+    FileUtils.deleteQuietly(zip);
   }
 
   private void executeCommand(String command) throws Exception {
@@ -235,7 +211,8 @@ public class WorkspaceImageBuilder {
     // delete all buildah related process and child processes that are spawned from it
     ProcessHandle
         .allProcesses()
-        .filter(p -> p.info().commandLine().map(c -> c.contains("buildah")).orElse(false))
+        .filter(p -> p.info().commandLine().map(c ->
+            c.contains("dart") || c.contains("clean package -DskipTests")).orElse(false))
         .findFirst()
         .ifPresent(p -> {
           p.descendants().forEach(ProcessHandle::destroy);

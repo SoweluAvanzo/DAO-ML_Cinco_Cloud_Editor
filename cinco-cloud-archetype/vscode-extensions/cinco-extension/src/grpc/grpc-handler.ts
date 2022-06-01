@@ -2,19 +2,31 @@
 import * as fs from 'fs';
 import { commands, window } from 'vscode';
 
-import {CreateImageRequest, GetGitInformationReply, GetGitInformationRequest, MainServiceClient} from '../cinco-cloud';
+import {CreateImageRequest, GetGitInformationReply, MainServiceClient} from '../cinco-cloud';
 import { workbenchOutput } from '../extension';
 import { ChannelCredentials } from '@grpc/grpc-js';
+import { Client } from 'minio';
 
 const host: string = getCincoCloudHost();
 const port: string = getCincoCloudPort();
 
 export async function executeProduct(zip: string) {
     try {
-        // data
-        const archive = fs.readFileSync(zip);
         const projectId: number = + await getProjectId();
-        const imageRequest: CreateImageRequest = { projectId: projectId, archive: archive };
+
+        const minioClient = new Client({
+            endPoint: process.env.MINIO_HOST,
+            port: Number(process.env.MINIO_PORT),
+            accessKey: process.env.MINIO_ACCESS_KEY,
+            secretKey: process.env.MINIO_SECRET_KEY,
+            useSSL: false
+        });
+
+        const objectName = `project-${projectId}-pyro-server-sources.zip`;
+        await minioClient.fPutObject('projects', objectName, zip);
+        console.log(`Uploaded archive to Minio: ${objectName}`);
+
+        const imageRequest: CreateImageRequest = { projectId };
 
         callGrpcImageRequest(imageRequest);
     } catch (e) {
@@ -29,10 +41,10 @@ export function callGrpcImageRequest(imageRequest: CreateImageRequest) {
 
     mainService.createImageFromArchive(imageRequest, (err, res) => {
         if (err) {
-            console.log('Failed to send archive to main service.', err);
+            console.log('Failed to send request to main service.', err);
             throw err;
         } else {
-            console.log('Send archive to main service.', res);
+            console.log('Send request to main service.', res);
         }
     });
 }

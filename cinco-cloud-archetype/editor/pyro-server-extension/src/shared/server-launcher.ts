@@ -11,12 +11,16 @@
 import * as cp from 'child_process';
 import * as http from 'http';
 import * as https from 'https';
+import * as path from 'path';
+import { Client } from 'minio';
 import { inject, injectable } from 'inversify';
 import { MaybePromise } from '@theia/core';
 import { BackendApplicationContribution } from '@theia/core/lib/node';
 import { IProcessExitEvent, ProcessErrorEvent } from '@theia/process/lib/node/process';
 import { RawProcess, RawProcessFactory } from '@theia/process/lib/node/raw-process';
+import { PYRO_SERVER_BINARIES_FILE, PYRO_SUBPATH } from '../node/environment-vars';
 import { LogServer } from './log-protocol';
+import { createClient } from './minio-client';
 
 let rawProcess: RawProcess;
 
@@ -36,20 +40,34 @@ export class ServerLauncher implements BackendApplicationContribution {
     }
 
     initialize(): void {
-        if (!ServerLauncher.FILE_PATH) {
-            const msg = '*** server launcher "' + ServerLauncher.FILE_PATH + '" not found ***';
-            this.logError(msg);
-            throw new Error(msg);
+        if (PYRO_SERVER_BINARIES_FILE !== '') {
+            const minioClient: Client = createClient();
+            const file = path.resolve(__dirname, '..', '..', 'pyro-server-binaries.zip');
+            minioClient.fGetObject('projects', PYRO_SERVER_BINARIES_FILE, file.toString(), e => {
+                if (e) {
+                    const msg = 'Failed to fetch pyro server binary';
+                    this.logError(msg);
+                    throw new Error(`${msg}` + e);
+                }
+
+                this.logInfo('Fetched pyro-server binaries');
+                const unpackScriptPath = path.resolve(__dirname, '..', '..', 'unpack-pyro-server.sh');
+                cp.spawnSync('chmod', ['+X', unpackScriptPath.toString()]);
+                const buffer = cp.spawnSync('sh', [unpackScriptPath.toString(), PYRO_SUBPATH]);
+                this.logInfo(String(buffer.stdout));
+                this.logError(String(buffer.stderr));
+
+                this.spawnProcessAsync(
+                    ServerLauncher.CMD_EXEC,
+                    ServerLauncher.ARGS,
+                    {
+                        detached: false,
+                        shell: true,
+                        stdio: ['inherit', 'pipe']
+                    }
+                );
+            });
         }
-        this.spawnProcessAsync(
-            ServerLauncher.CMD_EXEC,
-            ServerLauncher.ARGS,
-            {
-                detached: false,
-                shell: true,
-                stdio: ['inherit', 'pipe']
-            }
-        );
     }
 
     protected spawnProcessAsync(command: string, args?: string[], options?: cp.SpawnOptions): Promise<RawProcess> {

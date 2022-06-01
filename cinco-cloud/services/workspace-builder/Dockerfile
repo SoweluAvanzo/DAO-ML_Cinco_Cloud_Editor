@@ -9,22 +9,26 @@ COPY ./workspace-builder /app/workspace-builder
 RUN cd /app/workspace-builder && ./mvnw clean install package -DskipTests
 RUN cd /app/workspace-builder/target
 
-FROM quay.io/buildah/stable:v1.23.3
+FROM docker.io/library/maven:3-adoptopenjdk-11 as dart-downloader
+WORKDIR /downloads
+RUN curl -O https://storage.googleapis.com/dart-archive/channels/stable/release/2.4.1/linux_packages/dart_2.4.1-1_amd64.deb
+RUN mv /downloads/dart_2.4.1-1_amd64.deb /downloads/dart.deb
+
+FROM docker.io/library/maven:3-adoptopenjdk-11
 WORKDIR /app
+RUN apt update && apt install -y zip
+COPY ./workspace-builder/scripts /app/scripts
 COPY --from=builder /app/workspace-builder/target/quarkus-app/ /app
-ENV JAVA_HOME=/opt/java/openjdk
-COPY --from=eclipse-temurin:11 $JAVA_HOME $JAVA_HOME
-ENV PATH "${JAVA_HOME}/bin:${PATH}"
+COPY --from=dart-downloader /downloads/dart.deb /app/dart.deb
+RUN dpkg -i dart.deb && rm dart.deb
 EXPOSE 8000
 CMD java \
     -Damqp-host="${AMPQ_HOST}" \
     -Damqp-port="${AMPQ_PORT}" \
     -Damqp-username="${AMPQ_USERNAME}" \
     -Damqp-password="${AMPQ_PASSWORD}" \
-    -Dcincocloud.docker.registry.host="${DOCKER_REGISTRY_HOST}" \
-    -Dcincocloud.docker.registry.port="${DOCKER_REGISTRY_PORT}" \
-    -Dcincocloud.archetype.registry.url="${ARCHETYPE_REGISTRY_URL}" \
-    -Dcincocloud.archetype.registry.username="${ARCHETYPE_REGISTRY_USERNAME}" \
-    -Dcincocloud.archetype.registry.password="${ARCHETYPE_REGISTRY_PASSWORD}" \
-    -Dcincocloud.archetype.image.tag="${CINCO_CLOUD_ARCHETYPE_IMAGE_TAG}" \
+    -Dminio.host="${MINIO_HOST}" \
+    -Dminio.port="${MINIO_PORT}" \
+    -Dminio.access-key="${MINIO_ACCESS_KEY}" \
+    -Dminio.secret-key="${MINIO_SECRET_KEY}" \
     -jar quarkus-run.jar

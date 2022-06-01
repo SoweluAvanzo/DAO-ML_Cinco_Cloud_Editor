@@ -1,7 +1,8 @@
 package info.scce.cincocloud.grpc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.ByteString;
+import info.scce.cincocloud.storage.MinioBuckets;
+import info.scce.cincocloud.storage.MinioService;
 import info.scce.cincocloud.core.rest.tos.GraphModelTypeSpecTO;
 import info.scce.cincocloud.core.rest.tos.GraphModelTypeTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
@@ -19,10 +20,12 @@ import info.scce.cincocloud.sync.ProjectWebSocket.Messages;
 import io.grpc.Status;
 import io.grpc.Status.Code;
 import io.grpc.StatusRuntimeException;
+import io.minio.GetObjectArgs;
+import io.minio.UploadObjectArgs;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,9 +46,6 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
 
   private static final Logger LOGGER = Logger.getLogger(MainServiceGrpcImpl.class.getName());
 
-  @ConfigProperty(name = "cincocloud.data.dir")
-  String dataDirectory;
-
   @Inject
   WorkspaceMQProducer workspaceMQProducer;
 
@@ -58,33 +58,28 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
   @Inject
   ObjectMapper objectMapper;
 
+  @Inject
+  MinioService minio;
+
   @Override
+  @Blocking
   @Transactional
   public Uni<CincoCloudProtos.CreateImageReply> createImageFromArchive(
       CincoCloudProtos.CreateImageRequest request) {
     final var projectId = request.getProjectId();
-    final var archiveInBytes = request.getArchive();
 
-    LOGGER.log(Level.INFO, "createImageFromArchive(projectId: {0}, archive: {1})",
-        new Object[] {projectId, archiveInBytes.size()});
+    LOGGER.log(Level.INFO, "createImageFromArchive(projectId: {0})",
+        new Object[] {projectId});
 
     if (projectId <= 0) {
       throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
           .withDescription("projectId must be > 0"));
-    } else if (archiveInBytes.isEmpty()) {
-      throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
-          .withDescription("archive must not be empty"));
     }
-
-    final var path = getArchiveDirectoryPath(projectId);
-    final var file = getArchiveFilePath(projectId);
-
-    removeExistingArchive(path, file);
 
     return Uni.createFrom().item(() -> {
       final var project = (ProjectDB) ProjectDB.findByIdOptional(projectId)
           .orElseThrow(() -> new StatusRuntimeException(
-              Status.fromCode(Status.Code.INVALID_ARGUMENT)
+              Status.fromCode(Code.INVALID_ARGUMENT)
                   .withDescription("project not found")));
 
       WorkspaceImageBuildJobDB.findByProjectId(projectId).stream()
@@ -92,18 +87,26 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
           .findFirst()
           .ifPresent((job) -> {
             throw new StatusRuntimeException(
-                Status.fromCode(Status.Code.ALREADY_EXISTS)
+                Status.fromCode(Code.ALREADY_EXISTS)
                     .withDescription("a build job for the project already exists"));
           });
 
+      Path file;
       try {
-        LOGGER.log(Level.INFO, "Save archive (projectId: {0}, archive: {1})", new Object[] {project, file});
-        Files.write(file, archiveInBytes.toByteArray());
-      } catch (IOException e) {
+        LOGGER.log(Level.INFO, "fetch archive (projectId: {0})", new Object[] {project.id});
+        final var archiveInBytes = minio.getClient().getObject(GetObjectArgs.builder()
+                .bucket(MinioBuckets.PROJECTS_KEY)
+                .object("project-" + projectId + "-pyro-server-sources.zip")
+                .build())
+            .readAllBytes();
+
+        file = Files.createTempFile("sources",".zip");
+        FileUtils.writeByteArrayToFile(file.toFile(), archiveInBytes);
+      } catch (Exception e) {
         e.printStackTrace();
         throw new StatusRuntimeException(
             Status.fromCode(Code.INTERNAL)
-                .withDescription("failed to persist archive file"));
+                .withDescription("failed to read archive file"));
       }
 
       final var toolSpec = readToolSpecJsonFromArchive(file);
@@ -111,56 +114,19 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
 
       LOGGER.log(
           Level.INFO,
-          "Create build image job and send it to the message queue (projectId: {0}, archive: {1})",
-          new Object[] {project, file}
+          "Create build image job and send it to the message queue (projectId: {0})",
+          new Object[] {project.id}
       );
 
       final var job = createBuildJob(project);
       final var message = new WorkspaceImageBuildJobMessage(UUID.randomUUID(), projectId, job.id);
       workspaceMQProducer.send(message);
+      file.toFile().delete();
+
       return job;
     })
         .runSubscriptionOn(Infrastructure.getDefaultExecutor())
         .map(job -> createImageReply(job.project.id));
-  }
-
-  @Override
-  @Transactional
-  public Uni<CincoCloudProtos.GetGeneratedAppArchiveReply> getGeneratedAppArchive(
-      CincoCloudProtos.GetGeneratedAppArchiveRequest request) {
-    final var projectId = request.getProjectId();
-
-    LOGGER.log(Level.INFO, "getGeneratedAppArchive(projectId: {0})", new Object[] {projectId});
-
-    if (projectId <= 0) {
-      throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
-          .withDescription("projectId must be > 0"));
-    }
-
-    final var file = getArchiveFilePath(projectId);
-    if (!Files.exists(file)) {
-      throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
-          .withDescription("the archive does not exist"));
-    }
-
-    return Uni.createFrom().item(() -> ProjectDB.findByIdOptional(projectId))
-        .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-        .map(projectOptional -> {
-          if (projectOptional.isEmpty()) {
-            throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
-                .withDescription("project not found"));
-          } else {
-            try {
-              final var bytes = FileUtils.readFileToByteArray(file.toFile());
-              final var byteString = ByteString.copyFrom(bytes);
-              return getGeneratedAppArchiveReply(projectId, byteString);
-            } catch (IOException e) {
-              throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
-                  .withDescription("failed to read archive")
-                  .withCause(e));
-            }
-          }
-        });
   }
 
   @Override
@@ -297,41 +263,10 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
     }
   }
 
-  private CincoCloudProtos.GetGeneratedAppArchiveReply getGeneratedAppArchiveReply(long projectId,
-      ByteString byteString) {
-    return CincoCloudProtos.GetGeneratedAppArchiveReply.newBuilder()
-        .setProjectId(projectId)
-        .setArchive(byteString)
-        .build();
-  }
-
   private CincoCloudProtos.CreateImageReply createImageReply(long projectId) {
     return CincoCloudProtos.CreateImageReply.newBuilder()
         .setProjectId(projectId)
         .build();
-  }
-
-  private Path getArchiveDirectoryPath(Long projectId) {
-    return Path.of(dataDirectory, "projects", String.valueOf(projectId));
-  }
-
-  private Path getArchiveFilePath(Long projectId) {
-    return getArchiveDirectoryPath(projectId).resolve("archive.zip");
-  }
-
-  private void removeExistingArchive(Path path, Path file) {
-    try {
-      if (!Files.exists(path)) {
-        Files.createDirectories(path);
-      }
-
-      if (Files.exists(file)) {
-        Files.delete(file);
-      }
-    } catch (Exception e) {
-      throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
-          .withDescription("failed to save archive."));
-    }
   }
 
   private GraphModelTypeSpecTO readToolSpecJsonFromArchive(Path file) {

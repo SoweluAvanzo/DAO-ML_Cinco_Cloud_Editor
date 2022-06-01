@@ -6,10 +6,8 @@ metadata:
 data:
   AMPQ_HOST: "ampq-service"
   AMPQ_PORT: "5672"
-  DOCKER_REGISTRY_HOST: "registry-service"
-  DOCKER_REGISTRY_PORT: "5000"
-  ARCHETYPE_REGISTRY_URL: "registry.gitlab.com"
-  CINCO_CLOUD_ARCHETYPE_IMAGE_TAG: {{ .Values.archetype.tag }}
+  MINIO_HOST: "minio-service"
+  MINIO_PORT: "9000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -38,16 +36,6 @@ spec:
             - configMapRef:
                 name: workspace-builder-config
           env:
-            - name: ARCHETYPE_REGISTRY_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: cinco-cloud-registry-credentials
-                  key: username
-            - name: ARCHETYPE_REGISTRY_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: cinco-cloud-registry-credentials
-                  key: password
             - name: AMPQ_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -58,6 +46,16 @@ spec:
                 secretKeyRef:
                   name: cinco-cloud-main-secrets
                   key: artemisPassword
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: minioAccessKey
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: minioSecretKey
           securityContext:
             privileged: true
       imagePullSecrets:
