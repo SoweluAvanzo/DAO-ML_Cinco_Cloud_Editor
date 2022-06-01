@@ -461,16 +461,19 @@ class Shapes extends Generatable {
 	
 	def size(Size size)
 	'''
-	«IF size === null || size.heightFixed || size.parentShape === null»
 	height: «size.heightOrDefault»,
-	«ELSE»
-	refHeight: '«size.getrefHeight»%',
-	«ENDIF»
-	«IF size === null || size.widthFixed || size.parentShape === null»
 	width: «size.widthOrDefault»,
-	«ELSE»
-	refWidth: '«size.getrefWidth»%',
-	«ENDIF»
+		
+«««	«IF size === null || size.heightFixed || size.parentShape === null»
+«««	height: «size.heightOrDefault»,
+«««	«ELSE»
+«««	height: «size.heightOrDefault»,
+«««	«ENDIF»
+«««	«IF size === null || size.widthFixed || size.parentShape === null»
+«««	width: «size.widthOrDefault»,
+«««	«ELSE»
+«««	width: «size.widthOrDefault»,
+«««	«ENDIF»
 	'''
 	def int getrefWidth(Size size){
 		val fixValue = 100d as double;
