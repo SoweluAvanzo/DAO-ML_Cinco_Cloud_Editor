@@ -724,9 +724,9 @@ class GraphModelCommandExecuter extends Generatable {
 				
 				@Override
 				public void updateAppearance(ModelElementContainer mec) {
-					getAllModelElements(mec).forEach((element)->{
-						updateAppearanceOf(element);
-					});
+					for(ModelElement me : getAllModelElements(mec)) {
+						updateAppearanceOf(me);
+					}	
 				}
 				
 				@Override

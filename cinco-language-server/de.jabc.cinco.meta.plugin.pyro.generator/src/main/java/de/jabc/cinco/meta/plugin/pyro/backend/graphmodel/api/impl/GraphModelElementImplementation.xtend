@@ -16,6 +16,8 @@ import style.Styles
 import de.jabc.cinco.meta.plugin.pyro.backend.graphmodel.api.ModelElementHook
 import mgl.GraphModel
 import mgl.NodeContainer
+import style.ContainerShape
+import style.impl.RectangleImpl
 
 class GraphModelElementImplementation extends Generatable {
 	
