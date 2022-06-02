@@ -1,6 +1,1 @@
-.idea
 .glci
-infrastructure/helm/secrets.yaml
-infrastructure/helm/secrets.yml
-infrastructure/helm/values-temp.yaml
-infrastructure/helm/values-temp.yml
