@@ -14,7 +14,7 @@ data:
   {{ if eq .Values.serverTier "local" }}
   CINCO_CLOUD_ARCHETYPE_IMAGE: registry.gitlab.com/scce/cinco-cloud/archetype:local
   {{- else -}}
-  CINCO_CLOUD_ARCHETYPE_IMAGE: {{ .Values.archetypeImage }}
+  CINCO_CLOUD_ARCHETYPE_IMAGE: {{ .Values.archetype.image }}
   {{- end }}
   ENVIRONMENT: {{ .Values.serverTier }}
 ---

@@ -6,4 +6,5 @@ registries:
       name: cinco-cloud-registry-secret
 certManager:
   email: alexander.bainczyk@tu-dortmund.de
-archetypeImage: registry.gitlab.com/scce/cinco-cloud/archetype:main-a96db4f0266d4c9175821cfd0469752bd057cd69
+archetype:
+  image: registry.gitlab.com/scce/cinco-cloud/archetype:main-a96db4f0266d4c9175821cfd0469752bd057cd69
