@@ -15,10 +15,12 @@ import { injectable } from 'inversify';
 export const ENDPOINT = 'services/cc_logger';
 export interface LogClient {
     info(msg: string): void;
+    error(msg: string): void;
 }
 export const LogServer = Symbol('LogServer');
 export interface LogServer extends JsonRpcServer<LogClient> {
     info(msg: string): void;
+    error(msg: string): void;
     getLoggerName(): Promise<string>;
 }
 
@@ -33,6 +35,12 @@ export class LogServerNode implements LogServer {
     info(msg: string): void {
         if (this.client) {
             this.client!.info(msg);
+        }
+    }
+
+    error(msg: string): void {
+        if (this.client) {
+            this.client!.error(msg);
         }
     }
 
