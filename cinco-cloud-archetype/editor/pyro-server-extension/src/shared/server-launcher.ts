@@ -14,7 +14,7 @@ import * as https from 'https';
 import * as path from 'path';
 import { Client } from 'minio';
 import { inject, injectable } from 'inversify';
-import { MaybePromise } from '@theia/core';
+import { ILogger, MaybePromise } from '@theia/core';
 import { BackendApplicationContribution } from '@theia/core/lib/node';
 import { IProcessExitEvent, ProcessErrorEvent } from '@theia/process/lib/node/process';
 import { RawProcess, RawProcessFactory } from '@theia/process/lib/node/raw-process';
@@ -27,6 +27,7 @@ let rawProcess: RawProcess;
 @injectable()
 export class ServerLauncher implements BackendApplicationContribution {
     @inject(RawProcessFactory) protected readonly processFactory: RawProcessFactory;
+    @inject(ILogger) private readonly consoleLogger: ILogger;
     @inject(LogServer) logger: LogServer;
 
     static FILE_PATH: string;
@@ -102,15 +103,17 @@ export class ServerLauncher implements BackendApplicationContribution {
     }
 
     protected logError(data: string | Buffer): void {
+        this.consoleLogger.error(data);
         this.appendToLog(data);
         if (data) {
             if (this.logger) {
-                this.logger!.info(`${data}`);
+                this.logger!.error(`${data}`);
             }
         }
     }
 
     protected logInfo(data: string | Buffer): void {
+        this.consoleLogger.info(data);
         this.appendToLog(data);
         if (data) {
             if (this.logger) {
