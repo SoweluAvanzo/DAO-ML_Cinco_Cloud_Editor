@@ -24,6 +24,9 @@ export default new ContainerModule(bind => {
         const client: LogClient = {
             info: (msg: string) => {
                 output.appendLine(msg);
+            },
+            error: (msg: string) => {
+                output.appendLine(msg);
             }
         };
         const connection = ctx.container.get(WebSocketConnectionProvider);
