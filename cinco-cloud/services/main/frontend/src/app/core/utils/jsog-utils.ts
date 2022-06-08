@@ -8,6 +8,8 @@ import { Settings } from '../models/settings';
 import { WorkspaceImageBuildJob } from '../models/workspace-image-build-job';
 import { GraphModelType } from '../models/graph-model-type';
 import { GitInformation } from '../models/git-information';
+import { WorkspaceImageBuildJobLogMessage } from '../models/workspace-image-build-job-log-message';
+import { WorkspaceImageBuildJobLog } from '../models/workspace-image-build-job-log';
 
 /**
  * For each entity, reference the corresponding class
@@ -74,6 +76,12 @@ const objectReferenceMap: any = {
     fields: {
       project: Project
     }
+  },
+  [WorkspaceImageBuildJobLog.name]: {
+    cls: WorkspaceImageBuildJobLog
+  },
+  [WorkspaceImageBuildJobLogMessage.name]: {
+    cls: WorkspaceImageBuildJobLogMessage
   }
 };
 

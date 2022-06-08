@@ -43,6 +43,9 @@
                     <li *ngIf="job.status !== 'BUILDING'">
                       <div class="dropdown-item" (click)="deleteJob(job)">Delete</div>
                     </li>
+                    <li>
+                      <div class="dropdown-item" [routerLink]="['/app', 'projects', project.id, 'build-jobs', job.id]">Build Log</div>
+                    </li>
                   </ul>
                 </div>
               </td>
