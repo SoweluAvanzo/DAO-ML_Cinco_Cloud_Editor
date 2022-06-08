@@ -123,6 +123,6 @@ export class ServerLauncher implements BackendApplicationContribution {
     }
 
     protected appendToLog(msg: string | Buffer): void {
-        ServerLauncher.LOG += msg;
+        ServerLauncher.LOG += msg + '\n';
     }
 }
