@@ -5,6 +5,8 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
+
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
@@ -43,16 +45,20 @@ public class MinioService {
 
   private void initMinioBuckets() throws Exception {
     LOGGER.log(Level.INFO, "Init minio buckets");
-    final var exists = client.bucketExists(BucketExistsArgs.builder()
-        .bucket(MinioBuckets.PROJECTS_KEY)
-        .build());
 
-    if (!exists) {
-      client.makeBucket(MakeBucketArgs.builder().bucket("projects").build());
-      LOGGER.log(Level.INFO, "Minio bucket 'projects' created.");
-    } else {
-      LOGGER.log(Level.INFO, "Minio bucket 'projects' already exists.");
+    for (String bucketIdentifier : List.of(MinioBuckets.PROJECTS_KEY, MinioBuckets.BUILD_JOB_LOGS_KEY)) {
+      final var exists = client.bucketExists(BucketExistsArgs.builder()
+          .bucket(bucketIdentifier)
+          .build());
+
+      if (!exists) {
+        client.makeBucket(MakeBucketArgs.builder().bucket(bucketIdentifier).build());
+        LOGGER.log(Level.INFO, "Minio bucket " + bucketIdentifier + " created.");
+      } else {
+        LOGGER.log(Level.INFO, "Minio bucket " + bucketIdentifier + " already exists.");
+      }
     }
+
   }
 
   public MinioClient getClient() {

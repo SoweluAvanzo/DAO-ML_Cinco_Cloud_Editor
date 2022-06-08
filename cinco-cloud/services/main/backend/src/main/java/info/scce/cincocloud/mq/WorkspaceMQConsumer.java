@@ -1,5 +1,6 @@
 package info.scce.cincocloud.mq;
 
+import info.scce.cincocloud.core.WorkspaceImageBuildJobLogFileService;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
@@ -27,12 +28,15 @@ public class WorkspaceMQConsumer {
   @Inject
   ProjectWebSocket projectWebSocket;
 
+  @Inject
+  WorkspaceImageBuildJobLogFileService logFileService;
+
   @Transactional
   @Blocking
   @Incoming("workspaces-jobs-results")
   public void process(JsonObject message) {
     LOGGER.log(Level.INFO, "Received message from workspaces.jobs.results: {0}.",
-        new Object[] {message});
+        new Object[]{message});
 
     WorkspaceImageBuildJobDB buildJob = null;
 
@@ -44,6 +48,9 @@ public class WorkspaceMQConsumer {
           .findByIdOptional(result.jobId)
           .orElseThrow(() -> new EntityNotFoundException(
               "The job with the id '" + result.jobId + "' could not be found."));
+
+      // finalize log transmission
+      logFileService.finalizeTransmission(buildJob.id, buildJob.project.id);
 
       buildJob.status = result.success
           ? WorkspaceImageBuildJobDB.Status.FINISHED_WITH_SUCCESS
@@ -66,7 +73,7 @@ public class WorkspaceMQConsumer {
         image = existingImageOptional.get();
         image.updatedAt = Instant.now();
         image.persist();
-        LOGGER.log(Level.INFO, "Image {0} updated.", new Object[] {image.toString()});
+        LOGGER.log(Level.INFO, "Image {0} updated.", new Object[]{image.toString()});
       } else {
         image = new WorkspaceImageDB();
         image.uuid = result.uuid;
@@ -78,7 +85,7 @@ public class WorkspaceMQConsumer {
         project.image = image;
         project.persist();
 
-        LOGGER.log(Level.INFO, "Image {0} created.", new Object[] {image.toString()});
+        LOGGER.log(Level.INFO, "Image {0} created.", new Object[]{image.toString()});
       }
     } catch (Exception e) {
       e.printStackTrace();

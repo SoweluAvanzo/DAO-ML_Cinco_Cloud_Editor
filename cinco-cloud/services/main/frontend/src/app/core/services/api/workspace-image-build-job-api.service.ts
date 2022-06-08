@@ -5,6 +5,7 @@ import { map, Observable } from 'rxjs';
 import { Page } from '../../models/page';
 import { WorkspaceImageBuildJob } from '../../models/workspace-image-build-job';
 import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
+import { WorkspaceImageBuildJobLog } from '../../models/workspace-image-build-job-log';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +14,12 @@ export class WorkspaceImageBuildJobApiService extends BaseApiService {
 
   constructor(http: HttpClient) {
     super(http);
+  }
+
+  public get(projectId: number, jobId: number): Observable<WorkspaceImageBuildJob> {
+    return this.http.get(`${this.apiUrl}/projects/${projectId}/build-jobs/${jobId}/private`, this.defaultHttpOptions).pipe(
+      map(body => this.transformSingle(body))
+    )
   }
 
   public getAll(projectId: number, page: number, size: number): Observable<Page<WorkspaceImageBuildJob>> {
@@ -24,6 +31,12 @@ export class WorkspaceImageBuildJobApiService extends BaseApiService {
   public update(projectId: number, job: WorkspaceImageBuildJob): Observable<WorkspaceImageBuildJob> {
     return this.http.put(`${this.apiUrl}/projects/${projectId}/build-jobs/private`, toJsog(job), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
+    );
+  }
+
+  public getBuildLog(projectId: number, jobId: number): Observable<WorkspaceImageBuildJobLog> {
+    return this.http.get(`${this.apiUrl}/projects/${projectId}/build-jobs/${jobId}/log/private`, this.defaultHttpOptions).pipe(
+      map(body => fromJsog(body, WorkspaceImageBuildJobLog))
     );
   }
 
