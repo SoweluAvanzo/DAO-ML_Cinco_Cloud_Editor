@@ -57,8 +57,7 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
    * spec: serviceName: {name} replicas: 1 selector: matchLabels: app: {name} template: metadata: labels: app: {name}
    * spec: containers: - name: {name} image: registry.gitlab.com/scce/cinco-cloud/archetype:tag
    * imagePullPolicy: IfNotPresent ports: - containerPort: 3000 volumeMounts: - name: pv-data mountPath: /var/lib/{name}
-   * volumes: - name: pv-data persistentVolumeClaim: claimName: {name}-pv-claim imagePullSecrets: - name:
-   * gitlab-registry-secret
+   * volumes: - name: pv-data persistentVolumeClaim: claimName: {name}-pv-claim
    *
    * @return the deployment.
    */
@@ -139,9 +138,6 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                             .withClaimName(
                                 persistentVolumeClaim.getResource().getMetadata().getName())
                             .build())
-                        .build())
-                    .withImagePullSecrets(new LocalObjectReferenceBuilder()
-                        .withName("cinco-cloud-registry-secret")
                         .build())
                     .build())
                 .build())

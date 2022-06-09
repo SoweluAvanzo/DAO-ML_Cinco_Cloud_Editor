@@ -1,9 +1,4 @@
 # base values file
-registries:
-  cincocloud:
-    base: registry.gitlab.com/scce/cinco-cloud
-    secret:
-      name: cinco-cloud-registry-secret
 certManager:
   email: alexander.bainczyk@tu-dortmund.de
 archetype:

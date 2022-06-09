@@ -84,12 +84,7 @@ Install one of them.
 
 2. In the cinco-cloud directory, create the file `infrastructure/helm/secrets.yaml`
 
-3. Create and apply secrets for the GitLab registry
-    1. Create a secret for the cinco cloud repository:<br>
-       `kubectl create secret docker-registry cinco-cloud-registry-secret --docker-server=registry.gitlab.com --docker-username=<USERNAME> --docker-password=<USERNAME> --dry-run=client -o yaml`
-    2. Copy the terminal output in the`secrets.yaml` file
-
-4. Add a secret with the name `cinco-cloud-main-secrets` to the `secrets.yaml` file with the following contents and replace the placeholders with actual values of your choice:
+3. Add a secret with the name `cinco-cloud-main-secrets` to the `secrets.yaml` file with the following contents and replace the placeholders with actual values of your choice:
 
 ```yaml
 ---
@@ -112,7 +107,7 @@ data:
 
 *We will create the access key and the secret key for Minio later on.*
 
-5. Apply the secret to the cluster: `kubectl apply -f infrastructure/helm/secrets.yaml`.
+4. Apply the secret to the cluster: `kubectl apply -f infrastructure/helm/secrets.yaml`.
 
 ### 5. Install Cert Manager
 
