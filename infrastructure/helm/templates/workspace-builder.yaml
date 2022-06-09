@@ -58,8 +58,6 @@ spec:
                   key: minioSecretKey
           securityContext:
             privileged: true
-      imagePullSecrets:
-        - name: {{ .Values.registries.cincocloud.secret.name }}
 ---
 apiVersion: v1
 kind: Service
