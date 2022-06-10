@@ -16,4 +16,7 @@ export class SidebarItemComponent {
 
   @Input()
   route: string[];
+
+  @Input()
+  routerLinkActiveExact: boolean = true;
 }

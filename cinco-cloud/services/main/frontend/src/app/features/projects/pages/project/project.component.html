@@ -26,6 +26,7 @@
         <cc-sidebar-item
           [icon]="icons.history"
           [route]="['/app', 'projects', '' + project.id, 'build-jobs']"
+          [routerLinkActiveExact]="false"
           text="Build Jobs"
         >
         </cc-sidebar-item>

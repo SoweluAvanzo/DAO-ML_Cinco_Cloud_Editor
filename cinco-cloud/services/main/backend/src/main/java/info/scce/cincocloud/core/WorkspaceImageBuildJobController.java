@@ -2,7 +2,6 @@ package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.core.rest.tos.PageTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
-import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
@@ -11,7 +10,7 @@ import info.scce.cincocloud.mq.WorkspaceImageAbortBuildJobMessage;
 import info.scce.cincocloud.mq.WorkspaceMQProducer;
 import info.scce.cincocloud.rest.ObjectCache;
 import io.quarkus.panache.common.Page;
-import java.util.stream.Collectors;
+
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -31,6 +30,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
+import java.util.stream.Collectors;
 
 @Transactional
 @Consumes(MediaType.APPLICATION_JSON)
@@ -47,6 +47,9 @@ public class WorkspaceImageBuildJobController {
 
   @Inject
   ProjectService projectService;
+
+  @Inject
+  WorkspaceImageBuildJobLogFileService logFileService;
 
   @GET
   @Path("/build-jobs/private")
@@ -79,6 +82,28 @@ public class WorkspaceImageBuildJobController {
     return Response.ok(currentPage).build();
   }
 
+  @GET
+  @Path("/build-jobs/{jobId}/private")
+  @RolesAllowed("user")
+  public Response get(
+      @Context SecurityContext securityContext,
+      @PathParam("projectId") final Long projectId,
+      @PathParam("jobId") final Long jobId
+  ) {
+    final var subject = UserDB.getCurrentUser(securityContext);
+    final var project = (ProjectDB) ProjectDB
+        .findByIdOptional(projectId)
+        .orElseThrow(() -> new EntityNotFoundException("The project (id: " + projectId + ") could not be found."));
+
+    projectService.checkPermission(project, subject);
+
+    final var job = (WorkspaceImageBuildJobDB) WorkspaceImageBuildJobDB
+        .findByIdOptional(jobId)
+        .orElseThrow(() -> new EntityNotFoundException("The build job (id: " + jobId + ") could not be found."));
+
+    return Response.ok(WorkspaceImageBuildJobTO.fromEntity(job, objectCache)).build();
+  }
+
   @DELETE
   @Path("/build-jobs/{jobId}/private")
   @RolesAllowed("user")
@@ -96,6 +121,8 @@ public class WorkspaceImageBuildJobController {
     }
 
     job.delete();
+
+    logFileService.deleteLogFile(projectId, jobId);
 
     return Response.status(Response.Status.NO_CONTENT).build();
   }
@@ -122,6 +149,27 @@ public class WorkspaceImageBuildJobController {
     workspaceMQProducer.send(new WorkspaceImageAbortBuildJobMessage(job.id));
 
     return Response.ok(WorkspaceImageBuildJobTO.fromEntity(job, objectCache)).build();
+  }
+
+  @GET
+  @Path("/build-jobs/{jobId}/log/private")
+  @RolesAllowed("user")
+  public Response getBuildLog(
+      @Context SecurityContext securityContext,
+      @PathParam("projectId") final Long projectId,
+      @PathParam("jobId") final Long jobId
+  ) {
+    final var subject = UserDB.getCurrentUser(securityContext);
+    final var project = (ProjectDB) ProjectDB
+        .findByIdOptional(projectId)
+        .orElseThrow(() -> new EntityNotFoundException("The project (id: " + projectId + ") could not be found."));
+
+    projectService.checkPermission(project, subject);
+
+    var log = logFileService.getBuildLog(projectId, jobId)
+        .orElseThrow(() -> new RestException(Status.NOT_FOUND));
+
+    return Response.ok(log).build();
   }
 
   private void checkUserIsProjectOwner(UserDB user, ProjectDB project, String message) {

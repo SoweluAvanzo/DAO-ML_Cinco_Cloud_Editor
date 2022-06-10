@@ -1,4 +1,5 @@
 export enum WebSocketEvent {
   UPDATE_BUILD_JOB_STATUS = 'project:buildJobs:updateStatus',
-  UPDATE_POD_DEPLOYMENT_STATUS = 'project:podDeploymentStatus'
+  UPDATE_POD_DEPLOYMENT_STATUS = 'project:podDeploymentStatus',
+  BUILD_JOB_LOG_MESSAGE = 'project:buildJobs:logMessage'
 }

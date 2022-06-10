@@ -2,6 +2,7 @@ package info.scce.cincocloud.sync;
 
 import info.scce.cincocloud.core.rest.tos.ProjectDeploymentTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
+import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuilderLogMessageTO;
 import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.sync.helper.WorkerThreadHelper;
@@ -58,7 +59,7 @@ public class ProjectWebSocket {
   @OnMessage
   public void onMessage(String message, Session session) {
     LOGGER.log(Level.INFO, "Message from client [{0}]: {1}",
-        new Object[] {session.getId(), message});
+        new Object[]{session.getId(), message});
   }
 
   @OnClose
@@ -107,6 +108,14 @@ public class ProjectWebSocket {
           -1,
           "project:buildJobs:updateStatus",
           buildJob
+      );
+    }
+
+    public static WebSocketMessage workspaceImageBuilderLogMessage(WorkspaceImageBuilderLogMessageTO logMessage) {
+      return WebSocketMessage.fromEntity(
+          -1,
+          "project:buildJobs:logMessage",
+          logMessage
       );
     }
   }

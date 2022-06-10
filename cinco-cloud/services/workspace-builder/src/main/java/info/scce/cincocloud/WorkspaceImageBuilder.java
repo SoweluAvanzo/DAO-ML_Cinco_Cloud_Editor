@@ -8,8 +8,14 @@ import io.minio.UploadObjectArgs;
 import io.quarkus.grpc.runtime.annotations.GrpcService;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,6 +37,8 @@ import org.slf4j.LoggerFactory;
 public class WorkspaceImageBuilder {
 
   private static final Integer PROCESS_EXIT_SUCCESS_STATUS = 0;
+
+  private static final Integer LOG_BUFFER_SIZE = 10;
 
   private final Logger logger = LoggerFactory.getLogger(WorkspaceImageBuilder.class);
 
@@ -78,9 +86,9 @@ public class WorkspaceImageBuilder {
         }
       } catch (Exception e) {
         logger.error("failed to abort build job.", e);
+      } finally {
+        message.ack();
       }
-
-      message.ack();
     });
   }
 
@@ -145,6 +153,11 @@ public class WorkspaceImageBuilder {
     // create the tmp directory where the sources put to
     final var tmpImageDir = Files.createTempDirectory("image");
 
+    sendLogLines(
+        "*** Starting build job ***",
+        "*** Retrieving pyro-server sources... ***"
+    );
+
     // fetch archive
     final var archive = Files.createTempFile("sources", ".zip").toFile();
     final var archiveBytes = minio.getClient().getObject(GetObjectArgs.builder()
@@ -154,6 +167,7 @@ public class WorkspaceImageBuilder {
         .readAllBytes();
     FileUtils.writeByteArrayToFile(archive, archiveBytes);
 
+    sendLogLines("*** Pyro-server sources downloaded ***");
     logger.info("received archive with pyro sources for (projectId: {})", job.projectId);
 
     // unzip and delete archive
@@ -169,17 +183,29 @@ public class WorkspaceImageBuilder {
   private void buildImage(Long projectId, Path sourceDir, String tag) throws Exception {
     logger.info("build image (projectId: {}, archive: {}, tag: {})", projectId, sourceDir, tag);
 
-    executeCommand("cp /app/scripts/build.sh " + sourceDir);
-    executeCommand("cd " + sourceDir + " && sh build.sh");
+    try {
+      sendLogLines("*** Start building pyro-server binaries... ***");
+      executeCommand("cp /app/scripts/build.sh " + sourceDir);
+      executeCommand("cd " + sourceDir + " && sh build.sh");
+    } catch (Exception e) {
+      sendLogLines("", "*** Failed to build pyro-server binaries ***", "");
+      throw e;
+    }
+    sendLogLines("", "*** Pyro-server binaries build successfully ***");
 
     // the build.sh script creates an archive 'pyro-server.zip` which we upload to minio
     final var zip = sourceDir.resolve("pyro-server.zip").toFile();
-
+    final var objectName = "project-" + projectId + "-pyro-server-binaries.zip";
     minio.getClient().uploadObject(UploadObjectArgs.builder()
         .bucket(MinioBuckets.PROJECTS_KEY)
-        .object("project-" + projectId + "-pyro-server-binaries.zip")
+        .object(objectName)
         .filename(zip.getAbsolutePath())
         .build());
+
+    sendLogLines(
+        "*** Archive " + objectName + " uploaded ***",
+        "*** Build job terminated successfully ***"
+    );
 
     logger.info("upload file (projectId: {}, archive: {}, tag: {})", projectId, sourceDir, tag);
     FileUtils.deleteQuietly(zip);
@@ -194,15 +220,43 @@ public class WorkspaceImageBuilder {
 
     final var process = new ProcessBuilder()
         .command("sh", "-c", command)
-        .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-        .redirectError(ProcessBuilder.Redirect.INHERIT)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectErrorStream(true)
         .start();
 
-    int exitValue = process.waitFor();
+    // redirect process output to main service
+    final var br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    final var bufferedLines = new ArrayList<String>();
+    String line;
+    try {
+      while ((line = br.readLine()) != null) {
+        logger.info("[command]: {}", line);
+        bufferedLines.add(line);
+        if (bufferedLines.size() == LOG_BUFFER_SIZE) {
+          this.sendLogLines(bufferedLines.toArray(new String[] {}));
+          bufferedLines.clear();
+        }
+      }
 
+      if (!bufferedLines.isEmpty()) {
+        this.sendLogLines(bufferedLines.toArray(new String[] {}));
+      }
+    } catch (IOException e) {
+      logger.error("Error while reading redirected process output.");
+    }
+
+    final var exitValue = process.waitFor();
     if (exitValue != PROCESS_EXIT_SUCCESS_STATUS) {
       throw new Exception("Failed to execute command: " + command);
     }
+  }
+
+  private void sendLogLines(String ...logLines) {
+    this.mainService.sendWorkspaceBuilderLogMessage(CincoCloudProtos.WorkspaceBuilderLogMessage.newBuilder()
+        .setProjectId(this.job.projectId)
+        .setJobId(this.job.jobId)
+        .addAllLogMessages(List.of(logLines))
+        .build());
   }
 
   private void destroySystemProcesses() {

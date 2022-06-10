@@ -63,16 +63,11 @@ In contrast to the language editor, the model editor is deployed together with a
 
 ## Secrets
 
-CincoCloud uses a private GitLab repository and its container registry.
-In order to pull images from its registry, we need to have the following secrets (see the instruction on how to create and apply them [here](../installation/)) in the cluster:
-
-* `cinco-cloud-registry-secret` <br>
-  Needed so that images for the *main service*, the *workspace builder*, the *image registry* and the archetype can be pulled from the [Cinco Cloud Container Registry][cinco-cloud-container-registry] from within the Kubernetes cluster.
-  The secret has the type `kubernetes.io/dockerconfigjson`.
+We need to have the following secrets (see the instruction on how to create and apply them [here](../installation/)) in the cluster:
 
 * `cinco-cloud-main-secrets` <br>
-  Secrets as key value pairs  that are solely used by the *main service*.
-  For now, it only contains the secret that is used to hash user passwords.
+  Secrets as key value pairs that are used by different services.
+  It contains the secret that is used to hash user passwords and various encoded credentials for e.g. the database and Minio.
   The secret is of type `opaque`.
 
 [cinco-cloud-container-registry]: https://gitlab.com/scce/cinco-cloud/container_registry

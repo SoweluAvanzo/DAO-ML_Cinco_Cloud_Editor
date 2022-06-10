@@ -18,7 +18,8 @@ import {
   faCog, faEllipsisV,
   faEnvelope, faPause, faTimes,
   faTrash,
-  faUser
+  faUser,
+  faArrowDown, faArrowUp, faDownload, faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { EditorWidgetComponent } from './pages/overview/components/editor-widget/editor-widget.component';
@@ -30,6 +31,7 @@ import { AddUserModalComponent } from './pages/users/components/add-user-modal/a
 import { ProjectBuildJobStatusBadgeComponent } from './pages/build-jobs/components/project-build-job-status-badge/project-build-job-status-badge.component';
 import { OverviewWidgetComponent } from './pages/overview/components/overview-widget/overview-widget.component';
 import { StatusWidgetComponent } from './pages/overview/components/status-widget/status-widget.component';
+import { BuildJobLogComponent } from './pages/build-jobs/build-job-log/build-job-log.component';
 
 const routes: Routes = [
   {
@@ -57,7 +59,11 @@ const routes: Routes = [
           },
           {
             path: 'build-jobs',
-            component: BuildJobsComponent
+            component: BuildJobsComponent,
+          },
+          {
+            path: 'build-jobs/:jobId',
+            component: BuildJobLogComponent
           },
           {
             path: 'settings',
@@ -84,7 +90,8 @@ const routes: Routes = [
     AddUserModalComponent,
     ProjectBuildJobStatusBadgeComponent,
     OverviewWidgetComponent,
-    StatusWidgetComponent
+    StatusWidgetComponent,
+    BuildJobLogComponent
   ],
   imports: [
     CommonModule,
@@ -101,6 +108,6 @@ export class ProjectsModule {
 
   constructor(private library: FaIconLibrary) {
     library.addIcons(faCloud, faCog, faCode, faCircleNotch, faEnvelope, faUser, faTrash, faBriefcase, faEllipsisV,
-      faCheck, faPause, faTimes, faCircleNotch, faCalendar, faClock);
+      faCheck, faPause, faTimes, faCircleNotch, faCalendar, faClock, faArrowDown, faArrowUp, faDownload, faSpinner);
   }
 }

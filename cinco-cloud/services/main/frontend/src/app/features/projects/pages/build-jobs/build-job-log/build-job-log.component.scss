@@ -1,0 +1,30 @@
+.log-header {
+  margin-left: 0.25em;
+
+  strong {
+    font-size: x-large;
+    margin-right: 1em
+  }
+}
+
+.log-wrapper {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  width: 100%;
+
+  .log-line {
+    font-family: Courier New, monospace;
+
+    .log-line-number {
+      color: darkgrey;
+      min-width: 2em;
+      text-align: right;
+      margin-right: 1em;
+      white-space: nowrap;
+    }
+
+    .log-line-content {
+      color: white;
+    }
+  }
+}

@@ -1,8 +1,8 @@
 <a
   class="sidebar-item d-block px-3 py-3"
   [routerLink]="route"
+  [routerLinkActiveOptions]="{ exact: routerLinkActiveExact }"
   routerLinkActive="active"
-  [routerLinkActiveOptions]="{exact: true}"
 >
   <fa-icon [icon]="icon" [fixedWidth]="true" class="d-inline-block me-3"></fa-icon>
   <span class="sidebar-item-text">{{text}}</span>

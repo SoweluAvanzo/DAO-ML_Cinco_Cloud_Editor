@@ -3,6 +3,7 @@ package info.scce.cincocloud.grpc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.scce.cincocloud.storage.MinioBuckets;
 import info.scce.cincocloud.storage.MinioService;
+import info.scce.cincocloud.core.WorkspaceImageBuildJobLogFileService;
 import info.scce.cincocloud.core.rest.tos.GraphModelTypeSpecTO;
 import info.scce.cincocloud.core.rest.tos.GraphModelTypeTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
@@ -21,7 +22,6 @@ import io.grpc.Status;
 import io.grpc.Status.Code;
 import io.grpc.StatusRuntimeException;
 import io.minio.GetObjectArgs;
-import io.minio.UploadObjectArgs;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Uni;
@@ -38,8 +38,8 @@ import java.util.zip.ZipFile;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
+
 import org.apache.commons.io.FileUtils;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Singleton
 public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBase {
@@ -61,6 +61,9 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
   @Inject
   MinioService minio;
 
+  @Inject
+  WorkspaceImageBuildJobLogFileService logFileService;
+
   @Override
   @Blocking
   @Transactional
@@ -69,7 +72,7 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
     final var projectId = request.getProjectId();
 
     LOGGER.log(Level.INFO, "createImageFromArchive(projectId: {0})",
-        new Object[] {projectId});
+        new Object[]{projectId});
 
     if (projectId <= 0) {
       throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
@@ -77,54 +80,54 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
     }
 
     return Uni.createFrom().item(() -> {
-      final var project = (ProjectDB) ProjectDB.findByIdOptional(projectId)
-          .orElseThrow(() -> new StatusRuntimeException(
-              Status.fromCode(Code.INVALID_ARGUMENT)
-                  .withDescription("project not found")));
+          final var project = (ProjectDB) ProjectDB.findByIdOptional(projectId)
+              .orElseThrow(() -> new StatusRuntimeException(
+                  Status.fromCode(Code.INVALID_ARGUMENT)
+                      .withDescription("project not found")));
 
-      WorkspaceImageBuildJobDB.findByProjectId(projectId).stream()
-          .filter(job -> job.status.equals(WorkspaceImageBuildJobDB.Status.BUILDING))
-          .findFirst()
-          .ifPresent((job) -> {
+          WorkspaceImageBuildJobDB.findByProjectId(projectId).stream()
+              .filter(job -> job.status.equals(WorkspaceImageBuildJobDB.Status.BUILDING))
+              .findFirst()
+              .ifPresent((job) -> {
+                throw new StatusRuntimeException(
+                    Status.fromCode(Code.ALREADY_EXISTS)
+                        .withDescription("a build job for the project already exists"));
+              });
+
+          Path file;
+          try {
+            LOGGER.log(Level.INFO, "fetch archive (projectId: {0})", new Object[]{project.id});
+            final var archiveInBytes = minio.getClient().getObject(GetObjectArgs.builder()
+                    .bucket(MinioBuckets.PROJECTS_KEY)
+                    .object("project-" + projectId + "-pyro-server-sources.zip")
+                    .build())
+                .readAllBytes();
+
+            file = Files.createTempFile("sources", ".zip");
+            FileUtils.writeByteArrayToFile(file.toFile(), archiveInBytes);
+          } catch (Exception e) {
+            e.printStackTrace();
             throw new StatusRuntimeException(
-                Status.fromCode(Code.ALREADY_EXISTS)
-                    .withDescription("a build job for the project already exists"));
-          });
+                Status.fromCode(Code.INTERNAL)
+                    .withDescription("failed to read archive file"));
+          }
 
-      Path file;
-      try {
-        LOGGER.log(Level.INFO, "fetch archive (projectId: {0})", new Object[] {project.id});
-        final var archiveInBytes = minio.getClient().getObject(GetObjectArgs.builder()
-                .bucket(MinioBuckets.PROJECTS_KEY)
-                .object("project-" + projectId + "-pyro-server-sources.zip")
-                .build())
-            .readAllBytes();
+          final var toolSpec = readToolSpecJsonFromArchive(file);
+          mergeGraphModelTypesInProject(project, toolSpec);
 
-        file = Files.createTempFile("sources",".zip");
-        FileUtils.writeByteArrayToFile(file.toFile(), archiveInBytes);
-      } catch (Exception e) {
-        e.printStackTrace();
-        throw new StatusRuntimeException(
-            Status.fromCode(Code.INTERNAL)
-                .withDescription("failed to read archive file"));
-      }
+          LOGGER.log(
+              Level.INFO,
+              "Create build image job and send it to the message queue (projectId: {0})",
+              new Object[]{project.id}
+          );
 
-      final var toolSpec = readToolSpecJsonFromArchive(file);
-      mergeGraphModelTypesInProject(project, toolSpec);
+          final var job = createBuildJob(project);
+          final var message = new WorkspaceImageBuildJobMessage(UUID.randomUUID(), projectId, job.id);
+          workspaceMQProducer.send(message);
+          file.toFile().delete();
 
-      LOGGER.log(
-          Level.INFO,
-          "Create build image job and send it to the message queue (projectId: {0})",
-          new Object[] {project.id}
-      );
-
-      final var job = createBuildJob(project);
-      final var message = new WorkspaceImageBuildJobMessage(UUID.randomUUID(), projectId, job.id);
-      workspaceMQProducer.send(message);
-      file.toFile().delete();
-
-      return job;
-    })
+          return job;
+        })
         .runSubscriptionOn(Infrastructure.getDefaultExecutor())
         .map(job -> createImageReply(job.project.id));
   }
@@ -133,7 +136,7 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
   @Transactional
   public Uni<CincoCloudProtos.BuildJobStatus> getBuildJobStatus(
       CincoCloudProtos.GetBuildJobStatusRequest request) {
-    LOGGER.log(Level.INFO, "getBuildJobStatus(jobId: {0})", new Object[] {request.getJobId()});
+    LOGGER.log(Level.INFO, "getBuildJobStatus(jobId: {0})", new Object[]{request.getJobId()});
 
     return Uni.createFrom()
         .item(() -> WorkspaceImageBuildJobDB.findByIdOptional(request.getJobId()))
@@ -157,20 +160,20 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
   public Uni<CincoCloudProtos.BuildJobStatus> setBuildJobStatus(
       CincoCloudProtos.BuildJobStatus request) {
     LOGGER.log(Level.INFO, "setBuildJobStatus(jobId: {0}, status: {1})",
-        new Object[] {request.getJobId(), request.getStatus()});
+        new Object[]{request.getJobId(), request.getStatus()});
 
     return Uni.createFrom().item(() -> {
-      final var job = (WorkspaceImageBuildJobDB) WorkspaceImageBuildJobDB
-          .findByIdOptional(request.getJobId()).orElseThrow(
-              () -> new StatusRuntimeException(
-                  Status.fromCode(Status.Code.NOT_FOUND).withDescription("job not found"))
-          );
-      job.status = protoJobStatusToJobStatus(request.getStatus());
-      job.persist();
-      final var buildJob = WorkspaceImageBuildJobTO.fromEntity(job, objectCache);
-      projectWebSocket.send(job.project.id, Messages.updateBuildJobStatus(buildJob));
-      return job;
-    })
+          final var job = (WorkspaceImageBuildJobDB) WorkspaceImageBuildJobDB
+              .findByIdOptional(request.getJobId()).orElseThrow(
+                  () -> new StatusRuntimeException(
+                      Status.fromCode(Status.Code.NOT_FOUND).withDescription("job not found"))
+              );
+          job.status = protoJobStatusToJobStatus(request.getStatus());
+          job.persist();
+          final var buildJob = WorkspaceImageBuildJobTO.fromEntity(job, objectCache);
+          projectWebSocket.send(job.project.id, Messages.updateBuildJobStatus(buildJob));
+          return job;
+        })
         .runSubscriptionOn(Infrastructure.getDefaultExecutor())
         .map(job -> CincoCloudProtos.BuildJobStatus.newBuilder()
             .setJobId(job.id)
@@ -181,11 +184,11 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
 
   @Override
   @Transactional
-  public Uni<CincoCloudProtos.GetGitInformationReply> getGitInformation (
-          CincoCloudProtos.GetGitInformationRequest request) {
+  public Uni<CincoCloudProtos.GetGitInformationReply> getGitInformation(
+      CincoCloudProtos.GetGitInformationRequest request) {
     final var projectId = request.getProjectId();
 
-    LOGGER.log(Level.INFO, "getGitInformation(projectId: {0})", new Object[] {projectId});
+    LOGGER.log(Level.INFO, "getGitInformation(projectId: {0})", new Object[]{projectId});
 
     return Uni.createFrom()
         .item(() -> GitInformationDB.findByProjectId(request.getProjectId()).firstResultOptional())
@@ -193,17 +196,17 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
         .map(gitInformationOptional -> {
           if (gitInformationOptional.isEmpty()) {
             return CincoCloudProtos.GetGitInformationReply.newBuilder()
-                    .setProjectId(projectId)
-                    .setType(CincoCloudProtos.GetGitInformationReply.Type.NONE)
-                    .build();
+                .setProjectId(projectId)
+                .setType(CincoCloudProtos.GetGitInformationReply.Type.NONE)
+                .build();
           } else {
             final var gitInformation = gitInformationOptional.get();
             var rb = CincoCloudProtos.GetGitInformationReply.newBuilder()
-                    .setProjectId(projectId)
-                    .setType(gitInformation.type)
-                    .setRepositoryUrl(gitInformation.repositoryUrl)
-                    .setUsername(gitInformation.username)
-                    .setPassword(gitInformation.password);
+                .setProjectId(projectId)
+                .setType(gitInformation.type)
+                .setRepositoryUrl(gitInformation.repositoryUrl)
+                .setUsername(gitInformation.username)
+                .setPassword(gitInformation.password);
 
             if (gitInformation.branch != null) {
               rb = rb.setBranch(gitInformation.branch);
@@ -215,6 +218,13 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
             return rb.build();
           }
         });
+  }
+
+  @Override
+  public Uni<CincoCloudProtos.Empty> sendWorkspaceBuilderLogMessage(
+      CincoCloudProtos.WorkspaceBuilderLogMessage request) {
+    logFileService.handleLogMessage(request);
+    return Uni.createFrom().item(() -> CincoCloudProtos.Empty.newBuilder().build());
   }
 
   private WorkspaceImageBuildJobDB createBuildJob(ProjectDB project) {
