@@ -40,11 +40,11 @@ export class ServerLauncher implements BackendApplicationContribution {
         this.logInfo(msg);
     }
 
-    initialize(): void {
+    async initialize(): Promise<void> {
         if (PYRO_SERVER_BINARIES_FILE !== '') {
             const minioClient: Client = createClient();
             const file = path.resolve(__dirname, '..', '..', 'pyro-server-binaries.zip');
-            minioClient.fGetObject('projects', PYRO_SERVER_BINARIES_FILE, file.toString(), e => {
+            await minioClient.fGetObject('projects', PYRO_SERVER_BINARIES_FILE, file.toString(), e => {
                 if (e) {
                     const msg = 'Failed to fetch pyro server binary';
                     this.logError(msg);
@@ -57,18 +57,17 @@ export class ServerLauncher implements BackendApplicationContribution {
                 const buffer = cp.spawnSync('sh', [unpackScriptPath.toString(), PYRO_SUBPATH]);
                 this.logInfo(String(buffer.stdout));
                 this.logError(String(buffer.stderr));
-
-                this.spawnProcessAsync(
-                    ServerLauncher.CMD_EXEC,
-                    ServerLauncher.ARGS,
-                    {
-                        detached: false,
-                        shell: true,
-                        stdio: ['inherit', 'pipe']
-                    }
-                );
             });
         }
+        this.spawnProcessAsync(
+            ServerLauncher.CMD_EXEC,
+            ServerLauncher.ARGS,
+            {
+                detached: false,
+                shell: true,
+                stdio: ['inherit', 'pipe']
+            }
+        );
     }
 
     protected spawnProcessAsync(command: string, args?: string[], options?: cp.SpawnOptions): Promise<RawProcess> {
