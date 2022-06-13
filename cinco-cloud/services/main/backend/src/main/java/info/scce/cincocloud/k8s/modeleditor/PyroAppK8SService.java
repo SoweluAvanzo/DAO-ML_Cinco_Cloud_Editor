@@ -19,7 +19,7 @@ public class PyroAppK8SService extends PyroK8SResource<Service> {
   protected Service build() {
     return new ServiceBuilder()
         .withNewMetadata()
-        .withName(getProjectName() + "-app-service")
+        .withName(getServiceName())
         .withNamespace(client.getNamespace())
         .withLabels(Map.of("app", getProjectName()))
         .endMetadata()

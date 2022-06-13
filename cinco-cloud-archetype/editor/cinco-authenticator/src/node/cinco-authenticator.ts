@@ -147,20 +147,20 @@ function isWebviewReferer(referer: URI): boolean {
 function isWebviewHost(req: any): boolean {
     const host = req.host;
     const path = req.path;
-    const PYRO_PORT = process.env.PYRO_PORT ? process.env.PYRO_PORT : '8000';
-    const PYRO_HOST = process.env.PYRO_HOST ? process.env.PYRO_HOST : 'localhost';
-    const PYRO_SUBPATH = process.env.PYRO_SUBPATH ? process.env.PYRO_SUBPATH : '';
-    const ENVIRONMENT = process.env.ENVIRONMENT ? process.env.ENVIRONMENT : '';
-    console.log('isWebviewHost: PYRO_HOST=' + PYRO_HOST);
+    const EXTERNAL_PYRO_PORT = process.env.EXTERNAL_PYRO_PORT ?? '8000';
+    const EXTERNAL_PYRO_HOST = process.env.EXTERNAL_PYRO_HOST ?? 'localhost';
+    const EXTERNAL_PYRO_SUBPATH = process.env.EXTERNAL_PYRO_SUBPATH ?? '';
+    const ENVIRONMENT = process.env.ENVIRONMENT ?? '';
+    console.log('isWebviewHost: EXTERNAL_PYRO_HOST=' + EXTERNAL_PYRO_HOST);
     console.log('isWebviewHost: host=' + host);
-    console.log('isWebviewHost: PYRO_SUBPATH=' + PYRO_SUBPATH);
+    console.log('isWebviewHost: EXTERNAL_PYRO_SUBPATH=' + EXTERNAL_PYRO_SUBPATH);
     console.log('isWebviewHost: path=' + path);
-    console.log('isWebviewHost: PYRO_PORT=' + PYRO_PORT);
+    console.log('isWebviewHost: EXTERNAL_PYRO_PORT=' + EXTERNAL_PYRO_PORT);
     console.log('isWebviewHost: ENVIRONMENT=' + ENVIRONMENT);
     if (isDebugging()) {
         return true;
     }
-    if (host === PYRO_HOST) { // TODO: fix me and make it more secure
+    if (host === EXTERNAL_PYRO_HOST) { // TODO: fix me and make it more secure
         return true;
     }
     const re = /(\w+-?)*(\w+)(.)(webview|mini-browser).(\w+)(?::\d+)?/g;

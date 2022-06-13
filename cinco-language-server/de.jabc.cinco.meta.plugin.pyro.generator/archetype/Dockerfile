@@ -25,7 +25,7 @@ RUN /pyro-server/compileBackend.sh
 # --------------------------------
 FROM registry.gitlab.com/scce/cinco-cloud/archetype:${ARCHETYPE_IMAGE_TAG} as cinco-cloud-archetype
 # set baseHref path for static resources of frontend
-ENV PYRO_SUBPATH=/
+ENV EXTERNAL_PYRO_SUBPATH=/
 ENV WORKSPACE_PATH=/editor/workspace
 # integrate pyro-server into cinco-cloud-archetype
 COPY --from=pyro-server-builder /pyro-server/pyro-server/ /editor/pyro-server-extension/pyro-server
@@ -34,10 +34,10 @@ COPY --from=pyro-server-builder /pyro-server/pyro-server/ /editor/pyro-server-ex
 #-----------------------------------------------------------------------
 CMD cd /editor/pyro-server-extension/pyro-server/ && \
     jar xf ./app.jar ./META-INF/resources/index.html && \
-    baseHref=$(echo "${PYRO_SUBPATH}" | sed "s/\//\\\\\//g") && \
+    baseHref=$(echo "${EXTERNAL_PYRO_SUBPATH}" | sed "s/\//\\\\\//g") && \
     sed -i "s/base href=\"\/\"/base href=\"${baseHref}\"/g" ./META-INF/resources/index.html && \   
     jar uf ./app.jar ./META-INF/resources/index.html && \
-    echo "Set baseHref to: ${PYRO_SUBPATH}" && \
+    echo "Set baseHref to: ${EXTERNAL_PYRO_SUBPATH}" && \
     #-----------------------------------------------------------------------
     # cinco-cloud-archetype-cmd
     #-----------------------------------------------------------------------
@@ -51,8 +51,13 @@ CMD cd /editor/pyro-server-extension/pyro-server/ && \
     CINCO_CLOUD_PORT="${CINCO_CLOUD_PORT}" \
     THEIA_WEBVIEW_EXTERNAL_ENDPOINT='{{hostname}}' \
     THEIA_MINI_BROWSER_HOST_PATTERN={{hostname}} \
-    PYRO_HOST="${PYRO_HOST}" \
-    PYRO_PORT="${PYRO_PORT}" \
-    PYRO_SUBPATH="${PYRO_SUBPATH}" \
+    INTERNAL_PYRO_HOST="${INTERNAL_PYRO_HOST}" \
+    INTERNAL_PYRO_PORT="${INTERNAL_PYRO_PORT}" \
+    INTERNAL_EXTERNAL_PYRO_SUBPATH="${INTERNAL_PYRO_SUBPATH}" \
+    INTERNAL_USE_SSL="${INTERNAL_USE_SSL}" \
+    EXTERNAL_PYRO_HOST="${EXTERNAL_PYRO_HOST}" \
+    EXTERNAL_PYRO_PORT="${EXTERNAL_PYRO_PORT}" \
+    EXTERNAL_EXTERNAL_PYRO_SUBPATH="${EXTERNAL_PYRO_SUBPATH}" \
+    EXTERNAL_USE_SSL="${EXTERNAL_USE_SSL}" \
     WORKSPACE_PATH="${WORKSPACE_PATH}" \
     yarn run theia start --port=3000 --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
