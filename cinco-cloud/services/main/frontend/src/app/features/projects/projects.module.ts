@@ -21,6 +21,7 @@ import {
   faUser,
   faArrowDown, faArrowUp, faDownload, faSpinner
 } from '@fortawesome/free-solid-svg-icons';
+import { faCheckSquare, faSquare } from '@fortawesome/free-regular-svg-icons';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { EditorWidgetComponent } from './pages/overview/components/editor-widget/editor-widget.component';
 import { NgbDropdownModule, NgbModalModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
@@ -108,6 +109,7 @@ export class ProjectsModule {
 
   constructor(private library: FaIconLibrary) {
     library.addIcons(faCloud, faCog, faCode, faCircleNotch, faEnvelope, faUser, faTrash, faBriefcase, faEllipsisV,
-      faCheck, faPause, faTimes, faCircleNotch, faCalendar, faClock, faArrowDown, faArrowUp, faDownload, faSpinner);
+      faCheck, faPause, faTimes, faCircleNotch, faCalendar, faClock, faArrowDown, faArrowUp, faDownload, faSpinner,
+      faCheckSquare, faSquare);
   }
 }

@@ -17,13 +17,13 @@ import {
   WorkspaceImageBuildJobApiService
 } from '../../../../core/services/api/workspace-image-build-job-api.service';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
+import { Router } from '@angular/router';
 
 @UntilDestroy()
 @Component({
   selector: 'cc-editor',
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
-
 })
 export class EditorComponent implements OnInit {
 
@@ -31,14 +31,18 @@ export class EditorComponent implements OnInit {
   deployment: ProjectDeployment;
   editorUrl: SafeResourceUrl;
   currentJob: WorkspaceImageBuildJob;
-  projectWebSocket: WebSocket;
+
+  redeploy: boolean = false;
 
   constructor(private projectStore: ProjectStoreService,
               private authApi: AuthApiService,
               private projectApi: ProjectApiService,
               private domSanitizer: DomSanitizer,
               private buildJobApi: WorkspaceImageBuildJobApiService,
-              private toastService: ToastService) {
+              private toastService: ToastService,
+              private router: Router) {
+    const currentNavigation = this.router.getCurrentNavigation();
+    this.redeploy = !!currentNavigation?.extras.state?.['redeploy'];
   }
 
   ngOnInit(): void {
@@ -92,7 +96,7 @@ export class EditorComponent implements OnInit {
   }
 
   deploy(): void {
-    this.projectApi.deploy(this.project).subscribe({
+    this.projectApi.deploy(this.project, this.redeploy).subscribe({
       next: deployment => {
         this.deployment = deployment;
         const url = environment.baseUrl + deployment.url + '?jwt=' + this.authApi.getToken() + '&projectId=' + this.project.id;

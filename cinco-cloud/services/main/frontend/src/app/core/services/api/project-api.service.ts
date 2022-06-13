@@ -6,6 +6,7 @@ import { Project } from '../../models/project';
 import { ProjectDeployment } from '../../models/project-deployment';
 import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 import { User } from '../../models/user';
+import { Params } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -34,8 +35,9 @@ export class ProjectApiService extends BaseApiService {
     );
   }
 
-  public deploy(project: Project): Observable<ProjectDeployment> {
-    return this.http.post(`${this.apiUrl}/project/${project.id}/deployments/private`, null, this.defaultHttpOptions).pipe(
+  public deploy(project: Project, redeploy: boolean = false): Observable<ProjectDeployment> {
+    const options = { ...this.defaultHttpOptions, params: { redeploy } };
+    return this.http.post(`${this.apiUrl}/project/${project.id}/deployments/private`, null, options).pipe(
       map((body: any) => body as ProjectDeployment)
     );
   }
