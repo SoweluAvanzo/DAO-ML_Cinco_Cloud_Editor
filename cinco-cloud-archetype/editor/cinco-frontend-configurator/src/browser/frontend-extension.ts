@@ -6,7 +6,7 @@ import { FILE_NAVIGATOR_ID } from '@theia/navigator/lib/browser/navigator-widget
 
 import { CommandRegistrationContribution } from './commandRegistration';
 import { MenuCommandRemovalContribution } from './menu-command-removal-contribution';
-import { FrontendEventController } from './frontend-event-controller';
+import { FrontendEventController } from './frontend-event-controller/frontend-event-controller';
 import { MenuProjectInitializationContribution } from './menu-project-initialization-contribution';
 import { createFileNavigatorWidget, CustomFileNavigatorWidget } from './webview-dnd/custom-file-navigator-widget';
 
