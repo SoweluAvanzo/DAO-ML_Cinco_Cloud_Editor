@@ -1,19 +1,11 @@
-/*!
- * Copyright (c) 2019-2020 EclipseSource and others.
- *
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v. 2.0 which is available at
- * http://www.eclipse.org/legal/epl-2.0, or the MIT License which is
- * available at https://opensource.org/licenses/MIT.
- *
- * SPDX-License-Identifier: EPL-2.0 OR MIT
- */
+/* eslint-disable header/header */
+
 import { ContextMenuRenderer } from '@theia/core/lib/browser/context-menu-renderer';
 import { TreeProps, SelectableTreeNode } from '@theia/core/lib/browser/tree';
 import { inject, Container, interfaces } from '@theia/core/shared/inversify';
+import { URI } from '@theia/core/lib/common/uri';
 
 import { FileNode, createFileTreeContainer } from '@theia/filesystem/lib/browser';
-import URI from '@theia/core/lib/common/uri';
 
 import { FileNavigatorCommands } from '@theia/navigator/lib/browser/navigator-contribution';
 import { FileNavigatorWidget } from '@theia/navigator/lib/browser/navigator-widget';
@@ -21,9 +13,13 @@ import { FileNavigatorTree } from '@theia/navigator/lib/browser/navigator-tree';
 import { FileNavigatorModel } from '@theia/navigator/lib/browser/navigator-model';
 import { NavigatorDecoratorService } from '@theia/navigator/lib/browser/navigator-decorator-service';
 import { FILE_NAVIGATOR_PROPS } from '@theia/navigator/lib/browser/navigator-container';
-import { currentView, isWebview } from '../shared/drag-and-drop-handler';
+
+import { currentView } from './drag-and-drop-handler';
+import { isWebview } from './drag-and-drop-definitions';
 
 export class CustomFileNavigatorWidget extends FileNavigatorWidget {
+
+    public static onWebviewDnD: Function | undefined = undefined;
 
     constructor(
         @inject(TreeProps) props: TreeProps,
@@ -46,6 +42,8 @@ export class CustomFileNavigatorWidget extends FileNavigatorWidget {
                 // prevent opening-file if the target view is a webview
                 if (!isWebview(currentView)) {
                     this.commandService.executeCommand(FileNavigatorCommands.OPEN.id);
+                } else if (CustomFileNavigatorWidget.onWebviewDnD) { // do something new defined when drop on webview
+                    CustomFileNavigatorWidget.onWebviewDnD();
                 }
             } else if (dataTransfer && dataTransfer.files?.length > 0) {
                 // the files were dragged from the outside the workspace

@@ -1,7 +1,6 @@
 /* eslint-disable header/header */
-import { CommandRegistry } from '@theia/core';
+import { CommandRegistry, MenuContribution, MenuModelRegistry } from '@theia/core';
 import { FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
-import { MenuContribution, MenuModelRegistry } from '@theia/core/lib/common';
 import { inject } from '@theia/core/shared/inversify';
 import { WorkspaceCommands } from '@theia/workspace/lib/browser';
 import { injectable } from 'inversify';

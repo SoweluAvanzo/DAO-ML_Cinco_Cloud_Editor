@@ -1,17 +1,10 @@
-/*!
- * Copyright (c) 2019-2020 EclipseSource and others.
- *
- * This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v. 2.0 which is available at
- * http://www.eclipse.org/legal/epl-2.0, or the MIT License which is
- * available at https://opensource.org/licenses/MIT.
- *
- * SPDX-License-Identifier: EPL-2.0 OR MIT
- */
+/* eslint-disable header/header */
+
+import { isFile, isWebview, isWebviewSibling, isWebviewWrapper } from './drag-and-drop-definitions';
+import { DragAndDropFile } from './drag-and-drop-file';
 
 export let currentFile: DragAndDropFile | undefined;
 export let currentView: any;
-export let currentDragEvent: DragEvent | undefined; // TODO:
 
 export function registerEventHandler(): void {
     window.addEventListener('drag', function (e) {
@@ -36,19 +29,19 @@ export function registerEventHandler(): void {
  */
 
 function handleDragged(e: DragEvent): void {
-    const eventType = e.type;
     // Check target-type
     const target: any = e.target;
     // switch on target-type
     if (isFile(target)) {
+        /**
+         * Creating FileType
+         */
         const filePath = target.title;
         const fileName = target.textContent;
         const x = e.clientX;
         const y = e.clientY;
-        /**
-         * Creating FileType
-         */
-        currentFile = new DragAndDropFile(fileName, filePath, x, y, eventType, target);
+        const eventType = e.type;
+        currentFile = new DragAndDropFile(fileName, filePath, x, y, eventType, e);
 
         // if the dragging ends the currentFile is reseted after it was used
         if (eventType === 'dragend') {
@@ -99,59 +92,5 @@ function handleWebview(target: any, e: DragEvent): void {
 }
 
 /**
- * DEFINITIONS
- */
-
-export function isFile(target: any): boolean {
-    if (!target) {
-        return false;
-    }
-    const classList: DOMTokenList = target.classList;
-    return classList.contains('theia-FileStatNode');
-}
-
-export function isWebview(target: any): boolean {
-    if (!target) {
-        return false;
-    }
-    const classList: DOMTokenList = target.classList;
-    return classList.contains('webview');
-}
-
-export function isWebviewWrapper(target: any): boolean {
-    if (!target) {
-        return false;
-    }
-    const classList: DOMTokenList = target.classList;
-    return classList.contains('theia-webview');
-}
-
-export function isWebviewSibling(target: any): boolean {
-    if (!target) {
-        return false;
-    }
-    const classList: DOMTokenList = target.classList;
-    return classList.contains('theia-transparent-overlay');
-}
-
-/**
  * PROTOCOL
  */
-
-export class DragAndDropFile {
-    fileName: string;
-    filePath: string;
-    x: number;
-    y: number;
-    eventType: string;
-    target: any;
-
-    constructor(fileName: string, filePath: string, x: number, y: number, eventType: string, target: any) {
-        this.fileName = fileName;
-        this.filePath = filePath;
-        this.x = x;
-        this.y = y;
-        this.eventType = eventType;
-        this.target = target;
-    }
-}

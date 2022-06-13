@@ -8,20 +8,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR MIT
  */
-import { FrontendApplicationContribution, WebSocketConnectionProvider, WidgetFactory } from '@theia/core/lib/browser';
+import { FrontendApplicationContribution, WebSocketConnectionProvider } from '@theia/core/lib/browser';
 import { OutputChannel, OutputChannelManager } from '@theia/output/lib/browser/output-channel';
 import { ContainerModule, inject, injectable } from 'inversify';
 
 import { ENDPOINT, LogClient, LogServer } from '../shared/log-protocol';
-import { registerEventHandler } from '../shared/drag-and-drop-handler';
-import { FILE_NAVIGATOR_ID } from '@theia/navigator/lib/browser/navigator-widget';
-import { createFileNavigatorWidget, CustomFileNavigatorWidget } from './custom-navigator-widget';
 
 export let output: OutputChannel;
 const CHANNEL_NAME = 'PYRO';
 
 export default new ContainerModule(bind => {
-    registerEventHandler();
     /**
      * Initialize logging from backend and forward it to the output-channel
      */
@@ -38,15 +34,6 @@ export default new ContainerModule(bind => {
         return connection.createProxy<LogServer>(ENDPOINT + 'pyro', client);
     }).inSingletonScope();
     bind(FrontendApplicationContribution).to(FrontendLoggerContribution);
-
-    // CUSTOM-FILENAVIGATOR-WIDGET
-    bind(WidgetFactory).toDynamicValue(({ container }) => ({
-        id: FILE_NAVIGATOR_ID,
-        createWidget: () => container.get(CustomFileNavigatorWidget)
-    })).inSingletonScope();
-    bind(CustomFileNavigatorWidget).toDynamicValue(ctx =>
-        createFileNavigatorWidget(ctx.container)
-    ).inSingletonScope();
 });
 
 @injectable()
