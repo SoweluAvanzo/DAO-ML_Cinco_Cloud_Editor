@@ -584,7 +584,7 @@ class GraphmodelComponent extends Generatable {
 										var m = Message.fromJSOG(jsog['content']);
 										startPropagation().then((_) {
 											if (m is CompoundCommandMessage) {
-												executeCommands(m, false);
+												executeCommands(m, true);
 												hasChangedSC.add({ "type": "update", "message": m });
 											}
 										}).then((_) => endPropagation());
