@@ -11,6 +11,7 @@
 
 export let currentFile: DragAndDropFile | undefined;
 export let currentView: any;
+export let currentDragEvent: DragEvent | undefined; // TODO:
 
 export function registerEventHandler(): void {
     window.addEventListener('drag', function (e) {
@@ -23,6 +24,9 @@ export function registerEventHandler(): void {
         handleView(e);
     });
     window.addEventListener('dragleave', function (e) {
+        handleView(e);
+    });
+    window.addEventListener('drop', function (e) {
         handleView(e);
     });
 }
@@ -44,53 +48,90 @@ function handleDragged(e: DragEvent): void {
         /**
          * Creating FileType
          */
-        currentFile = new DragAndDropFile(fileName, filePath, x, y, eventType);
-
-        // propagate the currentFile
-        // TODO:
+        currentFile = new DragAndDropFile(fileName, filePath, x, y, eventType, target);
 
         // if the dragging ends the currentFile is reseted after it was used
         if (eventType === 'dragend') {
-            console.log('EVENT: ' + eventType);
-            console.log('DRAG FILE:' + '\nFileName: ' + currentFile.fileName + '\nFilePath: ' + currentFile.filePath);
-            console.log('DRAG FILE ON POSITION:' + '\nx: ' + currentFile.x + '\ny: ' + currentFile.y);
-            currentFile = undefined;
+            reset();
         }
         return;
     } else {
         // if the dragged object is not a file
-        currentFile = undefined;
+        reset();
     }
 }
 
+function reset(): void {
+    currentFile = undefined;
+    currentView = undefined;
+}
+
 function handleView(e: DragEvent): void {
-    const eventType = e.type;
     // Check target-type
     const target: any = e.target;
+    handleWebview(target, e);
+}
+
+function handleWebview(target: any, e: DragEvent): void {
     // check if it is a webview
-    if (isWebview(target)) {
-        currentView = target;
-        console.log('EVENT: ' + eventType);
-        console.log('DRAGGING ' + currentFile?.fileName + ' OVER/FROM WEBVIEW!');
-        return;
-    } else {
-        // if the dragged object is not a file
-        currentView = undefined;
+    const isWebviewElement = isWebview(target);
+    const isWebViewSiblingElement = isWebviewSibling(target);
+    const isWebViewWrapperElement = isWebviewWrapper(target);
+    if (currentFile) {
+        if (isWebviewElement) {
+            currentView = target;
+            console.log('DRAGGING ' + currentFile?.fileName + ' OVER/FROM WEBVIEW!');
+            console.log('FILE:' + '\nFileName: ' + currentFile.fileName + '\nFilePath: ' + currentFile.filePath);
+            console.log('FILE ON POSITION:' + '\nx: ' + currentFile.x + '\ny: ' + currentFile.y);
+            return;
+        } else if (isWebViewSiblingElement) {
+            const newTarget = target.nextSibling;
+            handleWebview(newTarget, e);
+            return;
+        } else if (isWebViewWrapperElement) {
+            const newTarget = target.firstChild();
+            handleWebview(newTarget, e);
+            return;
+        }
     }
+    // if the dragged object is not a file
+    currentView = undefined;
 }
 
 /**
  * DEFINITIONS
  */
 
-function isFile(target: any): boolean {
+export function isFile(target: any): boolean {
+    if (!target) {
+        return false;
+    }
     const classList: DOMTokenList = target.classList;
     return classList.contains('theia-FileStatNode');
 }
 
-function isWebview(target: any): boolean {
+export function isWebview(target: any): boolean {
+    if (!target) {
+        return false;
+    }
     const classList: DOMTokenList = target.classList;
     return classList.contains('webview');
+}
+
+export function isWebviewWrapper(target: any): boolean {
+    if (!target) {
+        return false;
+    }
+    const classList: DOMTokenList = target.classList;
+    return classList.contains('theia-webview');
+}
+
+export function isWebviewSibling(target: any): boolean {
+    if (!target) {
+        return false;
+    }
+    const classList: DOMTokenList = target.classList;
+    return classList.contains('theia-transparent-overlay');
 }
 
 /**
@@ -103,12 +144,14 @@ export class DragAndDropFile {
     x: number;
     y: number;
     eventType: string;
+    target: any;
 
-    constructor(fileName: string, filePath: string, x: number, y: number, eventType: string) {
+    constructor(fileName: string, filePath: string, x: number, y: number, eventType: string, target: any) {
         this.fileName = fileName;
         this.filePath = filePath;
         this.x = x;
         this.y = y;
         this.eventType = eventType;
+        this.target = target;
     }
 }
