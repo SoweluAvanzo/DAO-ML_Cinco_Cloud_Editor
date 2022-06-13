@@ -12,6 +12,7 @@
     "@theia/core": "latest",
     "@theia/process": "latest",
     "@theia/output": "latest",
+    "@theia/navigator": "latest",
     "minio": "^7.0.28",
     "glob": "7.1.4"
   },
