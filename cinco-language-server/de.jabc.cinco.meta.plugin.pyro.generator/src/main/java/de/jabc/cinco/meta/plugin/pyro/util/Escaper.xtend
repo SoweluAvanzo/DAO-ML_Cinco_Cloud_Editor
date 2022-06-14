@@ -141,5 +141,16 @@ class Escaper {
 	def trimQuotes(String s) {
 		s.replace('"','')
 	}
+		
+	def escapespecialCharacters(String s){
+		var s1 = s;
+		if(!s.isNullOrEmpty){
+			if(s.contains("\"")){
+			s1=s.replace("\"", '\\"'.toString);			
+			}
+		}
+		return s1;
+		// the list of special expressions is to be extended
+	}
 }
 
