@@ -93,7 +93,8 @@ class Index extends Generatable {
 	    <script type="application/javascript" src="js/pyro_core.js"></script>
 	    <script type="application/javascript" src="js/pyro_editor_grid.js"></script>
 	    <script type="application/javascript" src="js/pyro_micro.js"></script>
-	    
+	    <script type="application/javascript" src="js/theia-pyro-protocol.js"></script>
+		
 	«FOR g:gc.concreteGraphModels»
 		<script type="application/javascript" src="«g.shapePath»"></script>
 		<script type="application/javascript" src="«g.controllerPath»"></script>
