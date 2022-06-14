@@ -1002,7 +1002,7 @@ class GraphModelCommandExecuter extends Generatable {
 				case "EBigInteger": return '''«attr.defaultValue»'''
 				case "EByte": return '''«attr.defaultValue»'''
 				case "EShort": return '''«attr.defaultValue»'''
-				case "EString": return '''"«attr.defaultValue»"'''
+				case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
 				default: return '''«attr.defaultValue»'''
 			}
 		}

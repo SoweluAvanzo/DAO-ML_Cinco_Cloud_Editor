@@ -1528,7 +1528,7 @@ class MGLExtension {
 				return '''«prefix»«attributeTypeName».«attributeTypeName.getEnum(g).literals.get(0).escapeDart»'''
 			}
 			else if (!defaultValue.nullOrEmpty) {
-				return '''«primitiveBolster»«defaultValue»«primitiveBolster»'''
+				return '''«primitiveBolster»«defaultValue.escapespecialCharacters»«primitiveBolster»'''
 			}
 			return '''«primitiveBolster»«initValue»«primitiveBolster»'''
 		}
@@ -2925,7 +2925,7 @@ class MGLExtension {
 				case "EBigInteger": return '''«attr.defaultValue»L'''
 				case "EByte": return '''«attr.defaultValue»L'''
 				case "EShort": return '''«attr.defaultValue»L'''
-				case "EString": return '''"«attr.defaultValue»"'''
+				case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
 				default: return '''«attr.defaultValue»'''
 			}
 		}
@@ -2962,7 +2962,7 @@ class MGLExtension {
 
 		if (attr.defaultValue !== null) {
 			switch (attr.attributeTypeName) {
-				case "EString": return '''"«attr.defaultValue»"'''
+				case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
 				default: return '''«attr.defaultValue»'''
 				}
 			}
@@ -2979,7 +2979,7 @@ class MGLExtension {
 			case "EFloatObject": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
-			case "EString": return '''"«attr.defaultValue»"'''
+			case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
 			default: return '''null'''
 		}
 	}
@@ -3575,4 +3575,5 @@ class MGLExtension {
 	}
 	def getIsOrGetMethod(Attribute attr)
 	'''«IF attr.isPrimitive && attr.attributeTypeName.equals("EBoolean")»is«ELSE»get«ENDIF»'''
+
 	}
