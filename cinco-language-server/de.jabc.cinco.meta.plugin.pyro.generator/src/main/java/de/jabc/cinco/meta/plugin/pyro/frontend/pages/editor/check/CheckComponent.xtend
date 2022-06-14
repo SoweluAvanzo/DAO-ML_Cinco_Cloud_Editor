@@ -189,7 +189,7 @@ class CheckComponent extends Generatable {
 				if(currentGraphModel.id!=result.id) {
 					var methodCall = null;
 					«FOR g : gc.graphMopdels.filter[!isAbstract] SEPARATOR " else "
-					»if(currentGraphModel.$type == "«g.typeName»") {
+					»if(currentGraphModel.$type() == "«g.typeName»") {
 							methodCall = "«g.jsCall»_jump";
 					}«
 					ENDFOR»
