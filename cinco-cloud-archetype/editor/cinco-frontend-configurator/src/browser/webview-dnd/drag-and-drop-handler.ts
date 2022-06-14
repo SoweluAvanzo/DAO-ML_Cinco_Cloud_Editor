@@ -1,26 +1,67 @@
 /* eslint-disable header/header */
 
 import { isFile, isWebview, isWebviewSibling, isWebviewWrapper } from './drag-and-drop-definitions';
-import { DragAndDropFile } from './drag-and-drop-file';
+import { DragAndDropFile } from './theia-pyro-protocol';
 
 export let currentFile: DragAndDropFile | undefined;
 export let currentView: any;
 
+/**
+ * Callbacks
+ */
+
+export let dragCB: any | undefined;
+export let dragOverCB: any | undefined;
+export let dragLeaveCB: any | undefined;
+export let dragEndCB: any | undefined;
+export let dropCB: any | undefined;
+
+export function setDragCB(cb: any): void {
+    dragCB = cb;
+}
+export function setDragOverCB(cb: any): void {
+    dragOverCB = cb;
+}
+export function setDragLeaveCB(cb: any): void {
+    dragLeaveCB = cb;
+}
+export function setDragEndCB(cb: any): void {
+    dragEndCB = cb;
+}
+export function setDropCB(cb: any): void {
+    dropCB = cb;
+}
+
 export function registerEventHandler(): void {
     window.addEventListener('drag', function (e) {
         handleDragged(e);
+        if (dragCB) {
+            dragCB(currentFile, currentView);
+        }
     });
     window.addEventListener('dragend', function (e) {
         handleDragged(e);
+        if (dragEndCB) {
+            dragEndCB(currentFile, currentView);
+        }
     });
     window.addEventListener('dragover', function (e) {
         handleView(e);
+        if (dragOverCB) {
+            dragOverCB(currentFile, currentView);
+        }
     });
     window.addEventListener('dragleave', function (e) {
         handleView(e);
+        if (dragLeaveCB) {
+            dragLeaveCB(currentFile, currentView);
+        }
     });
     window.addEventListener('drop', function (e) {
         handleView(e);
+        if (dropCB) {
+            dropCB(currentFile, currentView);
+        }
     });
 }
 
@@ -41,7 +82,7 @@ function handleDragged(e: DragEvent): void {
         const x = e.clientX;
         const y = e.clientY;
         const eventType = e.type;
-        currentFile = new DragAndDropFile(fileName, filePath, x, y, eventType, e);
+        currentFile = new DragAndDropFile(fileName, filePath, x, y, eventType);
 
         // if the dragging ends the currentFile is reseted after it was used
         if (eventType === 'dragend') {
@@ -73,9 +114,6 @@ function handleWebview(target: any, e: DragEvent): void {
     if (currentFile) {
         if (isWebviewElement) {
             currentView = target;
-            console.log('DRAGGING ' + currentFile?.fileName + ' OVER/FROM WEBVIEW!');
-            console.log('FILE:' + '\nFileName: ' + currentFile.fileName + '\nFilePath: ' + currentFile.filePath);
-            console.log('FILE ON POSITION:' + '\nx: ' + currentFile.x + '\ny: ' + currentFile.y);
             return;
         } else if (isWebViewSiblingElement) {
             const newTarget = target.nextSibling;
@@ -90,7 +128,3 @@ function handleWebview(target: any, e: DragEvent): void {
     // if the dragged object is not a file
     currentView = undefined;
 }
-
-/**
- * PROTOCOL
- */

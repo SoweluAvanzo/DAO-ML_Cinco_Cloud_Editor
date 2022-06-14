@@ -1,11 +1,17 @@
 /* eslint-disable header/header */
 
+import { currentView } from './drag-and-drop-handler';
+
 export function isFile(target: any): boolean {
     if (!target) {
         return false;
     }
     const classList: DOMTokenList = target.classList;
     return classList.contains('theia-FileStatNode');
+}
+
+export function draggingOverWebview(): boolean {
+    return isWebview(currentView);
 }
 
 export function isWebview(target: any): boolean {
