@@ -1,12 +1,12 @@
-FROM docker.io/library/openjdk:11-slim-buster as builder
+FROM docker.io/library/maven:3.8.3-adoptopenjdk-15 as builder
 WORKDIR /app
 COPY ./resources /app/resources
 COPY ./workspace-builder/pom.xml /app/workspace-builder/pom.xml
 COPY ./workspace-builder/.mvn /app/workspace-builder/.mvn
 COPY ./workspace-builder/mvnw /app/workspace-builder/mvnw
-RUN cd /app/workspace-builder && ./mvnw verify
+RUN cd /app/workspace-builder && mvn verify -DskipTests
 COPY ./workspace-builder /app/workspace-builder
-RUN cd /app/workspace-builder && ./mvnw clean install package -DskipTests
+RUN cd /app/workspace-builder && mvn clean install package -DskipTests
 RUN cd /app/workspace-builder/target
 
 FROM docker.io/library/maven:3-adoptopenjdk-11 as dart-downloader

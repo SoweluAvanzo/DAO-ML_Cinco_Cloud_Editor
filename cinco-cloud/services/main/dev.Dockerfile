@@ -2,7 +2,7 @@
 # Build the quarkus backend. Move static frontend files to the quarkus resource
 # folder so that we can build a fat jar that includes the frontend.
 #
-FROM docker.io/library/openjdk:15-jdk-slim as builder-backend
+FROM docker.io/library/maven:3.8.3-adoptopenjdk-15
 WORKDIR /app/main
 RUN apt-get update
 # install Node.js
@@ -22,12 +22,12 @@ COPY ./resources /app/resources
 COPY ./main/backend/.mvn /app/main/backend/.mvn
 COPY ./main/backend/mvnw /app/main/backend/
 COPY ./main/backend/pom.xml /app/main/backend/
-RUN cd ./backend && ./mvnw clean verify -DskipTests
+RUN cd ./backend && mvn clean verify -DskipTests
 COPY ./main/backend/src /app/main/backend/src
 # run the frontend and the backend
 EXPOSE 4200 8000 9000
 CMD cd /app/main/frontend && npm run start -- --host=0.0.0.0 --disable-host-check --configuration=development-k8s --hmr=true & \
-    cd /app/main/backend && ./mvnw quarkus:dev \
+    cd /app/main/backend && mvn quarkus:dev \
       -Dquarkus.datasource.jdbc.url="jdbc:postgresql://${DATABASE_URL}" \
       -Dquarkus.datasource.username="${DATABASE_USER}" \
       -Dquarkus.datasource.password="${DATABASE_PASSWORD}" \

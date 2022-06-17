@@ -408,7 +408,7 @@ cinco-ls-test-compile-backend:
 
 pages-build:
   extends: .pages-default-job-main-or-mr
-  image: 'node:14.16.1'
+  image: 'node:16.15.1'
   cache:
     paths:
       - docs/vuepress/node_modules/
@@ -427,7 +427,7 @@ pages:
   extends: .pages-default-job
   needs:
     - pages-build
-  image: 'node:14.16.1'
+  image: 'node:16.15.1'
   script:
     - mkdir public
     - mv docs/vuepress/src/.vuepress/dist/* public/

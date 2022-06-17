@@ -18,31 +18,15 @@ Install the following software:
 - [Minikube][minikube]
 - [Kubectl][kubectl]
 
-**On Windows (additionally)**
-
-Activate `hyper-v` in Windows. It will be used instead of docker. Also, you need atleast `60GB` of disk-storage and administrator-rights. Almost all commands need to be run with high privileges, because of the `hyper-v`-context.
-
-
 ### 2. Run a local Kubernetes cluster
 
 *(CincoCloud works best with 4 CPU cores, 8Gb of RAM and 60GB of free disc space)*
 
-1. Start the cluster:
+1. Start the cluster with the Docker driver
 
-    **Linux**
-
-    * Start the cluster with the default Docker driver<br>
-    `minikube start --cpus 4 --memory 8192 --driver=docker --disk-size 60000mb`
-
-    **Windows**
-
-    * Start the cluster with the hyperv driver:<br>
-    `minikube start --cpus 4 --memory 8192 --driver=hyperv --disk-size 60000mb`
-
-    **macOS**
-
-    * Start the cluster with the one of the drivers from the table above:<br>
-    `minikube start --cpus 4 --memory 8192 --driver=docker --disk-size 60000mb`
+```
+  minikube start --cpus 4 --memory 8192 --disk-size 60000mb --driver=docker
+```
 
 2. Enable necessary plugins:
 
@@ -62,8 +46,7 @@ Activate `hyper-v` in Windows. It will be used instead of docker. Also, you need
 
     **Windows**
 
-      1. Execute `minikube ip` to retrieve the IP address of the cluster
-      2. Add the entry `<IP> cinco-cloud` to the `C:\Windows\System32\drivers\etc\hosts` file
+      1. Add the entry `127.0.0.1 cinco-cloud` to the `C:\Windows\System32\drivers\etc\hosts` file
 
     **MacOS**
     
@@ -125,23 +108,29 @@ data:
 
    * **Windows**
 
-      `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath={.data.'tls\.crt'} | ForEach-Object {[System.Text.Encoding]::Unicode.GetString({System.Convert]::FromBase64String($_))} > cinco-cloud-local-rootCA.pem`
+      `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath="{.data.tls.crt}" | ForEach-Object {[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_))} > cinco-cloud-local-rootCA.pem`
 
    * **Linux/MacOS**
 
       `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath={.data.'tls\.crt'} | base64 -d > cinco-cloud-local-rootCA.pem`
 
 4. Add `cinco-cloud-local-rootCA.pem` to your browser's certificate store.
-5. **MacOS**: Open a terminal and execute `minikube tunnel` to tunnel ingress ports to the host.
+5. **Windows / MacOS**: Open a terminal and execute `minikube tunnel` to tunnel ingress ports to the host.
    Leave the terminal session open during the development.
 6. Open `https://cinco-cloud/frontend` in a web browser to check if CincoCloud is reachable.
 7. Setup Minio Storage Server *(only once)*
 
-    * **Linux/Windows**
+    * **Windows**
+
+      1. Execute `kubectl port-forward minio-statefulset-0 9001:9001`.
+         Leave the terminal session open until you finished setting up Minio.
+      2. Open `http://127.0.0.1:9001`
+
+    * **Linux**
 
       1. Get the port of the [Minio][minio] Service: `kubectl get service minio-service -o jsonpath={.spec.ports[1].nodePort}`
       2. Get the minikube ip: `minikube ip`
-      2. Open `http://<IP>:<PORT>` with the port obtained from the previous step
+      3. Open `http://<IP>:<PORT>` with the port obtained from the previous step
 
     * **MacOS**
 
