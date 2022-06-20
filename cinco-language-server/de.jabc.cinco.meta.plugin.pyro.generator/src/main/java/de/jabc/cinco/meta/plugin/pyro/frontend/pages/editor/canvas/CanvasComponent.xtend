@@ -751,7 +751,7 @@ class CanvasComponent extends Generatable {
 						</button>
 						<bs-dropdown-menu class="dropdown-menu">
 						  <h6 class="dropdown-header">Routing modes</h6>
-						  <a class="dropdown-item" [class.active]="isActiveRouter(null)" href (click)="changeRouteLayout(null,$event)">Default</a>
+						  <a class="dropdown-item" [class.active]="isActiveRouter('normal')" href (click)="changeRouteLayout('normal',$event)">Normal</a>
 						  <a class="dropdown-item" [class.active]="isActiveRouter('orthogonal')" href (click)="changeRouteLayout('orthogonal',$event)">Orthogonal</a>
 						  <a class="dropdown-item" [class.active]="isActiveRouter('metro')" href (click)="changeRouteLayout('metro',$event)">Metro</a>
 						  <a class="dropdown-item" [class.active]="isActiveRouter('manhattan')" href (click)="changeRouteLayout('manhattan',$event)">Manhatten</a>
