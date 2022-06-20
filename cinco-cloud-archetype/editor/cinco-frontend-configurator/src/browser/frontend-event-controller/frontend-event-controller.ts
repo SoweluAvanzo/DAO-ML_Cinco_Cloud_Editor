@@ -1,16 +1,12 @@
 /* eslint-disable header/header */
 
-import { CommandRegistry } from '@theia/core';
-import { inject } from '@theia/core/shared/inversify';
+import { cmdRegistry } from '../menu-command-removal-contribution';
 import { draggingOverWebview } from '../webview-dnd/drag-and-drop-definitions';
 import { registerEventHandler, setDragLeaveCB, setDragOverCB, setDropCB } from '../webview-dnd/drag-and-drop-handler';
-import { DragAndDropFile, TheiaPyroCommandMessage, TheiaPyroConnectedMessage, TheiaPyroDnDMessage, TheiaPyroMessage }
+import { DragAndDropFile, TheiaFile, TheiaPyroCommandMessage, TheiaPyroConnectedMessage, TheiaPyroDnDMessage, TheiaPyroFilePickerMessage, TheiaPyroMessage }
     from '../webview-dnd/theia-pyro-protocol';
 
 export class FrontendEventController {
-
-    @inject(CommandRegistry)
-    static readonly commands: CommandRegistry;
     static pyroWindows: any[] = [];
 
     static sendMessage(msg: TheiaPyroMessage, window: any): void {
@@ -67,16 +63,27 @@ export class FrontendEventController {
                     const commandMessage: TheiaPyroCommandMessage = message as TheiaPyroCommandMessage;
                     const cmd = commandMessage.cmd;
                     const args = commandMessage.args;
-                    const cb = commandMessage.cb;
                     // executing
                     console.log('Executing Command: ' + cmd);
-                    FrontendEventController.commands.executeCommand(
-                        cmd, args
-                    ).then((value: any) => {
-                        if (cb) {
-                            cb(value);
+                    if (cmdRegistry) {
+                        if (cmd === 'info.scce.cinco-cloud.open-file-picker') {
+                            const window = FrontendEventController.getSourceWindow(event);
+                            cmdRegistry.executeCommand(
+                                cmd, args[0]
+                            ).then((value: any) => {
+                                if (value) {
+                                    // response to command
+                                    const pickedMessage = new TheiaPyroFilePickerMessage();
+                                    const pickedFile: TheiaFile = new TheiaFile(
+                                        value.path.base,
+                                        value.path.fsPath()
+                                    );
+                                    pickedMessage.file = pickedFile;
+                                    this.sendMessage(pickedMessage, window);
+                                }
+                            });
                         }
-                    });
+                    }
                     break;
                 }
                 default:

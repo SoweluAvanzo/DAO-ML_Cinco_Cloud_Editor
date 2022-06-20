@@ -7,17 +7,23 @@
  * - connected(view)
  * - dnd(dragAndDropFile)
  */
-
-export class DragAndDropFile {
+export class TheiaFile {
     fileName: string;
     filePath: string;
+
+    constructor(fileName: string, filePath: string) {
+        this.fileName = fileName;
+        this.filePath = filePath;
+    }
+}
+
+export class DragAndDropFile extends TheiaFile {
     x: number;
     y: number;
     eventType: string;
 
     constructor(fileName: string, filePath: string, x: number, y: number, eventType: string) {
-        this.fileName = fileName;
-        this.filePath = filePath;
+        super(fileName, filePath);
         this.x = x;
         this.y = y;
         this.eventType = eventType;
@@ -40,11 +46,15 @@ export class TheiaPyroCommandMessage extends TheiaPyroMessage {
     type = 'command';
     cmd: string;
     args: any;
-    cb: any;
 }
 
 export class TheiaPyroDnDMessage extends TheiaPyroMessage {
     type = 'dnd';
     file: DragAndDropFile;
+}
+
+export class TheiaPyroFilePickerMessage extends TheiaPyroMessage {
+    type = 'filePicker';
+    file: TheiaFile;
 }
 
