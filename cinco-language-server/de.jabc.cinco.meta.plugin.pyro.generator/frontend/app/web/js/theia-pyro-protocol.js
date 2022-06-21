@@ -11,10 +11,12 @@
  class TheiaFile {
      fileName;
      filePath;
+     content;
  
-     constructor(fileName, filePath) {
+     constructor(fileName, filePath, content) {
          this.fileName = fileName;
          this.filePath = filePath;
+         this.content = content;
      }
  }
  
@@ -23,9 +25,8 @@
      y;
      eventType;
  
-     constructor(fileName, filePath, x, y, eventType) {
-         this.fileName = fileName;
-         this.filePath = filePath;
+     constructor(fileName, filePath, content, x, y, eventType) {
+         super(fileName, filePath, content);
          this.x = x;
          this.y = y;
          this.eventType = eventType;
@@ -74,13 +75,42 @@
          }
          case 'dnd': {
              const file = message.file;
-             console.log("Pyro received dragged: " + file.filePath);
-             // TODO: Do something
+             const filePath = file.filePath;
+             const fileName = file.fileName;
+             const content = file.content;
+             const index = fileName.lastIndexOf(".");
+             const fileExtension = fileName.substring(index + 1);
+             const eventType = file.eventType;
+             
+             const event = new DragEvent(eventType, { dataTransfer: new DataTransfer() });
+             event.clientX = file.x;
+             event.clientY = file.y;
+             event.dataTransfer.setData("typename", fileExtension);
+             event.dataTransfer.setData("fileName", fileName);
+             event.dataTransfer.setData("filePath", filePath);
+ 
+             if(
+                 file.eventType == 'drag'
+                 || file.eventType == 'dragover'
+             ) {
+                 console.log("Pyro received dragged: " + filePath);
+                 console.log("content:\n"+ content);
+                 confirm_drop_webstory(event);
+             } else if(file.eventType == 'drop') {
+                 console.log("Pyro received dropped: " + filePath);
+                 console.log("content:\n"+ content);
+                 create_node_webstory_after_drop(event.clientX, event.clientY, fileExtension);
+             } else {
+                 console.log("Event type no implemented: "+file.eventType);
+             }
+ 
              break;
          }
          case 'filePicker': {
              const file = message.file;
+             const content = file.content;
              console.log("Pyro received fileRef: " + file.filePath);
+             console.log("content:\n"+ content);
              // TODO: Do Something
              break;
          }
