@@ -963,7 +963,7 @@ class GraphModelCommandExecuter extends Generatable {
 			«s».connector = "normal";
 			«s».height = 600L;
 			«s».width = 2000L;
-			«s».router = null;
+			«s».router = "normal";
 			«s».isPublic = false;
 
 		«ENDIF»
