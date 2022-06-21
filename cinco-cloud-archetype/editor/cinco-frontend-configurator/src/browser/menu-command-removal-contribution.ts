@@ -1,4 +1,5 @@
 /* eslint-disable header/header */
+import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { CommandRegistry, MenuContribution, MenuModelRegistry } from '@theia/core';
 import { FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
 import { inject } from '@theia/core/shared/inversify';
@@ -6,6 +7,7 @@ import { WorkspaceCommands } from '@theia/workspace/lib/browser';
 import { injectable } from 'inversify';
 
 export let cmdRegistry: CommandRegistry;
+export let fileService: FileService;
 
 @injectable()
 export class MenuCommandRemovalContribution implements MenuContribution, FrontendApplicationContribution {
@@ -13,12 +15,16 @@ export class MenuCommandRemovalContribution implements MenuContribution, Fronten
     @inject(CommandRegistry)
     protected readonly commandRegistry: CommandRegistry;
 
+    @inject(FileService)
+    private readonly fileService: FileService;
+
     onStart?(app: FrontendApplication): void {
+        cmdRegistry = this.commandRegistry;
+        fileService = this.fileService;
         this.unregisterCommands(this.commandRegistry);
     }
 
     public unregisterCommands(registry: CommandRegistry): void {
-        cmdRegistry = registry;
         // unregister all commands, that could allow access to filesystem
         registry.unregisterCommand(WorkspaceCommands.OPEN);
         registry.unregisterCommand(WorkspaceCommands.OPEN_FILE);
