@@ -37,7 +37,9 @@ public class PyroAppK8SIngressFrontend extends PyroK8SResource<Ingress> {
         .withName(getProjectName() + "-app-ingress-frontend")
         .withAnnotations(Map.of(
             "nginx.ingress.kubernetes.io/rewrite-target", "/$2",
-            "nginx.ingress.kubernetes.io/use-regex", "true"))
+            "nginx.ingress.kubernetes.io/use-regex", "true",
+            "nginx.ingress.kubernetes.io/proxy-read-timeout", "3600",
+            "nginx.ingress.kubernetes.io/proxy-send-timeout", "3600"))
         .endMetadata()
         .withSpec(new IngressSpecBuilder()
             .withRules(new IngressRuleBuilder()
