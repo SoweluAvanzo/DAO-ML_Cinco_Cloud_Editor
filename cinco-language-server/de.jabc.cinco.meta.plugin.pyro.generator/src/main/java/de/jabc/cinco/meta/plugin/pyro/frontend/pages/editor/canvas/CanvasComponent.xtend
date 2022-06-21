@@ -762,7 +762,6 @@ class CanvasComponent extends Generatable {
 						  <a class="dropdown-item" [class.active]="isActiveConnector('jumpover')" href (click)="changeConnectorLayout('jumpover',$event)">Jumpover</a>
 						</bs-dropdown-menu>
 					</bs-dropdown>
-					<!--
 					<div *ngIf="isModelFile()" class="btn-group btn-group-sm mr-2">
 						<button class="btn" (click)="undo()">
 							<i class="fas fa-undo-alt"></i> Undo
@@ -771,7 +770,6 @@ class CanvasComponent extends Generatable {
 							<i class="fas fa-redo-alt"></i> Redo
 						</button>
 					</div>
-					-->
 					«IF hasChecks»
 						<div *ngIf="isModelFile() && hasChecks()" class="btn-group btn-group-sm mr-2">
 							<button type="button" (click)="toggleIsError()" [class.active]="isError" class="btn btn-sm btn-outline-danger" data-toggle="tooltip" data-placement="bottom" title="Toggle error markers on canvas">E</button>

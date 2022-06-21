@@ -626,8 +626,8 @@ abstract class CommandGraph {
     UpdateCommand cmd = new UpdateCommand();
     cmd.delegateId = element.id;
     cmd.type = element.$type();
-    cmd.element = element.propertyCopy();
-    cmd.prevElement = prevElement.propertyCopy();
+    cmd.element = element;
+    cmd.prevElement = prevElement;
     return cmd;
   }
 
