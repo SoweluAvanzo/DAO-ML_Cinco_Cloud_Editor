@@ -1,5 +1,6 @@
 /* eslint-disable header/header */
 
+import { FileHelper } from '../file-handler/file-helper';
 import { isFile, isWebview, isWebviewSibling, isWebviewWrapper } from './drag-and-drop-definitions';
 import { DragAndDropFile } from './theia-pyro-protocol';
 
@@ -47,21 +48,36 @@ export function registerEventHandler(): void {
     });
     window.addEventListener('dragover', function (e) {
         handleView(e);
+        const file = currentFile!;
+        file.eventType = 'dragover';
         if (dragOverCB) {
             dragOverCB(currentFile, currentView);
         }
     });
     window.addEventListener('dragleave', function (e) {
         handleView(e);
+        const file = currentFile!;
+        file.eventType = 'dragleave';
         if (dragLeaveCB) {
             dragLeaveCB(currentFile, currentView);
         }
     });
     window.addEventListener('drop', function (e) {
         handleView(e);
-        if (dropCB) {
-            dropCB(currentFile, currentView);
+        const view = currentView;
+        const file = currentFile;
+        if (!file) {
+            return;
         }
+        // if the dragging ends the currentFile is reseted after it was used
+        const fileHelper = new FileHelper();// TODO: SAMI - this is only called iff there is a breakpoint...why????
+        fileHelper.resolveUriString(file.filePath).then((content: string) => {
+            file.content = content;
+            file.eventType = 'drop';
+            if (dropCB) {
+                dropCB(file, view);
+            }
+        });
     });
 }
 
@@ -82,13 +98,11 @@ function handleDragged(e: DragEvent): void {
         const x = e.clientX;
         const y = e.clientY;
         const eventType = e.type;
-        currentFile = new DragAndDropFile(fileName, filePath, x, y, eventType);
-
-        // if the dragging ends the currentFile is reseted after it was used
-        if (eventType === 'dragend') {
+        if (eventType === 'drag') {
+            currentFile = new DragAndDropFile(fileName, filePath, undefined, x, y, eventType);
+        } else if (eventType === 'dragend') {
             reset();
         }
-        return;
     } else {
         // if the dragged object is not a file
         reset();

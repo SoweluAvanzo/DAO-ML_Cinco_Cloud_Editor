@@ -2,18 +2,21 @@
 
 /**
  * TYPES (please document here):
- * - command(cmd, args, cb)
- * - conenct
- * - connected(view)
+ * - command(cmd, args)
+ * - connect
+ * - connected
  * - dnd(dragAndDropFile)
+ * - filePicker(TheiaFile)
  */
 export class TheiaFile {
     fileName: string;
     filePath: string;
+    content: string | undefined;
 
-    constructor(fileName: string, filePath: string) {
+    constructor(fileName: string, filePath: string, content: string | undefined) {
         this.fileName = fileName;
         this.filePath = filePath;
+        this.content = content;
     }
 }
 
@@ -22,8 +25,8 @@ export class DragAndDropFile extends TheiaFile {
     y: number;
     eventType: string;
 
-    constructor(fileName: string, filePath: string, x: number, y: number, eventType: string) {
-        super(fileName, filePath);
+    constructor(fileName: string, filePath: string, content: string | undefined, x: number, y: number, eventType: string) {
+        super(fileName, filePath, content);
         this.x = x;
         this.y = y;
         this.eventType = eventType;

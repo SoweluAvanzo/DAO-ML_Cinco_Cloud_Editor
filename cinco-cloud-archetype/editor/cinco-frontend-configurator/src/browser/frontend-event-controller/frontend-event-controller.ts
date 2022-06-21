@@ -1,7 +1,9 @@
 /* eslint-disable header/header */
 
+import { Path } from '@theia/core/lib/common/path';
+import URI from '@theia/core/lib/common/uri';
+import { FileHelper } from '../file-handler/file-helper';
 import { cmdRegistry } from '../menu-command-removal-contribution';
-import { draggingOverWebview } from '../webview-dnd/drag-and-drop-definitions';
 import { registerEventHandler, setDragLeaveCB, setDragOverCB, setDropCB } from '../webview-dnd/drag-and-drop-handler';
 import { DragAndDropFile, TheiaFile, TheiaPyroCommandMessage, TheiaPyroConnectedMessage, TheiaPyroDnDMessage, TheiaPyroFilePickerMessage, TheiaPyroMessage }
     from '../webview-dnd/theia-pyro-protocol';
@@ -17,7 +19,7 @@ export class FrontendEventController {
     }
 
     static sendDnDMessage(dndFile: DragAndDropFile, window: any): void {
-        if (!draggingOverWebview()) {
+        if (!window) {
             return;
         }
         const dndMessage = new TheiaPyroDnDMessage();
@@ -74,12 +76,19 @@ export class FrontendEventController {
                                 if (value) {
                                     // response to command
                                     const pickedMessage = new TheiaPyroFilePickerMessage();
-                                    const pickedFile: TheiaFile = new TheiaFile(
-                                        value.path.base,
-                                        value.path.fsPath()
-                                    );
-                                    pickedMessage.file = pickedFile;
-                                    this.sendMessage(pickedMessage, window);
+                                    const fileHelper = new FileHelper();
+                                    const uri: URI = value as URI;
+                                    const fileName = uri.path.base;
+                                    const filePath = uri.path.fsPath(Path.Format.Posix);
+                                    fileHelper.resolveUriString(filePath).then((content: string) => {
+                                        const pickedFile: TheiaFile = new TheiaFile(
+                                            fileName,
+                                            filePath,
+                                            content
+                                        );
+                                        pickedMessage.file = pickedFile;
+                                        this.sendMessage(pickedMessage, window);
+                                    });
                                 }
                             });
                         }
