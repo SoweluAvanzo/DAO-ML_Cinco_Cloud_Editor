@@ -22,6 +22,16 @@ class Generator extends FileGenerator {
 		
 		mglExtension = gc.mglExtension
 		
+		// create typeSwitch
+		{
+			val path = "web/js/"
+			val gen = new TypeSwitch(gc)
+			generateFile(path,
+				gen.fileName(),
+				gen.content()
+			)
+		}
+		
 		//create shapes
 		{
 			gc.mglModels.forEach[g|{

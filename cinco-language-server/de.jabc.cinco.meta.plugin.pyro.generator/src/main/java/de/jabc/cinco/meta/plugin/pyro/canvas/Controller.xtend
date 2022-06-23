@@ -1305,12 +1305,14 @@ class Controller extends Generatable{
 	}
 	
 	function confirm_drop_«g.jsCall»(ev) {
-	    ev.preventDefault();
+		ev.preventDefault();
 	    ev.stopPropagation();
 	    var rp = getRelativeScreenPosition(ev.clientX,ev.clientY,$paper_«g.jsCall»);
-	    var x = rp.x;
-	    var y = rp.y;
-	    var typeName = ev.dataTransfer.getData("typename");
+		var content;
+		try {
+			content = JSON.parse(ev.dataTransfer.getData("text"));
+		} catch(e) {}
+		var typeName = content? content['typename'] : "";
 	    if(typeName != ''){
 	    	if(!is_containement_allowed_«g.jsCall»(rp,typeName)) {
 	       	   		ev.dataTransfer.effectAllowed= 'none';

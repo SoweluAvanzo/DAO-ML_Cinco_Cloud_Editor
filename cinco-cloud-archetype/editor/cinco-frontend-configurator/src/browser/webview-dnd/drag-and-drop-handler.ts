@@ -62,7 +62,7 @@ export function registerEventHandler(): void {
             dragLeaveCB(currentFile, currentView);
         }
     });
-    window.addEventListener('drop', function (e) {
+    window.addEventListener('drop', function (e: DragEvent) {
         handleView(e);
         const view = currentView;
         const file = currentFile;
@@ -70,8 +70,15 @@ export function registerEventHandler(): void {
             return;
         }
         // if the dragging ends the currentFile is reseted after it was used
-        const fileHelper = new FileHelper();// TODO: SAMI - this is only called iff there is a breakpoint...why????
+        const fileHelper = new FileHelper();
         fileHelper.resolveUriString(file.filePath).then((content: string) => {
+            // calculate client-position
+            const clientRect = view.getBoundingClientRect();
+            const clientX = e.clientX - clientRect.left;
+            const clientY = e.clientY - clientRect.top;
+            file.x = clientX;
+            file.y = clientY;
+            // setup other values
             file.content = content;
             file.eventType = 'drop';
             if (dropCB) {
@@ -95,8 +102,17 @@ function handleDragged(e: DragEvent): void {
          */
         const filePath = target.title;
         const fileName = target.textContent;
-        const x = e.clientX;
-        const y = e.clientY;
+
+        // calculate client-position
+        let clientRect = undefined;
+        if (currentView) {
+            clientRect = currentView.getBoundingClientRect();
+        }
+        const clientX = clientRect ? e.clientX - clientRect.left : e.clientX;
+        const clientY = clientRect ? e.clientY - clientRect.top : e.clientY;
+        const x = clientX;
+        const y = clientY;
+
         const eventType = e.type;
         if (eventType === 'drag') {
             currentFile = new DragAndDropFile(fileName, filePath, undefined, x, y, eventType);

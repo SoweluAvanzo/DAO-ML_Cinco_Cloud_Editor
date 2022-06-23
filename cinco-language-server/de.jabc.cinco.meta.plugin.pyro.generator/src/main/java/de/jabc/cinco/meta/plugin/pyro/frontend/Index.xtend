@@ -48,9 +48,6 @@ class Index extends Generatable {
 		  .org-nav-bg-color {
 		  	background-color: #525252;
 		  }
-		  .org-nav-text-color: {
-		  	
-		  }
 		  .org-body-bg-color {
 		  	background-color: #333;
 		  }
@@ -93,6 +90,7 @@ class Index extends Generatable {
 	    <script type="application/javascript" src="js/pyro_core.js"></script>
 	    <script type="application/javascript" src="js/pyro_editor_grid.js"></script>
 	    <script type="application/javascript" src="js/pyro_micro.js"></script>
+	    <script type="application/javascript" src="js/pyro_typeswitch.js"></script>
 	    <script type="application/javascript" src="js/theia-pyro-protocol.js"></script>
 		
 	«FOR g:gc.concreteGraphModels»
