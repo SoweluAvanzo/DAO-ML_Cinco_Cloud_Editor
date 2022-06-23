@@ -13,13 +13,15 @@ class TypeSwitch extends Generatable{
 
 	def content() {
 	'''
+		$current_model = null;
+		
 		/**
 		 * Drag and Drop functionalities
 		 */
 		
 		function confirm_drop(event) {
 			«parsedEventData(
-				typeSwitchFoo(
+				currentModelTypeSwitchFoo(
 					'''confirm_drop'''
 				)
 			)»
@@ -27,10 +29,14 @@ class TypeSwitch extends Generatable{
 		
 		function drop_on_canvas(event) {
 			«parsedEventData(
-				typeSwitchFoo(
+				currentModelTypeSwitchFoo(
 					'''drop_on_canvas'''
 				)
 			)»
+		}
+		
+		function getCurrentType() {
+			return $current_model;
 		}
 	'''
 	}
@@ -52,10 +58,10 @@ class TypeSwitch extends Generatable{
 	/*
 	 * fooName - name of the function accepting the an Event, having a preceding "_«g.jsCall»" in it's name (implemented for all concrete GraphModels)
 	 */
-	def typeSwitchFoo(CharSequence fooName) {
+	def currentModelTypeSwitchFoo(CharSequence fooName) {
 		'''
-			const typename = data['typename'];
-			switch(typename) {
+			const modelType = getCurrentType();
+			switch(modelType) {
 				«FOR g: gc.concreteGraphModels»
 				    case '«g.typeName»': {
 				        «fooName»_«g.jsCall»(event);

@@ -125,7 +125,7 @@ class Controller extends Generatable{
 			«ENDFOR»
 	    };
 	
-		
+		$current_model = '«g.typeName»';
 	    $graph_«g.jsCall» = new joint.dia.Graph;
 	    $paper_«g.jsCall» = new joint.dia.Paper({
 	
