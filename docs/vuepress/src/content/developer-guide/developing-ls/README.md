@@ -39,6 +39,8 @@ If you compile the project a maven test will be executed inside `cinco-language-
 
 Developing for the Pyro model server can be tedious with the wrong mindset. Inside the `pyro` folder you will find several scripts that can be executed to avoid such tediousness. Here is a quick guide how to use these scripts and to describe what they do:
 
+**Note: If you are developing under Windows, you need to copy the `pyro` folder to a location with a small path length (e.g. desktop). Windows limits the length of allowed paths, which can cause problems when compiling the frontend.** 
+
 ### Compiling the Model-Server
 
 1. create a database for the product (This can be reused)
