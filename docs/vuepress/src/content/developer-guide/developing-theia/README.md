@@ -51,7 +51,7 @@ If you now want to develop interactively, do the following:
 
 **Congratulations! You are now running a Theia editor**
 
-At this point you may experience that the Cinco languages are not supported. This is because the Cinco-Language-Server is apparently not present inside these files. Follow the Section `DEVELOPING: Cinco-Language-Server and Pyro-Model-Server` and compile a `cinco-language-server`, as well as a `pyro-model-server`. Put the resulting servers inside the following folders:
+At this point you may experience that the Cinco languages are not supported. This is because the Cinco-Language-Server is apparently not present inside these files. Follow the Section `Developing for the Cinco-Language-Server and Pyro-Model-Server` and compile a `cinco-language-server`, as well as a `pyro-model-server`. Put the resulting servers inside the following folders:
 
     language-server => cinco-language-server-extension/language-server
     pyro-server => pyro-server-extension/pyro-server
