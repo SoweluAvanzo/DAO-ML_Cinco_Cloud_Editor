@@ -41,6 +41,9 @@ If you created an extension, you need to register it in several files, since the
 
 Do it analogously to all the other extensions.
 
+### Registering VSCode-Extensions
+If you created an extension, you need to compile your extension to a `*.vsix` (with `vsce`) and move it into `editor/browser/plugins`. (Currently you have to do this procedure to all extensions inside `vscode-extensions` manually)
+
 ### Developing Theia-Extensions
 If you now want to develop interactively, do the following:
 
