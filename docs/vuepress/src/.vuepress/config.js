@@ -83,11 +83,11 @@ module.exports = {
           },
           {
             title: 'Developing for the Theia Editor',
-            path: '/content/developer-guide/developing2/'
+            path: '/content/developer-guide/developing-theia/'
           },
           {
             title: 'Developing for the Language-Server',
-            path: '/content/developer-guide/developing3/'
+            path: '/content/developer-guide/developing-ls/'
           }
         ]
       },

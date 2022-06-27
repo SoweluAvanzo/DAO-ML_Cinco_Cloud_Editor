@@ -12,13 +12,13 @@ This project represents an archetypical theia-editor for a cinco-cloud product.
 
 USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
 
-1. to compile the docker image execute:
+1. to compile the docker image execute **from the root of the cinco-cloud project**:
     
-    `./build.sh`
+    `docker build -f cinco-cloud-archetype/Dockerfile -t editor .`
 
 2. to setup a database for a pyro-application run:
 
-    `docker-compose -f postgres.yml up`
+    `docker compose -f postgres.yml up`
 
 3. to run the docker image execute:
 
