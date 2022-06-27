@@ -58,17 +58,23 @@ export class ServerLauncher implements BackendApplicationContribution {
                 this.logInfo(String(buffer.stdout));
                 this.logError(String(buffer.stderr));
 
-                this.spawnProcessAsync(
-                    ServerLauncher.CMD_EXEC,
-                    ServerLauncher.ARGS,
-                    {
-                        detached: false,
-                        shell: true,
-                        stdio: ['inherit', 'pipe']
-                    }
-                );
+                this.execute();
             });
+        } else {
+            this.execute();
         }
+    }
+
+    execute(): void {
+        this.spawnProcessAsync(
+            ServerLauncher.CMD_EXEC,
+            ServerLauncher.ARGS,
+            {
+                detached: false,
+                shell: true,
+                stdio: ['inherit', 'pipe']
+            }
+        );
     }
 
     protected spawnProcessAsync(command: string, args?: string[], options?: cp.SpawnOptions): Promise<RawProcess> {
