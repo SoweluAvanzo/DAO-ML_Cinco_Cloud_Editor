@@ -143,14 +143,18 @@ class Escaper {
 	}
 		
 	def escapespecialCharacters(String s){
+	   // the list of special expressions is to be extended
+		var specialChars = #["\"", "$", "!","@","#", "%", "^","&", "*", "(", ")", "?"];
 		var s1 = s;
-		if(!s.isNullOrEmpty){
-			if(s.contains("\"")){
-			s1=s.replace("\"", '\\"'.toString);			
-			}
+		for (String c : specialChars){
+			if(!s.isNullOrEmpty){
+				if(s.contains(c)){
+					s1=s.replace(c, "\\"+c);			
+				}
+			}			
 		}
+
 		return s1;
-		// the list of special expressions is to be extended
 	}
 }
 
