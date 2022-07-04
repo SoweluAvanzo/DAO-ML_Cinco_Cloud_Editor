@@ -3109,8 +3109,12 @@ class MGLExtension {
 		}
 	}
 	
+	def typeNameUnderScore(EObject e) {
+		'''«e.typeName.toString.replace('.', "_").toLowerCase»'''
+	}
+	
 	def restEndpoint(GraphModel g) {
-		'''«g.typeName.toString.replace('.', "_").toLowerCase»'''
+		g.typeNameUnderScore
 	}
 
 	def jarFilename(String path) {

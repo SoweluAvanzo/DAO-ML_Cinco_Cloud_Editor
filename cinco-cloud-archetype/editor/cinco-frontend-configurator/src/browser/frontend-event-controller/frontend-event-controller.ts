@@ -1,12 +1,19 @@
 /* eslint-disable header/header */
-
 import { Path } from '@theia/core/lib/common/path';
 import URI from '@theia/core/lib/common/uri';
+
 import { FileHelper } from '../file-handler/file-helper';
 import { cmdRegistry } from '../menu-command-removal-contribution';
 import { registerEventHandler, setDragLeaveCB, setDragOverCB, setDropCB } from '../webview-dnd/drag-and-drop-handler';
-import { DragAndDropFile, TheiaFile, TheiaPyroCommandMessage, TheiaPyroConnectedMessage, TheiaPyroDnDMessage, TheiaPyroFilePickerMessage, TheiaPyroMessage }
-    from '../webview-dnd/theia-pyro-protocol';
+import {
+    DragAndDropFile,
+    TheiaFile,
+    TheiaPyroCommandMessage,
+    TheiaPyroConnectedMessage,
+    TheiaPyroDnDMessage,
+    TheiaPyroFilePickerMessage,
+    TheiaPyroMessage
+} from '../webview-dnd/theia-pyro-protocol';
 
 export class FrontendEventController {
     static pyroWindows: any[] = [];
@@ -77,18 +84,45 @@ export class FrontendEventController {
                                     // response to command
                                     const pickedMessage = new TheiaPyroFilePickerMessage();
                                     const fileHelper = new FileHelper();
-                                    const uri: URI = value as URI;
-                                    const fileName = uri.path.base;
-                                    const filePath = uri.path.fsPath(Path.Format.Posix);
-                                    fileHelper.resolveUriString(filePath).then((content: string) => {
-                                        const pickedFile: TheiaFile = new TheiaFile(
-                                            fileName,
-                                            filePath,
-                                            content
-                                        );
-                                        pickedMessage.file = pickedFile;
-                                        this.sendMessage(pickedMessage, window);
-                                    });
+                                    if (value instanceof Array) {
+                                        // multiple files
+                                        const uris: URI[] = value as URI[];
+                                        let files: TheiaFile[] = [] as TheiaFile[];
+                                        uris.forEach(async (uri: URI) => {
+                                            const fileName = uri.path.base;
+                                            const filePath = uri.path.fsPath(Path.Format.Posix);
+                                            await fileHelper.resolveUriString(filePath).then((content: string) => {
+                                                const pickedFile: TheiaFile = new TheiaFile(
+                                                    fileName,
+                                                    filePath,
+                                                    content
+                                                );
+                                                files = files.concat(pickedFile);
+                                            }).then(_ => {
+                                                if (files.length === uris.length) {
+                                                    pickedMessage.files = files;
+                                                    pickedMessage.cbId = message.cbId;
+                                                    this.sendMessage(pickedMessage, window);
+                                                }
+                                            });
+                                        });
+                                    } else {
+                                        // single file
+                                        const uri: URI = value as URI;
+                                        const fileName = uri.path.base;
+                                        const filePath = uri.path.fsPath(Path.Format.Posix);
+                                        fileHelper.resolveUriString(filePath).then((content: string) => {
+                                            const pickedFile: TheiaFile = new TheiaFile(
+                                                fileName,
+                                                filePath,
+                                                content
+                                            );
+                                            pickedMessage.files = [] as TheiaFile[];
+                                            pickedMessage.files = pickedMessage.files.concat(pickedFile);
+                                            pickedMessage.cbId = message.cbId;
+                                            this.sendMessage(pickedMessage, window);
+                                        });
+                                    }
                                 }
                             });
                         }

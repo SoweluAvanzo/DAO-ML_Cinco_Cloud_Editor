@@ -35,6 +35,11 @@ export class DragAndDropFile extends TheiaFile {
 
 export class TheiaPyroMessage {
     type: string;
+    cbId: string;
+
+    constructor() {
+        this.cbId = makeid(16);
+    }
 }
 
 export class TheiaPyroConnectMessage extends TheiaPyroMessage {
@@ -58,6 +63,15 @@ export class TheiaPyroDnDMessage extends TheiaPyroMessage {
 
 export class TheiaPyroFilePickerMessage extends TheiaPyroMessage {
     type = 'filePicker';
-    file: TheiaFile;
+    files: TheiaFile[];
 }
 
+function makeid(length: number): string {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
