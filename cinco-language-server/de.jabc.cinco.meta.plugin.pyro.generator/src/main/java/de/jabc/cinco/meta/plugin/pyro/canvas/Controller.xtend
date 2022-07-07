@@ -1566,23 +1566,24 @@ class Controller extends Generatable{
 	def updateAppearance(NodeStyle ns,GraphModel g)
 	'''
 		«FOR shape:new Shapes(gc).collectSelectorTags(ns.mainShape,"x",0).entrySet»
-		if('«shape.value»'.endsWith(shapeId)) {
-			update_node_apperance_internal(cell,'«shape.value»',
-				background_r,background_g,background_b,
-				foreground_r,foreground_g,foreground_b,
-				lineInVisible,
-				lineStyle,
-				transparency,
-				lineWidth,
-				filled,
-				angle,
-				fontName,
-				fontSize,
-				fontBold,
-				fontItalic,
-				imagePath
-			);
-		}
+			if('«shape.value»'.endsWith(shapeId)) {
+				«defaultImageGate(shape.key)»
+				update_node_apperance_internal(cell,'«shape.value»',
+					background_r,background_g,background_b,
+					foreground_r,foreground_g,foreground_b,
+					lineInVisible,
+					lineStyle,
+					transparency,
+					lineWidth,
+					filled,
+					angle,
+					fontName,
+					fontSize,
+					fontBold,
+					fontItalic,
+					imagePath
+				);
+			}
 	    «ENDFOR»
 	'''
 	
@@ -1759,6 +1760,19 @@ class Controller extends Generatable{
 		}
 		return 0
 	}
-
+	
+	def defaultImageGate(style.AbstractShape shape) {
+		'''
+			«IF shape instanceof style.Image»
+				«{
+					'''
+						if(imagePath == null) { // setting default imagePath
+							imagePath = '«shape.imageFilePath»';
+						}
+					'''
+				}»
+			«ENDIF»
+		'''
+	}
 	
 }

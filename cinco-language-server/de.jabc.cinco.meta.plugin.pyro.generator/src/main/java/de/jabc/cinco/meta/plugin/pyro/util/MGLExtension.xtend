@@ -3332,6 +3332,14 @@ class MGLExtension {
 	
 	def websocketEventPrime() '''referenced'''
 	
+	def imageFilePath(style.Image imageShape) {
+		var path = imageShape.path
+		if(path.lastIndexOf("/")>=0) {
+			path = path.substring(path.lastIndexOf("/")+1,path.length)
+		}		
+		'''img/«imageShape.modelPackage.name.lowEscapeDart»/«path»'''
+	}
+	
 	def concreteGraphModels(MGLModel m) {
 		return m.graphModels.filter[!isAbstract].toSet
 	}
