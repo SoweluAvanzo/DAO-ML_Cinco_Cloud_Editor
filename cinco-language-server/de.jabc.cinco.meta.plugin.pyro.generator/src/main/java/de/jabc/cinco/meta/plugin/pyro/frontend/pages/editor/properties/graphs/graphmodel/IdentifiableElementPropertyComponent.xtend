@@ -25,6 +25,7 @@ class IdentifiableElementPropertyComponent extends Generatable {
 		import 'dart:js' as js;
 		
 		import 'package:«gc.projectName.escapeDart»/src/model/core.dart' as core;
+		import 'package:«gc.projectName.escapeDart»/src/service/fileService.dart';
 		import 'package:«gc.projectName.escapeDart»/«g.modelFilePath»' as «g.name.lowEscapeDart»;
 		«IF !fileAttributes.empty»
 			
@@ -59,12 +60,14 @@ class IdentifiableElementPropertyComponent extends Generatable {
 			«ENDFOR»
 			
 			«me.name.fuEscapeDart»PropertyComponent() {
+			    FileService.init();
 			  	«FOR file:fileAttributes»
 			  		uploader_«file.name.escapeDart».newFileStream.listen((fr){
+			  			var path = FileService.sanitizePath(fr.filePath, false);
 			  			«IF file.isList»
-			  				currentElement.attrFiles.add(fr.path);
+			  				currentElement.«file.name.escapeDart».add(path);
 			  			«ELSE»
-			  				currentElement.«file.name.escapeDart» = fr.path;
+			  				currentElement.«file.name.escapeDart» = path;
 			  			«ENDIF»
 			  			hasChangedSC.add(currentElement);
 			  		});
@@ -88,12 +91,16 @@ class IdentifiableElementPropertyComponent extends Generatable {
 				}
 				
 				String getTheiaFileReferenceName(String filePath) {
-					// TODO: currently a bit dirty. Should receive workspace basePath from Backend
+					String workspaceRoot = FileService.WORKSPACE_ROOT;
+					if(filePath.contains(workspaceRoot)) {
+						return filePath.split(workspaceRoot)[1];
+					}
+					// fallBack: this should not happen
 					const pathSeparator = [ '\\', '/', '\\\\'];
 					for(var ps in pathSeparator) {
-					  if(filePath.contains('editor'+ps+'workspace'+ps)) {
-					    return filePath.split('editor'+ps+'workspace'+ps)[1];
-					  }
+						if(filePath.contains('editor'+ps+'workspace'+ps)) {
+							return filePath.split('editor'+ps+'workspace'+ps)[1];
+						}
 					}
 					return filePath;
 				}
@@ -107,6 +114,12 @@ class IdentifiableElementPropertyComponent extends Generatable {
 				
 				void openFilePicker(String textFieldId, bool multi, dynamic fileTypes, callback) {
 					js.context.callMethod('openFilePicker', [fileTypes, multi, callback]);
+				}
+				
+				String getRelativePath(String absolutePath) {
+					var filePath = FileService.sanitizePath(absolutePath, true);
+					var segments = filePath.split(FileService.WORKSPACE_ROOT + "/");
+					return segments[1];
 				}
 				
 				«FOR attr: fileAttributes»
@@ -127,9 +140,7 @@ class IdentifiableElementPropertyComponent extends Generatable {
 									«IF types.empty»
 										"*"
 									«ELSE»
-										«FOR t : types SEPARATOR ","
-											»"«t»"«
-										ENDFOR»
+										«FOR t : types SEPARATOR ", "»"«t»"«ENDFOR»
 									«ENDIF»
 								]);
 								openFilePicker("«textFieldId»", «isMulti», types, (files) {
@@ -139,12 +150,12 @@ class IdentifiableElementPropertyComponent extends Generatable {
 							
 							void «onDropCall»(dynamic event) {
 								parseFile(event, (file) {
-								«IF attr.isList»
-									currentElement.«attr.name.escapeDart».add(file['filePath']);
-									hasChangedSC.add(currentElement);
-								«ELSE»
-								  «handleCall»([file]);
-								«ENDIF»
+									«IF attr.isList»
+										currentElement.«attr.name.escapeDart».add(file['filePath']);
+										hasChangedSC.add(currentElement);
+									«ELSE»
+										«handleCall»([file]);
+									«ENDIF»
 								});
 							}
 							
@@ -154,11 +165,13 @@ class IdentifiableElementPropertyComponent extends Generatable {
 									«IF attr.isList»
 										for(var i=0; i<files.length; i++) {
 											print(files[i]['filePath']);
-											currentElement.«attr.name.escapeDart».add(files[i]['filePath']);
+											var path = getRelativePath(files[i]['filePath']);
+											currentElement.«attr.name.escapeDart».add(path);
 										}
 									«ELSE»
 										print(files[0]['filePath']);
-										currentElement.«attr.name.escapeDart» = files[0]['filePath'];
+										var path = getRelativePath(files[0]['filePath']);
+										currentElement.«attr.name.escapeDart» = path;
 									«ENDIF»
 									hasChangedSC.add(currentElement);
 								}
@@ -440,28 +453,22 @@ class IdentifiableElementPropertyComponent extends Generatable {
 								'''
 									<!-- theia-based file handling -->
 									<div *ngIf="connectedToTheia()">
-										<div class="file-drop-area" title="select file" (drop)="«onDropCall»">
+										<div class="file-drop-area file-drop-hover" title="select file" (drop)="«onDropCall»">
 											<span class="choose-file-button">Select File«IF attr.list»(s)«ENDIF»</span>
-											<span id="«textFieldId»" class="file-message">drag and drop</span>
+											<span id="«textFieldId»" class="file-message">or drag and drop</span>
 											<input class="file-input" type="button" (click)="«openFilePickerCall»">
 										</div>
 										<div class="file-area">
 											<div *ngIf="«isEmptyCall»" class="file-message">(no file)</div>
 											<div *ngIf="!«isEmptyCall»">
 												«IF attr.list»
-													<button (click)="«clearCall»()" class="btn btn-delete" type="button" style="margin-bottom: 5px;">
-														Clear All
-													</button>
+													<button class="btn btn-delete choose-file-button" (click)="«clearCall»()" type="button" style="margin-bottom: 5px;">Clear All</button>
 													<div *ngFor="let i of currentElement.«attr.name.escapeDart»; let x = index; trackBy: trackPrimitiveValue" style="margin-bottom: 5px;">
-														<button (click)="«removeCall»" class="btn btn-delete" type="button">
-															<i class="fas fa-times"></i>
-														</button>
+														<button class="btn btn-delete choose-file-button" (click)="«removeCall»"><i class="fas fa-times"></i></button>
 														<span id="«textFieldId»" class="file-message">{{getTheiaFileReferenceName(currentElement.«attr.name.escapeDart»[x])}}</span>
 													</div>
 												«ELSE»
-													<button (click)="«removeCall»" class="btn btn-delete" type="button">
-														<i class="fas fa-times"></i>
-													</button>
+													<button class="btn btn-delete choose-file-button" (click)="«removeCall»"><i class="fas fa-times"></i></button>
 													<span id="«textFieldId»" class="file-message">{{getTheiaFileReferenceName(currentElement.«attr.name.escapeDart»)}}</span>
 												«ENDIF»
 											</div>
@@ -491,7 +498,7 @@ class IdentifiableElementPropertyComponent extends Generatable {
 									    </span>
 									</div>
 								«ELSE»
-									<a style="color:#fff" [href]="getDownloadPath(currentElement.«attr.name.escapeDart»)">{{currentElement.«attr.name.escapeDart»}}</a>
+									<a style="color:rgb(0, 0, 0)" [href]="getDownloadPath(currentElement.«attr.name.escapeDart»)">{{currentElement.«attr.name.escapeDart»}}</a>
 								«ENDIF»
 							</div>
 						«ELSE»

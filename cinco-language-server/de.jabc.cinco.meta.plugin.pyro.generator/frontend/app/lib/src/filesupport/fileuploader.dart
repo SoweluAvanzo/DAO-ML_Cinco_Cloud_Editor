@@ -8,6 +8,7 @@ import 'dart:math';
 import 'filelikeobject.dart';
 import 'fileitem.dart';
 import '../service/base_service.dart';
+import '../service/fileService.dart';
 
 bool isFile(value) {
   return (value is File);
@@ -436,34 +437,51 @@ class FileReference {
   int id;
   String fileName;
   String contentType;
-
+  String filePath;
+  String get path => '${id}';
+  String get downloadPath => '${FileReference.downloadBase}/${path}';
+  String get readPath => '${FileReference.readBase}/${path}';
   static String get readBase => '${BaseService.getUrl()}/files/read';
   static String get downloadBase => '${BaseService.getUrl()}/files/download';
+
   static String toReadPath(path) {
     if(path == null)
       return path;
-    return FileReference.readBase + "/" + path;
+    path = cleanURLPath(path);
+    return FileReference.readBase + "/" + path + "/private";
   }
+
   static String toDownloadPath(path) {
     if(path == null)
       return path;
-    return FileReference.downloadBase + "/" + path;
+    path = cleanURLPath(path);
+    return FileReference.downloadBase + "/" + path + "/private";
   }
-  String get path => '${id}/private';
-  String get downloadPath => '${FileReference.downloadBase}/${path}';
-  String get readPath => '${FileReference.readBase}/${path}';
+
+  static String cleanURLPath(String path) {
+    if(path.contains(FileService.UPLOAD_FOLDER)) {
+      var segments;
+      path = FileService.sanitizePath(path, true);
+      segments = path.split('/');
+      var segmentLength = segments.length;
+      return 'id/' + segments[segmentLength-2];
+    }
+    return 'path/' + path.replaceAll('/', '%2F');
+  }
 
   FileReference({jsog}) {
     // default constructor
     if (jsog == null) {
       this.id = -1;
       this.fileName = "";
+      this.filePath = "";
       this.contentType = "";
     }
     // from jsog
     else {
       this.id = jsog["id"];
       this.fileName = jsog["fileName"];
+      this.filePath = jsog["filePath"];
       this.contentType = jsog["contentType"];
     }
   }
@@ -472,7 +490,8 @@ class FileReference {
     return {
       'id': this.id,
       'fileName': this.fileName,
-      'contentType': this.contentType
+      'contentType': this.contentType,
+      'filePath': this.filePath
     };
   }
 

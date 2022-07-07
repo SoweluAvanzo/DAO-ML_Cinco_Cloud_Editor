@@ -1,70 +1,68 @@
-
-
-	<div *ngIf="!isModal" class="card pyro-panel d-flex flex-column h-100">
-	    <div class="card-header pyro-panel-heading">
-	        {{currentGraphElement?.$displayName()}} (currentGraphElement?.id)
-	    </div>
-	    <div class="card-body pyro-panel-body h-100" style="overflow:auto;">
-	        <div class="row">
-	            <div class="col-4">
-	                <tree
-	                    *ngIf="currentGraphElement!=null"
-	                    (hasChanged)="hasChanges($event)"
-	                    (hasRemoved)="hasRemoved($event)"
-	                    (hasSelected)="hasSelection($event)"
-	                    [currentElement]="currentGraphElement"
-	                    [currentGraphModel]="currentGraphModel"
-	                    
-	                ></tree>
-	            </div>
-	            <div class="col-8">
-	                <property
-	                    *ngIf="currentGraphElement!=null"
-	                    (hasChanged)="hasChangedValues($event)"
-	                    [currentElement]="currentElement"
-	                    [currentGraphModel]="currentGraphModel"
-	                >
-	                </property>
-	            </div>
-	        </div>
-	    </div>
-	</div>
-	<div *ngIf="canShowModal()" class="modal d-block show fade in" tabindex="-1" role="dialog" aria-labelledby="createEntryLabel" style="height: 100%;">
-	    <div class="modal-dialog" role="document" style="height: 100%; max-width: 90%;">
-	        <div class="modal-content" style="height: 90%; overflow-y: scroll; overflow-x: hidden">
-	            <div class="modal-header">
-	            	<h4 class="modal-title">{{currentGraphElement?.$displayName()}} (currentGraphElement?.id)</h4>
-	                <button (click)="close()" type="button" class="close" aria-label="Close">
-	                	<span aria-hidden="true">&times;</span>
-	            	</button>
-	            </div>
-	            <div class="modal-body">
-	                <div class="row" style="width: 100%">
-			            <div class="col-4">
-			                <tree
-			                    *ngIf="currentGraphElement!=null"
-			                    (hasChanged)="hasChanges($event)"
-			                    (hasRemoved)="hasRemoved($event)"
-			                    (hasSelected)="hasSelection($event)"
-			                    [currentElement]="currentGraphElement"
-			                    [currentGraphModel]="currentGraphModel"
-			                    [isModal]="true"
-			                ></tree>
-			            </div>
-			            <div class="col-8">
-			                <property
-			                    *ngIf="currentGraphElement!=null"
-			                    (hasChanged)="hasChangedValues($event)"
-			                    [currentElement]="currentElement"
-			                    [currentGraphModel]="currentGraphModel"
-			                >
-			                </property>
-			            </div>
-			        </div>
-	            </div>
-	            <div class="modal-footer">
-	                <button type="button" class="btn" (click)="close()">Close</button>
-	            </div>
-	        </div>
-	    </div>
-	</div>
+<div *ngIf="!isModal" class="card pyro-panel d-flex flex-column h-100">
+    <div class="card-header pyro-panel-heading">
+        {{currentGraphElement?.$displayName()}} (currentGraphElement?.id)
+    </div>
+    <div class="card-body pyro-panel-body h-100" style="overflow:auto;">
+        <div class="row">
+            <div class="col-4">
+                <tree
+                    *ngIf="currentGraphElement!=null"
+                    (hasChanged)="hasChanges($event)"
+                    (hasRemoved)="hasRemoved($event)"
+                    (hasSelected)="hasSelection($event)"
+                    [currentElement]="currentGraphElement"
+                    [currentGraphModel]="currentGraphModel"
+                    
+                ></tree>
+            </div>
+            <div class="col-8">
+                <property
+                    *ngIf="currentGraphElement!=null"
+                    (hasChanged)="hasChangedValues($event)"
+                    [currentElement]="currentElement"
+                    [currentGraphModel]="currentGraphModel"
+                >
+                </property>
+            </div>
+        </div>
+    </div>
+</div>
+<div *ngIf="canShowModal()" class="modal d-block show fade in" tabindex="-1" role="dialog" aria-labelledby="createEntryLabel" style="height: 100%;">
+    <div class="modal-dialog" role="document" style="height: 100%; max-width: 90%;">
+        <div class="modal-content" style="height: 90%; overflow-y: scroll; overflow-x: hidden; background-color: rgba(255, 255, 255, 0.9);">
+            <div class="modal-header">
+            	<h4 class="modal-title">{{currentGraphElement?.$displayName()}} (currentGraphElement?.id)</h4>
+                <button (click)="close()" type="button" class="close" aria-label="Close">
+                	<span aria-hidden="true">&times;</span>
+            	</button>
+            </div>
+            <div class="modal-body">
+                <div class="row" style="width: 100%">
+		            <div class="col-4">
+		                <tree
+		                    *ngIf="currentGraphElement!=null"
+		                    (hasChanged)="hasChanges($event)"
+		                    (hasRemoved)="hasRemoved($event)"
+		                    (hasSelected)="hasSelection($event)"
+		                    [currentElement]="currentGraphElement"
+		                    [currentGraphModel]="currentGraphModel"
+		                    [isModal]="true"
+		                ></tree>
+		            </div>
+		            <div class="col-8">
+		                <property
+		                    *ngIf="currentGraphElement!=null"
+		                    (hasChanged)="hasChangedValues($event)"
+		                    [currentElement]="currentElement"
+		                    [currentGraphModel]="currentGraphModel"
+		                >
+		                </property>
+		            </div>
+		        </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" (click)="close()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

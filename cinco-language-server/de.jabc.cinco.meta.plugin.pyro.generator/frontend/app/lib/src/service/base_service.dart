@@ -37,8 +37,11 @@ class BaseService {
     throw e;
   }
   
-
   String getBaseUrl({String protocol: null}) {
+  	return baseUrl(protocol: protocol);
+  }
+  
+  static baseUrl({String protocol: null}) {
   	return '${getBase(protocol:protocol)}/api';
   }
 

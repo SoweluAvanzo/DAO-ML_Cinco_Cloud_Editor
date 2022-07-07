@@ -22,7 +22,7 @@ class EditorComponent extends Generatable {
 	def contentEditorComponent()
 	'''
 	import 'package:«gc.projectName.escapeDart»/src/model/message.dart';
-	import 'package:«gc.projectName.escapeDart»/src/service/base_service.dart';
+	import 'package:«gc.projectName.escapeDart»/src/service/fileService.dart';
 	
 	import 'package:angular/angular.dart';
 	import 'package:angular_router/angular_router.dart';
@@ -130,6 +130,7 @@ class EditorComponent extends Generatable {
 	    				    this._styleService, this._permissionService, this._editorDataService) {
 	    	currentLocalSettings = new LocalGraphModelSettings();
 	    	permissionVectors = new List();
+	    	FileService.init();
 	    }
 	    
 	    EditorComponent get instance => this;
