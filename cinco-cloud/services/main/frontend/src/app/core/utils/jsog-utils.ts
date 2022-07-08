@@ -61,7 +61,7 @@ const objectReferenceMap: any = {
     cls: User,
     fields: {
       profilePicture: FileReference,
-      ownedProjects: Project
+      personalProjects: Project
     }
   },
   [WorkspaceImage.name]: {

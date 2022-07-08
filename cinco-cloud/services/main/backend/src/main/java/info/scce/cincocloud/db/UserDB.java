@@ -37,7 +37,7 @@ public class UserDB extends PanacheEntity {
   public Collection<UserSystemRole> systemRoles = new ArrayList<>();
 
   @OneToMany(mappedBy = "owner")
-  public Collection<ProjectDB> ownedProjects = new ArrayList<>();
+  public Collection<ProjectDB> personalProjects = new ArrayList<>();
 
   @ManyToMany(mappedBy = "owners")
   public Collection<OrganizationDB> ownedOrganizations = new ArrayList<>();

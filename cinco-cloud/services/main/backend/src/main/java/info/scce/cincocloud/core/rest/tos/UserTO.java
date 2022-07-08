@@ -10,7 +10,7 @@ import java.util.List;
 
 public class UserTO extends RESTBaseImpl {
 
-  private List<ProjectTO> ownedProjects = new java.util.LinkedList<>();
+  private List<ProjectTO> personalProjects = new java.util.LinkedList<>();
   private List<UserSystemRole> systemRoles = new java.util.LinkedList<>();
   private String name;
   private String username;
@@ -34,8 +34,8 @@ public class UserTO extends RESTBaseImpl {
 
     objectCache.putRestTo(entity, result);
 
-    for (ProjectDB p : entity.ownedProjects) {
-      result.getownedProjects().add(ProjectTO.fromEntity(p, objectCache));
+    for (ProjectDB p : entity.personalProjects) {
+      result.getPersonalProjects().add(ProjectTO.fromEntity(p, objectCache));
     }
 
     for (UserSystemRole p : entity.systemRoles) {
@@ -45,14 +45,14 @@ public class UserTO extends RESTBaseImpl {
     return result;
   }
 
-  @JsonProperty("ownedProjects")
-  public List<ProjectTO> getownedProjects() {
-    return this.ownedProjects;
+  @JsonProperty("personalProjects")
+  public List<ProjectTO> getPersonalProjects() {
+    return this.personalProjects;
   }
 
-  @JsonProperty("ownedProjects")
-  public void setownedProjects(final List<ProjectTO> ownedProjects) {
-    this.ownedProjects = ownedProjects;
+  @JsonProperty("personalProjects")
+  public void setPersonalProjects(final List<ProjectTO> personalProjects) {
+    this.personalProjects = personalProjects;
   }
 
   @JsonProperty("systemRoles")

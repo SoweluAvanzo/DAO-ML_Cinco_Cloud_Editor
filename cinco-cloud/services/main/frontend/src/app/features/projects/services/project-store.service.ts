@@ -13,6 +13,7 @@ import { AppStoreService } from '../../../core/services/stores/app-store.service
 import { OrganizationAccessRight } from '../../../core/enums/organization-access-right';
 import { ModalUtilsService } from '../../../core/services/utils/modal-utils.service';
 import { ToastService, ToastType } from '../../../core/services/toast.service';
+import { Organization } from '../../../core/models/organization';
 
 @Injectable()
 export class ProjectStoreService {
@@ -67,9 +68,23 @@ export class ProjectStoreService {
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `The project could not be updated. ${res.data?.message}`
+          message: `The project could not be updated. ${res.error.message}`
         });
       }
+    });
+  }
+
+  transferProjectToUser(newOwner: User): void {
+    this.projectApi.transferToUser(this.project.value, newOwner).subscribe({
+      next: updatedProject => this.handleSuccessfulOwnershipTransfer(updatedProject, updatedProject.owner.name),
+      error: res => this.handleFailedOwnershipTransfer(res)
+    });
+  }
+
+  transferProjectToOrganization(newOwner: Organization): void {
+    this.projectApi.transferToOrganization(this.project.value, newOwner).subscribe({
+      next: updatedProject => this.handleSuccessfulOwnershipTransfer(updatedProject, updatedProject.organization.name),
+      error: res => this.handleFailedOwnershipTransfer(res)
     });
   }
 
@@ -81,13 +96,21 @@ export class ProjectStoreService {
       this.projectApi.remove(this.project.value).subscribe({
         next: () => {
           this.afterLeaveOrDeleteProject(this.project.value);
-          this.toastService.show({ type: ToastType.SUCCESS, message: 'The project has been deleted.' });
+          this.toastService.show({
+            type: ToastType.SUCCESS,
+            message: 'The project has been deleted.'
+          });
         },
-        error: () => {
-          this.toastService.show({ type: ToastType.DANGER, message: 'The project could not be deleted.' });
+        error: res => {
+          this.toastService.show({
+            type: ToastType.DANGER,
+            message: 'The project could not be deleted.'
+          });
+          console.log(res);
         }
       });
-    }).catch(() => {});
+    }).catch(() => {
+    });
   }
 
   leaveProject(): void {
@@ -104,14 +127,18 @@ export class ProjectStoreService {
           this.toastService.show({ type: ToastType.DANGER, message: 'Failed to leave project.' });
         }
       });
-    }).catch(() => {})
+    }).catch(() => {
+    })
   }
 
   initWebSocket(): void {
     this.projectWebSocketApi.create(this.project.value.id).subscribe({
       next: ws => this.projectWebSocket.next(ws),
       error: () => {
-        this.toastService.show({ type: ToastType.DANGER, message: 'Failed to connect with websocket.' });
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: 'Failed to connect with websocket.'
+        });
       }
     });
   }
@@ -123,13 +150,16 @@ export class ProjectStoreService {
   addProjectMember(user: User): void {
     this.projectApi.addMember(this.project.getValue().id, user).subscribe({
       next: project => {
-        this.toastService.show({ type: ToastType.SUCCESS, message: `${user.name} is now a member of the project.` });
+        this.toastService.show({
+          type: ToastType.SUCCESS,
+          message: `${user.name} is now a member of the project.`
+        });
         this.project.next(project);
       },
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `The user could not be added to the project. ${res.data.message}`
+          message: `The user could not be added to the project. ${res.error.message}`
         });
       }
     });
@@ -142,14 +172,21 @@ export class ProjectStoreService {
     }).then(() => {
       this.projectApi.removeMember(this.project.getValue().id, user).subscribe({
         next: project => {
-          this.toastService.show({ type: ToastType.SUCCESS, message: `${user.name} has been removed from the project.` });
+          this.toastService.show({
+            type: ToastType.SUCCESS,
+            message: `${user.name} has been removed from the project.`
+          });
           this.project.next(project)
         },
         error: () => {
-          this.toastService.show({ type: ToastType.DANGER, message: 'The user could not be removed from the project' });
+          this.toastService.show({
+            type: ToastType.DANGER,
+            message: 'The user could not be removed from the project'
+          });
         }
       });
-    }).catch(() => {});
+    }).catch(() => {
+    });
   }
 
   canUpdateProject(user: User): boolean {
@@ -189,5 +226,21 @@ export class ProjectStoreService {
       ? ['/app']
       : ['/app', 'organizations', project.organization.id];
     this.router.navigate(redirectUrl);
+  }
+
+  private handleSuccessfulOwnershipTransfer(updatedProject: Project, newOwner: string): void {
+    this.toastService.show({
+      type: ToastType.SUCCESS,
+      message: `The project ownership has been transferred to ${newOwner}.`
+    });
+    this.setProject(updatedProject);
+    this.router.navigate(['/app/overview']);
+  }
+
+  private handleFailedOwnershipTransfer(res: any): void {
+    this.toastService.show({
+      type: ToastType.DANGER,
+      message: `The ownership could not be transferred. ${res.error.message}`
+    });
   }
 }

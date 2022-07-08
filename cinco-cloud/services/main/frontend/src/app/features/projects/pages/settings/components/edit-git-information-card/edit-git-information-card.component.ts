@@ -61,7 +61,7 @@ export class EditGitInformationCardComponent implements OnInit {
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `The information could not be updated. ${res.data.message}`
+          message: `The information could not be updated. ${res.error.message}`
         });
       }
     });

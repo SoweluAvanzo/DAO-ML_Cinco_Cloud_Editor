@@ -10,7 +10,7 @@ export class User extends BaseEntity {
   emailHash: string;
   systemRoles: UserSystemRole[] = [];
   profilePicture: FileReference;
-  ownedProjects: Project[] = [];
+  personalProjects: Project[] = [];
 
   get isAdmin(): boolean {
     return this.systemRoles.includes(UserSystemRole.ADMIN);
