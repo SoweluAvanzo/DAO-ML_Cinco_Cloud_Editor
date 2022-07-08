@@ -11,6 +11,7 @@ import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -130,6 +131,8 @@ public class OrganizationController {
 
       if (!accessRightVectorExists(member, org)) {
         createDefaultAccessRightVector(member, org);
+      } else {
+        addMemberAccessRights(member, org);
       }
 
       org.members.add(member);
@@ -159,7 +162,9 @@ public class OrganizationController {
       org.members.remove(owner);
 
       if (!accessRightVectorExists(owner, org)) {
-        createDefaultAccessRightVector(owner, org);
+        createDefaultOwnerAccessRightVector(owner, org);
+      } else {
+        addOwnerAccessRights(owner, org);
       }
 
       org.owners.add(owner);
@@ -234,14 +239,10 @@ public class OrganizationController {
 
     if (subject != null) {
       org.owners.add(subject);
-      final OrganizationAccessRightVectorDB arv = createDefaultAccessRightVector(subject, org);
-      arv.accessRights.add(OrganizationAccessRight.CREATE_PROJECTS);
-      arv.accessRights.add(OrganizationAccessRight.EDIT_PROJECTS);
-      arv.accessRights.add(OrganizationAccessRight.DELETE_PROJECTS);
-      arv.persist();
+      createDefaultOwnerAccessRightVector(subject, org);
       org.persist();
-
     }
+
     return org;
   }
 
@@ -318,6 +319,17 @@ public class OrganizationController {
     return findAccessRightVector(user, org) != null;
   }
 
+  private OrganizationAccessRightVectorDB createDefaultOwnerAccessRightVector(
+      UserDB user,
+      OrganizationDB org){
+    final OrganizationAccessRightVectorDB arv = createDefaultAccessRightVector(user, org);
+    arv.accessRights.add(OrganizationAccessRight.CREATE_PROJECTS);
+    arv.accessRights.add(OrganizationAccessRight.EDIT_PROJECTS);
+    arv.accessRights.add(OrganizationAccessRight.DELETE_PROJECTS);
+    arv.persist();
+
+    return arv;
+  }
   private OrganizationAccessRightVectorDB createDefaultAccessRightVector(
       UserDB user,
       OrganizationDB org) {
@@ -330,6 +342,43 @@ public class OrganizationController {
     return arv;
   }
 
+  private void addOwnerAccessRights(UserDB owner, OrganizationDB org) {
+    final List<OrganizationAccessRightVectorDB> result = getAccessRightsForUser(owner, org);
+    if (result.size() == 1) {
+      List <OrganizationAccessRight> ar = result.get(0).accessRights;
+      if(!ar.contains(OrganizationAccessRight.EDIT_PROJECTS)){
+        ar.add(OrganizationAccessRight.EDIT_PROJECTS);
+      }
+      if(!ar.contains(OrganizationAccessRight.DELETE_PROJECTS)){
+        ar.add(OrganizationAccessRight.DELETE_PROJECTS);
+      }
+      if(!ar.contains(OrganizationAccessRight.CREATE_PROJECTS)){
+        ar.add(OrganizationAccessRight.CREATE_PROJECTS);
+      }
+    }
+  }
+
+  private void addMemberAccessRights(UserDB member, OrganizationDB org) {
+    final List<OrganizationAccessRightVectorDB> result = getAccessRightsForUser(member, org);
+    if (result.size() == 1) {
+      List <OrganizationAccessRight> ar = result.get(0).accessRights;
+      if(ar.contains(OrganizationAccessRight.EDIT_PROJECTS)){
+        ar.remove(OrganizationAccessRight.EDIT_PROJECTS);
+      }
+      if(ar.contains(OrganizationAccessRight.DELETE_PROJECTS)){
+        ar.remove(OrganizationAccessRight.DELETE_PROJECTS);
+      }
+      if(ar.contains(OrganizationAccessRight.CREATE_PROJECTS)){
+        ar.remove(OrganizationAccessRight.CREATE_PROJECTS);
+      }
+    }
+  }
+
+  private List<OrganizationAccessRightVectorDB> getAccessRightsForUser(UserDB user, OrganizationDB org){
+    return OrganizationAccessRightVectorDB.findOrganizationAccessRightsForUser(user, org)
+        .stream()
+        .collect(Collectors.toList());
+  }
   private void deleteOrganizationDependencies(UserDB user, OrganizationDB org) {
     deleteAccessRightVector(user, org);
   }

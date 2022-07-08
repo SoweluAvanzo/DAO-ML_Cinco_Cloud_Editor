@@ -26,7 +26,7 @@ public class ProjectService {
     final ProjectDB project = ProjectDB.findById(id);
 
     if (project.owner != null) {
-      project.owner.ownedProjects.remove(project);
+      project.owner.personalProjects.remove(project);
       // Set to null to prevent cascading deletion of the owner
       project.owner = null;
     }

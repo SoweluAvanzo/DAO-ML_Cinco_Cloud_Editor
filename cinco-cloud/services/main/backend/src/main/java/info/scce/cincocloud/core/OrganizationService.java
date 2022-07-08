@@ -3,11 +3,14 @@ package info.scce.cincocloud.core;
 import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.exeptions.RestException;
 import java.util.Iterator;
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.Response.Status;
 
 @ApplicationScoped
 @Transactional
@@ -23,6 +26,18 @@ public class OrganizationService {
     organization.owners.clear();
     organization.projects.clear();
     organization.delete();
+  }
+
+  public void checkIfOrganizationExists(OrganizationDB organization) {
+    if (organization == null) {
+      throw new RestException(Status.NOT_FOUND, "organization can not be found");
+    }
+  }
+
+  public void checkIfUserIsOrganizationMemberOrOwner(OrganizationDB organization, UserDB userDB) {
+    if (!(organization.members.contains(userDB) || organization.owners.contains(userDB))) {
+      throw new RestException(Status.FORBIDDEN, "user is not a member of the organization");
+    }
   }
 
   private void deleteAllProjects(OrganizationDB org) {
