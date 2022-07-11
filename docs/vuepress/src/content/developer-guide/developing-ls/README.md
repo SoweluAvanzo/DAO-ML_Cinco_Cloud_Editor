@@ -34,7 +34,6 @@ If you compile the project a maven test will be executed inside `cinco-language-
 
 **Congratulations! You have built a Pyro model server project!**
 
-
 ## Pyro Model Server
 
 Developing for the Pyro model server can be tedious with the wrong mindset. Inside the `pyro` folder you will find several scripts that can be executed to avoid such tediousness. Here is a quick guide how to use these scripts and to describe what they do:
@@ -51,28 +50,25 @@ Developing for the Pyro model server can be tedious with the wrong mindset. Insi
     
     `./compile.sh`
 
-    
     Within the folder `pyro/pyro-server` you will find the fully compiled Pyro model server.
     **Congratulations! You have built a Pyro model server!**
 
-3. `a.` to just run the compiled Pyro server:
+3.  to just run the compiled Pyro server:
     
     `./run.sh`
 
-    `b:` to compile the backend dynamically with hot code injection (slower than run):
+    **optional** to compile the backend dynamically with hot code injection (slower than run):
 
     `./develop.sh`
 
     **Congratulations! You are running a Pyro model server!**
 
     
-4. ***Optional for development***:
-    
-    `a:` to compile the frontend (currently no good hot code injection):
+4. **optional** to compile the frontend (currently no good hot code injection) and the backend use:
 
     `./compileFrontend.sh`
 
-    `b:` to compile the backend
+    and
 
     `./compileBackend.sh`
 
@@ -80,9 +76,12 @@ Developing for the Pyro model server can be tedious with the wrong mindset. Insi
 Depending on your operating system, the scripts may fail. The `pyro/env.list` file contains environment variables. One of them contains the Docker variable `host.docker.internal`. If you notice, that the database encounters an error:
 
 0. use `docker ps` and write down the name of the container (`NAMES`) that uses the image `postgres:X.X` (e.g. `postgres:11.2`).
-1. run `docker inspect pyro_postgres_1  -f '{{ (index (index .NetworkSettings.Ports "5432/tcp") 0).HostIp }}'` (where `pyro_postgres_1` is the name you written down in `0.`). This will read out an IP adresse that should be `host.docker.internal`.
-2. replace `host.docker.internal` inside `pyro/env.list` with that IP adresse.
 
+1. run the follwing command, where `pyro_postgres_1` has to be replaced with the name of the container you've written down. This will read out an IP adresse that should be `host.docker.internal`:
+
+    `docker inspect pyro_postgres_1  -f '{ { (index (index .NetworkSettings.Ports "5432/tcp") 0).HostIp } }'`
+
+2. replace `host.docker.internal` inside `pyro/env.list` with that IP adresse.
 
 ### Creating a Graphmodel
 
@@ -117,7 +116,7 @@ Now you can run `Launch localhost` and start developing and debugging the fronte
 
 ### Building a Docker image:
 
-1. to build the docker-image:
+1. to build the docker-image of an `cinco-cloud-archetype` utilizing the `pyro-model-server`:
 
     `./buildDocker.sh`
 
