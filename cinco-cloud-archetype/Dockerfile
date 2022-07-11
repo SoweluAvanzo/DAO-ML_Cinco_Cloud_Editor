@@ -34,7 +34,7 @@ RUN mvn clean install
 
 # build the theia editor
 # --------------------------------
-FROM docker.io/library/openjdk:18-ea-14-slim-bullseye
+FROM docker.io/library/openjdk:11.0.12-slim-bullseye
 # default environment variables
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV CINCO_CLOUD_HOST=cinco-cloud
