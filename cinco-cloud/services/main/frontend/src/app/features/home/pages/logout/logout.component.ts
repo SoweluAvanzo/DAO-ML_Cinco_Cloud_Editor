@@ -23,7 +23,7 @@ export class LogoutComponent implements OnInit {
           type: ToastType.DANGER,
           message: `Log out failed.`
         });
-        console.error(res.data.message);
+        console.error(res.error.message);
       }
     });
   }

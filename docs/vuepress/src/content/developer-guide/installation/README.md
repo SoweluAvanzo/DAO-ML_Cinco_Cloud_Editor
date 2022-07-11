@@ -18,42 +18,15 @@ Install the following software:
 - [Minikube][minikube]
 - [Kubectl][kubectl]
 
-**On Windows (additionally)**
-
-Activate `hyper-v` in Windows. It will be used instead of docker. Also, you need atleast `60GB` of disk-storage and administrator-rights. Almost all commands need to be run with high privileges, because of the `hyper-v`-context.
-
-**On macOS (additionally)**
-
-Since the default Docker driver for minikube currently does not support Ingress very well, we need to install an additional driver.
-We tested it with `hyperkit` and `vmware` drivers.
-Install one of them.
-
-| Driver     | Installation                                |
-|------------|---------------------------------------------|
-| `hyperkit` | `brew install hyperkit`                     |
-| `vmware`   | `brew install docker-machine-driver-vmware` |
-
-
 ### 2. Run a local Kubernetes cluster
 
 *(CincoCloud works best with 4 CPU cores, 8Gb of RAM and 60GB of free disc space)*
 
-1. Start the cluster:
+1. Start the cluster with the Docker driver
 
-    **On Linux**
-
-    * Start the cluster with the default Docker driver<br>
-    `minikube start --cpus 4 --memory 8192 --disk-size 60000mb`
-
-    **On Windows**
-
-    * Start the cluster with the hyperv driver:<br>
-    `minikube start --cpus 4 --memory 8192 --driver=hyperv --disk-size 60000mb`
-
-    **On macOS**
-
-    * Start the cluster with the one of the drivers from the table above:<br>
-    `minikube start --cpus 4 --memory 8192 --driver=hyperkit --disk-size 60000mb`
+```
+  minikube start --cpus 4 --memory 8192 --disk-size 60000mb --driver=docker
+```
 
 2. Enable necessary plugins:
 
@@ -65,14 +38,19 @@ Install one of them.
 ```
 
 3. Add the minikube IP address to the hosts file *(typically, this only has to be setup once)*
-    1. Execute `minikube ip` to retrieve the IP address of the cluster
-    2. Add an entry `<IP> cinco-cloud` to the hosts file:
-        * **Windows**: `C:\Windows\System32\drivers\etc\hosts`
-        * **Linux and macOS**: `/etc/hosts`
 
-4. **macOS** users also have to do the following:
-    1. Install [CoreDNS](https://coredns.io) (you can use `brew install coredns`)
-    2. Execute the installation step 4 (Configure in-cluster DNS server to resolve local DNS names inside cluster) of [the minikube Ingress DNS docs](https://minikube.sigs.k8s.io/docs/handbook/addons/ingress-dns/#installation)
+    **Linux**
+
+      1. Execute `minikube ip` to retrieve the IP address of the cluster
+      2. Add the entry `<IP> cinco-cloud` to the `/etc/hosts` file
+
+    **Windows**
+
+      1. Add the entry `127.0.0.1 cinco-cloud` to the `C:\Windows\System32\drivers\etc\hosts` file
+
+    **MacOS**
+    
+      1. Add the entry `127.0.0.1 cinco-cloud` to the `/etc/hosts` file
 
 ### 3. Get the Sources
 
@@ -80,11 +58,9 @@ Install one of them.
 
 ### 4. Create necessary secrets
 
-1. Create a deploy token in the [cinco cloud repository][cinco-cloud-repository] with `read_registry` rights
+1. In the cinco-cloud directory, create the file `infrastructure/helm/secrets.yaml`
 
-2. In the cinco-cloud directory, create the file `infrastructure/helm/secrets.yaml`
-
-3. Add a secret with the name `cinco-cloud-main-secrets` to the `secrets.yaml` file with the following contents and replace the placeholders with actual values of your choice:
+2. Add a secret with the name `cinco-cloud-main-secrets` to the `secrets.yaml` file with the following contents and replace the placeholders with actual values of your choice:
 
 ```yaml
 ---
@@ -107,7 +83,7 @@ data:
 
 *We will create the access key and the secret key for Minio later on.*
 
-4. Apply the secret to the cluster: `kubectl apply -f infrastructure/helm/secrets.yaml`.
+3. Apply the secret to the cluster: `kubectl apply -f infrastructure/helm/secrets.yaml`.
 
 ### 5. Install Cert Manager
 
@@ -128,19 +104,46 @@ data:
 2. In the root directory, execute `skaffold dev -p local-dev` and wait for all pods to be deployed.
    All pods listed by `kubectl get pods` should have the status `running`.
    Thanks to skaffold, you can now change the code and skaffold automatically rebuilds and redeploys new images with the changes.
-3. After the first start, extract the root certificate from the cluster:<br>
-   * **Windows:**<br>
-   `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath={.data.'tls\.crt'} | ForEach-Object {[System.Text.Encoding]::Unicode.GetString({System.Convert]::FromBase64String($_))} > cinco-cloud-local-rootCA.pem`<br>
-   * **Linux/macOS:**<br>
-   `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath={.data.'tls\.crt'} | base64 -d > cinco-cloud-local-rootCA.pem`
+3. After the first start, extract the root certificate from the cluster:
+
+   * **Windows**
+
+      `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath="{.data.tls.crt}" | ForEach-Object {[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_))} > cinco-cloud-local-rootCA.pem`
+
+   * **Linux/MacOS**
+
+      `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath={.data.'tls\.crt'} | base64 -d > cinco-cloud-local-rootCA.pem`
+
 4. Add `cinco-cloud-local-rootCA.pem` to your browser's certificate store.
-5. Open `https://cinco-cloud/frontend` in a web browser to check if CincoCloud is reachable.
-6. Setup Minio Storage Server *(only once)*
-    1. Get the port of the [Minio][minio] Service: `kubectl get service minio-service -o jsonpath={.spec.ports[1].nodePort}`
-    2. Open `http://cinco-cloud:<PORT>` with the port obtained from the previous step
-    3. Login with the credentials provided in `cinco-cloud-main-secrets`
-    4. Navigate to *Identity > Service Accounts* and click on *Create service account*
-    5. Create a service key with the details provided in `cinco-cloud-main-secrets` and click on `create`
+5. **Windows / MacOS**: Open a terminal and execute `minikube tunnel` to tunnel ingress ports to the host.
+   Leave the terminal session open during the development.
+6. Open `https://cinco-cloud/frontend` in a web browser to check if CincoCloud is reachable.
+7. Setup Minio Storage Server *(only once)*
+
+    * **Windows**
+
+      1. Execute `kubectl port-forward minio-statefulset-0 9001:9001`.
+         Leave the terminal session open until you finished setting up Minio.
+      2. Open `http://127.0.0.1:9001`
+
+    * **Linux**
+
+      1. Get the port of the [Minio][minio] Service: `kubectl get service minio-service -o jsonpath={.spec.ports[1].nodePort}`
+      2. Get the minikube ip: `minikube ip`
+      3. Open `http://<IP>:<PORT>` with the port obtained from the previous step
+
+    * **MacOS**
+
+      1. Open a terminal and execute `minikube service minio-service --url`.
+         Two URLs starting with `http://127.0.0.1:<PORT>` will be displayed.
+         One of them (propably the latter one) is the URL to the Minio admin console.
+         Open the displayed URL in a web browser. 
+         You can close the session after having created the service account. <p></p>
+
+    1. Login with the credentials provided in `cinco-cloud-main-secrets`
+    2. Navigate to *Identity > Service Accounts* and click on *Create service account*
+    3. Create a service key with the details provided in `cinco-cloud-main-secrets` and click on `create`
+    4. Restart the pod of the main service: `kubectl delete pod main-statefulset-0`
 
 ## Skaffold development profiles
 

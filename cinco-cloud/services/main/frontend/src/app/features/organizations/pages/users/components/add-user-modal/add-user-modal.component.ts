@@ -45,7 +45,7 @@ export class AddUserModalComponent {
           type: ToastType.DANGER,
           message: `Could not add user.`
         });
-        console.error(res.data.message);
+        console.error(res.error.message);
       }
     });
   }

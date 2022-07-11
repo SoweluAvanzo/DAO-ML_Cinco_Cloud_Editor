@@ -21,6 +21,7 @@ import {
   faUser,
   faArrowDown, faArrowUp, faDownload, faSpinner
 } from '@fortawesome/free-solid-svg-icons';
+import { faCheckSquare, faSquare } from '@fortawesome/free-regular-svg-icons';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { EditorWidgetComponent } from './pages/overview/components/editor-widget/editor-widget.component';
 import { NgbDropdownModule, NgbModalModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
@@ -32,6 +33,8 @@ import { ProjectBuildJobStatusBadgeComponent } from './pages/build-jobs/componen
 import { OverviewWidgetComponent } from './pages/overview/components/overview-widget/overview-widget.component';
 import { StatusWidgetComponent } from './pages/overview/components/status-widget/status-widget.component';
 import { BuildJobLogComponent } from './pages/build-jobs/build-job-log/build-job-log.component';
+import { EditPrivateOwnershipCardComponent } from './pages/settings/components/edit-private-ownership-card/edit-private-ownership-card.component';
+import { EditOrganizationOwnershipCardComponent } from './pages/settings/components/edit-organization-ownership-card/edit-organization-ownership-card.component';
 
 const routes: Routes = [
   {
@@ -91,6 +94,8 @@ const routes: Routes = [
     ProjectBuildJobStatusBadgeComponent,
     OverviewWidgetComponent,
     StatusWidgetComponent,
+    EditPrivateOwnershipCardComponent,
+    EditOrganizationOwnershipCardComponent,
     BuildJobLogComponent
   ],
   imports: [
@@ -108,6 +113,7 @@ export class ProjectsModule {
 
   constructor(private library: FaIconLibrary) {
     library.addIcons(faCloud, faCog, faCode, faCircleNotch, faEnvelope, faUser, faTrash, faBriefcase, faEllipsisV,
-      faCheck, faPause, faTimes, faCircleNotch, faCalendar, faClock, faArrowDown, faArrowUp, faDownload, faSpinner);
+      faCheck, faPause, faTimes, faCircleNotch, faCalendar, faClock, faArrowDown, faArrowUp, faDownload, faSpinner,
+      faCheckSquare, faSquare);
   }
 }

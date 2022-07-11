@@ -47,7 +47,9 @@ public class TheiaK8SIngress extends TheiaK8SResource<Ingress> {
         .withName(getProjectName() + "-ingress")
         .withAnnotations(Map.of(
             "nginx.ingress.kubernetes.io/add-base-url", "true",
-            "nginx.ingress.kubernetes.io/rewrite-target", "/$2"))
+            "nginx.ingress.kubernetes.io/rewrite-target", "/$2",
+            "nginx.ingress.kubernetes.io/proxy-read-timeout", "3600",
+            "nginx.ingress.kubernetes.io/proxy-send-timeout", "3600"))
         .endMetadata()
         .withSpec(new IngressSpecBuilder()
             .withRules(new IngressRuleBuilder()

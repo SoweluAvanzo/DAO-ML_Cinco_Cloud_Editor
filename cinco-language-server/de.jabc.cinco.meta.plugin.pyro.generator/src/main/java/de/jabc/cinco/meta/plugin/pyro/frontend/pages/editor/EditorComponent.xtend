@@ -358,7 +358,7 @@ class EditorComponent extends Generatable {
 			this.graphService.canvasComponent.updateProperties(pm.delegate);
 			sendMessage(pm).then((m){
 				if (m is CompoundCommandMessage) {
-					this.graphService.canvasComponent.executeCommands(m,true);
+					this.graphService.canvasComponent.executeCommands(m,false);
 					graphService.update(currentFile.id);
 				}
 			});

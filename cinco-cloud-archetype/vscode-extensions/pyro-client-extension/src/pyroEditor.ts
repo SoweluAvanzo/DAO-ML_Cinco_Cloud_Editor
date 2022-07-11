@@ -1,11 +1,10 @@
 import * as vscode from 'vscode';
 import { disposeAll } from './dispose';
 import { PyroDocument } from './pyroDocument';
-import { PYRO_HOST, PYRO_PORT, PYRO_SUBPATH, USE_SSL } from './env_var';
+import { EXTERNAL_PYRO_HOST, EXTERNAL_PYRO_PORT, EXTERNAL_PYRO_SUBPATH, EXTERNAL_USE_SSL } from './env_var';
 import { PyroApi } from './pyroApi';
 import { getExtension, getExtensionFrom, getFileNameFrom, isEmpty } from './fileNameUtils';
 import { GraphModelFile } from './graphmodelFile';
-import { stringify } from 'querystring';
 
 
 const LOG_NAME = "PYRO-CLIENT";
@@ -262,18 +261,39 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 	private getHtmlForWebview(jsonDocument: any): string {
 		const modelId = jsonDocument.id.toString();
 		const fileExtension = jsonDocument.fileExtension.toString();
-		const protocol = (USE_SSL === 'true') ? 'https' : 'http';
-		this.logging(`accessing: ${protocol}://${PYRO_HOST}${PYRO_PORT ? ':' + PYRO_PORT : ""}${PYRO_SUBPATH}/#/editor/${modelId}?ext=${fileExtension}&token=${this.TOKEN}`);
+		const protocol = EXTERNAL_USE_SSL ? 'https' : 'http';
+        const pyroUrl =
+            `${protocol}://${EXTERNAL_PYRO_HOST}${EXTERNAL_PYRO_PORT ? `:${EXTERNAL_PYRO_PORT}` : ''}` +
+            `${EXTERNAL_PYRO_SUBPATH}/#/editor/${modelId}` +
+            `?ext=${fileExtension}&token=${this.TOKEN}`;
+		this.logging(`accessing: ${pyroUrl}`);
 		return `
 		<!DOCTYPE html>
 		<html>
 			<head>
 				<meta charset="utf-8"/>
 				<title>Pyro Model Editor</title>
-				<meta http-equiv="Content-Security-Policy" content="default-src *; font-src data:; img-src *; script-src *; script-src-elem * 'nonce-2726c7f26c'; style-src * 'unsafe-inline'; ">
+				<meta
+                    http-equiv="Content-Security-Policy"
+                    content="
+                        default-src *;
+                        font-src data:;
+                        img-src *;
+                        script-src *;
+                        script-src-elem * 'nonce-2726c7f26c';
+                        style-src * 'unsafe-inline';
+                    "
+                >
 			</head>
 			<body style="padding: 0px;">
-				<iframe id="pyro_editor" src='${protocol}://${PYRO_HOST}${PYRO_PORT ? ':' + PYRO_PORT : ""}${PYRO_SUBPATH}/#/editor/${modelId}?ext=${fileExtension}&token=${this.TOKEN}' title="Pyro editor iframe" style="position:absolute; width:100%; height:100%; border:none; margin:0; padding:0;">Not Supported</iframe>
+				<iframe
+                    id="pyro_editor"
+                    src="${pyroUrl}"
+                    title="Pyro editor iframe"
+                    style="position:absolute; width:100%; height:100%; border:none; margin:0; padding:0;"
+                >
+                    Not Supported
+                </iframe>
 				<script nonce="2726c7f26c">
 
 					const vscode = acquireVsCodeApi();
