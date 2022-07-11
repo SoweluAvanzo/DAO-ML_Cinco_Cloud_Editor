@@ -76,7 +76,8 @@ Developing for the Pyro model server can be tedious with the wrong mindset. Insi
 #### Known Database Issues 
 Depending on your operating system, the scripts may fail. The `pyro/env.list` file contains environment variables. One of them contains the Docker variable `host.docker.internal`. If you notice, that the database encounters an error:
 
-1. run `docker inspect pyro_postgres_1  -f '{{ (index (index .NetworkSettings.Ports "5432/tcp") 0).HostIp }}'`. This will read out an IP adresse that should be `host.docker.internal`.
+0. use `docker ps` and write down the name of the container (`NAMES`) that uses the image `postgres:X.X` (e.g. `postgres:11.2`).
+1. run `docker inspect pyro_postgres_1  -f '{{ (index (index .NetworkSettings.Ports "5432/tcp") 0).HostIp }}'` (where `pyro_postgres_1` is the name you written down in `0.`). This will read out an IP adresse that should be `host.docker.internal`.
 2. replace `host.docker.internal` inside `pyro/env.list` with that IP adresse.
 
 
