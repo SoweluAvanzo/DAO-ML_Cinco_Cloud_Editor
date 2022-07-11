@@ -29,7 +29,7 @@ RUN yarn
 # --------------------------------
 FROM docker.io/library/maven:3.8.1-jdk-11-openj9 as cinco-ls-builder
 WORKDIR /cinco-ls
-COPY ./cinco-language-server /cinco-ls
+COPY ./cinco-ls /cinco-ls
 RUN mvn clean install
 
 # build the theia editor
