@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker build -t editor .
+docker build -f DockerfileMinimal -t editor .
