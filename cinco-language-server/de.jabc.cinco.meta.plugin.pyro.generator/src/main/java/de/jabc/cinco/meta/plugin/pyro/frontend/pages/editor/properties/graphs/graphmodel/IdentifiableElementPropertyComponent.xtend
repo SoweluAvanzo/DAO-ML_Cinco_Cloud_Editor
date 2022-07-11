@@ -95,13 +95,6 @@ class IdentifiableElementPropertyComponent extends Generatable {
 					if(filePath.contains(workspaceRoot)) {
 						return filePath.split(workspaceRoot)[1];
 					}
-					// fallBack: this should not happen
-					const pathSeparator = [ '\\', '/', '\\\\'];
-					for(var ps in pathSeparator) {
-						if(filePath.contains('editor'+ps+'workspace'+ps)) {
-							return filePath.split('editor'+ps+'workspace'+ps)[1];
-						}
-					}
 					return filePath;
 				}
 				

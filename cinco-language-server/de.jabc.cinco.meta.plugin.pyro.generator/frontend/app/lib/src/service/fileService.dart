@@ -40,10 +40,22 @@ class FileService {
     var uri = Uri.file(path);
     path = uri.toFilePath();
     path = path.replaceAll('\\\\', '\\').replaceAll('\\', '/');
-    path = path.toLowerCase();
-    if(absolute && path[0] != '/') {
-      path = '/'  + path;
+    if(absolute) {
+      if(path[0] != '/') {
+        path = '/'  + path;
+      }
+      uri = Uri.parse(path);
+      path = uri.toFilePath();
+      var driveLetter = path[1];
+      var isDriveLetter = isLetter(driveLetter) && path[2] == ':';
+      if(isDriveLetter) {
+        // normalize Driveletter
+        path = path.substring(0, 2).toLowerCase() + path.substring(2);
+      }
     }
     return path;
   }
+
+  static RegExp _isLowLetterRegExp = RegExp(r'[a-z]', caseSensitive: false);
+  static bool isLetter(String letter) => _isLowLetterRegExp.hasMatch(letter);
 }

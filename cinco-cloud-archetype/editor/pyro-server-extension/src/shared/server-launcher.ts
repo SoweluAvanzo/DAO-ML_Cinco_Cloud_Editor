@@ -40,11 +40,11 @@ export class ServerLauncher implements BackendApplicationContribution {
         this.logInfo(msg);
     }
 
-    async initialize(): Promise<void> {
+    initialize(): void {
         if (PYRO_SERVER_BINARIES_FILE !== '') {
             const minioClient: Client = createClient();
             const file = path.resolve(__dirname, '..', '..', 'pyro-server-binaries.zip');
-            await minioClient.fGetObject('projects', PYRO_SERVER_BINARIES_FILE, file.toString(), e => {
+            minioClient.fGetObject('projects', PYRO_SERVER_BINARIES_FILE, file.toString(), e => {
                 if (e) {
                     const msg = 'Failed to fetch pyro server binary';
                     this.logError(msg);
@@ -57,8 +57,15 @@ export class ServerLauncher implements BackendApplicationContribution {
                 const buffer = cp.spawnSync('sh', [unpackScriptPath.toString(), PYRO_SUBPATH]);
                 this.logInfo(String(buffer.stdout));
                 this.logError(String(buffer.stderr));
+
+                this.execute();
             });
+        } else {
+            this.execute();
         }
+    }
+
+    execute(): void {
         this.spawnProcessAsync(
             ServerLauncher.CMD_EXEC,
             ServerLauncher.ARGS,

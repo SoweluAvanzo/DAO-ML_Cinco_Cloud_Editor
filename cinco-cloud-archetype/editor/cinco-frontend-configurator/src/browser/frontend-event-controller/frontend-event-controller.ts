@@ -162,7 +162,7 @@ export class FrontendEventController {
         }
         for (let i = 0; i < FrontendEventController.pyroWindows.length; i++) {
             const current = FrontendEventController.pyroWindows[i];
-            if (FrontendEventController.isParent(parent, current)) {
+            if (FrontendEventController.isParent(parentWindow, current)) {
                 return current;
             }
         }
@@ -173,13 +173,17 @@ export class FrontendEventController {
         if (!parentWindow) {
             return false;
         }
-        let current = window;
-        while (current !== window.top) {
-            current = current.parent;
-            if (parentWindow === current) {
+        let current = parentWindow['0'];
+        while (current) {
+            if (current === window) {
                 return true;
             }
+            try {
+                current = current['0'];
+            } catch (e) {
+                break;
+            }
         }
-        return parentWindow === current;
+        return false;
     }
 }
