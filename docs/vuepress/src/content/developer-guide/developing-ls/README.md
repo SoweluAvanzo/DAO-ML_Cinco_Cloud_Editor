@@ -73,6 +73,13 @@ Developing for the Pyro model server can be tedious with the wrong mindset. Insi
 
 **Congratulations! You are running a Pyro model server!**
 
+#### Known Database Issues 
+Depending on your operating system, the scripts may fail. The `pyro/env.list` file contains environment variables. One of them contains the Docker variable `host.docker.internal`. If you notice, that the database encounters an error:
+
+1. run `docker inspect pyro_postgres_1  -f '{{ (index (index .NetworkSettings.Ports "5432/tcp") 0).HostIp }}'`. This will read out an IP adresse that should be `host.docker.internal`.
+2. replace `host.docker.internal` inside `pyro/env.list` with that IP adresse.
+
+
 ### Creating a Graphmodel
 
 0. Install VSCode.
