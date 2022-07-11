@@ -55,23 +55,26 @@ Developing for the Pyro model server can be tedious with the wrong mindset. Insi
     Within the folder `pyro/pyro-server` you will find the fully compiled Pyro model server.
     **Congratulations! You have built a Pyro model server!**
 
-3. A: to compile the frontend (currently no good hot code injection):
+3. `a.` to just run the compiled Pyro server:
     
-    `./compileFrontend.sh`
+    `./run.sh`
 
-3. B: to compile the backend
-    
-    `./compileBackend.sh`
-
-4. to compile the backend dynamically with hot code injection:
+    `b:` to compile the backend dynamically with hot code injection (slower than run):
 
     `./develop.sh`
 
-5. to just run the compiled Pyro server (faster than develop/debug mode):
+    **Congratulations! You are running a Pyro model server!**
 
-    `./run.sh`
+    
+4. ***Optional for development***:
+    
+    `a:` to compile the frontend (currently no good hot code injection):
 
-**Congratulations! You are running a Pyro model server!**
+    `./compileFrontend.sh`
+
+    `b:` to compile the backend
+
+    `./compileBackend.sh`
 
 #### Known Database Issues 
 Depending on your operating system, the scripts may fail. The `pyro/env.list` file contains environment variables. One of them contains the Docker variable `host.docker.internal`. If you notice, that the database encounters an error:
@@ -112,12 +115,12 @@ Now you can run `Launch localhost` and start developing and debugging the fronte
 
 **NOTE: You do not currently have hot code injection. If you've made changes to the code, you need to run `./compileFrontend.sh` while `./develop.sh` is running to have an interactive experience.**
 
-### Building a Docker image (broken):
+### Building a Docker image:
 
-    1. to build the docker-image:
+1. to build the docker-image:
 
     `./buildDocker.sh`
 
-    2. to run the docker-image:
+2. to run the docker-image:
 
     `./runDocker.sh`

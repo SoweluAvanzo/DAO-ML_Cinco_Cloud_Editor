@@ -65,3 +65,17 @@ Re-run the debug configs and...
 ### Tips
 
 You can run the `pyro-model-server` locally with the `./develop.sh` while the editor is running, if the `pyro-server` is not inside the `pyro-server-extension`. This way you will gain all the interactive benefits for developing the `pyro-model-server` **AND** the `theia-extensions`!
+
+### Building a Docker image:
+
+1. to build the docker-image of the `cinco-cloud-archetype`, including the `cinco-language-server`:
+
+    `./build.sh`
+
+2. to run the docker-image:
+
+    `./run.sh`
+
+3. ***optional for development***: It can be tedious and time-consuming building the full `archetype`. To build it without the `language-server` use:
+
+    `./buildMinimal.sh`
