@@ -11,6 +11,20 @@
         >
         </cc-edit-project-card>
 
+        <cc-edit-private-ownership-card
+          *ngIf="projectStore.canUpdateProject(user)"
+          [project]="project"
+          class="d-block mb-3"
+        >
+        </cc-edit-private-ownership-card>
+
+        <cc-edit-organization-ownership-card
+          *ngIf="projectStore.canUpdateProject(user)"
+          [project]="project"
+          class="d-block mb-3"
+        >
+        </cc-edit-organization-ownership-card>
+
         <div *ngIf="projectStore.canLeaveProject(user)" class="list-group mb-3">
           <div class="list-group-item d-flex">
             <div class="flex-grow-1">

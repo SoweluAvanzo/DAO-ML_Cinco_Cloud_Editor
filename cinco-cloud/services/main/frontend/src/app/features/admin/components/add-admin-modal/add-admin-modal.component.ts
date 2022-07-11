@@ -33,7 +33,7 @@ export class AddAdminModalComponent {
           type: ToastType.DANGER,
           message: `Could not promote user to admin.`
         });
-        console.error(res.data.message);
+        console.error(res.error.message);
       }
     });
   }

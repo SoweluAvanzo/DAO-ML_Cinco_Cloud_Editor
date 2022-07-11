@@ -56,7 +56,7 @@ export class EditorComponent implements OnInit {
           type: ToastType.DANGER,
           message: `Could not connect to the project.`
         });
-        console.log(res.data.message)
+        console.log(res.error.message)
       }
     });
 
@@ -107,7 +107,7 @@ export class EditorComponent implements OnInit {
           type: ToastType.DANGER,
           message: `Could not deploy the project.`
         });
-        console.log(res.data.message)
+        console.log(res.error.message)
       }
     });
   }

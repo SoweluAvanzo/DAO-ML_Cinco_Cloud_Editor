@@ -65,10 +65,12 @@ export class PersonalInformationComponent implements OnInit {
               this.updateProfile(input);
             }
           },
-          error: () => this.toastService.show({
-            type: ToastType.DANGER,
-            message: 'The file could not be uploaded.'
-          })
+          error: res => {
+            this.toastService.show({
+              type: ToastType.DANGER,
+              message: `The file could not be uploaded.`
+            });
+          }
         });
       } else {
         this.toastService.show({
@@ -91,7 +93,7 @@ export class PersonalInformationComponent implements OnInit {
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `The profile could not be updated. ${res.data.message}`
+          message: `The profile could not be updated. ${res.error.message}`
         });
       }
     });

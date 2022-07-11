@@ -43,11 +43,11 @@ public abstract class AbstractCincoCloudTest {
     }
     settings.persist();
 
-    ProjectDB.deleteAll();
-
     OrganizationDB.listAll().stream()
         .map(organization -> (OrganizationDB) organization)
         .forEach(organization -> organizationService.deleteOrganization(organization));
+
+    ProjectDB.deleteAll();
 
     UserDB.listAll().stream()
         .map(user -> (UserDB) user)

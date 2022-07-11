@@ -39,10 +39,10 @@ export class PasswordChangeComponent {
         });
         this.router.navigate(['/logout']);
       },
-      error: () => {
+      error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: 'The password could not be changed.'
+          message: `The password could not be changed. ${res.error.message}`
         });
       }
     });
