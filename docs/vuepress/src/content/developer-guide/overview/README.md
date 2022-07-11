@@ -60,7 +60,6 @@ There are two kinds of editors that can be deployed: for the meta-level, a **Lan
 The other one is a concrete **Model Editor** that uses parts of the Pyro front- and backend and allows graphical modelling.
 In contrast to the language editor, the model editor is deployed together with an additional database, where graphical models are persisted in a serialized form.
 
-
 ## Secrets
 
 We need to have the following secrets (see the instruction on how to create and apply them [here](../installation/)) in the cluster:
@@ -75,3 +74,7 @@ We need to have the following secrets (see the instruction on how to create and 
 [podman]: https://podman.io/
 [quarkus]: https://quarkus.io/
 [angular-dart]: https://github.com/angulardart/angular
+
+## Collaboration Protocol
+
+![CincoCloud Collaboration Protocol](./assets/collaboration-protocol.svg)

@@ -19,4 +19,8 @@ public abstract class PyroK8SResource<T extends HasMetadata> extends K8SResource
   protected String getProjectName() {
     return "project-" + project.id;
   }
+
+  protected String getServiceName() {
+    return getProjectName() + "-app-service";
+  }
 }

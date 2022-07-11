@@ -42,7 +42,7 @@ export class CreateUserModalComponent {
           type: ToastType.DANGER,
           message: `Could not create user.`
         });
-        console.error(res.data.message);
+        console.error(res.error.message);
       }
     });
   }

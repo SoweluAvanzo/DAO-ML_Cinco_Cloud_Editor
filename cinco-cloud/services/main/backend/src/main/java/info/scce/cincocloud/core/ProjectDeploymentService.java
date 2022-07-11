@@ -34,8 +34,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
-import java.io.File;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
@@ -77,9 +75,6 @@ public class ProjectDeploymentService {
   @ConfigProperty(name = "cincocloud.archetype.image")
   String archetypeImage;
 
-  @ConfigProperty(name = "cincocloud.data.dir")
-  String dataDirectory;
-
   void startup(@Observes StartupEvent event) {
     client = clientService.createClient();
   }
@@ -90,6 +85,11 @@ public class ProjectDeploymentService {
     } else {
       return deployModelEditor(project);
     }
+  }
+
+  public ProjectDeploymentTO redeploy(ProjectDB project) {
+    stop(project);
+    return deploy(project);
   }
 
   public void stop(ProjectDB project) {
@@ -271,8 +271,7 @@ public class ProjectDeploymentService {
           waitUntilAppIsReady(webClient, project, service, ingress.getPath());
         },
         () -> {
-          final var s2 = new ProjectDeploymentTO(ingress.getPath(),
-              ProjectDeploymentStatus.FAILED);
+          final var s2 = new ProjectDeploymentTO(ingress.getPath(), ProjectDeploymentStatus.FAILED);
           CDIUtils.getBean(ProjectWebSocket.class)
               .send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
         },
@@ -281,8 +280,7 @@ public class ProjectDeploymentService {
     );
   }
 
-  private void waitUntilAppIsReady(WebClient webClient, ProjectDB project, Service service,
-      String path) {
+  private void waitUntilAppIsReady(WebClient webClient, ProjectDB project, Service service, String path) {
     WaitUtils.asyncWaitUntil(
         vertx,
         webClient
@@ -381,10 +379,5 @@ public class ProjectDeploymentService {
 
   private void removeScheduledTasks(ProjectDB project) {
     StopProjectPodsTaskDB.delete("projectId", project.id);
-  }
-
-  private Service getRegistryService() {
-    return K8SUtils.getServiceByName(client, "registry-service")
-        .orElseThrow(() -> new K8SException("could not find registryService."));
   }
 }

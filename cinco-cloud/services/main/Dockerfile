@@ -14,16 +14,16 @@ RUN env NG_BUILD_MANGLE=false npm run build --configuration=production
 # Build the quarkus backend. Move static frontend files to the quarkus resource
 # folder so that we can build a fat jar that includes the frontend.
 #
-FROM docker.io/library/openjdk:15-jdk-slim as builder-backend
+FROM docker.io/library/maven:3.8.3-adoptopenjdk-15 as builder-backend
 WORKDIR /app/main/backend
 COPY ./resources /app/resources
 COPY ./main/backend/.mvn /app/main/backend/.mvn
 COPY ./main/backend/mvnw /app/main/backend/
 COPY ./main/backend/pom.xml /app/main/backend/
-RUN ./mvnw verify
+RUN mvn verify -DskipTests
 COPY ./main/backend/src /app/main/backend/src
 COPY --from=builder-frontend /app/frontend/dist/cinco-cloud-frontend/ /app/main/backend/src/main/resources/META-INF/resources/
-RUN ./mvnw package -DskipTests
+RUN mvn package -DskipTests
 
 #
 # Run the fat quarkus jar.

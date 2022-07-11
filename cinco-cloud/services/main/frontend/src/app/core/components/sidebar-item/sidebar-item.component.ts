@@ -19,4 +19,7 @@ export class SidebarItemComponent {
 
   @Input()
   routerLinkActiveExact: boolean = true;
+
+  @Input()
+  state: {[p: string]: any} = {};
 }

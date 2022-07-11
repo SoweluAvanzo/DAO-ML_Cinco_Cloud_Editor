@@ -62,8 +62,7 @@ public class UserController {
 
       return Response.ok(users).build();
     }
-
-    return Response.status(Response.Status.FORBIDDEN).build();
+    throw new RestException(Response.Status.FORBIDDEN, "Missing permissions to request user list");
   }
 
   /**
@@ -106,7 +105,7 @@ public class UserController {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    return Response.status(Response.Status.FORBIDDEN).build();
+    throw new RestException(Response.Status.FORBIDDEN, "Missing permissions to search for a user");
   }
 
   @DELETE
@@ -123,7 +122,8 @@ public class UserController {
       userService.deleteUser(userToDelete);
       return Response.ok().build();
     }
-    return Response.status(Response.Status.FORBIDDEN).build();
+
+    throw new RestException(Response.Status.FORBIDDEN, "Missing permissions to delete a user");
   }
 
   @POST
@@ -146,7 +146,7 @@ public class UserController {
       return Response.ok(UserTO.fromEntity(user, objectCache)).build();
     }
 
-    return Response.status(Response.Status.FORBIDDEN).build();
+    throw new RestException(Response.Status.FORBIDDEN, "Missing permissions to promote a user");
   }
 
   @POST
@@ -171,6 +171,6 @@ public class UserController {
       return Response.ok(UserTO.fromEntity(user, objectCache)).build();
     }
 
-    return Response.status(Response.Status.FORBIDDEN).build();
+    throw new RestException(Response.Status.FORBIDDEN, "Missing permissions to demote a user");
   }
 }

@@ -963,7 +963,7 @@ class GraphModelCommandExecuter extends Generatable {
 			«s».connector = "normal";
 			«s».height = 600L;
 			«s».width = 2000L;
-			«s».router = null;
+			«s».router = "normal";
 			«s».isPublic = false;
 
 		«ENDIF»
@@ -1002,7 +1002,7 @@ class GraphModelCommandExecuter extends Generatable {
 				case "EBigInteger": return '''«attr.defaultValue»'''
 				case "EByte": return '''«attr.defaultValue»'''
 				case "EShort": return '''«attr.defaultValue»'''
-				case "EString": return '''"«attr.defaultValue»"'''
+				case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
 				default: return '''«attr.defaultValue»'''
 			}
 		}

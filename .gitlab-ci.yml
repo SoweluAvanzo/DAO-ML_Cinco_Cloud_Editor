@@ -400,9 +400,15 @@ cinco-ls-test-compile-backend:
       changes:
         - docs/**/*
 
+.pages-default-job-main-or-mr:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - docs/**/*
+
 pages-build:
-  extends: .pages-default-job
-  image: 'node:12.18.4'
+  extends: .pages-default-job-main-or-mr
+  image: 'node:16.15.1'
   cache:
     paths:
       - docs/vuepress/node_modules/
@@ -421,7 +427,7 @@ pages:
   extends: .pages-default-job
   needs:
     - pages-build
-  image: 'node:12.18.4'
+  image: 'node:16.15.1'
   script:
     - mkdir public
     - mv docs/vuepress/src/.vuepress/dist/* public/

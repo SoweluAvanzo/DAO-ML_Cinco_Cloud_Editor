@@ -48,16 +48,22 @@ class CommandHistoryComponent implements OnInit, OnDestroy {
     sub.cancel();
   }
   
-  void handleOnMessage(MessageEvent e) {  
+  void handleOnMessage(MessageEvent e) {
     var data = jsonDecode(e.data);
     var content = data['content'];
     var messageType = content['messageType'];
-    
-	if (data['event'] == '' && messageType=='command') {
-      List<Command> cmds = List.from(content['cmd']['queue'].map((c) => CommandPropertyDeserializer.deserialize(c, new Map())));
+
+    if (data['event'] == '' && messageType == 'command') {
+      List<Command> cmds = List.from(content['cmd']['queue']
+          .map((c) => CommandPropertyDeserializer.deserialize(c, new Map())));
+      if (cmds.length > 1) {
+        if (cmds.elementAt(0) is UpdateCommand) {
+          cmds.removeAt(0);
+        }
+      }
       if (content["type"].startsWith("undo")) {
-        if (commandHistory.length > cmds.length) {
-          commandHistory.replaceRange(0, cmds.length, []);
+        if (commandHistory.length >= cmds.length) {
+          commandHistory.replaceRange(0, 1, []);
         } else {
           commandHistory.clear();
         }

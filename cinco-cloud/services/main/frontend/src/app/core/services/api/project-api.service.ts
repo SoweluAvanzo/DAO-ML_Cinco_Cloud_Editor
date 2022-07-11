@@ -6,6 +6,8 @@ import { Project } from '../../models/project';
 import { ProjectDeployment } from '../../models/project-deployment';
 import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 import { User } from '../../models/user';
+import { Params } from '@angular/router';
+import { Organization } from '../../models/organization';
 
 @Injectable({
   providedIn: 'root'
@@ -34,8 +36,9 @@ export class ProjectApiService extends BaseApiService {
     );
   }
 
-  public deploy(project: Project): Observable<ProjectDeployment> {
-    return this.http.post(`${this.apiUrl}/project/${project.id}/deployments/private`, null, this.defaultHttpOptions).pipe(
+  public deploy(project: Project, redeploy: boolean = false): Observable<ProjectDeployment> {
+    const options = { ...this.defaultHttpOptions, params: { redeploy } };
+    return this.http.post(`${this.apiUrl}/project/${project.id}/deployments/private`, null, options).pipe(
       map((body: any) => body as ProjectDeployment)
     );
   }
@@ -50,6 +53,18 @@ export class ProjectApiService extends BaseApiService {
     return this.http.post(`${this.apiUrl}/project/update/private`, toJsog(project), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
+  }
+
+  public transferToUser(project: Project, user: User): Observable<Project> {
+    return this.http.put(`${this.apiUrl}/project/${project.id}/owner/private`, toJsog(user), this.defaultHttpOptions).pipe(
+      map(body => this.transformSingle(body))
+    )
+  }
+
+  public transferToOrganization(project: Project, organization: Organization): Observable<Project> {
+    return this.http.put(`${this.apiUrl}/project/${project.id}/organization/private`, toJsog(organization), this.defaultHttpOptions).pipe(
+      map(body => this.transformSingle(body))
+    )
   }
 
   public remove(project: Project): Observable<Project> {

@@ -1,11 +1,14 @@
 package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.db.OrganizationDB;
+import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.exeptions.RestException;
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.Response.Status;
 
 @ApplicationScoped
 @Transactional
@@ -27,5 +30,11 @@ public class UserService {
       }
     });
     userToDelete.delete();
+  }
+
+  public void checkIfUserExists(UserDB user) {
+    if (user == null) {
+      throw new RestException(Status.NOT_FOUND, "user can not be found");
+    }
   }
 }

@@ -41,7 +41,7 @@ export class SettingsComponent implements OnInit {
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `The settings could not be updated. ${res.data.message}`
+          message: `The settings could not be updated. ${res.error.message}`
         });
       }
     });
