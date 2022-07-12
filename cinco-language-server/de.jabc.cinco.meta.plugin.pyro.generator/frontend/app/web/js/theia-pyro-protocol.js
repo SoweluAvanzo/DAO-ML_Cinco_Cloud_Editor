@@ -220,7 +220,6 @@
          const filePath = file.filePath;
          const content = file.content;
          console.log("Pyro received fileRef: " + filePath);
-         console.log("content:\n" + content);
      }
      console.log("cross-domain-message-id: " + message.cbId);
      // callback
@@ -236,7 +235,11 @@
   */
  
  function sendMessage(msg, transferable) {
-     window.top.postMessage(msg, '*', transferable);
+    let targetWindow = window.top;
+    if (window.top.document.title.startsWith('CincoCloud')) {
+        targetWindow = window.top.document.querySelector('iframe').contentWindow;
+    }
+    targetWindow.postMessage(msg, '*', transferable);
  }
  
  function executeCommand(cmdId, args) {
