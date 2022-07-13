@@ -347,20 +347,20 @@ class IdentifiableElementPropertyComponent extends Generatable {
 					<div class="form-group">
 						<label for="«compAttr.name.escapeDart»">«compAttr.name»</label>
 						«IF compAttr.isList»
-								<a href (click)="addList«compAttr.name.escapeDart»($event)" >
-									<i class="fas fa-plus"></i>
-								</a>
-								<div class="input-group" *ngFor="let i of currentElement.«compAttr.name.escapeDart»; let x = index" style="margin-bottom: 5px;">
-									<select class="form-control" (blur)="selection«compAttr.name.escapeDart»Changed(x, $event)"  id="attrnodes" >
-										<!--option [selected]="is«compAttr.name.escapeDart»Selected(null)" value="null"></option-->
-										<option *ngFor="let e of get«compAttr.name.escapeDart»Values()" [value]="e.id.toString()" [selected]="is«compAttr.name.escapeDart»Selected(e)">
-											{{e == null ? "-no reference-" : e.name == null || e.name == "" ? e.id : e.name}}
-										</option>
-									</select>
-									<button (click)="removeList«compAttr.name.escapeDart»(x)" class="btn" type="button">
-										<i class="fas fa-times"></i>
-									</button>
-								</div>
+							<a href (click)="addList«compAttr.name.escapeDart»($event)" >
+								<i class="fas fa-plus"></i>
+							</a>
+							<div class="d-flex" *ngFor="let i of currentElement.«compAttr.name.escapeDart»; let x = index" style="margin-bottom: 5px;">
+								<select class="form-control" (blur)="selection«compAttr.name.escapeDart»Changed(x, $event)"  id="attrnodes" >
+									<!--option [selected]="is«compAttr.name.escapeDart»Selected(null)" value="null"></option-->
+									<option *ngFor="let e of get«compAttr.name.escapeDart»Values()" [value]="e.id.toString()" [selected]="is«compAttr.name.escapeDart»Selected(e)">
+										{{e == null ? "-no reference-" : e.name == null || e.name == "" ? e.id : e.name}}
+									</option>
+								</select>
+								<button (click)="removeList«compAttr.name.escapeDart»(x)" class="btn ml-2" type="button">
+									<i class="fas fa-times"></i>
+								</button>
+							</div>
 						«ELSE»
 							<select (blur)="selection«compAttr.name.escapeDart»Changed($event)" «IF compAttr.readOnly»disabled «ENDIF» id="«compAttr.name.escapeDart»" class="form-control">
 								<option [selected]="is«compAttr.name.escapeDart»Selected(-1)" value="-1"></option>
