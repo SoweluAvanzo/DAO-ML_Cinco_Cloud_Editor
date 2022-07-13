@@ -70,7 +70,7 @@ export async function pushFilesToRemote(fileUri: Uri) {
             await createFolder(targetPath);
         }
 
-        await copy(fileUri.path, targetPath);
+        await copy(fileUri.fsPath, targetPath);
 
         // push to remote
         await gitClient
