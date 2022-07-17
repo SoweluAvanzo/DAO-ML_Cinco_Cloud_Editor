@@ -80,6 +80,14 @@ module.exports = {
           {
             title: 'Developing on CincoCloud',
             path: '/content/developer-guide/developing/'
+          },
+          {
+            title: 'Developing for the Theia Editor',
+            path: '/content/developer-guide/developing-theia/'
+          },
+          {
+            title: 'Developing for the Language-Server',
+            path: '/content/developer-guide/developing-ls/'
           }
         ]
       },
