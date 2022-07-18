@@ -30,6 +30,7 @@ export class ServerLauncher implements BackendApplicationContribution {
     static CMD_EXEC: string;
     static ARGS: string[];
     static LOG = '';
+    static CALLBACK: Promise<void> | undefined = undefined;
 
     onStart?(server: http.Server | https.Server): MaybePromise<void> {
         const msg = '*** starting server "' + ServerLauncher.FILE_PATH + '" ***';
@@ -42,6 +43,14 @@ export class ServerLauncher implements BackendApplicationContribution {
             this.logError(msg);
             throw new Error(msg);
         }
+        if(ServerLauncher.CALLBACK) {
+            ServerLauncher.CALLBACK.then( () => this.execute());
+        } else {
+            this.execute();
+        }
+    }
+
+    execute(): void {
         this.spawnProcessAsync(
             ServerLauncher.CMD_EXEC,
             ServerLauncher.ARGS,
