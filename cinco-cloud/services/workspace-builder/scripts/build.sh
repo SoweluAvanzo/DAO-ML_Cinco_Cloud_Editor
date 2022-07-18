@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 printf "\nbuilding frontend...\n";
 cd webapp;
@@ -23,4 +23,4 @@ cp app/target/*-runner.jar pyro-server/app.jar;
 cp -r app/target/lib pyro-server/lib;
 
 printf "\nzipping binaries...\n";
-zip -r pyro-server.zip pyro-server
+zip -r pyro-server.zip pyro-server/;
