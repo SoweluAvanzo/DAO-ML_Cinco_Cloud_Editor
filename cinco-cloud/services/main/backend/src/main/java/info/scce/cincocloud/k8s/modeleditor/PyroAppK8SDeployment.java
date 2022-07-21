@@ -162,6 +162,10 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                         .withValue("project-" + project.template.project.id + "-pyro-server-binaries.zip")
                         .build(),
                     new EnvVarBuilder()
+                        .withName("WORKSPACE_PATH")
+                        .withValue("/editor/workspace")
+                        .build(),
+                    new EnvVarBuilder()
                         .withName("MINIO_HOST")
                         .withValue(minioHost)
                         .build(),
