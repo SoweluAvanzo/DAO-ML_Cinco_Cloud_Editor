@@ -987,37 +987,11 @@ class GraphModelCommandExecuter extends Generatable {
 					«IF attr.attributeTypeName.getEnum(t.modelPackage as MGLModel)!==null»
 						«s».«attr.name.escapeJava» = «attr.getEnumDefault(useExecuter)»;
 					«ELSE»
-						«s».«attr.name.escapeJava» = «attr.attributeTypeName.getPrimitiveDefault(attr)»;
+						«s».«attr.name.escapeJava» = «attr.getPrimitiveDefault»;
 					«ENDIF»
 				«ENDIF»
 			«ENDFOR»
 		'''
-	}
-	
-	def getPrimitiveDefault(String string,Attribute attr) {
-		if(attr.defaultValue!==null) {
-			switch(string){
-				case "EInt": return '''«attr.defaultValue»'''
-				case "ELong": return '''«attr.defaultValue»L'''
-				case "EBigInteger": return '''«attr.defaultValue»'''
-				case "EByte": return '''«attr.defaultValue»'''
-				case "EShort": return '''«attr.defaultValue»'''
-				case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
-				default: return '''«attr.defaultValue»'''
-			}
-		}
-		switch(string){
-			case "EBoolean": return '''false'''
-			case "ELong": return '''0L'''
-			case "EBigInteger": return '''0'''
-			case "EByte": return '''0'''
-			case "EShort": return '''0'''
-			case "EFloat": return '''0.0'''
-			case "EBigDecimal": return '''0.0'''
-			case "EInt": return '''0'''
-			case "EDouble": return '''0.0'''
-			default: return '''null'''
-		}
 	}
 	
 	def getEnumDefault(Attribute attr, boolean useExecuter)
