@@ -1,10 +1,13 @@
 /* eslint-disable header/header */
-import { CommandRegistry } from '@theia/core';
+import { FileService } from '@theia/filesystem/lib/browser/file-service';
+import { CommandRegistry, MenuContribution, MenuModelRegistry } from '@theia/core';
 import { FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
-import { MenuContribution, MenuModelRegistry } from '@theia/core/lib/common';
 import { inject } from '@theia/core/shared/inversify';
 import { WorkspaceCommands } from '@theia/workspace/lib/browser';
 import { injectable } from 'inversify';
+
+export let cmdRegistry: CommandRegistry;
+export let fileService: FileService;
 
 @injectable()
 export class MenuCommandRemovalContribution implements MenuContribution, FrontendApplicationContribution {
@@ -12,7 +15,12 @@ export class MenuCommandRemovalContribution implements MenuContribution, Fronten
     @inject(CommandRegistry)
     protected readonly commandRegistry: CommandRegistry;
 
+    @inject(FileService)
+    private readonly fileService: FileService;
+
     onStart?(app: FrontendApplication): void {
+        cmdRegistry = this.commandRegistry;
+        fileService = this.fileService;
         this.unregisterCommands(this.commandRegistry);
     }
 
@@ -46,7 +54,6 @@ export class MenuCommandRemovalContribution implements MenuContribution, Fronten
         registry.unregisterMenuAction(WorkspaceCommands.SAVE_WORKSPACE_AS);
         registry.unregisterMenuAction(WorkspaceCommands.CLOSE);
         registry.unregisterMenuAction(WorkspaceCommands.OPEN_WORKSPACE_FILE);
-        registry.unregisterMenuAction(WorkspaceCommands.SAVE_AS);
         registry.unregisterMenuAction(WorkspaceCommands.SAVE_AS);
         registry.unregisterMenuAction('workbench.action.newWindow');
     }

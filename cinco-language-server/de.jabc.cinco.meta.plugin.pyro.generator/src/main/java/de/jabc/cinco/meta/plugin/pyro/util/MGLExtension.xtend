@@ -3109,8 +3109,12 @@ class MGLExtension {
 		}
 	}
 	
+	def typeNameUnderScore(EObject e) {
+		'''«e.typeName.toString.replace('.', "_").toLowerCase»'''
+	}
+	
 	def restEndpoint(GraphModel g) {
-		'''«g.typeName.toString.replace('.', "_").toLowerCase»'''
+		g.typeNameUnderScore
 	}
 
 	def jarFilename(String path) {
@@ -3327,6 +3331,14 @@ class MGLExtension {
 	def shapeFQN(MGLModel m) '''joint.shapes.«m.name.lowEscapeDart»'''
 	
 	def websocketEventPrime() '''referenced'''
+	
+	def imageFilePath(style.Image imageShape) {
+		var path = imageShape.path
+		if(path.lastIndexOf("/")>=0) {
+			path = path.substring(path.lastIndexOf("/")+1,path.length)
+		}		
+		'''img/«imageShape.modelPackage.name.lowEscapeDart»/«path»'''
+	}
 	
 	def concreteGraphModels(MGLModel m) {
 		return m.graphModels.filter[!isAbstract].toSet

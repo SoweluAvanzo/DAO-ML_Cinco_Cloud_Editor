@@ -58,7 +58,6 @@ class PropertiesComponent implements OnInit, OnChanges {
   
   @override
   ngOnChanges(Map<String, SimpleChange> changes) {
-    resetState();
     if(changes.containsKey('currentGraphElement')) {
       if(currentElement!=null) {
         if(currentElement is IdentifiableElement) {
@@ -66,9 +65,6 @@ class PropertiesComponent implements OnInit, OnChanges {
           if(ce.$isDirty != null && ce.$isDirty) {
             _hasChangedValues(ce);
             ce.$isDirty = false;
-          }
-          if(isModal) {
-            show = false;
           }
         }
       } else {

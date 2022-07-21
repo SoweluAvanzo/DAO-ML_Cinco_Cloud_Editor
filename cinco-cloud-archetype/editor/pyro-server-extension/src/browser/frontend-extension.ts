@@ -8,10 +8,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR MIT
  */
-import { ContainerModule, injectable, inject } from 'inversify';
-import { ENDPOINT, LogClient, LogServer } from '../shared/log-protocol';
 import { FrontendApplicationContribution, WebSocketConnectionProvider } from '@theia/core/lib/browser';
-import { OutputChannelManager, OutputChannel } from '@theia/output/lib/browser/output-channel';
+import { OutputChannel, OutputChannelManager } from '@theia/output/lib/browser/output-channel';
+import { ContainerModule, inject, injectable } from 'inversify';
+
+import { ENDPOINT, LogClient, LogServer } from '../shared/log-protocol';
 
 export let output: OutputChannel;
 const CHANNEL_NAME = 'PYRO';

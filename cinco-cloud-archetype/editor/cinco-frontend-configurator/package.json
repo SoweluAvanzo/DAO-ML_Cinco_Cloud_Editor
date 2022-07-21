@@ -10,7 +10,8 @@
   ],
   "dependencies": {
     "@theia/core": "latest",
-    "@theia/workspace": "latest"
+    "@theia/workspace": "latest",
+    "@theia/navigator": "latest"
   },
   "devDependencies": {
     "@types/express": "4.17.12",
