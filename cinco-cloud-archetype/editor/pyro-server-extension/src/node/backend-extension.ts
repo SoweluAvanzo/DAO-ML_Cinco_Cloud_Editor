@@ -18,12 +18,12 @@ import { isDebugging } from './debug-handler';
 import { cmdArgs, cmdDebugArgs, cmdExec, serverFile, serverPath } from './exec-vars';
 import { fetchBinaries } from './minio-handler';
 
-export default new ContainerModule(async bind => {
+export default new ContainerModule(bind => {
     // setting static values for server
-    await fetchBinaries();
     ServerLauncher.FILE_PATH = path.resolve(serverPath, serverFile);
     ServerLauncher.CMD_EXEC = cmdExec;
     ServerLauncher.ARGS = (isDebugging() ? cmdDebugArgs : cmdArgs).concat(ServerLauncher.FILE_PATH);
+    ServerLauncher.CALLBACK = fetchBinaries();
 
     /**
      * binding model-server-launcher

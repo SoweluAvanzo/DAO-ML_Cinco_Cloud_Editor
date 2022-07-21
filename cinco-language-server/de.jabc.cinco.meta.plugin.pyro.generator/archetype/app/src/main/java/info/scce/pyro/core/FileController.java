@@ -11,8 +11,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import de.jabc.cinco.meta.plugin.generator.runtime.IGenerator;
 import info.scce.pyro.auth.SecurityOverrideFilter;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 
 
 public class FileController {
@@ -24,20 +22,17 @@ public class FileController {
     protected final static String UPLOAD_FOLDER = Paths.get(WORKSPACE_CONFIG, "uploads").toString();
 	private static java.util.Set<Path> FILES_TO_CLEAN = new java.util.HashSet<>();
 	
-	public static File getFile(String baseFilePath) {
-		entity.core.BaseFileDB fr = getBaseFile(baseFilePath);
-		return getFile(fr);
-	}
-	
-	public static File getFile(entity.core.BaseFileDB identifier) {
-		String fileName = identifier.getFileName();
-		String relativeUploadPath = Paths.get(UPLOAD_FOLDER, ""+identifier.id, fileName).toString();
-		return getWorkspaceFile(relativeUploadPath);
+	public static File getFile(String relativeFilePath) {
+		return getWorkspaceFile(relativeFilePath);
 	}
 
-	public static InputStream loadFile(String baseFilePath) {
-		entity.core.BaseFileDB baseFile = getBaseFile(baseFilePath);
-		return loadFile(baseFile);
+	public static InputStream loadFile(String relativeFilePath) {
+		try {
+			return loadStream(relativeFilePath);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public static InputStream loadFile(final long id) {
@@ -52,13 +47,24 @@ public class FileController {
 	
 	public static entity.core.BaseFileDB getBaseFile(String relativeFilePath) {
 		long id = getIdFromFilePath(relativeFilePath);
+		if(id < 0)
+			return null;
 		return entity.core.BaseFileDB.findById(id);
 	}
 	
+	/**
+	 * @param relativeFilePath relative to the WorkspaceRoot
+	 * @return the id of the BaseFile or -1 if the path is not routing to a BaseFile
+	 */
     public static long getIdFromFilePath(String relativeFilePath) {
     	try {
 			java.net.URI uri = new java.net.URI(relativeFilePath);
-			String[] segments = uri.getPath().split("/");
+			String uriPath = uri.getPath();
+			boolean isBaseFile = uriPath.contains(UPLOAD_FOLDER);
+			if(!isBaseFile) {
+				return -1;
+			}
+			String[] segments = uriPath.split("/");
 			String idStr = segments[segments.length-2];
 			return Long.parseLong(idStr);
 		} catch (java.net.URISyntaxException e) {
@@ -68,9 +74,10 @@ public class FileController {
     }
 
 	public static InputStream loadFile(final entity.core.BaseFileDB identifier) {
+		if(identifier == null)
+			return null;
 		try {
-			String fileName = identifier.getFileName();
-			String relativeUploadPath = Paths.get(UPLOAD_FOLDER, ""+identifier.id, fileName).toString();
+			String relativeUploadPath = identifier.path;
 			return loadStream(relativeUploadPath);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -86,17 +93,20 @@ public class FileController {
 			result.fileExtension = org.apache.commons.io.FilenameUtils.getExtension(fileName);
 		} else {
 			result.fileExtension = null;
-		} 
+		}
 		result.persist();
 		
-		// persist fileContent
 	    Path relativeTargetFilePath = Paths.get(
 	    		UPLOAD_FOLDER,
 	    		""+result.id,
 	    		fileName
 	    	);
+    	String path = relativeTargetFilePath.toString();
+
+		// persist fileContent
 	    try {
-	    	writeFile(relativeTargetFilePath.toString(), data);
+	    	writeFile(path, data);
+			result.path = path;
 	    	System.out.println("New file \"" + fileName + "\" created");
 	    } catch (FileNotFoundException fne) {
 			result.delete();
@@ -116,7 +126,7 @@ public class FileController {
 	public static void deleteBaseFile(entity.core.BaseFileDB identifier) {
 		if(identifier == null)
 			return;
-		String relativeFolderPath = Paths.get(UPLOAD_FOLDER, ""+identifier.id).toString();
+		String relativeFolderPath = identifier.path;
 		String relativePath = Paths.get(relativeFolderPath, identifier.getFileName()).toString();
 		deleteFile(relativePath);
 		deleteFile(relativeFolderPath);
@@ -142,7 +152,6 @@ public class FileController {
 		return true;
 	}
 	
-	// TODO: this is rudimentary and should be rather based on the BaseFileDB
 	public static void cleanUp() {
 		synchronized(FILES_TO_CLEAN) {
 			java.util.Set<Path> removedFiles = new java.util.HashSet<>();

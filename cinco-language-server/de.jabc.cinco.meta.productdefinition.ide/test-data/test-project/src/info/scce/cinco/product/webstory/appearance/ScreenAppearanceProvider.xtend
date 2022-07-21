@@ -11,6 +11,8 @@ class ScreenAppearanceProvider implements StyleAppearanceProvider<Screen> {
 		val Appearance appearance = StyleFactory.eINSTANCE.createAppearance()
 		if ("bgimg".equals(element) && !screen.backgroundImage.nullOrEmpty) {
 			appearance.imagePath = screen.backgroundImage
+		} else {
+			appearance.imagePath = null
 		}
 		appearance
 	}

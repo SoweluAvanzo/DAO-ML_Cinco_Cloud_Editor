@@ -320,7 +320,7 @@ class Shapes extends Generatable {
 	'''
 	'«shape.tagName».«s.tagClass(i)»':{
 		«ref.ref»
-		'xlink:href':'img/«shape.modelPackage.name.lowEscapeDart»/«shape.path.fileName»',
+		'xlink:href':'«shape.imageFilePath»',
 		«shape.shapeCSS»
 	}
 	'''
