@@ -35,7 +35,7 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ExternalAbstractActivityC" abstract="true"
       eSuperTypes="#//ExternalActivityD">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ofC" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ofC" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloat"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ExternalActivityD">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="ofD" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
