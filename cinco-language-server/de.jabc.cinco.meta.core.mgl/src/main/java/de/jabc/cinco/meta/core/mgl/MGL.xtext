@@ -58,10 +58,12 @@ QName:
 ;
 
 EString returns ecore::EString:
-	STRING | ID;
+	STRING | ID | INT | FLOAT | DATE
+;
 	
 EInt returns ecore::EInt:
-	'-'? INT;
+	INT
+;
 	
 Attribute returns Attribute:
 	PrimitiveAttribute|ComplexAttribute
@@ -79,7 +81,6 @@ ComplexAttribute returns ComplexAttribute:
 ;
 
 enum EDataTypeType returns EDataTypeType:
-
 	 EString 
 	 |EChar
 	 |EFloat
@@ -92,15 +93,10 @@ enum EDataTypeType returns EDataTypeType:
 	 |EByte
 	 |EShort
 	 |EDate
-
 ;
 
-
-
 GraphicalModelElement:
-	Edge|Node|NodeContainer
-	
-	
+	Edge|Node|NodeContainer	
 ;
 
 Map:
@@ -180,12 +176,11 @@ GraphicalElementContainment returns GraphicalElementContainment:
 
 Import returns Import:
 	{Import}
-(stealth?='stealth')? 'import' (external?='external')? importURI=STRING 'as' name=ID
+	(stealth?='stealth')? 'import' (external?='external')? importURI=STRING 'as' name=ID
 ;
 
 BoundValue returns ecore::EInt:
 	'*'|EInt
-
 ;
 
 EdgeDirection returns EdgeDirection:
@@ -263,7 +258,9 @@ ReferencedMGLAttribute returns ReferencedMGLAttribute:
 ;
 
 terminal ID returns ecore::EString: '^'?('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
-terminal INT returns ecore::EInt: ('0'..'9')+;
+terminal INT returns ecore::EInt: '-'?('0'..'9')+;
+terminal FLOAT returns ecore::EFloat: INT '.' INT;
+terminal DATE returns ecore::EDate: INT '-' INT '-' INT;
 terminal STRING:
 			'"' ( '\\' . /* 'b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\' */ | !('\\'|'"') )* '"' |
 			"'" ( '\\' . /* 'b'|'t'|'n'|'f'|'r'|'u'|'"'|"'"|'\\' */ | !('\\'|"'") )* "'"

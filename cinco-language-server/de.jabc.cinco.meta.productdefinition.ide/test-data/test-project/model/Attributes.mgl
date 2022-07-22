@@ -7,20 +7,45 @@ graphModel Attributes {
 	containableElements (ANode, AContainer)
 	
 	attr EString as name
-	attr EString as attrString := "foo"
-	attr EInt as attrInt := "1"
-	attr EDouble as attrDouble := "1.2"
+
+	attr EChar as attrChar := "fooChar"
+	attr EChar as attrCharEmpty
+	attr EString as attrString := "fooString"
+	attr EString as attrStringEmpty
+	attr EInt as attrInt := 1
+	attr EInt as attrIntEmpty
+	attr EBigInteger as attrBigInteger := 1
+	attr EBigInteger as attrBigIntegerEmpty
+	attr EShort as attrShort := 1
+	attr EShort as attrShortEmpty
+	attr EByte as attrByte := 42
+	attr EByte as attrByteEmpty
+	attr ELong as attrLong := 42
+	attr ELong as attrLongEmpty
+	attr EFloat as attrFloat := 1.2
+	attr EFloat as attrFloatEmpty
+	attr EBigDecimal as attrBigDecimal := 1.2
+	attr EBigDecimal as attrBigDecimalEmpty
+	attr EDouble as attrDouble := 4.2
+	attr EDouble as attrDoubleEmpty
 	attr EBoolean as attrBoolean := true
-	
+	attr EBoolean as attrBooleanEmpty
+	attr EDate as attrDate := 2022-04-25
+	attr EDate as attrDateEmpty
+	@color(hex)
+	attr EString as attrColorHex := "#FFFFFF" 
 	@color(rgb)
-	attr EString as attrColor
-	attr EDate as attrDate
-	
+	attr EString as attrColorRGB := "255,255,255" 
+	@color(rgba)
+	attr EString as attrColorRGBA := "255,255,255,255" 
+	@color(hex)
+	attr EString as attrColorEmpty
 	@file
 	attr EString as attrFile
 	@file
 	attr EString as attrFiles [0,*]
-	
+	attr ENum as attrEnum := "optionA"
+	attr ENum as attrEnumList [0, *]
 	attr EString as attrStrings [0,*]
 	attr EInt as attrInts [0,*]
 	attr EDouble as attrDoubles [0,*]
@@ -28,10 +53,9 @@ graphModel Attributes {
 	@color(rgb)
 	attr EString as attrColors [0,*]
 	attr EDate as attrDates [0,*]
-	
+
 	attr AType as attrType
 	attr AType as attrTypes [0,*]
-	
 	attr ANode as attrNode
 	attr AnEdge as attrEdge
 	attr AContainer as attrContainer
@@ -40,28 +64,51 @@ graphModel Attributes {
 	attr AContainer as attrContainers [0,*]
 	attr Attributes as attrAttribute
 	attr Attributes as attrAttributes [0,*]
-	
-	attr ENum as attrEnum
-	attr ENum as attrEnumList [0, *]
 }
 
 node ANode {
 	style redCircle
+	
 	attr EString as name
-	attr EString as attrString := "foo"
-	attr EInt as attrInt := "1"
-	attr EDouble as attrDouble := "1.2"
+	
+	attr EChar as attrChar := "fooChar"
+	attr EChar as attrCharEmpty
+	attr EString as attrString := "fooString"
+	attr EString as attrStringEmpty
+	attr EInt as attrInt := 1
+	attr EInt as attrIntEmpty
+	attr EBigInteger as attrBigInteger := 1
+	attr EBigInteger as attrBigIntegerEmpty
+	attr EShort as attrShort := 1
+	attr EShort as attrShortEmpty
+	attr EByte as attrByte := 42
+	attr EByte as attrByteEmpty
+	attr ELong as attrLong := 42
+	attr ELong as attrLongEmpty
+	attr EFloat as attrFloat := 1.2
+	attr EFloat as attrFloatEmpty
+	attr EBigDecimal as attrBigDecimal := 1.2
+	attr EBigDecimal as attrBigDecimalEmpty
+	attr EDouble as attrDouble := 4.2
+	attr EDouble as attrDoubleEmpty
 	attr EBoolean as attrBoolean := true
-	
+	attr EBoolean as attrBooleanEmpty
+	attr EDate as attrDate := 2022-04-25
+	attr EDate as attrDateEmpty
+	@color(hex)
+	attr EString as attrColorHex := "#FFFFFF" 
 	@color(rgb)
-	attr EString as attrColor
-	attr EDate as attrDate
-	
+	attr EString as attrColorRGB := "255,255,255" 
+	@color(rgba)
+	attr EString as attrColorRGBA := "255,255,255,255" 
+	@color(hex)
+	attr EString as attrColorEmpty
 	@file
 	attr EString as attrFile
 	@file
 	attr EString as attrFiles [0,*]
-	
+	attr ENum as attrEnum := "optionA"
+	attr ENum as attrEnumList [0, *]
 	attr EString as attrStrings [0,*]
 	attr EInt as attrInts [0,*]
 	attr EDouble as attrDoubles [0,*]
@@ -72,7 +119,6 @@ node ANode {
 	
 	attr AType as attrType
 	attr AType as attrTypes [0,*]
-	
 	attr ANode as attrNode
 	attr AnEdge as attrEdge
 	attr AContainer as attrContainer
@@ -88,19 +134,47 @@ node ANode {
 
 container AContainer {
 	style swimlane("${name}")
+
 	attr EString as name
-	attr EString as attrString := "foo"
-	attr EInt as attrInt := "1"
-	attr EDouble as attrDouble := "1.2"
+	
+	attr EChar as attrChar := "fooChar"
+	attr EChar as attrCharEmpty
+	attr EString as attrString := "fooString"
+	attr EString as attrStringEmpty
+	attr EInt as attrInt := 1
+	attr EInt as attrIntEmpty
+	attr EBigInteger as attrBigInteger := 1
+	attr EBigInteger as attrBigIntegerEmpty
+	attr EShort as attrShort := 1
+	attr EShort as attrShortEmpty
+	attr EByte as attrByte := 42
+	attr EByte as attrByteEmpty
+	attr ELong as attrLong := 42
+	attr ELong as attrLongEmpty
+	attr EFloat as attrFloat := 1.2
+	attr EFloat as attrFloatEmpty
+	attr EBigDecimal as attrBigDecimal := 1.2
+	attr EBigDecimal as attrBigDecimalEmpty
+	attr EDouble as attrDouble := 4.2
+	attr EDouble as attrDoubleEmpty
 	attr EBoolean as attrBoolean := true
-	
+	attr EBoolean as attrBooleanEmpty
+	attr EDate as attrDate := 2022-04-25
+	attr EDate as attrDateEmpty
+	@color(hex)
+	attr EString as attrColorHex := "#FFFFFF" 
 	@color(rgb)
-	attr EString as attrColor
-	attr EDate as attrDate
-	
+	attr EString as attrColorRGB := "255,255,255" 
+	@color(rgba)
+	attr EString as attrColorRGBA := "255,255,255,255" 
+	@color(hex)
+	attr EString as attrColorEmpty
 	@file
 	attr EString as attrFile
-	
+	@file
+	attr EString as attrFiles [0,*]
+	attr ENum as attrEnum := "optionA"
+	attr ENum as attrEnumList [0, *]
 	attr EString as attrStrings [0,*]
 	attr EInt as attrInts [0,*]
 	attr EDouble as attrDoubles [0,*]
@@ -108,19 +182,15 @@ container AContainer {
 	@color(rgb)
 	attr EString as attrColors [0,*]
 	attr EDate as attrDates [0,*]
-	@file
-	attr EString as attrFiles [0,*]
 	
 	attr AType as attrType
 	attr AType as attrTypes [0,*]
-	
 	attr ANode as attrNode
 	attr AnEdge as attrEdge
 	attr AContainer as attrContainer
 	attr ANode as attrNodes [0,*]
 	attr AnEdge as attrEdges [0,*]
 	attr AContainer as attrContainers [0,*]
-	
 	attr Attributes as attrAttribute
 	attr Attributes as attrAttributes [0,*]
 	
@@ -130,18 +200,47 @@ container AContainer {
 
 edge AnEdge {
 	style simpleArrow
+
 	attr EString as name
-	attr EString as attrString := "foo"
-	attr EInt as attrInt := "1"
-	attr EDouble as attrDouble := "1.2"
-	attr EBoolean as attrBoolean := true
 	
+	attr EChar as attrChar := "fooChar"
+	attr EChar as attrCharEmpty
+	attr EString as attrString := "fooString"
+	attr EString as attrStringEmpty
+	attr EInt as attrInt := 1
+	attr EInt as attrIntEmpty
+	attr EBigInteger as attrBigInteger := 1
+	attr EBigInteger as attrBigIntegerEmpty
+	attr EShort as attrShort := 1
+	attr EShort as attrShortEmpty
+	attr EByte as attrByte := 42
+	attr EByte as attrByteEmpty
+	attr ELong as attrLong := 42
+	attr ELong as attrLongEmpty
+	attr EFloat as attrFloat := 1.2
+	attr EFloat as attrFloatEmpty
+	attr EBigDecimal as attrBigDecimal := 1.2
+	attr EBigDecimal as attrBigDecimalEmpty
+	attr EDouble as attrDouble := 4.2
+	attr EDouble as attrDoubleEmpty
+	attr EBoolean as attrBoolean := true
+	attr EBoolean as attrBooleanEmpty
+	attr EDate as attrDate := 2022-04-25
+	attr EDate as attrDateEmpty
+	@color(hex)
+	attr EString as attrColorHex := "#FFFFFF" 
 	@color(rgb)
-	attr EString as attrColor
-	attr EDate as attrDate
+	attr EString as attrColorRGB := "255,255,255" 
+	@color(rgba)
+	attr EString as attrColorRGBA := "255,255,255,255" 
+	@color(hex)
+	attr EString as attrColorEmpty
 	@file
 	attr EString as attrFile
-	
+	@file
+	attr EString as attrFiles [0,*]
+	attr ENum as attrEnum := "optionA"
+	attr ENum as attrEnumList [0, *]
 	attr EString as attrStrings [0,*]
 	attr EInt as attrInts [0,*]
 	attr EDouble as attrDoubles [0,*]
@@ -149,12 +248,9 @@ edge AnEdge {
 	@color(rgb)
 	attr EString as attrColors [0,*]
 	attr EDate as attrDates [0,*]
-	@file
-	attr EString as attrFiles [0,*]
 	
 	attr AType as attrType
 	attr AType as attrTypes [0,*]
-	
 	attr ANode as attrNode
 	attr AnEdge as attrEdge
 	attr AContainer as attrContainer
@@ -166,16 +262,46 @@ edge AnEdge {
 }
 
 type AType {
-	attr EString as attrString := "foo"
-	attr EInt as attrInt := "1"
-	attr EDouble as attrDouble := "1.2"
+	attr EString as name
+	
+	attr EChar as attrChar := "fooChar"
+	attr EChar as attrCharEmpty
+	attr EString as attrString := "fooString"
+	attr EString as attrStringEmpty
+	attr EInt as attrInt := 1
+	attr EInt as attrIntEmpty
+	attr EBigInteger as attrBigInteger := 1
+	attr EBigInteger as attrBigIntegerEmpty
+	attr EShort as attrShort := 1
+	attr EShort as attrShortEmpty
+	attr EByte as attrByte := 42
+	attr EByte as attrByteEmpty
+	attr ELong as attrLong := 42
+	attr ELong as attrLongEmpty
+	attr EFloat as attrFloat := 1.2
+	attr EFloat as attrFloatEmpty
+	attr EBigDecimal as attrBigDecimal := 1.2
+	attr EBigDecimal as attrBigDecimalEmpty
+	attr EDouble as attrDouble := 4.2
+	attr EDouble as attrDoubleEmpty
 	attr EBoolean as attrBoolean := true
+	attr EBoolean as attrBooleanEmpty
+	attr EDate as attrDate := 2022-04-25
+	attr EDate as attrDateEmpty
+	@color(hex)
+	attr EString as attrColorHex := "#FFFFFF" 
 	@color(rgb)
-	attr EString as attrColor
-	attr EDate as attrDate
+	attr EString as attrColorRGB := "255,255,255" 
+	@color(rgba)
+	attr EString as attrColorRGBA := "255,255,255,255" 
+	@color(hex)
+	attr EString as attrColorEmpty
 	@file
 	attr EString as attrFile
-	
+	@file
+	attr EString as attrFiles [0,*]
+	attr ENum as attrEnum := "optionA"
+	attr ENum as attrEnumList [0, *]
 	attr EString as attrStrings [0,*]
 	attr EInt as attrInts [0,*]
 	attr EDouble as attrDoubles [0,*]
@@ -183,12 +309,9 @@ type AType {
 	@color(rgb)
 	attr EString as attrColors [0,*]
 	attr EDate as attrDates [0,*]
-	@file
-	attr EString as attrFiles [0,*]
 	
 	attr AType as attrType
 	attr AType as attrTypes [0,*]
-	
 	attr ANode as attrNode
 	attr AnEdge as attrEdge
 	attr AContainer as attrContainer
