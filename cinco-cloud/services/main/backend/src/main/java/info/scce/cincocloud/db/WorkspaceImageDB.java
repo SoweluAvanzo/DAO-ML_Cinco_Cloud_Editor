@@ -36,6 +36,10 @@ public class WorkspaceImageDB extends PanacheEntity {
     return find("uuid", uuid).firstResultOptional();
   }
 
+  public static Optional<WorkspaceImageDB> findByProjectId(Long projectId) {
+    return find("project.id = ?1", projectId).firstResultOptional();
+  }
+
   @Override
   public String toString() {
     return "WorkspaceImageDB{" +

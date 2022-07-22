@@ -11,6 +11,7 @@ import info.scce.cincocloud.db.GraphModelTypeDB;
 import info.scce.cincocloud.db.GitInformationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
+import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.mq.WorkspaceImageBuildJobMessage;
 import info.scce.cincocloud.mq.WorkspaceMQProducer;
 import info.scce.cincocloud.proto.CincoCloudProtos;
@@ -122,7 +123,15 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
           );
 
           final var job = createBuildJob(project);
-          final var message = new WorkspaceImageBuildJobMessage(UUID.randomUUID(), projectId, job.id);
+
+          // if there already exists an image that is associated to the project
+          // reuse the uuid so that the image is updated later, otherwise create
+          // a new uuid which will result in a new image being created
+          final var uuid = WorkspaceImageDB.findByProjectId(project.id)
+              .map(i -> i.uuid)
+              .orElse(UUID.randomUUID());
+
+          final var message = new WorkspaceImageBuildJobMessage(uuid, project.id, job.id);
           workspaceMQProducer.send(message);
           file.toFile().delete();
 
