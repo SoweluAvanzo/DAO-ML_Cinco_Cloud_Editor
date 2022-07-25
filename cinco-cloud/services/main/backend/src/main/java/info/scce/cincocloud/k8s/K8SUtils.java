@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.Optional;
 
@@ -39,6 +40,12 @@ public class K8SUtils {
   public static Optional<StatefulSet> getStatefulSetByName(KubernetesClient client, String name) {
     return client.apps().statefulSets().list().getItems().stream()
         .filter(s2 -> s2.getMetadata().getName().equals(name))
+        .findFirst();
+  }
+
+  public static Optional<Ingress> getIngressByName(KubernetesClient client, String name) {
+    return  client.network().v1().ingresses().list().getItems().stream()
+        .filter(i -> i.getMetadata().getName().equals(name))
         .findFirst();
   }
 
