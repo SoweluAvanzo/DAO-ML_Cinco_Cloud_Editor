@@ -141,16 +141,44 @@ class Escaper {
 	def trimQuotes(String s) {
 		s.replace('"','')
 	}
-		
+	
 	def escapespecialCharacters(String s){
 		var s1 = s;
 		if(!s.isNullOrEmpty){
 			if(s.contains("\"")){
-			s1=s.replace("\"", '\\"'.toString);			
+				s1=s.replace("\"", '\\"'.toString);		
 			}
 		}
 		return s1;
 		// the list of special expressions is to be extended
 	}
+
+	def escapeJavaSpecialCharacters(String s){
+		// the list of special expressions is to be extended
+		var specialChars = #["\""];
+		var s1 = s;
+		for (String c : specialChars){
+			if(!s.isNullOrEmpty){
+				if(s.contains(c)){
+					s1=s.replace(c, "\\"+c);            
+				}
+			}            
+		}
+		return s1;
+	}
+
+	def escapeDartSpecialCharacters(String s){
+		// the list of special expressions is to be extended
+		var specialChars = #["\"", "$", "!","@","#", "%", "^","&", "*", "(", ")", "?"];
+		var s1 = s;
+		for (String c : specialChars){
+			if(!s.isNullOrEmpty){
+				if(s.contains(c)){
+					s1=s.replace(c, "\\"+c);
+				}
+			}
+			return s1;
+		}    
+    }
 }
 

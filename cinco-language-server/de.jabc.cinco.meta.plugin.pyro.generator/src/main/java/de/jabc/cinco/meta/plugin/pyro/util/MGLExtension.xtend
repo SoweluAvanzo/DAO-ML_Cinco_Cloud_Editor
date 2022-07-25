@@ -1348,7 +1348,7 @@ class MGLExtension {
 				return '''«prefix»«attributeTypeName».«attributeTypeName.getEnum(g).literals.get(0).escapeDart»'''
 			}
 			else if (!defaultValue.nullOrEmpty) {
-				return '''«primitiveBolster»«defaultValue.escapespecialCharacters»«primitiveBolster»'''
+				return '''«primitiveBolster»«defaultValue.escapeDartSpecialCharacters»«primitiveBolster»'''
 			}
 			return '''«primitiveBolster»«initValue»«primitiveBolster»'''
 		}
@@ -2684,10 +2684,10 @@ class MGLExtension {
 				case "EFloat": return '''«attr.defaultValue»f'''
 				case "EBigDecimal": return '''«attr.defaultValue»'''
 				case "EDouble": return '''«attr.defaultValue»'''
-				case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
-				case "EChar": return '''"«attr.defaultValue.escapespecialCharacters»"'''
-				case "EDate": return '''"«attr.defaultValue.escapespecialCharacters»"'''
-				default: return '''«attr.defaultValue.escapespecialCharacters»'''
+				case "EString": return '''"«attr.defaultValue.escapeJavaSpecialCharacters»"'''
+				case "EChar": return '''"«attr.defaultValue.escapeJavaSpecialCharacters»"'''
+				case "EDate": return '''"«attr.defaultValue.escapeJavaSpecialCharacters»"'''
+				default: return '''«attr.defaultValue.escapeJavaSpecialCharacters»'''
 			}
 		}
 		switch (attr.attributeTypeName) {
@@ -2723,10 +2723,10 @@ class MGLExtension {
        	}
 		if (attr.defaultValue !== null) {
 			switch (attr.attributeTypeName) {
-				case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
-				case "EChar": return '''"«attr.defaultValue.escapespecialCharacters»"'''
-				case "EDate": return '''"«attr.defaultValue.escapespecialCharacters»"'''
-				default: return '''«attr.defaultValue.escapespecialCharacters»'''
+				case "EString": return '''"«attr.defaultValue.escapeDartSpecialCharacters»"'''
+				case "EChar": return '''"«attr.defaultValue.escapeDartSpecialCharacters»"'''
+				case "EDate": return '''"«attr.defaultValue.escapeDartSpecialCharacters»"'''
+				default: return '''«attr.defaultValue.escapeDartSpecialCharacters»'''
 			}
 		}
 		switch (attr.attributeTypeName) {
