@@ -203,12 +203,21 @@ export function copyAll(fromAbs: string, toAbs: string, excludeREs?: string[]) {
 export function copy(from: string, to: string) {
     return new Promise<void>((resolve, reject) => {
         const fs = require('original-fs');
-        try {
-            copyFolderRecursiveSync(fs, from, to);
-        } catch(e) {
-            reject(e);
+        if(isFolder(from)) {
+            try {
+                copyFolderRecursiveSync(fs, from, to);
+            } catch(e) {
+                reject(e);
+            }
+            resolve();   
+        } else {
+            try {
+                copyFileSync(fs, from, to);
+            } catch(e) {
+                reject(e);
+            }
+            resolve();   
         }
-        resolve();
     });
 }
 
@@ -233,6 +242,11 @@ function copyFolderRecursiveSync(fs: any, source: string, target: string) {
             } );
         }
     });
+}
+
+function isFolder(path: string) {
+    const fs = require('original-fs');
+    return fs.lstatSync(path).isDirectory() 
 }
 
 function copyFileSync(fs: any, source: string, target: string) {

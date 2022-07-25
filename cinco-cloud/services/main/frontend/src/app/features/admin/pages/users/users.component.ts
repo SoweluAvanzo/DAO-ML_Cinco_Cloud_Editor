@@ -70,7 +70,7 @@ export class UsersComponent implements OnInit {
         error: res => {
           this.toastService.show({
             type: ToastType.DANGER,
-            message: `User could not be deleted. ${res.data.message}`
+            message: `User could not be deleted. ${res.error.message}`
           });
         }
       });
@@ -94,7 +94,7 @@ export class UsersComponent implements OnInit {
         error: res => {
           this.toastService.show({
             type: ToastType.DANGER,
-            message: `Admin rights could not be removed. ${res.data.message}`
+            message: `Admin rights could not be removed. ${res.error.message}`
           });
         }
       });

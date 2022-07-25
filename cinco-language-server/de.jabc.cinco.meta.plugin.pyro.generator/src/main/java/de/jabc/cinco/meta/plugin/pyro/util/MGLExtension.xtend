@@ -51,6 +51,7 @@ import java.util.regex.Pattern
 import java.util.ArrayList
 import java.util.function.BiFunction
 import productDefinition.SplashScreen
+import java.time.LocalDate
 
 class MGLExtension {
 
@@ -83,9 +84,9 @@ class MGLExtension {
 		edgeMap = new HashMap
 	}
 
-	static def String[] primitiveETypes() { // Needed to get EReal, EDate and EDateTime
-		return #["EString", "EBoolean", "EInt", "EDouble", "EShort", "ELong", "EBigInteger", "EFloat", "EFloatObject", "EBigDecimal",
-			"EReal", "EByte", "EChar", "EDate", "EDateTime"]
+	static def String[] primitiveETypes() {
+		return #["EString", "EBoolean", "EInt", "EDouble", "EShort", "ELong", "EBigInteger", "EFloat", "EBigDecimal",
+			"EByte", "EChar", "EDate"]
 	}
 
 	/**
@@ -573,10 +574,10 @@ class MGLExtension {
 			case "EByte": return '''number'''
 			case "EShort": return '''number'''
 			case "EFloat": return '''number'''
-			case "EFloatObject": return '''number'''
 			case "EBigDecimal": return '''number'''
 			case "EDouble": return '''number'''
 			case "EDate": return '''date'''
+			case "EString": return '''text'''
 			default: return '''text'''
 		}
 	}
@@ -596,70 +597,7 @@ class MGLExtension {
 		if (attr.attributeTypeName.getEnum(g) !== null) {
 			return '''«attr.apiFQN»'''
 		}
-		switch (attr.attributeTypeName) {
-			case "EBoolean": {
-				if (attr.list) {
-					return '''Boolean'''
-				}
-				return '''boolean'''
-			}
-			case "EInt": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EDouble": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			case "ELong": {
-				if (attr.list) {
-					return '''Long'''
-				}
-				return '''long'''
-			}
-			case "EBigInteger": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EByte": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EShort": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EFloat": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			case "EFloatObject": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			case "EBigDecimal": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			default:
-				return '''String'''
-		}
+		attr.javaPrimitiveType
 	}
 	
 	def javaRestType(Attribute attr) {
@@ -677,70 +615,7 @@ class MGLExtension {
 		if (attr.attributeTypeName.getEnum(g) !== null) {
 			return '''info.scce.pyro.core.graphmodel.PyroEnum'''
 		}
-		switch (attr.attributeTypeName) {
-			case "EBoolean": {
-				if (attr.list) {
-					return '''Boolean'''
-				}
-				return '''boolean'''
-			}
-			case "EInt": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EDouble": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			case "ELong": {
-				if (attr.list) {
-					return '''Long'''
-				}
-				return '''long'''
-			}
-			case "EBigInteger": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EByte": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EShort": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EFloat": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			case "EFloatObject": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			case "EBigDecimal": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			default:
-				return '''String'''
-		}
+		attr.javaPrimitiveType
 	}
 	
 	def javaDBType(Attribute attr) {
@@ -758,69 +633,14 @@ class MGLExtension {
 		if (!attr.isPrimitive) {
 			return '''«attr.entityFQN»'''
 		}
-		switch (attr.attributeTypeName) {
-			case "EBoolean": {
-				if (attr.list) {
-					return '''Boolean'''
-				}
-				return '''boolean'''
-			}
-			case "EInt": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EDouble": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			case "ELong": {
-				if (attr.list) {
-					return '''Long'''
-				}
-				return '''long'''
-			}
-			case "EBigInteger": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EByte": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EShort": {
-				if (attr.list) {
-					return '''Integer'''
-				}
-				return '''int'''
-			}
-			case "EFloat": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			case "EFloatObject": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			case "EBigDecimal": {
-				if (attr.list) {
-					return '''Double'''
-				}
-				return '''double'''
-			}
-			default:
-				return '''String'''
+		attr.javaPrimitiveType
+	}
+
+	def javaPrimitiveType(Attribute attr) {
+		if(attr.list) {
+			attr.attributeTypeName.primitveObjectTypeLiteral
+		} else {
+			attr.attributeTypeName.primitveTypeLiteral	
 		}
 	}
 
@@ -1552,26 +1372,15 @@ class MGLExtension {
 	}
 
 	def initValue(Attribute attr) {
-		switch (attr.attributeTypeName) {
-			case "EBoolean": return '''false'''
-			case "EInt": return '''0'''
-			case "ELong": return '''0'''
-			case "EBigInteger": return '''0'''
-			case "EByte": return '''0'''
-			case "EShort": return '''0'''
-			case "EFloat": return '''0.0'''
-			case "EFloatObject": return '''0.0'''
-			case "EReal": return '''0.0'''
-			case "EBigDecimal": return '''0.0'''
-			case "EDouble": return '''0.0'''
-			case "EDate": return '''0.0'''
-			case "EDateTime": return '''0.0'''
-			default: return ''''''
-		}
+		attr.attributeTypeName.initValue
 	}
 
 	def initValue(EAttribute attr) {
-		switch (attr.EType.name) {
+		attr.EType.name.initValue
+	}
+	
+	def initValue(String type) {
+		switch (type) {
 			case "EBoolean": return '''false'''
 			case "EInt": return '''0'''
 			case "ELong": return '''0'''
@@ -1579,12 +1388,12 @@ class MGLExtension {
 			case "EByte": return '''0'''
 			case "EShort": return '''0'''
 			case "EFloat": return '''0.0'''
-			case "EFloatObject": return '''0.0'''
-			case "EReal": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
-			case "EDate": return '''0.0'''
-			case "EDateTime": return '''0.0'''
+			case "EDate": return '''«LocalDate.EPOCH»'''
+			case "EString": return ''''''
+			case "EChar": return ''''''
+			case "String": return ''''''
 			default: return ''''''
 		}
 	}
@@ -1756,27 +1565,18 @@ class MGLExtension {
 		if (attr.attributeTypeName.getEnum(g) !== null) {
 			return attr.attributeTypeName.getEnum(g).name.fuEscapeDart
 		}
-		switch (attr.attributeTypeName) {
-			case "EBoolean": return '''bool'''
-			case "EInt": return '''int'''
-			case "ELong": return '''int'''
-			case "EBigInteger": return '''int'''
-			case "EByte": return '''int'''
-			case "EShort": return '''int'''
-			case "EFloat": return '''double'''
-			case "EFloatObject": return '''double'''
-			case "EReal": return '''double'''
-			case "EBigDecimal": return '''double'''
-			case "EDouble": return '''double'''
-			default: return '''String'''
-		}
+		attr.attributeTypeName.primitiveDartType
 	}
 
 	def primitiveDartType(EStructuralFeature attr, EPackage g) {
 		if (attr.EType instanceof EEnum) {
 			return attr.EType.name
 		}
-		switch (attr.EType.name) {
+		attr.EType.name.primitiveDartType
+	}
+	
+	def primitiveDartType(CharSequence name) {
+		switch (name) {
 			case "EBoolean": return '''bool'''
 			case "EInt": return '''int'''
 			case "ELong": return '''int'''
@@ -1784,10 +1584,11 @@ class MGLExtension {
 			case "EByte": return '''int'''
 			case "EShort": return '''int'''
 			case "EFloat": return '''double'''
-			case "EFloatObject": return '''double'''
-			case "EReal": return '''double'''
 			case "EBigDecimal": return '''double'''
 			case "EDouble": return '''double'''
+			case "EDate": return '''String'''
+			case "EString": return '''String'''
+			case "EChar": return '''String'''
 			default: return '''String'''
 		}
 	}
@@ -1800,35 +1601,9 @@ class MGLExtension {
 			return attr.EType.name.fuEscapeJava
 		}
 		if (attr.list) {
-			switch (attr.EType.name) {
-				case "EBoolean": return '''java.util.List<Boolean>'''
-				case "EInt": return '''java.util.List<Integer>'''
-				case "EDouble": return '''java.util.List<Double>'''
-				case "ELong": return '''java.util.List<Integer>'''
-				case "EBigInteger": return '''java.util.List<Integer>'''
-				case "EByte": return '''java.util.List<Integer>'''
-				case "EShort": return '''java.util.List<Integer>'''
-				case "EFloat": return '''java.util.List<Double>'''
-				case "EFloatObject": return '''java.util.List<Double>'''
-				case "EReal": return '''java.util.List<Double>'''
-				case "EBigDecimal": return '''java.util.List<Double>'''
-				default: return '''java.util.List<String>'''
-			}
+			return '''java.util.List<«attr.EType.name.primitveObjectTypeLiteral»>'''
 		}
-		switch (attr.EType.name) {
-			case "EBoolean": return '''boolean'''
-			case "EInt": return '''int'''
-			case "ELong": return '''int'''
-			case "EBigInteger": return '''int'''
-			case "EByte": return '''int'''
-			case "EShort": return '''int'''
-			case "EFloat": return '''double'''
-			case "EFloatObject": return '''double'''
-			case "EReal": return '''double'''
-			case "EBigDecimal": return '''double'''
-			case "EDouble": return '''double'''
-			default: return '''String'''
-		}
+		return attr.EType.name.primitveTypeLiteral
 	}
 
 	def complexJavaType(EStructuralFeature attr, EPackage g) {
@@ -1848,20 +1623,7 @@ class MGLExtension {
 			if (attributeTypeName.getEnum(g) !== null) {
 				return '''«attributeTypeName.fuEscapeDart»Parser.toJSOG(«s»)'''
 			}
-			switch (attributeTypeName) {
-				case "EBoolean": return '''«s»?"true":"false"'''
-				case "EInt": return '''«s»'''
-				case "ELong": return '''«s»'''
-				case "EBigInteger": return '''«s»'''
-				case "EByte": return '''«s»'''
-				case "EShort": return '''«s»'''
-				case "EFloat": return '''«s»'''
-				case "EFloatObject": return '''«s»'''
-				case "EReal": return '''«s»'''
-				case "EBigDecimal": return '''«s»'''
-				case "EDouble": return '''«s»'''
-				default: return '''«s»'''
-			}
+			return attributeTypeName.serialize(s)
 		}
 		return '''«s».toJSOG(cache)'''
 	}
@@ -1875,22 +1637,27 @@ class MGLExtension {
 			if (EType.name.getEnum(g) !== null) {
 				return '''«EType.name.fuEscapeDart»Parser.toJSOG(«s»)'''
 			}
-			switch (EType.name) {
-				case "EBoolean": return '''«s»?"true":"false"'''
-				case "EInt": return '''«s»'''
-				case "ELong": return '''«s»'''
-				case "EBigInteger": return '''«s»'''
-				case "EByte": return '''«s»'''
-				case "EShort": return '''«s»'''
-				case "EDouble": return '''«s»'''
-				case "EFloat": return '''«s»'''
-				case "EFloatObject": return '''«s»'''
-				case "EReal": return '''«s»'''
-				case "EBigDecimal": return '''«s»'''
-				default: return '''«s»'''
-			}
+			return EType.name.serialize(s)
 		}
 		return '''«s».toJSOG(cache)'''
+	}
+	
+	def serialize(String type, String s) {
+		switch (type) {
+			case "EBoolean": return '''«s»?"true":"false"'''
+			case "EInt": return '''«s»'''
+			case "ELong": return '''«s»'''
+			case "EBigInteger": return '''«s»'''
+			case "EByte": return '''«s»'''
+			case "EShort": return '''«s»'''
+			case "EDouble": return '''«s»'''
+			case "EFloat": return '''«s»'''
+			case "EBigDecimal": return '''«s»'''
+			case "EDate": return '''«s»'''
+			case "EString": return '''«s»'''
+			case "EChar": return '''«s»'''
+			default: return '''«s»'''
+		}
 	}
 
 	def deserialize(Attribute it) {
@@ -1900,20 +1667,7 @@ class MGLExtension {
 	def deserialize(Attribute it, MGLModel mglModel) {
 		if (isPrimitive) {
 			if(attributeTypeName.getEnum(mglModel) !== null) return ""
-			switch (attributeTypeName) {
-				case "EBoolean": return '''=="true"||jsogObj==true'''
-				case "EInt": return ''''''
-				case "ELong": return ''''''
-				case "EBigInteger": return ''''''
-				case "EByte": return ''''''
-				case "EShort": return ''''''
-				case "EDouble": return ''''''
-				case "EFloat": return ''''''
-				case "EFloatObject": return ''''''
-				case "EReal": return ''''''
-				case "EBigDecimal": return ''''''
-				default: return '''.toString()'''
-			}
+			return attributeTypeName.deserialize
 		}
 		return ".toString()"
 	}
@@ -1921,22 +1675,27 @@ class MGLExtension {
 	def deserialize(EStructuralFeature it, EPackage g) {
 		if (isPrimitive) {
 			if(EType.name.getEnum(g) !== null) return ""
-			switch (EType.name) {
-				case "EBoolean": return '''=="true"||jsogObj==true'''
-				case "EInt": return ''''''
-				case "ELong": return ''''''
-				case "EBigInteger": return ''''''
-				case "EByte": return ''''''
-				case "EShort": return ''''''
-				case "EDouble": return ''''''
-				case "EFloat": return ''''''
-				case "EFloatObject": return ''''''
-				case "EReal": return ''''''
-				case "EBigDecimal": return ''''''
-				default: return '''.toString()'''
-			}
+			return EType.name.deserialize
 		}
 		return ".toString()"
+	}
+	
+	def deserialize(String type) {
+		switch (type) {
+			case "EBoolean": return '''=="true"||jsogObj==true'''
+			case "EInt": return ''''''
+			case "ELong": return ''''''
+			case "EBigInteger": return ''''''
+			case "EByte": return ''''''
+			case "EShort": return ''''''
+			case "EDouble": return ''''''
+			case "EFloat": return ''''''
+			case "EBigDecimal": return ''''''
+			case "EDate": return '''.toString()'''
+			case "EString": return '''.toString()'''
+			case "EChar": return '''.toString()'''
+			default: return '''.toString()'''
+		}
 	}
 
 	def complexDartType(Attribute attr) {
@@ -2025,7 +1784,6 @@ class MGLExtension {
 			case "EString": return '''"'''
 			case "EChar": return '''"'''
 			case "EDate": return '''"'''
-			case "EDateTime": return '''"'''
 			default: return ""
 		}
 	}
@@ -2035,7 +1793,6 @@ class MGLExtension {
 			case "EString": return '''"'''
 			case "EChar": return '''"'''
 			case "EDate": return '''"'''
-			case "EDateTime": return '''"'''
 			default: return ""
 		}
 	}
@@ -2860,8 +2617,8 @@ class MGLExtension {
 	def ecoreType(EAttribute attr, EPackage g) {
 		if (attr.isPrimitive(g) && getEnum(attr.EType.name, g) === null) {
 			if (attr.isList)
-				return (attr.EType as EDataType).name.getPrimitveObjectTypeLiteral
-			return (attr.EType as EDataType).name.getPrimitveTypeLiteral
+				return (attr.EType as EDataType).name.primitveObjectTypeLiteral
+			return (attr.EType as EDataType).name.primitveTypeLiteral
 		}
 		return "String"
 	}
@@ -2869,18 +2626,17 @@ class MGLExtension {
 	def getPrimitveTypeLiteral(String pType) {
 		switch pType {
 			case "EBoolean": "boolean"
-			case "EInt": "long"
-			case "EByte": "long"
-			case "EShort": "long"
+			case "EInt": "int"
+			case "EByte": "int"
+			case "EShort": "int"
 			case "EBigInteger": "long"
 			case "ELong": "long"
 			case "EDouble": "double"
-			case "EFloat": "double"
-			case "EFloatObject": "double"
+			case "EFloat": "float"
 			case "EBigDecimal": "double"
-			case "EReal": "double"
-			// case "EDate": "java.time.LocalDate" // TODO: SAMI: make date available...edge case String -> Date (Entity -> Api)
-			// case "EDateTime": "java.time.LocalDate"
+			case "EDate": "String"
+			case "EString": "String"
+			case "EChar": "String"
 			default: "String"
 		}
 	}
@@ -2888,18 +2644,17 @@ class MGLExtension {
 	def getPrimitveObjectTypeLiteral(String pType) {
 		switch pType {
 			case "EBoolean": "Boolean"
-			case "EInt": "Long"
-			case "EByte": "Long"
-			case "EShort": "Long"
+			case "EInt": "Integer"
+			case "EByte": "Integer"
+			case "EShort": "Integer"
 			case "EBigInteger": "Long"
 			case "ELong": "Long"
 			case "EDouble": "Double"
-			case "EFloat": "Double"
-			case "EFloatObject": "Double"
+			case "EFloat": "Float"
 			case "EBigDecimal": "Double"
-			case "EReal": "Double"
-			// case "EDate": "java.time.LocalDate" // TODO: SAMI: make date available...edge case String -> Date (Entity -> Api)
-			// case "EDateTime": "java.time.LocalDate"
+			case "EDate": "String"
+			case "EString": "String"
+			case "EChar": "String"
 			default: "String"
 		}
 	}
@@ -2920,27 +2675,34 @@ class MGLExtension {
        	}
 		if (attr.defaultValue !== null) {
 			switch (attr.attributeTypeName) {
-				case "EInt": return '''«attr.defaultValue»L'''
+				case "EBoolean": return '''«attr.defaultValue»'''
+				case "EInt": return '''«attr.defaultValue»'''
+				case "EByte": return '''«attr.defaultValue»'''
+				case "EShort": return '''«attr.defaultValue»'''
 				case "ELong": return '''«attr.defaultValue»L'''
 				case "EBigInteger": return '''«attr.defaultValue»L'''
-				case "EByte": return '''«attr.defaultValue»L'''
-				case "EShort": return '''«attr.defaultValue»L'''
+				case "EFloat": return '''«attr.defaultValue»f'''
+				case "EBigDecimal": return '''«attr.defaultValue»'''
+				case "EDouble": return '''«attr.defaultValue»'''
 				case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
-				default: return '''«attr.defaultValue»'''
+				case "EChar": return '''"«attr.defaultValue.escapespecialCharacters»"'''
+				case "EDate": return '''"«attr.defaultValue.escapespecialCharacters»"'''
+				default: return '''«attr.defaultValue.escapespecialCharacters»'''
 			}
 		}
 		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''false'''
 			case "ELong": return '''0L'''
 			case "EBigInteger": return '''0L'''
-			case "EShort": return '''0L'''
-			case "EInt": return '''0L'''
-			case "EByte": return '''0L'''
-			case "EFloat": return '''0.0'''
-			case "EFloatObject": return '''0.0'''
+			case "EShort": return '''0'''
+			case "EInt": return '''0'''
+			case "EByte": return '''0'''
+			case "EFloat": return '''0.0f'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
 			case "EString": return '''""'''
+			case "EChar": return '''""'''
+			case "EDate": return '''"«LocalDate.EPOCH»"'''
 			default: return '''null'''
 		}
 	}
@@ -2959,15 +2721,14 @@ class MGLExtension {
 			}
             throw new RuntimeException("Cannot infer defaultValue of attribute: "+attr.typeName);
        	}
-
 		if (attr.defaultValue !== null) {
 			switch (attr.attributeTypeName) {
 				case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
-				default: return '''«attr.defaultValue»'''
-				}
+				case "EChar": return '''"«attr.defaultValue.escapespecialCharacters»"'''
+				case "EDate": return '''"«attr.defaultValue.escapespecialCharacters»"'''
+				default: return '''«attr.defaultValue.escapespecialCharacters»'''
 			}
-
-		
+		}
 		switch (attr.attributeTypeName) {
 			case "EBoolean": return '''false'''
 			case "ELong": return '''0'''
@@ -2976,10 +2737,11 @@ class MGLExtension {
 			case "EInt": return '''0'''
 			case "EByte": return '''0'''
 			case "EFloat": return '''0.0'''
-			case "EFloatObject": return '''0.0'''
 			case "EBigDecimal": return '''0.0'''
 			case "EDouble": return '''0.0'''
-			case "EString": return '''"«attr.defaultValue.escapespecialCharacters»"'''
+			case "EString": return '''""'''
+			case "EChar": return '''""'''
+			case "EDate": return '''"«LocalDate.EPOCH»"'''
 			default: return '''null'''
 		}
 	}
@@ -3109,8 +2871,12 @@ class MGLExtension {
 		}
 	}
 	
+	def typeNameUnderScore(EObject e) {
+		'''«e.typeName.toString.replace('.', "_").toLowerCase»'''
+	}
+	
 	def restEndpoint(GraphModel g) {
-		'''«g.typeName.toString.replace('.', "_").toLowerCase»'''
+		g.typeNameUnderScore
 	}
 
 	def jarFilename(String path) {
@@ -3327,6 +3093,14 @@ class MGLExtension {
 	def shapeFQN(MGLModel m) '''joint.shapes.«m.name.lowEscapeDart»'''
 	
 	def websocketEventPrime() '''referenced'''
+	
+	def imageFilePath(style.Image imageShape) {
+		var path = imageShape.path
+		if(path.lastIndexOf("/")>=0) {
+			path = path.substring(path.lastIndexOf("/")+1,path.length)
+		}		
+		'''img/«imageShape.modelPackage.name.lowEscapeDart»/«path»'''
+	}
 	
 	def concreteGraphModels(MGLModel m) {
 		return m.graphModels.filter[!isAbstract].toSet

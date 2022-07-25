@@ -51,7 +51,7 @@ export class OrganizationStoreService {
           type: ToastType.DANGER,
           message: `Could not fetch organizations.`
         });
-        console.error(res.data.message);
+        console.error(res.error.message);
       }
     });
     this.organizationARVApi.getMy(organization.id).subscribe({
@@ -61,7 +61,7 @@ export class OrganizationStoreService {
           type: ToastType.DANGER,
           message: `Could not fetch access rights for organization ${organization.name}`
         });
-        console.error(res.data.message);
+        console.error(res.error.message);
       }
     });
   }
@@ -82,7 +82,7 @@ export class OrganizationStoreService {
         error: res => {
           this.toastService.show({
             type: ToastType.SUCCESS,
-            message: `${user.name} could not be removed from the organization. ${res.data.message}`
+            message: `${user.name} could not be removed from the organization. ${res.error.message}`
           });
         }
       });
@@ -98,7 +98,7 @@ export class OrganizationStoreService {
       error: res => {
         this.toastService.show({
           type: ToastType.SUCCESS,
-          message: `Could not make ${user.name} a member of the organization. ${res.data.message}`
+          message: `Could not make ${user.name} a member of the organization. ${res.error.message}`
         });
       }
     });
@@ -113,7 +113,7 @@ export class OrganizationStoreService {
       error: res => {
         this.toastService.show({
           type: ToastType.SUCCESS,
-          message: `Could not make ${user.name} an owner of the organization. ${res.data.message}`
+          message: `Could not make ${user.name} an owner of the organization. ${res.error.message}`
         });
       }
     });
@@ -130,7 +130,7 @@ export class OrganizationStoreService {
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `Could not give user right ${accessRight}. ${res.data.message}`
+          message: `Could not give user right ${accessRight}. ${res.error.message}`
         });
       }
     });
@@ -147,7 +147,7 @@ export class OrganizationStoreService {
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `Could remove right ${accessRight}. ${res.data.message}`
+          message: `Could remove right ${accessRight}. ${res.error.message}`
         });
       }
     });
@@ -166,7 +166,7 @@ export class OrganizationStoreService {
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `Organization ${copy.name} could not be updated. ${res.data.message}`
+          message: `Organization ${copy.name} could not be updated. ${res.error.message}`
         });
       }
     });
@@ -189,7 +189,7 @@ export class OrganizationStoreService {
         error: res => {
           this.toastService.show({
             type: ToastType.DANGER,
-            message: `The organization ${this.organization.value.name} could not be deleted. ${res.data.message}`
+            message: `The organization ${this.organization.value.name} could not be deleted. ${res.error.message}`
           });
         }
       });
@@ -213,7 +213,7 @@ export class OrganizationStoreService {
         error: res => {
           this.toastService.show({
             type: ToastType.DANGER,
-            message: `Failed to leave organization ${this.organization.value.name}. ${res.data.message}`
+            message: `Failed to leave organization ${this.organization.value.name}. ${res.error.message}`
           });
         }
       });

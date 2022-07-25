@@ -10,7 +10,7 @@ import { SidebarItemComponent } from './components/sidebar-item/sidebar-item.com
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faAngleDoubleLeft,
-  faAngleDoubleRight, faBriefcase, faChevronRight,
+  faAngleDoubleRight, faBriefcase, faBuilding, faChevronRight,
   faCircleNotch,
   faCloudUploadAlt
 } from '@fortawesome/free-solid-svg-icons';
@@ -26,6 +26,7 @@ import { FileInputComponent } from './components/file-input/file-input.component
 import { SidebarHeaderComponent } from './components/sidebar-header/sidebar-header.component';
 import { ValidationErrorMessageComponent } from './components/validation-error-message/validation-error-message.component';
 import { ValidateFormInputPipe } from './pipes/validate-form-input.pipe';
+import { SearchOrganizationInputComponent } from './components/search-organization-input/search-organization-input.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +44,8 @@ import { ValidateFormInputPipe } from './pipes/validate-form-input.pipe';
     FileInputComponent,
     SidebarHeaderComponent,
     ValidationErrorMessageComponent,
-    ValidateFormInputPipe
+    ValidateFormInputPipe,
+    SearchOrganizationInputComponent
   ],
   providers: [],
   exports: [
@@ -60,7 +62,8 @@ import { ValidateFormInputPipe } from './pipes/validate-form-input.pipe';
     FileInputComponent,
     SidebarHeaderComponent,
     ValidateFormInputPipe,
-    ValidationErrorMessageComponent
+    ValidationErrorMessageComponent,
+    SearchOrganizationInputComponent
   ],
   imports: [
     CommonModule,
@@ -74,6 +77,6 @@ import { ValidateFormInputPipe } from './pipes/validate-form-input.pipe';
 export class CoreModule {
 
   constructor(private library: FaIconLibrary) {
-    library.addIcons(faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch, faCloudUploadAlt, faChevronRight, faBriefcase);
+    library.addIcons(faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch, faCloudUploadAlt, faChevronRight, faBriefcase, faBuilding);
   }
 }

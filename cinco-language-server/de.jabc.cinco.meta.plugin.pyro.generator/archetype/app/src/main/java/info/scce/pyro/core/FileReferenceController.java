@@ -1,93 +1,116 @@
 package info.scce.pyro.core;
 
+import org.jboss.resteasy.plugins.providers.multipart.*;
+import org.apache.commons.io.IOUtils;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import javax.ws.rs.core.MultivaluedMap;
+import info.scce.pyro.core.rest.types.FileReference;
+
 @javax.transaction.Transactional
-@javax.ws.rs.Path("/files")
+@Path("/files")
 @javax.enterprise.context.RequestScoped
 public class FileReferenceController {
 	
-	@javax.ws.rs.POST
-	@javax.ws.rs.Path("/create")
-	@javax.ws.rs.Consumes(javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA)
-	@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_JSON)
+	@POST
+	@Path("/create")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
 	@javax.annotation.security.RolesAllowed("user")
-	public javax.ws.rs.core.Response create(
-			final org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput input)
-			throws java.io.IOException {
+	public Response create(final MultipartFormDataInput input) throws java.io.IOException {
  
-		final java.util.List<org.jboss.resteasy.plugins.providers.multipart.InputPart> inputParts = input
+		final java.util.List<InputPart> inputParts = input
 				.getFormDataMap().get("file");
 
 		if (inputParts == null || inputParts.isEmpty()) {
-			throw new javax.ws.rs.WebApplicationException("invalid request");
+			throw new WebApplicationException("invalid request");
 		}
 
-		final org.jboss.resteasy.plugins.providers.multipart.InputPart inputPart = inputParts
-				.get(0);
-		final javax.ws.rs.core.MultivaluedMap<java.lang.String, java.lang.String> header = inputPart
-				.getHeaders();
+		final InputPart inputPart = inputParts.get(0);
+		final MultivaluedMap<String, String> header = inputPart.getHeaders();
 
-		java.lang.String fileName = "unknown";
-		final java.lang.String[] contentDisposition = header.getFirst(
-				"Content-Disposition").split(";");
+		String fileName = "unknown";
+		final String[] contentDisposition = header.getFirst("Content-Disposition").split(";");
 
-		for (java.lang.String filename : contentDisposition) {
+		for (String filename : contentDisposition) {
 			if ((filename.trim().startsWith("filename"))) {
-				final java.lang.String[] name = filename.split("=");
+				final String[] name = filename.split("=");
 				fileName = name[1].trim().replaceAll("\"", "");
 				break;
 			}
 		}
 
-		final entity.core.BaseFileDB reference = FileController
-				.storeFile(fileName,
-						inputPart.getBody(java.io.InputStream.class, null));
+		final entity.core.BaseFileDB reference = FileController.storeFile(fileName, inputPart.getBody(java.io.InputStream.class, null));
 		reference.contentType = inputPart.getMediaType().toString();
 		reference.persist();
-		return javax.ws.rs.core.Response.ok(
-				new info.scce.pyro.core.rest.types.FileReference(reference))
-				.build();
+		return Response.ok(new FileReference(reference)).build();
 	}
 
-	@javax.ws.rs.GET
-	@javax.ws.rs.Path("/download/{id}/private")
-	@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM)
-	public javax.ws.rs.core.Response download(@javax.ws.rs.PathParam("id") final long id) {
+	@GET
+	@Path("/download/id/{id}/private")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response download(@PathParam("id") final long id) {
 		final entity.core.BaseFileDB reference = FileController.getFileReference(id);
 		final java.io.InputStream stream = FileController.loadFile(reference);
-
 		final byte[] result;
-
 		try {
-			result = org.apache.commons.io.IOUtils.toByteArray(stream);
+			result = IOUtils.toByteArray(stream);
 		} catch (java.io.IOException e) {
-			throw new javax.ws.rs.WebApplicationException(e);
+			throw new WebApplicationException(e);
 		}
-
-		return javax.ws.rs.core.Response
-				.ok(result, reference.contentType)
+		return Response.ok(result, reference.contentType)
 				.header("Content-Disposition", "attachment; filename=" + (reference.filename+"."+reference.fileExtension))
 				.build();
 	}
+	
+	@GET
+	@Path("/download/path/{path}/private")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response download(@PathParam("path") final String relativeFilePath) {
+		final java.io.InputStream stream = FileController.loadFile(relativeFilePath);
+		final String fileName = FileController.getFileName(relativeFilePath);
+		final byte[] result;
+		try {
+			result = IOUtils.toByteArray(stream);
+		} catch (java.io.IOException e) {
+			throw new WebApplicationException(e);
+		}
+		return Response.ok(result, MediaType.APPLICATION_OCTET_STREAM)
+				.header("Content-Disposition", "attachment; filename=" + fileName)
+				.build();
+	}
 
-	@javax.ws.rs.GET
-	@javax.ws.rs.Path("/read/{id}/private")
-	@javax.ws.rs.Produces(javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM)
+	@GET
+	@Path("/read/{id}/private")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@javax.annotation.security.RolesAllowed("user")
-	public javax.ws.rs.core.Response read(@javax.ws.rs.PathParam("id") final long id) {
-
+	public Response read(@PathParam("id") final long id) {
 		final entity.core.BaseFileDB reference = FileController.getFileReference(id);
 		final java.io.InputStream stream = FileController.loadFile(reference);
-
 		final byte[] result;
-
 		try {
-			result = org.apache.commons.io.IOUtils.toByteArray(stream);
+			result = IOUtils.toByteArray(stream);
 		} catch (java.io.IOException e) {
-			throw new javax.ws.rs.WebApplicationException(e);
+			throw new WebApplicationException(e);
 		}
+		return Response.ok(result, reference.contentType).build();
+	}
 
-		return javax.ws.rs.core.Response
-				.ok(result, reference.contentType)
-				.build();
+	@GET
+	@Path("/read/root/private")
+	@Produces(MediaType.TEXT_PLAIN)
+	@javax.annotation.security.RolesAllowed("user")
+	public Response getWorkspaceRoot() {
+		final String root = FileController.getWorkspaceRoot();
+		return Response.ok(root).build();
+	}
+	
+	@GET
+	@Path("/read/upload_folder/private")
+	@Produces(MediaType.TEXT_PLAIN)
+	@javax.annotation.security.RolesAllowed("user")
+	public Response getUploadFolder() {
+		return Response.ok(FileController.UPLOAD_FOLDER).build();
 	}	
 }

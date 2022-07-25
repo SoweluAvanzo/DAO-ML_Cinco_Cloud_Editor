@@ -83,19 +83,13 @@ class ActivityGenerator extends WebStorySwitch<CharSequence> {
 
 	private def absoluteBackgroundImage(Screen screen) {
 		val imageName = screen.backgroundImage
-			.replace("/private", "")
-			.replace(File.separator, "_")
-			.replace("/", "_");
-		val imagePath = ("./images/"+imageName+".jpg")
-			.removeWindowsBackslashes.htmlEscape
+		val imagePath = imageName.removeWindowsBackslashes.htmlEscape
 		
 		// create resource
-		val file = FileController.loadFile(
-			Long.parseLong(imageName)
-		)
+		val fileStream = FileController.loadFile(imageName)
 		
 		try{
-			generator.copyResource(file, imagePath);
+			generator.copyResource(fileStream, imagePath);
 		} catch(IOException e) {
 			e.printStackTrace
 		}

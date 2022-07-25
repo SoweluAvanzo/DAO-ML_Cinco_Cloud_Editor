@@ -38,7 +38,7 @@ export class LoginComponent implements OnInit {
           type: ToastType.DANGER,
           message: `Could not fetch application settings.`
         });
-        console.error(res.data.message);
+        console.error(res.error.message);
       }
     });
   }
@@ -53,7 +53,6 @@ export class LoginComponent implements OnInit {
         });
       },
       error: err => {
-        console.log('Fehler');
         this.toastService.show({type: ToastType.DANGER, message: `Login denied.\n ${err.message}`});
         console.log(err);
       }

@@ -5,9 +5,9 @@ public class FileReference {
 	private long id;
 	private String fileName;
 	private String contentType;
+	private String filePath;
 
-	public FileReference() {
-	}
+	public FileReference() {}
 
 	public FileReference(final entity.core.BaseFileDB delegate) {
 		this.setId(delegate.id);
@@ -16,6 +16,7 @@ public class FileReference {
 		else
 			this.setFileName(delegate.filename);
 		this.setContentType(delegate.contentType);
+		this.setFilePath(delegate.path);
 	}
 
 	@com.fasterxml.jackson.annotation.JsonProperty("id")
@@ -38,6 +39,16 @@ public class FileReference {
 		this.fileName = fileName;
 	}
 
+	@com.fasterxml.jackson.annotation.JsonProperty("filePath")
+	public String getFilePath() {
+		return filePath;
+	}
+
+	@com.fasterxml.jackson.annotation.JsonProperty("filePath")
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+
 	@com.fasterxml.jackson.annotation.JsonProperty("contentType")
 	public String getContentType() {
 		return contentType;
@@ -52,17 +63,13 @@ public class FileReference {
 	public boolean equals(final java.lang.Object obj) {
 		if (this == obj) {
 			return true;
-		}
-
-		if (!(obj instanceof FileReference)) {
+		} else if (!(obj instanceof FileReference)) {
 			return false;
 		}
-
 		final FileReference that = (FileReference) obj;
 		if (this.getId() == -1 && that.getId() == -1) {
 			return this == that;
 		}
-
 		return this.getId() == that.getId();
 	}
 }

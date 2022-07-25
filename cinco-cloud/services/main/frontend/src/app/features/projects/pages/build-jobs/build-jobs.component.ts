@@ -94,7 +94,7 @@ export class BuildJobsComponent implements OnInit {
           type: ToastType.DANGER,
           message: `Could not fetch build-jobs.`
         });
-        console.error(res.data.message);
+        console.error(res.error.message);
       }
     });
   }
