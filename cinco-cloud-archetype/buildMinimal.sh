@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker build -f DockerfileMinimal -t editor .
+cd .. && docker build -f cinco-cloud-archetype/DockerfileMinimal -t editor .
