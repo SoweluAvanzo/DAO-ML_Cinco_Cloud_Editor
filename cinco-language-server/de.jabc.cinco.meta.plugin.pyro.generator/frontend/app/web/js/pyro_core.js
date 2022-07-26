@@ -1800,28 +1800,7 @@ function downloadContent(filename, text) {
 }
 
 function reAdjustDimensions(paper, paperMap) {
-    adjustDimensions(paper);
     adjustMapDimensions(paperMap);
-}
-
-function adjustDimensions(paper) {
-    if(paper == null)
-        return;
-    var container = document.getElementsByTagName('pyro-canvas')[0]; // 'micro' layout-container
-    var classicContainer = container.closest("bs-tab-content");
-    if(classicContainer != null) { // 'classic' layout-container
-        container = classicContainer;
-        container.style.overflow = 'hidden';
-        var sibling = container.parentElement.children[0].firstChild;
-        var width = 1.1 * container.clientWidth;
-        var height = 1.1 * (container.clientHeight - sibling.clientHeight);
-        paper.setDimensions(width, height);
-    } else {
-        paper.setDimensions(
-            viewportToPixels('100vw'),
-            viewportToPixels('100vh')
-        );
-    }
 }
 
 function adjustMapDimensions(paperMap) {

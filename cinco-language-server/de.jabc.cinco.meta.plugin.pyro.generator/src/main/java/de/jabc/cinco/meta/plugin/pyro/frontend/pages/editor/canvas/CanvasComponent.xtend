@@ -867,7 +867,7 @@ class CanvasComponent extends Generatable {
 			</div>
 		
 			<div class="card pyro-panel h-100 d-flex flex-column">
-				<div class="card-body pyro-panel-body p-0 overflow: hidden">
+				<div class="card-body pyro-panel-body p-0 overflow-hidden d-flex flex-column canvas-wrapper">
 					«FOR g:gc.ecores»
 						<template [ngIf]="is«g.name.fuEscapeDart»()">
 							<p>No Editor available for «g.name» Ecore</p>
@@ -877,6 +877,7 @@ class CanvasComponent extends Generatable {
 					«FOR g:gc.concreteGraphModels»
 						<«g.name.lowEscapeDart»-canvas
 						#«g.name.lowEscapeDart»_canvas_component
+						class="d-flex flex-column h-100"
 						*ngIf="is«g.name.fuEscapeDart»()"
 							[user]="user"
 							[isError]="isError"
