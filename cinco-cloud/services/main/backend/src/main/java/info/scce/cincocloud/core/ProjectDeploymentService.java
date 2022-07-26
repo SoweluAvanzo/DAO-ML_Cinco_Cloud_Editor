@@ -6,7 +6,6 @@ import info.scce.cincocloud.core.rest.tos.ProjectDeploymentTO;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 import info.scce.cincocloud.k8s.K8SClientService;
-import info.scce.cincocloud.k8s.K8SException;
 import info.scce.cincocloud.k8s.K8SIngressService;
 import info.scce.cincocloud.k8s.K8SUtils;
 import info.scce.cincocloud.k8s.languageeditor.TheiaK8SDeployment;
@@ -167,14 +166,34 @@ public class ProjectDeploymentService {
     }
 
     // start database
-    client.services().create(databaseService.getResource());
-    client.apps().statefulSets().create(databaseDeployment.getResource());
+    if (K8SUtils.getServiceByName(client, databaseService.getResource().getMetadata().getName()).isEmpty()) {
+      client.services().create(databaseService.getResource());
+    }
+    if (K8SUtils.getStatefulSetByName(client, databaseDeployment.getResource().getMetadata().getName()).isEmpty()) {
+      client.apps().statefulSets().create(databaseDeployment.getResource());
+    }
 
     // start modeleditor app
-    final var service = client.services().create(appService.getResource());
-    final var deployment = client.apps().deployments().create(appDeployment.getResource());
-    client.network().v1().ingresses().create(appIngressFrontend.getResource());
-    client.network().v1().ingresses().create(appIngressBackend.getResource());
+    final var serviceOptional = K8SUtils.getServiceByName(client,
+        appService.getResource().getMetadata().getName());
+
+    final var service = serviceOptional.isEmpty()
+        ? client.services().create(appService.getResource())
+        : serviceOptional.get();
+
+    final var deploymentOptional = K8SUtils.getDeploymentByName(client,
+        appDeployment.getResource().getMetadata().getName());
+
+    final var deployment = deploymentOptional.isEmpty()
+        ? client.apps().deployments().create(appDeployment.getResource())
+        : deploymentOptional.get();
+
+    if (K8SUtils.getIngressByName(client, appIngressFrontend.getResource().getMetadata().getName()).isEmpty()) {
+      client.network().v1().ingresses().create(appIngressFrontend.getResource());
+    }
+    if (K8SUtils.getIngressByName(client, appIngressBackend.getResource().getMetadata().getName()).isEmpty()) {
+      client.network().v1().ingresses().create(appIngressBackend.getResource());
+    }
 
     final var status = new ProjectDeploymentTO(appIngressFrontend.getPath(),
         ProjectDeploymentStatus.DEPLOYING);
@@ -222,9 +241,23 @@ public class ProjectDeploymentService {
       client.persistentVolumes().create(persistentVolume.getResource());
     }
 
-    final var editorService = client.services().create(service.getResource());
-    final var editorPod = client.apps().statefulSets().create(deployment.getResource());
-    client.network().v1().ingresses().create(ingress.getResource());
+    final var editorServiceOptional = K8SUtils.getServiceByName(client,
+        service.getResource().getMetadata().getName());
+
+    final var editorService = editorServiceOptional.isEmpty()
+        ? client.services().create(service.getResource())
+        : editorServiceOptional.get();
+
+    final var editorPodOptional = K8SUtils.getStatefulSetByName(client,
+        deployment.getResource().getMetadata().getName());
+
+    final var editorPod = editorPodOptional.isEmpty()
+        ? client.apps().statefulSets().create(deployment.getResource())
+        : editorPodOptional.get();
+
+    if (K8SUtils.getIngressByName(client, ingress.getResource().getMetadata().getName()).isEmpty()) {
+      client.network().v1().ingresses().create(ingress.getResource());
+    }
 
     final var status = new ProjectDeploymentTO(ingress.getPath(),
         ProjectDeploymentStatus.DEPLOYING);
