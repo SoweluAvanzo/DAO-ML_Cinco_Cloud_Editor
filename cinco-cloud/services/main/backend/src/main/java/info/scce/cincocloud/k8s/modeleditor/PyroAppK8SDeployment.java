@@ -1,6 +1,7 @@
 package info.scce.cincocloud.k8s.modeleditor;
 
 import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.k8s.shared.EditorType;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -180,6 +181,10 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                     new EnvVarBuilder()
                         .withName("MINIO_SECRET_KEY")
                         .withValue(minioSecretKey)
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName(EditorType.KEY)
+                        .withValue(EditorType.MODEL_EDITOR.name())
                         .build()
                 )
                 .build()

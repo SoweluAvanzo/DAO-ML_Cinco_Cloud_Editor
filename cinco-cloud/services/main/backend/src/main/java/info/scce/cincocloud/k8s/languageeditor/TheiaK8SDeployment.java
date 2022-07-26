@@ -1,6 +1,7 @@
 package info.scce.cincocloud.k8s.languageeditor;
 
 import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.k8s.shared.EditorType;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -129,6 +130,10 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                             new EnvVarBuilder()
                                 .withName("USE_SSL")
                                 .withValue("true")
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName(EditorType.KEY)
+                                .withValue(EditorType.LANGUAGE_EDITOR.name())
                                 .build()
                         )
                         .build())
