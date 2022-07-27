@@ -220,7 +220,6 @@ cinco-cloud-deploy-testing:
 
 .archetype-job:
   before_script:
-    - rm cinco-cloud-archetype/cinco-ls
     - cp -r cinco-language-server cinco-cloud-archetype/cinco-ls
 
 .archetype-default-job-main:
