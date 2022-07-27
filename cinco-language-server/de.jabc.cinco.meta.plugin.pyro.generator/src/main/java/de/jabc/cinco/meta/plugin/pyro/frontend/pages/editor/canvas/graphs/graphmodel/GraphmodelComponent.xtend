@@ -1781,14 +1781,14 @@ class GraphmodelComponent extends Generatable {
 			(download)="downloadDisplayDialog($event)"
 		>
 		</display-dialog>
-		<div style="overflow: hidden;">
+		<div class="d-flex h-100 flex-column overflow-hidden">
 			<template [ngIf]="loading">
 				<h3 style="text-align: center;">Loading «g.name»..</h3>
 				<div class="progress">
 				 	    	<div class="progress-bar progress-bar-striped active" style="width: 100%;background-color: #be0101;"></div>
 				 	    </div>
 			</template>
-			<div ondragover="confirm_drop_«g.name.lowEscapeDart»(event)" ondrop="drop_on_canvas_«g.name.lowEscapeDart»(event)" id="paper_«g.name.lowEscapeDart»" style="margin:auto"></div>
+			<div class="h-100 w-100" ondragover="confirm_drop_«g.name.lowEscapeDart»(event)" ondrop="drop_on_canvas_«g.name.lowEscapeDart»(event)" id="paper_«g.name.lowEscapeDart»" style="margin:auto"></div>
 		</div>
 	'''
 
