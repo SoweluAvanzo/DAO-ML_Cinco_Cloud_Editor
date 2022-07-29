@@ -263,11 +263,13 @@ class CanvasComponent extends Generatable {
 		}
 		
 		bool hasChecks() {
-			return currentFile!=null && (
-				«FOR g:gc.concreteGraphModels.filter[it.hasChecks] SEPARATOR " ||"»
-					currentFile.$type() == '«g.typeName»'
-				«ENDFOR»
-			);
+			return currentFile!=null«
+				IF !gc.concreteGraphModels.filter[it.hasChecks].empty
+				» && (
+					«FOR g:gc.concreteGraphModels.filter[it.hasChecks] SEPARATOR " ||"»
+						currentFile.$type() == '«g.typeName»'
+					«ENDFOR»
+				)«ENDIF»;
 		}
 		
 		bool hasGenerator() {
