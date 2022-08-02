@@ -31,6 +31,8 @@ export class ServerLauncher implements BackendApplicationContribution {
     static ARGS: string[];
     static LOG = '';
     static CALLBACK: Promise<void> | undefined = undefined;
+    static readonly MAX_RETRIES = 10;
+    static readonly RETRY_TIMEOUT = 3000;
 
     onStart?(server: http.Server | https.Server): MaybePromise<void> {
         const msg = '*** starting server "' + ServerLauncher.FILE_PATH + '" ***';
@@ -63,28 +65,41 @@ export class ServerLauncher implements BackendApplicationContribution {
     }
 
     protected spawnProcessAsync(command: string, args?: string[], options?: cp.SpawnOptions): Promise<RawProcess> {
-        rawProcess = this.processFactory({ command, args, options });
-        rawProcess.errorStream.on('data', this.logError.bind(this));
-        rawProcess.outputStream.on('data', this.logInfo.bind(this));
         return new Promise<RawProcess>((resolve, reject) => {
-            ServerLauncher.LOG = '';
-            rawProcess.onError((error: ProcessErrorEvent) => {
-                this.onDidFailSpawnProcess(error);
-                if (error.code === 'ENOENT') {
-                    const guess = command.split(/\s+/).shift();
-                    if (guess) {
-                        reject(new Error(`Failed to spawn ${guess}\nPerhaps it is not on the PATH.`));
-                        return;
+            let retries = ServerLauncher.MAX_RETRIES;
+
+            const launch = (): void => {
+                rawProcess = this.processFactory({ command, args, options });
+                rawProcess.errorStream.on('data', this.logError.bind(this));
+                rawProcess.outputStream.on('data', this.logInfo.bind(this));
+                ServerLauncher.LOG = '';
+                rawProcess.onError((error: ProcessErrorEvent) => {
+                    this.onDidFailSpawnProcess(error);
+                    if (error.code === 'ENOENT') {
+                        const guess = command.split(/\s+/).shift();
+                        if (guess) {
+                            this.logError(`Failed to spawn ${guess}\nPerhaps it is not on the PATH.`);
+                        }
                     }
-                }
-                reject(error);
-            });
-            rawProcess.onClose((error: IProcessExitEvent) => {
-                this.logError(`${error}`);
-            });
-            rawProcess.onExit((exit: IProcessExitEvent) => {
-                this.logInfo(`${exit}`);
-            });
+                });
+                rawProcess.onClose((error: IProcessExitEvent) => {
+                    this.logError(`${error}`);
+                    if (error.code !== undefined && error.code > 0) {
+                        retries--;
+                        this.logError('Failed to start pyro server.');
+                        if (retries > 0) {
+                            this.logError(`Retry starting pyro server in ${ServerLauncher.RETRY_TIMEOUT}ms...`);
+                            setTimeout(() => launch(), ServerLauncher.RETRY_TIMEOUT);
+                        }
+                    }
+                });
+                rawProcess.onExit((exit: IProcessExitEvent) => {
+                    this.logInfo(`${exit}`);
+                });
+            };
+
+            launch();
+
             process.nextTick(() => resolve(rawProcess));
         });
     }
