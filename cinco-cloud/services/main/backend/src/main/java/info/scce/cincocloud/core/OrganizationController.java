@@ -1,11 +1,13 @@
 package info.scce.cincocloud.core;
 
+import info.scce.cincocloud.core.rest.tos.BooleanTO;
 import info.scce.cincocloud.core.rest.tos.OrganizationTO;
 import info.scce.cincocloud.core.rest.tos.UserTO;
 import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.OrganizationAccessRight;
 import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.OrganizationDB;
+import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
@@ -27,6 +29,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
 @Transactional
@@ -296,8 +299,36 @@ public class OrganizationController {
       }
 
       if (isOwnerOf(subject, orgInDB)) {
+        if(orgInDB.projects.stream().anyMatch(ProjectDB::hasActiveBuildjobs)) {
+          throw new RestException(Status.BAD_REQUEST, "There is at least one project with active buildjobs.");
+        }
         organizationService.deleteOrganization(orgInDB);
         return Response.ok(OrganizationTO.fromEntity(orgInDB, objectCache)).build();
+      }
+    }
+
+    return Response.status(Response.Status.FORBIDDEN).build();
+  }
+
+  @GET
+  @Path("/{orgId}/rpc/has-active-build-jobs/private")
+  @RolesAllowed("user")
+  public Response hasActiveBuildJobs(
+      @Context SecurityContext securityContext,
+      @PathParam("orgId") final long orgId
+  ) {
+    final UserDB subject = UserDB.getCurrentUser(securityContext);
+
+    if (subject != null) {
+      final OrganizationDB orgInDB = OrganizationDB.findById(orgId);
+      if (orgInDB == null) {
+        return Response.status(Response.Status.NOT_FOUND).build();
+      }
+
+      if (isOwnerOf(subject, orgInDB)) {
+        final var hasActiveBuildJobs = orgInDB.projects.stream().anyMatch(ProjectDB::hasActiveBuildjobs);
+
+        return Response.ok(new BooleanTO(hasActiveBuildJobs)).build();
       }
     }
 

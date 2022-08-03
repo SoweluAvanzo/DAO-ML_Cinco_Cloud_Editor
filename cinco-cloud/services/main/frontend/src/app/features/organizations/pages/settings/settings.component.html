@@ -31,8 +31,17 @@
         <h6 class="m-0">Delete the organization</h6>
         <p class="text-muted m-0">Deleting the organization also deletes all associated projects.</p>
       </div>
-      <div class="ms-3">
-        <button class="btn btn-sm btn-danger" (click)="organizationStore.deleteOrganization()">Delete</button>
+      <div *ngIf="hasActiveBuildJobs" class="text-danger d-flex">
+        <small class="align-self-center">There are active build jobs.</small>
+      </div>
+      <div class="ms-3 d-flex">
+        <button
+          class="btn btn-sm btn-danger align-self-center"
+          (click)="organizationStore.deleteOrganization()"
+          [disabled]="hasActiveBuildJobs"
+        >
+          Delete
+        </button>
       </div>
     </div>
   </div>
