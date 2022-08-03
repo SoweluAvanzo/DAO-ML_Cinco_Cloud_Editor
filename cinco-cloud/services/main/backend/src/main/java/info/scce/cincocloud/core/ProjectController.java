@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core;
 
+import info.scce.cincocloud.core.rest.tos.BooleanTO;
 import info.scce.cincocloud.core.rest.tos.GitInformationTO;
 import info.scce.cincocloud.core.rest.tos.OrganizationTO;
 import info.scce.cincocloud.core.rest.tos.ProjectTO;
@@ -15,6 +16,7 @@ import java.util.stream.Stream;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -373,11 +375,31 @@ public class ProjectController {
     final ProjectDB project = ProjectDB.findById(id);
     projectService.checkIfProjectExists(project);
     if (canDeleteProject(subject, project)) {
+      if (project.hasActiveBuildjobs()) throw new RestException(Status.BAD_REQUEST, "Project has active buildjobs.");
       projectService.deleteById(id);
       projectDeploymentService.delete(project);
       return Response.status(Status.NO_CONTENT).build();
     }
     throw new RestException(Status.FORBIDDEN, "Insufficient access rights.");
+  }
+
+  @GET
+  @Path("/{projectId}/rpc/has-active-build-jobs/private")
+  @RolesAllowed("user")
+  public Response hasActiveBuildJobs(
+      @Context SecurityContext securityContext,
+      @PathParam("projectId") final Long projectId
+  ) {
+    final var subject = UserDB.getCurrentUser(securityContext);
+    final var project = (ProjectDB) ProjectDB
+        .findByIdOptional(projectId)
+        .orElseThrow(() -> new EntityNotFoundException("The project (id: " + projectId + ") could not be found."));
+
+    projectService.checkPermission(project, subject);
+
+    final var hasActiveBuildJobs = project.buildJobs.stream().anyMatch(job -> !job.isTerminated());
+
+    return Response.ok(new BooleanTO(hasActiveBuildJobs)).build();
   }
 
   private boolean canCreateProject(UserDB user, Optional<OrganizationDB> organizationOptional) {

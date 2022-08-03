@@ -38,13 +38,24 @@
         </div>
 
         <div *ngIf="projectStore.canDeleteProject(user)" class="list-group">
-          <div class="list-group-item d-flex">
-            <div class="flex-grow-1">
-              <h6 class="m-0">Delete the project</h6>
-              <p class="text-muted m-0">Deleting the organization also deletes editor related resources.</p>
+          <div class="list-group-item py-3">
+            <div class="d-flex">
+              <div class="flex-grow-1">
+                <h6 class="m-0">Delete the project</h6>
+                <p class="text-muted m-0">Deleting the organization also deletes editor related resources.</p>
+              </div>
+              <div class="d-flex">
+                <button
+                  (click)="projectStore.deleteProject()"
+                  class="btn btn-sm btn-danger align-self-center"
+                  [disabled]="hasActiveBuildJobs"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-            <div class="ms-3">
-              <button (click)="projectStore.deleteProject()" class="btn btn-sm btn-danger">Delete</button>
+            <div class="alert alert-danger mt-2 mb-0 py-2" *ngIf="hasActiveBuildJobs">
+              The project cannot be deleted because there are active build jobs.
             </div>
           </div>
         </div>

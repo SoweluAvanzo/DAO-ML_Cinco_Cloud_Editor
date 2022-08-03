@@ -104,7 +104,7 @@ export class ProjectStoreService {
         error: res => {
           this.toastService.show({
             type: ToastType.DANGER,
-            message: 'The project could not be deleted.'
+            message: `The project could not be deleted. ${res.error.message}`
           });
           console.log(res);
         }

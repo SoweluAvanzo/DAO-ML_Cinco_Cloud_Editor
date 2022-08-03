@@ -6,8 +6,8 @@ import { Project } from '../../models/project';
 import { ProjectDeployment } from '../../models/project-deployment';
 import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 import { User } from '../../models/user';
-import { Params } from '@angular/router';
 import { Organization } from '../../models/organization';
+import { BooleanResponse } from "../../models/boolean-response";
 
 @Injectable({
   providedIn: 'root'
@@ -82,6 +82,12 @@ export class ProjectApiService extends BaseApiService {
   public removeMember(projectId: number, user: User): Observable<Project> {
     return this.http.delete(`${this.apiUrl}/project/${projectId}/member/${user.id}/private`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
+    );
+  }
+
+  public hasActiveBuildJobs(projectId: number): Observable<BooleanResponse> {
+    return this.http.get(`${this.apiUrl}/project/${projectId}/rpc/has-active-build-jobs/private`, this.defaultHttpOptions).pipe(
+      map((body: any) => body as BooleanResponse)
     );
   }
 

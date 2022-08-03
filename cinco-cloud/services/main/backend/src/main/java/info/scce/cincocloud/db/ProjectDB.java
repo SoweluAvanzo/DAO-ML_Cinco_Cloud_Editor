@@ -88,6 +88,11 @@ public class ProjectDB extends PanacheEntity {
     return this.type.equals(ProjectType.MODEL_EDITOR);
   }
 
+  @Transient
+  public boolean hasActiveBuildjobs() {
+    return this.buildJobs.stream().anyMatch(job -> !job.isTerminated());
+  }
+
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(
       name = "ProjectDB_members",
