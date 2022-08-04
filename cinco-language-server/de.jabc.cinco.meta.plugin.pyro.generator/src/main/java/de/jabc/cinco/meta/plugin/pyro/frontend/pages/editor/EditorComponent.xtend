@@ -190,7 +190,7 @@ class EditorComponent extends Generatable {
 						initEditorGrid();
 					}
 				});
-			} else if(mainLayout == 'micro') {
+			} else if(mainLayout == 'micro' && this.currentFile != null) {
 				js.context.callMethod("initializeResizeParameter", [this.currentFile.$lower_type()]);
 			}
 			loadAppearance();
@@ -445,11 +445,17 @@ class EditorComponent extends Generatable {
 		}
 		
 		void blockInteraction() {
+			if(this.currentFile == null) {
+				return;
+			}
 			var functionCall = 'start_propagation_'+ this.currentFile.$lower_type();
 			js.context.callMethod(functionCall);
 		}
 		
 		void unblockInteraction() {
+			if(this.currentFile == null) {
+				return;
+			}
 			var functionCall = 'end_propagation_'+ this.currentFile.$lower_type();
 			js.context.callMethod(functionCall);
 		}

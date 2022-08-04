@@ -24,7 +24,6 @@ public class PyroStyleDB {
     	return s;
     }
 
-    // TODO: SAMI: THEIA: better default-values
     public static PyroStyleDB getDefault() {
         PyroStyleDB s = new PyroStyleDB();
     	s.navBgColor = "rgb(200,200,200)";

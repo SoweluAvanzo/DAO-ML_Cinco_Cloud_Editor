@@ -548,16 +548,16 @@ class GraphmodelComponent extends Generatable {
 							  displayMessages = DisplayMessages.fromJSOG(jsog["content"]);
 							  showDisplayDialog = true;		  							
 							  // }
-							} else if (event == 'updateCursorPosition') {
+							}  else if (event == 'updateCursorPosition') {
 								// update cursor
 								var senderId = jsog['senderId'];
 								if (senderId.toString() != user.id.toString()) {
 									var content = jsog['content'];
 									var x = content['x'];
 									var y = content['y'];
-									var userName = senderId;
+									var userName = content['userName'];
 									
-									js.JsObject cursorManager = js.context['\$cursor_manager_«g.jsCall»'];
+									js.JsObject cursorManager = js.context['\$cursor_manager_webstory'];
 									cursorManager.callMethod('update_cursor', [senderId, userName, x, y]);  
 								}
 							} else if (event == '«websocketEventPrime»') {

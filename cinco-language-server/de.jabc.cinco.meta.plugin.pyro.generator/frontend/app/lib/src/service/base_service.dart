@@ -13,14 +13,12 @@ class BaseService {
   }
 
   static Map<String, String> get REQUEST_HEADERS {
-    Map<String, String> rh = {'Content-Type': 'application/json'};
-    /*
-      This is nolonger needed:
-      
-      if (window.localStorage.containsKey(tokenKey)) {
-        rh['Authorization'] = 'Bearer ' + window.localStorage[tokenKey];
-      }
-    */
+    var jwt = getAuthToken();
+    Map<String, String> rh = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': jwt
+    };
     return rh;
   }
 
@@ -110,12 +108,12 @@ class BaseService {
         });
   }
 
-  @deprecated
   static String getAuthToken() {
-    if (window.localStorage.containsKey(tokenKey)) {
-      return 'Bearer ' + window.localStorage[tokenKey];
-    }
-    return null;
+    var location = window.location.href;
+    location = location.replaceAll("#", ""); // remove query-breaking "#"
+    var uri = Uri.parse(location);
+    var token = uri.queryParameters["token"];
+    return token;
   }
 
   String getGraphModelEndpoint(String graphModelType) {

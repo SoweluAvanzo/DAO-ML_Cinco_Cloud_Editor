@@ -5,7 +5,7 @@ import { inject, injectable } from 'inversify';
 import * as querystring from 'querystring';
 
 @injectable()
-export class ProjectIdProvider implements FrontendApplicationContribution {
+export class CommandProvider implements FrontendApplicationContribution {
 
     @inject(CommandRegistry)
     protected readonly commandRegistry: CommandRegistry;
@@ -23,6 +23,15 @@ export class ProjectIdProvider implements FrontendApplicationContribution {
             execute: this.passProjectId
         });
         console.log('registered command: ' + PROJECT_ID_PROVIDER.id);
+
+        const JWT_PROVIDER: Command = {
+            id: 'info.scce.cinco.cloud.jwt',
+            label: 'info.scce.cinco.cloud.jwt'
+        };
+        registry.registerCommand(JWT_PROVIDER, {
+            execute: this.passJWT
+        });
+        console.log('registered command: ' + JWT_PROVIDER.id);
     }
 
     passProjectId(): string {
@@ -38,6 +47,16 @@ export class ProjectIdProvider implements FrontendApplicationContribution {
             throw new Error('projectId is undefined! Please provide it.');
         }
         return projectId;
+    }
+
+    passJWT(): string {
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        const params = Object.fromEntries(urlSearchParams.entries());
+        const jwt = params.jwt;
+        if (!jwt) {
+            throw new Error('jwt is undefined! Please provide it.');
+        }
+        return jwt;
     }
 }
 

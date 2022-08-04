@@ -21,24 +21,11 @@ class InitializeSettingsBean extends Generatable {
 		
 		@ApplicationScoped
 		@javax.transaction.Transactional
-		public class InitializeSettingsBean {
-			
-			//@javax.inject.Inject
-			//@org.eclipse.microprofile.rest.client.inject.RestClient
-			//info.scce.pyro.style.MainAppStyleClient styleClient;
-		
+		public class InitializeSettingsBean {		
 		
 			void onStart(@Observes StartupEvent ev) {
-				entity.core.PyroStyleDB style;
-				/*
-				try {
-					style = entity.core.PyroStyleDB.fromPOJO(styleClient.getStyle());
-				} catch (Exception e) {
-					System.out.println("Could not fetch styling. Falling back to default.");
-				}
-				*/
-				style = entity.core.PyroStyleDB.getDefault();
 				entity.core.PyroSettingsDB settings = new entity.core.PyroSettingsDB();
+				entity.core.PyroStyleDB style = entity.core.PyroStyleDB.getDefault();
 				settings.style = style;
 				
 				«FOR a:gc.rootPostCreate.indexed BEFORE "\n"»
