@@ -60,14 +60,11 @@ class GraphModelControllerGenerator extends Generatable {
 		    @javax.ws.rs.Path("list/private")
 		    @javax.annotation.security.RolesAllowed("user")
 		    public Response listGraphModels(@javax.ws.rs.core.Context SecurityContext securityContext) {
-		        final entity.core.PyroUserDB subject = entity.core.PyroUserDB.getCurrentUser(securityContext);
-		        
 				HashMap<String, String> extensions = new HashMap<>();
 				// <graphModelName, graphModelFileExtension>
 				«FOR g:gc.graphMopdels.filter[!isAbstract]»
 					extensions.put("«g.typeName»", "«g.fileExtension»");
 				«ENDFOR»
-
 				return Response.ok(extensions).build();
 		    }
 		

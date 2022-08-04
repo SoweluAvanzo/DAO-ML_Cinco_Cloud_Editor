@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 import entity.core.PyroUserDB;
+import info.scce.pyro.auth.PyroUserRegistry;
 import info.scce.pyro.rest.PyroSelectiveRestFilter;
 import info.scce.pyro.sync.ticket.TicketRegistrationHandler;
 
@@ -14,8 +15,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -28,12 +27,14 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import javax.websocket.Session;
 
+import org.jboss.logging.Logger;
+
 /**
  * Author zweihoff
  */
 @ServerEndpoint(value = "/api/ws/graphmodel/{graphModelId}/{ticket}/private")
 @ApplicationScoped
-public class GraphModelWebSocket {
+public class GraphModelWebSocket { // TODO: SAMI - new
 
     private final static String USER_ID = "USER_ID";
 
@@ -43,8 +44,7 @@ public class GraphModelWebSocket {
     @Inject
     DialogRegistry dialogRegistry;
 
-    private static final Logger LOGGER =
-            Logger.getLogger(GraphModelWebSocket.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GraphModelWebSocket.class.getName());
     
     @OnOpen
     public void open(final Session session,@PathParam("graphModelId") long graphModelId, @PathParam("ticket") String ticket) throws IOException {
@@ -57,7 +57,7 @@ public class GraphModelWebSocket {
 
     @OnMessage
     public void onMessage(String message, Session session) {
-    	// configure mapper
+    	// configure mapping
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -75,7 +75,12 @@ public class GraphModelWebSocket {
         			break;
         		case "updateCursorPosition":
         			final UpdateCursorPosition ucp = mapper.convertValue(m.getcontent(), UpdateCursorPosition.class);
-        			graphModelRegistry.send(ucp.getgraphModelId(), WebSocketMessage.fromEntity(m.getsenderId(), "updateCursorPosition", ucp));
+        			String id = ""+m.getsenderId();
+        			PyroUserDB user = PyroUserRegistry.getUser(id);
+        			ucp.setUserName(user.username);
+        			graphModelRegistry.send(ucp.getgraphModelId(), 
+        					WebSocketMessage.fromEntity(m.getsenderId(), "updateCursorPosition", ucp)
+        				);
         			break;
         		default:
     				break;
@@ -83,21 +88,22 @@ public class GraphModelWebSocket {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        LOGGER.log(Level.INFO, "New message from Client [{0}]: {1}",
-                new Object[] {session.getId(), message});
+        LOGGER.info("New message from Client " + session.getId() + ": " + message);
     }
     
     @OnClose
     public void onClose(Session session) {
     	String userId = session.getUserProperties().getOrDefault(USER_ID, null).toString();
+        PyroUserRegistry.removeUser(userId);
         this.graphModelRegistry.getCurrentOpenSockets().values().removeIf(n->n.containsKey(userId));
-        LOGGER.log(Level.INFO, "Close graphmodel connection for client: {0}", userId);
+        LOGGER.info("Close graphmodel connection for client: " + userId);
     }
 
     @OnError
     public void onError(Throwable exception, Session session) {
     	String userId = session.getUserProperties().getOrDefault(USER_ID, null).toString();
-        LOGGER.log(Level.INFO, "Error for graphmodel client: {0}", userId);
+    	PyroUserRegistry.removeUser(userId);
+    	LOGGER.info("Error for graphmodel client: " + userId);
     }
 
     public void send(long graphmodelId,WebSocketMessage message)

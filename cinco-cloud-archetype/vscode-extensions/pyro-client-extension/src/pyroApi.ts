@@ -1,16 +1,15 @@
 import * as http from 'http';
 import * as https from 'https';
+import { commands, window } from 'vscode';
 import { INTERNAL_PYRO_HOST, INTERNAL_PYRO_PORT, INTERNAL_PYRO_SUBPATH, INTERNAL_USE_SSL } from "./env_var";
 import { isEmpty } from './fileNameUtils';
-import { PyroEditorProvider } from './pyroEditor';
-
+import { outputChannel, PyroEditorProvider } from './pyroEditor';
 
 export abstract class PyroApi {
 
-	protected TOKEN: string | undefined;
 	protected PROJECT_ID: number | undefined = undefined;
 
-	private static async performRequest(httpOptions: http.RequestOptions,data?:any):Promise<any> {
+	private static async performRequest(httpOptions: http.RequestOptions, data?:any):Promise<any> {
 		PyroEditorProvider.logging("REQUESTING:\n"+JSON.stringify(httpOptions));
 		return new Promise((resolve, reject) => {
 			const req = http.request(httpOptions,(response: http.IncomingMessage) => {
@@ -48,7 +47,8 @@ export abstract class PyroApi {
 		});
 	}
 
-	public static async createModel(name :string|undefined, modelType:string|undefined, token: string): Promise<any> {
+	public static async createModel(name :string|undefined, modelType:string|undefined): Promise<any> {
+		const token = await this.getJWT();
 		const options: http.RequestOptions = {
             agent: INTERNAL_USE_SSL ? https.globalAgent : undefined,
             protocol: `${INTERNAL_USE_SSL ? 'https' : 'http'}:`,
@@ -66,7 +66,8 @@ export abstract class PyroApi {
 		});
 	}
 
-	public static async removeModel(modelType:string|undefined, id: string, token: string): Promise<any> {
+	public static async removeModel(modelType:string|undefined, id: string): Promise<any> {
+		const token = await this.getJWT();
 		const options = {
             agent: INTERNAL_USE_SSL ? https.globalAgent : undefined,
             protocol: `${INTERNAL_USE_SSL ? 'https' : 'http'}:`,
@@ -82,7 +83,8 @@ export abstract class PyroApi {
 		return this.performRequest(options);
 	}
 
-	public static async getModelTypes(token: string): Promise<Map<string, string>> {
+	public static async getModelTypes(): Promise<Map<string, string>> {
+		const token = await this.getJWT();
 		const options = {
             agent: INTERNAL_USE_SSL ? https.globalAgent : undefined,
             protocol: `${INTERNAL_USE_SSL ? 'https' : 'http'}:`,
@@ -98,9 +100,9 @@ export abstract class PyroApi {
 		return this.performRequest(options);
 	}
 	
-	public static async getModelTypesOf(extension: string, token: string): Promise<string[]> {
+	public static async getModelTypesOf(extension: string): Promise<string[]> {
 		const result: string[] = [];
-		const modelTypes = await this.getModelTypes(token);
+		const modelTypes = await this.getModelTypes();
 		const types = Object.entries(modelTypes);
 		for(const t of types) {
 			// if fileType is a registered graphModel-fileType
@@ -115,5 +117,18 @@ export abstract class PyroApi {
 		if(!modelType)
 			throw new Error("ModelType missing!");
 		return modelType.replace(".", "_").toLowerCase();
+	}
+
+	public static async getJWT(): Promise<string> {
+		try {
+			const jwt: string = await commands.executeCommand("info.scce.cinco.cloud.jwt");
+			const message = "received jwt: " + jwt;
+			outputChannel.appendLine(message);
+			return "Bearer "+jwt;
+		} catch (e) {
+			const message = "jwt not found!";
+			outputChannel.appendLine(message);
+			return "no-jwt";
+		}
 	}
 }

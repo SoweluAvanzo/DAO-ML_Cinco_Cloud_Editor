@@ -2,8 +2,8 @@
 import { FrontendApplicationContribution } from '@theia/core/lib/browser';
 import { ContainerModule, interfaces } from 'inversify';
 
-import { ProjectIdProvider } from './projectid-provider';
+import { CommandProvider } from './command-provider';
 
 export default new ContainerModule((bind: interfaces.Bind) => {
-    bind(FrontendApplicationContribution).to(ProjectIdProvider).inSingletonScope();
+    bind(FrontendApplicationContribution).to(CommandProvider).inSingletonScope();
 });

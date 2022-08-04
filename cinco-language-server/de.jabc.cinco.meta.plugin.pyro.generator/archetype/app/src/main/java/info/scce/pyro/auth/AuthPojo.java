@@ -18,9 +18,22 @@ public class AuthPojo {
     	AuthPojo debugUser = new AuthPojo();
     	debugUser.username = "peter";
     	debugUser.email = "peter@parker.com";
-    	debugUser.id = ""+getNextId(); // TODO: need better debug-case
+    	debugUser.id = ""+getNextId();
     	debugUser.profile_image = "debug.png";
     	return debugUser;
+    }
+    
+    public static AuthPojo getNoUser() {
+    	AuthPojo noUser = new AuthPojo();
+    	noUser.username = "no-user";
+    	noUser.email = "no-user@no-user.com";
+    	noUser.id = ""+getNextId();
+    	noUser.profile_image = "no-user.png";
+    	return noUser;
+    }
+    
+    public String getUserString() {
+        return id+";"+username+";"+email+";"+profile_image;
     }
 
     private static long getNextId() {

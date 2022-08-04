@@ -17,9 +17,12 @@ class FileService {
   }
 
 	static Future<String> getWorkspaceRoot() async{
+    var requestHeaders = BaseService.REQUEST_HEADERS;
+    requestHeaders['Content-Type'] = 'text/plain';
+    requestHeaders['Accept'] = 'text/plain';
 		return html.HttpRequest.request("${BaseService.baseUrl()}/files/read/root/private",
 			method: "GET",
-			requestHeaders: BaseService.REQUEST_HEADERS,
+			requestHeaders: requestHeaders,
 			withCredentials: true
 		).then((response){
 		  return response.responseText;
@@ -27,9 +30,12 @@ class FileService {
 	}
   
 	static Future<String> getUploadFolder() async{
+    var requestHeaders = BaseService.REQUEST_HEADERS;
+    requestHeaders['Content-Type'] = 'text/plain';
+    requestHeaders['Accept'] = 'text/plain';
 		return html.HttpRequest.request("${BaseService.baseUrl()}/files/read/upload_folder/private",
 			method: "GET",
-			requestHeaders: BaseService.REQUEST_HEADERS,
+			requestHeaders: requestHeaders,
 			withCredentials: true
 		).then((response){
 		  return response.responseText;

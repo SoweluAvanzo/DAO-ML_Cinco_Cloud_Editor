@@ -5,6 +5,9 @@ package info.scce.pyro.sync;
 public class UpdateCursorPosition {
 	
 	private long graphModelId;
+	private String userName;
+    private double x;
+    private double y;
 
     @com.fasterxml.jackson.annotation.JsonProperty("graphModelId")
     public long getgraphModelId() {
@@ -16,8 +19,15 @@ public class UpdateCursorPosition {
         this.graphModelId = graphModelId;
     }
     
+    @com.fasterxml.jackson.annotation.JsonProperty("userName")
+    public String getUserName() {
+        return this.userName;
+    }
 
-    private double x;
+    @com.fasterxml.jackson.annotation.JsonProperty("userName")
+    public void setUserName(final String userName) {
+        this.userName = userName;
+    }
     
     @com.fasterxml.jackson.annotation.JsonProperty("x")
     public double getx() {
@@ -28,9 +38,6 @@ public class UpdateCursorPosition {
     public void setx(final double x) {
         this.x = x;
     }
-    
-    
-    private double y;
     
     @com.fasterxml.jackson.annotation.JsonProperty("y")
     public double gety() {
