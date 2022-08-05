@@ -2,4 +2,4 @@
 certManager:
   email: alexander.bainczyk@tu-dortmund.de
 archetype:
-  image: registry.gitlab.com/scce/cinco-cloud/archetype:main-f8daaa79b2ea5b81b938bc21626d1253f7d456fd
+  image: registry.gitlab.com/scce/cinco-cloud/archetype:main-5c74201abe6e7af9356838d31186bbc818dcf475
