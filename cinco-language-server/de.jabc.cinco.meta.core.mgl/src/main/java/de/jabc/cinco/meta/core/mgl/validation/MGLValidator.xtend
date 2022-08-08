@@ -313,7 +313,39 @@ class MGLValidator extends AbstractMGLValidator {
 	@Check
 	def checkDiagramExtensionisNotEmpty(GraphModel m) {
 		if(!m.isIsAbstract && m.fileExtension.nullOrEmpty) {
-			error("Non-abstract graph models require a file extension.",MglPackage.Literals::GRAPH_MODEL__FILE_EXTENSION)
+			error("Non-abstract graph models require a diagram extension.", MglPackage.Literals::GRAPH_MODEL__FILE_EXTENSION)
+		}
+	}
+	
+	@Check
+	def checkDiagramExtensionWarningOnAbstract(GraphModel m) {
+		if(m.isIsAbstract && !m.fileExtension.nullOrEmpty) {
+			warning("Abstract graph models don't require a diagram extension.", MglPackage.Literals::GRAPH_MODEL__FILE_EXTENSION)
+		}
+	}
+	
+	@Check
+	def checkDiagramExtensionInPolymorphy(GraphModel m) {
+		if(m.fileExtension === null || m.isAbstract) {
+			return
+		}
+		val superGraphModels = m.allSuperGraphModels.filter[p| p !== null && !p.isAbstract && p !== m]
+		val collidingModels = superGraphModels.filter[p| m.fileExtension.equals(p.fileExtension)]
+		if(!collidingModels.empty) {
+			error("Graph model's diagram extension already used by an ancestor model.", MglPackage.Literals::GRAPH_MODEL__FILE_EXTENSION)
+		}
+	}
+	
+	@Check
+	def checkDiagramExtensionInMGL(GraphModel m) {
+		if(m.fileExtension === null || m.isAbstract) {
+			return
+		}
+		val mgl = m.eContainer as MGLModel
+		val graphModels = mgl.graphModels.filter[p| p !== null && !p.isAbstract && p !== m]
+		val collidingModels = graphModels.filter[p| m.fileExtension.equals(p.fileExtension)]
+		if(!collidingModels.empty) {
+			error("Graph model's diagram extension already in use inside this MGL.", MglPackage.Literals::GRAPH_MODEL__FILE_EXTENSION)
 		}
 	}
 	
