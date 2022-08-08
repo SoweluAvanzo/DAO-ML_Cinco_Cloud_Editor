@@ -1,4 +1,4 @@
-package de.jabc.cinco.meta.productdefinition.ide.endpoint.parser;
+package de.jabc.cinco.meta.core.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,8 +20,7 @@ import org.eclipse.xtext.resource.XtextPlatformResourceURIHandler;
 import org.eclipse.xtext.resource.XtextResourceSet;
 
 public class ParserHelper {
-	
-	
+
 	/**
 	 * Contains all resources that are supported by this language-server and
 	 * also can be resolved through cross-references. Does not contain the files
@@ -34,15 +33,32 @@ public class ParserHelper {
 	 */
 	public static Map<String, Resource> getAllResources(ILanguageServerAccess languageServerAccess, XtextResourceSet resourceSet, URI projectURI) {
 		List<URI> uris = getURIs(languageServerAccess);
-		
+		return getAllResources(uris, resourceSet, projectURI);
+	}
+	
+	/**
+	 * Contains all resources that are supported by this language-server and
+	 * also can be resolved through cross-references. Does not contain the files
+	 * that are just resources, e.g. text-files and images.
+	 *  
+	 * @param uris to parse
+	 * @param resourceSet an XtextResourceSet provided by an injected "Provider<XtextResourceSet>"
+	 * @param projectURI the uri to the workspaceFolder, which represents the project base
+	 * @return
+	 */
+	public static Map<String, Resource> getAllResources(List<URI> uris, XtextResourceSet resourceSet, URI projectURI) {
 		Map<String, Resource> parsedResources = new HashMap<>();
 		
 		// parse and resolve resources
 		XtextPlatformResourceURIHandler handler = (XtextPlatformResourceURIHandler) resourceSet.getLoadOptions().get("URI_HANDLER");
 		handler.setBaseURI(projectURI);
 		for(URI uri:uris) {
-			Resource resource = resourceSet.getResource(uri, true);
-			parsedResources.put(uri.devicePath(), resource);
+			try {
+				Resource resource = resourceSet.getResource(uri, true);
+				parsedResources.put(uri.devicePath(), resource);
+			} catch(Exception e) {
+				// e.printStackTrace();
+			}
 		}
 		EcoreUtil2.resolveAll(resourceSet);
 		

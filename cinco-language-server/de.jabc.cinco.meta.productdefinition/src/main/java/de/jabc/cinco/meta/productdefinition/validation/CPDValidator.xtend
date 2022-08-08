@@ -12,6 +12,13 @@ import org.eclipse.emf.ecore.EObject
 import com.google.inject.Inject
 import org.eclipse.xtext.workspace.IProjectConfigProvider
 import de.jabc.cinco.meta.core.utils.WorkspaceContext
+import de.jabc.cinco.meta.core.utils.ParserHelper
+import org.eclipse.xtext.resource.XtextResourceSet
+import com.google.inject.Provider
+import productDefinition.MGLDescriptor
+import org.eclipse.emf.common.util.URI
+import mgl.MGLModel
+import mgl.GraphModel
 
 /**
  * Custom validation rules. 
@@ -23,6 +30,9 @@ class CPDValidator extends AbstractCPDValidator {
 	
 	@Inject(optional = true)
 	IProjectConfigProvider projectConfigProvider;
+	
+	@Inject
+	protected Provider<XtextResourceSet> resourceSetProvider;
 	
 	@Check
 	def checkImage16Exists(CincoProduct cpd){
@@ -99,10 +109,68 @@ class CPDValidator extends AbstractCPDValidator {
 		}
 	}
 	
+	@Check
+	def checkDiagramExtension(MGLDescriptor mglDescriptor) {
+		val cpd = mglDescriptor.cincoProduct
+		val mglPath = mglDescriptor.mglPath
+		if(!cpd.exists(mglPath)) {
+			return;
+		}
+		val mgl = cpd.getMGL(mglPath)
+		val graphModels = mgl.graphModels.filter[!isAbstract]
+		
+		var allMGLPaths = cpd.mgls.map[m|m.mglPath]
+		var mglPaths = allMGLPaths.filter[m|!m.equals(mglPath)]
+		
+		for(g : graphModels) {
+			val diagramExtension = g.fileExtension
+			for(mp : mglPaths) {
+				val m = cpd.getMGL(mp)
+				val otherGraphModels = m.graphModels.filter[!isAbstract]			
+				for(o : otherGraphModels) {
+					val otherDiagramExtension = o.fileExtension
+					if(otherDiagramExtension.equals(diagramExtension)) {
+						error(
+							"DiagramExtension '" + diagramExtension
+							+ "' of '" + g.name + "' in '" + mglPath
+							+ "' already present in '"
+							+ mp+"' on '" + o.name + "'",
+							ProductDefinitionPackage.Literals.MGL_DESCRIPTOR__MGL_PATH
+						)
+					}
+				}
+			}
+		}
+	}
+	
+	@Check
+	def checkMGLPath(MGLDescriptor mglDescriptor) {
+		val cpd = mglDescriptor.cincoProduct
+		val mglPath = mglDescriptor.mglPath
+		val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, cpd)
+		val exists = workspaceContext.fileExists(mglPath)
+		
+		if(!exists) {
+			error(
+				"mgl '" + mglPath
+				+ "' can't be found.'",
+				ProductDefinitionPackage.Literals.MGL_DESCRIPTOR__MGL_PATH
+			)
+		}
+		
+		val mglPaths = cpd.mgls.filter[m|m !== mglDescriptor].map[m|m.mglPath]
+		if(mglPaths.contains(mglPath)) {
+			error(
+				"mgl '" + mglPath
+				+ "' is referenced multiple times.'",
+				ProductDefinitionPackage.Literals.MGL_DESCRIPTOR__MGL_PATH
+			)
+		}
+	}
+	
 	def checkPathExists(String path, EStructuralFeature eStructuralFeature, String msg, EObject reference) {
 		if(!path.nullOrEmpty &&!path.equals("\"\"")){
 			if(!(new File(path.replaceAll("\"",""))).exists && !reference.getFile(path.replaceAll("\"","")).exists){
-				
 				printFileDoesNotExistError(path.replaceAll("\"",""),eStructuralFeature)
 			}
 		}if(!path.nullOrEmpty &&path.equals("\"\"")){
@@ -114,8 +182,53 @@ class CPDValidator extends AbstractCPDValidator {
 		error(String.format("File %s does not exist",fileName),feature)
 	}
 	
+	def getCincoProduct(MGLDescriptor mglDescriptor) {
+		var container = mglDescriptor.eContainer	
+		while(container !== null) {
+			if(container instanceof CincoProduct) {
+				return container as CincoProduct
+			}
+			container = mglDescriptor.eContainer
+		}
+		return null
+	}
+	
+	def getMGL(EObject reference, String path) {		
+		val mgls = reference.getMGLs(#[path])
+		return mgls.empty ? null : mgls.get(0)
+	}
+	
+	def getMGL(GraphModel g) {
+		var current = g as EObject;
+		while(current !== null) {
+			current = current.eContainer
+			if(current instanceof MGLModel) {
+				return current;
+			}
+		}
+		return null;
+	}
+	
+	def getMGLs(EObject reference, Iterable<String> uriStrings) {
+		val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, reference)
+		val uris = <URI> newArrayList()
+		for(path:uriStrings) {
+			val uri = workspaceContext.getFileURI(path)
+			uris.add(uri)
+		}
+		val xtextResourceSet = resourceSetProvider.get
+		val mglResources = ParserHelper.getAllResources(uris, xtextResourceSet, workspaceContext.rootURI)
+		val mgls = mglResources.values().map[r| r.getContents().get(0)].filter(mgl.MGLModel)
+		mgls
+	}
+	
 	def getFile(EObject reference, String path) {
 		val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, reference);
 		workspaceContext.getFile(path)
+	}
+	
+	def exists(EObject reference, String path) {
+		val workspaceContext = WorkspaceContext.createInstance(projectConfigProvider, reference);
+		workspaceContext.fileExists(path)
 	}
 }
