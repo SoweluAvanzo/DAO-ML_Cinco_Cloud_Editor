@@ -4,10 +4,12 @@ import { Routes, RouterModule } from '@angular/router';
 import { ProfileComponent } from './profile.component';
 import { PasswordChangeComponent } from './components/password-change/password-change.component';
 import { PersonalInformationComponent } from './components/personal-information/personal-information.component';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CoreModule } from '../../core/core.module';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faExclamationTriangle, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { DeleteUserComponent } from './components/delete-user/delete-user.component';
+import { DeleteUserModalComponent } from './components/delete-user/delete-user-modal/delete-user-modal.component';
 
 
 const routes: Routes = [
@@ -18,19 +20,22 @@ const routes: Routes = [
   declarations: [
     ProfileComponent,
     PasswordChangeComponent,
-    PersonalInformationComponent
+    PersonalInformationComponent,
+    DeleteUserComponent,
+    DeleteUserModalComponent
   ],
-    imports: [
-        CommonModule,
-        RouterModule.forChild(routes),
-        ReactiveFormsModule,
-        CoreModule,
-        FontAwesomeModule
-    ]
+  imports: [
+    CommonModule,
+    RouterModule.forChild(routes),
+    ReactiveFormsModule,
+    CoreModule,
+    FontAwesomeModule,
+    FormsModule
+  ]
 })
 export class ProfileModule {
 
   constructor(library: FaIconLibrary) {
-    library.addIcons(faTrash);
+    library.addIcons(faTrash, faExclamationTriangle, faInfoCircle);
   }
 }

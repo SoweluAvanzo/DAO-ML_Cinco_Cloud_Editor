@@ -3,11 +3,14 @@ package info.scce.cincocloud.core;
 import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
 import info.scce.cincocloud.core.rest.inputs.UserSearchInput;
 import info.scce.cincocloud.core.rest.tos.UserTO;
+import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
+import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
 import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -114,13 +117,17 @@ public class UserController {
   public Response delete(@Context SecurityContext securityContext,
       @PathParam("userId") final long userId) {
     final UserDB subject = UserDB.getCurrentUser(securityContext);
-    if (subject != null && subject.isAdmin()) {
+    if (subject != null && (subject.isAdmin() || subject.id.equals(userId))) {
       final UserDB userToDelete = UserDB.findById(userId);
-      if (subject.equals(userToDelete)) { // an admin should not delete himself
-        throw new RestException(Response.Status.BAD_REQUEST, "Could not delete user. An admin cannot delete himself.");
+      // check if the user has open responsibilities
+      // e.g. is the only admin, owns projects with members, owns organizations
+      if(userCanBeDeleted(userToDelete)){
+        userService.deleteUser(userToDelete);
+        return Response.ok().build();
+      } else {
+        throw new RestException(Response.Status.BAD_REQUEST,
+            "Could not delete user. User still has unresolved responsibilities.");
       }
-      userService.deleteUser(userToDelete);
-      return Response.ok().build();
     }
 
     throw new RestException(Response.Status.FORBIDDEN, "Missing permissions to delete a user");
@@ -172,5 +179,20 @@ public class UserController {
     }
 
     throw new RestException(Response.Status.FORBIDDEN, "Missing permissions to demote a user");
+  }
+
+  private boolean userCanBeDeleted(UserDB userToDelete){
+    final List<UserDB> result = UserDB.listAll();
+    // a user cannot delete their account, if they're the only admin
+    if((userToDelete.isAdmin() && result.stream().filter(UserDB::isAdmin).count() > 1) || !userToDelete.isAdmin()){
+      // a user cannot delete their account, if they own projects with at least one other member
+      if(userToDelete.personalProjects.stream().allMatch(project -> project.members.isEmpty())){
+        // a user cannot delete their account, if they are the sole owner of an organization
+        if(userToDelete.ownedOrganizations.stream().noneMatch(org -> org.owners.size() == 1)){
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

@@ -1,0 +1,91 @@
+<div class="modal-header">
+  <h5 class="modal-title">Delete your account</h5>
+  <button (click)="modal.dismiss()" aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+</div>
+<div class="modal-body light">
+  <!-- Administration -->
+  <div class="card bg-light border-danger text-light mb-3" *ngIf="this.user.isAdmin && admins == 1">
+    <div class="card-header bg-danger">
+      <fa-icon [icon]="['fas', 'exclamation-triangle']" [fixedWidth]="true" class="me-1"></fa-icon> Administration
+    </div>
+    <div class="card-body">
+      <div class="alert alert-danger my-0 clickable-alert" (click)="goToAdmins()">
+        <p class="mb-0">
+          You are the only administrator of CincoCloud!
+          Please make another user administrator bevor you delete your account.
+        </p>
+        <fa-icon [icon]="['fas', 'external-link-alt']" [fixedWidth]="true" class="external-link-icon"></fa-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Organizations -->
+  <div class="card bg-light border-danger text-light mb-3" *ngIf="responsibleOrgs.length != 0">
+    <div class="card-header bg-danger">
+      <fa-icon [icon]="['fas', 'exclamation-triangle']" [fixedWidth]="true" class="me-1"></fa-icon> Organizations
+    </div>
+    <div class="card-body text-dark">
+      <p>
+        You have the sole responsibility for the following organizations.
+        Please make another member owner of these organizations.
+      </p>
+      <ul class="list-group">
+        <li class="list-group-item list-group-item-action" *ngFor="let org of responsibleOrgs"  (click)="goToOrg(org.id)">
+          {{ org.name }} <fa-icon [icon]="['fas', 'external-link-alt']" [fixedWidth]="true" class="external-link-icon"></fa-icon>
+        </li>
+      </ul>
+    </div>
+  </div>
+  
+  <!-- Projects with members -->
+  <div class="card bg-light border-danger text-light mb-3" *ngIf="responsibleProjects.length != 0">
+    <div class="card-header bg-danger">
+      <fa-icon [icon]="['fas', 'exclamation-triangle']" [fixedWidth]="true" class="me-1"></fa-icon> Shared projects 
+    </div>
+    <div class="card-body text-dark">
+      <p>
+        You have the responsibility for the following projects.
+        Please transfer the ownership of these projects to other members.
+      </p>
+      <ul class="list-group">
+        <li class="list-group-item list-group-item-action" *ngFor="let project of responsibleProjects"  (click)="goToProject(project.id)">
+          {{ project.name }} <fa-icon [icon]="['fas', 'external-link-alt']" [fixedWidth]="true" class="external-link-icon"></fa-icon>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Projects without members -->
+  <div class="card bg-light border-info text-light mb-3" *ngIf="soloProjects.length != 0">
+    <div class="card-header bg-info">
+      <fa-icon [icon]="['fas', 'info-circle']" [fixedWidth]="true" class="me-1"></fa-icon> Your projects
+    </div>
+    <div class="card-body text-dark">
+      <p>
+        These projects will be deleted and inevitably be lost:
+      </p>
+      <ul class="list-group">
+        <li class="list-group-item list-group-item-action" *ngFor="let project of soloProjects" (click)="goToProject(project.id)">
+          {{ project.name }} <fa-icon [icon]="['fas', 'external-link-alt']" [fixedWidth]="true" class="external-link-icon"></fa-icon>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div>
+    <label class="form-label" for="name">Enter your username to delete your account</label>
+    <input
+      class="form-control"
+      id="name"
+      placeholder="Enter your username"
+      type="text"
+      [(ngModel)]="userName">
+  </div>
+
+</div>
+<div class="modal-footer">
+  <button (click)="deleteUser()" [disabled]="((userName != user.username) || (responsibleProjects.length != 0)
+  || (responsibleOrgs.length != 0))" class="btn btn-danger" type="button">
+    Delete
+  </button>
+</div>
