@@ -5,6 +5,7 @@ import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.exeptions.RestException;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -23,13 +24,30 @@ public class UserService {
    * @param userToDelete The user to delete.
    */
   public void deleteUser(UserDB userToDelete) {
+    List<ProjectDB> allProjects = ProjectDB.listAll();
+    allProjects.stream()
+        .filter(pro -> pro.members.contains(userToDelete))
+        .forEach(pro -> {
+          pro.members.remove(userToDelete);
+          pro.persist();
+        });
+    if(!userToDelete.personalProjects.isEmpty()){
+      userToDelete.personalProjects.forEach(pro -> {
+        pro.owner = null;
+        pro.persist();
+        pro.delete();
+      });
+    }
     final List<OrganizationDB> organizations = OrganizationDB.listAll();
     organizations.forEach((org) -> {
       if (org.owners.contains(userToDelete) || org.members.contains(userToDelete)) {
         this.organizationController.removeFromOrganization(userToDelete, org);
       }
     });
-    userToDelete.delete();
+    UserDB userToDeleteUpdate = UserDB.findById(userToDelete.id);
+    if(userToDeleteUpdate != null){
+      userToDeleteUpdate.delete();
+    }
   }
 
   public void checkIfUserExists(UserDB user) {

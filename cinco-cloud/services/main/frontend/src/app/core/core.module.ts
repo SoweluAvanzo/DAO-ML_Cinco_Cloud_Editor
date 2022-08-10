@@ -12,7 +12,8 @@ import {
   faAngleDoubleLeft,
   faAngleDoubleRight, faBriefcase, faBuilding, faChevronRight,
   faCircleNotch,
-  faCloudUploadAlt
+  faCloudUploadAlt,
+  faExternalLinkAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { RouterModule } from '@angular/router';
 import { SearchUserInputComponent } from './components/search-user-input/search-user-input.component';
@@ -77,6 +78,6 @@ import { SearchOrganizationInputComponent } from './components/search-organizati
 export class CoreModule {
 
   constructor(private library: FaIconLibrary) {
-    library.addIcons(faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch, faCloudUploadAlt, faChevronRight, faBriefcase, faBuilding);
+    library.addIcons(faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch, faCloudUploadAlt, faChevronRight, faBriefcase, faBuilding, faExternalLinkAlt);
   }
 }

@@ -76,7 +76,8 @@ const routes: Routes = [
     ProjectListComponent
   ],
   exports: [
-    ProjectListComponent
+    ProjectListComponent,
+    OrganizationListComponent
   ],
   imports: [
     CommonModule,
