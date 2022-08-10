@@ -231,7 +231,7 @@ class MGLExtension {
 		var result = new HashSet<ModelElement>
 		
 		// resolve types that are directly related
-		val directContainable = g.containableElements.map[types].flatten
+		val directContainable = g.possibleEmbeddingTypes
 		val attributes = (g as ModelElement).attributeElements
 		elements.addAll(attributes);
 		elements.addAll(directContainable)
