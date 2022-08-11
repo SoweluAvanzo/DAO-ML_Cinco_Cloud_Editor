@@ -10,6 +10,12 @@ storageClassName: standard
 # The policy with which images are pulled. Should be 'Never' in local development mode and 'IfNotPresent' in production.
 imagePullPolicy: IfNotPresent
 
+# The image of the main service.
+mainImage: registry.gitlab.com/scce/cinco-cloud/main:latest
+
+# The image of the workspace builder service.
+workspaceBuilderImage: registry.gitlab.com/scce/cinco-cloud/workspace-builder:latest
+
 # Configuration for the ingress controller.
 ingress:
   # The host where CincoCloud is deployed.
