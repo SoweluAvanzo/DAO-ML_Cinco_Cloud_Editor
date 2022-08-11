@@ -2,6 +2,7 @@ package info.scce.cincocloud.k8s.modeleditor;
 
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.k8s.languageeditor.TheiaK8SResource;
+import info.scce.cincocloud.k8s.shared.K8SPersistentVolumeOptions;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolume;
@@ -13,10 +14,11 @@ import java.util.Map;
 
 public class PyroAppK8SPersistentVolume extends TheiaK8SResource<PersistentVolume> {
 
-  private static final String STORAGE = "2Gi";
+  private K8SPersistentVolumeOptions options;
 
-  public PyroAppK8SPersistentVolume(KubernetesClient client, ProjectDB project) {
+  public PyroAppK8SPersistentVolume(KubernetesClient client, ProjectDB project, K8SPersistentVolumeOptions options) {
     super(client, project);
+    this.options = options;
     this.resource = build();
   }
 
@@ -29,8 +31,8 @@ public class PyroAppK8SPersistentVolume extends TheiaK8SResource<PersistentVolum
         .withLabels(Map.of("app", getProjectName()))
         .endMetadata()
         .withSpec(new PersistentVolumeSpecBuilder()
-            .withStorageClassName("manual")
-            .withCapacity(Map.of("storage", Quantity.parse(STORAGE)))
+            .withStorageClassName(options.storageClassName)
+            .withCapacity(Map.of("storage", Quantity.parse(options.storage)))
             .withClaimRef(new ObjectReferenceBuilder()
                 .withNamespace(client.getNamespace())
                 .withName(getProjectName() + "-app-pv-claim")

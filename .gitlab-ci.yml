@@ -434,3 +434,48 @@ pages:
     paths:
       - public
     expire_in: 1 day
+
+
+# ====================================
+# Helm Chart
+# ====================================
+
+.helm-job:
+  image: 
+    name: alpine/helm:3.9.2
+    entrypoint: [""] 
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - infrastructure/**/*
+  before_script:
+    - cd infrastructure/helm
+    - rm values-*.yaml
+
+helm-lint:
+  extends: .helm-job
+  script:
+    - helm lint .
+
+helm-package:
+  extends: .helm-job
+  needs:
+    - helm-lint
+  script:
+    - helm package .
+  artifacts:
+    paths:
+      - infrastructure/helm/*.tgz
+    expire_in: '1 day'
+
+helm-push:
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - infrastructure/**/*
+  needs: 
+    - helm-package
+  script:
+    - CHART_VERSION=$(find . -name cincocloud-*.tgz | grep -Eo "([0-9]+.[0-9]+.[0-9]+)")
+    - curl --request POST --user gitlab-ci-token:$CI_JOB_TOKEN --form "chart=@infrastructure/helm/cincocloud-${CHART_VERSION}.tgz" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/stable/charts"

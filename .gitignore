@@ -3,4 +3,5 @@
 /infrastructure/helm/secrets.yml
 /infrastructure/helm/values-temp.yaml
 /infrastructure/helm/values-temp.yml
+/infrastructure/helm/*.tgz
 /cinco-cloud-local-rootCA.pem

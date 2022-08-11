@@ -120,17 +120,11 @@ data:
 6. Open `https://cinco-cloud/frontend` in a web browser to check if CincoCloud is reachable.
 7. Setup Minio Storage Server *(only once)*
 
-    * **Windows**
+    * **Windows / Linux**
 
       1. Execute `kubectl port-forward minio-statefulset-0 9001:9001`.
          Leave the terminal session open until you finished setting up Minio.
       2. Open `http://127.0.0.1:9001`
-
-    * **Linux**
-
-      1. Get the port of the [Minio][minio] Service: `kubectl get service minio-service -o jsonpath={.spec.ports[1].nodePort}`
-      2. Get the minikube ip: `minikube ip`
-      3. Open `http://<IP>:<PORT>` with the port obtained from the previous step
 
     * **MacOS**
 

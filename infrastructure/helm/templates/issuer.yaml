@@ -3,7 +3,6 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: letsencrypt-{{ .Values.serverTier }}
-  namespace: {{ .Release.Namespace }}
 spec:
   acme:
     # The ACME server URL
@@ -28,7 +27,6 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: selfsigned-issuer
-  namespace: {{ .Release.Namespace }}
 spec:
   selfSigned: {}
 ---
@@ -36,7 +34,6 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: cinco-cloud-local-ca-cert
-  namespace: {{ .Release.Namespace }}
 spec:
   isCA: true
   commonName: {{ .Values.ingress.host }}-local-rootCA
@@ -66,7 +63,6 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: cinco-cloud-local-development-cert
-  namespace: {{ .Release.Namespace }}
 spec:
   isCA: false
   commonName: {{ .Values.ingress.host }}-local-development-cert

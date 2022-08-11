@@ -1,6 +1,7 @@
 package info.scce.cincocloud.k8s.languageeditor;
 
 import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.k8s.shared.K8SPersistentVolumeOptions;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolume;
@@ -12,20 +13,14 @@ import java.util.Map;
 
 public class TheiaK8SPersistentVolume extends TheiaK8SResource<PersistentVolume> {
 
-  public TheiaK8SPersistentVolume(KubernetesClient client, ProjectDB project) {
+  private K8SPersistentVolumeOptions options;
+
+  public TheiaK8SPersistentVolume(KubernetesClient client, ProjectDB project, K8SPersistentVolumeOptions options) {
     super(client, project);
+    this.options = options;
     this.resource = build();
   }
 
-  /**
-   * Equivalent to:
-   * <p>
-   * apiVersion: v1 kind: PersistentVolume metadata: name: {name}-pv-volume namespace: default labels: app: {name} spec:
-   * storageClassName: manual capacity: storage: 2Gi accessModes: - ReadWriteMany hostPath: path:
-   * "/mnt/data/workspaces/{name}"
-   *
-   * @return the volume
-   */
   @Override
   protected PersistentVolume build() {
     return new PersistentVolumeBuilder()
@@ -35,8 +30,8 @@ public class TheiaK8SPersistentVolume extends TheiaK8SResource<PersistentVolume>
         .withLabels(Map.of("app", getProjectName()))
         .endMetadata()
         .withSpec(new PersistentVolumeSpecBuilder()
-            .withStorageClassName("manual")
-            .withCapacity(Map.of("storage", Quantity.parse("2Gi")))
+            .withStorageClassName(options.storageClassName)
+            .withCapacity(Map.of("storage", Quantity.parse(options.storage)))
             .withClaimRef(new ObjectReferenceBuilder()
                 .withNamespace(client.getNamespace())
                 .withName(getProjectName() + "-pv-claim")

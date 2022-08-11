@@ -181,14 +181,14 @@ public class UserController {
     throw new RestException(Response.Status.FORBIDDEN, "Missing permissions to demote a user");
   }
 
-  private boolean userCanBeDeleted(UserDB userToDelete){
+  private boolean userCanBeDeleted(UserDB userToDelete) {
     final List<UserDB> result = UserDB.listAll();
     // a user cannot delete their account, if they're the only admin
-    if((userToDelete.isAdmin() && result.stream().filter(UserDB::isAdmin).count() > 1) || !userToDelete.isAdmin()){
+    if ((userToDelete.isAdmin() && result.stream().filter(UserDB::isAdmin).count() > 1) || !userToDelete.isAdmin()) {
       // a user cannot delete their account, if they own projects with at least one other member
-      if(userToDelete.personalProjects.stream().allMatch(project -> project.members.isEmpty())){
+      if (userToDelete.personalProjects.stream().allMatch(project -> project.members.isEmpty())) {
         // a user cannot delete their account, if they are the sole owner of an organization
-        if(userToDelete.ownedOrganizations.stream().noneMatch(org -> org.owners.size() == 1)){
+        if (userToDelete.ownedOrganizations.stream().noneMatch(org -> org.owners.size() == 1)) {
           return true;
         }
       }

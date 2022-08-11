@@ -1,5 +1,56 @@
-# base values file
+# The name of the environment. Valid values are 'production' and 'local'.
+serverTier: production
+
+# If CincoCloud is started in debug mode. Should be 'false' if serverTier is 'production'.
+debug: false
+
+# The storage class name to use for persistent volumes.
+storageClassName: standard
+
+# The policy with which images are pulled. Should be 'Never' in local development mode and 'IfNotPresent' in production.
+imagePullPolicy: IfNotPresent
+
+# Configuration for the ingress controller.
+ingress:
+  # The host where CincoCloud is deployed.
+  host: app.example.com
+  # The class for nginx.
+  class: public
+
+# Configuration for the cert manager.
 certManager:
-  email: alexander.bainczyk@tu-dortmund.de
+  # The email the certificates are issued to.
+  email: demo@example.com
+
+# Configuration for the main service.
+main:
+  # The amount of available storage.
+  storage: 10Gi
+
+# Configuration for the postgres database.
+postgres:
+  # The amount of available storage.
+  storage: 10Gi
+
+# Configuration for the workspace builder service.
+workspaceBuilder:
+  # The amount of replicas available.
+  replicas: 1
+
+# Configuration for the message queue.
+artemis:
+  # The amount of available storage.
+  storage: 2Gi
+
+# Configuration for the minio object storage.
+minio:
+  # The amount of available storage.
+  storage: 20Gi
+
+# Configuration for the archetype image and Theia editors.
 archetype:
+  # The image that is used for editors.
   image: registry.gitlab.com/scce/cinco-cloud/archetype:main-5c74201abe6e7af9356838d31186bbc818dcf475
+  # The amount of available storage.
+  storage: 10Gi
+  
