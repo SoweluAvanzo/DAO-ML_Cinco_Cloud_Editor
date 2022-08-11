@@ -2,27 +2,27 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: main-config
-  namespace: {{ .Values.namespace }}
 data:
   DATABASE_URL: "postgres-service/cc"
   AMPQ_HOST: "ampq-service"
   AMPQ_PORT: "5672"
   MINIO_HOST: "minio-service"
   MINIO_PORT: "9000"
-  KUBERNETES_NAMESPACE: {{ .Values.namespace }}
+  KUBERNETES_NAMESPACE: {{ .Release.Namespace }}
   CINCO_CLOUD_HOST: {{ .Values.ingress.host }}
   {{ if eq .Values.serverTier "local" }}
-  CINCO_CLOUD_ARCHETYPE_IMAGE: registry.gitlab.com/scce/cinco-cloud/archetype:local
+  ARCHETYPE_IMAGE: registry.gitlab.com/scce/cinco-cloud/archetype:local
   {{- else -}}
-  CINCO_CLOUD_ARCHETYPE_IMAGE: {{ .Values.archetype.image }}
+  ARCHETYPE_IMAGE: {{ .Values.archetype.image }}
   {{- end }}
+  ARCHETYPE_STORAGE_CLASS_NAME: {{ .Values.storageClassName }}
+  ARCHETYPE_STORAGE: {{ .Values.archetype.storage }}
   ENVIRONMENT: {{ .Values.serverTier }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: main-statefulset
-  namespace: {{ .Values.namespace }}
   labels:
     app: main
 spec:
@@ -40,7 +40,7 @@ spec:
       containers:
         - name: main
           image: {{ .Values.mainImage }}
-          imagePullPolicy: {{ .Values.imageConfig.pullPolicy }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           ports:
             - containerPort: 8000
             - containerPort: 9000
@@ -102,7 +102,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: main-service
-  namespace: {{ .Values.namespace }}
   labels:
     app: main
 spec:
@@ -129,7 +128,6 @@ spec:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  namespace: {{ .Values.namespace }}
   name: main-role
 rules:
   - apiGroups: [""]
@@ -152,10 +150,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: main
-  namespace: {{ .Values.namespace }}
 subjects:
   - kind: ServiceAccount
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Release.Namespace }}
     name: main-sa
 roleRef:
   kind: ClusterRole
@@ -171,16 +168,15 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: main-pv-volume
-  namespace: {{ .Values.namespace }}
   labels:
     type: local
     app: main
 spec:
-  storageClassName: manual
+  storageClassName: {{ .Values.storageClassName }}
   capacity:
-    storage: 20Gi
+    storage: {{ .Values.main.storage | default "10Gi" | quote }}
   claimRef:
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Release.Namespace }}
     name: main-pv-claim
   accessModes:
     - ReadWriteMany
@@ -191,13 +187,13 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: main-pv-claim
-  namespace: {{ .Values.namespace }}
   labels:
     app: main
 spec:
-  storageClassName: manual
+  storageClassName: {{ .Values.storageClassName }}
+  volumeName: main-pv-volume
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: 20Gi
+      storage: {{ .Values.main.storage | default "10Gi" | quote }}

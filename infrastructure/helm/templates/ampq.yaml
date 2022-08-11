@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: ampq-statefulset
-  namespace: {{ .Values.namespace }}
   labels:
     app: ampq
 spec:
@@ -43,7 +42,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ampq-service
-  namespace: {{ .Values.namespace }}
   labels:
     app: ampq
 spec:
@@ -68,16 +66,15 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: ampq-pv-volume
-  namespace: {{ .Values.namespace }}
   labels:
     type: local
     app: ampq
 spec:
-  storageClassName: manual
+  storageClassName: {{ .Values.storageClassName }}
   capacity:
-    storage: 2Gi
+    storage: {{ .Values.artemis.storage | default "2Gi" | quote }}
   claimRef:
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Release.Namespace }}
     name: ampq-pv-claim
   accessModes:
     - ReadWriteMany
@@ -88,13 +85,13 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: ampq-pv-claim
-  namespace: {{ .Values.namespace }}
   labels:
     app: ampq
 spec:
-  storageClassName: manual
+  storageClassName: {{ .Values.storageClassName }}
+  volumeName: ampq-pv-volume
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: 2Gi
+      storage: {{ .Values.artemis.storage | default "2Gi" | quote }}
