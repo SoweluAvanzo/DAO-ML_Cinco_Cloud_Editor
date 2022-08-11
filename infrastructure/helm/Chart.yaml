@@ -1,6 +1,7 @@
 apiVersion: v2
 name: cincocloud
 description: A Helm chart for Cinco Cloud
+icon: https://scce.gitlab.io/cinco-cloud/assets/cinco-logo.png
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -21,4 +22,4 @@ version: 0.1.0
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: 0.1.0-SNAPSHOT
+appVersion: 0.1.0

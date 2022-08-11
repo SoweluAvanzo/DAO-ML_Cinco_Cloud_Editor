@@ -1,6 +1,7 @@
 package info.scce.cincocloud.k8s.modeleditor;
 
 import info.scce.cincocloud.db.ProjectDB;
+import info.scce.cincocloud.k8s.shared.K8SPersistentVolumeOptions;
 import info.scce.cincocloud.k8s.languageeditor.TheiaK8SResource;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
@@ -12,10 +13,11 @@ import java.util.Map;
 
 public class PyroAppK8SPersistentVolumeClaim extends TheiaK8SResource<PersistentVolumeClaim> {
 
-  private static final String STORAGE = "2Gi";
+  private K8SPersistentVolumeOptions options;
 
-  public PyroAppK8SPersistentVolumeClaim(KubernetesClient client, ProjectDB project) {
+  public PyroAppK8SPersistentVolumeClaim(KubernetesClient client, ProjectDB project, K8SPersistentVolumeOptions options) {
     super(client, project);
+    this.options = options;
     this.resource = build();
   }
 
@@ -28,10 +30,11 @@ public class PyroAppK8SPersistentVolumeClaim extends TheiaK8SResource<Persistent
         .withLabels(Map.of("app", getProjectName()))
         .endMetadata()
         .withSpec(new PersistentVolumeClaimSpecBuilder()
-            .withStorageClassName("manual")
+            .withStorageClassName(options.storageClassName)
+            .withVolumeName(getProjectName() + "-app-pv-volume")
             .withAccessModes("ReadWriteMany")
             .withResources(new ResourceRequirementsBuilder()
-                .withRequests(Map.of("storage", Quantity.parse(STORAGE)))
+                .withRequests(Map.of("storage", Quantity.parse(options.storage)))
                 .build())
             .build()
         )

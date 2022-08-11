@@ -1,7 +1,8 @@
+serverTier: local
+imagePullPolicy: Never
+devMode: false
 ingress:
   host: cinco-cloud
-serverTier: local
-imageConfig:
-  pullPolicy: Never
-namespace: default
-devMode: false
+  class: public
+certManager:
+  email: alexander.bainczyk@tu-dortmund.de

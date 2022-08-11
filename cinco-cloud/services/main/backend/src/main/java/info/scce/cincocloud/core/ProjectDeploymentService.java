@@ -23,6 +23,7 @@ import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SDeployment;
 import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SPersistentVolume;
 import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SPersistentVolumeClaim;
 import info.scce.cincocloud.k8s.modeleditor.PyroDatabaseK8SService;
+import info.scce.cincocloud.k8s.shared.K8SPersistentVolumeOptions;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 import info.scce.cincocloud.util.CDIUtils;
 import info.scce.cincocloud.util.WaitUtils;
@@ -63,19 +64,28 @@ public class ProjectDeploymentService {
   @Inject
   Properties properties;
 
-  KubernetesClient client;
-
   @ConfigProperty(name = "cincocloud.host")
   String host;
 
   @ConfigProperty(name = "cincocloud.environment")
   String environment;
 
-  @ConfigProperty(name = "cincocloud.archetype.image")
+  @ConfigProperty(name = "archetype.image")
   String archetypeImage;
+
+  @ConfigProperty(name = "archetype.storage-class-name")
+  String archetypeStorageClassName;
+
+  @ConfigProperty(name = "archetype.storage")
+  String archetypeStorage;
+
+  KubernetesClient client;
+
+  K8SPersistentVolumeOptions pvOptions;
 
   void startup(@Observes StartupEvent event) {
     client = clientService.createClient();
+    pvOptions = new K8SPersistentVolumeOptions(archetypeStorageClassName, archetypeStorage);
   }
 
   public ProjectDeploymentTO deploy(ProjectDB project) {
@@ -110,8 +120,8 @@ public class ProjectDeploymentService {
   private ProjectDeploymentTO deployModelEditor(ProjectDB project) {
     // create modeleditor app resources
     final var appService = new PyroAppK8SService(client, project);
-    final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
-    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
+    final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project, pvOptions);
+    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project, pvOptions);
     final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim,
         host, environment, archetypeImage, properties.getMinioHost(), properties.getMinioPort(),
         properties.getMinioAccessKey(), properties.getMinioSecretKey(), project);
@@ -122,9 +132,8 @@ public class ProjectDeploymentService {
 
     // create modeleditor database resources
     final var databaseService = new PyroDatabaseK8SService(client, project);
-    final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project);
-    final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client,
-        project);
+    final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project, pvOptions);
+    final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project, pvOptions);
     final var databaseDeployment = new PyroDatabaseK8SDeployment(client,
         databasePersistentVolumeClaim, project);
 
@@ -205,8 +214,8 @@ public class ProjectDeploymentService {
   }
 
   private ProjectDeploymentTO deployLanguageEditor(ProjectDB project) {
-    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
-    final var persistentVolume = new TheiaK8SPersistentVolume(client, project);
+    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project, pvOptions);
+    final var persistentVolume = new TheiaK8SPersistentVolume(client, project, pvOptions);
     final var service = new TheiaK8SService(client, project);
     final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project, archetypeImage,
         environment, properties.getMinioHost(), properties.getMinioPort(), properties.getMinioAccessKey(),
@@ -339,8 +348,8 @@ public class ProjectDeploymentService {
 
   public void stopModelEditor(ProjectDB project) {
     final var appService = new PyroAppK8SService(client, project);
-    final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
-    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
+    final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project, pvOptions);
+    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project, pvOptions);
     final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim,
         host, environment, archetypeImage, properties.getMinioHost(), properties.getMinioPort(),
         properties.getMinioAccessKey(), properties.getMinioSecretKey(), project);
@@ -351,7 +360,7 @@ public class ProjectDeploymentService {
 
     final var databaseService = new PyroDatabaseK8SService(client, project);
     final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client,
-        project);
+        project, pvOptions);
     final var databaseDeployment = new PyroDatabaseK8SDeployment(client,
         databasePersistentVolumeClaim, project);
 
@@ -365,7 +374,7 @@ public class ProjectDeploymentService {
   }
 
   private void stopLanguageEditor(ProjectDB project) {
-    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
+    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project, pvOptions);
     final var service = new TheiaK8SService(client, project);
     final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project, archetypeImage,
         environment, properties.getMinioHost(), properties.getMinioPort(), properties.getMinioAccessKey(),
@@ -380,11 +389,10 @@ public class ProjectDeploymentService {
   private void stopAndDeleteModelEditor(ProjectDB project) {
     stopModelEditor(project);
 
-    final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project);
-    final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client,
-        project);
-    final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project);
-    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project);
+    final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project, pvOptions);
+    final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project, pvOptions);
+    final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project, pvOptions);
+    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project, pvOptions);
 
     // remove the claim first so that the volume can be deleted
     client.persistentVolumeClaims().delete(databasePersistentVolumeClaim.getResource());
@@ -399,8 +407,8 @@ public class ProjectDeploymentService {
   private void stopAndDeleteLanguageEditor(ProjectDB project) {
     stopLanguageEditor(project);
 
-    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project);
-    final var persistentVolume = new TheiaK8SPersistentVolume(client, project);
+    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project, pvOptions);
+    final var persistentVolume = new TheiaK8SPersistentVolume(client, project, pvOptions);
 
     // remove the claim first so that the volume can be deleted
     client.persistentVolumeClaims().delete(persistentVolumeClaim.getResource());

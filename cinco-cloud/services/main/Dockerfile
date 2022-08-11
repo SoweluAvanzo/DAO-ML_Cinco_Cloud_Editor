@@ -43,8 +43,10 @@ CMD java \
     -Dkubernetes.namespace="${KUBERNETES_NAMESPACE}" \
     -Dcincocloud.host="${CINCO_CLOUD_HOST}" \
     -Dcincocloud.password.secret="${CINCO_CLOUD_PASSWORD_SECRET}" \
-    -Dcincocloud.archetype.image="${CINCO_CLOUD_ARCHETYPE_IMAGE}" \
     -Dcincocloud.environment="${ENVIRONMENT}" \
+    -Darchetype.image="${ARCHETYPE_IMAGE}" \
+    -Darchetype.storage-class-name="${ARCHETYPE_STORAGE_CLASS_NAME}" \
+    -Darchetype.storage="${ARCHETYPE_STORAGE}" \
     -Dminio.host="${MINIO_HOST}" \
     -Dminio.port="${MINIO_PORT}" \
     -Dminio.access-key="${MINIO_ACCESS_KEY}" \
