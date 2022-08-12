@@ -3,9 +3,6 @@ stylePath "model/Attributes.style"
 
 graphModel HooksAndActions extends AbstractHooksAndActions {
 	diagramExtension "hooksAndActions"
-	containableElements(AbstractHookANode, HookAContainer)
-	
-	attr EString as attribute
 }
 
 @postCreate("info.scce.cinco.product.extendedflowgraph.hooks.PostCreate2")
@@ -13,10 +10,6 @@ graphModel HooksAndActions extends AbstractHooksAndActions {
 @contextMenuAction("info.scce.cinco.product.extendedflowgraph.action.ContextMenuAction2")
 @doubleClickAction("info.scce.cinco.product.extendedflowgraph.action.DoubleClickAction2")
 abstract graphModel AbstractHooksAndActions extends ConcreteHooksAndActions {
-	diagramExtension "abstractHooksAndActions"
-	containableElements(AbstractHookANode, HookAContainer)
-	
-	attr EString as attribute
 }
 
 @postCreate("info.scce.cinco.product.extendedflowgraph.hooks.PostCreate")

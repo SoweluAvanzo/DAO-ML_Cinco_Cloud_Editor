@@ -124,7 +124,7 @@ export abstract class PyroApi {
 			const jwt: string = await commands.executeCommand("info.scce.cinco.cloud.jwt");
 			const message = "received jwt: " + jwt;
 			outputChannel.appendLine(message);
-			return "Bearer "+jwt;
+			return jwt;
 		} catch (e) {
 			const message = "jwt not found!";
 			outputChannel.appendLine(message);

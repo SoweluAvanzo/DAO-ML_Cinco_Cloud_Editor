@@ -10,7 +10,6 @@ graphModel HierarchyA extends HierarchyB {
 }
 
 abstract graphModel HierarchyB extends HierarchyC {
-	diagramExtension "hierarchyB"	
 	containableElements(ContB[0,2])
 	attr EString as ofB
 	attr TB as tb
@@ -18,7 +17,6 @@ abstract graphModel HierarchyB extends HierarchyC {
 }
 
 abstract graphModel HierarchyC extends HierarchyD {
-	diagramExtension "hierarchyC"
 	containableElements(ContC[0,2])
 	attr EString as ofC
 	attr TC as tc

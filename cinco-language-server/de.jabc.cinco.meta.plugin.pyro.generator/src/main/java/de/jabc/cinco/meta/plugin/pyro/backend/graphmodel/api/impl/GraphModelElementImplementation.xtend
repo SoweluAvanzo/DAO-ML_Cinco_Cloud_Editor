@@ -264,15 +264,14 @@ class GraphModelElementImplementation extends Generatable {
 							this.delegate.delete();
 						«ENDIF»
 					}
-					
 					«me.embeddedEdges»
 				«ENDIF»
 				«FOR t : me.resolveSuperTypesAndType»
+					
 					@Override
 					public «t.apiFQN» get«t.name.fuEscapeJava»View() {
 						return this;
 					}
-					
 				«ENDFOR»
 				@Override
 				public «me.apiFQN» eClass() {
@@ -581,24 +580,25 @@ class GraphModelElementImplementation extends Generatable {
 						this.move(this.getX(), x);
 						
 					}
-				
+					
 					@Override
 					public void setY(int y) {
 						this.move(this.getY(), y);
 						
 					}
-				
+					
 					@Override
 					public void setWidth(int width) {
 						this.move(this.getWidth(), width);
 						
 					}
-				
+					
 					@Override
 					public void setHeight(int height) {
 						this.move(this.getHeight(), height);
 						
 					}
+					
 					@Override
 					public java.util.List<graphmodel.Edge> getIncoming() {
 						«IF isTransient»
@@ -821,6 +821,7 @@ class GraphModelElementImplementation extends Generatable {
 					«ENDIF»
 				«ENDIF»
 				«IF me instanceof ContainingElement»
+					
 					private void removeNodes() {
 						java.util.List<graphmodel.Node> nodes = this.getModelElements(graphmodel.Node.class);
 						
@@ -848,7 +849,6 @@ class GraphModelElementImplementation extends Generatable {
 						return modelElements;
 					}
 					
-				
 					@Override
 					public <T extends graphmodel.ModelElement> java.util.List<T> getModelElements(Class<T> clazz) {
 						return this.getModelElements().stream().filter(n->clazz.isInstance(n)).map(n->clazz.cast(n)).collect(java.util.stream.Collectors.toList());
@@ -1228,6 +1228,7 @@ class GraphModelElementImplementation extends Generatable {
 		'''
 			«FOR em:containedTypes»
 				«IF !em.isIsAbstract»
+					
 					@Override
 					public boolean canNew«em.name.fuEscapeJava»(){
 						return true;

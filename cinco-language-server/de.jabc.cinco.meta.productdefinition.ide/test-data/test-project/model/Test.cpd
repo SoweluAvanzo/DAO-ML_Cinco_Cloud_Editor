@@ -18,8 +18,8 @@
 cincoProduct Test {
 	mgl "model/Empty.mgl"
 	mgl "model/Hierarchy.mgl"
-	mgl "model/HooksAndActions.mgl"		
-	mgl "model/Attributes.mgl"						
+	mgl "model/HooksAndActions.mgl"	
+	mgl "model/Attributes.mgl"		
 	mgl "model/PrimeRefs.mgl"			
 	mgl "model/ExtendedFlowGraph.mgl"
 	mgl "model/FlowGraph.mgl"

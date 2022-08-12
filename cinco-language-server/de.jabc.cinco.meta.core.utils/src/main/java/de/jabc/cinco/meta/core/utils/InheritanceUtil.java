@@ -73,7 +73,7 @@ public class InheritanceUtil {
 			}
 			ancestors.add(getFqn(curr));
 			curr = curr.getExtends();
-			if(curr.eIsProxy()) {
+			if(curr != null && curr.eIsProxy()) {
 				URI proxyURI = ((InternalEObject)curr).eProxyURI();
 				curr = (GraphModel) g.eResource().getResourceSet().getEObject(proxyURI, true);
 			}

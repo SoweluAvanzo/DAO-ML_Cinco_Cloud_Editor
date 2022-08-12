@@ -25,11 +25,11 @@ import com.google.inject.Provider;
 
 import de.jabc.cinco.meta.productdefinition.ide.endpoint.messages.GenerateRequest;
 import de.jabc.cinco.meta.productdefinition.ide.endpoint.messages.GenerateResponse;
-import de.jabc.cinco.meta.productdefinition.ide.endpoint.parser.ParserHelper;
 import mgl.MGLModel;
 import productDefinition.CincoProduct;
 import de.jabc.cinco.meta.core.mgl.MGLRuntimeModule;
 import de.jabc.cinco.meta.core.utils.IWorkspaceContext;
+import de.jabc.cinco.meta.core.utils.ParserHelper;
 import de.jabc.cinco.meta.core.utils.WorkspaceContext;
 import de.jabc.cinco.meta.plugin.pyro.generator.CreatePyroPlugin;
 import de.jabc.cinco.meta.productdefinition.ide.communication.LogHelper;
