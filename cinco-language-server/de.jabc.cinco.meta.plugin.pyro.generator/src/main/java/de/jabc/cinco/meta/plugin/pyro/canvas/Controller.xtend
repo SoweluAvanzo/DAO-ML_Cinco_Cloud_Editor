@@ -1584,9 +1584,16 @@ class Controller extends Generatable{
 				create_edge(targetNode,possibleEdges[Object.keys(possibleEdges)[0]].type,$paper_«g.jsCall»,$graph_«g.jsCall»,$map_paper_«g.jsCall»);
 			}
 			else if(possibleEdgeSize>1) {
+				var allEqual = hypotheticalEdges => hypotheticalEdges.every(e => e ===hypotheticalEdges[0])
+				if(allEqual){
+					//only one edge can be created
+				    $temp_link_multi = $temp_link;
+				    create_edge(targetNode,possibleEdges[Object.keys(possibleEdges)[0]].type,$paper_flowgraphdiagram,$graph_flowgraphdiagram,$map_paper_flowgraphdiagram);
+				}else{
 				//multiple edge types possible
 				//show menu
 				create_edge_menu(targetNode,possibleEdges,evt.clientX,evt.clientY+$(document).scrollTop(),$paper_«g.jsCall»,$graph_«g.jsCall»);
+				}
 			}
 		'''
 	}
