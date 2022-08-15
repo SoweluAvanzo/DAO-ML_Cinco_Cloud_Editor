@@ -8,6 +8,7 @@ import '../../../deserializer/command_property_deserializer.dart';
 import '../../../model/core.dart';
 import '../../../model/command.dart';
 import '../../../service/editor_data_service.dart';
+import '../editor_component.dart';
 
 @Component(
     selector: 'command-history',
@@ -19,58 +20,28 @@ import '../../../service/editor_data_service.dart';
 class CommandHistoryComponent implements OnInit, OnDestroy {
   
   final revertedSC = new StreamController();
-  @Output() Stream get reverted => revertedSC.stream;
-  
-  EditorDataService _editorDataService;
-    
-  WebSocket ws;
-  
-  List<Command> commandHistory = new List();
-  
-  StreamSubscription sub;
+  @Input()
+  EditorComponent parent;
 
-  CommandHistoryComponent(this._editorDataService) {
+  @Input()
+  GraphModel currentGraphModel;
+
+  @Output() 
+  Stream get reverted => revertedSC.stream;
+
+  List<Command> get commandHistory => parent.commandHistory;
+
+
+  CommandHistoryComponent() {
   }
   
   @override
   void ngOnInit() {
-    sub = _editorDataService.graphModelWebSocketStream.listen((s) {
-      ws = s;
-      commandHistory = new List();
-      if (ws != null) {
-        ws.onMessage.listen(handleOnMessage);
-      }
-    });
   }
   
   @override
   void ngOnDestroy() {
-    sub.cancel();
-  }
-  
-  void handleOnMessage(MessageEvent e) {
-    var data = jsonDecode(e.data);
-    var content = data['content'];
-    var messageType = content['messageType'];
-
-    if (data['event'] == '' && messageType == 'command') {
-      List<Command> cmds = List.from(content['cmd']['queue']
-          .map((c) => CommandPropertyDeserializer.deserialize(c, new Map())));
-      if (cmds.length > 1) {
-        if (cmds.elementAt(0) is UpdateCommand) {
-          cmds.removeAt(0);
-        }
-      }
-      if (content["type"].startsWith("undo")) {
-        if (commandHistory.length >= cmds.length) {
-          commandHistory.replaceRange(0, 1, []);
-        } else {
-          commandHistory.clear();
-        }
-      } else {
-        commandHistory.insertAll(0, cmds);
-      }
-    }
+  //  sub.cancel();
   }
   
   void revert() {

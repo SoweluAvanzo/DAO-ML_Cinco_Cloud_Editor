@@ -23,6 +23,8 @@ class EditorComponent extends Generatable {
 	'''
 	import 'package:«gc.projectName.escapeDart»/src/model/message.dart';
 	import 'package:«gc.projectName.escapeDart»/src/service/fileService.dart';
+	import 'package:«gc.projectName.escapeDart»/src/deserializer/command_property_deserializer.dart';
+	
 	
 	import 'package:angular/angular.dart';
 	import 'package:angular_router/angular_router.dart';
@@ -30,6 +32,9 @@ class EditorComponent extends Generatable {
 	import 'dart:html';
 	import 'dart:async';
 	import 'dart:js' as js;
+	import 'dart:convert';
+	import '../../model/command.dart';		
+	import '../../service/base_service.dart';
 	
 	import 'package:«gc.projectName.escapeDart»/src/model/core.dart';
 	import 'package:«gc.projectName.escapeDart»/src/service/user_service.dart';
@@ -110,6 +115,8 @@ class EditorComponent extends Generatable {
 	    List<PyroGraphModelPermissionVector> permissionVectors;
 	    RedirectionStack redirectionStack = new RedirectionStack();
 	    GraphModel currentFile = null;
+	    List<Command> commandHistory = new List();
+	    WebSocket ws; 
 	    IdentifiableElement selectedElement = null;
 	    IdentifiableElement selectedElementModal = null;
 	    LocalGraphModelSettings currentLocalSettings;
@@ -166,8 +173,39 @@ class EditorComponent extends Generatable {
 			            redirectionStack.initReditionStack(typeOrExtension, modelId);
 			    this.loadGraphModel(typeOrExtension, modelId);         	         
 			}).catchError((_){});
+		   _editorDataService.graphModelWebSocketStream.listen((s) {
+			      ws = s;
+			      if (ws != null) {
+			        ws.onMessage.listen(handleOnMessage);
+			      }
+			    });
+			}
+					
+			void handleOnMessage(MessageEvent e) {
+				var data = jsonDecode(e.data);
+				var content = data['content'];
+				var messageType = content['messageType'];
+		
+				if (data['event'] == '' && messageType == 'command') {
+				List<Command> cmds = List.from(content['cmd']['queue']
+					.map((c) => CommandPropertyDeserializer.deserialize(c, new Map())));
+				if (cmds.length > 1) {
+					if (cmds.elementAt(0) is UpdateCommand) {
+					cmds.removeAt(0);
+					}
+				}
+				if (content["type"].startsWith("undo")) {
+					if (commandHistory.length >= cmds.length) {
+					commandHistory.replaceRange(0, 1, []);
+					} else {
+					commandHistory.clear();
+					}
+				} else {
+					commandHistory.insertAll(0, cmds);
+				}
+			}
 		}
-	    
+    
 	    @override
 	    void onDeactivate(_, RouterState next) async {
 	    	_styleService.handleOnDeactivate(next);
@@ -559,6 +597,8 @@ class EditorComponent extends Generatable {
 				></check>
 				<command-history class="d-flex flex-column h-100"
 					*ngIf="selected=='command-history' && isGraphModel"
+					[currentGraphModel]="currentFile"
+					[parent]="instance"
 					(reverted)="graphService.canvasComponent.undo()"
 				></command-history>
 				<map class="d-flex flex-column h-100"
@@ -690,8 +730,10 @@ class EditorComponent extends Generatable {
 								            </ng-container>
 								            <ng-container *ngSwitchCase="'command_history'">
 									              <command-history class="d-flex flex-column h-100"
+									                *ngIf="isGraphModel"
 								            	    (reverted)="graphService.canvasComponent.undo()"
-								                	*ngIf="isGraphModel"
+								            	    [currentGraphModel]="currentFile"
+								            	    [parent]="instance"
 								                ></command-history>
 								            </ng-container>
 								            <ng-container *ngSwitchCase="'map'">
