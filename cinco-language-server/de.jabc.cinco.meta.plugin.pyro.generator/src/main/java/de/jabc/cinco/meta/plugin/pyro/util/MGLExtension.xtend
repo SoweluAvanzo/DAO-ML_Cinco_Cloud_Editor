@@ -62,10 +62,6 @@ class MGLExtension {
 	Map<MGLModel, Iterable<Node>> mglNodeMap;
 	Map<MGLModel, Iterable<Edge>> mglEdgeMap;
 	Map<MGLModel, Iterable<GraphModel>> mglGraphmodelMap;
-	
-	Map<ContainingElement, Iterable<ModelElement>> elementMap;
-	Map<ContainingElement, Iterable<Node>> nodeMap;
-	Map<ContainingElement, Iterable<Edge>> edgeMap;
 
 	protected extension Escaper = new Escaper
 
@@ -78,10 +74,6 @@ class MGLExtension {
 		mglNodeMap = new HashMap
 		mglEdgeMap = new HashMap
 		mglGraphmodelMap = new HashMap
-		
-		elementMap = new HashMap
-		nodeMap = new HashMap
-		edgeMap = new HashMap
 	}
 
 	static def String[] primitiveETypes() {
@@ -101,12 +93,7 @@ class MGLExtension {
 	 * Returns all nodes that can be contained by the given GraphModel, topologically
 	 */
 	def nodes(GraphModel g) {
-		if (nodeMap.containsKey(g)) {
-			return nodeMap.get(g)
-		}
-		val elements = g.elementsTopologicallyOf(Node)
-		nodeMap.put(g, elements)
-		elements
+		return g.elementsTopologicallyOf(Node)
 	}
 	
 	/**
@@ -133,12 +120,7 @@ class MGLExtension {
 	 * Returns all nodes that can be contained by the given GraphModel, topologically
 	 */
 	def edges(GraphModel g) {
-		if (edgeMap.containsKey(g)) {
-			return edgeMap.get(g)
-		}
-		val elements = g.elementsTopologicallyOf(Edge)
-		edgeMap.put(g, elements)
-		elements
+		return g.elementsTopologicallyOf(Edge)
 	}
 	
 	/**
@@ -213,14 +195,7 @@ class MGLExtension {
 	 * Returns all Elements that can be contained by the given ContainingElement
 	 */
 	def Iterable<ModelElement> elementsTopologically(ContainingElement g) {
-		if (elementMap.containsKey(g)) {
-			return elementMap.get(g)
-		}
-		
-		val result = g.elementsTopologically(new HashSet<ModelElement>)
-		
-		elementMap.put(g, result.sortTopologically.toSet)
-		elementMap.get(g)
+		return g.elementsTopologically(new HashSet<ModelElement>).sortTopologically.toSet
 	}
 	
 	/**
