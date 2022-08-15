@@ -357,9 +357,6 @@ cinco-ls-install:
   extends:
     - .cinco-ls-default-job
     - .cinco-ls-maven-job
-  cache:
-    paths:
-      - ./cinco-language-server/de.jabc.cinco.meta.plugin.pyro.generator
   script:
     - cd ./cinco-language-server
     - mvn clean install
