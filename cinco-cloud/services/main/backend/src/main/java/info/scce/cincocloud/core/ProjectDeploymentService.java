@@ -79,13 +79,16 @@ public class ProjectDeploymentService {
   @ConfigProperty(name = "archetype.storage")
   String archetypeStorage;
 
+  @ConfigProperty(name = "archetype.host-path")
+  String archetypeHostPath;
+
   KubernetesClient client;
 
   K8SPersistentVolumeOptions pvOptions;
 
   void startup(@Observes StartupEvent event) {
     client = clientService.createClient();
-    pvOptions = new K8SPersistentVolumeOptions(archetypeStorageClassName, archetypeStorage);
+    pvOptions = new K8SPersistentVolumeOptions(archetypeStorageClassName, archetypeStorage, archetypeHostPath);
   }
 
   public ProjectDeploymentTO deploy(ProjectDB project) {

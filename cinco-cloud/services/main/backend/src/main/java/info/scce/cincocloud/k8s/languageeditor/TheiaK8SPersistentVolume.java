@@ -38,7 +38,7 @@ public class TheiaK8SPersistentVolume extends TheiaK8SResource<PersistentVolume>
                 .build())
             .withAccessModes("ReadWriteMany")
             .withHostPath(new HostPathVolumeSourceBuilder()
-                .withPath("/mnt/data/workspaces/" + getProjectName())
+                .withPath(options.hostPath + "/workspaces/" + getProjectName())
                 .build())
             .build())
         .build();

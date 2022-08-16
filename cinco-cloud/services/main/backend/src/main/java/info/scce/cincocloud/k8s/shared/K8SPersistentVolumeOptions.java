@@ -6,8 +6,11 @@ public class K8SPersistentVolumeOptions {
 
     public String storage;
 
-    public K8SPersistentVolumeOptions(String storageClassName, String storage) {
+    public String hostPath;
+
+    public K8SPersistentVolumeOptions(String storageClassName, String storage, String hostPath) {
         this.storageClassName = storageClassName;
         this.storage = storage;
+        this.hostPath = hostPath;
     }
 }

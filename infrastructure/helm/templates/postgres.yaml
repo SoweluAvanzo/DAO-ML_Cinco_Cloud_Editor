@@ -88,7 +88,7 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: "/mnt/data/postgres"
+    path: {{ .Values.postgres.hostPath }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

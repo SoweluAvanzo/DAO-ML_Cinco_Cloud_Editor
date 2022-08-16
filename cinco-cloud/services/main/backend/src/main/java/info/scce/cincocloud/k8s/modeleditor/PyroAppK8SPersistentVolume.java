@@ -39,7 +39,7 @@ public class PyroAppK8SPersistentVolume extends TheiaK8SResource<PersistentVolum
                 .build())
             .withAccessModes("ReadWriteMany")
             .withHostPath(new HostPathVolumeSourceBuilder()
-                .withPath("/mnt/data/workspaces/" + getProjectName() + "/app")
+                .withPath(options.hostPath + "/workspaces/" + getProjectName() + "/app")
                 .build())
             .build())
         .build();

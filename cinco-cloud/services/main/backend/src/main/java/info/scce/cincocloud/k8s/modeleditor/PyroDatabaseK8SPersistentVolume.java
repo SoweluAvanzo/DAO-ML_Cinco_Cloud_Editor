@@ -38,7 +38,7 @@ public class PyroDatabaseK8SPersistentVolume extends PyroK8SResource<PersistentV
                 .build())
             .withAccessModes("ReadWriteMany")
             .withHostPath(new HostPathVolumeSourceBuilder()
-                .withPath("/mnt/data/workspaces/" + getProjectName() + "/database")
+                .withPath(options.hostPath + "/workspaces/" + getProjectName() + "/database")
                 .build())
             .build())
         .build();
