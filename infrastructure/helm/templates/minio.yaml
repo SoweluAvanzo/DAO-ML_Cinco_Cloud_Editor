@@ -81,7 +81,7 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: "/mnt/data/minio"
+    path: {{ .Values.minio.hostPath }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

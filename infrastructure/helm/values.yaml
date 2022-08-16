@@ -32,11 +32,15 @@ certManager:
 main:
   # The amount of available storage.
   storage: 10Gi
+  # The path on the host machine where files are stored
+  hostPath: /mnt/data/cincocloud/main
 
 # Configuration for the postgres database.
 postgres:
   # The amount of available storage.
   storage: 10Gi
+  # The path on the host machine where files are stored
+  hostPath: /mnt/data/cincocloud/postgres
 
 # Configuration for the workspace builder service.
 workspaceBuilder:
@@ -47,11 +51,15 @@ workspaceBuilder:
 artemis:
   # The amount of available storage.
   storage: 2Gi
+  # The path on the host machine where files are stored
+  hostPath: /mnt/data/cincocloud/artemis
 
 # Configuration for the minio object storage.
 minio:
   # The amount of available storage.
   storage: 20Gi
+  # The path on the host machine where files are stored
+  hostPath: /mnt/data/cincocloud/minio
 
 # Configuration for the archetype image and Theia editors.
 archetype:
@@ -59,4 +67,6 @@ archetype:
   image: registry.gitlab.com/scce/cinco-cloud/archetype:main-5c74201abe6e7af9356838d31186bbc818dcf475
   # The amount of available storage.
   storage: 10Gi
+  # The path on the host machine where files are stored
+  hostPath: /mnt/data/cincocloud/archetype
   

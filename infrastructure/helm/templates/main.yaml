@@ -17,6 +17,7 @@ data:
   {{- end }}
   ARCHETYPE_STORAGE_CLASS_NAME: {{ .Values.storageClassName }}
   ARCHETYPE_STORAGE: {{ .Values.archetype.storage }}
+  ARCHETYPE_HOST_PATH: {{ .Values.archetype.hostPath }}
   ENVIRONMENT: {{ .Values.serverTier }}
 ---
 apiVersion: apps/v1
@@ -181,7 +182,7 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: "/mnt/data/main"
+    path: {{ .Values.main.hostPath }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
