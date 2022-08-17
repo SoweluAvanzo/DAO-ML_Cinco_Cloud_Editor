@@ -5,6 +5,7 @@ import { EXTERNAL_PYRO_HOST, EXTERNAL_PYRO_PORT, EXTERNAL_PYRO_SUBPATH, EXTERNAL
 import { PyroApi } from './pyroApi';
 import { getExtension, getExtensionFrom, getFileNameFrom, isEmpty } from './fileNameUtils';
 import { GraphModelFile } from './graphmodelFile';
+import fs = require('fs');
 
 const LOG_NAME = "PYRO-CLIENT";
 export const outputChannel = vscode.window.createOutputChannel(LOG_NAME);
@@ -196,9 +197,35 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 		}).then();
 	}
 
+	public async getSelected(e: any) {
+		let workspacePath = process.env.WORKSPACE_PATH ? process.env.WORKSPACE_PATH : "/editor/workspace";
+		let selectedPath = (e!=null ? e.fsPath : "") as string ;
+		workspacePath = this.replaceAll(workspacePath, "\\", "/");
+		selectedPath = this.replaceAll(selectedPath, "\\", "/");
+		if(!fs.existsSync( selectedPath )) {
+			this.logging("Selected path unsupported: " + selectedPath);
+			this.logging("Falling back to: " + workspacePath);
+			selectedPath = workspacePath;
+		} else if(!fs.lstatSync( selectedPath ).isDirectory()) {
+			this.logging("Selected path is a file: " + selectedPath + "\nFalling back to folder.");
+			const lastComponentIndex = selectedPath.lastIndexOf("/");
+			selectedPath = selectedPath.substring(0, lastComponentIndex + 1);
+		}
+		this.logging("Selected path: "+selectedPath);
+		return selectedPath;
+	}
+
+	//Taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+	public escapeRegExp(str: string): string {
+		return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+	}
+
+	public replaceAll(str: string, match: string, replacement: string): string {
+		return str.replace(new RegExp(this.escapeRegExp(match), 'g'), ()=>replacement);
+	}
+
 	public async contextCreateModelTypes(e: any) {
-		const path = "/"+e.fsPath;
-		this.logging("path into: "+path);
+		const path = await this.getSelected(e);
 		if(!path) {
 			vscode.window.showErrorMessage("No path for file specified. Please right click on a folder or workspace to create a Graphmodel!");
 			return;
@@ -222,7 +249,7 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 					if(name) {
 						this.logging("creating: "+name+"."+fileExtension);
 						const fileName = name+"."+fileExtension;
-						const newFile = vscode.Uri.parse(path + "/" + fileName);
+						const newFile = vscode.Uri.file(path+'/'+fileName);
 						vscode.workspace.fs.writeFile(newFile, new Uint8Array()).then( (v) => {
 							vscode.workspace.openTextDocument(newFile).then(document => {
 								const edit = new vscode.WorkspaceEdit();
@@ -247,8 +274,6 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 	 */
 	private async updateTextDocument(document: PyroDocument, json: any) {
 		const uri = document.uri;
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		const fs = require("fs");
 		const data = JSON.stringify(json, null, 2);
 		fs.writeFile(uri.fsPath, data, (err: any) => {
 			if (err) this.logging(err);

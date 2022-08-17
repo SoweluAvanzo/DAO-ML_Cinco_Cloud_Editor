@@ -45,8 +45,8 @@ export class ServerLauncher implements BackendApplicationContribution {
             this.logError(msg);
             throw new Error(msg);
         }
-        if(ServerLauncher.CALLBACK) {
-            ServerLauncher.CALLBACK.then( () => this.execute());
+        if (ServerLauncher.CALLBACK) {
+            ServerLauncher.CALLBACK.then(() => this.execute());
         } else {
             this.execute();
         }
@@ -86,9 +86,9 @@ export class ServerLauncher implements BackendApplicationContribution {
                     this.logError(`${error}`);
                     if (error.code !== undefined && error.code > 0) {
                         retries--;
-                        this.logError('Failed to start pyro server.');
+                        this.logError('Failed to start server: ' + ServerLauncher.FILE_PATH);
                         if (retries > 0) {
-                            this.logError(`Retry starting pyro server in ${ServerLauncher.RETRY_TIMEOUT}ms...`);
+                            this.logError(`Retry starting server in ${ServerLauncher.RETRY_TIMEOUT}ms...`);
                             setTimeout(() => launch(), ServerLauncher.RETRY_TIMEOUT);
                         }
                     }

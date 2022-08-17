@@ -7,7 +7,8 @@
     "pyro-server-extension/src",
     "cinco-language-server-extension/src",
     "cinco-authenticator/src",
-    "cinco-frontend-configurator/src"
+    "cinco-frontend-configurator/src",
+    "cinco-branding/src"
   ],
   "exclude": [
     "node_modules"

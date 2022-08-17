@@ -545,8 +545,8 @@ class GraphmodelComponent extends Generatable {
 							} else if (event == 'display') {
 							  // var senderId = jsog['senderId'];
 							  // if (senderId.toString() == user.id.toString()) {
-							  displayMessages = DisplayMessages.fromJSOG(jsog["content"]);
-							  showDisplayDialog = true;		  							
+								displayMessages = DisplayMessages.fromJSOG(jsog["content"]);
+								showDisplayDialog = true;		  							
 							  // }
 							}  else if (event == 'updateCursorPosition') {
 								// update cursor
@@ -565,30 +565,28 @@ class GraphmodelComponent extends Generatable {
 								hasChangedSC.add({ "type": "«websocketEventPrime»", "message": m });
 							} else {
 								// update graph model changed by another user
-								if (jsog['senderId'].toString() != user.id.toString()) {
-									if (jsog['content']['messageType'] == 'graphmodel') {
-										startPropagation().then((_) {
-											var _g = «g.dartFQN».fromJSOG(jsog['content'], new Map());
-											currentGraphModel.merge(_g, structureOnly: true);
-											currentGraphModel.connector = _g.connector;
-											currentGraphModel.router = _g.router;
-											currentGraphModel.filename = _g.filename;
-											currentGraphModel.height = _g.height;
-											currentGraphModel.width = _g.width;
-											js.context.callMethod('update_routing_«g.jsCall»', [
-												currentGraphModel.router,
-												currentGraphModel.connector
-											]);
-										}).then((_) => endPropagation());
-									} else {
-										var m = Message.fromJSOG(jsog['content']);
-										startPropagation().then((_) {
-											if (m is CompoundCommandMessage) {
-												executeCommands(m, true);
-												hasChangedSC.add({ "type": "update", "message": m });
-											}
-										}).then((_) => endPropagation());
-									}
+								if (jsog['content']['messageType'] == 'graphmodel') {
+									startPropagation().then((_) {
+										var _g = «g.dartFQN».fromJSOG(jsog['content'], new Map());
+										currentGraphModel.merge(_g, structureOnly: true);
+										currentGraphModel.connector = _g.connector;
+										currentGraphModel.router = _g.router;
+										currentGraphModel.filename = _g.filename;
+										currentGraphModel.height = _g.height;
+										currentGraphModel.width = _g.width;
+										js.context.callMethod('update_routing_«g.jsCall»', [
+											currentGraphModel.router,
+											currentGraphModel.connector
+										]);
+									}).then((_) => endPropagation());
+								} else {
+									var m = Message.fromJSOG(jsog['content']);
+									startPropagation().then((_) {
+										if (m is CompoundCommandMessage) {
+											executeCommands(m, true);
+											hasChangedSC.add({ "type": "update", "message": m });
+										}
+									}).then((_) => endPropagation());
 								}
 							}
 						}

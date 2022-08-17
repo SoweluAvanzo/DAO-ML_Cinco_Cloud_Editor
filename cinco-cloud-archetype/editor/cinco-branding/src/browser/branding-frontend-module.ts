@@ -14,8 +14,12 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import '../../style/index.css';
-import './branding';
+import { ThemeHandler } from './branding';
 
 import { ContainerModule } from 'inversify';
+import { FrontendApplicationContribution } from '@theia/core/lib/browser';
 
-export default new ContainerModule((bind, unbind, isBound, rebind) => { });
+export default new ContainerModule((bind, unbind, isBound, rebind) => {
+    bind(FrontendApplicationContribution).to(ThemeHandler).inSingletonScope();
+});
+
