@@ -1,35 +1,45 @@
-/********************************************************************************
- * Copyright (C) 2019 Ericsson and others.
+/*!
+ * Copyright (c) 2019-2020 EclipseSource and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
- * http://www.eclipse.org/legal/epl-2.0.
+ * http://www.eclipse.org/legal/epl-2.0, or the MIT License which is
+ * available at https://opensource.org/licenses/MIT.
  *
- * This Source Code may also be made available under the following Secondary
- * Licenses when the conditions for such availability set forth in the Eclipse
- * Public License v. 2.0 are satisfied: GNU General Public License, version 2
- * with the GNU Classpath Exception which is available at
- * https://www.gnu.org/software/classpath/license.html.
- *
- * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
- ********************************************************************************/
+ * SPDX-License-Identifier: EPL-2.0 OR MIT
+ */
+
+import { FrontendApplicationContribution } from '@theia/core/lib/browser';
 import { ThemeService } from '@theia/core/lib/browser/theming';
+import { inject, injectable } from 'inversify';
 
+import dark = require('../../style/variables-dark.useable.css');
+import light = require('../../style/variables-light.useable.css');
 
-const dark = require('../../style/variables-dark.useable.css');
-const light = require('../../style/variables-light.useable.css');
+@injectable()
+export class ThemeHandler implements FrontendApplicationContribution {
+    @inject(ThemeService)
+    protected readonly themeService: ThemeService | undefined;
 
-function updateTheme(): void {
-    const theme = ThemeService.get().getCurrentTheme().id;
-    if (theme === 'dark') {
-        light.unuse();
-        dark.use();
-    } else if (theme === 'light') {
-        dark.unuse();
-        light.use();
+    onStart(): void {
+        if (!this.themeService) {
+            throw new Error('ThemeService could not be injected!');
+        }
+        this.updateTheme();
+        this.themeService.onDidColorThemeChange(() => this.updateTheme());
+    }
+
+    updateTheme(): void {
+        if (!this.themeService) {
+            throw new Error('ThemeService could not be injected!');
+        }
+        const theme = this.themeService.getCurrentTheme().id;
+        if (theme === 'dark') {
+            light.unuse();
+            dark.use();
+        } else if (theme === 'light') {
+            dark.unuse();
+            light.use();
+        }
     }
 }
-
-updateTheme();
-
-ThemeService.get().onDidColorThemeChange(() => updateTheme());

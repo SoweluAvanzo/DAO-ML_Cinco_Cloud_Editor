@@ -6,7 +6,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
-import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
@@ -134,6 +133,14 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                             new EnvVarBuilder()
                                 .withName(EditorType.KEY)
                                 .withValue(EditorType.LANGUAGE_EDITOR.name())
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("THEIA_WEBVIEW_EXTERNAL_ENDPOINT")
+                                .withValue("{{hostname}}")
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("THEIA_MINI_BROWSER_HOST_PATTERN")
+                                .withValue("{{hostname}}")
                                 .build()
                         )
                         .build())

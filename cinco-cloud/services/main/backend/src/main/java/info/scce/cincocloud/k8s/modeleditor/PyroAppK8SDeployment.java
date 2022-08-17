@@ -6,9 +6,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
-import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSourceBuilder;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -185,6 +183,14 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                     new EnvVarBuilder()
                         .withName(EditorType.KEY)
                         .withValue(EditorType.MODEL_EDITOR.name())
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("THEIA_WEBVIEW_EXTERNAL_ENDPOINT")
+                        .withValue("{{hostname}}")
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("THEIA_MINI_BROWSER_HOST_PATTERN")
+                        .withValue("{{hostname}}")
                         .build()
                 )
                 .build()

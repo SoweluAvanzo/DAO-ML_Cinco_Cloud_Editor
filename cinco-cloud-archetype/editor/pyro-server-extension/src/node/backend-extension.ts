@@ -17,8 +17,14 @@ import { ServerLauncher } from '../shared/server-launcher';
 import { isDebugging } from './debug-handler';
 import { cmdArgs, cmdDebugArgs, cmdExec, serverFile, serverPath } from './exec-vars';
 import { fetchBinaries } from './minio-handler';
+import { EDITOR_TYPE } from './environment-vars';
 
 export default new ContainerModule(bind => {
+    const editorType = EDITOR_TYPE as string;
+    if (editorType !== 'MODEL_EDITOR') {
+        console.log('EDITOR_TYPE is ' + editorType + ' ...skipping pyro_server_extension.');
+        return;
+    }
     // setting static values for server
     ServerLauncher.FILE_PATH = path.resolve(serverPath, serverFile);
     ServerLauncher.CMD_EXEC = cmdExec;

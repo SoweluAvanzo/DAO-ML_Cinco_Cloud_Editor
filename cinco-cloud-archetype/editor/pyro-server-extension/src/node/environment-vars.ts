@@ -13,3 +13,4 @@ export const MINIO_HOST = process.env.MINIO_HOST ?? 'minio-service';
 export const MINIO_PORT = process.env.MINIO_PORT ?? '9000';
 export const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY ?? '';
 export const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY ?? '';
+export const EDITOR_TYPE = process.env.EDITOR_TYPE ?? 'MODEL_EDITOR';

@@ -16,8 +16,21 @@
       ],
       "env": {
         "NODE_ENV": "development",
-        "CINCO_CLOUD_DEBUG": "true",
-        "WORKSPACE_PATH": "${workspaceRoot}/workspace"
+        "DATABASE_URL": "host.docker.internal:5432/quarkus_test",
+        "DATABASE_USER": "quarkus_test",
+        "DATABASE_PASSWORD": "quarkus_test",
+        "PYRO_HOST": "host.docker.internal",
+        "PYRO_PORT": "8000",
+        "PYRO_SUBPATH": "",
+        "PYRO_SERVER_BINARIES_FILE": "",
+        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "CINCO_CLOUD_DEBUG": "false",
+        "PYRO_ALLOW_NO_USER": "true",
+        "ENVIRONMENT": "local",
+        "EDITOR_TYPE": "MODEL_EDITOR",
+        "THEIA_WEBVIEW_EXTERNAL_ENDPOINT": "{{hostname}}",
+        "THEIA_MINI_BROWSER_HOST_PATTERN": "{{hostname}}",
+        "USE_SSL": "false"
       },
       "skipFiles": [
         "<node_internals>/**"
@@ -55,7 +68,21 @@
       ],
       "env": {
         "NODE_ENV": "development",
-        "CINCO_CLOUD_DEBUG": "true"
+        "DATABASE_URL": "host.docker.internal:5432/quarkus_test",
+        "DATABASE_USER": "quarkus_test",
+        "DATABASE_PASSWORD": "quarkus_test",
+        "PYRO_HOST": "host.docker.internal",
+        "PYRO_PORT": "8000",
+        "PYRO_SUBPATH": "",
+        "PYRO_SERVER_BINARIES_FILE": "",
+        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "CINCO_CLOUD_DEBUG": "false",
+        "PYRO_ALLOW_NO_USER": "true",
+        "ENVIRONMENT": "local",
+        "EDITOR_TYPE": "LANGUAGE_EDITOR",
+        "THEIA_WEBVIEW_EXTERNAL_ENDPOINT": "{{hostname}}",
+        "THEIA_MINI_BROWSER_HOST_PATTERN": "{{hostname}}",
+        "USE_SSL": "false"
       },
       "sourceMaps": true,
       "outFiles": [

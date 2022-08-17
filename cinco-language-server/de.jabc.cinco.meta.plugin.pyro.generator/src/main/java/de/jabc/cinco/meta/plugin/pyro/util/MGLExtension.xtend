@@ -2,7 +2,7 @@ package de.jabc.cinco.meta.plugin.pyro.util
 
 import de.jabc.cinco.meta.core.utils.InheritanceUtil
 import java.util.Collections
-import java.util.HashMap
+import java.util.concurrent.ConcurrentHashMap
 import java.util.HashSet
 import java.util.LinkedList
 import java.util.List
@@ -62,6 +62,10 @@ class MGLExtension {
 	Map<MGLModel, Iterable<Node>> mglNodeMap;
 	Map<MGLModel, Iterable<Edge>> mglEdgeMap;
 	Map<MGLModel, Iterable<GraphModel>> mglGraphmodelMap;
+	
+	Map<ContainingElement, Iterable<ModelElement>> elementMap;
+	Map<ContainingElement, Iterable<Node>> nodeMap;
+	Map<ContainingElement, Iterable<Edge>> edgeMap;
 
 	protected extension Escaper = new Escaper
 
@@ -70,10 +74,14 @@ class MGLExtension {
 	}
 
 	private new() {
-		mglElementMap = new HashMap
-		mglNodeMap = new HashMap
-		mglEdgeMap = new HashMap
-		mglGraphmodelMap = new HashMap
+		mglElementMap = new ConcurrentHashMap
+		mglNodeMap = new ConcurrentHashMap
+		mglEdgeMap = new ConcurrentHashMap
+		mglGraphmodelMap = new ConcurrentHashMap
+		
+		elementMap = new ConcurrentHashMap
+		nodeMap = new ConcurrentHashMap
+		edgeMap = new ConcurrentHashMap
 	}
 
 	static def String[] primitiveETypes() {
@@ -93,7 +101,12 @@ class MGLExtension {
 	 * Returns all nodes that can be contained by the given GraphModel, topologically
 	 */
 	def nodes(GraphModel g) {
-		return g.elementsTopologicallyOf(Node)
+		if (nodeMap.containsKey(g)) {
+			return nodeMap.get(g)
+		}
+		val elements = g.elementsTopologicallyOf(Node)
+		nodeMap.put(g, elements)
+		elements
 	}
 	
 	/**
@@ -120,7 +133,12 @@ class MGLExtension {
 	 * Returns all nodes that can be contained by the given GraphModel, topologically
 	 */
 	def edges(GraphModel g) {
-		return g.elementsTopologicallyOf(Edge)
+		if (edgeMap.containsKey(g)) {
+			return edgeMap.get(g)
+		}
+		val elements = g.elementsTopologicallyOf(Edge)
+		edgeMap.put(g, elements)
+		elements
 	}
 	
 	/**
@@ -195,7 +213,14 @@ class MGLExtension {
 	 * Returns all Elements that can be contained by the given ContainingElement
 	 */
 	def Iterable<ModelElement> elementsTopologically(ContainingElement g) {
-		return g.elementsTopologically(new HashSet<ModelElement>).sortTopologically.toSet
+		if (elementMap.containsKey(g)) {
+			return elementMap.get(g)
+		}
+		
+		val result = g.elementsTopologically(new HashSet<ModelElement>)
+		
+		elementMap.put(g, result.sortTopologically.toSet)
+		elementMap.get(g)
 	}
 	
 	/**
@@ -666,7 +691,7 @@ class MGLExtension {
 	}
 	
 	def getPrimeReferencingElements(EObject referenced, Set<MGLModel> referencingSet, BiFunction<EObject, CharSequence, CharSequence> keyFunction) {
-		var referencingElements = new HashMap<CharSequence, Node>
+		var referencingElements = new ConcurrentHashMap<CharSequence, Node>
 		for (model : referencingSet) {
 			var primeNodesOfModel = model.nodes.filter[primeReference !== null];
 			for(p : primeNodesOfModel) {
@@ -697,7 +722,7 @@ class MGLExtension {
 	}
 
 	def getReferencingElements(EObject referenced, Set<EPackage> referencingSet, Set<MGLModel> mglSet, BiFunction<EObject, CharSequence, CharSequence> keyFunction) {
-		var referencingElements = new HashMap<CharSequence, EObject>
+		var referencingElements = new ConcurrentHashMap<CharSequence, EObject>
 		// Ecore
 		for (model : referencingSet) {
 			val elements = model.elements.map[resolveSubTypesAndType].flatten.toSet.filter[!isAbstract].filter(EClass);
