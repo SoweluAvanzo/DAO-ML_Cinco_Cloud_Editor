@@ -260,98 +260,98 @@ class Controller extends Generatable{
 		
 		(function() {
 			class Interval {
-                value = -1;
-                
-                constructor(interval) {
-                    this.value = interval;
-                }
-
-                get() {
-                    return this.value;
-                }
-
-                set(interval) {
-                    this.value = interval;
-                }
-
-                clear() {
-                    if (this.value !== -1) {
-                        clearInterval(this.value);
-                        this.value = -1;
-                    }                  
-                }
-            }
-
-            // Calculate the euclidean distance between two points
-            function distance(x1, y1, x2, y2) {
-                return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-            }
-
+		        value = -1;
+		        
+		        constructor(interval) {
+		            this.value = interval;
+		        }
+		
+		        get() {
+		            return this.value;
+		        }
+		
+		        set(interval) {
+		            this.value = interval;
+		        }
+		
+		        clear() {
+		            if (this.value !== -1) {
+		                clearInterval(this.value);
+		                this.value = -1;
+		            }                  
+		        }
+		    }
+		
+		    // Calculate the euclidean distance between two points
+		    function distance(x1, y1, x2, y2) {
+		        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+		    }
+		
 			 // handle the case if the cursor hits the border zone
-            function handleMouseInZone(interval, fn) {
-                if (interval.get() === -1) {
-                    interval.set(setInterval(() => {
-                        const translate = $paper_«g.jsCall».translate();
-                        const newTranslate = fn(translate.tx, translate.ty);
-                        $paper_«g.jsCall».translate(newTranslate.tx, newTranslate.ty);
-                    }, 35));
-                };
-            }
-
-            // handle the case if the cursor moves out of the border zone
-            function handleMouseOutZone(interval) {
-                interval.clear();
-            }
-
-            // The size of the border zone where the cursor has to be
-            // to translate the paper in the cursors direction
-            const zoneOffset = 15;
-
-            // The offset in px in which the paper is translated
-            const moveBy = 15;
-
-            let intervalTop = new Interval(-1);
-            let intervalBottom = new Interval(-1);
-            let intervalLeft = new Interval(-1);
-            let intervalRight = new Interval(-1);
-            
-            $paper_«g.jsCall».on('cell:pointermove', function (cellView, evt, x, y) {
-                const rect = $paper_«g.jsCall».el.getBoundingClientRect();
-                const offsetY = rect.height - evt.offsetY;
-                const offsetX = rect.width - evt.offsetX;
-
-                if (offsetY < zoneOffset) { // touch bottom
-                    handleMouseInZone(intervalBottom, (tx, ty) => ({tx: tx, ty: ty - moveBy})); 
-                } else {
-                    handleMouseOutZone(intervalBottom);
-                }
-                                   
-                if (offsetY > rect.height - zoneOffset) { // touch top
-                    handleMouseInZone(intervalTop, (tx, ty) => ({tx: tx, ty: ty + moveBy}));    
-                } else {
-                    handleMouseOutZone(intervalTop);
-                }
-
-                if (offsetX < zoneOffset) { // touch right
-                    handleMouseInZone(intervalRight, (tx, ty) => ({tx: tx - moveBy, ty: ty}));  
-                } else {
-                    handleMouseOutZone(intervalRight);
-                }
-                
-                if (offsetX > rect.width - zoneOffset) { // touch left
-                    handleMouseInZone(intervalLeft, (tx, ty) => ({tx: tx + moveBy, ty: ty}));  
-                } else {
-                    handleMouseOutZone(intervalLeft);
-                }
-            });
-
-            $paper_«g.jsCall».on('cell:pointerup', function() {
-                intervalTop.clear();
-                intervalBottom.clear();
-                intervalLeft.clear();
-                intervalRight.clear();
-            });
-        }());
+		    function handleMouseInZone(interval, fn) {
+		        if (interval.get() === -1) {
+		            interval.set(setInterval(() => {
+		                const translate = $paper_«g.jsCall».translate();
+		                const newTranslate = fn(translate.tx, translate.ty);
+		                $paper_«g.jsCall».translate(newTranslate.tx, newTranslate.ty);
+		            }, 35));
+		        };
+		    }
+		
+		    // handle the case if the cursor moves out of the border zone
+		    function handleMouseOutZone(interval) {
+		        interval.clear();
+		    }
+		
+		    // The size of the border zone where the cursor has to be
+		    // to translate the paper in the cursors direction
+		    const zoneOffset = 15;
+		
+		    // The offset in px in which the paper is translated
+		    const moveBy = 15;
+		
+		    let intervalTop = new Interval(-1);
+		    let intervalBottom = new Interval(-1);
+		    let intervalLeft = new Interval(-1);
+		    let intervalRight = new Interval(-1);
+		    
+		    $paper_«g.jsCall».on('cell:pointermove', function (cellView, evt, x, y) {
+		        const rect = $paper_«g.jsCall».el.getBoundingClientRect();
+		        const offsetY = rect.height - evt.offsetY;
+		        const offsetX = rect.width - evt.offsetX;
+		
+		        if (offsetY < zoneOffset) { // touch bottom
+		            handleMouseInZone(intervalBottom, (tx, ty) => ({tx: tx, ty: ty - moveBy})); 
+		        } else {
+		            handleMouseOutZone(intervalBottom);
+		        }
+		                           
+		        if (offsetY > rect.height - zoneOffset) { // touch top
+		            handleMouseInZone(intervalTop, (tx, ty) => ({tx: tx, ty: ty + moveBy}));    
+		        } else {
+		            handleMouseOutZone(intervalTop);
+		        }
+		
+		        if (offsetX < zoneOffset) { // touch right
+		            handleMouseInZone(intervalRight, (tx, ty) => ({tx: tx - moveBy, ty: ty}));  
+		        } else {
+		            handleMouseOutZone(intervalRight);
+		        }
+		        
+		        if (offsetX > rect.width - zoneOffset) { // touch left
+		            handleMouseInZone(intervalLeft, (tx, ty) => ({tx: tx + moveBy, ty: ty}));  
+		        } else {
+		            handleMouseOutZone(intervalLeft);
+		        }
+		    });
+		
+		    $paper_«g.jsCall».on('cell:pointerup', function() {
+		        intervalTop.clear();
+		        intervalBottom.clear();
+		        intervalLeft.clear();
+		        intervalRight.clear();
+		    });
+		}());
 
 	    $paper_«g.jsCall».on('blank:mousewheel', function(evt, x, y,delta) {
 			zoom_paper($paper_«g.jsCall»,evt,x,y,delta);
@@ -1577,16 +1577,17 @@ class Controller extends Generatable{
 			}»
 			
 			var possibleEdgeSize = hypotheticalEdges.length;
-			if(possibleEdgeSize==1) {
-				//only one edge can be created
-				//so, create it
-				$temp_link_multi = $temp_link;
-				create_edge(targetNode,possibleEdges[Object.keys(possibleEdges)[0]].type,$paper_«g.jsCall»,$graph_«g.jsCall»,$map_paper_«g.jsCall»);
-			}
-			else if(possibleEdgeSize>1) {
-				//multiple edge types possible
-				//show menu
-				create_edge_menu(targetNode,possibleEdges,evt.clientX,evt.clientY+$(document).scrollTop(),$paper_«g.jsCall»,$graph_«g.jsCall»);
+			if(possibleEdgeSize>=1) {
+				var allEqual = hypotheticalEdges => hypotheticalEdges.every(e => e ===hypotheticalEdges[0])
+				if(allEqual) {
+					//only one edge can be created
+					$temp_link_multi = $temp_link;
+					create_edge(targetNode,possibleEdges[Object.keys(possibleEdges)[0]].type,$paper_«g.jsCall»,$graph_«g.jsCall»,$map_paper_«g.jsCall»);
+				} else{
+					//multiple edge types possible
+					//show menu
+					create_edge_menu(targetNode,possibleEdges,evt.clientX,evt.clientY+$(document).scrollTop(),$paper_«g.jsCall»,$graph_«g.jsCall»);
+				}
 			}
 		'''
 	}
