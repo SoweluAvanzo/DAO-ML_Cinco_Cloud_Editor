@@ -74,12 +74,7 @@ cache:
   image:
     name: gcr.io/k8s-skaffold/skaffold:v1.27.0
   script:
-    - kubectl config set-cluster ls5vs024-cluster --server=https://129.217.27.124:16443
-    - kubectl config set clusters.ls5vs024-cluster.certificate-authority-data $CLUSTER_CERT
-    - kubectl config set-credentials ls5vs024-admin --token=$CLUSTER_USER_TOKEN
-    - kubectl config set-context ls5vs024 --user=ls5vs024-admin --cluster=ls5vs024-cluster
-    - kubectl config use-context ls5vs024
-    - kubectl config get-contexts
+    - kubectl config use-context scce/cinco-cloud:k8s-ls-5-de
     - skaffold deploy -p $PROFILE -n $NAMESPACE -t $TAG --status-check=true
 
 .cinco-cloud-node-job-main:
@@ -209,8 +204,8 @@ cinco-cloud-deploy-testing:
     - cinco-cloud-push-image-main
     - cinco-cloud-push-image-workspace-builder
   variables:
-    PROFILE: ls5vs024
-    NAMESPACE: default
+    PROFILE: demo-k8s-ls5
+    NAMESPACE: cinco-cloud-demo
     TAG: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
 
 

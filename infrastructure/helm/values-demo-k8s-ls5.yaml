@@ -1,0 +1,19 @@
+serverTier: production
+imagePullPolicy: IfNotPresent
+devMode: false
+ingress:
+  host: demo.cinco-cloud.k8s.ls-5.de
+  class: public
+certManager:
+  email: alexander.bainczyk@tu-dortmund.de
+main:
+  hostPath: /mnt/data/demo/cinco-cloud/main
+postgres:
+  hostPath: /mnt/data/demo/cinco-cloud/postgres
+artemis:
+  hostPath: /mnt/data/demo/cinco-cloud/artemis
+minio:
+  hostPath: /mnt/data/demo/cinco-cloud/minio
+archetype:
+  storage: 2Gi
+  hostPath: /mnt/data/demo/cinco-cloud/archetype
