@@ -1,6 +1,7 @@
 serverTier: local
 imagePullPolicy: Never
 devMode: true
+createPersistentVolumes: true
 ingress:
   host: cinco-cloud
   class: public

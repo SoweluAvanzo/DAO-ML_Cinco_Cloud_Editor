@@ -27,6 +27,8 @@ import info.scce.cincocloud.k8s.shared.K8SPersistentVolumeOptions;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 import info.scce.cincocloud.util.CDIUtils;
 import info.scce.cincocloud.util.WaitUtils;
+import io.fabric8.kubernetes.api.model.PersistentVolume;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -82,13 +84,20 @@ public class ProjectDeploymentService {
   @ConfigProperty(name = "archetype.host-path")
   String archetypeHostPath;
 
+  @ConfigProperty(name = "archetype.create-persistent-volumes")
+  boolean archetypeCreatePersistentVolumes;
+
   KubernetesClient client;
 
   K8SPersistentVolumeOptions pvOptions;
 
   void startup(@Observes StartupEvent event) {
     client = clientService.createClient();
-    pvOptions = new K8SPersistentVolumeOptions(archetypeStorageClassName, archetypeStorage, archetypeHostPath);
+    pvOptions = new K8SPersistentVolumeOptions(
+            archetypeStorageClassName,
+            archetypeStorage,
+            archetypeHostPath,
+            archetypeCreatePersistentVolumes);
   }
 
   public ProjectDeploymentTO deploy(ProjectDB project) {
@@ -162,7 +171,7 @@ public class ProjectDeploymentService {
       client.persistentVolumeClaims().create(appPersistentVolumeClaim.getResource());
     }
 
-    if (K8SUtils.getPersistentVolumeByName(client,
+    if (archetypeCreatePersistentVolumes && K8SUtils.getPersistentVolumeByName(client,
         appPersistentVolume.getResource().getMetadata().getName()).isEmpty()) {
       client.persistentVolumes().create(appPersistentVolume.getResource());
     }
@@ -172,7 +181,7 @@ public class ProjectDeploymentService {
       client.persistentVolumeClaims().create(databasePersistentVolumeClaim.getResource());
     }
 
-    if (K8SUtils.getPersistentVolumeByName(client,
+    if (archetypeCreatePersistentVolumes && K8SUtils.getPersistentVolumeByName(client,
         databasePersistentVolume.getResource().getMetadata().getName()).isEmpty()) {
       client.persistentVolumes().create(databasePersistentVolume.getResource());
     }
@@ -247,7 +256,7 @@ public class ProjectDeploymentService {
       client.persistentVolumeClaims().create(persistentVolumeClaim.getResource());
     }
 
-    if (K8SUtils
+    if (archetypeCreatePersistentVolumes && K8SUtils
         .getPersistentVolumeByName(client, persistentVolume.getResource().getMetadata().getName())
         .isEmpty()) {
       client.persistentVolumes().create(persistentVolume.getResource());
@@ -392,16 +401,18 @@ public class ProjectDeploymentService {
   private void stopAndDeleteModelEditor(ProjectDB project) {
     stopModelEditor(project);
 
-    final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project, pvOptions);
-    final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project, pvOptions);
-    final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project, pvOptions);
-    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project, pvOptions);
-
     // remove the claim first so that the volume can be deleted
-    client.persistentVolumeClaims().delete(databasePersistentVolumeClaim.getResource());
-    client.persistentVolumes().delete(databasePersistentVolume.getResource());
-    client.persistentVolumeClaims().delete(appPersistentVolumeClaim.getResource());
-    client.persistentVolumes().delete(appPersistentVolume.getResource());
+    final var databasePersistentVolumeClaim = new PyroDatabaseK8SPersistentVolumeClaim(client, project, pvOptions);
+    final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project, pvOptions);
+    forceDeletePersistentVolumeClaim(databasePersistentVolumeClaim.getResource());
+    forceDeletePersistentVolumeClaim(appPersistentVolumeClaim.getResource());
+
+    if (archetypeCreatePersistentVolumes) {
+      final var databasePersistentVolume = new PyroDatabaseK8SPersistentVolume(client, project, pvOptions);
+      final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project, pvOptions);
+      forceDeletePersistentVolume(databasePersistentVolume.getResource());
+      forceDeletePersistentVolume(appPersistentVolume.getResource());
+    }
 
     // no need to schedule pod removal if all resources are already deleted.
     removeScheduledTasks(project);
@@ -410,15 +421,33 @@ public class ProjectDeploymentService {
   private void stopAndDeleteLanguageEditor(ProjectDB project) {
     stopLanguageEditor(project);
 
-    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project, pvOptions);
-    final var persistentVolume = new TheiaK8SPersistentVolume(client, project, pvOptions);
-
     // remove the claim first so that the volume can be deleted
-    client.persistentVolumeClaims().delete(persistentVolumeClaim.getResource());
-    client.persistentVolumes().delete(persistentVolume.getResource());
+
+    final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project, pvOptions);
+    forceDeletePersistentVolumeClaim(persistentVolumeClaim.getResource());
+
+    if (archetypeCreatePersistentVolumes) {
+      final var persistentVolume = new TheiaK8SPersistentVolume(client, project, pvOptions);
+      forceDeletePersistentVolume(persistentVolume.getResource());
+    }
 
     // no need to schedule pod removal if all resources are already deleted.
     removeScheduledTasks(project);
+  }
+
+  private void forceDeletePersistentVolume(PersistentVolume persistentVolume) {
+    client.persistentVolumes()
+            .withName(persistentVolume.getMetadata().getName())
+            .withGracePeriod(0)
+            .delete();
+  }
+
+  private void forceDeletePersistentVolumeClaim(PersistentVolumeClaim persistentVolumeClaim) {
+    client.persistentVolumeClaims()
+            .inNamespace(client.getNamespace())
+            .withName(persistentVolumeClaim.getMetadata().getName())
+            .withGracePeriod(0)
+            .delete();
   }
 
   private void removeScheduledTasks(ProjectDB project) {

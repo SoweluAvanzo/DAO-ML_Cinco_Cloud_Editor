@@ -23,21 +23,24 @@ public class PyroAppK8SPersistentVolumeClaim extends TheiaK8SResource<Persistent
 
   @Override
   protected PersistentVolumeClaim build() {
+    var specs = new PersistentVolumeClaimSpecBuilder()
+            .withStorageClassName(options.storageClassName)
+            .withAccessModes("ReadWriteMany")
+            .withResources(new ResourceRequirementsBuilder()
+                    .withRequests(Map.of("storage", Quantity.parse(options.storage)))
+                    .build());
+
+    if (options.createPersistentVolumes) {
+      specs = specs.withVolumeName(getProjectName() + "-app-pv-volume");
+    }
+
     return new PersistentVolumeClaimBuilder()
         .withNewMetadata()
         .withName(getProjectName() + "-app-pv-claim")
         .withNamespace(client.getNamespace())
         .withLabels(Map.of("app", getProjectName()))
         .endMetadata()
-        .withSpec(new PersistentVolumeClaimSpecBuilder()
-            .withStorageClassName(options.storageClassName)
-            .withVolumeName(getProjectName() + "-app-pv-volume")
-            .withAccessModes("ReadWriteMany")
-            .withResources(new ResourceRequirementsBuilder()
-                .withRequests(Map.of("storage", Quantity.parse(options.storage)))
-                .build())
-            .build()
-        )
+        .withSpec(specs.build())
         .build();
   }
 }

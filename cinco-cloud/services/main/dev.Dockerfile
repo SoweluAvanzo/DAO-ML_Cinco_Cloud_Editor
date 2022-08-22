@@ -44,6 +44,7 @@ CMD cd /app/main/frontend && npm run start -- --host=0.0.0.0 --disable-host-chec
       -Darchetype.storage-class-name="${ARCHETYPE_STORAGE_CLASS_NAME}" \
       -Darchetype.storage="${ARCHETYPE_STORAGE}" \
       -Darchetype.host-path="${ARCHETYPE_HOST_PATH}" \
+      -Darchetype.create-persistent-volumes="${ARCHETYPE_CREATE_PERSISTENT_VOLUMES}" \
       -Dminio.host="${MINIO_HOST}" \
       -Dminio.port="${MINIO_PORT}" \
       -Dminio.access-key="${MINIO_ACCESS_KEY}" \

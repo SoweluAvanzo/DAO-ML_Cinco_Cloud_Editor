@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class TheiaK8SPersistentVolumeClaim extends TheiaK8SResource<PersistentVolumeClaim> {
 
-  private K8SPersistentVolumeOptions options;
+  private final K8SPersistentVolumeOptions options;
 
   public TheiaK8SPersistentVolumeClaim(KubernetesClient client, ProjectDB project, K8SPersistentVolumeOptions options) {
     super(client, project);
@@ -22,21 +22,24 @@ public class TheiaK8SPersistentVolumeClaim extends TheiaK8SResource<PersistentVo
 
   @Override
   protected PersistentVolumeClaim build() {
+    var specs = new PersistentVolumeClaimSpecBuilder()
+            .withStorageClassName(options.storageClassName)
+            .withAccessModes("ReadWriteMany")
+            .withResources(new ResourceRequirementsBuilder()
+                    .withRequests(Map.of("storage", Quantity.parse(options.storage)))
+                    .build());
+
+    if (options.createPersistentVolumes) {
+      specs = specs.withVolumeName(getProjectName() + "-pv-volume");
+    }
+
     return new PersistentVolumeClaimBuilder()
         .withNewMetadata()
         .withName(getProjectName() + "-pv-claim")
         .withNamespace(client.getNamespace())
         .withLabels(Map.of("app", getProjectName()))
         .endMetadata()
-        .withSpec(new PersistentVolumeClaimSpecBuilder()
-            .withStorageClassName(options.storageClassName)
-            .withVolumeName(getProjectName() + "-pv-volume")
-            .withAccessModes("ReadWriteMany")
-            .withResources(new ResourceRequirementsBuilder()
-                .withRequests(Map.of("storage", Quantity.parse(options.storage)))
-                .build())
-            .build()
-        )
+        .withSpec(specs.build())
         .build();
   }
 }
