@@ -62,6 +62,7 @@ spec:
   selector:
     app: ampq
 ---
+{{ if eq .Values.createPersistentVolumes true }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -80,6 +81,7 @@ spec:
     - ReadWriteMany
   hostPath:
     path: {{ .Values.artemis.hostPath }}
+{{ end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -89,7 +91,9 @@ metadata:
     app: ampq
 spec:
   storageClassName: {{ .Values.storageClassName }}
+  {{ if eq .Values.createPersistentVolumes true }}
   volumeName: ampq-pv-volume
+  {{ end }}
   accessModes:
     - ReadWriteMany
   resources:

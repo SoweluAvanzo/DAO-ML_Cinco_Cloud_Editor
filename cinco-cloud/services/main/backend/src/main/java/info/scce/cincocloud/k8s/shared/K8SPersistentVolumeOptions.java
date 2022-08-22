@@ -2,15 +2,18 @@ package info.scce.cincocloud.k8s.shared;
 
 public class K8SPersistentVolumeOptions {
 
-    public String storageClassName;
+    public final String storageClassName;
 
-    public String storage;
+    public final String storage;
 
-    public String hostPath;
+    public final String hostPath;
 
-    public K8SPersistentVolumeOptions(String storageClassName, String storage, String hostPath) {
+    public final boolean createPersistentVolumes;
+
+    public K8SPersistentVolumeOptions(String storageClassName, String storage, String hostPath, boolean createPersistentVolumes) {
         this.storageClassName = storageClassName;
         this.storage = storage;
         this.hostPath = hostPath;
+        this.createPersistentVolumes = createPersistentVolumes;
     }
 }

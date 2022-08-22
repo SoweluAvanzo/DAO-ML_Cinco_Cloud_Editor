@@ -64,6 +64,7 @@ spec:
   selector:
     app: minio
 ---
+{{ if eq .Values.createPersistentVolumes true }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -82,6 +83,7 @@ spec:
     - ReadWriteMany
   hostPath:
     path: {{ .Values.minio.hostPath }}
+{{ end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -91,7 +93,9 @@ metadata:
     app: minio
 spec:
   storageClassName: {{ .Values.storageClassName }}
+  {{ if eq .Values.createPersistentVolumes true }}
   volumeName: minio-pv-volume
+  {{ end }}
   accessModes:
     - ReadWriteMany
   resources:

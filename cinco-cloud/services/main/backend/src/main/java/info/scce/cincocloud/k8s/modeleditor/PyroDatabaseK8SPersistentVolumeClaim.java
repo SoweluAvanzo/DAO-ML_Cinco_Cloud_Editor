@@ -22,21 +22,24 @@ public class PyroDatabaseK8SPersistentVolumeClaim extends PyroK8SResource<Persis
 
   @Override
   protected PersistentVolumeClaim build() {
+    var specs = new PersistentVolumeClaimSpecBuilder()
+            .withStorageClassName(options.storageClassName)
+            .withAccessModes("ReadWriteMany")
+            .withResources(new ResourceRequirementsBuilder()
+                    .withRequests(Map.of("storage", Quantity.parse(options.storage)))
+                    .build());
+
+    if (options.createPersistentVolumes) {
+      specs = specs.withVolumeName(getProjectName() + "-database-pv-volume");
+    }
+
     return new PersistentVolumeClaimBuilder()
         .withNewMetadata()
         .withName(getProjectName() + "-database-pv-claim")
         .withNamespace(client.getNamespace())
         .withLabels(Map.of("app", getProjectName()))
         .endMetadata()
-        .withSpec(new PersistentVolumeClaimSpecBuilder()
-            .withStorageClassName(options.storageClassName)
-            .withVolumeName(getProjectName() + "-database-pv-volume")
-            .withAccessModes("ReadWriteMany")
-            .withResources(new ResourceRequirementsBuilder()
-                .withRequests(Map.of("storage", Quantity.parse(options.storage)))
-                .build())
-            .build()
-        )
+        .withSpec(specs.build())
         .build();
   }
 }
