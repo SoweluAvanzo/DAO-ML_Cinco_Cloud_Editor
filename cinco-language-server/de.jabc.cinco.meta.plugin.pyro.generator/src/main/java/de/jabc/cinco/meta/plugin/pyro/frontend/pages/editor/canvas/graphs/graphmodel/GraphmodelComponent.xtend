@@ -557,7 +557,7 @@ class GraphmodelComponent extends Generatable {
 									var y = content['y'];
 									var userName = content['userName'];
 									
-									js.JsObject cursorManager = js.context['\$cursor_manager_webstory'];
+									js.JsObject cursorManager = js.context['\$cursor_manager_«g.jsCall»'];
 									cursorManager.callMethod('update_cursor', [senderId, userName, x, y]);  
 								}
 							} else if (event == '«websocketEventPrime»') {
