@@ -38,9 +38,10 @@ class OutgoingCheck extends Generatable{
 						{
 							//check if type can be contained in group
 							int amount = 0;
+							String errorPrefix = «group.lowerBound» != «group.upperBound» ? "at least " : "";
 							«IF group.connectingEdges.map[subTypesAndType(it.name,g)].flatten.nullOrEmpty»
 								if(node.getOutgoing().size()<«group.lowerBound») {
-									addError(n,"at least «group.lowerBound» outgoing required");
+									addError(n, errorPrefix + "«group.lowerBound» outgoing required");
 								}
 							«ELSE»
 								«FOR containableType:group.connectingEdges.map[subTypesAndType(it.name,g)].flatten.filter(Edge).filter[!isIsAbstract]»
@@ -50,7 +51,7 @@ class OutgoingCheck extends Generatable{
 								 		).count();
 								«ENDFOR»
 								if(amount < «group.lowerBound»){
-									addError(n,"at least «group.lowerBound» of [«group.connectingEdges.map[name].join(",")»] outgoing required");
+									addError(n, errorPrefix + "«group.lowerBound» of [«group.connectingEdges.map[name].join(",")»] outgoing required");
 								}
 							«ENDIF»
 						}
