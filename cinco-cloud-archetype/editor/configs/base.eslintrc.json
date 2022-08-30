@@ -39,5 +39,8 @@
   "ignorePatterns": [
     "node_modules",
     "*.d.ts"
-  ]
+  ],
+  "rules": {
+    "@typescript-eslint/ban-types": 0
+  }
 }
