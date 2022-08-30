@@ -17,6 +17,7 @@ export interface LogClient {
     info(msg: string): void;
     error(msg: string): void;
 }
+/* eslint-disable no-redeclare */
 export const LogServer = Symbol('LogServer');
 export interface LogServer extends JsonRpcServer<LogClient> {
     info(msg: string): void;

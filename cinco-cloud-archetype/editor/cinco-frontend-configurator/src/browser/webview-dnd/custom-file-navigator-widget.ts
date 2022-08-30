@@ -21,8 +21,7 @@ export class CustomFileNavigatorWidget extends FileNavigatorWidget {
 
     public static onWebviewDnD: Function | undefined = undefined;
 
-    constructor(
-        @inject(TreeProps) props: TreeProps,
+    constructor(@inject(TreeProps) props: TreeProps,
         @inject(FileNavigatorModel) override readonly model: FileNavigatorModel,
         @inject(ContextMenuRenderer) contextMenuRenderer: ContextMenuRenderer
     ) {
