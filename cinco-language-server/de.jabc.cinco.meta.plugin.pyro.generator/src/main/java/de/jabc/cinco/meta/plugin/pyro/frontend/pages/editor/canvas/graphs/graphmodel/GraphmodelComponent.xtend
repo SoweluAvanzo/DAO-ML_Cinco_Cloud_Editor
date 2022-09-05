@@ -505,7 +505,7 @@ class GraphmodelComponent extends Generatable {
 				«'''
 					«'''
 						commandGraph.receiveCommand(m, forceExecute: true);
-					'''.checkCommand("basic_valid_answer",false)»
+					'''.checkCommand»
 				'''.propagation»
 				return m;
 			});
@@ -543,11 +543,8 @@ class GraphmodelComponent extends Generatable {
 									showMessageDialog = true;
 								}
 							} else if (event == 'display') {
-							  // var senderId = jsog['senderId'];
-							  // if (senderId.toString() == user.id.toString()) {
 								displayMessages = DisplayMessages.fromJSOG(jsog["content"]);
-								showDisplayDialog = true;		  							
-							  // }
+								showDisplayDialog = true;	
 							}  else if (event == 'updateCursorPosition') {
 								// update cursor
 								var senderId = jsog['senderId'];
@@ -582,10 +579,7 @@ class GraphmodelComponent extends Generatable {
 								} else {
 									var m = Message.fromJSOG(jsog['content']);
 									startPropagation().then((_) {
-										if (m is CompoundCommandMessage) {
-											executeCommands(m, true);
-											hasChangedSC.add({ "type": "update", "message": m });
-										}
+										executeUpdateCommand(m);
 									}).then((_) => endPropagation());
 								}
 							}
@@ -659,9 +653,7 @@ class GraphmodelComponent extends Generatable {
 						var jsog = convert.jsonDecode(data);
 						var m = Message.fromJSOG(jsog);
 						startPropagation().then((_) {
-							if (m is CompoundCommandMessage) {
-								executeCommands(m,true);
-							}
+							executeUpdateCommand(m);
 						}).then((_) => endPropagation());
 					});
 				«ENDIF»
@@ -769,9 +761,7 @@ class GraphmodelComponent extends Generatable {
 		 	ENDFOR»
 			graphService.sendMessage(pm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 				«'''
-		  	    if (m is CompoundCommandMessage) {
-		  	    	executeCommands(m,true);
-		  	    }
+	  	    		executeUpdateCommand(m);
 		  		'''.propagation»
 			});
 		}
@@ -783,7 +773,7 @@ class GraphmodelComponent extends Generatable {
 			«'''
 		  	    «'''
 		  	      commandGraph.receiveCommand(m);
-		  	    '''.checkCommand("undo_valid_answer",false)»
+		  	    '''.checkCommand("undo_valid_answer",'''commandGraph.revert(m);''')»
 		  	'''.propagation»
 			  });
 			}
@@ -795,8 +785,8 @@ class GraphmodelComponent extends Generatable {
 			    graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m) {
 					«'''
 				      	«'''
-				        commandGraph.receiveCommand(m);
-				      	'''.checkCommand("redo_valid_answer",false)»
+				        	commandGraph.receiveCommand(m);
+				      	'''.checkCommand("redo_valid_answer")»
 				  	'''.propagation»
 			    });
 			}
@@ -963,7 +953,7 @@ class GraphmodelComponent extends Generatable {
 			 		«'''
 		 	 			«'''
 		 	 				commandGraph.receiveCommand(m,forceExecute: true);
-		 	 			'''.checkCommand("basic_valid_answer",false)»
+		 	 			'''.checkCommand("basic_valid_answer")»
 		 	 		'''.propagation»
 			 	});
 			 }
@@ -974,11 +964,9 @@ class GraphmodelComponent extends Generatable {
 			 	graphService.loadCommandGraph(currentGraphModel, highlightings).then((_){
 			 		graphService.triggerDoubleClickActionsFor«g.name.escapeDart»(id, currentGraphModel,highlightings).then((m){
 			 			«'''
-			 	 			«
-				 	 			'''
+			 	 			«'''
 				 	 				commandGraph.receiveCommand(m,forceExecute: true);
-				 	 			'''.checkCommand("basic_valid_answer",false)
-			 	 			»
+				 	 		'''.checkCommand("basic_valid_answer")»
 			 	 		'''.propagation»
 			 		}).then((_){
 			 			«{
@@ -1019,7 +1007,7 @@ class GraphmodelComponent extends Generatable {
 								«'''
 									«'''
 										commandGraph.receiveCommand(m,forceExecute: true);
-									'''.checkCommand("basic_valid_answer",false)»
+									'''.checkCommand("basic_valid_answer")»
 								'''.propagation»
 							});
 						«ENDIF»
@@ -1038,7 +1026,7 @@ class GraphmodelComponent extends Generatable {
 										«'''
 							 			«'''
 							 				commandGraph.receiveCommand(m,forceExecute: true);
-							 			'''.checkCommand("basic_valid_answer",false)»
+							 			'''.checkCommand("basic_valid_answer")»
 							 		'''.propagation»
 									});
 							}
@@ -1080,7 +1068,7 @@ class GraphmodelComponent extends Generatable {
 			 			«'''
 							«'''
 								commandGraph.receiveCommand(m,forceExecute: true);
-							'''.checkCommand("basic_valid_answer",false)»
+							'''.checkCommand("basic_valid_answer")»
 						'''.propagation»
 			 		});
 			 	«ENDIF»
@@ -1088,14 +1076,13 @@ class GraphmodelComponent extends Generatable {
 			 
 			 void updateElement(core.ModelElement elem,{String cellId}) {
 			 	if(elem==null) return;
-			 			js.context.callMethod('update_element_«g.jsCall»',[
-			 	cellId,
-			 		elem.id,
-			 		elem.styleArgs(),
-			 		elem.$information(),
-			 		elem.$label()
-			 			]);
-			 	
+			 	js.context.callMethod('update_element_«g.jsCall»',[
+				 	cellId,
+				 	elem.id,
+				 	elem.styleArgs(),
+				 	elem.$information(),
+				 	elem.$label()
+			 	]);
 			 }
 			 
 			 bool cb_is_valid_container(int nodeId,int containerId) {
@@ -1202,7 +1189,7 @@ class GraphmodelComponent extends Generatable {
 				
 				// container with given id does not exist
 				// just move the node
-				if(c is! core.ModelElementContainer){
+				if(c is! core.ModelElementContainer) {
 					var arr = js.JsArray();
 					arr['x'] = x;
 					arr['y'] = y;
@@ -1242,13 +1229,11 @@ class GraphmodelComponent extends Generatable {
 				// same container or no previous container
 				return true;
 			}
-				
-				js.JsArray cb_get_valid_targets(int id) {
+			
+			js.JsArray cb_get_valid_targets(int id) {
 				var valids = new js.JsArray();
-				currentGraphModel.allElements().where((n)=>n is core.Node).forEach((n){
-					var re = cb_can_connect_edge(-1,id,n.id);
-				
-					if(re is bool && re == true) {
+				currentGraphModel.allElements().where((n) => n is core.Node).forEach((n) {
+					if(cb_is_valid_connection(-1, id, n.id)) {
 						valids.add(n.id);
 					}
 				});
@@ -1256,132 +1241,42 @@ class GraphmodelComponent extends Generatable {
 			}
 			
 			bool cb_is_valid_connection(int edgeId, int sourceId, int targetId) {
-				var re = cb_can_connect_edge(edgeId,sourceId,targetId);
+				var re = cb_can_connect_edge(edgeId, sourceId, targetId);
 				return re is bool && re == true;
 			}
-		
-			bool can_connect_source(core.Edge edge, core.Node source, core.Node target) {
-				if(edge.source == null || edge.source.id!=source.id) {
-					// source changed
-					«{
-						val applicableElements = g.nodes.filter[!isIsAbstract].filter[!possibleOutgoing.empty].toSet
-						'''
-							«FOR n : applicableElements SEPARATOR " else "
-							»if(source.$type() == "«n.typeName»") {
-								«{
-									val constraints = n.outgoingEdgeConnections.filter(mgl.BoundedConstraint).toSet
-									connectionCheckTemplate(
-										constraints,
-										[t| '''edge.$type() == "«t.typeName»"'''],
-										'''
-											var groupSize;
-											var outgoing;
-										''',
-										[concreteTypes, upperBound| 
-											'''
-												«IF upperBound>-1»
-													outgoing = source.outgoing;
-													groupSize = 0;
-													if(outgoing != null && outgoing.length > 0) {
-														«FOR t:concreteTypes»
-															groupSize += outgoing.where((n)=>n.$type() == "«t.typeName»").length;
-														«ENDFOR»
-													}
-													// check bounding constraint
-													if(groupSize>=«upperBound») {
-														// can not be applied
-														return false;
-													}
-												«ENDIF»
-											'''
-										],
-										
-										'''return true;'''
-									)
-								}»
-							}«
-							ENDFOR»
-						'''
-					}»
-				}
-				return false;
-			}
-
-			bool can_connect_target(core.Edge edge,core.Node source,core.Node target) {
-				if(edge.target == null || edge.target.id!=target.id){
-					//target changed
-					«{
-						val applicableElements = g.nodes.filter[!isIsAbstract].filter[!possibleIncoming.empty].toSet
-						'''
-							«FOR n : applicableElements SEPARATOR " else "
-							»if(target.$type() == "«n.typeName»") {
-								«{
-									val constraints = n.incomingEdgeConnections.filter(mgl.BoundedConstraint).toSet
-									connectionCheckTemplate(
-										constraints,
-										[t| '''edge.$type() == "«t.typeName»"'''],
-										'''
-											var groupSize;
-											var incoming;
-										''',
-										[concreteTypes, upperBound| 
-											'''
-												«IF upperBound>-1»
-													incoming = source.incoming;
-													groupSize = 0;
-													if(incoming != null && incoming.length > 0) {
-														«FOR t:concreteTypes»
-															groupSize += incoming.where((n)=>n.$type() == "«t.typeName»").length;
-														«ENDFOR»
-													}
-													// check bounding constraint
-													if(groupSize>=«upperBound») {
-														// can not be applied
-														return false;
-													}
-												«ENDIF»
-											'''
-										],
-										
-										'''return true;'''
-									)
-								}»
-							}«
-							ENDFOR»
-						'''
-					}»
-				}
-				return false;
-			}
 			
-			dynamic cb_can_connect_edge(int id,int sourceId,int targetId) {
-				var edge = id==-1?null:findElement(id) as core.Edge;
+			dynamic cb_can_connect_edge(int id, int sourceId, int targetId) {
+				var edge = id == -1 ? null: findElement(id) as core.Edge;
 				List<core.Edge> edgeTypes = id==-1?[
 					«FOR e : g.edges.filter[!isAbstract] SEPARATOR ","»
 						new «e.dartFQN»()
 					«ENDFOR»
 				]:[findElement(id)];
 				
+				// check types of source and target
 				var sourceElem = findElement(sourceId);
 				var targetElem = findElement(targetId);
 				if(sourceElem is! core.Node || targetElem is! core.Node) {
 					return false;
 				}
-				
 				var source = sourceElem as core.Node;
 				var target = targetElem as core.Node;
 				
 				for(var e in edgeTypes)
 				{
-					var targetResult = can_connect_source(e,source,target);
-					var sourceResult = can_connect_target(e,source,target);
-					if(targetResult && sourceResult) {
+					var canConnect = js.context.callMethod('canConnectEdge_«g.jsCall»',[
+					 	source.id,
+					 	target.id,
+					 	e.$type()
+				 	]);
+					if(canConnect) {
 						return true;
 					}
 				}
 				if(edge == null) {
 					return false;
 				}
+				
 				var arr = js.JsArray();
 				arr['target'] = edge.target.id;
 				arr['source'] = edge.source.id;
@@ -1425,11 +1320,9 @@ class GraphmodelComponent extends Generatable {
 				}
 				
 				void cb_create_node_«node.jsCall(g)»(int x,int y,int width,int height,String cellId,int containerId«IF node.isPrime»,int primeId«ENDIF») {
-					
 					var container = findElement(containerId) as core.ModelElementContainer;
 					var containerType =
 					        container != null ? container.$type() : null;
-				
 				    var ccm = commandGraph.sendCreateNodeCommand(
 				    	"«node.typeName»",
 				    	x, y,
@@ -1442,39 +1335,24 @@ class GraphmodelComponent extends Generatable {
 				    	«ENDIF»
 				    );
 				    startPropagation();
-					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
+					graphService.sendMessage(ccm, "«g.restEndpoint»", currentGraphModel.id).then((m){
+						updateDelegateIdOfCell(m, cellId);
+						executeUpdateCommand(m);
 						«'''
-							var cmd = m.cmd.queue.first;
-							if(cmd is CreateNodeCommand){
-								var node = new «node.dartFQN»();
-								node.x = x;
-								node.y = y;
-								node.id = cmd.delegateId;
-								node.container = container;
-								container.addElement(node);
-								«IF node.prime»
-									//prime node -> update element properties
-									var primeElem = cmd.primeElement;
-									if(primeElem != null) {
-										var elements = currentGraphModel.allElements().where((n)=>n.id==primeElem.id);
-										if(elements.isNotEmpty){
-											node.«node.primeReference.name.escapeDart» = elements.first as «node.primeReference.type.dartFQN»;
-										} else {
-											node.«node.primeReference.name.escapeDart» = primeElem as «node.primeReference.type.dartFQN»;
+							if(m.cmd != null) {
+								for(var cmd in m.cmd.queue) {
+									if(cmd is CreateNodeCommand){
+										// change selection
+										var node = findElement(cmd.delegateId);
+										// update container
+										if(container is! core.GraphModel){
+											updateElement(container as core.ModelElement);
 										}
-									} else {
-										node.«node.primeReference.name.escapeDart» = null;
+										selectionChangedSC.add(node);
 									}
-								«ENDIF»
-								updateElement(node,cellId: cellId);
-								// commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
-								commandGraph.storeCommand(m.cmd);
-								if(container is! core.GraphModel){
-									updateElement(container as core.ModelElement);
 								}
-								selectionChangedSC.add(node);
 							}
-						'''.checkCommand("basic_valid_answer")»
+						'''.checkCommand»
 					}).whenComplete(()=>endPropagation());
 				}
 				
@@ -1512,10 +1390,9 @@ class GraphmodelComponent extends Generatable {
 						selectionChangedSC.add(currentGraphModel);
 						node.container = null;
 						«'''
-							commandGraph.receiveCommand(m,forceExecute: true);
-							commandGraph.storeCommand(m.cmd);
+							executeUpdateCommand(m);
 							if(container is! core.GraphModel){
-							updateElement(container as core.ModelElement);
+								updateElement(container as core.ModelElement);
 							}
 						'''.checkCommand("basic_valid_answer")»
 					}).whenComplete(()=>endPropagation());
@@ -1532,6 +1409,7 @@ class GraphmodelComponent extends Generatable {
 					startPropagation();
 					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 					«'''
+						// correct containment of node
 						if(!container.modelElements.contains(node)){
 							node.container.modelElements.remove(node);
 							node.container = container;
@@ -1540,11 +1418,7 @@ class GraphmodelComponent extends Generatable {
 								updateElement(container as core.ModelElement);
 							}
 						}
-						node.x = x;
-						node.y = y;
-						updateElement(node);
-						// commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
-						commandGraph.storeCommand(m.cmd);
+						executeCommands(m, true);
 					'''.checkCommand("basic_valid_answer")»
 					}).whenComplete(()=>endPropagation());
 				}
@@ -1556,30 +1430,21 @@ class GraphmodelComponent extends Generatable {
 							startPropagation();
 							var ccm = commandGraph.sendResizeNodeCommand(id,width,height,direction,user);
 							graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
-								«'''
-									node.width = width;
-									node.height = height;
-									updateElement(node);
-									// commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
-									commandGraph.storeCommand(m.cmd);
-								'''.checkCommand("basic_valid_answer")»
+								executeCommands(m, true);
 							}).whenComplete(()=>endPropagation());
 						}
 					«ENDIF»
 				}
-					
+				
+				// TODO: SAMI - this should be deprecated
+				@deprecated
 				void cb_rotate_node_«node.jsCall(g)»(int angle,int id) {
 					var node = findElement(id) as core.Node;
 					if(node != null) {
 					   	var ccm =commandGraph.sendRotateNodeCommand(id,angle,user);
 						startPropagation();
 					   	graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
-							«'''
-					    		node.angle = angle;
-					    		updateElement(node);
-					    		// commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
-					    		commandGraph.storeCommand(m.cmd);
-						  	'''.checkCommand("basic_valid_answer")»
+					   		executeCommands(m, true);
 						}).whenComplete(()=>endPropagation());
 					}
 				}
@@ -1609,40 +1474,25 @@ class GraphmodelComponent extends Generatable {
 					var target = findElement(targetId) as core.Node;
 					var currentBendpoints = new List<core.BendingPoint>();
 					if(positions!=null){
-					  positions.forEach((p){
-						var b = new core.BendingPoint();
-						b.x = p['x'];
-						b.y = p['y'];
-						currentBendpoints.add(b);
-						 });
+						positions.forEach((p){
+							var b = new core.BendingPoint();
+							b.x = p['x'];
+							b.y = p['y'];
+							currentBendpoints.add(b);
+						});
 					}
 				   	var ccm = commandGraph.sendCreateEdgeCommand("«edge.typeName»",targetId,sourceId,target.$type(),source.$type(),currentBendpoints,user);
 					startPropagation();
 					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
 						«'''
+							updateDelegateIdOfCell(m, cellId);
+							executeUpdateCommand(m);
 							var cmd = m.cmd.queue.first;
-							if(cmd is CreateEdgeCommand){
-								var edge = new «edge.dartFQN»();
-								edge.id = cmd.delegateId;
-								edge.container = currentGraphModel;
-								currentGraphModel.addElement(edge);
-								edge.source = source;
-								source.outgoing.add(edge);
-								edge.target = target;
-								target.incoming.add(edge);
-								edge.bendingPoints = new List.from(currentBendpoints);
-								updateElement(edge,cellId: cellId);
-								updateElement(source);
-								updateElement(target);
-								ccm.cmd.queue.first.delegateId=edge.id;
-								// commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
-								commandGraph.storeCommand(m.cmd);
-								selectionChangedSC.add(edge);
-							}
+							var element = findElement(cmd.delegateId);
+							selectionChangedSC.add(element);
 						'''.checkCommand("basic_valid_answer")»
 					}).whenComplete(()=>endPropagation());
 				}
-				
 				
 				void cb_remove_edge_«edge.jsCall(g)»(int id) {
 					var edge = findElement(id) as core.Edge;
@@ -1652,21 +1502,7 @@ class GraphmodelComponent extends Generatable {
 					var ccm = commandGraph.sendRemoveEdgeCommand(id,edge.source.id,edge.target.id,edge.source.$type(),edge.target.$type(),"«edge.typeName»",user);
 					startPropagation();
 					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
-				   		«'''
-				    		selectionChangedSC.add(currentGraphModel);
-				    		var source = edge.source;
-				    		source.outgoing.remove(edge);
-				    		updateElement(source);
-				    		edge.source = null;
-				    		var target = edge.target;
-				    		target.incoming.remove(edge);
-				    		updateElement(target);
-				    		edge.target = null;
-				    		edge.container.modelElements.remove(edge);
-				    		edge.container = null;
-				    		// commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
-				    		commandGraph.storeCommand(m.cmd);
-			    		'''.checkCommand("basic_valid_answer")»
+						executeUpdateCommand(m);
 					}).whenComplete(()=>endPropagation());
 				}
 				
@@ -1681,27 +1517,29 @@ class GraphmodelComponent extends Generatable {
 					   	var ccm = commandGraph.sendReconnectEdgeCommand(id,sourceId,targetId,user);
 						startPropagation();
 					 	graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
-					 	 		«'''
-					    			if(edge.target != target){
-					    				edge.target.incoming.remove(edge);
-					    				edge.target = target;
-					    				target.incoming.add(edge);
-					    				updateElement(target);
-					    			}
-					    			if(edge.source != source){
-					    				edge.source.outgoing.remove(edge);
-					    				edge.source = source;
-					    				source.outgoing.add(edge);
-					    				updateElement(source);
-					    			}
-					    			updateElement(edge);
-					    			// commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
-					    			commandGraph.storeCommand(m.cmd);
-				 	    	  	'''.checkCommand("basic_valid_answer")»
+					 			executeUpdateCommand(m);
 				 		}).whenComplete(()=>endPropagation());
 					}
 				}
 		«ENDFOR»
+			
+			void executeUpdateCommand(Message m) {
+				«'''
+					executeCommands(m, true);
+					hasChangedSC.add({ "type": "update", "message": m });
+				'''.checkCommand»
+			}
+			
+			void updateDelegateIdOfCell(CompoundCommandMessage m, cellId) {
+				var cmd= m.cmd.queue.first;
+				if(cmd is CreateNodeCommand || cmd is CreateEdgeCommand) {
+					js.context.callMethod('update_elementId_«g.jsCall»',
+					[
+						cellId,
+						cmd.delegateId
+					]);
+				}
+			}
 		
 			void cb_update_bendpoint(List positions,int id) {
 				var edge = findElement(id) as core.Edge;
@@ -1722,17 +1560,20 @@ class GraphmodelComponent extends Generatable {
 					var ccm = commandGraph.sendUpdateBendPointCommand(id,currentBendpoints,new List.from(edge.bendingPoints),user);
 					startPropagation();
 					graphService.sendMessage(ccm,"«g.restEndpoint»",currentGraphModel.id).then((m){
-					   	  	«'''
-				 	    		edge.bendingPoints = new List();
-				 	    		positions.forEach((p){
-				 	    			var b = new core.BendingPoint();
-				 	    			b.x = p['x'];
-				 	    			b.y = p['y'];
-				 	    			edge.bendingPoints.add(b);
-				 	    		});
-				 	    		// commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
-				 	    		commandGraph.storeCommand(m.cmd);
-				    	  	'''.checkCommand("basic_valid_answer")»
+						executeUpdateCommand(m);
+						/*
+				   	  	«'''
+			 	    		edge.bendingPoints = new List();
+			 	    		positions.forEach((p){
+			 	    			var b = new core.BendingPoint();
+			 	    			b.x = p['x'];
+			 	    			b.y = p['y'];
+			 	    			edge.bendingPoints.add(b);
+			 	    		});
+			 	    		// commandGraph.receiveCommand(m.customCommands(),forceExecute: true);
+			 	    		commandGraph.storeCommand(m.cmd);
+			    	  	'''.checkCommand("basic_valid_ansswwer")»
+				    	*/
 				   	}).whenComplete(()=>endPropagation());
 				}
 			}
@@ -1744,19 +1585,26 @@ class GraphmodelComponent extends Generatable {
 		c.connectingEdges.contains(edge) || c.connectingEdges.nullOrEmpty
 	}
 
-	def checkCommand(CharSequence s, String type) {
-		return checkCommand(s, type, true)
+	def checkCommand(CharSequence s) {
+		return checkCommand(s, null)
 	}
 
-	def checkCommand(CharSequence s, String type, boolean revert) '''
+	def checkCommand(CharSequence s, String type) {
+		return checkCommand(s, type, null)
+	}
+
+	def checkCommand(CharSequence s, String type, CharSequence revert) '''
 		if(m is CompoundCommandMessage){
-			if(m.type == '«type»'){
+			«IF type !== null»
+				if(m.type == '«type»'){
+					«s»
+				}
+			«ELSE»
 				«s»
-			}
-			«IF revert»
+			«ENDIF»
+			«IF revert !== null»
 				else {
-					//revert
-					commandGraph.revert(m);
+					«revert»
 				}
 			«ENDIF»
 		}
@@ -1800,11 +1648,11 @@ class GraphmodelComponent extends Generatable {
 							containableElements,
 							[t| '''node.$type() == "«t.typeName»"'''],
 							'''int groupSize;''',
-							[concreteTypes, upperBound| 
+							[currentType, concreteBlockingTypes, upperBound| 
 								'''
 									«IF upperBound>-1»
 										groupSize = 0;
-										«FOR t:concreteTypes»
+										«FOR t:concreteBlockingTypes»
 											groupSize += container.modelElements.where((n)=>n.$type() == "«t.typeName»").length;
 										«ENDFOR»
 										// check bounding constraint
@@ -1815,7 +1663,7 @@ class GraphmodelComponent extends Generatable {
 									«ENDIF»
 								'''
 							],
-							
+							'''return true;''',
 							'''return true;'''
 						)
 					}»

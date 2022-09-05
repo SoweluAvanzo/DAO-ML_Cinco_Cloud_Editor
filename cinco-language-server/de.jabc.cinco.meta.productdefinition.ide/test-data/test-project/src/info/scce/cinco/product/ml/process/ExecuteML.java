@@ -14,6 +14,7 @@ import info.scce.cinco.product.ml.process.transformer.BaseProcessTransformer;
 import info.scce.pyro.sync.DisplayMessage;
 import info.scce.pyro.sync.DisplayMessages;
 import info.scce.pyro.sync.GraphModelWebSocket;
+import info.scce.pyro.sync.ReceiverType;
 import info.scce.pyro.sync.WebSocketMessage;
 import javax.json.*;
 import java.io.IOException;
@@ -198,7 +199,7 @@ public class ExecuteML extends CincoCustomAction<MLProcess> {
 			DisplayMessages dms = new DisplayMessages();
 			dms.setMessages(messages);
 			System.out.println("----> send message "+messages.size()+ " to "+user.id+ " in ");
-			webSocket.send(element.getDelegateId(), WebSocketMessage.fromEntity(user.id,"display",dms));
+			webSocket.send(element.getDelegateId(), WebSocketMessage.fromEntity(user.id,"display",dms), ReceiverType.SENDER);
 			try {
 				clientEndPoint.userSession.close();
 			} catch (IOException e) {

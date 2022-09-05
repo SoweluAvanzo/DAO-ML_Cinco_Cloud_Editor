@@ -52,6 +52,7 @@ import java.util.ArrayList
 import java.util.function.BiFunction
 import productDefinition.SplashScreen
 import java.time.LocalDate
+import org.apache.commons.lang3.function.TriFunction
 
 class MGLExtension {
 
@@ -3152,69 +3153,94 @@ class MGLExtension {
 		val potencialReferencing = refNodes.map[it.graphModels].flatten.toSet.filter[!isAbstract]
 		return potencialReferencing
 	}
-	
+		
 	def containmentCheckTemplate(
-		Set<mgl.BoundedConstraint> constraints,
-		Function<GraphicalModelElement, CharSequence> typeCheck,
-		CharSequence preCheck,
-		BiFunction<Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck,
-		CharSequence fulfilled
+		Set<mgl.BoundedConstraint> constraints, // set of all constraints specifying the relations
+		Function<GraphicalModelElement, CharSequence> typeCondition, // runtime condition if applicableElement target can be part of the relation
+		CharSequence preProcedure,// called before all constraint groups were checked
+		TriFunction<GraphicalModelElement, Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck, // constraint check-template [currently checked RelationType, concreteTypes of RelationType, constraints upperBound| template of procedure]
+		CharSequence postProcedure, // called after all constraint groups were checked
+		CharSequence onNoConstraints // if no constraint is defined, i.e. the constraint set is empty
 	) {
-		constraintCheckTemplate(
+		relationConstraintFilterTemplate(
 			constraints,
-			typeCheck,
-			preCheck,
+			[true],
+			typeCondition,
+			preProcedure,
 			constraintCheck,
-			fulfilled,
-			true,
+			postProcedure,
+			onNoConstraints,
+			Node,
+			true
+		)
+	}
+		
+	def connectionCheckTemplate(
+		Set<mgl.BoundedConstraint> constraints, // set of all constraints specifying the relations
+		Function<GraphicalModelElement, CharSequence> typeCondition, // runtime condition if applicableElement target can be part of the relation
+		CharSequence preProcedure,// called before all constraint groups were checked
+		TriFunction<GraphicalModelElement, Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck, // constraint check-template [currently checked RelationType, concreteTypes of RelationType, constraints upperBound| template of procedure]
+		CharSequence postProcedure, // called after all constraint groups were checked
+		CharSequence onNoConstraints // if no constraint is defined, i.e. the constraint set is empty
+	) {
+		relationConstraintFilterTemplate(
+			constraints,
+			[true],
+			typeCondition,
+			preProcedure,
+			constraintCheck,
+			postProcedure,
+			onNoConstraints,
+			Edge,
+			true
+		)
+	}
+		
+	def connectionFilteredCheckTemplate(
+		Set<mgl.BoundedConstraint> constraints, // set of all constraints specifying the relations
+		Function<GraphicalModelElement, Boolean> filterConstraintElement, // filter types of relation out from all possible expected relations of the target
+		Function<GraphicalModelElement, CharSequence> typeCondition, // runtime condition if applicableElement target can be part of the relation
+		CharSequence preProcedure,// called before all constraint groups were checked
+		TriFunction<GraphicalModelElement, Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck, // constraint check-template [currently checked RelationType, concreteTypes of RelationType, constraints upperBound| template of procedure]
+		CharSequence postProcedure, // called after all constraint groups were checked
+		CharSequence onNoConstraints // if no constraint is defined, i.e. the constraint set is empty
+	) {
+		relationConstraintFilterTemplate(
+			constraints,
+			filterConstraintElement,
+			typeCondition,
+			preProcedure,
+			constraintCheck,
+			postProcedure,
+			onNoConstraints,
+			Edge,
 			true
 		)
 	}
 	
-	def connectionCheckTemplate(
-		Set<mgl.BoundedConstraint> constraints,
-		Function<GraphicalModelElement, CharSequence> typeCheck,
-		CharSequence preCheck,
-		BiFunction<Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck,
-		CharSequence fulfilled
-	) {
-		constraintCheckTemplate(
-			constraints,
-			typeCheck,
-			preCheck,
-			constraintCheck,
-			fulfilled,
-			true,
-			false
-		)
-	}
-	
-	def constraintCheckTemplate(
-		Set<mgl.BoundedConstraint> constraints,
-		Function<GraphicalModelElement, CharSequence> typeCheck,
-		CharSequence preCheck,
-		BiFunction<Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck,
-		CharSequence fulfilled,
-		boolean useElse,
-		boolean containmentCheck // Two modes: containmentCheck and edgeConnectionCheck (Because of wildcard)
+	def relationConstraintFilterTemplate(
+		Set<mgl.BoundedConstraint> constraints, // set of all constraints specifying the relations
+		Function<GraphicalModelElement, Boolean> filterConstraintElement, // filter types of relation out from all possible expected relations of the target
+		Function<GraphicalModelElement, CharSequence> typeCondition, // runtime condition if applicableElement target can be part of the relation
+		CharSequence preProcedure,// called before all constraint groups were checked
+		TriFunction<GraphicalModelElement, Set<GraphicalModelElement>, Integer, CharSequence> constraintCheck, // constraint check-template [currently checked RelationType, concreteTypes of RelationType, constraints upperBound| template of procedure]
+		CharSequence postProcedure, // called after all constraint groups were checked
+		CharSequence onNoConstraints, // if no constraint is defined, i.e. the constraint set is empty
+		Class<? extends GraphicalModelElement> resolveWildCardsTo, // Type of the RelationElement, e.g. Edges in edge creation Edge or Nodes in containments (needed to resolve WildCard)
+		boolean useElse
 	) {
 		'''
 			«IF constraints.empty»
-				// can be applied, without constraint (by the GraphModel)
-				«fulfilled»
+				// no constraints defined (by the GraphModel)
+				«onNoConstraints»
 			«ELSE»
 				«{
 					val applicableElements = new HashSet<GraphicalModelElement>();
-					if(constraints.filter(mgl.Wildcard).length>0) {
-						if(containmentCheck) {
-							applicableElements.addAll(
-								constraints.head.eContainer.MGLModel.elements.filter(Node)
-							)
-						} else {
-							applicableElements.addAll(
-								constraints.head.eContainer.MGLModel.elements.filter(Edge)
-							)
-						}
+					if(constraints.filter(mgl.Wildcard).length > 0) {
+						applicableElements.addAll(
+							constraints.head.eContainer.MGLModel.elements.filter(resolveWildCardsTo)
+							.toSet.filter[!isAbstract]
+						)
 					} else if(constraints.head instanceof GraphicalElementContainment) {
 						applicableElements.addAll(
 							constraints
@@ -3231,11 +3257,14 @@ class MGLExtension {
 						)
 					} else {
 						throw new RuntimeException("A case is missing in method 'applicationCheckTemplate'!");
-					}	
+					}
+					applicableElements.removeIf[!filterConstraintElement.apply(it)]					
+					
 					'''
-						// resolved cases for each existing concrete type that can be contained
-						«FOR t : applicableElements SEPARATOR '''«IF typeCheck !== null && useElse» else «ELSE» «ENDIF»'''
-						»«IF typeCheck !== null»if(«typeCheck.apply(t)») «ENDIF»{ //check if type «t.typeName» can be applied in group
+						// resolved cases for each existing concrete type that can be related/contained onto this type
+						«FOR t : applicableElements SEPARATOR '''«IF typeCondition !== null && useElse» else «ELSE» «ENDIF»'''
+						»«IF typeCondition !== null && typeCondition.apply(t) !== null && typeCondition.apply(t).length > 0
+						»if(«typeCondition.apply(t)») «ENDIF»{ //check if type «t.typeName» can be applied in group
 							«{
 								val superTypesAndType = t.resolveSuperTypesAndType
 								// identify all rules that can be applied on the given type t
@@ -3256,20 +3285,15 @@ class MGLExtension {
 								}
 								'''
 									// calculate each bounding constraint («IF useElse»lazy«ELSE»eager«ENDIF»)
-									«IF preCheck !== null»«preCheck»«ENDIF»
+									«IF preProcedure !== null»«preProcedure»«ENDIF»
 									«FOR group: applicableGroups.indexed»
 										«{
 											val concreteTypes = new HashSet<GraphicalModelElement>();
 											if(group.value instanceof mgl.Wildcard) {
-												if(containmentCheck) {
-													concreteTypes.addAll(
-														group.value.eContainer.MGLModel.elements.filter(Node)
-													)
-												} else {
-													concreteTypes.addAll(
-														group.value.eContainer.MGLModel.elements.filter(Edge)
-													)
-												}
+												concreteTypes.addAll(
+													group.value.eContainer.MGLModel.elements.filter(resolveWildCardsTo)
+													.toSet.filter[!isAbstract]
+												)
 											} else if(group.value instanceof GraphicalElementContainment) {
 												concreteTypes.addAll(
 													(group.value as mgl.GraphicalElementContainment).types
@@ -3286,13 +3310,13 @@ class MGLExtension {
 											'''
 												«IF !concreteTypes.empty»
 													// calculate constraint «group.key»
-													«constraintCheck.apply(concreteTypes, group.value.upperBound)»
+													«constraintCheck.apply(t, concreteTypes, group.value.upperBound)»
 												«ENDIF»
 											'''
 										}»
 									«ENDFOR»
-									«IF fulfilled !== null && fulfilled.length>0»
-										«fulfilled»
+									«IF postProcedure !== null && postProcedure.length > 0»
+										«postProcedure»
 									«ENDIF»
 								'''
 							}»

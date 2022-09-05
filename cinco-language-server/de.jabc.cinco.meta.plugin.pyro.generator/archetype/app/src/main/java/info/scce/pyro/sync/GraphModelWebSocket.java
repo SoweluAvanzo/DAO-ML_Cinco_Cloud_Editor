@@ -34,7 +34,7 @@ import org.jboss.logging.Logger;
  */
 @ServerEndpoint(value = "/api/ws/graphmodel/{graphModelId}/{ticket}/private")
 @ApplicationScoped
-public class GraphModelWebSocket { // TODO: SAMI - new
+public class GraphModelWebSocket {
 
     private final static String USER_ID = "USER_ID";
 
@@ -78,8 +78,10 @@ public class GraphModelWebSocket { // TODO: SAMI - new
         			String id = ""+m.getsenderId();
         			PyroUserDB user = PyroUserRegistry.getUser(id);
         			ucp.setUserName(user.username);
-        			graphModelRegistry.send(ucp.getgraphModelId(), 
-        					WebSocketMessage.fromEntity(m.getsenderId(), "updateCursorPosition", ucp)
+        			this.send(
+        					ucp.getgraphModelId(), 
+        					WebSocketMessage.fromEntity(m.getsenderId(), "updateCursorPosition", ucp),
+                            ReceiverType.OTHERS
         				);
         			break;
         		default:
@@ -108,7 +110,12 @@ public class GraphModelWebSocket { // TODO: SAMI - new
 
     public void send(long graphmodelId,WebSocketMessage message)
     {
-        graphModelRegistry.send(graphmodelId,message);
+    	send(graphmodelId, message, ReceiverType.OTHERS);
+    }
+
+    public void send(long graphmodelId,WebSocketMessage message, ReceiverType receiverType)
+    {
+        graphModelRegistry.send(graphmodelId, message, receiverType);
     }
 
     public String getUserId(String ticket) {

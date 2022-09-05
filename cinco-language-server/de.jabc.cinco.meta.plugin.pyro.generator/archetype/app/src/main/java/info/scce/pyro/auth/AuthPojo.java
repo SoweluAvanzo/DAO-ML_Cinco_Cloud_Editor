@@ -18,7 +18,7 @@ public class AuthPojo {
     	AuthPojo debugUser = new AuthPojo();
     	debugUser.username = "peter";
     	debugUser.email = "peter@parker.com";
-    	debugUser.id = ""+getNextId();
+    	debugUser.id = "0";
     	debugUser.profile_image = "debug.png";
     	return debugUser;
     }
@@ -27,7 +27,7 @@ public class AuthPojo {
     	AuthPojo noUser = new AuthPojo();
     	noUser.username = "no-user";
     	noUser.email = "no-user@no-user.com";
-    	noUser.id = ""+getNextId();
+    	noUser.id = "0";
     	noUser.profile_image = "no-user.png";
     	return noUser;
     }

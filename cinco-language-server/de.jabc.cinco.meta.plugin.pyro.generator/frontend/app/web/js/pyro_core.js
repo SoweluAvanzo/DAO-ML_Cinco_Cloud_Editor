@@ -1595,8 +1595,9 @@ function add_edge_internal(element,graph,router,connector){
 function move_node_internal(x,y,id,containerId,graph)
 {
     var node = findElementById(id,graph);
-    if(node.parent()){
-        var parent = graph.getCell(node.parent());
+    var parentId = node.attributes.parent;
+    if(parentId){
+        var parent = graph.getCell(parentId, graph);
         parent.unembed(node);
     }
     if(containerId>0) {
