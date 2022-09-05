@@ -699,6 +699,9 @@ class Controller extends Generatable{
 	    
 	}
 	
+	«templatePossibleEdgeTypes(g)»
+	
+	«templateCanConnectEdge(g)»
 	
 	function start_propagation_«g.jsCall»() {
 		if($paper_«g.jsCall» != null) {
@@ -1079,8 +1082,11 @@ class Controller extends Generatable{
 				    		return;
 				    	}
 				    	parentCell.embed(elem.model);
+				    	
 				    	//move back
-				    	elem.model.position(preX,preY,{ parentRealtive: true });
+						var oldX = parentCell.attributes.position.x + preX;
+						var oldY = parentCell.attributes.position.y + preY;
+						elem.model.position(oldX,oldY, { parentRealtive: true });
 			    	}
 			    	else {
 				    	//move back
@@ -1095,7 +1101,6 @@ class Controller extends Generatable{
 								var childPos = childCell.position();
 								childCell.position(childPos.x+diffX,childPos.y+diffY);
 							}
-						
 						});
 					«ENDIF»
 			    	
@@ -1429,6 +1434,14 @@ class Controller extends Generatable{
 			reaAdjustDimensions_«g.jsCall»();
 		}
 	});
+	
+	function update_elementId_«g.jsCall»(cellId, id) {
+		var elem = $graph_«g.jsCall».getCell(cellId);
+		if(elem == null) {
+			return;
+		}
+		elem.attributes.attrs.id = id;
+	}
 	'''
 	}
 	
@@ -1446,12 +1459,12 @@ class Controller extends Generatable{
 			containableElements,
 			[t| ''' creatableTypeName === '«t.typeName»' '''],
 			'''var groupSize;''',
-			[concreteTypes, upperBound| 
+			[currentType, concreteBlockingTypes, upperBound| 
 				'''
 					«IF upperBound>-1»
 						groupSize = 0;
-						«FOR t:concreteTypes»
-							groupSize += getContainedByType(targetNode,'«t.typeName»',$graph_«g.jsCall»).length
+						«FOR t:concreteBlockingTypes»
+							groupSize += getContainedByType(targetNode, '«t.typeName»', $graph_«g.jsCall»).length
 						«ENDFOR»
 						// check bounding constraint
 						if(groupSize>=«upperBound») {
@@ -1461,108 +1474,30 @@ class Controller extends Generatable{
 					«ENDIF»
 				'''
 			],
-			
+			'''return true;''',
 			'''return true;'''
 		)
 	}
 	
 	def edgecreation(GraphModel g)
 	{
-		val nodes = g.nodes
-		
 		'''
 			var sourceNode = $graph_«g.jsCall».getCell($temp_link.attributes.source.id);
 			var sourceType = sourceNode.attributes.type;
 			var targetNode = $graph_«g.jsCall».getCell(views[views.length-1].model.id);
 			var targetType = targetNode.attributes.type;
-			var outgoing = getOutgoing(sourceNode,$graph_«g.jsCall»);
-			var incoming = getIncoming(targetNode,$graph_«g.jsCall»);
-			//create the correct link
+			var possibleEdgeTypes = getPossibleEdgeTypes_«g.jsCall»(sourceNode.attributes.attrs.id, targetNode.attributes.attrs.id);
+			var possibleEdgeTypesSize = possibleEdgeTypes.length;
+			
 			var possibleEdges = {};
-			var hypotheticalEdges = [];
-			var markedEdges = [];
-			
-			«FOR source:nodes.filter[!isAbstract] SEPARATOR " else "
-			»if(sourceType == '«source.typeName»')
-			{
-				«{
-					val constraintsOutgoing =  new java.util.HashSet<mgl.BoundedConstraint>();
-					val possibleOutgoing = source.possibleOutgoing.filter[!isAbstract]
-					constraintsOutgoing += source.possibleOutgoingConstraints
-					connectionCheckTemplate(
-						constraintsOutgoing,
-						null,
-						null,
-						[concreteTypesEdgeOutgoing, upperBoundEdgeOutgoing| 
-							'''
-								«IF upperBoundEdgeOutgoing > -1»
-									var groupSizeOutgoing = 0;
-									«FOR t:concreteTypesEdgeOutgoing»
-										groupSizeOutgoing += filterEdgesByType(outgoing,'«t.typeName»').length;
-									«ENDFOR»
-								«ENDIF»
-								«IF upperBoundEdgeOutgoing > -1»if(groupSizeOutgoing<«upperBoundEdgeOutgoing») {«ENDIF»«{
-									val possibleTargets = concreteTypesEdgeOutgoing.filter(Edge).filter[!isAbstract].map[possibleTargets].flatten.filter[!isAbstract].toSet
-									'''
-										«FOR target:possibleTargets SEPARATOR " else "
- 										»if(targetType == '«target.typeName»') {
-											«{
-												val possibleEdges = target.possibleIncoming.filter[!isAbstract].filter[possibleOutgoing.contains(it)]
-												'''
-													«{
-														val constraintsIncoming = source.possibleIncomingConstraints
-														connectionCheckTemplate(
-															constraintsIncoming,
-															null,
-															null,
-															[concreteTypesEdgeIncoming, upperBoundEdgeIncoming| 
-																'''
-																	«IF upperBoundEdgeIncoming > -1»
-																		var groupSizeIncoming = 0;
-																		«FOR t:concreteTypesEdgeIncoming»
-																			groupSizeIncoming += filterEdgesByType(incoming,'«t.typeName»').length;
-																		«ENDFOR»
-																		// check bounding constraint
-																		if(groupSizeIncoming<«upperBoundEdgeIncoming») {
-																			// edges can not be applied
-																			«FOR e: concreteTypesEdgeIncoming»
-																				markedEdges.push('«e.typeName»');
-																			«ENDFOR»
-																		}
-																	«ELSE»
-																		// => unbounded constraint
-																	«ENDIF»
-																'''
-															],
-															'''
-																// identify the hypothetical edges
-																«FOR e:possibleEdges»
-																	hypotheticalEdges.push('«e.typeName»');
-																«ENDFOR»
-															'''
-														)
-													}»
-												'''
-											}»
-										}«
-										ENDFOR»
-									'''
-								}»«IF upperBoundEdgeOutgoing > -1»}«ENDIF»
-							'''
-						],
-						null
-					)
-				}»
-			}«
-			ENDFOR»
-			
-			// add non-marked edges to possibleEdges
 			«{
 																		
 				val createableEdge = g.edges.filter[creatabel]
 				'''
 					«FOR e : createableEdge»
-						if(hypotheticalEdges.indexOf('«e.typeName»')>-1 && markedEdges.indexOf('«e.typeName»')<=-1) {
+						if(
+							possibleEdgeTypes.indexOf('«e.typeName»') >= 0
+						) {
 							// Edge '«e.typeName»'
 							var link = new «e.shapeFQN»({
 							    source: { id: sourceNode.attributes.id }, target: { id: targetNode.attributes.id }
@@ -1576,18 +1511,123 @@ class Controller extends Generatable{
 				'''
 			}»
 			
-			var possibleEdgeSize = hypotheticalEdges.length;
-			if(possibleEdgeSize>=1) {
-				var allEqual = hypotheticalEdges => hypotheticalEdges.every(e => e ===hypotheticalEdges[0])
-				if(allEqual) {
-					//only one edge can be created
-					$temp_link_multi = $temp_link;
-					create_edge(targetNode,possibleEdges[Object.keys(possibleEdges)[0]].type,$paper_«g.jsCall»,$graph_«g.jsCall»,$map_paper_«g.jsCall»);
-				} else{
-					//multiple edge types possible
-					//show menu
-					create_edge_menu(targetNode,possibleEdges,evt.clientX,evt.clientY+$(document).scrollTop(),$paper_«g.jsCall»,$graph_«g.jsCall»);
-				}
+			if(possibleEdgeTypesSize == 1) {
+				//only one edge can be created
+				$temp_link_multi = $temp_link;
+				create_edge(targetNode, possibleEdges[Object.keys(possibleEdges)[0]].type, $paper_«g.jsCall», $graph_«g.jsCall», $map_paper_«g.jsCall»);
+			} else if(possibleEdgeTypesSize > 1) {
+				//multiple edge types possible => show menu
+				create_edge_menu(targetNode, possibleEdges, evt.clientX, evt.clientY + $(document).scrollTop(), $paper_«g.jsCall», $graph_«g.jsCall»);
+			}
+		'''
+	}
+	
+	def templatePossibleEdgeTypes(GraphModel g) {
+		'''
+			function getPossibleEdgeTypes_«g.jsCall»(sourceNodeId, targetNodeId) {
+				var sourceNode = findElementById(sourceNodeId, $graph_«g.jsCall»);
+				var targetNode = findElementById(targetNodeId, $graph_«g.jsCall»);
+				var sourceType = sourceNode.attributes.type;
+				var targetType = targetNode.attributes.type;
+				var outgoing = getOutgoing(sourceNode, $graph_«g.jsCall»);
+				var incoming = getIncoming(targetNode, $graph_«g.jsCall»);
+				var hypotheticalEdges = [];
+				var markedEdges = [];
+				
+				«FOR source:g.nodes.filter[!isAbstract] SEPARATOR " else "
+				»if(sourceType == '«source.typeName»')
+				{
+					«{
+						val constraintsOutgoing =  new java.util.HashSet<mgl.BoundedConstraint>();
+						constraintsOutgoing += source.possibleOutgoingConstraints
+						connectionCheckTemplate(
+							constraintsOutgoing,
+							null,
+							'''// no pre procedure''',
+							[edgeTypeOutgoing, concreteTypesEdgeOutgoing, upperBoundEdgeOutgoing|
+								'''
+									«IF upperBoundEdgeOutgoing > -1»«/* Only calculate boundaries if boundaries are specified */»
+										var groupSizeOutgoing = 0;
+										«FOR t:concreteTypesEdgeOutgoing»
+											groupSizeOutgoing += filterEdgesByType(outgoing, '«t.typeName»').length;
+										«ENDFOR»
+										if(groupSizeOutgoing < «upperBoundEdgeOutgoing») {«/* Only check boundaries if boundaries are specified */»
+									«ENDIF»
+									«{
+										val possibleTargets = concreteTypesEdgeOutgoing.filter(Edge).filter[!isAbstract].map[possibleTargets].flatten.filter[!isAbstract].toSet
+										'''
+											«FOR target:possibleTargets SEPARATOR " else "
+											»if(targetType == '«target.typeName»') {
+												«{
+													'''
+														«{
+															var constraintsIncoming = target.possibleIncomingConstraints
+															connectionFilteredCheckTemplate(
+																constraintsIncoming,
+																[e| concreteTypesEdgeOutgoing.contains(e)],
+																null,
+																'''// no pre procedure''',
+																[edgeTypeIncoming, concreteTypesEdgeIncoming, upperBoundEdgeIncoming|
+																	val possibleBlockingTypesIncoming = concreteTypesEdgeIncoming
+																		.filter[edge| concreteTypesEdgeOutgoing.contains(edge)]
+																	val possibleTypesIncoming = edgeTypeIncoming.resolveSubTypesAndType
+																	'''
+																		«IF upperBoundEdgeIncoming > -1»
+																			var groupSizeIncoming = 0;
+																			«FOR t:possibleBlockingTypesIncoming»
+																				groupSizeIncoming += filterEdgesByType(incoming,'«t.typeName»').length;
+																			«ENDFOR»
+																			// check bounding constraint
+																			if(groupSizeIncoming>=«upperBoundEdgeIncoming») {
+																				// edges can not be applied
+																				«FOR e: possibleTypesIncoming»
+																					markedEdges.push('«e.typeName»');
+																				«ENDFOR»
+																			}
+																		«ELSE»
+																			// => unbounded constraint
+																		«ENDIF»
+																		// identify the hypothetical edges
+																		«FOR e:possibleTypesIncoming»
+																			hypotheticalEdges.push('«e.typeName»');
+																		«ENDFOR»
+																	'''
+																],
+																'''// no post procedure''',
+																'''// no constraint'''
+															)
+														}»
+													'''
+												}»
+											}«
+											ENDFOR»
+										'''
+									}»
+									«IF upperBoundEdgeOutgoing > -1»}«ENDIF»
+								'''
+							],
+							'''// no post procedure''',
+							'''// no constraint'''
+						)
+					}»
+				}«
+				ENDFOR»
+				
+				// remove already used edges (marked) from hypothetical edges
+				hypotheticalEdges = hypotheticalEdges.filter((value, index, self) =>
+					self.indexOf(value) === index  // distinct
+					&& markedEdges.indexOf(value) < 0
+				);
+				return hypotheticalEdges;
+			}
+		'''
+	}
+	
+	def templateCanConnectEdge(GraphModel g) {
+		'''
+			function canConnectEdge_«g.jsCall»(sourceId, targetId, edgeType) {
+				var possibleEdgeTypes = getPossibleEdgeTypes_«g.jsCall»(sourceId, targetId);
+				return possibleEdgeTypes.indexOf(edgeType) >= 0
 			}
 		'''
 	}
