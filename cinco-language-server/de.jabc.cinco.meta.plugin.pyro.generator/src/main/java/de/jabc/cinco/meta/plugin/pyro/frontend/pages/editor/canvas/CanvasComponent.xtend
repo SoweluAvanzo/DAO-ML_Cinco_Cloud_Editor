@@ -21,6 +21,7 @@ class CanvasComponent extends Generatable {
 	import 'dart:convert';
 	import 'package:angular/src/security/dom_sanitization_service.dart';
 	import 'package:ng_bootstrap/ng_bootstrap.dart';
+	import 'dart:js' as js;
 	
 	import 'package:«gc.projectName.escapeDart»/src/model/core.dart';
 	import 'package:«gc.projectName.escapeDart»/src/model/message.dart';
@@ -612,7 +613,11 @@ class CanvasComponent extends Generatable {
 			    resetServiceValues();
 			    serviceConfigModalStatus = 0;
 			}
-			
+			  
+			bool connectedToTheia() {
+					return js.context.callMethod('connectedToTheia');
+			}
+
 			void resetServiceValues() {
 			    var localStorage = window.localStorage;
 			    «FOR s : gc.projectServices»
@@ -808,7 +813,7 @@ class CanvasComponent extends Generatable {
 							</template>
 						</template>
 					«ENDIF»
-					<div *ngIf="isModelFile()" id="glue-toggle" class="btn-group btn-group-sm mr-2">
+					<div *ngIf="isModelFile() && !connectedToTheia()" id="glue-toggle" class="btn-group btn-group-sm mr-2">
 			    		<button type="button" (click)="toggleGluelines()" [class.active]="isGluelines" class="btn btn-sm btn-outline-secondary" data-toggle="tooltip" data-placement="bottom" title="Toggle the glue lines on canvas">
 			    			<i class="fas fa-ruler-combined"></i>
 			    		</button>
@@ -820,7 +825,7 @@ class CanvasComponent extends Generatable {
 						</button>
 					</div>
 					«IF !gc.projectServices.empty»
-						<bs-dropdown class="mr-2 dropdown">
+						<bs-dropdown class="mr-2 ml-2 dropdown">
 							<button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-placement="bottom" title="Choose service to start">
 								Services
 							</button>

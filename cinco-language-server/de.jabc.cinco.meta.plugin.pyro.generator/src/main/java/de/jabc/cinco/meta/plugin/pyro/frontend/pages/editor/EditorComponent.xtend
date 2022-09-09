@@ -219,6 +219,20 @@ class EditorComponent extends Generatable {
 				document.title = "editor - " + g.$displayName();
 			}).catchError((_){}).then((_) => postGraphModelSwitched());
 		}
+
+		Future<dynamic> loadAndOpenGraphModelWith(String typeOrExtension, int modelId, String viewType) {
+   		 return graphService.loadGraphModel(typeOrExtension, modelId).then((g) {
+          this.currentFile = g;
+          this.selectedElement = g;
+          this.selectedElementModal = g;
+          document.title = "editor - " + g.$displayName();
+          var workspacePath = FileService.WORKSPACE_ROOT;
+          var primeGraphPath = workspacePath + '/' +currentFile.filename;
+          openPrimeNode(primeGraphPath, viewType);
+        })
+        .catchError((_) {})
+        .then((_) => postGraphModelSwitched());
+  		}
 		
 		void initializeEditor() {
 			if(mainLayout == 'classic') {
@@ -418,43 +432,80 @@ class EditorComponent extends Generatable {
 		}
 
 		void jumpToPrime(Map m) {
-			if(m['type'] == "navigation") {
-				var location = m['location'];
-				var modelType = location['type'];
-				if(graphService.isGraphModel(modelType)) {
-					var modelId = location['id'];
-		            preGraphModelSwitched();
-					this.loadGraphModel(modelType, modelId);
-				}
-			} else if(m['type'] == "jumpToPrime"){
-			    IdentifiableElement primeNode = m['primeNode'];
-			    GraphModel parentGraphModel = m['graphModel'];
-			    if(primeNode != null && parentGraphModel != null) {
-			        graphService.jumpToPrime(
-			            parentGraphModel.$type(),
-			            primeNode.$type(),
-			            parentGraphModel.id,
-			            primeNode.id
-			        ).then((m) {
-				    	String modelType = m['graphmodel_type'];
-			        	if(graphService.isGraphModel(modelType)) {
-				        	int modelId = int.parse(m['graphmodel_id']);
-	                int elementId = int.parse(m['element_id']);
-	                String elementType = m['element_type'];
-	                print("jumping to prime:\n${m}");
-	                        preGraphModelSwitched();
-	                redirectionStack.pushToRedirectStack(modelType, modelId);
-	                this.loadGraphModel(modelType, modelId).then((_) {
-	                  // TODO: focus and highlight element here with elementId and elementType
-	                  // Also put those information on the RedirectStack (pushToRedirectStack),
-	                  // so that it could be triggered on forward and backward navigation, too
-	                });
-	              }
-			        });
-			    }
+		if (!js.context.callMethod('connectedToTheia')) {
+			if (m['type'] == "navigation") {
+			var location = m['location'];
+			var modelType = location['type'];
+			if (graphService.isGraphModel(modelType)) {
+				var modelId = location['id'];
+				preGraphModelSwitched();
+				this.loadGraphModel(modelType, modelId);
 			}
+			} else if (m['type'] == "jumpToPrime") {
+			IdentifiableElement primeNode = m['primeNode'];
+			GraphModel parentGraphModel = m['graphModel'];
+			if (primeNode != null && parentGraphModel != null) {
+				graphService
+					.jumpToPrime(parentGraphModel.$type(), primeNode.$type(),
+						parentGraphModel.id, primeNode.id)
+					.then((m) {
+				String modelType = m['graphmodel_type'];
+				if (graphService.isGraphModel(modelType)) {
+					int modelId = int.parse(m['graphmodel_id']);
+					int elementId = int.parse(m['element_id']);
+					String elementType = m['element_type'];
+					print("jumping to prime:\n${m}");
+					preGraphModelSwitched();
+					redirectionStack.pushToRedirectStack(modelType, modelId);
+					this.loadGraphModel(modelType, modelId).then((_) {
+					// TODO: focus and highlight element here with elementId and elementType
+					// Also put those information on the RedirectStack (pushToRedirectStack),
+					// so that it could be triggered on forward and backward navigation, too
+					});
+				}
+				});
+			}
+			}
+		} else {
+		String viewType = "scce.pyro";
+      if (m['type'] == "navigation") {
+        var location = m['location'];
+        var modelType = location['type'];
+        if (graphService.isGraphModel(modelType)) {
+        var modelId = location['id'];
+        preGraphModelSwitched();
+        this.loadAndOpenGraphModelWith(modelType, modelId,viewType);
+			}
+		} else if (m['type'] == "jumpToPrime") {
+		       IdentifiableElement primeNode = m['primeNode'];
+        GraphModel parentGraphModel = m['graphModel'];
+        if (primeNode != null && parentGraphModel != null) {
+          graphService
+              .jumpToPrime(parentGraphModel.$type(), primeNode.$type(),
+                  parentGraphModel.id, primeNode.id)
+              .then((m) {
+            String modelType = m['graphmodel_type'];
+            if (graphService.isGraphModel(modelType)) {
+              int modelId = int.parse(m['graphmodel_id']);
+              print("jumping to prime:\n${m}");
+              preGraphModelSwitched();
+              redirectionStack.pushToRedirectStack(modelType, modelId);
+              loadAndOpenGraphModelWith(modelType,modelId,viewType).then((_) {
+                // TODO: focus and highlight element here with elementId and elementType
+                // Also put those information on the RedirectStack (pushToRedirectStack),
+                // so that it could be triggered on forward and backward navigation, too
+              });;
+            }
+          });
+        }
 		}
 
+    } 
+  }
+
+		void openPrimeNode(String parentGraphModelPath, String viewType) {
+			js.context.callMethod('openPrimeNode', [parentGraphModelPath, viewType]);
+		}
 		void preGraphModelSwitched() {
 			blockInteraction();
 		}

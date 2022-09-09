@@ -236,8 +236,12 @@
  
  function sendMessage(msg, transferable) {
     let targetWindow = window.top;
-    if (window.top.document.title.startsWith('CincoCloud')) {
-        targetWindow = window.top.document.querySelector('iframe').contentWindow;
+    try{
+        if (window.top.document.title.startsWith('CincoCloud')) {
+            targetWindow = window.top.document.querySelector('iframe').contentWindow;
+        }
+    } catch(e) {
+        console.log(e);
     }
     targetWindow.postMessage(msg, '*', transferable);
  }
@@ -275,7 +279,16 @@
          }
      ], callbackFunction);
  }
- 
+
+ function openPrimeNode(uri, viewType){
+    callTheiaCommand('vscode.openWith', [
+        {
+            resource: uri,
+            viewType: viewType
+        }
+    ]
+    );
+ }
  /**
   * UTILS
   */
