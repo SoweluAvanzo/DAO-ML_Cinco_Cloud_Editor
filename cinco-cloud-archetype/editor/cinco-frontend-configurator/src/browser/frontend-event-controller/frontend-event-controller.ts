@@ -1,7 +1,7 @@
 /* eslint-disable header/header */
 import { Path } from '@theia/core/lib/common/path';
+import { URI as Uri } from 'vscode-uri';
 import URI from '@theia/core/lib/common/uri';
-
 import { FileHelper } from '../file-handler/file-helper';
 import { cmdRegistry } from '../menu-command-removal-contribution';
 import { registerEventHandler, setDragLeaveCB, setDragOverCB, setDropCB } from '../webview-dnd/drag-and-drop-handler';
@@ -72,9 +72,23 @@ export class FrontendEventController {
                     const commandMessage: TheiaPyroCommandMessage = message as TheiaPyroCommandMessage;
                     const cmd = commandMessage.cmd;
                     const args = commandMessage.args;
+                    //const param = args[0];
                     // executing
                     console.log('Executing Command: ' + cmd);
                     if (cmdRegistry) {
+                        if (cmd === 'vscode.openWith') {
+                            const argParams = args[0];
+                            const resource = argParams['resource'];
+                            const viewType = argParams['viewType'];
+                            const uri : Uri = Uri.parse(resource);
+                            const newArgs = [{
+                                'resource': uri,
+                                'viewType': viewType
+                            }];
+                            cmdRegistry.executeCommand(
+                                cmd, ...Object.values(newArgs[0])
+                            );
+                        }
                         if (cmd === 'info.scce.cinco-cloud.open-file-picker') {
                             const window = FrontendEventController.getSourceWindow(event);
                             cmdRegistry.executeCommand(
