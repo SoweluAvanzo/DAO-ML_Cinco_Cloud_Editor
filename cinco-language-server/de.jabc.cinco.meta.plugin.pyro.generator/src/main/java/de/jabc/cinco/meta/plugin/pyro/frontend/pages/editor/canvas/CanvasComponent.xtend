@@ -813,10 +813,12 @@ class CanvasComponent extends Generatable {
 							</template>
 						</template>
 					«ENDIF»
-					<div *ngIf="isModelFile() && !connectedToTheia()" id="glue-toggle" class="btn-group btn-group-sm mr-2">
+					<div *ngIf="isModelFile()" id="glue-toggle" class="btn-group btn-group-sm mr-2">
 			    		<button type="button" (click)="toggleGluelines()" [class.active]="isGluelines" class="btn btn-sm btn-outline-secondary" data-toggle="tooltip" data-placement="bottom" title="Toggle the glue lines on canvas">
 			    			<i class="fas fa-ruler-combined"></i>
 			    		</button>
+					</div>
+					<div *ngIf="isModelFile() && !connectedToTheia()" id="jump-to" class="btn-group btn-group-sm">
 			    		<button type="button" (click)="jumpBackwards()" [class.disabled]="!canJumpBackwards()" [class.active]="!canJumpBackwards()" class="btn btn-sm btn-outline-primary" data-toggle="tooltip" data-placement="bottom" title="jump to previous model">
 							<i class="fas fa-angle-left"></i>
 						</button>
