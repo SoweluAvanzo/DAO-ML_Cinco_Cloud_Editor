@@ -783,7 +783,7 @@ abstract class CommandGraph {
   void _receiveMyValidCommand(CompoundCommand cc) {
     // execute valid commands on the business model
     cc.queue.forEach((c) {
-      _execCommand(c, false);
+      _execCommand(c, true);
     });
     //add to stack
     if (cc.queue.isNotEmpty) {

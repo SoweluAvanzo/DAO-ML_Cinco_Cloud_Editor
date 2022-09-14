@@ -1,66 +1,49 @@
 <div class="card pyro-panel d-flex flex-column h-100">
     <div class="card-body pyro-panel-body h-100 p-0" style="overflow:auto;">
-
-		<div class="alert alert-info mb-0 rounded-0" *ngIf="commandHistory.length == 0">
+		<div class="alert alert-info mb-0 rounded-0" *ngIf="commandHistory.length == 0 && redoHistory.length == 0">
 			No commands yet.
 		</div>
-		
-		<div class="list-group list-group-flush" *ngIf="commandHistory.length > 0" style="color: #555">
-			<div class="list-group-item d-flex flex-row" *ngFor="let cmd of commandHistory; let i=index">
+		<div class="list-group list-group-flush" *ngIf="redoHistory.length > 0">
+			<div class="list-group-item d-flex flex-row" *ngFor="let ccm of redoHistory; let i = index" style="color: #555F; background-color: #ced4da;">
 				<div class="w-100">
-					
-					<template [ngIf]="isCreateNodeCommand(cmd)">
-						Create Node
+					<ul style="padding: 0px">
+						<li class="cmd-caret" (click)="onCaretClick($event)">
+							{{getCommandName(ccm.queue.first, true)}}
+						</li>
+						<ul class="cmd-nested">
+							<li *ngFor="let cmd of ccm.queue.sublist(1)">
+								{{getCommandName(cmd, true)}}
+							</li>
+						</ul>
+					</ul>
+					<template [ngIf]="i == (redoHistory.length - 1)">
+						<button class="btn btn-sm px-1 py-0" (click)="redo()">
+							<i class="fas fa-fw fa-undo-alt"></i> Redo
+						</button>
 					</template>
-					
-					<template [ngIf]="isMoveNodeCommand(cmd)">
-						Move Node
-					</template>
-					
-					<template [ngIf]="isRemoveNodeCommand(cmd)">
-						Remove Node
-					</template>
-					
-					<template [ngIf]="isResizeNodeCommand(cmd)">
-						Resize Node
-					</template>
-					
-					<template [ngIf]="isRotateNodeCommand(cmd)">
-						Rotate Node
-					</template>
-					
-					<template [ngIf]="isCreateEdgeCommand(cmd)">
-						Create Edge
-					</template>
-					
-					<template [ngIf]="isReconnectEdgeCommand(cmd)">
-						Reconnect Edge
-					</template>
-					
-					<template [ngIf]="isUpdateBendPointCommand(cmd)">
-						Update Bending Point
-					</template>
-					
-					<template [ngIf]="isRemoveEdgeCommand(cmd)">
-						Remove Edge
-					</template>
-					
-					<template [ngIf]="isUpdateCommand(cmd)">
-						Update
-					</template>
-					
-					<template [ngIf]="isAppearanceCommand(cmd)">
-						Appearance
-					</template>
-					
 				</div>
-				<template [ngIf]="i == 0">
-					<button class="btn btn-sm px-1 py-0" (click)="revert()">
-						<i class="fas fa-fw fa-undo-alt"></i> Revert
-					</button>
-				</template>
 			</div>
 		</div>
-		
+		<div class="list-group list-group-flush" *ngIf="commandHistory.length > 0">
+			<div class="list-group-item d-flex flex-row" *ngFor="let ccm of commandHistory.reversed; let i = index" style="color: #555F;background-color: white;">
+				<div class="w-100">
+					<ul style="padding: 0px">
+						<li class="cmd-caret" (click)="onCaretClick($event)">
+							{{getCommandName(ccm.queue.first, false)}}
+						</li>
+						<ul class="cmd-nested">
+							<li *ngFor="let cmd of ccm.queue.sublist(1)">
+								{{getCommandName(cmd, false)}}
+							</li>
+						</ul>
+					</ul>
+					<template [ngIf]="i == 0">
+						<button class="btn btn-sm px-1 py-0" (click)="revert()">
+							<i class="fas fa-fw fa-undo-alt"></i> Revert
+						</button>
+					</template>
+				</div>
+			</div>
+		</div>
     </div>
 </div>
