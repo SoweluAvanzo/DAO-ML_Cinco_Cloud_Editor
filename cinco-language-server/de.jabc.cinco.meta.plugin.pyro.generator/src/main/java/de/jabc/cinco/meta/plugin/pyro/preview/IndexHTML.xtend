@@ -20,12 +20,12 @@ class IndexHTML extends Generatable {
 	    <meta charset="utf-8">
 	    <meta name="viewport" content="width=device-width, initial-scale=1">
 	    <link rel="stylesheet" href="vendor/web/css/bootstrap.min.css">
-	    <link rel="stylesheet" href="vendor/web/css/joint.css">
+	    <link rel="stylesheet" href="vendor/web/css/joint.min.css">
 	    <script type="application/javascript" src="vendor/web/js/jquery.min.js"></script>
 	    <script type="application/javascript" src="vendor/web/js/bootstrap.min.js"></script>
-	    <script type="application/javascript" src="vendor/web/js/lodash.js"></script>
-	    <script type="application/javascript" src="vendor/web/js/backbone.js"></script>
-	    <script type="application/javascript" src="vendor/web/js/joint.js"></script>
+	    <script type="application/javascript" src="vendor/web/js/lodash.min.js"></script>
+	    <script type="application/javascript" src="vendor/web/js/backbone-min.js"></script>
+	    <script type="application/javascript" src="vendor/web/js/joint.min.js"></script>
 	    <script type="application/javascript" src="vendor/web/js/pyro_core.js"></script>	    
 	    «FOR g:gc.mglModels»
 	    	<script type="application/javascript" src="js/«g.name.lowEscapeDart»_shapes.js"></script>
