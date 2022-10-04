@@ -1,5 +1,5 @@
 <div class="card pyro-panel d-flex flex-column h-100">
-    <div class="card-body pyro-panel-body h-100 p-0" style="overflow:auto;">
+    <div class="card-body pyro-panel-body h-100 p-0" style="overflow:auto;" *ngIf="commandHistory != null">
 		<div class="alert alert-info mb-0 rounded-0" *ngIf="commandHistory.length == 0 && redoHistory.length == 0">
 			No commands yet.
 		</div>
