@@ -130,6 +130,10 @@ class EditorComponent extends Generatable {
 		bool showNav = false;
 		String mainLayout = "micro";
 		
+		bool bufferedCommandStack = false;
+		List<CompoundCommand> oldCommandStack;
+		List<CompoundCommand> oldUndoStack;
+
 		// currently unused
 		final GraphModelPermissionVectorService _permissionService;
 		final Router _router;
@@ -178,6 +182,22 @@ class EditorComponent extends Generatable {
 		
 		CommandGraph get commandGraph {
 			return graphService.canvasComponent?.getCanvasComponent()?.commandGraph;
+		}
+
+		saveCommandStack() {
+			if(this.commandGraph != null) {
+				this.bufferedCommandStack = true;
+				this.oldCommandStack = commandGraph.commandStack;
+				this.oldUndoStack = commandGraph.undoneCommandStack;
+			}
+		}
+
+		reloadCommandStack() {
+			if(this.bufferedCommandStack && this.commandGraph != null) {
+				this.bufferedCommandStack = false;
+				this.commandGraph.commandStack.addAll(oldCommandStack);
+				this.commandGraph.undoneCommandStack.addAll(oldUndoStack);
+			}
 		}
 		
 		@override
@@ -275,6 +295,7 @@ class EditorComponent extends Generatable {
 		}
 
 		void changedMainLayout(layout) {
+			this.saveCommandStack();
 			mainLayout = layout;
 			window.localStorage['PYRO_EDITOR_MAIN_LAYOUT'] = layout;
 			initializeEditor();
@@ -473,6 +494,7 @@ class EditorComponent extends Generatable {
 					&& this.graphService.canvasComponent.getCanvasComponent()?.commandGraph != null
 				) {
 					t.cancel();
+					this.reloadCommandStack();
 					this.graphService.loadAppearance(this.currentFile).then((m) {
 						if (m is CompoundCommandMessage) {
 							this.graphService.canvasComponent.executeCommands(m,true);

@@ -30,8 +30,8 @@ class CommandHistoryComponent implements OnInit, OnDestroy {
 	Stream get redone => redoSC.stream;
 
 	CommandGraph get commandGraph => parent.commandGraph;
-	List<CompoundCommand> get commandHistory => commandGraph.commandStack;
-	List<CompoundCommand> get redoHistory => commandGraph.undoneCommandStack;
+	List<CompoundCommand> get commandHistory => commandGraph?.commandStack;
+	List<CompoundCommand> get redoHistory => commandGraph?.undoneCommandStack;
 
 	CommandHistoryComponent() {}
 
@@ -43,7 +43,6 @@ class CommandHistoryComponent implements OnInit, OnDestroy {
 
 	void revert() {
 		revertedSC.add(null);
-    commandHistory.sublist(1);
 	}
 
 	void redo() {
