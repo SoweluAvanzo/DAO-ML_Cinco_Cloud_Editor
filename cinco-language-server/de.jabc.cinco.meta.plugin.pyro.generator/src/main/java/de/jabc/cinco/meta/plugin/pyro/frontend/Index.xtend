@@ -30,7 +30,7 @@ class Index extends Generatable {
 				          href="cpd/«gc.cpd.image32.trimQuotes»" />
 		«ENDIF»
 	    <link rel="stylesheet" href="css/bootstrap.min.css" />
-	    <link rel="stylesheet" href="css/joint.css" />
+	    <link rel="stylesheet" href="css/joint.min.css" />
 	    <link rel="stylesheet" href="css/pyro_core.css" />
 	    <link rel="stylesheet" href="css/fontawesome.all.css" />
 	    <link rel="stylesheet" href="css/ng_bootstrap_all.css" />
@@ -79,9 +79,9 @@ class Index extends Generatable {
 	    <script type="application/javascript" src="js/jquery-ui.min.js"></script>
 	    <script type="application/javascript" src="js/popper.js"></script>
 	    <script type="application/javascript" src="js/bootstrap.min.js"></script>
-	    <script type="application/javascript" src="js/lodash.js"></script>
-	    <script type="application/javascript" src="js/backbone.js"></script>
-	    <script type="application/javascript" src="js/joint.js"></script>
+	    <script type="application/javascript" src="js/lodash.min.js"></script>
+	    <script type="application/javascript" src="js/backbone-min.js"></script>
+	    <script type="application/javascript" src="js/joint.min.js"></script>
 	    <script type="application/javascript" src="js/gridstack.min.js"></script>
 	    <script type="application/javascript" src="js/gridstack.jQueryUI.min.js"></script>
 	    <script type="application/javascript" src="js/gluelines.js"></script>
