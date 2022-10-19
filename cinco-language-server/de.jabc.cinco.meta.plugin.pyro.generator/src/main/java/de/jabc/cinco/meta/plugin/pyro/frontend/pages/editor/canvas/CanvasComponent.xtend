@@ -265,7 +265,7 @@ class CanvasComponent extends Generatable {
 		
 		bool hasChecks() {
 			return currentFile!=null«
-				IF !gc.concreteGraphModels.filter[it.hasChecks].empty
+				IF !gc.concreteGraphModels.filter[hasChecks].empty
 				» && (
 					«FOR g:gc.concreteGraphModels.filter[it.hasChecks] SEPARATOR " ||"»
 						currentFile.$type() == '«g.typeName»'
@@ -274,26 +274,32 @@ class CanvasComponent extends Generatable {
 		}
 		
 		bool hasGenerator() {
-			return currentFile!=null && (
+			return currentFile!=null«
+			IF !gc.concreteGraphModels.filter[generating].empty
+			» && (
 				«FOR g:gc.concreteGraphModels.filter[generating] SEPARATOR " ||"»
 					currentFile.$type() == '«g.typeName»'
 				«ENDFOR»
-			);
+			)«ENDIF»;
 		}
 		
 		Map<String,String> getGenerators() {
-			Map<String,String> map = new Map<String,String>();
-			if(currentFile!=null){
-				«FOR g:gc.concreteGraphModels.filter[generating] SEPARATOR " else "
-				»if(currentFile.$type() == '«g.typeName»') {
-					«FOR a:g.generators.filter[value.length>=3]»
-						map['«a.value.get(0)»'] = '«a.value.get(2)»';
-					«ENDFOR»
-					return map;
-				}«
-				ENDFOR»
-			}
-			return map;
+			«IF !gc.concreteGraphModels.filter[generating].empty»
+				Map<String,String> map = new Map<String,String>();
+				if(currentFile!=null){
+					«FOR g:gc.concreteGraphModels.filter[generating] SEPARATOR " else "
+					»if(currentFile.$type() == '«g.typeName»') {
+						«FOR a:g.generators.filter[value.length>=3]»
+							map['«a.value.get(0)»'] = '«a.value.get(2)»';
+						«ENDFOR»
+						return map;
+					}«
+					ENDFOR»
+				}
+				return map;
+			«ELSE»
+				return new Map<String,String>();
+			«ENDIF»
 		}
 		
 		GraphModel getModelFile() {

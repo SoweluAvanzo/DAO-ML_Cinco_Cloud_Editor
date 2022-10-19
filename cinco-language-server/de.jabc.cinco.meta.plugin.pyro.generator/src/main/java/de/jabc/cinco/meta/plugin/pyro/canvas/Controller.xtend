@@ -1315,7 +1315,7 @@ class Controller extends Generatable{
 			var possibleNodes = [];
 			//for all prime nodes
 			//check prime referenced type and super types
-			«FOR pr:nodes.filter[prime].filter[primeCreatabel]»
+			«FOR pr:nodes.filter[prime].filter[primeCreatable]»
 				«{
 					val subTypes = pr.primeReference.type.resolveSubTypesAndType
 					'''
@@ -1492,7 +1492,7 @@ class Controller extends Generatable{
 			var possibleEdges = {};
 			«{
 																		
-				val createableEdge = g.edges.filter[creatabel]
+				val createableEdge = g.edges.filter[somehowCreateable]
 				'''
 					«FOR e : createableEdge»
 						if(
@@ -1525,13 +1525,22 @@ class Controller extends Generatable{
 	def templatePossibleEdgeTypes(GraphModel g) {
 		'''
 			function getPossibleEdgeTypes_«g.jsCall»(sourceNodeId, targetNodeId) {
+				var hypotheticalEdges = [];
 				var sourceNode = findElementById(sourceNodeId, $graph_«g.jsCall»);
 				var targetNode = findElementById(targetNodeId, $graph_«g.jsCall»);
+				if(sourceNode == null || targetNode == null) {
+					if(sourceNode == null) {
+						console.log("Couldn't derive possible edgeTypes. SourceNode is not present anymore: " + sourceNodeId);
+					}
+					if(targetNode == null) {
+						console.log("Couldn't derive possible edgeTypes. TargetNode is not present anymore: " + targetNodeId);
+					}
+					return hypotheticalEdges;
+				}
 				var sourceType = sourceNode.attributes.type;
 				var targetType = targetNode.attributes.type;
 				var outgoing = getOutgoing(sourceNode, $graph_«g.jsCall»);
 				var incoming = getIncoming(targetNode, $graph_«g.jsCall»);
-				var hypotheticalEdges = [];
 				var markedEdges = [];
 				
 				«FOR source:g.nodes.filter[!isAbstract] SEPARATOR " else "

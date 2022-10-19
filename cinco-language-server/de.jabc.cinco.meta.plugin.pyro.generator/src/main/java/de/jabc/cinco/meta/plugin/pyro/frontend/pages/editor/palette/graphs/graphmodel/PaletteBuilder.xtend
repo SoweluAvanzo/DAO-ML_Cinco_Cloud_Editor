@@ -24,7 +24,7 @@ class PaletteBuilder extends Generatable {
 	  static List<MapList> build(«g.dartFQN» graph)
 	  {
 	    List<MapList> paletteMap = new List();
-		«FOR group:g.elements.filter(Node).filter[creatabel].groupBy[paletteGroup].entrySet»
+		«FOR group:g.elements.filter(Node).filter[creatable].groupBy[paletteGroup].entrySet»
 			paletteMap.add(new MapList('«group.key»',values: [
 				«FOR entry:group.value SEPARATOR ","»
 					new MapListValue('«entry.displayName»',instance: new «entry.dartFQN»(), identifier: "«entry.typeName»",«IF entry.hasIcon»imgPath:'«entry.iconPath»'«ENDIF»)

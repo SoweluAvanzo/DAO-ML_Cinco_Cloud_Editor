@@ -1,6 +1,6 @@
 import * as http from 'http';
 import * as https from 'https';
-import { commands, window } from 'vscode';
+import { commands } from 'vscode';
 import { INTERNAL_PYRO_HOST, INTERNAL_PYRO_PORT, INTERNAL_PYRO_SUBPATH, INTERNAL_USE_SSL } from "./env_var";
 import { isEmpty } from './fileNameUtils';
 import { outputChannel, PyroEditorProvider } from './pyroEditor';
@@ -39,12 +39,30 @@ export abstract class PyroApi {
                 PyroEditorProvider.logging(
                     `Request error ${error.name}: ${error.message}`
                 );
+				reject(error);
             });
 			if(data && !isEmpty(data.toString())) {
 				req.write(JSON.stringify(data));
 			}
 			req.end();
 		});
+	}
+
+	public static async isRunning(): Promise<Map<string, string>> {
+		const token = await this.getJWT();
+		const options: http.RequestOptions = {
+            agent: INTERNAL_USE_SSL ? https.globalAgent : undefined,
+            protocol: `${INTERNAL_USE_SSL ? 'https' : 'http'}:`,
+			hostname: INTERNAL_PYRO_HOST,
+			port: INTERNAL_PYRO_PORT,
+			path: INTERNAL_PYRO_SUBPATH+'/api/',
+			method: 'GET',
+			'headers': {
+				'Authorization': token,
+				'Content-Type': 'text/plain'
+			}
+		};
+		return this.performRequest(options);
 	}
 
 	public static async createModel(name :string|undefined, modelType:string|undefined): Promise<any> {

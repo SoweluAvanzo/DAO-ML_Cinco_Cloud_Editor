@@ -1066,20 +1066,18 @@ class MGLExtension {
 		me.annotations.filter[name.equals(hook) && !value.nullOrEmpty].map[value.get(0)]
 	}
 
-	def primeCreatabel(GraphicalModelElement gme) {
-		(!gme.annotations.exists[name.equals("disable") && value.contains("create")]) && !gme.isIsAbstract &&
-			gme.isPrime
+	def isPrimeCreatable(GraphicalModelElement gme) {
+		gme.isSomehowCreateable && gme.isPrime
 	}
 
-	def creatabel(GraphicalModelElement gme) {
-		(!gme.annotations.exists[name.equals("disable") && value.contains("create")]) && !gme.isIsAbstract &&
-			!gme.isPrime
+	def dispatch isCreatable(GraphicalModelElement gme) {
+		gme.isSomehowCreateable && !gme.isPrime
 	}
-
-	def creatabelPrimeRef(GraphicalModelElement gme) {
-		(!gme.annotations.exists[name.equals("disable") && value.contains("create")]) && !gme.isIsAbstract
+	
+	def isSomehowCreateable(GraphicalModelElement gme) {
+		!gme.annotations.exists[name.equals("disable") && value.contains("create")] && !gme.isIsAbstract
 	}
-
+	
 	/**
 	 * Returns the set of elements in the given MGLModel, that are referenced by the given set of nodes 
 	 */
@@ -1211,7 +1209,7 @@ class MGLExtension {
 		product.annotations.filter[name.equals("pyroClosedRegistration")].map[value].flatten
 	}
 
-	def isCreatable(GraphModel it) {
+	def dispatch isCreatable(GraphModel it) {
 		return !annotations.exists[name.equals("disable") && value.contains("create")]
 	}
 	
@@ -1228,7 +1226,7 @@ class MGLExtension {
 	}
 
 	def creatableGraphmodels(GeneratorCompound gc) {
-		gc.mglModels.map[it.graphModels].flatten.filter[isCreatable]
+		gc.mglModels.map[it.graphModels].flatten.filter[creatable]
 	}	
 
 	def iconPath(GraphicalModelElement gme) {
