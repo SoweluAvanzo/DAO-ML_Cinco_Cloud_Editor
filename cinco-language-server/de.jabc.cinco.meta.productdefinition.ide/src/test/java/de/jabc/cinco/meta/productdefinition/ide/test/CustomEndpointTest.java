@@ -65,7 +65,6 @@ class CustomEndpointTest extends AbstractLanguageServerTest {
 		this.initialize();
 		Generator.deleteSources = false;
 		this.languageServer.request("cinco/generate", new GenerateRequest(testFileURI.devicePath(), baseString));
-
 	}
 	
 	@After @AfterEach

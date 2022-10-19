@@ -18,11 +18,16 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 	};
 	private readonly _onDidChangeCustomDocument = new vscode.EventEmitter<vscode.CustomDocumentEditEvent<PyroDocument>>();
 	public readonly onDidChangeCustomDocument = this._onDidChangeCustomDocument.event;
+	static TIMEOUT_COUNTER = 20;
+	static TIMEOUT_TIME = 3000;
 
 	constructor(
 		private readonly _context: vscode.ExtensionContext
 	) {
 		super();
+		if(!PyroEditorProvider.isSupportedEditor()) {
+			return;
+		}
 		this.PROJECT_ID = 1;
 		vscode.window.onDidChangeActiveTextEditor( (editor: vscode.TextEditor | undefined) => {
 				PyroEditorProvider.switchToPyroEditor(editor);
@@ -35,6 +40,7 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 				(e: any) => this.contextCreateModelTypes(e)
 			)
 		);
+		PyroEditorProvider.registerConnection();
 	}
 
 	public static register(context: vscode.ExtensionContext): vscode.Disposable {
@@ -49,7 +55,52 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 					//retainContextWhenHidden: true,
 				},
 				supportsMultipleEditorsPerDocument: false,
-			});
+		});
+	}
+
+	private static isUnsupportedEditor(): boolean {
+		const env = process.env;
+		const editorType = env["EDITOR_TYPE"];
+		if(editorType == "LANGUAGE_EDITOR") {
+			this.logging("EditorType is unsuported: " + editorType);
+			return true;
+		}
+		return false;
+	}
+
+	private static isSupportedEditor(): boolean {
+		// if the current instance holds a language editor, don't try to activate the functionality
+		if(this.isUnsupportedEditor()) {
+			vscode.commands.executeCommand('setContext', "isSupportedEditor", false);
+			vscode.commands.executeCommand('setContext', "isConnectedToPyro", false);
+			return false;
+		}
+		return true;
+	}
+
+	public static registerConnection() {
+		vscode.commands.executeCommand('setContext', "isSupportedEditor", true);
+		// try to activate the functionality to create a model
+		PyroEditorProvider.checkRegisterConnection(
+			PyroEditorProvider.TIMEOUT_COUNTER,
+			PyroEditorProvider.TIMEOUT_TIME
+		);
+	}
+
+	private static checkRegisterConnection(timeoutCounter: number, timeoutTime: number) {
+		PyroApi.isRunning().then(() => {
+			vscode.commands.executeCommand('setContext', "isConnectedToPyro", true);
+		}).catch(() => {
+			this.logging("Could not connect to Pyro-Server. [" + timeoutCounter + "] Retrying after " + timeoutTime + "ms...");
+			setTimeout(() => {
+				if(timeoutCounter <= 0) {
+					vscode.commands.executeCommand('setContext', "isConnectedToPyro", false);
+					this.logging("The connection to the Pyro server could not be established.");
+				} else {
+					this.checkRegisterConnection(timeoutCounter - 1, timeoutTime);
+				}
+			}, timeoutTime);
+		});
 	}
 
 	static switchToPyroEditor(editor: vscode.TextEditor | undefined) {

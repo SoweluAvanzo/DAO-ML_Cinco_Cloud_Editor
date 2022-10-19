@@ -79,36 +79,36 @@ class GraphmodelComponent extends Generatable {
 			@override
 			core.Edge execCreateEdgeType(String type)
 			{
-			  core.Edge edge;
-			   «FOR elem : g.edges.filter[!isIsAbstract] SEPARATOR " else "
-			   »if(type == '«elem.typeName»') {
-			   	edge = new «elem.dartFQN»();
-			   }«
-			   ENDFOR»
-			   return edge;
+				core.Edge edge;
+				«FOR elem : g.edges.filter[!isIsAbstract] SEPARATOR " else "
+				»if(type == '«elem.typeName»') {
+					edge = new «elem.dartFQN»();
+				}«
+				ENDFOR»
+				return edge;
 			}
 			
 			@override
 			void execCreateEdgeCommandCanvas(CreateEdgeCommand cmd) {
-			    core.ModelElement e = findElement(cmd.delegateId);
-			    if(e == null) {
-			    	return;
-			    }
+				core.ModelElement e = findElement(cmd.delegateId);
+				if(e == null) {
+					return;
+				}
 			    «FOR edge : g.edges.filter[!isIsAbstract]»
 			    	if(cmd.type == '«edge.typeName»'){
-						var positions = new js.JsArray();
-						cmd.positions.forEach((p){
-								var pos = new js.JsArray();
-								pos['x'] = p.x;
-								pos['y'] = p.y;
-								positions.add(pos);
-						});
+			    		var positions = new js.JsArray();
+			    		cmd.positions.forEach((p){
+			    			var pos = new js.JsArray();
+			    			pos['x'] = p.x;
+			    			pos['y'] = p.y;
+			    			positions.add(pos);
+			    		});
 			    		js.context.callMethod('create_edge_«edge.jsCall(g)»',[
 			    			cmd.sourceId, cmd.targetId, cmd.delegateId, positions, js.JsObject.jsify(e.styleArgs()), e.$information(), e.$label()
 			    		]);
 			    		return;
 			    	}
-				 «ENDFOR»
+			    «ENDFOR»
 			}
 			
 			@override
@@ -1062,54 +1062,29 @@ class GraphmodelComponent extends Generatable {
 			«FOR node : g.nodes.filter[!isIsAbstract]»
 				
 				void create_node_«node.jsCall(g)»(«node.dartFQN» node) {
-					«IF node.creatabel»
-						create_node(node, "«node.jsCall(g)»");
-					«ELSE»
-						// node is not creatable
-					«ENDIF»
+					create_node(node, "«node.jsCall(g)»");
 				}
 				
 				void cb_create_node_«node.jsCall(g)»(
 					int x, int y, int width, int height, String cellId, int containerId«IF node.isPrime», int primeId«ENDIF»
 				) {
-					«IF node.creatabel»
-						cb_create_node("«node.typeName»", x, y, width, height, cellId, containerId, «IF node.isPrime»primeId«ELSE»-1«ENDIF»);
-					«ELSE»
-						// node is not creatable
-					«ENDIF»
+					cb_create_node("«node.typeName»", x, y, width, height, cellId, containerId, «IF node.isPrime»primeId«ELSE»-1«ENDIF»);
 				}
 				
 				void remove_node_cascade_«node.jsCall(g)»(«node.dartFQN» node) {
-					«IF node.removable»
-						remove_node_cascade_internal(node, "«node.jsCall(g)»", «IF node instanceof NodeContainer»true«ELSE»false«ENDIF»);
-					«ELSE»
-						// node is not removable
-					«ENDIF»
+					remove_node_cascade_internal(node, "«node.jsCall(g)»", «IF node instanceof NodeContainer»true«ELSE»false«ENDIF»);
 				}
 				
 				void cb_remove_node_«node.jsCall(g)»(int id) {
-					«IF node.removable»
-						cb_remove_node(id);
-					«ELSE»
-						// node is not removable
-					«ENDIF»
+					cb_remove_node(id);
 				}
-				
 				
 				void cb_move_node_«node.jsCall(g)»(int x, int y, int id, containerId) {
-					«IF node.movable»
-						cb_move_node(x, y, id, containerId);
-					«ELSE»
-						// node is not movable
-					«ENDIF»
+					cb_move_node(x, y, id, containerId);
 				}
 				
-				void cb_resize_node_«node.jsCall(g)»(int width,int height,String direction,int id) {
-					«IF node.resizable»
-						cb_resize_node(width, height, direction, id);
-					«ELSE»
-						// node is not resizable
-					«ENDIF»
+				void cb_resize_node_«node.jsCall(g)»(int width, int height, String direction, int id) {
+					cb_resize_node(width, height, direction, id);
 				}
 				
 				@deprecated
@@ -1124,27 +1099,15 @@ class GraphmodelComponent extends Generatable {
 			«FOR edge : g.edges.filter[!isIsAbstract]»
 				
 				void create_edge_«edge.jsCall(g)»(core.Edge edge) {
-					«IF edge.creatabel»
-						create_edge(edge, "«edge.jsCall(g)»");
-					«ELSE»
-						// edge is not creatable
-					«ENDIF»
+					create_edge(edge, "«edge.jsCall(g)»");
 				}
 				
 				void cb_create_edge_«edge.jsCall(g)»(int sourceId, int targetId, String cellId, List positions) {
-					«IF edge.creatabel»
-						cb_create_edge("«edge.typeName»", sourceId, targetId, cellId, positions);
-					«ELSE»
-						// edge is not creatable
-					«ENDIF»
+					cb_create_edge("«edge.typeName»", sourceId, targetId, cellId, positions);
 				}
 				
 				void cb_remove_edge_«edge.jsCall(g)»(int id) {
-					«IF edge.removable»
-						cb_remove_edge("«edge.typeName»", id);
-					«ELSE»
-						// edge is not removable
-					«ENDIF»
+					cb_remove_edge("«edge.typeName»", id);
 				}
 				
 				void cb_reconnect_edge_«edge.jsCall(g)»(int sourceId, int targetId, int id) {
