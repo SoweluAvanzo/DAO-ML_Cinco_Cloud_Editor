@@ -61,7 +61,7 @@ export class PyroEditorProvider extends PyroApi implements vscode.CustomEditorPr
 	private static isUnsupportedEditor(): boolean {
 		const env = process.env;
 		const editorType = env["EDITOR_TYPE"];
-		if(editorType == "LANGUAGE_EDITOR") {
+		if(editorType != null && editorType == "LANGUAGE_EDITOR") {
 			this.logging("EditorType is unsuported: " + editorType);
 			return true;
 		}
