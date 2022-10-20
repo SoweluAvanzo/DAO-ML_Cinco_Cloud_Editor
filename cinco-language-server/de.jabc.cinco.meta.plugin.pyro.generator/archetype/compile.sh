@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# status code of the last command
+status=0;
+
 # build frontend
 cd webapp;
 if [[ "$OSTYPE" == "win32" ]]; then
@@ -15,6 +18,10 @@ else
         && pub get \
         && pub run build_runner build -o build;
 fi
+status=$?
+if [[ $status -ne 0 ]]; then
+    exit $status;
+fi
 cd ../;
 
 # copy frontend
@@ -27,7 +34,11 @@ cp -r webapp/build/packages/ app/src/main/resources/META-INF/resources/packages/
 
 # build backend
 cd app;
-    mvn clean package -DskipTests;
+mvn clean package -DskipTests;
+status=$?
+if [[ $status -ne 0 ]]; then
+    exit $status;
+fi
 cd ../;
 
 # publish pyro-server
