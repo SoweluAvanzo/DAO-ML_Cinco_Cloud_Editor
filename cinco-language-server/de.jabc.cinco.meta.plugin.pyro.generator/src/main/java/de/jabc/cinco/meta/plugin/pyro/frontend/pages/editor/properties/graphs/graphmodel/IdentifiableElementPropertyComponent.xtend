@@ -80,14 +80,14 @@ class IdentifiableElementPropertyComponent extends Generatable {
 			  		currentElement.$isDirty = false;
 			  	«ENDIF»
 			}
+	
+			bool connectedToTheia() {
+				return js.context.callMethod('connectedToTheia');
+			}
 			«IF !fileAttributes.empty»
 				
 				String getDownloadPath(path) {
 					return FileReference.toDownloadPath(path);
-				}
-				
-				bool connectedToTheia() {
-					return js.context.callMethod('connectedToTheia');
 				}
 				
 				String getTheiaFileReferenceName(String filePath) {

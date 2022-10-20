@@ -514,6 +514,10 @@ class CanvasComponent extends Generatable {
 				"location": location,
 			});
 		}
+	  
+		bool connectedToTheia() {
+			return js.context.callMethod('connectedToTheia');
+		}
 		«IF !gc.projectServices.empty»
 			
 			/**
@@ -618,10 +622,6 @@ class CanvasComponent extends Generatable {
 			void fetchServiceValues() {
 			    resetServiceValues();
 			    serviceConfigModalStatus = 0;
-			}
-			  
-			bool connectedToTheia() {
-					return js.context.callMethod('connectedToTheia');
 			}
 
 			void resetServiceValues() {
