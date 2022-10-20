@@ -1,6 +1,14 @@
 # build backend
+
+# status code of the last command
+status=0;
+
 cd app;
-    mvn clean package -DskipTests;
+mvn clean package -DskipTests;
+status=$?
+if [[ $status -ne 0 ]]; then
+    exit $status;
+fi
 cd ../;
 
 # publish pyro-server

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# status code of the last command
+status=0;
+
 # build frontend
 cd webapp;
 if [[ "$OSTYPE" == "win32" ]]; then
@@ -15,6 +18,11 @@ else
         && pub get \
         && pub run build_runner build -o build;
 fi
+status=$?
+if [[ $status -ne 0 ]]; then
+    exit $status;
+fi
+
 cd ../;
 
 # copy frontend
