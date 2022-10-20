@@ -67,7 +67,7 @@ minio:
 # Configuration for the archetype image and Theia editors.
 archetype:
   # The image that is used for editors.
-  image: registry.gitlab.com/scce/cinco-cloud/archetype:main-75e4493a10203286751652dacf62af141e5c79e9
+  image: registry.gitlab.com/scce/cinco-cloud/archetype:main-af261e7146ad1ca84974d7b7312fe6004e1c581d
   # The amount of available storage.
   storage: 2Gi
   # The path on the host machine where files are stored
