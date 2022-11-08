@@ -77,8 +77,8 @@ data:
   artemisPassword: <BASE64_ENCODED_ARTEMIS_USER>
   minioRootUser: <BASE64_ENCODED_MINIO_USER>
   minioRootAdmin: <BASE64_ENCODED_MINIO_PASSWORD>
-  minioAccessKey: <BASE64_ENCODED_MINIO_SERVICE_ACCOUNT_ACCESS>
-  minioSecretKey: <BASE64_ENCODED_MINIO_SERVICE_ACCOUNT_SECRET>
+  minioAccessKey: <BASE64_ENCODED_MINIO_ACCESS_KEY>
+  minioSecretKey: <BASE64_ENCODED_MINIO_ACCESS_KEY_SECRET>
 ```
 
 *We will create the access key and the secret key for Minio later on.*
@@ -132,11 +132,11 @@ data:
          Two URLs starting with `http://127.0.0.1:<PORT>` will be displayed.
          One of them (propably the latter one) is the URL to the Minio admin console.
          Open the displayed URL in a web browser. 
-         You can close the session after having created the service account. <p></p>
+         You can close the session after having created the access key. <p></p>
 
     1. Login with the credentials provided in `cinco-cloud-main-secrets`
-    2. Navigate to *Identity > Service Accounts* and click on *Create service account*
-    3. Create a service key with the details provided in `cinco-cloud-main-secrets` and click on `create`
+    2. Navigate to *User > Access Keys* and click on *Create access key*
+    3. Create an access key with the details provided in `cinco-cloud-main-secrets` and click on `create`
     4. Restart the pod of the main service: `kubectl delete pod main-statefulset-0`
 
 ## Skaffold development profiles
