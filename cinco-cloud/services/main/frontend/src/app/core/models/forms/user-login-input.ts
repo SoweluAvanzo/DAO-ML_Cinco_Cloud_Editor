@@ -1,4 +1,4 @@
 export class UserLoginInput {
-  email: string;
+  emailOrUsername: string;
   password: string;
 }

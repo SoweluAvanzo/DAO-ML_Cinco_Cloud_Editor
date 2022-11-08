@@ -16,7 +16,7 @@ export class LoginComponent implements OnInit {
   public settings: Settings;
 
   public loginForm: FormGroup = new FormGroup({
-    'email': new FormControl('', [Validators.required, Validators.email]),
+    'emailOrUsername': new FormControl('', [Validators.required]),
     'password': new FormControl('', [Validators.required, Validators.minLength(5)])
   });
 
@@ -52,9 +52,8 @@ export class LoginComponent implements OnInit {
           type: ToastType.SUCCESS
         });
       },
-      error: err => {
-        this.toastService.show({type: ToastType.DANGER, message: `Login denied.\n ${err.message}`});
-        console.log(err);
+      error: res => {
+        this.toastService.show({type: ToastType.DANGER, message: `Login denied.\n ${res.error.message}`});
       }
     });
   }

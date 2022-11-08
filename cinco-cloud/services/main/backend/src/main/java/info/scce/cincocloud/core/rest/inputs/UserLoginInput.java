@@ -1,13 +1,11 @@
 package info.scce.cincocloud.core.rest.inputs;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
 public class UserLoginInput {
 
-  @NotEmpty(message = "The email may not be empty.")
-  @Email(message = "The value is not a valid email.")
-  public String email;
+  @NotEmpty(message = "The email or username may not be empty.")
+  public String emailOrUsername;
 
   @NotEmpty(message = "The password may not be empty.")
   public String password;
@@ -15,8 +13,8 @@ public class UserLoginInput {
   public UserLoginInput() {
   }
 
-  public UserLoginInput(String email, String password) {
-    this.email = email;
+  public UserLoginInput(String emailOrUsername, String password) {
+    this.emailOrUsername = emailOrUsername;
     this.password = password;
   }
 }
