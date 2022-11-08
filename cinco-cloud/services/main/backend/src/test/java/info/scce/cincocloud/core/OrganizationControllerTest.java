@@ -32,7 +32,7 @@ public class OrganizationControllerTest extends AbstractCincoCloudTest {
     registrationService.registerUser(userA);
 
     final var userALogin = new UserLoginInput();
-    userALogin.email = "userA@cincocloud";
+    userALogin.emailOrUsername = "userA@cincocloud";
     userALogin.password = "123456";
 
     jwtUserA = authService.login(userALogin).token;

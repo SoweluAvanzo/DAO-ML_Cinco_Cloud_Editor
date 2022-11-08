@@ -4,6 +4,9 @@ public class AuthResponseTO {
 
   public String token;
 
+  public AuthResponseTO() {
+  }
+
   public AuthResponseTO(final String token) {
     this.token = token;
   }

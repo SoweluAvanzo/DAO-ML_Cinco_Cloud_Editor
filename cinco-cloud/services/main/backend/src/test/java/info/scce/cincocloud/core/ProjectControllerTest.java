@@ -84,19 +84,19 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
     registrationService.registerUser(userD);
 
     final var userALogin = new UserLoginInput();
-    userALogin.email = "userA@cincocloud";
+    userALogin.emailOrUsername = "userA@cincocloud";
     userALogin.password = "123456";
 
     final var userBLogin = new UserLoginInput();
-    userBLogin.email = "userB@cincocloud";
+    userBLogin.emailOrUsername = "userB@cincocloud";
     userBLogin.password = "123456";
 
     final var userCLogin = new UserLoginInput();
-    userCLogin.email = "userC@cincocloud";
+    userCLogin.emailOrUsername = "userC@cincocloud";
     userCLogin.password = "123456";
 
     final var userDLogin = new UserLoginInput();
-    userDLogin.email = "userD@cincocloud";
+    userDLogin.emailOrUsername = "userD@cincocloud";
     userDLogin.password = "123456";
 
     jwtUserA = authService.login(userALogin).token;

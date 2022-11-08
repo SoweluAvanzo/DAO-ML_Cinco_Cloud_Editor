@@ -28,11 +28,13 @@ public class AuthService {
   PBKDF2Encoder passwordEncoder;
 
   public AuthResponseTO login(UserLoginInput login) {
-    final UserDB user = UserDB.find("email", login.email).firstResult();
-    if (user == null) {
+    final var userByEmail = (UserDB) UserDB.find("email", login.emailOrUsername).firstResult();
+    final var userByUsername = (UserDB) UserDB.find("username", login.emailOrUsername).firstResult();
+    if (userByEmail == null && userByUsername == null) {
       throw new RestException(Status.UNAUTHORIZED, "Invalid Credentials!");
     }
 
+    final var user = userByEmail != null ? userByEmail : userByUsername;
     if (!user.password.equals(passwordEncoder.encode(login.password))) {
       throw new RestException(Status.UNAUTHORIZED, "Invalid Credentials!");
     }
