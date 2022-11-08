@@ -86,9 +86,17 @@ export class PersonalInformationComponent implements OnInit {
   private updateProfile(input: UpdateCurrentUserProfileInput): void {
     this.userApi.updateProfile(input).subscribe({
       next: updatedUser => {
-        this.toastService.show({ type: ToastType.SUCCESS, message: 'Your profile has been updated.' });
-        this.appStore.setUser(updatedUser);
-        this.pictureReference = updatedUser.profilePicture;
+        if (updatedUser.email !== this.currentUser.email) {
+          this.toastService.show({
+            type: ToastType.SUCCESS,
+            message: 'Your profile has been updated. Please login with your new credentials.'
+          });
+          this.appStore.logout().subscribe();
+        } else {
+          this.toastService.show({ type: ToastType.SUCCESS, message: 'Your profile has been updated.' });
+          this.appStore.setUser(updatedUser);
+          this.pictureReference = updatedUser.profilePicture;
+        }
       },
       error: res => {
         this.toastService.show({
