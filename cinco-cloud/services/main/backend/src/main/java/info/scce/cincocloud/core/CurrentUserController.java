@@ -101,6 +101,11 @@ public class CurrentUserController {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
+    final var newEmailIsTaken = UserDB.find("email", input.email).count() > 0;
+    if (!input.email.equals(subject.email) && newEmailIsTaken) {
+      throw new RestException(Response.Status.BAD_REQUEST, "Email is already taken");
+    }
+
     // update email and hash
     subject.email = input.email;
     subject.name = input.name;
@@ -116,8 +121,7 @@ public class CurrentUserController {
 
     subject.persist();
 
-    // get new authentication since credentials could be changed
-    return Response.ok(authService.generateToken(subject)).build();
+    return Response.ok(UserTO.fromEntity(subject, objectCache)).build();
   }
 
   @PUT

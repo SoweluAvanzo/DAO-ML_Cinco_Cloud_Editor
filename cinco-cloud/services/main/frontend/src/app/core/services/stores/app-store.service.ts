@@ -30,9 +30,13 @@ export class AppStoreService {
   }
 
   public logout(): Observable<boolean> {
-    return this.authApi.logout().pipe(
-      mergeMap(_ => from(this.router.navigate(['/login'])))
-    );
+    if (this.authApi.getToken() == null) {
+      return from(this.router.navigate(['/login']));
+    } else {
+      return this.authApi.logout().pipe(
+        mergeMap(_ => from(this.router.navigate(['/login'])))
+      );
+    }
   }
 
   public setUser(user: User): void {
