@@ -88,6 +88,16 @@ spec:
                 secretKeyRef:
                   name: cinco-cloud-main-secrets
                   key: minioSecretKey
+            - name: AUTH_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: authPublicKey
+            - name: AUTH_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cinco-cloud-main-secrets
+                  key: authPrivateKey
           securityContext:
             privileged: true
           volumeMounts:
