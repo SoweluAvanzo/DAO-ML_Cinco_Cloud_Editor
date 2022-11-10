@@ -31,7 +31,7 @@ export class CreateOrganizationModalComponent {
     this.organizationApi.create(newOrganization).subscribe({
       next: createdOrganization => {
         this.toastService.show({
-          message: `The organization "${createdOrganization}" has been created.`,
+          message: `The organization "${createdOrganization.name}" has been created.`,
           type: ToastType.SUCCESS
         });
         this.modal.close(createdOrganization);

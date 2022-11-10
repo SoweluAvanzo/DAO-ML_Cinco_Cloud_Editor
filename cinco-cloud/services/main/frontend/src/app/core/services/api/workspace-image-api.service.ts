@@ -3,7 +3,8 @@ import { BaseApiService } from './base-api.service';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { WorkspaceImage } from '../../models/workspace-image';
-import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
+import { fromJsog, fromJsogList } from '../../utils/jsog-utils';
+import { UpdateWorkspaceImageInput } from '../../models/inputs/update-workspace-image-input';
 
 @Injectable({
   providedIn: 'root'
@@ -26,8 +27,8 @@ export class WorkspaceImageApiService extends BaseApiService {
     );
   }
 
-  public update(image: WorkspaceImage): Observable<WorkspaceImage> {
-    return this.http.put(`${this.apiUrl}/image-registry/images/${image.id}`, toJsog(image), this.defaultHttpOptions).pipe(
+  public update(image: WorkspaceImage, input: UpdateWorkspaceImageInput): Observable<WorkspaceImage> {
+    return this.http.put(`${this.apiUrl}/image-registry/images/${image.id}`, input, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }

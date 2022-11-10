@@ -22,6 +22,10 @@ export class Project extends BaseEntity {
     return this.members.findIndex(u => u.id === user.id) > -1;
   }
 
+  isUserOwner(user: User): boolean {
+    return this.owner != null && this.owner.id === user.id;
+  }
+
   get allUsers(): User[] {
     return this.owner != null
         ? [this.owner, ...this.members]

@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core;
 
+import info.scce.cincocloud.core.rest.inputs.UpdateWorkspaceImageInput;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageTO;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.WorkspaceImageDB;
@@ -44,10 +45,11 @@ public class WorkspaceImageController {
   public Response search(@Context SecurityContext securityContext, @QueryParam("q") String query) {
     final var currentUser = UserDB.getCurrentUser(securityContext);
 
-    final List<WorkspaceImageDB> images = WorkspaceImageDB.listAll()
+    final var images = WorkspaceImageDB.findAllWhereProjectIsNotDeleted()
         .stream()
-        .map(image -> (WorkspaceImageDB) image)
-        .filter(image -> image.published || projectService.userOwnsProject(currentUser, image.project))
+        .filter(image -> image.published || image.project.matchOnOwnership(
+                user -> user.equals(currentUser),
+                org -> org.members.contains(currentUser) || org.owners.contains(currentUser)))
         .collect(Collectors.toList());
 
     List<WorkspaceImageDB> responseImages;
@@ -93,7 +95,8 @@ public class WorkspaceImageController {
   @Path("/images/{imageId}")
   @RolesAllowed("user")
   public Response update(@Context SecurityContext securityContext,
-      @PathParam("imageId") long userId, WorkspaceImageTO image) {
+                         @PathParam("imageId") long userId,
+                         UpdateWorkspaceImageInput input) {
     final var currentUser = UserDB.getCurrentUser(securityContext);
 
     final var imageInDb = (WorkspaceImageDB) WorkspaceImageDB.findByIdOptional(userId)
@@ -104,7 +107,7 @@ public class WorkspaceImageController {
     }
 
     imageInDb.updatedAt = Instant.now();
-    imageInDb.published = image.published;
+    imageInDb.published = input.published;
     imageInDb.persist();
 
     return Response.ok(WorkspaceImageTO.fromEntity(imageInDb, objectCache)).build();

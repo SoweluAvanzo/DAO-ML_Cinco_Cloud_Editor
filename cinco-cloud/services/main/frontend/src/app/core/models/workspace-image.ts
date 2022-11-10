@@ -9,6 +9,7 @@ export class WorkspaceImage extends BaseEntity {
     published: boolean;
     user: User;
     project: Project;
+    createdAt: Date;
 
     get fullyQualifiedName(): string {
         let namespace: string = '';

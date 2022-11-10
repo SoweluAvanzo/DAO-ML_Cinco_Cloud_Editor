@@ -67,6 +67,12 @@
         <cc-edit-git-information-card [project]="project" class="d-block mb-3"></cc-edit-git-information-card>
       </ng-template>
     </li>
+    <li *ngIf="projectStore.canUpdateImages(user)" [ngbNavItem]="3">
+      <a ngbNavLink>Images</a>
+      <ng-template ngbNavContent>
+        <cc-workspace-images-card [project]="project"></cc-workspace-images-card>
+      </ng-template>
+    </li>
   </ul>
 
   <div [ngbNavOutlet]="nav" class="mt-2"></div>

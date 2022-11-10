@@ -212,11 +212,17 @@ export class ProjectStoreService {
   canAddUsers(user: User): boolean {
     const project = this.project.value;
     if (user == null || project == null) return false;
-    return project.owner != null && project.owner.id === user.id;
+    return project.isUserOwner(user);
   }
 
   canDeleteUsers(user: User): boolean {
     return this.canAddUsers(user);
+  }
+
+  canUpdateImages(user: User): boolean {
+    const project = this.project.value;
+    return project.isUserOwner(user)
+      || (project.organization != null && project.organization.isUserOwner(user));
   }
 
   private afterLeaveOrDeleteProject(project: Project): void {

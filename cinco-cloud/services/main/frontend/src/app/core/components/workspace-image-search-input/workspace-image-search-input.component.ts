@@ -18,6 +18,8 @@ export class WorkspaceImageSearchInputComponent implements OnInit {
     input: new FormControl('')
   });
 
+  searched = false;
+
   results: WorkspaceImage[] = [];
 
   constructor(private workspaceImageApi: WorkspaceImageApiService) {
@@ -31,6 +33,7 @@ export class WorkspaceImageSearchInputComponent implements OnInit {
         if (value.trim() != "") {
           this.searchImage(value)
         } else {
+          this.searched = false;
           this.results = [];
         }
       }
@@ -39,12 +42,16 @@ export class WorkspaceImageSearchInputComponent implements OnInit {
 
   private searchImage(term: string): void {
     this.workspaceImageApi.search(term).subscribe({
-      next: results => this.results = results
+      next: results => {
+        this.searched = true;
+        this.results = results;
+      }
     });
   }
 
   handleSelect(image: WorkspaceImage): void {
     this.selectImage.emit(image);
     this.results = [];
+    this.searched = false;
   }
 }
