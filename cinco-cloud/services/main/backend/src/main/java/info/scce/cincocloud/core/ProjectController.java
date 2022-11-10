@@ -241,6 +241,7 @@ public class ProjectController {
     final var subject = UserDB.getCurrentUser(securityContext);
 
     final var projects = ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id).stream()
+        .filter(p -> p.deletedAt == null)
         .map(p -> ProjectTO.fromEntity(p, objectCache))
         .collect(Collectors.toList());
 
