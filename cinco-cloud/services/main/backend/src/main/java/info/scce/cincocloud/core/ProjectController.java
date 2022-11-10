@@ -78,7 +78,19 @@ public class ProjectController {
         .map(i -> WorkspaceImageDB.findById(i.getId()));
 
     if (imageOptional.isPresent()) {
-      final WorkspaceImageDB image = imageOptional.get();
+      final var image = imageOptional.get();
+
+      // check if the user is not using an image from an organization for personal use
+      final var org = image.project.organization;
+      if (!image.published && newProject.getorganization() == null && org != null) {
+        throw new RestException(Response.Status.BAD_REQUEST, "You cannot use the image for personal projects.");
+      }
+
+      // check if the user is not using an image from another organization inside another organization
+      if (!image.published && newProject.getorganization() != null && newProject.getorganization().getId() != org.id) {
+        throw new RestException(Response.Status.BAD_REQUEST, "The image is not available in this organization.");
+      }
+
       if (!image.published && !projectService.userOwnsProject(subject, image.project)) {
         throw new RestException(Response.Status.BAD_REQUEST, "You are not allowed to use this image.");
       }

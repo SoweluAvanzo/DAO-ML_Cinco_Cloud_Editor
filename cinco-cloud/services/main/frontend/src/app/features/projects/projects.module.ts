@@ -35,6 +35,9 @@ import { StatusWidgetComponent } from './pages/overview/components/status-widget
 import { BuildJobLogComponent } from './pages/build-jobs/build-job-log/build-job-log.component';
 import { EditPrivateOwnershipCardComponent } from './pages/settings/components/edit-private-ownership-card/edit-private-ownership-card.component';
 import { EditOrganizationOwnershipCardComponent } from './pages/settings/components/edit-organization-ownership-card/edit-organization-ownership-card.component';
+import {
+  WorkspaceImagesCardComponent
+} from './pages/settings/components/workspace-images-card/workspace-images-card.component';
 
 const routes: Routes = [
   {
@@ -96,7 +99,8 @@ const routes: Routes = [
     StatusWidgetComponent,
     EditPrivateOwnershipCardComponent,
     EditOrganizationOwnershipCardComponent,
-    BuildJobLogComponent
+    BuildJobLogComponent,
+    WorkspaceImagesCardComponent
   ],
   imports: [
     CommonModule,

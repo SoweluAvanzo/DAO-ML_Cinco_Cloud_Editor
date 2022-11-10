@@ -13,7 +13,7 @@ import {
   faAngleDoubleRight, faBriefcase, faBuilding, faChevronRight,
   faCircleNotch,
   faCloudUploadAlt,
-  faExternalLinkAlt
+  faExternalLinkAlt, faToggleOff, faToggleOn
 } from '@fortawesome/free-solid-svg-icons';
 import { RouterModule } from '@angular/router';
 import { SearchUserInputComponent } from './components/search-user-input/search-user-input.component';
@@ -22,12 +22,13 @@ import { OrganizationRoleBadgeComponent } from './components/organization-role-b
 import { ProjectRoleBadgeComponent } from './components/project-role-badge/project-role-badge.component';
 import { ConfirmModalComponent } from './components/confirm-modal/confirm-modal.component';
 import { ToastsComponent } from './components/toasts/toasts.component';
-import { NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbToastModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { FileInputComponent } from './components/file-input/file-input.component';
 import { SidebarHeaderComponent } from './components/sidebar-header/sidebar-header.component';
 import { ValidationErrorMessageComponent } from './components/validation-error-message/validation-error-message.component';
 import { ValidateFormInputPipe } from './pipes/validate-form-input.pipe';
 import { SearchOrganizationInputComponent } from './components/search-organization-input/search-organization-input.component';
+import { ToggleButtonComponent } from './components/toggle-button/toggle-button.component';
 
 @NgModule({
   declarations: [
@@ -46,7 +47,8 @@ import { SearchOrganizationInputComponent } from './components/search-organizati
     SidebarHeaderComponent,
     ValidationErrorMessageComponent,
     ValidateFormInputPipe,
-    SearchOrganizationInputComponent
+    SearchOrganizationInputComponent,
+    ToggleButtonComponent
   ],
   providers: [],
   exports: [
@@ -64,7 +66,8 @@ import { SearchOrganizationInputComponent } from './components/search-organizati
     SidebarHeaderComponent,
     ValidateFormInputPipe,
     ValidationErrorMessageComponent,
-    SearchOrganizationInputComponent
+    SearchOrganizationInputComponent,
+    ToggleButtonComponent
   ],
   imports: [
     CommonModule,
@@ -72,12 +75,14 @@ import { SearchOrganizationInputComponent } from './components/search-organizati
     HttpClientModule,
     ReactiveFormsModule,
     FontAwesomeModule,
-    NgbToastModule
+    NgbToastModule,
+    NgbTooltipModule
   ]
 })
 export class CoreModule {
 
   constructor(private library: FaIconLibrary) {
-    library.addIcons(faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch, faCloudUploadAlt, faChevronRight, faBriefcase, faBuilding, faExternalLinkAlt);
+    library.addIcons(faAngleDoubleLeft, faAngleDoubleRight, faCircleNotch, faCloudUploadAlt, faChevronRight,
+      faBriefcase, faBuilding, faExternalLinkAlt, faToggleOn, faToggleOff);
   }
 }

@@ -58,11 +58,7 @@ export class CreateProjectModalComponent {
         this.modal.close(createdProject);
       },
       error: res => {
-        this.toastService.show({
-          message: 'The project could not be created',
-          type: ToastType.DANGER
-        });
-        console.log(res);
+        this.errorMessage = `The project could not be created: ${res.error.message}`;
       }
     });
   }

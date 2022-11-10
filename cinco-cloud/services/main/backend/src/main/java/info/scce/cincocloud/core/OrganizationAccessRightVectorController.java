@@ -5,7 +5,10 @@ import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.rest.ObjectCache;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -45,15 +48,14 @@ public class OrganizationAccessRightVectorController {
       }
 
       if (isOwnerOf(subject, org)) {
-        final List<OrganizationAccessRightVectorDB> result = OrganizationAccessRightVectorDB
-            .listAll();
+        final var accessRights = OrganizationAccessRightVectorDB.listAll().stream()
+                .map(v -> (OrganizationAccessRightVectorDB) v)
+                .map(v -> OrganizationAccessRightVectorTO.fromEntity(v, objectCache))
+                .collect(Collectors.toList());
 
-        final List<OrganizationAccessRightVectorTO> arvs = new java.util.ArrayList<>();
-        for (OrganizationAccessRightVectorDB arv : result) {
-          arvs.add(OrganizationAccessRightVectorTO.fromEntity(arv, objectCache));
-        }
-
-        return Response.ok(arvs).build();
+        return Response.ok(accessRights).build();
+      } else {
+        return Response.ok(new ArrayList<>()).build();
       }
     }
 

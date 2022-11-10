@@ -78,7 +78,7 @@ public class WorkspaceMQConsumer {
         image = new WorkspaceImageDB();
         image.uuid = result.uuid;
         image.imageVersion = "latest";
-        image.published = true;
+        image.published = false;
         image.project = project;
         image.persist();
 

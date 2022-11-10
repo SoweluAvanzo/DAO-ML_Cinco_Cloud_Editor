@@ -2,6 +2,7 @@ package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.Column;
@@ -34,6 +35,10 @@ public class WorkspaceImageDB extends PanacheEntity {
 
   public static Optional<WorkspaceImageDB> findByUUID(UUID uuid) {
     return find("uuid", uuid).firstResultOptional();
+  }
+
+  public static List<WorkspaceImageDB> findAllWhereProjectIsNotDeleted() {
+    return find("project.deletedAt = null").list();
   }
 
   public static Optional<WorkspaceImageDB> findByProjectId(Long projectId) {

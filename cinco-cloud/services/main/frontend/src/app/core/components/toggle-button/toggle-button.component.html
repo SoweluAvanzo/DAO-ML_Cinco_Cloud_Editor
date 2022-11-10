@@ -1,0 +1,7 @@
+<span
+  class="toggle-button cursor-pointer"
+  [ngClass]="{'text-success' : enabled, 'text-muted' : !enabled, 'enabled' : enabled, 'disabled' : !enabled}"
+  (click)="toggle.emit(!enabled)"
+  [ngbTooltip]="enabled ? enabledTooltip : disabledTooltip">
+  <span class="toggle"></span>
+</span>
