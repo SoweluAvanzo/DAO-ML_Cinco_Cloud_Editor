@@ -53,5 +53,7 @@ CMD java \
     -Dminio.port="${MINIO_PORT}" \
     -Dminio.access-key="${MINIO_ACCESS_KEY}" \
     -Dminio.secret-key="${MINIO_SECRET_KEY}" \
+    -Dmp.jwt.verify.publickey="${AUTH_PUBLIC_KEY}" \
+    -Dauth.private-key="${AUTH_PRIVATE_KEY}" \
     -Dquarkus.http.port=8000 \
     -jar quarkus-run.jar

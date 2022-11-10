@@ -2,6 +2,7 @@ package info.scce.cincocloud.core;
 
 import info.scce.cincocloud.auth.PBKDF2Encoder;
 import info.scce.cincocloud.auth.TokenUtils;
+import info.scce.cincocloud.config.Properties;
 import info.scce.cincocloud.core.rest.inputs.UserLoginInput;
 import info.scce.cincocloud.core.rest.tos.AuthResponseTO;
 import info.scce.cincocloud.db.UserDB;
@@ -23,6 +24,9 @@ public class AuthService {
 
   @ConfigProperty(name = "mp.jwt.verify.issuer")
   String issuer;
+
+  @Inject
+  Properties properties;
 
   @Inject
   PBKDF2Encoder passwordEncoder;
@@ -49,8 +53,11 @@ public class AuthService {
       if (user.systemRoles.contains(UserSystemRole.ADMIN)) {
         roles.add("admin");
       }
-      return new AuthResponseTO(TokenUtils.generateToken(user.email, roles, duration, issuer));
+
+      final var token = TokenUtils.generateToken(user.email, roles, duration, issuer, properties.getAuthPrivateKey());
+      return new AuthResponseTO(token);
     } catch (Exception e) {
+      e.printStackTrace();
       throw new RestException(Status.UNAUTHORIZED, "failed to generate token");
     }
   }

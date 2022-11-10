@@ -62,26 +62,35 @@ Install the following software:
 
 2. Add a secret with the name `cinco-cloud-main-secrets` to the `secrets.yaml` file with the following contents and replace the placeholders with actual values of your choice:
 
-```yaml
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cinco-cloud-main-secrets
-type: Opaque
-data:
-  passwordSecret: <BASE64_ENCODED_SECRET>
-  databaseUser: <BASE64_ENCODED_DB_USER>
-  databasePassword: <BASE64_ENCODED_DB_PASSWORD>
-  artemisUser: <BASE64_ENCODED_ARTEMIS_USER>
-  artemisPassword: <BASE64_ENCODED_ARTEMIS_USER>
-  minioRootUser: <BASE64_ENCODED_MINIO_USER>
-  minioRootAdmin: <BASE64_ENCODED_MINIO_PASSWORD>
-  minioAccessKey: <BASE64_ENCODED_MINIO_ACCESS_KEY>
-  minioSecretKey: <BASE64_ENCODED_MINIO_ACCESS_KEY_SECRET>
-```
+   ```yaml
+   ---
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: cinco-cloud-main-secrets
+   type: Opaque
+   data:
+     passwordSecret: <BASE64_ENCODED_SECRET>
+     databaseUser: <BASE64_ENCODED_DB_USER>
+     databasePassword: <BASE64_ENCODED_DB_PASSWORD>
+     artemisUser: <BASE64_ENCODED_ARTEMIS_USER>
+     artemisPassword: <BASE64_ENCODED_ARTEMIS_USER>
+     minioRootUser: <BASE64_ENCODED_MINIO_USER>
+     minioRootAdmin: <BASE64_ENCODED_MINIO_PASSWORD>
+     minioAccessKey: <BASE64_ENCODED_MINIO_ACCESS_KEY>
+     minioSecretKey: <BASE64_ENCODED_MINIO_ACCESS_KEY_SECRET>
+     authPublicKey: <BASE64_ENCODED_RSA_PUBLIC_KEY>
+     authPrivateKey: <BASE64_ENCODED_RSA_PUBLIC_KEY>
+   ```
+   
+   *We will create the access key and the secret key for Minio later on.*
 
-*We will create the access key and the secret key for Minio later on.*
+   *Create the public and private key, e.g., using `openssl`:*
+
+    ```
+   openssl genrsa -out rsaPrivateKey.pem 2048
+   openssl rsa -pubout -in rsaPrivateKey.pem -out publicKey.pem
+   ```
 
 3. Apply the secret to the cluster: `kubectl apply -f infrastructure/helm/secrets.yaml`.
 

@@ -18,6 +18,9 @@ public class Properties {
   @ConfigProperty(name = "minio.secret-key")
   String minioSecretKey;
 
+  @ConfigProperty(name = "auth.private-key")
+  String authPrivateKey;
+
   public String getMinioHost() {
     return minioHost;
   }
@@ -32,5 +35,9 @@ public class Properties {
 
   public String getMinioSecretKey() {
     return minioSecretKey;
+  }
+
+  public String getAuthPrivateKey() {
+    return authPrivateKey;
   }
 }
