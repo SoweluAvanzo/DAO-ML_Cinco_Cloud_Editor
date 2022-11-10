@@ -5,6 +5,7 @@ import { Project } from '../../../../core/models/project';
 import { User } from '../../../../core/models/user';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 import { ProjectApiService } from "../../../../core/services/api/project-api.service";
+import { filter } from 'rxjs';
 
 @UntilDestroy()
 @Component({
@@ -23,7 +24,7 @@ export class SettingsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.projectStore.project$.pipe(untilDestroyed(this)).subscribe({
+    this.projectStore.project$.pipe(untilDestroyed(this), filter(p => p != null)).subscribe({
       next: project => {
         this.project = project;
         this.projectApi.hasActiveBuildJobs(project.id).subscribe({

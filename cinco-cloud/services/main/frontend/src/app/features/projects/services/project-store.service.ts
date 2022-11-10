@@ -198,7 +198,7 @@ export class ProjectStoreService {
 
   canLeaveProject(user: User): boolean {
     return user != null
-      && this.project.value.organization != null
+      && this.project.value.organization == null
       && this.project.value.isUserMember(user);
   }
 
