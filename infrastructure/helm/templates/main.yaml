@@ -103,8 +103,6 @@ spec:
           volumeMounts:
             - name: pv-data
               mountPath: /app/data
-            - name: pv-data
-              mountPath: /app/uploads
       volumes:
         - name: pv-data
           persistentVolumeClaim:
