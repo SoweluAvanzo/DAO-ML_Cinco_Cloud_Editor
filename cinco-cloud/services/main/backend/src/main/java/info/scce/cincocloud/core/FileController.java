@@ -1,33 +1,40 @@
 package info.scce.cincocloud.core;
 
+import info.scce.cincocloud.config.Properties;
 import info.scce.cincocloud.db.BaseFileDB;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.apache.commons.io.FilenameUtils;
 
 @ApplicationScoped
 public class FileController {
 
-  public BaseFileDB getFileReference(final long id) {
-    final BaseFileDB file = BaseFileDB.findById(id);
+  @Inject
+  Properties properties;
 
-    return file;
+  public BaseFileDB getFileReference(final long id) {
+    return BaseFileDB.findById(id);
   }
 
   public BaseFileDB getBaseFile(String baseFilePath) {
     try {
-      java.net.URI uri = new java.net.URI(baseFilePath);
+      final var uri = new URI(baseFilePath);
       String[] segments = uri.getPath().split("/");
       String idStr = segments[segments.length - 2];
       long id = Long.parseLong(idStr);
       return BaseFileDB.findById(id);
-    } catch (java.net.URISyntaxException e) {
+    } catch (URISyntaxException e) {
       e.printStackTrace();
       return null;
     }
@@ -38,18 +45,19 @@ public class FileController {
       return null;
     }
     try {
-      final String path = "uploads" + File.separator + identifier.id + File.separator;
-      final String fileName = identifier.fileExtension == null
+      final var fileName = identifier.fileExtension == null
           ? identifier.filename
           : identifier.filename + "." + identifier.fileExtension;
-      return new FileInputStream(new File(path + fileName));
+
+      final var file = Paths.get(getUploadDir().toString(), String.valueOf(identifier.id), fileName);
+      return new FileInputStream(file.toFile());
     } catch (FileNotFoundException e) {
       e.printStackTrace();
       return null;
     }
   }
 
-  public BaseFileDB storeFile(final String fileName, final InputStream data) throws IOException {
+  public BaseFileDB storeFile(final String fileName, final InputStream fileContent) throws IOException {
     final BaseFileDB result = new BaseFileDB();
     result.filename = FilenameUtils.removeExtension(fileName);
 
@@ -61,10 +69,9 @@ public class FileController {
     result.persist();
 
     OutputStream out = null;
-    InputStream filecontent = data;
 
     try {
-      File newFile = new File("uploads" + File.separator + result.id + File.separator + fileName);
+      final var newFile = Paths.get(getUploadDir().toString(), String.valueOf(result.id), fileName).toFile();
       if (!newFile.getParentFile().exists()) {
         newFile.getParentFile().mkdirs();
       }
@@ -74,7 +81,7 @@ public class FileController {
       int read;
       final byte[] bytes = new byte[1024];
 
-      while ((read = filecontent.read(bytes)) != -1) {
+      while ((read = fileContent.read(bytes)) != -1) {
         out.write(bytes, 0, read);
       }
     } catch (FileNotFoundException fne) {
@@ -83,8 +90,8 @@ public class FileController {
       if (out != null) {
         out.close();
       }
-      if (filecontent != null) {
-        filecontent.close();
+      if (fileContent != null) {
+        fileContent.close();
       }
     }
 
@@ -96,9 +103,13 @@ public class FileController {
   }
 
   public void deleteFile(BaseFileDB identifier) {
-    File f = new File("uploads" + File.separator + identifier.id + File.separator
-        + identifier.filename + "." + identifier.fileExtension);
-    f.delete();
+    final var filename = identifier.filename + "." + identifier.fileExtension;
+    final var file = Paths.get(getUploadDir().toString(), String.valueOf(identifier.id), filename).toFile();
+    file.delete();
     identifier.delete();
+  }
+
+  private Path getUploadDir() {
+    return Path.of(properties.getDataDir(), "uploads");
   }
 }

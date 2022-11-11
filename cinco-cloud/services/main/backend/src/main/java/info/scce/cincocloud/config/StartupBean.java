@@ -21,11 +21,11 @@ public class StartupBean {
 
   private static final Logger LOGGER = Logger.getLogger(StartupBean.class.getName());
 
-  @ConfigProperty(name = "cincocloud.data.dir")
-  String dataDirectory;
-
   @Inject
   MainServiceGrpcImpl mainServiceGrpc;
+
+  @Inject
+  Properties properties;
 
   @Transactional
   public void startup(@Observes StartupEvent event) throws Exception {
@@ -34,7 +34,7 @@ public class StartupBean {
   }
 
   private void initDataDirectory() throws IOException {
-    final var dir = Path.of(dataDirectory);
+    final var dir = Path.of(properties.getDataDir());
     LOGGER.log(Level.INFO, "Init directory: " + dir.toAbsolutePath());
     if (!Files.exists(dir)) {
       Files.createDirectories(dir);
