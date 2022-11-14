@@ -2,8 +2,9 @@ package info.scce.cincocloud.core.rest.tos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import info.scce.cincocloud.db.BaseFileDB;
+import info.scce.cincocloud.rest.RESTBaseImpl;
 
-public class FileReferenceTO {
+public class FileReferenceTO extends RESTBaseImpl {
 
   private long id;
   private String fileName;

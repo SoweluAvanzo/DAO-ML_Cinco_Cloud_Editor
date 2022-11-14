@@ -1,14 +1,10 @@
 package info.scce.cincocloud.grpc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import info.scce.cincocloud.storage.MinioBuckets;
-import info.scce.cincocloud.storage.MinioService;
 import info.scce.cincocloud.core.WorkspaceImageBuildJobLogFileService;
-import info.scce.cincocloud.core.rest.tos.GraphModelTypeSpecTO;
-import info.scce.cincocloud.core.rest.tos.GraphModelTypeTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
-import info.scce.cincocloud.db.GraphModelTypeDB;
 import info.scce.cincocloud.db.GitInformationDB;
+import info.scce.cincocloud.db.GraphModelTypeDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.db.WorkspaceImageDB;
@@ -17,16 +13,23 @@ import info.scce.cincocloud.mq.WorkspaceMQProducer;
 import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.proto.MutinyMainServiceGrpc;
 import info.scce.cincocloud.rest.ObjectCache;
+import info.scce.cincocloud.storage.MinioBuckets;
+import info.scce.cincocloud.storage.MinioService;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 import info.scce.cincocloud.sync.ProjectWebSocket.Messages;
 import io.grpc.Status;
 import io.grpc.Status.Code;
 import io.grpc.StatusRuntimeException;
 import io.minio.GetObjectArgs;
+import io.quarkus.grpc.GrpcService;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
+import org.apache.commons.io.FileUtils;
+
+import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,13 +39,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.transaction.Transactional;
 
-import org.apache.commons.io.FileUtils;
-
-@Singleton
+@GrpcService
 public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBase {
 
   private static final Logger LOGGER = Logger.getLogger(MainServiceGrpcImpl.class.getName());
@@ -288,7 +286,7 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
         .build();
   }
 
-  private GraphModelTypeSpecTO readToolSpecJsonFromArchive(Path file) {
+  private GraphModelTypeSpec readToolSpecJsonFromArchive(Path file) {
     try {
       final var zip = new ZipFile(file.toFile());
       final var entries = zip.entries();
@@ -300,7 +298,7 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
         if (entry.getName().equals("spec.json")) {
           try (final var is = zip.getInputStream(entry)) {
             final var json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-            return objectMapper.readValue(json, GraphModelTypeSpecTO.class);
+            return objectMapper.readValue(json, GraphModelTypeSpec.class);
           }
         }
       }
@@ -314,12 +312,12 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
     }
   }
 
-  private void mergeGraphModelTypesInProject(ProjectDB project, GraphModelTypeSpecTO spec) {
+  private void mergeGraphModelTypesInProject(ProjectDB project, GraphModelTypeSpec spec) {
     // Remove GraphModelTypes that do not exist anymore. Here, we remove all
     // those entries from graphModelTypes list, where the typeName does not
     // exist in the parsed spec.json file anymore.
     final var gmtSpecSet = spec.graphModelTypes.stream()
-        .map(GraphModelTypeTO::gettypeName)
+        .map(t -> t.typeName)
         .collect(Collectors.toSet());
 
     final var graphModelTypesToDelete = project.graphModelTypes.stream()
@@ -339,11 +337,11 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
         .collect(Collectors.toSet());
 
     spec.graphModelTypes.stream()
-        .filter(g -> !projectGmtSet.contains(g.gettypeName()))
+        .filter(g -> !projectGmtSet.contains(g.typeName))
         .forEach(g -> {
           final var db = new GraphModelTypeDB();
-          db.typeName = g.gettypeName();
-          db.fileExtension = g.getfileExtension();
+          db.typeName = g.typeName;
+          db.fileExtension = g.fileExtension;
           db.project = project;
           db.persist();
           project.graphModelTypes.add(db);
