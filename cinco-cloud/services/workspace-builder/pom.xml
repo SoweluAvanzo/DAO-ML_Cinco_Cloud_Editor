@@ -11,6 +11,7 @@
     <checkstyle.version>9.0</checkstyle.version>
     <commons-io.version>2.8.0</commons-io.version>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
+    <dependency-check-maven.version>7.3.0</dependency-check-maven.version>
     <hibernate-validator.version>7.0.1.Final</hibernate-validator.version>
     <maven-checkstyle.version>3.1.2</maven-checkstyle.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
@@ -21,12 +22,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
-    <quarkus-plugin.version>1.13.2.Final</quarkus-plugin.version>
+    <quarkus-plugin.version>2.14.0.Final</quarkus-plugin.version>
     <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-    <quarkus.platform.version>1.13.2.Final</quarkus.platform.version>
+    <quarkus.platform.version>2.14.0.Final</quarkus.platform.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
-    <zip4j.version>2.7.0</zip4j.version>
+    <zip4j.version>2.10.0</zip4j.version>
   </properties>
 
   <dependencyManagement>
@@ -198,6 +199,16 @@
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <maven.home>${maven.home}</maven.home>
           </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>${dependency-check-maven.version}</version>
+        <configuration>
+          <failBuildOnCVSS>9</failBuildOnCVSS>
+          <formats>HTML,JUNIT</formats>
         </configuration>
       </plugin>
     </plugins>

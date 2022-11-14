@@ -41,8 +41,7 @@ public class WorkspaceMQConsumer {
     WorkspaceImageBuildJobDB buildJob = null;
 
     try {
-      final var result = DatabindCodec.mapper()
-          .readValue(message.toString(), WorkspaceImageBuildResultMessage.class);
+      final var result = message.mapTo(WorkspaceImageBuildResultMessage.class);
 
       buildJob = (WorkspaceImageBuildJobDB) WorkspaceImageBuildJobDB
           .findByIdOptional(result.jobId)

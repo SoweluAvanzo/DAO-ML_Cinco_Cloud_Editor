@@ -6,7 +6,6 @@ import info.scce.cincocloud.util.Constants;
 public class RESTBaseImpl implements RESTBaseType {
 
   private long id;
-  private String runtimeType;
 
   @JsonProperty(Constants.CINCO_CLOUD_ID_PROPERTY_NAME)
   public long getId() {
@@ -16,16 +15,6 @@ public class RESTBaseImpl implements RESTBaseType {
   @JsonProperty(Constants.CINCO_CLOUD_ID_PROPERTY_NAME)
   public void setId(final long id) {
     this.id = id;
-  }
-
-  @JsonProperty(Constants.CINCO_CLOUD_RUNTIME_TYPE)
-  public String getRuntimeType() {
-    return this.runtimeType;
-  }
-
-  @JsonProperty(Constants.CINCO_CLOUD_RUNTIME_TYPE)
-  public void setRuntimeType(final String runtimeType) {
-    this.runtimeType = runtimeType;
   }
 
   @Override

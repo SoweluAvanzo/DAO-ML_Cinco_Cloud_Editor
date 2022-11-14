@@ -36,14 +36,6 @@ public class CustomObjectMapper {
     mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator
-        .builder()
-        .allowIfBaseType(RESTBaseType.class)
-        .build();
-
-    mapper.activateDefaultTypingAsProperty(ptv, ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT,
-        Constants.CINCO_CLOUD_RUNTIME_TYPE);
-
     mapper.setFilterProvider(new SimpleFilterProvider()
         .addFilter("CincoCloud_Selective_Filter", new CincoCloudSelectiveRestFilter()));
 

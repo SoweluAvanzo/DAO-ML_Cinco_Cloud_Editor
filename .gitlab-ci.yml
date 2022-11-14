@@ -2,6 +2,15 @@
 # General Purpose Jobs
 # ====================================
 
+.base-job:
+  rules:
+    - &rule-schedule
+      if: $CI_PIPELINE_SOURCE == "schedule"
+    - &rule-cinco-cloud-main-or-mr
+      if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - cinco-cloud/**/*
+
 .docker-job:
   image: docker:20.10.6
   services:
@@ -99,6 +108,23 @@ cinco-cloud-lint-main-frontend:
     - npm install
     - npm run lint
 
+cinco-cloud-check-dependencies-main-backend:
+  extends:
+    - .cinco-cloud-maven-job
+  rules:
+    - *rule-cinco-cloud-main-or-mr
+    - *rule-schedule
+  script:
+    - cd cinco-cloud/services/main/backend
+    - mvn dependency-check:check
+  artifacts:
+    when: always
+    paths:
+      - cinco-cloud/services/main/backend/target/dependency-check-junit.xml
+      - cinco-cloud/services/main/backend/target/dependency-check-report.html
+    reports:
+      junit: cinco-cloud/services/main/backend/target/dependency-check-junit.xml
+
 cinco-cloud-lint-main-backend:
   extends:
     - .cinco-cloud-default-job-main-or-mr
@@ -112,6 +138,7 @@ cinco-cloud-install-main-backend:
     - .cinco-cloud-default-job-main-or-mr
     - .cinco-cloud-maven-job
   needs:
+    - cinco-cloud-check-dependencies-main-backend
     - cinco-cloud-lint-main-backend
   script:
     - cd ./cinco-cloud/services/main/backend
@@ -140,6 +167,23 @@ cinco-cloud-build-main:
     IMAGE: main
     VERSION: latest
 
+cinco-cloud-check-dependencies-workspace-builder-backend:
+  extends:
+    - .cinco-cloud-maven-job
+  rules:
+    - *rule-cinco-cloud-main-or-mr
+    - *rule-schedule
+  script:
+    - cd cinco-cloud/services/workspace-builder
+    - mvn dependency-check:check
+  artifacts:
+    when: always
+    paths:
+      - cinco-cloud/services/workspace-builder/target/dependency-check-junit.xml
+      - cinco-cloud/services/workspace-builder/target/dependency-check-report.html
+    reports:
+      junit: cinco-cloud/services/workspace-builder/target/dependency-check-junit.xml
+
 cinco-cloud-lint-workspace-builder-backend:
   extends:
     - .cinco-cloud-default-job-main-or-mr
@@ -153,6 +197,7 @@ cinco-cloud-install-workspace-builder-backend:
     - .cinco-cloud-default-job-main-or-mr
     - .cinco-cloud-maven-job
   needs:
+    - cinco-cloud-check-dependencies-workspace-builder-backend
     - cinco-cloud-lint-workspace-builder-backend
   script:
     - cd ./cinco-cloud/services/workspace-builder

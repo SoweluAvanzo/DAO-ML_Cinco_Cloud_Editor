@@ -5,7 +5,7 @@ import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.proto.MainServiceGrpc;
 import io.minio.GetObjectArgs;
 import io.minio.UploadObjectArgs;
-import io.quarkus.grpc.runtime.annotations.GrpcService;
+import io.quarkus.grpc.GrpcClient;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
 
@@ -48,7 +48,7 @@ public class WorkspaceImageBuilder {
   private final AtomicBoolean aborted = new AtomicBoolean(false);
 
   @Inject
-  @GrpcService("main")
+  @GrpcClient("main")
   MainServiceGrpc.MainServiceBlockingStub mainService;
 
   @Inject

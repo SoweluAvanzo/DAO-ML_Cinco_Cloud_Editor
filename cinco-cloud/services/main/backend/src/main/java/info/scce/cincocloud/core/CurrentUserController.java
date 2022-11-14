@@ -14,8 +14,6 @@ import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -57,20 +55,11 @@ public class CurrentUserController {
   @Path("logout")
   @Produces(MediaType.APPLICATION_JSON)
   @RolesAllowed("user")
-  public Response logout(
-      @Context HttpServletRequest request,
-      @Context SecurityContext securityContext
-  ) {
-    final UserDB subject = UserDB.getCurrentUser(securityContext);
-    try {
-      // remove associated tickets
-      TicketRegistrationHandler.removeTicketsOf(subject);
-      // remove association between e.g. UserPrincipal and the SessionContext
-      request.logout();
-      return Response.status(Response.Status.OK).build();
-    } catch (ServletException servletException) {
-      throw new RestException(Response.Status.BAD_REQUEST, servletException.getMessage());
-    }
+  public Response logout(@Context SecurityContext securityContext) {
+    final var subject = UserDB.getCurrentUser(securityContext);
+    // remove associated tickets
+    TicketRegistrationHandler.removeTicketsOf(subject);
+    return Response.status(Response.Status.OK).build();
   }
 
   @GET

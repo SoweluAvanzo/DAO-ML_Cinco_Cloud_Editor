@@ -1,7 +1,6 @@
 package info.scce.cincocloud.config;
 
 import info.scce.cincocloud.db.SettingsDB;
-import info.scce.cincocloud.grpc.MainServiceGrpcImpl;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import java.io.IOException;
@@ -13,16 +12,12 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 @Startup
 public class StartupBean {
 
   private static final Logger LOGGER = Logger.getLogger(StartupBean.class.getName());
-
-  @Inject
-  MainServiceGrpcImpl mainServiceGrpc;
 
   @Inject
   Properties properties;
