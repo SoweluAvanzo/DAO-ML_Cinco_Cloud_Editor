@@ -56,43 +56,42 @@ Install the following software:
 
 1. Clone the CincoCloud [repository][cinco-cloud-repository]
 
-### 4. Create necessary secrets
+### 4. Install necessary secrets
 
-1. In the cinco-cloud directory, create the file `infrastructure/helm/secrets.yaml`
+* Apply preset development secrets to the cluster: <br>
+  `kubectl apply -f infrastructure/helm/secrets-local.yaml`.
 
-2. Add a secret with the name `cinco-cloud-main-secrets` to the `secrets.yaml` file with the following contents and replace the placeholders with actual values of your choice:
+* Alternatively, create your own `secrets.yaml` file.
+  The contents of the file should look like the following template.
+  Ensure that the name of the secret is `cinco-cloud-main-secrets` and replace the placeholders with actual values of your choice:
 
-   ```yaml
-   ---
-   apiVersion: v1
-   kind: Secret
-   metadata:
-     name: cinco-cloud-main-secrets
-   type: Opaque
-   data:
-     passwordSecret: <BASE64_ENCODED_SECRET>
-     databaseUser: <BASE64_ENCODED_DB_USER>
-     databasePassword: <BASE64_ENCODED_DB_PASSWORD>
-     artemisUser: <BASE64_ENCODED_ARTEMIS_USER>
-     artemisPassword: <BASE64_ENCODED_ARTEMIS_USER>
-     minioRootUser: <BASE64_ENCODED_MINIO_USER>
-     minioRootAdmin: <BASE64_ENCODED_MINIO_PASSWORD>
-     minioAccessKey: <BASE64_ENCODED_MINIO_ACCESS_KEY>
-     minioSecretKey: <BASE64_ENCODED_MINIO_ACCESS_KEY_SECRET>
-     authPublicKey: <BASE64_ENCODED_RSA_PUBLIC_KEY>
-     authPrivateKey: <BASE64_ENCODED_RSA_PUBLIC_KEY>
-   ```
+  ```yaml
+  ---
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: cinco-cloud-main-secrets
+  type: Opaque
+  data:
+    passwordSecret: <BASE64_ENCODED_SECRET>
+    databaseUser: <BASE64_ENCODED_DB_USER>
+    databasePassword: <BASE64_ENCODED_DB_PASSWORD>
+    artemisUser: <BASE64_ENCODED_ARTEMIS_USER>
+    artemisPassword: <BASE64_ENCODED_ARTEMIS_USER>
+    minioRootUser: <BASE64_ENCODED_MINIO_USER>
+    minioRootAdmin: <BASE64_ENCODED_MINIO_PASSWORD>
+    minioAccessKey: <BASE64_ENCODED_MINIO_ACCESS_KEY>
+    minioSecretKey: <BASE64_ENCODED_MINIO_ACCESS_KEY_SECRET>
+    authPublicKey: <BASE64_ENCODED_RSA_PUBLIC_KEY>
+    authPrivateKey: <BASE64_ENCODED_RSA_PUBLIC_KEY>
+  ```
    
-   *We will create the access key and the secret key for Minio later on.*
+  *Create the public and private key, e.g., using `openssl`:*
 
-   *Create the public and private key, e.g., using `openssl`:*
-
-    ```
-   openssl genrsa -out rsaPrivateKey.pem 2048
-   openssl rsa -pubout -in rsaPrivateKey.pem -out publicKey.pem
-   ```
-
-3. Apply the secret to the cluster: `kubectl apply -f infrastructure/helm/secrets.yaml`.
+  ```
+  openssl genrsa -out rsaPrivateKey.pem 2048
+  openssl rsa -pubout -in rsaPrivateKey.pem -out publicKey.pem
+  ```
 
 ### 5. Install Cert Manager
 
@@ -143,9 +142,11 @@ Install the following software:
          Open the displayed URL in a web browser. 
          You can close the session after having created the access key. <p></p>
 
-    1. Login with the credentials provided in `cinco-cloud-main-secrets`
+    1. Login with the credentials provided in `cinco-cloud-main-secrets`.
+       Per default, the credentials are `minioadmin:minioadmin`.
     2. Navigate to *User > Access Keys* and click on *Create access key*
-    3. Create an access key with the details provided in `cinco-cloud-main-secrets` and click on `create`
+    3. Create an access key with the details provided in `cinco-cloud-main-secrets` and click on `create`.
+       In the default development secrets, the access key and the secret key are both set to `minio-sa`. 
     4. Restart the pod of the main service: `kubectl delete pod main-statefulset-0`
 
 ## Skaffold development profiles
