@@ -14,7 +14,7 @@ Install the following software:
 
 - [Docker][docker]
 - [Helm][helm]
-- [Skaffold][skaffold]
+- [Skaffold][skaffold] *Use a version < v2.0.0, e.g. v1.39.4*
 - [Minikube][minikube]
 - [Kubectl][kubectl]
 
