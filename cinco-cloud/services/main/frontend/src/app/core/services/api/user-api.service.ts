@@ -17,21 +17,21 @@ export class UserApiService extends BaseApiService {
     super(http);
   }
 
-  public register(input: UserRegisterInput): Observable<string> {
+  public register(input: UserRegisterInput): Observable<User> {
     const options: any = { ...this.defaultHttpOptions, ...{ responseType: 'text' } };
-    return this.http.post(`${this.apiUrl}/register/new/public`, input, options).pipe(
-      map(body => body.toString())
+    return this.http.post(`${this.apiUrl}/register`, input, options).pipe(
+      map(body => this.transformSingle(body))
     );
   }
 
   public create(input: UserRegisterInput): Observable<User> {
-    return this.http.post(`${this.apiUrl}/users/private`, input, this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/users`, input, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public getCurrent(): Observable<User> {
-    return this.http.get(`${this.apiUrl}/user/current/private`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/users/current`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
@@ -43,8 +43,7 @@ export class UserApiService extends BaseApiService {
   }
 
   public search(usernameOrEmail: string): Observable<User> {
-    const input = { usernameOrEmail };
-    return this.http.post(`${this.apiUrl}/users/search`, input, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/users?search=${usernameOrEmail}`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
@@ -56,25 +55,25 @@ export class UserApiService extends BaseApiService {
   }
 
   public addAdminRole(user: User): Observable<User> {
-    return this.http.post(`${this.apiUrl}/users/${user.id}/roles/addAdmin`, {}, this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/users/${user.id}/roles`, { admin: true }, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public removeAdminRole(user: User): Observable<User> {
-    return this.http.post(`${this.apiUrl}/users/${user.id}/roles/removeAdmin`, {}, this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/users/${user.id}/roles`, { admin: false }, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
-  public updateProfile(input: UpdateCurrentUserProfileInput): Observable<User> {
-    return this.http.put(`${this.apiUrl}/user/current/private`, input, this.defaultHttpOptions).pipe(
+  public updateProfile(user: User, input: UpdateCurrentUserProfileInput): Observable<User> {
+    return this.http.put(`${this.apiUrl}/users/${user.id}`, input, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
-  public updatePassword(input: UpdateCurrentUserPasswordInput): Observable<User> {
-    return this.http.put(`${this.apiUrl}/user/current/password/private`, input, this.defaultHttpOptions).pipe(
+  public updatePassword(user: User, input: UpdateCurrentUserPasswordInput): Observable<User> {
+    return this.http.put(`${this.apiUrl}/users/${user.id}/password`, input, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }

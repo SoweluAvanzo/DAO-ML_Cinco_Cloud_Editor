@@ -18,7 +18,7 @@ export class ProjectWebSocketApiService extends BaseApiService {
     this.authService.getTicket().subscribe({
       next: ticketResponse => {
         const ticket = ticketResponse.ticket;
-        const socket = new WebSocket(`${this.webSocketUrl}/project/${projectId}/${ticket}/private`);
+        const socket = new WebSocket(`${this.webSocketUrl}/project/${projectId}/${ticket}`);
         socket.addEventListener('open', e => {
           console.log(`open projectWebsocket: ${e.toString()}`);
           subject.next(socket);

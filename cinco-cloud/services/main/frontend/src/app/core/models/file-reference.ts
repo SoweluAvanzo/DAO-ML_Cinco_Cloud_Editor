@@ -6,10 +6,10 @@ export class FileReference extends BaseEntity {
   contentType: string;
 
   get path(): string {
-    return `${environment.apiUrl}/files/read/${this.id}/private`;
+    return `${environment.apiUrl}/files/${this.id}?download=false`;
   }
 
   get downloadPath(): string {
-    return `${environment.apiUrl}/files/download/${this.id}/private`;
+    return `${environment.apiUrl}/files/${this.id}?download=true`;
   }
 }

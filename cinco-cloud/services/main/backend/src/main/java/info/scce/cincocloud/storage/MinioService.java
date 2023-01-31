@@ -5,7 +5,6 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
-
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;

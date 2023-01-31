@@ -1,6 +1,7 @@
-package info.scce.cincocloud.core;
+package info.scce.cincocloud.core.rest.controller;
 
 import info.scce.cincocloud.core.rest.tos.FileReferenceTO;
+import info.scce.cincocloud.core.services.FileService;
 import info.scce.cincocloud.db.BaseFileDB;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +16,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -29,10 +31,9 @@ import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 public class FileReferenceController {
 
   @Inject
-  FileController fileController;
+  FileService fileService;
 
   @POST
-  @Path("/create")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
   @RolesAllowed("user")
@@ -60,21 +61,21 @@ public class FileReferenceController {
       }
     }
 
-    final BaseFileDB reference = this.fileController
+    final BaseFileDB reference = this.fileService
         .storeFile(fileName, inputPart.getBody(InputStream.class, null));
     reference.contentType = inputPart.getMediaType().toString();
     reference.persist();
 
     return Response.ok(new FileReferenceTO(reference)).build();
   }
-
   @GET
-  @Path("/download/{id}/private")
+  @Path("/{id}")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
-  public Response download(@PathParam("id") final long id) {
-    // TODO: SAMI: security
-    final BaseFileDB reference = this.fileController.getFileReference(id);
-    final InputStream stream = this.fileController.loadFile(reference);
+  //TODO: security
+  public Response read(@PathParam("id") final long id,
+      @QueryParam("download") String download) {
+    final BaseFileDB reference = this.fileService.getFileReference(id);
+    final InputStream stream = this.fileService.loadFile(reference);
 
     final byte[] result;
 
@@ -84,32 +85,13 @@ public class FileReferenceController {
       throw new WebApplicationException(e);
     }
 
-    return Response
-        .ok(result, reference.contentType)
-        .header("Content-Disposition",
-            "attachment; filename=" + (reference.filename + "." + reference.fileExtension))
-        .build();
-  }
+    var response = Response.ok(result, reference.contentType);
 
-  @GET
-  @Path("/read/{id}/private")
-  @Produces(MediaType.APPLICATION_OCTET_STREAM)
-  @RolesAllowed("user")
-  public Response read(@PathParam("id") final long id) {
-
-    final BaseFileDB reference = this.fileController.getFileReference(id);
-    final InputStream stream = this.fileController.loadFile(reference);
-
-    final byte[] result;
-
-    try {
-      result = IOUtils.toByteArray(stream);
-    } catch (IOException e) {
-      throw new WebApplicationException(e);
+    if (Boolean.parseBoolean(download)) {
+      response = response.header("Content-Disposition",
+          "attachment; filename=" + (reference.filename + "." + reference.fileExtension));
     }
 
-    return Response
-        .ok(result, reference.contentType)
-        .build();
+    return response.build();
   }
 }

@@ -1,6 +1,6 @@
 package info.scce.cincocloud.core.beans;
 
-import info.scce.cincocloud.core.ProjectDeploymentService;
+import info.scce.cincocloud.core.services.ProjectDeploymentService;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 import io.quarkus.runtime.StartupEvent;

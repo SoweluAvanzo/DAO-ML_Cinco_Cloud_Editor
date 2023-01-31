@@ -5,9 +5,7 @@ import { WorkspaceImageBuildJob } from '../../../../core/models/workspace-image-
 import { Page } from '../../../../core/models/page';
 import { ProjectStoreService } from '../../services/project-store.service';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
-import {
-  WorkspaceImageBuildJobApiService
-} from '../../../../core/services/api/workspace-image-build-job-api.service';
+import { WorkspaceImageBuildJobApiService } from '../../../../core/services/api/workspace-image-build-job-api.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { filter, fromEvent } from 'rxjs';
 import { WebSocketMessage } from '../../../../core/models/web-socket-message';

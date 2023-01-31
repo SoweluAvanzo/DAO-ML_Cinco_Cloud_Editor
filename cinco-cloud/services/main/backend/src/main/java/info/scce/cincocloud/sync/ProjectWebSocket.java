@@ -21,7 +21,7 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint(value = "/api/ws/project/{projectId}/{ticket}/private")
+@ServerEndpoint(value = "/api/ws/project/{projectId}/{ticket}")
 @ApplicationScoped
 public class ProjectWebSocket {
 

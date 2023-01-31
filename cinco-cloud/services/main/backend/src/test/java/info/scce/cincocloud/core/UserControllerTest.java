@@ -8,11 +8,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.scce.cincocloud.AbstractCincoCloudTest;
-import info.scce.cincocloud.core.rest.inputs.UserLoginInput;
+import info.scce.cincocloud.core.rest.inputs.UpdateProjectUsersInput;
+import info.scce.cincocloud.core.rest.inputs.UpdateUserRolesInput;
 import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
 import info.scce.cincocloud.core.rest.tos.UserTO;
+import info.scce.cincocloud.core.services.AuthService;
 import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
@@ -25,7 +28,8 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 public class UserControllerTest extends AbstractCincoCloudTest {
 
-  @Inject AuthService authService;
+  @Inject
+  AuthService authService;
 
   @Inject ObjectMapper objectMapper;
 
@@ -41,18 +45,12 @@ public class UserControllerTest extends AbstractCincoCloudTest {
   public void setup() {
     reset();
 
-    final var userA = new UserRegistrationInput();
-    userA.setEmail("userA@cincocloud");
-    userA.setName("userA");
-    userA.setUsername("userA");
-    userA.setPassword("123456");
-    userA.setPasswordConfirm("123456");
-    registrationService.registerUser(userA);
+    registrationService.registerUser("userA", "userA", "userA@cincocloud", "123456");
 
-    jwtUserA = authService.login(new UserLoginInput("userA@cincocloud", "123456")).token;
+    jwtUserA = authService.login("userA@cincocloud", "123456");
     this.userA = UserDB.find("username = 'userA'").firstResult();
 
-    jwtAdminA = authService.login(new UserLoginInput("admin@cincocloud", "123456")).token;
+    jwtAdminA = authService.login("admin@cincocloud", "123456");
     this.adminA = UserDB.find("username = 'admin'").firstResult();
   }
 
@@ -65,7 +63,7 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtAdminA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(201)
             .extract()
@@ -88,7 +86,7 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtUserA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(403)
             .extract()
@@ -107,7 +105,7 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtAdminA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(201)
             .extract()
@@ -137,14 +135,14 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtAdminA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(201)
             .extract()
             .body()
             .as(UserTO.class);
 
-    String createdUserJwt = authService.login(new UserLoginInput("test@cincocloud", "123456")).token;
+    String createdUserJwt = authService.login("test@cincocloud", "123456");
 
     final var bodyAsString =
         given()
@@ -185,7 +183,7 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtAdminA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(201)
             .extract()
@@ -220,7 +218,7 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtAdminA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(201)
             .extract()
@@ -258,14 +256,14 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtAdminA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(201)
             .extract()
             .body()
             .as(UserTO.class);
 
-    final var jwtCreatedUser = authService.login(new UserLoginInput("test@cincocloud", "123456")).token;
+    final var jwtCreatedUser = authService.login("test@cincocloud", "123456");
 
     createOrganization("test_a", jwtCreatedUser);
 
@@ -295,7 +293,7 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtAdminA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(201)
             .extract()
@@ -333,7 +331,7 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtAdminA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(201)
             .extract()
@@ -374,7 +372,7 @@ public class UserControllerTest extends AbstractCincoCloudTest {
                     .when()
                     .body(objectMapper.writeValueAsString(testUser))
                     .headers(getAuthHeaders(jwtAdminA))
-                    .post("/api/users/private")
+                    .post("/api/users")
                     .then()
                     .statusCode(201)
                     .extract()
@@ -412,14 +410,14 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtAdminA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(201)
             .extract()
             .body()
             .as(UserTO.class);
 
-    final var jwtCreatedUser = authService.login(new UserLoginInput("test@cincocloud", "123456")).token;
+    final var jwtCreatedUser = authService.login("test@cincocloud", "123456");
 
     var project = createProject("test_a", jwtCreatedUser);
     addProjectMember(project, userA, jwtCreatedUser, 200);
@@ -447,14 +445,14 @@ public class UserControllerTest extends AbstractCincoCloudTest {
             .when()
             .body(objectMapper.writeValueAsString(testUser))
             .headers(getAuthHeaders(jwtAdminA))
-            .post("/api/users/private")
+            .post("/api/users")
             .then()
             .statusCode(201)
             .extract()
             .body()
             .as(UserTO.class);
 
-    final var jwtCreatedUser = authService.login(new UserLoginInput("test@cincocloud", "123456")).token;
+    final var jwtCreatedUser = authService.login("test@cincocloud", "123456");
 
     createProject("test_a", jwtCreatedUser);
 
@@ -496,9 +494,9 @@ public class UserControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createProjectJson(name, ""))
         .headers(getAuthHeaders(jwt))
-        .post("/api/project/create/private")
+        .post("/api/projects")
         .then()
-        .statusCode(200);
+        .statusCode(201);
 
     return ProjectDB.find("name = ?1", name).firstResult();
   }
@@ -508,49 +506,58 @@ public class UserControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createOrganizationJson(name, ""))
         .headers(getAuthHeaders(jwt))
-        .post("/api/organization")
+        .post("/api/organizations")
         .then()
-        .statusCode(200);
+        .statusCode(201);
 
     return OrganizationDB.find("name = ?1", name).firstResult();
   }
 
   private void addOrganizationMember(OrganizationDB org, UserDB user, String jwt, int expectedStatus) throws Exception {
+    final var input = new UpdateProjectUsersInput();
+    input.setUserId(user.id);
     given()
         .when()
-        .body(objectMapper.writeValueAsString(UserTO.fromEntity(user, objectCache)))
+        .body(objectMapper.writeValueAsString(input))
         .headers(getAuthHeaders(jwt))
-        .post("/api/organization/" + org.id + "/addMember")
+        .post("/api/organizations/" + org.id + "/members")
         .then()
         .statusCode(expectedStatus);
   }
 
 
   private void addOrganizationOwner(OrganizationDB org, UserDB user, String jwt, int expectedStatus) throws Exception {
+    final var input = new UpdateProjectUsersInput();
+    input.setUserId(user.id);
     given()
         .when()
-        .body(objectMapper.writeValueAsString(UserTO.fromEntity(user, objectCache)))
+        .body(objectMapper.writeValueAsString(input))
         .headers(getAuthHeaders(jwt))
-        .post("/api/organization/" + org.id + "/addOwner")
+        .post("/api/organizations/" + org.id + "/owners")
         .then()
         .statusCode(expectedStatus);
   }
 
   private void addProjectMember(ProjectDB project, UserDB user, String jwt, int expectedStatus) throws Exception {
+    final var input = new UpdateProjectUsersInput();
+    input.setUserId(user.id);
     given()
         .when()
-        .body(objectMapper.writeValueAsString(UserTO.fromEntity(user, objectCache)))
+        .body(objectMapper.writeValueAsString(input))
         .headers(getAuthHeaders(jwt))
-        .post("/api/project/" + project.id + "/member/private")
+        .post("/api/projects/" + project.id + "/members")
         .then()
         .statusCode(expectedStatus);
   }
 
-  private UserDB makeAdmin(UserDB user, String jwt) {
+  private UserDB makeAdmin(UserDB user, String jwt) throws Exception {
+    final var input = new UpdateUserRolesInput();
+    input.setAdmin(true);
     given()
         .when()
+        .body(objectMapper.writeValueAsString(input))
         .headers(getAuthHeaders(jwt))
-        .post("/api/users/" + user.id + "/roles/addAdmin")
+        .put("/api/users/" + user.id + "/roles")
         .then()
         .statusCode(200);
 

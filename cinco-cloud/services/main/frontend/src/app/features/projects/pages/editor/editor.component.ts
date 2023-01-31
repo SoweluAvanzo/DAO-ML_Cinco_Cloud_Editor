@@ -13,9 +13,7 @@ import { environment } from '../../../../../environments/environment';
 import { WorkspaceImageBuildJob } from '../../../../core/models/workspace-image-build-job';
 import { fromJsog } from '../../../../core/utils/jsog-utils';
 import { Page } from '../../../../core/models/page';
-import {
-  WorkspaceImageBuildJobApiService
-} from '../../../../core/services/api/workspace-image-build-job-api.service';
+import { WorkspaceImageBuildJobApiService } from '../../../../core/services/api/workspace-image-build-job-api.service';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
 import { Router } from '@angular/router';
 

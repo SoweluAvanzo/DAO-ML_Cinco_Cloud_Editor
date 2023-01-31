@@ -16,19 +16,19 @@ export class WorkspaceImageApiService extends BaseApiService {
   }
 
   public search(query: string): Observable<WorkspaceImage[]> {
-    return this.http.get(`${this.apiUrl}/image-registry/search?q=${query}`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/images/search?q=${query}`, this.defaultHttpOptions).pipe(
       map((body: any) => this.transformList(body))
     );
   }
 
   public getAll(): Observable<WorkspaceImage[]> {
-    return this.http.get(`${this.apiUrl}/image-registry/images`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/images`, this.defaultHttpOptions).pipe(
       map((body: any) => this.transformList(body))
     );
   }
 
   public update(image: WorkspaceImage, input: UpdateWorkspaceImageInput): Observable<WorkspaceImage> {
-    return this.http.put(`${this.apiUrl}/image-registry/images/${image.id}`, input, this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/images/${image.id}`, input, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }

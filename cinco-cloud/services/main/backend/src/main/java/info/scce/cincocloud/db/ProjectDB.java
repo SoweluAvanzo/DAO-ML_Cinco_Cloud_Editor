@@ -5,6 +5,7 @@ import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.function.Function;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -99,7 +100,7 @@ public class ProjectDB extends PanacheEntity {
       joinColumns = @JoinColumn(name = "ProjectDB_id"),
       inverseJoinColumns = @JoinColumn(name = "UserDB_id")
   )
-  public Collection<UserDB> members = new ArrayList<>();
+  public Collection<UserDB> members = new HashSet<>();
 
   public static PanacheQuery<ProjectDB> findProjectsWhereUserIsOwner(long userId) {
     return find("owner is not null and owner.id = ?1", userId);
@@ -123,6 +124,23 @@ public class ProjectDB extends PanacheEntity {
       throw new RuntimeException(String.format("Project %d is both owned by a user and by an organization", id));
     } else {
       throw new RuntimeException("Missing case in ProjectDB::matchOnOwnership");
+    }
+  }
+
+  public <T> T matchOnMembership(
+      Function<Collection<UserDB>, T> personalCase,
+      Function<OrganizationDB, T> organizationCase
+  ) {
+    if (owner != null && organization == null) {
+      return personalCase.apply(members);
+    } else if (owner == null && organization != null) {
+      return organizationCase.apply(organization);
+    } else if (owner == null && organization == null) {
+      throw new RuntimeException(String.format("Project %d is neither owned by a user nor by an organization", id));
+    } else if (owner != null && organization != null) {
+      throw new RuntimeException(String.format("Project %d is both owned by a user and by an organization", id));
+    } else {
+      throw new RuntimeException("Missing case in ProjectDB::matchOnMembership");
     }
   }
 }

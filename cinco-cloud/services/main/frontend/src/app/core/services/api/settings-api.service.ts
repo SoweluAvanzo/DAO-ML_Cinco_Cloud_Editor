@@ -15,7 +15,7 @@ export class SettingsApiService extends BaseApiService {
   }
 
   public get(): Observable<Settings> {
-    return this.http.get(`${this.apiUrl}/settings/public`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/settings`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }

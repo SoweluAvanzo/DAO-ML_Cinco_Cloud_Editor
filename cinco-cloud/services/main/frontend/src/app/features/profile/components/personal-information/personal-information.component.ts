@@ -84,7 +84,7 @@ export class PersonalInformationComponent implements OnInit {
   }
 
   private updateProfile(input: UpdateCurrentUserProfileInput): void {
-    this.userApi.updateProfile(input).subscribe({
+    this.userApi.updateProfile(this.currentUser, input).subscribe({
       next: updatedUser => {
         if (updatedUser.email !== this.currentUser.email) {
           this.toastService.show({

@@ -9,11 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.scce.cincocloud.AbstractCincoCloudTest;
-import info.scce.cincocloud.core.rest.inputs.UserLoginInput;
-import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
+import info.scce.cincocloud.core.rest.inputs.UpdateProjectTransferToOrganizationInput;
+import info.scce.cincocloud.core.rest.inputs.UpdateProjectTransferToUserInput;
+import info.scce.cincocloud.core.rest.inputs.UpdateProjectUsersInput;
 import info.scce.cincocloud.core.rest.tos.OrganizationTO;
 import info.scce.cincocloud.core.rest.tos.ProjectTO;
 import info.scce.cincocloud.core.rest.tos.UserTO;
+import info.scce.cincocloud.core.services.AuthService;
 import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
@@ -23,9 +25,12 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.response.ValidatableResponse;
 import javax.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 @QuarkusTest
+@TestMethodOrder(OrderAnnotation.class)
 public class ProjectControllerTest extends AbstractCincoCloudTest {
 
   @Inject
@@ -51,58 +56,15 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
   public void setup() {
     reset();
 
-    final var userA = new UserRegistrationInput();
-    userA.setEmail("userA@cincocloud");
-    userA.setName("userA");
-    userA.setUsername("userA");
-    userA.setPassword("123456");
-    userA.setPasswordConfirm("123456");
-    registrationService.registerUser(userA);
+    registrationService.registerUser("userA", "userA", "userA@cincocloud", "123456");
+    registrationService.registerUser("userB", "userB", "userB@cincocloud", "123456");
+    registrationService.registerUser("userC", "userC", "userC@cincocloud", "123456");
+    registrationService.registerUser("userD", "userD", "userD@cincocloud", "123456");
 
-    final var userB = new UserRegistrationInput();
-    userB.setEmail("userB@cincocloud");
-    userB.setName("userB");
-    userB.setUsername("userB");
-    userB.setPassword("123456");
-    userB.setPasswordConfirm("123456");
-    registrationService.registerUser(userB);
-
-    final var userC = new UserRegistrationInput();
-    userC.setEmail("userC@cincocloud");
-    userC.setName("userC");
-    userC.setUsername("userC");
-    userC.setPassword("123456");
-    userC.setPasswordConfirm("123456");
-    registrationService.registerUser(userC);
-
-    final var userD = new UserRegistrationInput();
-    userD.setEmail("userD@cincocloud");
-    userD.setName("userD");
-    userD.setUsername("userD");
-    userD.setPassword("123456");
-    userD.setPasswordConfirm("123456");
-    registrationService.registerUser(userD);
-
-    final var userALogin = new UserLoginInput();
-    userALogin.emailOrUsername = "userA@cincocloud";
-    userALogin.password = "123456";
-
-    final var userBLogin = new UserLoginInput();
-    userBLogin.emailOrUsername = "userB@cincocloud";
-    userBLogin.password = "123456";
-
-    final var userCLogin = new UserLoginInput();
-    userCLogin.emailOrUsername = "userC@cincocloud";
-    userCLogin.password = "123456";
-
-    final var userDLogin = new UserLoginInput();
-    userDLogin.emailOrUsername = "userD@cincocloud";
-    userDLogin.password = "123456";
-
-    jwtUserA = authService.login(userALogin).token;
-    jwtUserB = authService.login(userBLogin).token;
-    jwtUserC = authService.login(userCLogin).token;
-    jwtUserD = authService.login(userDLogin).token;
+    jwtUserA = authService.login("userA@cincocloud", "123456");
+    jwtUserB = authService.login("userB@cincocloud", "123456");
+    jwtUserC = authService.login("userC@cincocloud", "123456");
+    jwtUserD = authService.login("userD@cincocloud", "123456");
 
     this.userA = UserDB.find("username = 'userA'").firstResult();
     this.userB = UserDB.find("username = 'userB'").firstResult();
@@ -118,9 +80,9 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createProjectJson(projectName, ""))
         .headers(getAuthHeaders(jwtUserA))
-        .post("/api/project/create/private")
+        .post("/api/projects")
         .then()
-        .statusCode(200);
+        .statusCode(201);
 
     final var project = getProjectByName(projectName);
     assertNotNull(project);
@@ -314,6 +276,7 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
     assertFalse(updatedProject.getmembers().stream().anyMatch(u -> u.getId() == userC.id));
   }
 
+
   @Test
   public void transferProjectFromOrganizationToOrganization_projectIsTransferred_newOrganizationIsOwner() throws Exception {
     var orgA = createOrganization("orgA", jwtUserA);
@@ -465,11 +428,13 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
   }
 
   private void addProjectMember(ProjectDB project, UserDB user, String jwt, int expectedStatus) throws Exception {
+    final var input = new UpdateProjectUsersInput();
+    input.setUserId(user.id);
     given()
         .when()
-        .body(objectMapper.writeValueAsString(UserTO.fromEntity(user, objectCache)))
+        .body(objectMapper.writeValueAsString(input))
         .headers(getAuthHeaders(jwt))
-        .post("/api/project/" + project.id + "/member/private")
+        .post("/api/projects/" + project.id + "/members")
         .then()
         .statusCode(expectedStatus);
   }
@@ -479,7 +444,7 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
         .when()
         .body("")
         .headers(getAuthHeaders(jwt))
-        .delete("/api/project/" + project.id + "/member/" + user.id + "/private")
+        .delete("/api/projects/" + project.id + "/members/" + user.id)
         .then()
         .statusCode(expectedStatus);
   }
@@ -505,9 +470,9 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createProjectJson(name, ""))
         .headers(getAuthHeaders(jwt))
-        .post("/api/project/create/private")
+        .post("/api/projects")
         .then()
-        .statusCode(200);
+        .statusCode(201);
 
     return ProjectDB.find("name = ?1", name).firstResult();
   }
@@ -517,9 +482,9 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(objectMapper.writeValueAsString(project))
         .headers(getAuthHeaders(jwt))
-        .post("/api/project/create/private")
+        .post("/api/projects")
         .then()
-        .statusCode(200);
+        .statusCode(201);
 
     return ProjectDB.find("name = ?1", project.getname()).firstResult();
   }
@@ -529,39 +494,45 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createOrganizationJson(name, ""))
         .headers(getAuthHeaders(jwt))
-        .post("/api/organization")
+        .post("/api/organizations")
         .then()
-        .statusCode(200);
+        .statusCode(201);
 
     return OrganizationDB.find("name = ?1", name).firstResult();
   }
 
   private void addOrganizationMember(OrganizationDB org, UserDB user, String jwt, int expectedStatus) throws Exception {
+    final var input = new UpdateProjectUsersInput();
+    input.setUserId(user.id);
     given()
         .when()
-        .body(objectMapper.writeValueAsString(UserTO.fromEntity(user, objectCache)))
+        .body(objectMapper.writeValueAsString(input))
         .headers(getAuthHeaders(jwt))
-        .post("/api/organization/" + org.id + "/addMember")
+        .post("/api/organizations/" + org.id + "/members")
         .then()
         .statusCode(expectedStatus);
   }
 
   private ValidatableResponse transferProjectToUser(ProjectDB project, UserDB targetUser, int status) throws Exception {
+    final var input = new UpdateProjectTransferToUserInput();
+    input.setUserId(targetUser.id);
     return given()
         .when()
-        .body(objectMapper.writeValueAsString(UserTO.fromEntity(targetUser, objectCache)))
+        .body(objectMapper.writeValueAsString(input))
         .headers(getAuthHeaders(jwtUserA))
-        .put("/api/project/" + project.id + "/owner/private")
+        .put("/api/projects/" + project.id + "/rpc/transfer-to-user")
         .then()
         .statusCode(status);
   }
 
   private ValidatableResponse transferProjectToOrganization(ProjectDB project, OrganizationDB targetOrganization, String jwt, int status) throws Exception {
+    final var input = new UpdateProjectTransferToOrganizationInput();
+    input.setOrgId(targetOrganization.id);
     return given()
         .when()
-        .body(objectMapper.writeValueAsString(OrganizationTO.fromEntity(targetOrganization, objectCache)))
+        .body(objectMapper.writeValueAsString(input))
         .headers(getAuthHeaders(jwt))
-        .put("/api/project/" + project.id + "/organization/private")
+        .put("/api/projects/" + project.id + "/rpc/transfer-to-organization")
         .then()
         .statusCode(status);
   }

@@ -1,4 +1,4 @@
-package info.scce.cincocloud.core;
+package info.scce.cincocloud.core.services;
 
 import info.scce.cincocloud.config.Properties;
 import info.scce.cincocloud.db.BaseFileDB;
@@ -14,11 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-
 import org.apache.commons.io.FilenameUtils;
 
 @ApplicationScoped
-public class FileController {
+public class FileService {
 
   @Inject
   Properties properties;

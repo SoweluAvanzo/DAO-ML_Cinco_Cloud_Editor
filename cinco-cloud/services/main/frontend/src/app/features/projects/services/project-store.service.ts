@@ -4,7 +4,9 @@ import { Project } from '../../../core/models/project';
 import { ProjectWebSocketApiService } from '../../../core/services/api/project-web-socket-api.service';
 import { User } from '../../../core/models/user';
 import { ProjectApiService } from '../../../core/services/api/project-api.service';
-import { OrganizationAccessRightVectorApiService } from '../../../core/services/api/organization-access-right-vector-api.service';
+import {
+  OrganizationAccessRightVectorApiService
+} from '../../../core/services/api/organization-access-right-vector-api.service';
 import { OrganizationAccessRightVector } from '../../../core/models/organization-access-right-vector';
 import { UpdateProjectInput } from '../../../core/models/forms/update-project-input';
 import { fromJsog, toJsog } from '../../../core/utils/jsog-utils';
@@ -46,7 +48,7 @@ export class ProjectStoreService {
   setProject(project: Project): void {
     this.project.next(project);
     if (project != null && project.organization != null) {
-      this.organizationARVApi.getMy(project.organization.id).subscribe({
+      this.organizationARVApi.getMy(this.appStore.getUser(), project.organization.id).subscribe({
         next: accessRights => this.accessRights.next(accessRights)
       });
     }

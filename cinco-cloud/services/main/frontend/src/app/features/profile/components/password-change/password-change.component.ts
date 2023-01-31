@@ -3,9 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 import { AuthApiService } from '../../../../core/services/api/auth-api.service';
 import { UserApiService } from '../../../../core/services/api/user-api.service';
-import {
-  UpdateCurrentUserPasswordInput
-} from '../../../../core/models/forms/update-current-user-password-input';
+import { UpdateCurrentUserPasswordInput } from '../../../../core/models/forms/update-current-user-password-input';
 import { Router } from '@angular/router';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
@@ -31,7 +29,7 @@ export class PasswordChangeComponent {
     const update: UpdateCurrentUserPasswordInput = new UpdateCurrentUserPasswordInput()
     update.oldPassword = this.passwordChangeForm.get('password').value
     update.newPassword = this.passwordChangeForm.get('new_password').value
-    this.userApi.updatePassword(update).subscribe({
+    this.userApi.updatePassword(this.appStore.getUser(), update).subscribe({
       next: () => {
         this.toastService.show({
           type: ToastType.SUCCESS,

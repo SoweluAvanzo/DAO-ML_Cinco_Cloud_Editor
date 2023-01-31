@@ -2,8 +2,8 @@ package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -22,9 +22,13 @@ public class OrganizationAccessRightVectorDB extends PanacheEntity {
 
   @Enumerated(EnumType.STRING)
   @ElementCollection
-  public List<OrganizationAccessRight> accessRights = new ArrayList<>();
+  public Set<OrganizationAccessRight> accessRights = new HashSet<>();
 
   public static PanacheQuery<OrganizationAccessRightVectorDB> findOrganizationAccessRightsForUser(UserDB user, OrganizationDB org) {
     return find("user = ?1 and organization = ?2", user, org);
+  }
+
+  public static PanacheQuery<OrganizationAccessRightVectorDB> findAccessRightVectors(OrganizationDB org) {
+    return find("organization = ?1", org);
   }
 }

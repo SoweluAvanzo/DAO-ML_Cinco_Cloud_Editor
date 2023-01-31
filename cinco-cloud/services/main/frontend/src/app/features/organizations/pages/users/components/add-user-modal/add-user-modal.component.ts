@@ -2,9 +2,7 @@ import { Component, Input } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { User } from '../../../../../../core/models/user';
 import { Organization } from '../../../../../../core/models/organization';
-import {
-  OrganizationApiService
-} from '../../../../../../core/services/api/organization-api.service';
+import { OrganizationApiService } from '../../../../../../core/services/api/organization-api.service';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { ToastService, ToastType } from '../../../../../../core/services/toast.service';

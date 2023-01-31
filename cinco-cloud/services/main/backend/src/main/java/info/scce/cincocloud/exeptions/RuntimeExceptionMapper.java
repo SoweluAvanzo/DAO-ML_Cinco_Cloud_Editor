@@ -11,8 +11,8 @@ public class RuntimeExceptionMapper implements ExceptionMapper<RuntimeException>
   @Override
   public Response toResponse(RuntimeException runtimeException) {
     runtimeException.printStackTrace();
-    return Response.status(Status.BAD_REQUEST)
-        .entity(new RestErrorResponse(runtimeException.getMessage(), Status.BAD_REQUEST.getStatusCode()))
+    return Response.status(Status.INTERNAL_SERVER_ERROR)
+        .entity(new RestErrorResponse(runtimeException.getMessage(), Status.INTERNAL_SERVER_ERROR.getStatusCode()))
         .build();
   }
 }

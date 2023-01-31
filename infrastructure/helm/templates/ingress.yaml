@@ -5,8 +5,13 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Remove Origin header in local environments as Quarkus denies access to API endpoints
+    # when started in development mode and the origin is not "localhost"
     nginx.ingress.kubernetes.io/configuration-snippet: |
       more_set_headers "X-Robots-Tag: noindex";
+      {{- if eq .Values.devMode true }}
+      proxy_set_header Origin "";
+      {{- end }}
     {{- if ne .Values.serverTier "local" }}
     cert-manager.io/issuer: "letsencrypt-{{ .Values.serverTier }}"
     {{- end }}

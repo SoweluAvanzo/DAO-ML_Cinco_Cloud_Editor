@@ -4,8 +4,7 @@ import static info.scce.cincocloud.core.JsonUtils.createOrganizationJson;
 import static io.restassured.RestAssured.given;
 
 import info.scce.cincocloud.AbstractCincoCloudTest;
-import info.scce.cincocloud.core.rest.inputs.UserLoginInput;
-import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
+import info.scce.cincocloud.core.services.AuthService;
 import io.quarkus.test.junit.QuarkusTest;
 import javax.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,30 +22,20 @@ public class OrganizationControllerTest extends AbstractCincoCloudTest {
   public void setup() {
     reset();
 
-    final var userA = new UserRegistrationInput();
-    userA.setEmail("userA@cincocloud");
-    userA.setName("userA");
-    userA.setUsername("userA");
-    userA.setPassword("123456");
-    userA.setPasswordConfirm("123456");
-    registrationService.registerUser(userA);
+    registrationService.registerUser("userA", "userA", "userA@cincocloud", "123456");
 
-    final var userALogin = new UserLoginInput();
-    userALogin.emailOrUsername = "userA@cincocloud";
-    userALogin.password = "123456";
-
-    jwtUserA = authService.login(userALogin).token;
+    jwtUserA = authService.login("userA@cincocloud", "123456");
   }
 
   @Test
-  public void create_200() {
+  public void create_201() {
     given()
         .when()
         .body(createOrganizationJson("test", ""))
         .headers(getAuthHeaders(jwtUserA))
-        .post("/api/organization")
+        .post("/api/organizations")
         .then()
-        .statusCode(200);
+        .statusCode(201);
   }
 
   @Test
@@ -55,15 +44,15 @@ public class OrganizationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createOrganizationJson("test", ""))
         .headers(getAuthHeaders(jwtUserA))
-        .post("/api/organization")
+        .post("/api/organizations")
         .then()
-        .statusCode(200);
+        .statusCode(201);
 
     given()
         .when()
         .body(createOrganizationJson("TeSt", ""))
         .headers(getAuthHeaders(jwtUserA))
-        .post("/api/organization")
+        .post("/api/organizations")
         .then()
         .statusCode(400);
   }

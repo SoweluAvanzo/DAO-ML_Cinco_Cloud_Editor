@@ -1,6 +1,7 @@
 package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.persistence.CascadeType;
@@ -9,10 +10,19 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 @Entity
+@NamedQuery(
+    name = "OrganizationDB.findWhereUserIsOwnerOrMember",
+    query = ""
+        + "select distinct organization "
+        + "from OrganizationDB organization, UserDB user "
+        + "where (user.id = ?1 and user in elements(organization.owners)) "
+        + "or (user.id = ?1 and user in elements(organization.members))"
+)
 public class OrganizationDB extends PanacheEntity {
 
   @Column(columnDefinition = "citext")
@@ -40,4 +50,8 @@ public class OrganizationDB extends PanacheEntity {
 
   @OneToMany
   public Collection<ProjectDB> projects = new ArrayList<>();
+
+  public static PanacheQuery<OrganizationDB> findOrganizationsWhereUserIsOwnerOrMember(long userId) {
+    return find("#OrganizationDB.findWhereUserIsOwnerOrMember", userId);
+  }
 }
