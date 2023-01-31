@@ -112,6 +112,9 @@ Install the following software:
 2. In the root directory, execute `skaffold dev -p local-dev` and wait for all pods to be deployed.
    All pods listed by `kubectl get pods` should have the status `running`.
    Thanks to skaffold, you can now change the code and skaffold automatically rebuilds and redeploys new images with the changes.
+
+   **Note for ARM users:** Please use the additional profile `arm` to run Cinco Cloud. The complete command is `skaffold dev -p local-dev,arm`.
+
 3. After the first start, extract the root certificate from the cluster:
 
    * **Windows**
@@ -160,6 +163,8 @@ Use one of the following profiles in conjunction with `skaffold dev -p <profile>
 
 1) provides a local development environment with hot reload.
 If you want to simulate a production build on your local machine use 2).
+
+**Please note:** If you are using ARM architecture you should always use the profile `arm` in addition to the profiles above.
 
 
 [helm]: https://helm.sh/

@@ -1,6 +1,6 @@
 # build cinco extension
 # --------------------------------
-FROM docker.io/library/node:14.18-buster-slim as cinco-extension-builder
+FROM --platform=linux/amd64 docker.io/library/node:14.18-buster-slim as cinco-extension-builder
 WORKDIR /cinco-extension
 COPY ./cinco-cloud-archetype/vscode-extensions/cinco-extension /cinco-extension
 # outputs extension to /cinco-extension/cinco-extension-0.0.1.vsix

@@ -16,6 +16,9 @@ createPersistentVolumes: false
 # The image of the main service.
 mainImage: registry.gitlab.com/scce/cinco-cloud/main:latest
 
+# The image of the ampq service.
+ampqImage: registry.gitlab.com/scce/docker-images/activemq-artemis:2.17.0
+
 # The image of the workspace builder service.
 workspaceBuilderImage: registry.gitlab.com/scce/cinco-cloud/workspace-builder:latest
 

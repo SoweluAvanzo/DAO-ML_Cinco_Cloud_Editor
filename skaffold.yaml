@@ -46,6 +46,11 @@ profiles:
       - op: add
         path: /deploy/helm/releases/0/valuesFiles/1
         value: ./infrastructure/helm/values-local-dev.yaml
+  - name: arm
+    patches:
+      - op: replace
+        path: /build/artifacts/1/docker/dockerfile
+        value: ./workspace-builder/arm.Dockerfile
   - name: local-prod
     patches:
       - op: add
