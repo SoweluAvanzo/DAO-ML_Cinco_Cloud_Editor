@@ -1,9 +1,8 @@
 package info.scce.cincocloud;
 
-import info.scce.cincocloud.core.OrganizationService;
-import info.scce.cincocloud.core.RegistrationService;
-import info.scce.cincocloud.core.UserService;
-import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
+import info.scce.cincocloud.core.services.OrganizationService;
+import info.scce.cincocloud.core.services.RegistrationService;
+import info.scce.cincocloud.core.services.UserService;
 import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.SettingsDB;
@@ -45,24 +44,18 @@ public abstract class AbstractCincoCloudTest {
 
     OrganizationDB.listAll().stream()
         .map(organization -> (OrganizationDB) organization)
-        .forEach(organization -> organizationService.deleteOrganization(organization));
+        .forEach(organization -> organizationService.delete(organization));
 
     ProjectDB.deleteAll();
 
     UserDB.listAll().stream()
         .map(user -> (UserDB) user)
         .filter(user -> !user.systemRoles.contains(UserSystemRole.ADMIN))
-        .forEach(user -> userService.deleteUser(user));
+        .forEach(user -> userService.delete(user.id));
 
     // create an admin account
     if (UserDB.findAll().count() == 0) {
-      final var admin = new UserRegistrationInput();
-      admin.setEmail("admin@cincocloud");
-      admin.setName("admin");
-      admin.setUsername("admin");
-      admin.setPassword("123456");
-      admin.setPasswordConfirm("123456");
-      registrationService.registerUser(admin);
+      registrationService.registerUser("admin", "admin", "admin@cincocloud", "123456");
     }
   }
 

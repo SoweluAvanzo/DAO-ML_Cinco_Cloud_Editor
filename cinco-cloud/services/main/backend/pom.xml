@@ -9,15 +9,15 @@
 
     <properties>
         <checkstyle.version>9.0</checkstyle.version>
-        <commons.io.version>2.8.0</commons.io.version>
+        <commons.io.version>2.11.0</commons.io.version>
         <commons.lang-3.version>3.12.0</commons.lang-3.version>
         <compiler-plugin.version>3.8.0</compiler-plugin.version>
-        <dependency-check-maven.version>7.3.0</dependency-check-maven.version>
-        <jackson-databind.version>2.14.0</jackson-databind.version>
+        <dependency-check-maven.version>8.0.2</dependency-check-maven.version>
+        <jackson-databind.version>2.14.2</jackson-databind.version>
         <jackson-jsog.version>1.1.2</jackson-jsog.version>
         <jsonassert.version>1.5.0</jsonassert.version>
         <json.version>20151123</json.version>
-        <kubernetes-client.version>5.12.4</kubernetes-client.version>
+        <kubernetes-client.version>6.4.0</kubernetes-client.version>
         <maven-checkstyle.version>3.1.2</maven-checkstyle.version>
         <minio.version>7.1.4</minio.version>
         <os-maven-plugin.version>1.6.1</os-maven-plugin.version>
@@ -25,9 +25,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus-plugin.version>2.14.0.Final</quarkus-plugin.version>
+        <quarkus-plugin.version>2.16.0.Final</quarkus-plugin.version>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>2.14.0.Final</quarkus.platform.version>
+        <quarkus.platform.version>2.16.0.Final</quarkus.platform.version>
         <surefire-plugin.version>2.22.1</surefire-plugin.version>
         <smallrye-web-client>2.6.0</smallrye-web-client>
         <testcontainers.version>1.15.3</testcontainers.version>
@@ -288,6 +288,9 @@
                 <configuration>
                     <failBuildOnCVSS>9</failBuildOnCVSS>
                     <formats>HTML,JUNIT</formats>
+                    <excludes>
+                        <exclude>org.yaml:snakeyaml</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>

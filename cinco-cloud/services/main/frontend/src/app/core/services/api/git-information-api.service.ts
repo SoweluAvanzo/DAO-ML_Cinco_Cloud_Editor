@@ -15,13 +15,13 @@ export class GitInformationApiService extends BaseApiService {
   }
 
   get(projectId: number): Observable<GitInformation> {
-    return this.http.get(`${this.apiUrl}/project/${projectId}/git-information`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/projects/${projectId}/git-information`, this.defaultHttpOptions).pipe(
       map(info => fromJsog(info, GitInformation))
     );
   }
 
   update(information: GitInformation): Observable<GitInformation> {
-    return this.http.post(`${this.apiUrl}/project/${information.projectId}/git-information`, toJsog(information), this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/projects/${information.projectId}/git-information`, toJsog(information), this.defaultHttpOptions).pipe(
       map(info => fromJsog(info, GitInformation))
     );
   }

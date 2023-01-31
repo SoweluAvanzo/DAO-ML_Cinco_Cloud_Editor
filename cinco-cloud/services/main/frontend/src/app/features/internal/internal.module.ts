@@ -9,22 +9,19 @@ import {
   faCode,
   faImage,
   faPlus,
-  faProjectDiagram, faSignOutAlt,
+  faProjectDiagram,
+  faSignOutAlt,
   faUser,
   faUserLock
 } from '@fortawesome/free-solid-svg-icons';
-import {
-  NgbCollapse,
-  NgbCollapseModule,
-  NgbDropdownModule,
-  NgbModalModule,
-  NgbNavModule
-} from '@ng-bootstrap/ng-bootstrap';
+import { NgbCollapseModule, NgbDropdownModule, NgbModalModule, NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
 import { CoreModule } from '../../core/core.module';
 import { UserIsAdminGuard } from '../../core/guards/user-is-admin.guard';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { CreateProjectModalComponent } from './components/create-project-modal/create-project-modal.component';
-import { CreateOrganizationModalComponent } from './components/create-organization-modal/create-organization-modal.component';
+import {
+  CreateOrganizationModalComponent
+} from './components/create-organization-modal/create-organization-modal.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { OrganizationListComponent } from './components/organization-list/organization-list.component';
 import { ProjectListComponent } from './components/project-list/project-list.component';

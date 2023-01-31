@@ -1,7 +1,6 @@
 package info.scce.cincocloud.auth;
 
 import io.smallrye.jwt.build.Jwt;
-
 import java.security.KeyFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;

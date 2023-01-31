@@ -1,4 +1,4 @@
-package info.scce.cincocloud.core;
+package info.scce.cincocloud.core.services;
 
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobLogTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuilderLogMessageTO;
@@ -13,22 +13,21 @@ import io.minio.RemoveObjectArgs;
 import io.minio.UploadObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import io.quarkus.runtime.Startup;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.logging.Level;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 @Startup
 @ApplicationScoped

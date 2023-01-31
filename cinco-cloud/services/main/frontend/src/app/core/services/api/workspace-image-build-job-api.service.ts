@@ -17,37 +17,37 @@ export class WorkspaceImageBuildJobApiService extends BaseApiService {
   }
 
   public get(projectId: number, jobId: number): Observable<WorkspaceImageBuildJob> {
-    return this.http.get(`${this.apiUrl}/projects/${projectId}/build-jobs/${jobId}/private`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/projects/${projectId}/build-jobs/${jobId}`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     )
   }
 
   public getAll(projectId: number, page: number, size: number): Observable<Page<WorkspaceImageBuildJob>> {
-    return this.http.get(`${this.apiUrl}/projects/${projectId}/build-jobs/private?page=${page}&size=${size}`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/projects/${projectId}/build-jobs?page=${page}&size=${size}`, this.defaultHttpOptions).pipe(
       map(body => this.transformPage(body))
     );
   }
 
   public update(projectId: number, job: WorkspaceImageBuildJob): Observable<WorkspaceImageBuildJob> {
-    return this.http.put(`${this.apiUrl}/projects/${projectId}/build-jobs/private`, toJsog(job), this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/projects/${projectId}/build-jobs`, toJsog(job), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public getBuildLog(projectId: number, jobId: number): Observable<WorkspaceImageBuildJobLog> {
-    return this.http.get(`${this.apiUrl}/projects/${projectId}/build-jobs/${jobId}/log/private`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/projects/${projectId}/build-jobs/${jobId}/log`, this.defaultHttpOptions).pipe(
       map(body => fromJsog(body, WorkspaceImageBuildJobLog))
     );
   }
 
   public delete(projectId: number, job: WorkspaceImageBuildJob): Observable<WorkspaceImageBuildJob> {
-    return this.http.delete(`${this.apiUrl}/projects/${projectId}/build-jobs/${job.id}/private`, this.defaultHttpOptions).pipe(
+    return this.http.delete(`${this.apiUrl}/projects/${projectId}/build-jobs/${job.id}`, this.defaultHttpOptions).pipe(
       map(_ => job)
     );
   }
 
   public abort(projectId: number, job: WorkspaceImageBuildJob): Observable<WorkspaceImageBuildJob> {
-    return this.http.post(`${this.apiUrl}/projects/${projectId}/build-jobs/${job.id}/abort/private`, null, this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/projects/${projectId}/build-jobs/${job.id}/rpc/abort`, null, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }

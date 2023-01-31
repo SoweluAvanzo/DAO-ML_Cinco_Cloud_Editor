@@ -3,7 +3,9 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Organization } from '../../../core/models/organization';
 import { OrganizationApiService } from '../../../core/services/api/organization-api.service';
 import { User } from '../../../core/models/user';
-import { OrganizationAccessRightVectorApiService } from '../../../core/services/api/organization-access-right-vector-api.service';
+import {
+  OrganizationAccessRightVectorApiService
+} from '../../../core/services/api/organization-access-right-vector-api.service';
 import { OrganizationAccessRight } from '../../../core/enums/organization-access-right';
 import { OrganizationAccessRightVector } from '../../../core/models/organization-access-right-vector';
 import { UpdateOrganizationInput } from '../../../core/models/forms/update-organization-input';
@@ -11,6 +13,7 @@ import { fromJsog, toJsog } from '../../../core/utils/jsog-utils';
 import { Router } from '@angular/router';
 import { ModalUtilsService } from '../../../core/services/utils/modal-utils.service';
 import { ToastService, ToastType } from '../../../core/services/toast.service';
+import { AppStoreService } from "../../../core/services/stores/app-store.service";
 
 @Injectable()
 export class OrganizationStoreService {
@@ -23,7 +26,8 @@ export class OrganizationStoreService {
               private organizationARVApi: OrganizationAccessRightVectorApiService,
               private router: Router,
               private modalUtils: ModalUtilsService,
-              private toastService: ToastService) {
+              private toastService: ToastService,
+              private appStore: AppStoreService) {
   }
 
   get organization$(): Observable<Organization> {
@@ -54,7 +58,7 @@ export class OrganizationStoreService {
         console.error(res.error.message);
       }
     });
-    this.organizationARVApi.getMy(organization.id).subscribe({
+    this.organizationARVApi.getMy(this.appStore.getUser(), organization.id).subscribe({
       next: accessRights => this.userOrganizationAccessRights.next(accessRights),
       error: res => {
         this.toastService.show({

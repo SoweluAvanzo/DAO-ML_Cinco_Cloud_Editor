@@ -1,4 +1,5 @@
 .idea
+.kpt-pipeline
 /infrastructure/helm/secrets.yaml
 /infrastructure/helm/secrets.yml
 /infrastructure/helm/values-temp.yaml

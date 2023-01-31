@@ -3,7 +3,9 @@ import { OrganizationStoreService } from '../../services/organization-store.serv
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Organization } from '../../../../core/models/organization';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { CreateProjectModalComponent } from '../../../internal/components/create-project-modal/create-project-modal.component';
+import {
+  CreateProjectModalComponent
+} from '../../../internal/components/create-project-modal/create-project-modal.component';
 import { User } from '../../../../core/models/user';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 

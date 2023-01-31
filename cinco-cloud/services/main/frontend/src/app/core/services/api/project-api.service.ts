@@ -19,74 +19,74 @@ export class ProjectApiService extends BaseApiService {
   }
 
   public getAll(): Observable<Project[]> {
-    return this.http.get(`${this.apiUrl}/project/private`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/projects`, this.defaultHttpOptions).pipe(
       map((body: any) => this.transformList(body))
     );
   }
 
   public get(projectId: number): Observable<Project> {
-    return this.http.get(`${this.apiUrl}/project/${projectId}`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/projects/${projectId}`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public create(project: Project): Observable<Project> {
-    return this.http.post(`${this.apiUrl}/project/create/private`, toJsog(project), this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/projects`, toJsog(project), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public deploy(project: Project, redeploy: boolean = false): Observable<ProjectDeployment> {
     const options = { ...this.defaultHttpOptions, params: { redeploy } };
-    return this.http.post(`${this.apiUrl}/project/${project.id}/deployments/private`, null, options).pipe(
+    return this.http.post(`${this.apiUrl}/projects/${project.id}/deployments`, null, options).pipe(
       map((body: any) => body as ProjectDeployment)
     );
   }
 
   public stop(project: Project): Observable<string> {
-    return this.http.delete(`${this.apiUrl}/project/${project.id}/deployments/private`, this.defaultHttpOptions).pipe(
+    return this.http.delete(`${this.apiUrl}/projects/${project.id}/deployments`, this.defaultHttpOptions).pipe(
       map(body => '')
     );
   }
 
   public update(project: Project): Observable<Project> {
-    return this.http.post(`${this.apiUrl}/project/update/private`, toJsog(project), this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/projects`, toJsog(project), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public transferToUser(project: Project, user: User): Observable<Project> {
-    return this.http.put(`${this.apiUrl}/project/${project.id}/owner/private`, toJsog(user), this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/projects/${project.id}/rpc/transfer-to-user`,{ userId: user.id }, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     )
   }
 
   public transferToOrganization(project: Project, organization: Organization): Observable<Project> {
-    return this.http.put(`${this.apiUrl}/project/${project.id}/organization/private`, toJsog(organization), this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/projects/${project.id}/rpc/transfer-to-organization`, { orgId: organization.id } , this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     )
   }
 
   public remove(project: Project): Observable<Project> {
-    return this.http.get(`${this.apiUrl}/project/remove/${project.id}/private`, this.defaultHttpOptions).pipe(
+    return this.http.delete(`${this.apiUrl}/projects/${project.id}`, this.defaultHttpOptions).pipe(
       map(body => project)
     );
   }
 
   public addMember(projectId: number, user: User): Observable<Project> {
-    return this.http.post(`${this.apiUrl}/project/${projectId}/member/private`, toJsog(user), this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/projects/${projectId}/members`, { userId: user.id }, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public removeMember(projectId: number, user: User): Observable<Project> {
-    return this.http.delete(`${this.apiUrl}/project/${projectId}/member/${user.id}/private`, this.defaultHttpOptions).pipe(
+    return this.http.delete(`${this.apiUrl}/projects/${projectId}/members/${user.id}`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public hasActiveBuildJobs(projectId: number): Observable<BooleanResponse> {
-    return this.http.get(`${this.apiUrl}/project/${projectId}/rpc/has-active-build-jobs/private`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/projects/${projectId}/rpc/has-active-build-jobs`, this.defaultHttpOptions).pipe(
       map((body: any) => body as BooleanResponse)
     );
   }

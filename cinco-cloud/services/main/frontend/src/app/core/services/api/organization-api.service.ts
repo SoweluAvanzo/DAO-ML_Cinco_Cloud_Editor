@@ -17,61 +17,61 @@ export class OrganizationApiService extends BaseApiService {
   }
 
   public getAll(): Observable<Organization[]> {
-    return this.http.get(`${this.apiUrl}/organization`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/organizations`, this.defaultHttpOptions).pipe(
       map((body: any) => this.transformList(body))
     );
   }
 
   public get(organizationId: number): Observable<Organization> {
-    return this.http.get(`${this.apiUrl}/organization/${organizationId}`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/organizations/${organizationId}`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public create(organization: Organization): Observable<Organization> {
-    return this.http.post(`${this.apiUrl}/organization`, toJsog(organization), this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/organizations`, toJsog(organization), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public update(organization: Organization): Observable<Organization> {
-    return this.http.put(`${this.apiUrl}/organization/${organization.id}`, toJsog(organization), this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/organizations/${organization.id}`, toJsog(organization), this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public delete(organization: Organization): Observable<Organization> {
-    return this.http.delete(`${this.apiUrl}/organization/${organization.id}`, this.defaultHttpOptions).pipe(
+    return this.http.delete(`${this.apiUrl}/organizations/${organization.id}`, this.defaultHttpOptions).pipe(
       map(body => organization)
     );
   }
 
   public leave(organization: Organization): Observable<Organization> {
-    return this.http.post(`${this.apiUrl}/organization/${organization.id}/leave`, null, this.defaultHttpOptions).pipe(
+    return this.http.put(`${this.apiUrl}/organizations/${organization.id}/rpc/leave`, null, this.defaultHttpOptions).pipe(
       map(body => organization)
     );
   }
 
   public addOwner(organization: Organization, user: User): Observable<Organization> {
-    return this.http.post(`${this.apiUrl}/organization/${organization.id}/addOwner`, toJsog(user), this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/organizations/${organization.id}/owners`, { userId: user.id }, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public addMember(organization: Organization, user: User): Observable<Organization> {
-    return this.http.post(`${this.apiUrl}/organization/${organization.id}/addMember`, toJsog(user), this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/organizations/${organization.id}/members`, { userId: user.id }, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public removeUser(organization: Organization, user: User): Observable<Organization> {
-    return this.http.post(`${this.apiUrl}/organization/${organization.id}/removeUser`, toJsog(user), this.defaultHttpOptions).pipe(
+    return this.http.delete(`${this.apiUrl}/organizations/${organization.id}/users/${user.id}`, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }
 
   public hasActiveBuildJobs(organization: Organization): Observable<BooleanResponse> {
-    return this.http.get(`${this.apiUrl}/organization/${organization.id}/rpc/has-active-build-jobs/private`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/organizations/${organization.id}/rpc/has-active-build-jobs`, this.defaultHttpOptions).pipe(
       map((body: any) => body as BooleanResponse)
     );
   }

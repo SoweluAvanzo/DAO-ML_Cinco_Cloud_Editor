@@ -20,7 +20,7 @@ export class AuthApiService extends BaseApiService {
   }
 
   public login(input: UserLoginInput): Observable<User> {
-    return this.http.post(`${this.apiUrl}/user/current/login`, input, this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/auth`, input, this.defaultHttpOptions).pipe(
       map((body: any) => body as AuthResponse),
       tap(auth => {
         window.localStorage.setItem(AuthApiService.TOKEN_KEY, auth.token);
@@ -31,14 +31,14 @@ export class AuthApiService extends BaseApiService {
 
   public logout(): Observable<boolean> {
     const options = { ...this.defaultHttpOptions, ...{ observe: 'response' } };
-    return this.http.get(`${this.apiUrl}/user/current/logout`, options).pipe(
+    return this.http.delete(`${this.apiUrl}/auth`, options).pipe(
       map(_ => true),
       tap(_ => this.removeToken())
     );
   }
 
   public getTicket(): Observable<TicketResponse> {
-    return this.http.get(`${this.apiUrl}/ticket`, this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/tickets`, null, this.defaultHttpOptions).pipe(
       map((body: any) => body as TicketResponse)
     );
   }

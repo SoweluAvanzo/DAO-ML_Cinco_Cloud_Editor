@@ -2,9 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { NgbModal, NgbNav } from '@ng-bootstrap/ng-bootstrap';
 import { UserApiService } from '../../../../core/services/api/user-api.service';
 import { User } from '../../../../core/models/user';
-import {
-  CreateUserModalComponent
-} from '../../components/create-user-modal/create-user-modal.component';
+import { CreateUserModalComponent } from '../../components/create-user-modal/create-user-modal.component';
 import { AddAdminModalComponent } from '../../components/add-admin-modal/add-admin-modal.component';
 import { ModalUtilsService } from '../../../../core/services/utils/modal-utils.service';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';

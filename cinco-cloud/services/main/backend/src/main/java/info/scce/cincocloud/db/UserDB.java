@@ -3,8 +3,6 @@ package info.scce.cincocloud.db;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Random;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -15,7 +13,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
-import javax.ws.rs.core.SecurityContext;
 
 @Entity
 public class UserDB extends PanacheEntity {
@@ -44,32 +41,6 @@ public class UserDB extends PanacheEntity {
 
   @ManyToMany(mappedBy = "members")
   public Collection<OrganizationDB> memberedOrganizations = new ArrayList<>();
-
-  public static UserDB add(String email, String name, String username, String password) {
-    return add(email, name, username, password, new LinkedList<>());
-  }
-
-  public static UserDB add(String email, String name, String username, String password,
-      Collection<UserSystemRole> roles) {
-    UserDB user = new UserDB();
-    user.email = email;
-    user.name = name;
-    user.username = username;
-    user.password = password;
-    Random random = new Random();
-    user.activationKey = random.ints(97, 122 + 1)
-        .limit(15)
-        .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-        .toString();
-    user.systemRoles = roles;
-    user.isActivated = false;
-    user.persist();
-    return user;
-  }
-
-  public static UserDB getCurrentUser(SecurityContext context) {
-    return UserDB.find("email", context.getUserPrincipal().getName()).firstResult();
-  }
 
   @Transient
   public boolean isAdmin() {

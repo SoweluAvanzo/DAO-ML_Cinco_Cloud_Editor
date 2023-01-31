@@ -48,7 +48,7 @@ export class FileApiService extends BaseApiService {
       observe: 'events'
     }};
 
-    const upload = this.http.post<HttpEvent<any>>(`${this.apiUrl}/files/create`, formData, options);
+    const upload = this.http.post<HttpEvent<any>>(`${this.apiUrl}/files`, formData, options);
     upload.subscribe({
       next: (e: HttpEvent<any>) => {
         if (this.isHttpProgressEvent(e)) {
@@ -73,7 +73,7 @@ export class FileApiService extends BaseApiService {
   }
 
   delete(file: FileReference): Observable<FileReference> {
-    return this.http.delete(`${this.apiUrl}/files/delete/${file.id}`, this.defaultHttpOptions).pipe(
+    return this.http.delete(`${this.apiUrl}/files/${file.id}`, this.defaultHttpOptions).pipe(
       map(() => file)
     );
   }

@@ -1,7 +1,7 @@
 package info.scce.cincocloud.mq;
 
-import info.scce.cincocloud.core.WorkspaceImageBuildJobLogFileService;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
+import info.scce.cincocloud.core.services.WorkspaceImageBuildJobLogFileService;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.db.WorkspaceImageDB;
@@ -10,7 +10,6 @@ import info.scce.cincocloud.sync.ProjectWebSocket;
 import info.scce.cincocloud.sync.ProjectWebSocket.Messages;
 import io.smallrye.reactive.messaging.annotations.Blocking;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.jackson.DatabindCodec;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;

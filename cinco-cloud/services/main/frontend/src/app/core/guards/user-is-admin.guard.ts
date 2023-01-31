@@ -7,7 +7,7 @@ import {
   RouterStateSnapshot,
   UrlTree
 } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { AppStoreService } from '../services/stores/app-store.service';
 
 @Injectable({

@@ -1,8 +1,8 @@
 package info.scce.cincocloud.grpc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import info.scce.cincocloud.core.WorkspaceImageBuildJobLogFileService;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
+import info.scce.cincocloud.core.services.WorkspaceImageBuildJobLogFileService;
 import info.scce.cincocloud.db.GitInformationDB;
 import info.scce.cincocloud.db.GraphModelTypeDB;
 import info.scce.cincocloud.db.ProjectDB;
@@ -26,10 +26,6 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
-import org.apache.commons.io.FileUtils;
-
-import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +35,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import org.apache.commons.io.FileUtils;
 
 @GrpcService
 public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBase {

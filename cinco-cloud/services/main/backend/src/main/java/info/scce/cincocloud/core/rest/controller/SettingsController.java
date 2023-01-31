@@ -1,10 +1,9 @@
-package info.scce.cincocloud.core;
+package info.scce.cincocloud.core.rest.controller;
 
 import info.scce.cincocloud.core.rest.tos.SettingsTO;
-import info.scce.cincocloud.db.SettingsDB;
-import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.core.services.SettingsService;
+import info.scce.cincocloud.core.services.UserService;
 import info.scce.cincocloud.rest.ObjectCache;
-import java.util.List;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
@@ -30,26 +29,22 @@ public class SettingsController {
   @Inject
   ObjectCache objectCache;
 
+  @Inject
+  SettingsService settingsService;
+
   @GET
-  @Path("/public")
   @PermitAll()
   public Response get() {
-    final List<SettingsDB> result = SettingsDB.findAll().list();
-    return Response.ok(SettingsTO.fromEntity(result.get(0), objectCache)).build();
+    return Response.ok(SettingsTO.fromEntity(settingsService.getSettings(), objectCache)).build();
   }
 
   @PUT
-  @Path("/")
   @RolesAllowed("admin")
   public Response update(@Context SecurityContext securityContext, final SettingsTO settings) {
-    final UserDB subject = UserDB.getCurrentUser(securityContext);
-    final SettingsDB settingsInDb = SettingsDB.findById(settings.getId());
+    UserService.getCurrentUser(securityContext);
 
-    if (subject != null && settingsInDb != null) {
-      settingsInDb.allowPublicUserRegistration = settings.getallowPublicUserRegistration();
-      return Response.ok(SettingsTO.fromEntity(settingsInDb, objectCache)).build();
-    }
+    final var settingsInDb = settingsService.setAllowPublicUserRegistration(settings.getallowPublicUserRegistration());
 
-    return Response.status(Response.Status.FORBIDDEN).build();
+    return Response.ok(SettingsTO.fromEntity(settingsInDb, objectCache)).build();
   }
 }

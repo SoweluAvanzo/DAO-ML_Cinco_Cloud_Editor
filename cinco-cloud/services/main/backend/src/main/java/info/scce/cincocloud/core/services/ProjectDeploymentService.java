@@ -1,4 +1,4 @@
-package info.scce.cincocloud.core;
+package info.scce.cincocloud.core.services;
 
 import info.scce.cincocloud.config.Properties;
 import info.scce.cincocloud.core.rest.tos.ProjectDeploymentStatus;

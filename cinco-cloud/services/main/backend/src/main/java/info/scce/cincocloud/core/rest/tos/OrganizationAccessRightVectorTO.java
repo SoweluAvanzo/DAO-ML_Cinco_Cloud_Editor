@@ -5,12 +5,12 @@ import info.scce.cincocloud.db.OrganizationAccessRight;
 import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.rest.RESTBaseImpl;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class OrganizationAccessRightVectorTO extends RESTBaseImpl {
 
-  private List<OrganizationAccessRight> accessRights = new LinkedList<>();
+  private Set<OrganizationAccessRight> accessRights = new HashSet<>();
   private UserTO user;
   private OrganizationTO organization;
 
@@ -37,12 +37,12 @@ public class OrganizationAccessRightVectorTO extends RESTBaseImpl {
   }
 
   @JsonProperty("accessRights")
-  public List<OrganizationAccessRight> getaccessRights() {
+  public Set<OrganizationAccessRight> getaccessRights() {
     return this.accessRights;
   }
 
   @JsonProperty("accessRights")
-  public void setaccessRights(final List<OrganizationAccessRight> accessRights) {
+  public void setaccessRights(final Set<OrganizationAccessRight> accessRights) {
     this.accessRights = accessRights;
   }
 

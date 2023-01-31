@@ -4,7 +4,6 @@ import static io.smallrye.common.constraint.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import info.scce.cincocloud.AbstractCincoCloudTest;
-import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
 import info.scce.cincocloud.db.SettingsDB;
 import io.quarkus.test.junit.QuarkusTest;
 import java.util.List;

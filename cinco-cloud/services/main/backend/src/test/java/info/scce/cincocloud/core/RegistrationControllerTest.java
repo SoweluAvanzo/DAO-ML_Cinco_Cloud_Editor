@@ -6,8 +6,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.Is.is;
 
 import info.scce.cincocloud.AbstractCincoCloudTest;
-import info.scce.cincocloud.core.rest.inputs.UserLoginInput;
-import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
+import info.scce.cincocloud.core.services.AuthService;
 import info.scce.cincocloud.db.SettingsDB;
 import io.quarkus.test.junit.QuarkusTest;
 import javax.inject.Inject;
@@ -34,10 +33,12 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("test", "test@test.de", "test", "123456"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(200)
-        .body(is("Activation mail send"));
+        .body("name", is("test"),
+                "email", is("test@test.de"),
+                "username", is("test"));
   }
 
   @Test
@@ -47,7 +48,7 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("test", "test@test.de", "test", "123456"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(403);
   }
@@ -58,7 +59,7 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("test", "test@test.de", "test", "123456", "234567"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(400);
   }
@@ -70,7 +71,7 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("test", "test@test.de", "test", password))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(400);
   }
@@ -82,7 +83,7 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("test", email, "test", "123345"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(400);
   }
@@ -93,7 +94,7 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("test", "test@test.de", "", "123345"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(400);
   }
@@ -104,7 +105,7 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("", "test@test.de", "test", "123345"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(400);
   }
@@ -115,7 +116,7 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("test", "test@test.de", "test", "12345"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(200);
 
@@ -123,7 +124,7 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("TeSt", "test2@test.de", "test", "12345"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(400);
   }
@@ -134,7 +135,7 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("test", "test@test.de", "test", "12345"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(200);
 
@@ -142,40 +143,30 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
         .when()
         .body(createUserRegistrationJson("test2", "TeSt@test.de", "test", "12345"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(400);
   }
 
   @Test
   public void register_duplicateOrganizationAndUsername_400() {
-    final var userA = new UserRegistrationInput();
-    userA.setEmail("userA@cincocloud");
-    userA.setName("userA");
-    userA.setUsername("userA");
-    userA.setPassword("123456");
-    userA.setPasswordConfirm("123456");
-    registrationService.registerUser(userA);
+    registrationService.registerUser("userA", "userA", "userA@cincocloud", "123456");
 
-    final var userALogin = new UserLoginInput();
-    userALogin.emailOrUsername = "userA@cincocloud";
-    userALogin.password = "123456";
-
-    String jwtUserA = authService.login(userALogin).token;
+    String jwtUserA = authService.login("userA@cincocloud", "123456");
 
     given()
         .when()
         .body(createOrganizationJson("test", ""))
         .headers(getAuthHeaders(jwtUserA))
-        .post("/api/organization")
+        .post("/api/organizations")
         .then()
-        .statusCode(200);
+        .statusCode(201);
 
     given()
         .when()
         .body(createUserRegistrationJson("TeSt", "test@test.de", "test", "12345"))
         .headers(defaultHeaders)
-        .post("/api/register/new/public")
+        .post("/api/register")
         .then()
         .statusCode(400);
   }
