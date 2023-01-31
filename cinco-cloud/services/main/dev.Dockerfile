@@ -2,13 +2,14 @@
 # Build the quarkus backend. Move static frontend files to the quarkus resource
 # folder so that we can build a fat jar that includes the frontend.
 #
-FROM docker.io/library/maven:3.8.3-adoptopenjdk-15
+FROM docker.io/library/node:16.14.0-bullseye
 WORKDIR /app/main
 RUN apt-get update
+RUN apt-get -y install maven
 # install Node.js
-RUN apt-get -y install curl
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get -y install nodejs
+#RUN apt-get -y install curl
+#RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+#RUN apt-get -y install nodejs
 # create directories
 RUN mkdir /app/main/backend
 RUN mkdir /app/main/frontend
