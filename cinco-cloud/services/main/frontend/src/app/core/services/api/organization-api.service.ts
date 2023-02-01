@@ -6,6 +6,7 @@ import { map, Observable } from 'rxjs';
 import { User } from '../../models/user';
 import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 import { BooleanResponse } from "../../models/boolean-response";
+import { Project } from "../../models/project";
 
 @Injectable({
   providedIn: 'root'
@@ -74,6 +75,16 @@ export class OrganizationApiService extends BaseApiService {
     return this.http.get(`${this.apiUrl}/organizations/${organization.id}/rpc/has-active-build-jobs`, this.defaultHttpOptions).pipe(
       map((body: any) => body as BooleanResponse)
     );
+  }
+
+  public createProject(newProject: Project): Observable<Project> {
+    return this.http.post(`${this.apiUrl}/organizations/${newProject.organization.id}/projects`, newProject, this.defaultHttpOptions).pipe(
+      map(body => this.transformSingleProject(body))
+    )
+  }
+
+  private transformSingleProject(body: any): Project {
+    return fromJsog(body, Project);
   }
 
   private transformSingle(body: any): Organization {

@@ -7,6 +7,7 @@ import { Project } from '../../../../core/models/project';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 import { Organization } from '../../../../core/models/organization';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
+import { OrganizationApiService } from "../../../../core/services/api/organization-api.service";
 
 @Component({
   selector: 'cc-create-project-modal',
@@ -28,6 +29,7 @@ export class CreateProjectModalComponent {
   errorMessage: string = null;
 
   constructor(private projectApi: ProjectApiService,
+              private organizationApi: OrganizationApiService,
               private appStore: AppStoreService,
               private toastService: ToastService,
               public modal: NgbActiveModal) {
@@ -49,17 +51,22 @@ export class CreateProjectModalComponent {
     if (this.withProjectImage && this.selectedProjectImage != null) {
       newProject.template = this.selectedProjectImage;
     }
-    this.projectApi.create(newProject).subscribe({
-      next: createdProject => {
-        this.toastService.show({
-          message: `The project "${createdProject.name}" has been created.`,
-          type: ToastType.SUCCESS
-        });
-        this.modal.close(createdProject);
-      },
-      error: res => {
-        this.errorMessage = `The project could not be created: ${res.error.message}`;
-      }
+
+    let obs = this.organization == null
+      ? this.projectApi.create(newProject)
+      : this.organizationApi.createProject(newProject);
+
+    obs.subscribe({
+        next: createdProject => {
+          this.toastService.show({
+            message: `The project "${createdProject.name}" has been created.`,
+            type: ToastType.SUCCESS
+          });
+          this.modal.close(createdProject);
+        },
+        error: res => {
+          this.errorMessage = `The project could not be created: ${res.error.message}`;
+        }
     });
   }
 }

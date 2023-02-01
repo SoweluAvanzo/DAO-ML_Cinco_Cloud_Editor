@@ -72,16 +72,13 @@ public class ProjectController {
   public Response createProject(@Context SecurityContext securityContext, ProjectTO newProject) {
     final var subject = UserService.getCurrentUser(securityContext);
 
-    final Optional<OrganizationDB> organizationOptional = Optional.ofNullable(newProject.getorganization())
-        .map(orgTO -> organizationService.getOrThrow(orgTO.getId()));
+    if (newProject.getorganization() != null) {
+      throw new RestException(Status.BAD_REQUEST, "Project contains an organization.");
+    }
 
     final Optional<WorkspaceImageDB> imageOptional = Optional
         .ofNullable(newProject.getTemplate())
         .map(i -> workspaceImageService.getOrThrow(i.getId()));
-
-    if (!projectService.userCanCreateProject(subject, organizationOptional)) {
-      throw new RestException(Status.FORBIDDEN, "Insufficient access rights.");
-    }
 
     if (imageOptional.isPresent()) {
       final var image = imageOptional.get();
@@ -90,11 +87,6 @@ public class ProjectController {
       final var org = image.project.organization;
       if (!image.published && newProject.getorganization() == null && org != null) {
         throw new RestException(Response.Status.BAD_REQUEST, "You cannot use the image for personal projects.");
-      }
-
-      // check if the user is not using an image from another organization inside another organization
-      if (!image.published && newProject.getorganization() != null && newProject.getorganization().getId() != org.id) {
-        throw new RestException(Response.Status.BAD_REQUEST, "The image is not available in this organization.");
       }
 
       if (!image.published && !projectService.userHasOwnerStatus(subject, image.project)) {
@@ -106,7 +98,7 @@ public class ProjectController {
         newProject.getname(),
         newProject.getdescription(),
         subject,
-        organizationOptional,
+        Optional.empty(),
         imageOptional
     );
 

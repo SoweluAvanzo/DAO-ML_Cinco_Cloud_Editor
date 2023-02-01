@@ -3,10 +3,15 @@ package info.scce.cincocloud.core.rest.controller;
 import info.scce.cincocloud.core.rest.inputs.UpdateOrganizationUsersInput;
 import info.scce.cincocloud.core.rest.tos.BooleanTO;
 import info.scce.cincocloud.core.rest.tos.OrganizationTO;
+import info.scce.cincocloud.core.rest.tos.ProjectTO;
 import info.scce.cincocloud.core.services.OrganizationService;
+import info.scce.cincocloud.core.services.ProjectService;
 import info.scce.cincocloud.core.services.UserService;
+import info.scce.cincocloud.core.services.WorkspaceImageService;
 import info.scce.cincocloud.db.OrganizationDB;
+import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.List;
@@ -45,6 +50,12 @@ public class OrganizationController {
   UserService userService;
 
   @Inject
+  ProjectService projectService;
+
+  @Inject
+  WorkspaceImageService workspaceImageService;
+
+  @Inject
   ObjectCache objectCache;
 
   @POST
@@ -80,6 +91,46 @@ public class OrganizationController {
     }
 
     return Response.ok(OrganizationTO.fromEntity(organization, objectCache)).build();
+  }
+
+  @POST
+  @Path("/{orgId}/projects")
+  @RolesAllowed("user")
+  public Response createProject(@Context SecurityContext securityContext,
+      @PathParam("orgId") final long orgId,
+      ProjectTO projectTO) {
+    final var subject = UserService.getCurrentUser(securityContext);
+    final OrganizationDB organization = organizationService.getOrThrow(orgId);
+
+    if (projectTO.getorganization() == null || projectTO.getorganization().getId() != orgId) {
+      throw new RestException(Status.BAD_REQUEST, "Organization ID missing or malformed.");
+    }
+
+    if (!projectService.userCanCreateProject(subject, Optional.ofNullable(organization))) {
+      throw new RestException(Status.FORBIDDEN, "Insufficient access rights.");
+    }
+
+    final Optional<WorkspaceImageDB> imageOptional = Optional
+        .ofNullable(projectTO.getTemplate())
+        .map(i -> workspaceImageService.getOrThrow(i.getId()));
+
+    if (imageOptional.isPresent()) {
+      final var image = imageOptional.get();
+
+      if (!image.published && !projectService.userHasOwnerStatus(subject, image.project)) {
+        throw new RestException(Response.Status.BAD_REQUEST, "You are not allowed to use this image.");
+      }
+    }
+
+    final ProjectDB project = projectService.createProject(
+        projectTO.getname(),
+        projectTO.getdescription(),
+        subject,
+        Optional.of(organization),
+        imageOptional
+    );
+
+    return Response.status(Status.CREATED).entity(ProjectTO.fromEntity(project, objectCache)).build();
   }
 
   @PUT
