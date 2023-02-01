@@ -285,7 +285,7 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
     final var projectTO = new ProjectTO();
     projectTO.setname("test");
     projectTO.setorganization(OrganizationTO.fromEntity(orgA, new ObjectCache()));
-    final var project = createProject(projectTO, jwtUserA);
+    final var project = createProjectInOrganization(projectTO, jwtUserA);
 
     final var updatedProject = transferProjectToOrganization(project, orgB, jwtUserA, 200)
         .extract()
@@ -307,7 +307,7 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
     final var projectTO = new ProjectTO();
     projectTO.setname("test");
     projectTO.setorganization(OrganizationTO.fromEntity(orgA, new ObjectCache()));
-    final var project = createProject(projectTO, jwtUserA);
+    final var project = createProjectInOrganization(projectTO, jwtUserA);
 
     final var updatedProject = transferProjectToOrganization(project, orgB, jwtUserA, 200)
         .extract()
@@ -331,7 +331,7 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
     projectTO.setname("test");
     projectTO.setorganization(OrganizationTO.fromEntity(orgA, new ObjectCache()));
 
-    final var project = createProject(projectTO, jwtUserA);
+    final var project = createProjectInOrganization(projectTO, jwtUserA);
 
     orgB.id = -1L;
     final var error = transferProjectToOrganization(project, orgB, jwtUserA, 404)
@@ -352,7 +352,7 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
     projectTO.setname("test");
     projectTO.setorganization(OrganizationTO.fromEntity(orgA, new ObjectCache()));
 
-    final var project = createProject(projectTO, jwtUserA);
+    final var project = createProjectInOrganization(projectTO, jwtUserA);
     project.id = -1L;
 
     final var error = transferProjectToOrganization(project, orgB, jwtUserA, 404)
@@ -372,7 +372,7 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
     projectTO.setname("test");
     projectTO.setorganization(OrganizationTO.fromEntity(orgA, new ObjectCache()));
 
-    final var project = createProject(projectTO, jwtUserA);
+    final var project = createProjectInOrganization(projectTO, jwtUserA);
     final var updatedProject = transferProjectToUser(project, userA, 200)
         .extract()
         .body()
@@ -391,7 +391,7 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
     projectTO.setname("test");
     projectTO.setorganization(OrganizationTO.fromEntity(orgA, new ObjectCache()));
 
-    final var project = createProject(projectTO, jwtUserA);
+    final var project = createProjectInOrganization(projectTO, jwtUserA);
     addProjectMember(project, userB, jwtUserA, 200);
     addProjectMember(project, userC, jwtUserA, 200);
 
@@ -416,7 +416,7 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
     final var projectTO = new ProjectTO();
     projectTO.setname("test");
     projectTO.setorganization(OrganizationTO.fromEntity(orgA, new ObjectCache()));
-    final var project = createProject(projectTO, jwtUserA);
+    final var project = createProjectInOrganization(projectTO, jwtUserA);
 
     final var error = transferProjectToOrganization(project, orgB, jwtUserA, 403)
         .extract()
@@ -489,6 +489,17 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
     return ProjectDB.find("name = ?1", project.getname()).firstResult();
   }
 
+  private ProjectDB createProjectInOrganization(ProjectTO project, String jwt) throws Exception {
+    given()
+        .when()
+        .body(objectMapper.writeValueAsString(project))
+        .headers(getAuthHeaders(jwt))
+        .post("/api/organizations/" + project.getorganization().getId() + "/projects")
+        .then()
+        .statusCode(201);
+
+    return ProjectDB.find("name = ?1", project.getname()).firstResult();
+  }
   private OrganizationDB createOrganization(String name, String jwt) {
     given()
         .when()
