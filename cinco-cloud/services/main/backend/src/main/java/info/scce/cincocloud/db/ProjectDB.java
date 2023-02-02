@@ -27,8 +27,9 @@ import javax.validation.constraints.NotNull;
     query = ""
         + "select distinct project "
         + "from ProjectDB project, UserDB user "
-        + "where (project.owner is not null and project.owner.id = ?1) "
-        + "or (user.id = ?1 and user in elements(project.members))"
+        + "where project.deletedAt is null and ("
+        + "(project.owner is not null and project.owner.id = ?1) or "
+        + "(user.id = ?1 and user in elements(project.members)))"
 )
 public class ProjectDB extends PanacheEntity {
 
@@ -101,10 +102,6 @@ public class ProjectDB extends PanacheEntity {
       inverseJoinColumns = @JoinColumn(name = "UserDB_id")
   )
   public Collection<UserDB> members = new HashSet<>();
-
-  public static PanacheQuery<ProjectDB> findProjectsWhereUserIsOwner(long userId) {
-    return find("owner is not null and owner.id = ?1", userId);
-  }
 
   public static PanacheQuery<ProjectDB> findProjectsWhereUserIsOwnerOrMember(long userId) {
     return find("#ProjectDB.findWhereUserIsOwnerOrMember", userId);

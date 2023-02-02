@@ -7,6 +7,7 @@ import { User } from '../../models/user';
 import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 import { BooleanResponse } from "../../models/boolean-response";
 import { Project } from "../../models/project";
+import { Page } from '../../models/page';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,18 @@ export class OrganizationApiService extends BaseApiService {
 
   public getAll(): Observable<Organization[]> {
     return this.http.get(`${this.apiUrl}/organizations`, this.defaultHttpOptions).pipe(
-      map((body: any) => this.transformList(body))
+      map((body: any) => this.transformPage(body).items)
+    );
+  }
+
+  public getAllPaged(page: number, size: number): Observable<Page<Organization>> {
+    const options = {
+      ...this.defaultHttpOptions,
+      params: { page, size }
+    };
+
+    return this.http.get(`${this.apiUrl}/organizations`, options).pipe(
+      map((body: any) => this.transformPage(body))
     );
   }
 
@@ -85,6 +97,10 @@ export class OrganizationApiService extends BaseApiService {
 
   private transformSingleProject(body: any): Project {
     return fromJsog(body, Project);
+  }
+
+  private transformPage(body: any): Page<Organization> {
+    return Page.fromObject(body, this.transformList(body.items));
   }
 
   private transformSingle(body: any): Organization {

@@ -135,12 +135,4 @@ export class BuildJobsComponent implements OnInit {
     return this.project == null ? null : this.project.organization;
   }
 
-  get hasNextPage(): boolean {
-    return this.buildJobsPage != null && this.buildJobsPage.number + 1 < this.buildJobsPage.amountOfPages;
-  }
-
-  get hasPreviousPage(): boolean {
-    return this.buildJobsPage != null && this.buildJobsPage.number > 0;
-  }
-
 }

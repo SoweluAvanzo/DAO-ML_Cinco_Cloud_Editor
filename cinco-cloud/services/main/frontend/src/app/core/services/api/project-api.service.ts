@@ -8,6 +8,7 @@ import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 import { User } from '../../models/user';
 import { Organization } from '../../models/organization';
 import { BooleanResponse } from "../../models/boolean-response";
+import { Page } from '../../models/page';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +21,18 @@ export class ProjectApiService extends BaseApiService {
 
   public getAll(): Observable<Project[]> {
     return this.http.get(`${this.apiUrl}/projects`, this.defaultHttpOptions).pipe(
-      map((body: any) => this.transformList(body))
+      map((body: any) => this.transformPage(body).items)
+    );
+  }
+
+  public getAllPaged(page: number, size: number): Observable<Page<Project>> {
+    const options = {
+      ...this.defaultHttpOptions,
+      params: { page, size }
+    };
+
+    return this.http.get(`${this.apiUrl}/projects`, options).pipe(
+      map((body: any) => this.transformPage(body))
     );
   }
 
@@ -89,6 +101,10 @@ export class ProjectApiService extends BaseApiService {
     return this.http.get(`${this.apiUrl}/projects/${projectId}/rpc/has-active-build-jobs`, this.defaultHttpOptions).pipe(
       map((body: any) => body as BooleanResponse)
     );
+  }
+
+  private transformPage(body: any): Page<Project> {
+    return Page.fromObject(body, this.transformList(body.items));
   }
 
   private transformSingle(body: any): Project {

@@ -4,6 +4,7 @@ import info.scce.cincocloud.core.rest.inputs.UpdateOrganizationUsersInput;
 import info.scce.cincocloud.core.rest.tos.BooleanTO;
 import info.scce.cincocloud.core.rest.tos.OrganizationTO;
 import info.scce.cincocloud.core.rest.tos.ProjectTO;
+import info.scce.cincocloud.core.rest.tos.PageTO;
 import info.scce.cincocloud.core.services.OrganizationService;
 import info.scce.cincocloud.core.services.ProjectService;
 import info.scce.cincocloud.core.services.UserService;
@@ -14,7 +15,7 @@ import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
-import java.util.List;
+
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
@@ -30,6 +31,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -70,12 +72,29 @@ public class OrganizationController {
 
   @GET
   @RolesAllowed("user")
-  public Response getAll(@Context SecurityContext securityContext) {
+  public Response getAll(
+          @Context SecurityContext securityContext,
+          @QueryParam("page") Integer page,
+          @QueryParam("size") Integer size
+  ) {
     final var subject = UserService.getCurrentUser(securityContext);
 
-    final List<OrganizationDB> result = organizationService.getAllAccessibleOrganizations(subject);
+    if (page != null && size != null) {
+      final var paged = organizationService.getAllAccessibleOrganizationsPaged(subject, page, size);
 
-    return Response.ok(result.stream().map(o -> OrganizationTO.fromEntity(o, objectCache)).collect(Collectors.toList())).build();
+      final var items = paged.stream()
+              .map(p -> OrganizationTO.fromEntity(p, objectCache))
+              .collect(Collectors.toList());
+
+      final var pageTO = new PageTO<>(items, page, size, paged.pageCount(), paged.hasPreviousPage(), paged.hasNextPage());
+      return Response.ok(pageTO).build();
+    } else  {
+      final var items = organizationService.getAllAccessibleOrganizations(subject).stream()
+              .map(o -> OrganizationTO.fromEntity(o, objectCache))
+              .collect(Collectors.toList());
+      final var pageTO = new PageTO<>(items, 0, items.size(), 1, false, false);
+      return Response.ok(pageTO).build();
+    }
   }
 
   @GET

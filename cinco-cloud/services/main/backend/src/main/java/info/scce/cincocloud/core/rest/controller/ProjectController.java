@@ -5,6 +5,7 @@ import info.scce.cincocloud.core.rest.inputs.UpdateProjectTransferToUserInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateProjectUsersInput;
 import info.scce.cincocloud.core.rest.tos.BooleanTO;
 import info.scce.cincocloud.core.rest.tos.GitInformationTO;
+import info.scce.cincocloud.core.rest.tos.PageTO;
 import info.scce.cincocloud.core.rest.tos.ProjectTO;
 import info.scce.cincocloud.core.services.OrganizationService;
 import info.scce.cincocloud.core.services.ProjectDeploymentService;
@@ -183,12 +184,32 @@ public class ProjectController {
 
   @GET
   @RolesAllowed("user")
-  public Response getProjects(@Context SecurityContext securityContext) {
+  public Response getProjects(
+          @Context SecurityContext securityContext,
+          @QueryParam("page") Integer page,
+          @QueryParam("size") Integer size
+  ) {
     final var subject = UserService.getCurrentUser(securityContext);
 
-    final var accessibleProjects = projectService.getAllAccessibleProjects(subject);
+    if (page != null && size != null) {
+      final var paged = projectService.getAllAccessibleProjectsPaged(subject, page, size);
 
-    return Response.ok(accessibleProjects.stream().map(p -> ProjectTO.fromEntity(p, objectCache)).collect(Collectors.toList())).build();
+      final var items = paged.stream()
+              .map(p -> ProjectTO.fromEntity(p, objectCache))
+              .collect(Collectors.toList());
+
+      final var pageTO = new PageTO<>(items, page, size, paged.pageCount(), paged.hasPreviousPage(), paged.hasNextPage());
+
+      return Response.ok(pageTO).build();
+    } else {
+      final var items = projectService.getAllAccessibleProjects(subject).stream()
+              .map(p -> ProjectTO.fromEntity(p, objectCache))
+              .collect(Collectors.toList());
+
+      final var pageTO = new PageTO<>(items, 0, items.size(), 1, false, false);
+
+      return Response.ok(pageTO).build();
+    }
   }
 
   @PUT

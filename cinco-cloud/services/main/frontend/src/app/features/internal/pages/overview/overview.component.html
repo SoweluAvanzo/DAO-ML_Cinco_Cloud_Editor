@@ -3,7 +3,7 @@
     <ul #nav="ngbNav" class="nav nav-pills d-flex gap-2" ngbNav>
       <li class="nav-item" ngbNavItem="projects">
         <a class="nav-link" ngbNavLink>
-          Projects <span class="badge">{{projects.length}}</span>
+          Projects
         </a>
         <ng-template ngbNavContent>
           <div *ngIf="projects.length === 0; else projectList" class="alert alert-info mt-3">
@@ -11,12 +11,19 @@
           </div>
           <ng-template #projectList>
             <cc-project-list [projects]="projects"></cc-project-list>
+
+            <cc-pagination
+              class="d-block mt-3"
+              [page]="projectPage"
+              (previousPage)="previousProjectPage()"
+              (nextPage)="nextProjectPage()">
+            </cc-pagination>
           </ng-template>
         </ng-template>
       </li>
       <li class="nav-item" ngbNavItem="organizations">
         <a class="nav-link" ngbNavLink>
-          Organizations <span class="badge">{{organizations.length}}</span>
+          Organizations
         </a>
         <ng-template ngbNavContent>
           <div *ngIf="organizations.length === 0; else organizationList" class="alert alert-info mt-3">
@@ -24,6 +31,13 @@
           </div>
           <ng-template #organizationList>
             <cc-organization-list [organizations]="organizations"></cc-organization-list>
+
+            <cc-pagination
+              class="d-block mt-3"
+              [page]="organizationPage"
+              (previousPage)="previousOrganizationPage()"
+              (nextPage)="nextOrganizationPage()">
+            </cc-pagination>
           </ng-template>
         </ng-template>
       </li>

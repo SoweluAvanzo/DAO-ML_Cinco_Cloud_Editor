@@ -19,10 +19,14 @@ public class PageTO<T> {
   /** The size of the current page. */
   public int size;
 
+  public boolean hasNextPage;
+
+  public boolean hasPreviousPage;
+
   /** The amount of possible pages given the page size. */
   public long amountOfPages;
 
-  public PageTO(List<T> items, int number, int size, long amountOfPages) {
+  public PageTO(List<T> items, int number, int size, long amountOfPages, boolean hasPreviousPage, boolean hasNextPage) {
     Objects.requireNonNull(items, "items must not be null");
 
     if (number < 0) {
@@ -37,5 +41,7 @@ public class PageTO<T> {
     this.number = number;
     this.size = size;
     this.amountOfPages = amountOfPages;
+    this.hasPreviousPage = hasPreviousPage;
+    this.hasNextPage = hasNextPage;
   }
 }

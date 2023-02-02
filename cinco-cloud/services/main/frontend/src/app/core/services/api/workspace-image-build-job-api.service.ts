@@ -23,7 +23,12 @@ export class WorkspaceImageBuildJobApiService extends BaseApiService {
   }
 
   public getAll(projectId: number, page: number, size: number): Observable<Page<WorkspaceImageBuildJob>> {
-    return this.http.get(`${this.apiUrl}/projects/${projectId}/build-jobs?page=${page}&size=${size}`, this.defaultHttpOptions).pipe(
+    const options = {
+      ...this.defaultHttpOptions,
+      params: { page, size }
+    };
+
+    return this.http.get(`${this.apiUrl}/projects/${projectId}/build-jobs`, options).pipe(
       map(body => this.transformPage(body))
     );
   }
@@ -53,12 +58,7 @@ export class WorkspaceImageBuildJobApiService extends BaseApiService {
   }
 
   private transformPage(body: any): Page<WorkspaceImageBuildJob> {
-    const page = new Page<WorkspaceImageBuildJob>();
-    page.number = body.number;
-    page.size = body.size;
-    page.amountOfPages = body.amountOfPages;
-    page.items = this.transformList(body.items);
-    return page;
+    return Page.fromObject(body, this.transformList(body.items));
   }
 
   private transformSingle(body: any): WorkspaceImageBuildJob {

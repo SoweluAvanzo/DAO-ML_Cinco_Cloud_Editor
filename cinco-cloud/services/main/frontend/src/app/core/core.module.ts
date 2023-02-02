@@ -29,6 +29,7 @@ import { ValidationErrorMessageComponent } from './components/validation-error-m
 import { ValidateFormInputPipe } from './pipes/validate-form-input.pipe';
 import { SearchOrganizationInputComponent } from './components/search-organization-input/search-organization-input.component';
 import { ToggleButtonComponent } from './components/toggle-button/toggle-button.component';
+import { PaginationComponent } from './components/pagination/pagination.component';
 
 @NgModule({
   declarations: [
@@ -48,7 +49,8 @@ import { ToggleButtonComponent } from './components/toggle-button/toggle-button.
     ValidationErrorMessageComponent,
     ValidateFormInputPipe,
     SearchOrganizationInputComponent,
-    ToggleButtonComponent
+    ToggleButtonComponent,
+    PaginationComponent
   ],
   providers: [],
   exports: [
@@ -67,7 +69,8 @@ import { ToggleButtonComponent } from './components/toggle-button/toggle-button.
     ValidateFormInputPipe,
     ValidationErrorMessageComponent,
     SearchOrganizationInputComponent,
-    ToggleButtonComponent
+    ToggleButtonComponent,
+    PaginationComponent
   ],
   imports: [
     CommonModule,
