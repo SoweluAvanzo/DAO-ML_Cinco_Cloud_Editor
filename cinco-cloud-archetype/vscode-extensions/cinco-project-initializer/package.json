@@ -3,7 +3,7 @@
 	"displayName": "Cinco Project Initializer",
 	"description": "This extension registers commands to create a predefined example project into the workspace.",
 	"author": "ls5",
-	"license": "MIT",
+	"license": "EPL-2.0",
 	"version": "0.0.1",
 	"publisher": "ls5",
 	"repository": "https://gitlab.com/scce/cinco-cloud",

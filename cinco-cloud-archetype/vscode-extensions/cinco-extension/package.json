@@ -5,7 +5,7 @@
     "version": "0.0.1",
     "publisher": "ls5",
     "repository": "https://gitlab.com/scce/cinco-cloud",
-    "license": "MIT",
+    "license": "EPL-2.0",
     "engines": {
         "vscode": "^1.50.0"
     },
