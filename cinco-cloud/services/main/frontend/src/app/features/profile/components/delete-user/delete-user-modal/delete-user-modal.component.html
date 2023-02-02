@@ -4,14 +4,14 @@
 </div>
 <div class="modal-body light">
   <!-- Administration -->
-  <div class="card bg-light border-danger text-light mb-3" *ngIf="this.user.isAdmin && admins == 1">
+  <div class="card bg-light border-danger text-light mb-3" *ngIf="this.user.isAdmin && admins.length === 1">
     <div class="card-header bg-danger">
       <fa-icon [icon]="['fas', 'exclamation-triangle']" [fixedWidth]="true" class="me-1"></fa-icon> Administration
     </div>
     <div class="card-body">
       <div class="alert alert-danger my-0 clickable-alert" (click)="goToAdmins()">
         <p class="mb-0">
-          You are the only administrator of CincoCloud!
+          You are the only administrator of CincoCloud.
           Please make another user administrator bevor you delete your account.
         </p>
         <fa-icon [icon]="['fas', 'external-link-alt']" [fixedWidth]="true" class="external-link-icon"></fa-icon>
@@ -20,7 +20,7 @@
   </div>
 
   <!-- Organizations -->
-  <div class="card bg-light border-danger text-light mb-3" *ngIf="responsibleOrgs.length != 0">
+  <div class="card bg-light border-danger text-light mb-3" *ngIf="responsibleOrganizations.length !== 0">
     <div class="card-header bg-danger">
       <fa-icon [icon]="['fas', 'exclamation-triangle']" [fixedWidth]="true" class="me-1"></fa-icon> Organizations
     </div>
@@ -30,17 +30,17 @@
         Please make another member owner of these organizations.
       </p>
       <ul class="list-group">
-        <li class="list-group-item list-group-item-action" *ngFor="let org of responsibleOrgs"  (click)="goToOrg(org.id)">
+        <li class="list-group-item list-group-item-action" *ngFor="let org of responsibleOrganizations"  (click)="goToOrg(org.id)">
           {{ org.name }} <fa-icon [icon]="['fas', 'external-link-alt']" [fixedWidth]="true" class="external-link-icon"></fa-icon>
         </li>
       </ul>
     </div>
   </div>
-  
+
   <!-- Projects with members -->
   <div class="card bg-light border-danger text-light mb-3" *ngIf="responsibleProjects.length != 0">
     <div class="card-header bg-danger">
-      <fa-icon [icon]="['fas', 'exclamation-triangle']" [fixedWidth]="true" class="me-1"></fa-icon> Shared projects 
+      <fa-icon [icon]="['fas', 'exclamation-triangle']" [fixedWidth]="true" class="me-1"></fa-icon> Shared projects
     </div>
     <div class="card-body text-dark">
       <p>
@@ -73,19 +73,20 @@
   </div>
 
   <div>
-    <label class="form-label" for="name">Enter your username to delete your account</label>
-    <input
-      class="form-control"
-      id="name"
-      placeholder="Enter your username"
-      type="text"
-      [(ngModel)]="userName">
+    <label class="form-label" for="name">Enter the username to confirm the deletion</label>
+    <form (submit)="$event.preventDefault()" [formGroup]="confirmationForm">
+      <input
+        class="form-control"
+        id="name"
+        placeholder="Enter the username"
+        type="text"
+        formControlName="username">
+    </form>
   </div>
 
 </div>
 <div class="modal-footer">
-  <button (click)="deleteUser()" [disabled]="((userName != user.username) || (responsibleProjects.length != 0)
-  || (responsibleOrgs.length != 0))" class="btn btn-danger" type="button">
+  <button (click)="deleteUser()" [disabled]="!canDelete()" class="btn btn-danger" type="button">
     Delete
   </button>
 </div>

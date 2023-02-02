@@ -34,22 +34,17 @@ public class WorkspaceImageBuildJobService {
         .orElseThrow(() -> new EntityNotFoundException("Build Job could not be found."));
   }
 
-  public List<WorkspaceImageBuildJobDB> getAll(ProjectDB project, Optional<Integer> page, Optional<Integer> size) {
-    return WorkspaceImageBuildJobDB.findByProjectId(project.id).list();
-  }
-
-  public PageTO<WorkspaceImageBuildJobTO> getAllPaged(ProjectDB project, int page, int size) {
+  public PageTO<WorkspaceImageBuildJobTO> getAllPaged(ProjectDB project, int index, int size) {
     final var query = WorkspaceImageBuildJobDB
         .findByProjectIdOrderByStartedAtDesc(project.id);
 
-    final var amountOfPages = (long) Math.ceil((double) query.count() / size);
+    final var page = query.page(Page.of(index, size));
 
-    final var items = query
-        .page(Page.of(page, size)).stream()
+    final var items = page.stream()
         .map(j -> WorkspaceImageBuildJobTO.fromEntity(j, objectCache))
         .collect(Collectors.toList());
 
-    return new PageTO<>(items, page, size, amountOfPages);
+    return new PageTO<>(items, index, size, page.pageCount(), page.hasPreviousPage(), page.hasNextPage());
   }
 
   public void delete(long jobId) {

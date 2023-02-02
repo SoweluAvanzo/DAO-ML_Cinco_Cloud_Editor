@@ -10,6 +10,9 @@ import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.sync.ProjectRegistry;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import io.quarkus.panache.common.Page;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -36,9 +39,11 @@ public class ProjectService {
   }
 
   public List<ProjectDB> getAllAccessibleProjects(UserDB subject) {
-    return ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id).stream()
-        .filter(p -> p.deletedAt == null)
-        .collect(Collectors.toList());
+    return ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id).list();
+  }
+
+  public PanacheQuery<ProjectDB> getAllAccessibleProjectsPaged(UserDB subject, int index, int size) {
+    return ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id).page(Page.of(index, size));
   }
 
   public ProjectDB createProject(

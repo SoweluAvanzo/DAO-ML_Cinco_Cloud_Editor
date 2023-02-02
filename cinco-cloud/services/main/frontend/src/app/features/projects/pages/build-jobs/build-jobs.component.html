@@ -56,17 +56,11 @@
       </div>
     </ng-container>
 
-    <div class="btn-group">
-      <button class="btn btn-outline-light" (click)="previousPage()" [disabled]="!hasPreviousPage">
-        <i class="fas fa-fw fa-angle-left"></i> Previous page
-      </button>
-      <button class="btn btn-outline-light" disabled>
-        {{(buildJobsPage.number + 1)}} / {{buildJobsPage.amountOfPages}}
-      </button>
-      <button class="btn btn-outline-light" (click)="nextPage()" [disabled]="!hasNextPage">
-        Next page <i class="fas fa-fw fa-angle-right"></i>
-      </button>
-    </div>
+    <cc-pagination
+      [page]="buildJobsPage"
+      (nextPage)="nextPage()"
+      (previousPage)="previousPage()">
+    </cc-pagination>
   </div>
 
 </div>
