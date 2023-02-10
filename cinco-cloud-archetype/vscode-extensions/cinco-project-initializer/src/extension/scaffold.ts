@@ -2,7 +2,8 @@ import * as path from 'path'
 import * as fs from 'fs';
 import * as java from '../common/java'
 import { MessageToClient, ScaffoldData } from "../common/model";
-import { isDirectoryEmpty } from './filesystem-helper';
+import { isDirectoryEmpty} from './filesystem-helper';
+import * as messages from './messages'
 
 export function initializeScaffold(
     postMessage: (message: MessageToClient) => void,
@@ -14,18 +15,12 @@ export function initializeScaffold(
         java.isValidPackageIdentifier(data.packageName);
 
     if (!dataValid) {
-        postMessage({
-            tag: 'ServerError',
-            error: 'Cannot initialize project, input data is invalid.',
-        });
+        postMessage(messages.dataInvalid);
         return false;
     }
 
     if (!isDirectoryEmpty(workspaceFsPath)) {
-        postMessage({
-            tag: 'ServerError',
-            error: 'Cannot initialize project, workspace is not empty.'
-        });
+        postMessage(messages.clearWorkspace);
         return false;
     }
 
