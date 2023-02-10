@@ -1,4 +1,4 @@
-export type MessageToServer = CreateScaffold | CreateExample
+export type MessageToServer = CreateScaffold | CreateExample | ConfirmQuestion
 
 interface CreateScaffold {
     tag: 'CreateScaffold'
@@ -14,9 +14,26 @@ export interface ScaffoldData {
     packageName: string
 }
 
-export type MessageToClient = ServerError
+export type MessageToClient = ServerError | ServerConfirm
 
 interface ServerError {
     tag: 'ServerError'
     error: string
 }
+
+interface ServerConfirm{
+    tag: 'ServerConfirm'
+    message: string
+    options: string[]
+    purpose: MessagePurpose
+}
+
+export interface ConfirmQuestion{
+    tag: 'ConfirmQuestion'
+    answer: string
+    purpose: MessagePurpose
+}
+
+type MessagePurpose = 'ClearWorkspace'
+
+

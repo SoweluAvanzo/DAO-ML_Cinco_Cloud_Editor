@@ -9,8 +9,7 @@ interface VsCodeApi {
     postMessage(message: MessageToServer): void
 }
 
-type WebviewState = Initial | ScaffoldForm
-
+type WebviewState = Initial | ScaffoldForm | ConfirmationDialog
 interface Initial {
     tag: "Initial"
 }
@@ -24,6 +23,13 @@ interface ScaffoldForm {
 interface ScaffoldFormValidation {
     modelNameValid: boolean
     packageNameValid: boolean
+}
+
+interface ConfirmationDialog {
+    tag: "ConfirmationDialog"
+    message: string
+    options: string[]
+    lastState: WebviewState
 }
 
 const vscode = acquireVsCodeApi();
@@ -62,9 +68,37 @@ function renderErrorBox() {
         errorDisplay.innerText = '';
     });
     errorBox.appendChild(errorCloseButton);
-
     return errorDisplay;
 }
+
+function renderConfirmationDialog(currentstate: ConfirmationDialog){
+    const errorOptions = document.createElement('div');
+    errorOptions.innerText = currentstate.message;
+
+    currentstate.options.forEach(function(option:string){
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className =
+        'button primary-button action-button';
+    button.innerText = option;
+    button.addEventListener('click', () => {
+        let msg:MessageToServer = {
+            tag: 'ConfirmQuestion',
+            answer: option,
+            purpose:'ClearWorkspace'
+        };
+        vscode.postMessage(msg);
+        state = currentstate.lastState;
+        vscode.setState(state);
+        renderContent();
+    });
+    errorOptions.appendChild(document.createElement('p'))
+    errorOptions.appendChild(button);
+
+});
+    return errorOptions;
+}
+
 
 const errorCloseButton = document.createElement('button');
 errorCloseButton
@@ -82,6 +116,22 @@ function processIncomingMessage(message: MessageToClient) {
         case 'ServerError':
             errorBox.style.display = errorBoxDisplayDefault;
             errorDisplay.innerText = message.error;
+        break;
+        case 'ServerConfirm':
+            switch(message.purpose){
+                case "ClearWorkspace":
+                    state = {
+                        tag:'ConfirmationDialog',
+                        message: message.message,
+                        options: message.options,
+                        lastState: state
+                    };
+                    vscode.setState(state);
+                    renderContent();
+                    break;
+            }
+            
+        break;
     }
 }
 
@@ -249,6 +299,15 @@ function renderContent() {
             }
 
             break;
+
+
         }
+
+
+        case 'ConfirmationDialog':{
+            contentBox.appendChild(renderConfirmationDialog(state));    
+            break;
+        }
+    
     }
 }

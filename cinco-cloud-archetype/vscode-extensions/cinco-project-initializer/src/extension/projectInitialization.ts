@@ -2,11 +2,12 @@ import * as path from 'path'
 import * as fse from 'fs-extra'
 import * as vscode from 'vscode'
 import { workbenchOutput, extensionContext } from './main'
-import { MessageToClient, MessageToServer } from '../common/model'
+import { MessageToClient, MessageToServer,ConfirmQuestion } from '../common/model'
 import { initializeScaffold } from './scaffold'
 import { getWebviewContent } from './webview-template'
 import { getWorkspaceFsPath } from './workspace'
-import { isDirectoryEmpty } from './filesystem-helper'
+import { isDirectoryEmpty, clearDirectorySync } from './filesystem-helper'
+import * as messages from './messages'
 
 const exampleFolder = "exampleFiles/";
 
@@ -43,6 +44,7 @@ export async function openProjectInitializationView(
     function postMessage(message: MessageToClient): void {
         panel.webview.postMessage(message);
     }
+
 
     setCurrentPanel(panel);
 
@@ -87,6 +89,15 @@ export async function openProjectInitializationView(
                         panel.dispose();
                     }
                     break;
+                case 'ConfirmQuestion':
+                    switch(message.purpose){
+                        case 'ClearWorkspace':
+                            if(message.answer == 'Yes'){
+                                clearDirectorySync(workspaceFsPath)
+                            }
+                        break;
+                    }
+                break;
             }
         }
     )
@@ -99,14 +110,11 @@ export async function openProjectInitializationView(
 }
 
 function initializeExampleProject(
-    postMessage: (message: MessageToClient) => void,
+    postMessage:(message:MessageToClient)=>void,
     workspaceFsPath: string,
 ): boolean {
     if (!isDirectoryEmpty(workspaceFsPath)) {
-        postMessage({
-            tag: 'ServerError',
-            error: 'Cannot create example project, workspace is not empty.'
-        });
+        postMessage(messages.clearWorkspace);
         return false;
     }
 
