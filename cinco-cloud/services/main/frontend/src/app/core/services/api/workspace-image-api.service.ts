@@ -16,7 +16,7 @@ export class WorkspaceImageApiService extends BaseApiService {
   }
 
   public search(query: string): Observable<WorkspaceImage[]> {
-    return this.http.get(`${this.apiUrl}/images/search?q=${query}`, this.defaultHttpOptions).pipe(
+    return this.http.get(`${this.apiUrl}/images?search=${query}`, this.defaultHttpOptions).pipe(
       map((body: any) => this.transformList(body))
     );
   }
