@@ -138,7 +138,7 @@ spec:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: main-role
+  name: main-role-{{ .Release.Namespace }}
 rules:
   - apiGroups: [""]
     resources: ["pods", "endpoints", "ingresses", "ingress", "deployments", "services", "configmaps", "statefulsets", "persistentvolumes", "persistentvolumeclaims"]
@@ -159,14 +159,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: main
+  name: main-{{ .Release.Namespace }}
 subjects:
   - kind: ServiceAccount
     namespace: {{ .Release.Namespace }}
     name: main-sa
 roleRef:
   kind: ClusterRole
-  name: main-role
+  name: main-role-{{ .Release.Namespace }}
   apiGroup: "rbac.authorization.k8s.io"
 ---
 apiVersion: v1
