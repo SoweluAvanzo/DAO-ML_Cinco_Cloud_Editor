@@ -118,7 +118,7 @@ public class PyroAppK8SDeployment extends PyroK8SResource<Deployment> {
                         .build(),
                     new EnvVarBuilder()
                         .withName("CINCO_CLOUD_DEBUG")
-                        .withValue("false")
+                        .withValue("true")
                         .build(),
                     new EnvVarBuilder()
                         .withName("ENVIRONMENT")
