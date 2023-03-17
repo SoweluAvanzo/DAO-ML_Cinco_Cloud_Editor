@@ -19,7 +19,7 @@ export class UnauthenticatedInterceptor implements HttpInterceptor {
   }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    if(request.url.endsWith('/current/login')){
+    if(request.url.endsWith('/auth')){
       return next.handle(request);
     } else {
       return next.handle(request).pipe(catchError((err: HttpErrorResponse): Observable<any> => {

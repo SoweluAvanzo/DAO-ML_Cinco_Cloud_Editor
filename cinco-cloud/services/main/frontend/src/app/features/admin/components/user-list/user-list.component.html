@@ -7,6 +7,7 @@
         <th>Username</th>
         <th>Email</th>
         <th>Roles</th>
+        <th>Status</th>
         <th></th>
       </tr>
       </thead>
@@ -18,11 +19,22 @@
         <td>
           <span *ngFor="let role of user.systemRoles" class="badge bg-dark rounded-pill">{{role}}</span>
         </td>
+        <td>
+          <span *ngIf="user.activated" class="badge bg-success rounded-pill">Activated</span>
+          <span *ngIf="!user.activated" class="badge bg-danger rounded-pill">Deactivated</span>
+        </td>
         <td class="text-end">
           <div class="btn-group btn-group-sm">
             <button
+              (click)="toogleUserStatus(user)"
+              [ngbTooltip]="user.activated ? 'Deactivate' : 'Activate'"
+              class="btn btn-dark"
+            >
+              <fa-icon [icon]="user.activated ? icons.toggleOn : icons.toggleOff"></fa-icon>
+            </button>
+            <button
               (click)="deleteUser(user)"
-              [ngbTooltip]="'Delete User'"
+              [ngbTooltip]="'Delete'"
               class="btn btn-dark"
             >
               <fa-icon [icon]="icons.trash"></fa-icon>

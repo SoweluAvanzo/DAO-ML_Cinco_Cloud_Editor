@@ -24,6 +24,7 @@ import info.scce.cincocloud.rest.ObjectCache;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.response.ValidatableResponse;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Test;
@@ -39,9 +40,6 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
   @Inject
   ObjectMapper objectMapper;
 
-  @Inject
-  ObjectCache objectCache;
-
   String jwtUserA;
   String jwtUserB;
   String jwtUserC;
@@ -56,10 +54,10 @@ public class ProjectControllerTest extends AbstractCincoCloudTest {
   public void setup() {
     reset();
 
-    registrationService.registerUser("userA", "userA", "userA@cincocloud", "123456");
-    registrationService.registerUser("userB", "userB", "userB@cincocloud", "123456");
-    registrationService.registerUser("userC", "userC", "userC@cincocloud", "123456");
-    registrationService.registerUser("userD", "userD", "userD@cincocloud", "123456");
+    createAndActivateUser("userA", "userA", "userA@cincocloud", "123456");
+    createAndActivateUser("userB", "userB", "userB@cincocloud", "123456");
+    createAndActivateUser("userC", "userC", "userC@cincocloud", "123456");
+    createAndActivateUser("userD", "userD", "userD@cincocloud", "123456");
 
     jwtUserA = authService.login("userA@cincocloud", "123456");
     jwtUserB = authService.login("userB@cincocloud", "123456");

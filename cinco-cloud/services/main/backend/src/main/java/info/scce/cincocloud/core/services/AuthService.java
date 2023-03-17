@@ -45,6 +45,10 @@ public class AuthService {
       throw new UnauthorizedException("Invalid Credentials!");
     }
 
+    if (!user.isActivated) {
+      throw new UnauthorizedException("Account is not activated!");
+    }
+
     return generateToken(user);
   }
 

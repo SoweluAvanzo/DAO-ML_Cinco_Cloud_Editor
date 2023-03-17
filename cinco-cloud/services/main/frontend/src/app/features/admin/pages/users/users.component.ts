@@ -99,4 +99,40 @@ export class UsersComponent implements OnInit {
     }).catch(() => {
     })
   }
+
+  toggleUserStatus(user: User) {
+    if (user.activated) {
+      this.userApi.deactivate(user.id).subscribe({
+        next: (updatedUser) => {
+          this.users.splice(this.users.findIndex(u => u.id === updatedUser.id), 1, updatedUser);
+          this.toastService.show({
+            type: ToastType.SUCCESS,
+            message: 'User has been deactivated.'
+          });
+        },
+        error: res => {
+          this.toastService.show({
+            type: ToastType.DANGER,
+            message: `Could not deactivate user. ${res.error.message}`
+          });
+        }
+      })
+    } else {
+      this.userApi.activate(String(user.id), "").subscribe({
+        next: (updatedUser) => {
+          this.users.splice(this.users.findIndex(u => u.id === updatedUser.id), 1, updatedUser);
+          this.toastService.show({
+            type: ToastType.SUCCESS,
+            message: 'User has been activated.'
+          });
+        },
+        error: res => {
+          this.toastService.show({
+            type: ToastType.DANGER,
+            message: `Could not activate user. ${res.error.message}`
+          });
+        }
+      })
+    }
+  }
 }

@@ -43,7 +43,9 @@ public class SettingsController {
   public Response update(@Context SecurityContext securityContext, final SettingsTO settings) {
     UserService.getCurrentUser(securityContext);
 
-    final var settingsInDb = settingsService.setAllowPublicUserRegistration(settings.getallowPublicUserRegistration());
+    settingsService.setAllowPublicUserRegistration(settings.getallowPublicUserRegistration());
+    settingsService.setAutoActivateUsers(settings.getautoActivateUsers());
+    final var settingsInDb = settingsService.setSendMails(settings.getsendMails());
 
     return Response.ok(SettingsTO.fromEntity(settingsInDb, objectCache)).build();
   }

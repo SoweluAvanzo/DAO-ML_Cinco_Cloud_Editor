@@ -46,11 +46,13 @@ export class RegisterComponent implements OnInit {
   public register(): void {
     const input: UserRegisterInput = this.registerForm.value;
     this.userApi.register(input).subscribe({
-      next: () => {
+      next: registeredUser => {
         this.router.navigate(['/login']);
+        let message = 'Your account has been created.';
+        message += !registeredUser.activated ? ' Check your emails to activate your account.' : '';
         this.toastService.show({
           type: ToastType.SUCCESS,
-          message: 'Your account has been created.'
+          message
         });
       },
       error: res => {

@@ -10,7 +10,11 @@
             There aren't any users yet.
           </div>
           <ng-template #userList>
-            <cc-user-list (userDeletionRequest)="deleteUser($event)" [users]="users"></cc-user-list>
+            <cc-user-list
+              (userDeletionRequest)="deleteUser($event)"
+              (userToggleStatusRequest)="toggleUserStatus($event)"
+              [users]="users">
+            </cc-user-list>
           </ng-template>
         </ng-template>
       </li>

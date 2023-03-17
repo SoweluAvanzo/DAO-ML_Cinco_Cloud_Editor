@@ -6,6 +6,8 @@ import { Settings } from '../../../../core/models/settings';
 import { UserLoginInput } from '../../../../core/models/forms/user-login-input';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
+import { ActivatedRoute } from "@angular/router";
+import { UserApiService } from "../../../../core/services/api/user-api.service";
 
 @Component({
   selector: 'cc-login',
@@ -21,9 +23,11 @@ export class LoginComponent implements OnInit {
   });
 
   constructor(private authApi: AuthApiService,
+              private userApi: UserApiService,
               private settingsApi: SettingsApiService,
               private appStore: AppStoreService,
-              private toastService: ToastService) {
+              private toastService: ToastService,
+              private route: ActivatedRoute) {
   }
 
   public get canRegister(): boolean {
@@ -39,6 +43,26 @@ export class LoginComponent implements OnInit {
           message: `Could not fetch application settings.`
         });
         console.error(res.error.message);
+      }
+    });
+    this.route.queryParams.subscribe(params => {
+      const activationToken = params['token'];
+      const userId = params['userId'];
+      if (activationToken != null) {
+        this.userApi.activate(userId, activationToken).subscribe({
+          next: () => {
+            this.toastService.show({
+              type: ToastType.SUCCESS,
+              message: `Your account has been activated. You can now login with your credentials.`
+            });
+          },
+          error: res => {
+            this.toastService.show({
+              type: ToastType.DANGER,
+              message: `There was a problem activating your user account. ${res.error.message}`
+            });
+          }
+        });
       }
     });
   }

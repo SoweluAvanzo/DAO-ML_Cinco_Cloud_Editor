@@ -7,4 +7,8 @@ import javax.persistence.Entity;
 public class SettingsDB extends PanacheEntity {
 
   public boolean allowPublicUserRegistration = true;
+
+  public boolean autoActivateUsers = false;
+
+  public boolean sendMails = true;
 }

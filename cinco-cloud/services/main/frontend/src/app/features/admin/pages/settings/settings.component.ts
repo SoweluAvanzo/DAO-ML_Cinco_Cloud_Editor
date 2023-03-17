@@ -50,4 +50,12 @@ export class SettingsComponent implements OnInit {
   setUserRegistration(allowPublicUserRegistration: boolean) {
     this.settings.allowPublicUserRegistration = allowPublicUserRegistration;
   }
+
+  setAutoActivateUsers(autoActivateUsers: boolean) {
+    this.settings.autoActivateUsers = autoActivateUsers;
+  }
+
+  setSendMails(sendMails: boolean) {
+    this.settings.sendMails = sendMails;
+  }
 }
