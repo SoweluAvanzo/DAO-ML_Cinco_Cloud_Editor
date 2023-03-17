@@ -1,0 +1,46 @@
+{{ if eq .Values.mailcatcher true -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailcatcher-deployment
+  labels:
+    app: mailcatcher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mailcatcher
+  template:
+    metadata:
+      labels:
+        app: mailcatcher
+    spec:
+      containers:
+        - name: mailcatcher
+          image: schickling/mailcatcher:latest
+          ports:
+            - containerPort: 1025
+            - containerPort: 1080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailcatcher-service
+  labels:
+    app: mailcatcher
+spec:
+  ports:
+    - port: 1025
+      name: mc-smtp
+      protocol: TCP
+    - port: 1080
+      name: mc-frontend
+      protocol: TCP
+  {{ if eq .Values.serverTier "local" }}
+  type: NodePort
+  {{- else -}}
+  type: ClusterIP
+  {{- end }}
+  selector:
+    app: mailcatcher
+{{- end }}

@@ -11,6 +11,7 @@ export class User extends BaseEntity {
   systemRoles: UserSystemRole[] = [];
   profilePicture: FileReference;
   personalProjects: Project[] = [];
+  activated: boolean;
 
   get isAdmin(): boolean {
     return this.systemRoles.includes(UserSystemRole.ADMIN);

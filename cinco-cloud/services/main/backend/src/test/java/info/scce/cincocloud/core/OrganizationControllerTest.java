@@ -22,7 +22,7 @@ public class OrganizationControllerTest extends AbstractCincoCloudTest {
   public void setup() {
     reset();
 
-    registrationService.registerUser("userA", "userA", "userA@cincocloud", "123456");
+    createAndActivateUser("userA", "userA", "userA@cincocloud", "123456");
 
     jwtUserA = authService.login("userA@cincocloud", "123456");
   }

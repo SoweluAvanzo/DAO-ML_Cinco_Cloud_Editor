@@ -10,6 +10,11 @@ data:
   MINIO_PORT: "9000"
   KUBERNETES_NAMESPACE: {{ .Release.Namespace }}
   CINCO_CLOUD_HOST: {{ .Values.ingress.host }}
+  CINCO_CLOUD_SSL: {{ .Values.ssl | quote }}
+  CINCO_CLOUD_MAILER_HOST: {{ .Values.main.mailer.host }}
+  CINCO_CLOUD_MAILER_PORT: {{ .Values.main.mailer.port | quote }}
+  CINCO_CLOUD_MAILER_SSL: {{ .Values.main.mailer.ssl | quote }}
+  CINCO_CLOUD_MAILER_FROM: {{ .Values.main.mailer.from }}
   {{ if eq .Values.serverTier "local" }}
   ARCHETYPE_IMAGE: registry.gitlab.com/scce/cinco-cloud/archetype:local
   {{- else -}}

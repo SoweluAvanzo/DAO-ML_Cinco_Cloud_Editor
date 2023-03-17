@@ -25,6 +25,7 @@ public class UserDB extends PanacheEntity {
   public String password;
   public String activationKey;
   public boolean isActivated;
+  public boolean isDeactivatedByAdmin;
 
   @OneToOne(cascade = CascadeType.ALL)
   public BaseFileDB profilePicture;

@@ -4,6 +4,12 @@ serverTier: production
 # If CincoCloud is started in debug mode. Should be 'false' if serverTier is 'production'.
 debug: false
 
+# Indicates that CincoCloud runs behind a ssl terminating reverse proxy, i.e., is reached by using https.
+ssl: true
+
+# If true, a mailcatcher gets started as part of the deployment stack.
+mailcatcher: true
+
 # The storage class name to use for persistent volumes.
 storageClassName: standard
 
@@ -36,6 +42,11 @@ certManager:
 
 # Configuration for the main service.
 main:
+  mailer:
+    host: mailcatcher-service
+    port: 1025
+    ssl: false
+    from: cincocloud@example.com
   # The amount of available storage.
   storage: 10Gi
   # The path on the host machine where files are stored
@@ -70,7 +81,7 @@ minio:
 # Configuration for the archetype image and Theia editors.
 archetype:
   # The image that is used for editors.
-  image: registry.gitlab.com/scce/cinco-cloud/archetype:main-5d627dd96f85f0fe9b5ae8fe6a1bd03a72d387a5
+  image: registry.gitlab.com/scce/cinco-cloud/archetype:main-3f8d48f448d7a8b7d1db383c79e171656822819f
   # The amount of available storage.
   storage: 2Gi
   # The path on the host machine where files are stored

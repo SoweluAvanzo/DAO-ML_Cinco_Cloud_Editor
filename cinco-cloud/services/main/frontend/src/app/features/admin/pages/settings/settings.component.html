@@ -23,5 +23,39 @@
         </span>
       </div>
     </div>
+    <div class="list-group-item d-flex flex-row">
+      <div class="w-100 mr-3">
+        <strong>Auto activate user accounts</strong>
+        <p class="mb-0 text-muted">
+          When enabled, newly registered user accounts are automatically activated.
+        </p>
+      </div>
+      <div class="d-flex align-items-center cursor-pointer">
+        <span
+          (click)="setAutoActivateUsers(!settings.autoActivateUsers)"
+          [ngbTooltip]="settings.autoActivateUsers ? 'Disable' : 'Enable'"
+          placement="top"
+        >
+          <fa-icon [icon]="settings.autoActivateUsers ? icons.toggleOn : icons.toggleOff"></fa-icon>
+        </span>
+      </div>
+    </div>
+    <div class="list-group-item d-flex flex-row">
+      <div class="w-100 mr-3">
+        <strong>Send Emails</strong>
+        <p class="mb-0 text-muted">
+          When enabled, the application sends activation/confirmation emails.
+        </p>
+      </div>
+      <div class="d-flex align-items-center cursor-pointer">
+        <span
+          (click)="setSendMails(!settings.sendMails)"
+          [ngbTooltip]="settings.sendMails ? 'Disable' : 'Enable'"
+          placement="top"
+        >
+          <fa-icon [icon]="settings.sendMails ? icons.toggleOn : icons.toggleOff"></fa-icon>
+        </span>
+      </div>
+    </div>
   </div>
 </div>

@@ -6,7 +6,6 @@ import info.scce.cincocloud.core.services.RegistrationService;
 import info.scce.cincocloud.core.services.SettingsService;
 import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
-
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.transaction.Transactional;

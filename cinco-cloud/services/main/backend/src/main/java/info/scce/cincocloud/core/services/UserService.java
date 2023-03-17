@@ -6,13 +6,18 @@ import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
+import io.quarkus.mailer.Mail;
+import io.quarkus.mailer.Mailer;
+import io.quarkus.qute.Template;
 import io.quarkus.security.UnauthorizedException;
+
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
+import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -28,6 +33,18 @@ public class UserService {
 
   @Inject
   PBKDF2Encoder passwordEncoder;
+
+  @Inject
+  SettingsService settingsService;
+
+  @Inject
+  Mailer mailer;
+
+  @Inject
+  Template registrationMail;
+
+  @Inject
+  RegistrationService registrationService;
 
   public UserDB getOrThrow(long userId) {
     return (UserDB) UserDB.findByIdOptional(userId)
@@ -53,16 +70,20 @@ public class UserService {
 
   public UserDB create(String email, String name, String username, String password,
       Collection<UserSystemRole> roles) {
-    UserDB user = new UserDB();
+
+    if (!UserDB.list("username", username).isEmpty() || !OrganizationDB.list("name", username).isEmpty()) {
+      throw new IllegalArgumentException("The username already exists.");
+    }
+    if (!UserDB.list("email", email).isEmpty()) {
+      throw new IllegalArgumentException("The email already exists.");
+    }
+
+    final var user = new UserDB();
     user.email = email;
     user.name = name;
     user.username = username;
     user.password = password;
-    Random random = new Random();
-    user.activationKey = random.ints(97, 122 + 1)
-        .limit(15)
-        .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-        .toString();
+    user.activationKey = UUID.randomUUID().toString();
     user.systemRoles = roles;
     user.isActivated = false;
     user.persist();
@@ -160,9 +181,32 @@ public class UserService {
     return user;
   }
 
+  public UserDB activateUser(UserDB user, boolean sendMail) {
+    user.isActivated = true;
+
+    if (sendMail && settingsService.getSettings().sendMails) {
+      final var email = registrationMail.data("url", registrationService.getCincoCloudPath()).render();
+      mailer.send(Mail.withHtml(user.email, "Cinco Cloud: You have been registered.", email));
+    }
+
+    return user;
+  }
+
+  public UserDB deactivateUser(UserDB user) {
+    user.isActivated = false;
+    user.isDeactivatedByAdmin = true;
+
+    return user;
+  }
+
+  public static Optional<UserDB> getCurrentUserOptional(SecurityContext securityContext) {
+    return Optional.ofNullable(securityContext.getUserPrincipal())
+            .map(Principal::getName)
+            .map(name -> UserDB.find("email", name).firstResult());
+  }
+
   public static UserDB getCurrentUser(SecurityContext securityContext) {
-    return (UserDB) Optional.ofNullable(UserDB.find("email", securityContext.getUserPrincipal().getName()).firstResult())
-        .orElseThrow(() -> new UnauthorizedException("Not logged in."));
+    return getCurrentUserOptional(securityContext).orElseThrow(() -> new UnauthorizedException("Not logged in."));
   }
 
   private boolean userCanBeDeleted(UserDB userToDelete) {

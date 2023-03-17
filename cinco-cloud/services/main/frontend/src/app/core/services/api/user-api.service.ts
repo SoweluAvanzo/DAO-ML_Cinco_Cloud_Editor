@@ -24,6 +24,18 @@ export class UserApiService extends BaseApiService {
     );
   }
 
+  public activate(userId: String, activationToken: String): Observable<User> {
+    return this.http.put(`${this.apiUrl}/users/${userId}/rpc/activate`, { activationToken: activationToken }, this.defaultHttpOptions).pipe(
+      map(body => this.transformSingle(body))
+    );
+  }
+
+  public deactivate(userId: number): Observable<User> {
+    return this.http.put(`${this.apiUrl}/users/${userId}/rpc/deactivate`, {}, this.defaultHttpOptions).pipe(
+      map(body => this.transformSingle(body))
+    );
+  }
+
   public create(input: UserRegisterInput): Observable<User> {
     return this.http.post(`${this.apiUrl}/users`, input, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { User } from '../../../../core/models/user';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faToggleOff, faToggleOn, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'cc-user-list',
@@ -10,6 +10,8 @@ export class UserListComponent {
 
   icons = {
     trash: faTrash,
+    toggleOn: faToggleOn,
+    toggleOff: faToggleOff
   };
 
   @Input()
@@ -18,7 +20,14 @@ export class UserListComponent {
   @Output()
   userDeletionRequest = new EventEmitter<any>();
 
+  @Output()
+  userToggleStatusRequest = new EventEmitter<any>();
+
   deleteUser(user: User) {
     this.userDeletionRequest.emit(user);
+  }
+
+  toogleUserStatus(user: User) {
+    this.userToggleStatusRequest.emit(user);
   }
 }

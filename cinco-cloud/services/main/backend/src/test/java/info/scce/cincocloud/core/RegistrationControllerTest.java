@@ -150,7 +150,7 @@ public class RegistrationControllerTest extends AbstractCincoCloudTest {
 
   @Test
   public void register_duplicateOrganizationAndUsername_400() {
-    registrationService.registerUser("userA", "userA", "userA@cincocloud", "123456");
+    createAndActivateUser("userA", "userA", "userA@cincocloud", "123456");
 
     String jwtUserA = authService.login("userA@cincocloud", "123456");
 

@@ -166,6 +166,26 @@ If you want to simulate a production build on your local machine use 2).
 
 **Please note:** If you are using ARM architecture you should always use the profile `arm` in addition to the profiles above.
 
+## Access MailCatcher
+
+During registration, emails with activation links are sent to users.
+In the developement these emails are send to MailCatcher.
+To access the MailCatcher interface, perform the following steps:
+
+**Windows / Linux**
+
+  1. Execute `kubectl get pods` to list all pods. 
+     The pod starting with `mailcatcher-deployment-<ID>` refers to the MailCatcher. 
+  1. Execute `kubectl port-forward mailcatcher-deployment-<ID> 1080:1080`.
+     Leave the terminal session open until you finished setting up Minio.
+  2. Open `http://127.0.0.1:1080`
+
+**MacOS**
+
+  1. Open a terminal and execute `minikube service mailcatcher-service --url`.
+     Two URLs starting with `http://127.0.0.1:<PORT>` will be displayed.
+     One of them (propably the latter one) is the URL to the MailCatcher interface.
+
 
 [helm]: https://helm.sh/
 [docker]: https://docs.docker.com/get-docker/

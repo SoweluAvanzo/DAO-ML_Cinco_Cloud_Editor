@@ -16,6 +16,8 @@ public class UserTO extends RESTBaseImpl {
   private String username;
   private String email;
   private FileReferenceTO profilePicture;
+  private boolean isActivated;
+  private boolean isDeactivatedByAdmin;
 
   public static UserTO fromEntity(final UserDB entity, final ObjectCache objectCache) {
     if (objectCache.containsRestTo(entity)) {
@@ -27,6 +29,8 @@ public class UserTO extends RESTBaseImpl {
     result.setemail(entity.email);
     result.setname(entity.name);
     result.setusername(entity.username);
+    result.setactivated(entity.isActivated);
+    result.setdeactivatedByAdmin(entity.isDeactivatedByAdmin);
 
     if (entity.profilePicture != null) {
       result.setprofilePicture(new FileReferenceTO(entity.profilePicture));
@@ -104,4 +108,25 @@ public class UserTO extends RESTBaseImpl {
   public void setprofilePicture(final FileReferenceTO profilePicture) {
     this.profilePicture = profilePicture;
   }
+
+  @JsonProperty("activated")
+  public boolean getactivated() {
+    return this.isActivated;
+  }
+
+  @JsonProperty("activated")
+  public void setactivated(boolean activated) {
+    this.isActivated = activated;
+  }
+
+  @JsonProperty("deactivatedByAdmin")
+  public boolean getdeactivatedByAdmin() {
+    return this.isDeactivatedByAdmin;
+  }
+
+  @JsonProperty("deactivatedByAdmin")
+  public void setdeactivatedByAdmin(boolean deactivatedByAdmin) {
+    this.isDeactivatedByAdmin = deactivatedByAdmin;
+  }
+
 }

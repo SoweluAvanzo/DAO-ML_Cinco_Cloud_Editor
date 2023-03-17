@@ -1,5 +1,6 @@
 package info.scce.cincocloud;
 
+import info.scce.cincocloud.auth.PBKDF2Encoder;
 import info.scce.cincocloud.core.services.OrganizationService;
 import info.scce.cincocloud.core.services.RegistrationService;
 import info.scce.cincocloud.core.services.UserService;
@@ -18,6 +19,9 @@ import javax.transaction.Transactional;
 @QuarkusTestResource(PostgresResource.class)
 @QuarkusTestResource(ArtemisResource.class)
 public abstract class AbstractCincoCloudTest {
+
+  @Inject
+  PBKDF2Encoder passwordEncoder;
 
   @Inject
   protected RegistrationService registrationService;
@@ -39,6 +43,8 @@ public abstract class AbstractCincoCloudTest {
     } else {
       settings = allSettings.get(0);
       settings.allowPublicUserRegistration = true;
+      settings.sendMails = true;
+      settings.autoActivateUsers = false;
     }
     settings.persist();
 
@@ -63,5 +69,13 @@ public abstract class AbstractCincoCloudTest {
     final var headers = new HashMap<>(defaultHeaders);
     headers.put("Authorization", "Bearer " + jwt);
     return headers;
+  }
+
+  @Transactional
+  public UserDB createAndActivateUser(String name, String username, String email, String password) {
+    final var user = userService.create(email, name, username, passwordEncoder.encode(password));
+    userService.activateUser(user, false);
+
+    return user;
   }
 }

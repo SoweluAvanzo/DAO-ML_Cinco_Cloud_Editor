@@ -42,8 +42,13 @@ CMD java \
     -Damqp-password="${AMPQ_PASSWORD}" \
     -Dkubernetes.namespace="${KUBERNETES_NAMESPACE}" \
     -Dcincocloud.host="${CINCO_CLOUD_HOST}" \
+    -Dcincocloud.ssl="${CINCO_CLOUD_SSL}" \
     -Dcincocloud.password.secret="${CINCO_CLOUD_PASSWORD_SECRET}" \
     -Dcincocloud.environment="${ENVIRONMENT}" \
+    -Dquarkus.mailer.host="${CINCO_CLOUD_MAILER_HOST}" \
+    -Dquarkus.mailer.port="${CINCO_CLOUD_MAILER_PORT}" \
+    -Dquarkus.mailer.ssl="${CINCO_CLOUD_MAILER_SSL}" \
+    -Dquarkus.mailer.from="${CINCO_CLOUD_MAILER_FROM}" \
     -Darchetype.image="${ARCHETYPE_IMAGE}" \
     -Darchetype.storage-class-name="${ARCHETYPE_STORAGE_CLASS_NAME}" \
     -Darchetype.storage="${ARCHETYPE_STORAGE}" \

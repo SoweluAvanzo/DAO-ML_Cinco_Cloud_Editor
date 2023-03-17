@@ -22,6 +22,7 @@ import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import io.quarkus.test.junit.QuarkusTest;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,10 +43,12 @@ public class UserControllerTest extends AbstractCincoCloudTest {
   UserDB userA;
 
   @BeforeEach
+  @Transactional
   public void setup() {
     reset();
 
-    registrationService.registerUser("userA", "userA", "userA@cincocloud", "123456");
+    final var userA = registrationService.registerUser("userA", "userA", "userA@cincocloud", "123456");
+    userService.activateUser(userA, false);
 
     jwtUserA = authService.login("userA@cincocloud", "123456");
     this.userA = UserDB.find("username = 'userA'").firstResult();

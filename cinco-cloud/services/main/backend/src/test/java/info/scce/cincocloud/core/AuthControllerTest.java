@@ -26,7 +26,7 @@ public class AuthControllerTest extends AbstractCincoCloudTest {
     public void setup() {
         reset();
 
-        user = registrationService.registerUser("userA", "userA", "userA@cincocloud", "123456");
+        user = createAndActivateUser("userA", "userA", "userA@cincocloud", "123456");
     }
 
     @Test

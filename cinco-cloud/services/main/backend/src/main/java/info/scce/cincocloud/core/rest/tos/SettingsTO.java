@@ -7,8 +7,10 @@ import info.scce.cincocloud.rest.RESTBaseImpl;
 
 public class SettingsTO extends RESTBaseImpl {
 
-  private boolean globallyCreateOrganizations;
   private boolean allowPublicUserRegistration;
+  private boolean autoActivateUsers;
+
+  private boolean sendMails;
 
   public static SettingsTO fromEntity(
       final SettingsDB entity,
@@ -21,20 +23,12 @@ public class SettingsTO extends RESTBaseImpl {
     final var result = new SettingsTO();
     result.setId(entity.id);
     result.setallowPublicUserRegistration(entity.allowPublicUserRegistration);
+    result.setautoActivateUsers(entity.autoActivateUsers);
+    result.setsendMails(entity.sendMails);
 
     objectCache.putRestTo(entity, result);
 
     return result;
-  }
-
-  @JsonProperty("globallyCreateOrganizations")
-  public boolean getgloballyCreateOrganizations() {
-    return this.globallyCreateOrganizations;
-  }
-
-  @JsonProperty("globallyCreateOrganizations")
-  public void setgloballyCreateOrganizations(final boolean globallyCreateOrganizations) {
-    this.globallyCreateOrganizations = globallyCreateOrganizations;
   }
 
   @JsonProperty("allowPublicUserRegistration")
@@ -45,5 +39,25 @@ public class SettingsTO extends RESTBaseImpl {
   @JsonProperty("allowPublicUserRegistration")
   public void setallowPublicUserRegistration(final boolean allowPublicUserRegistration) {
     this.allowPublicUserRegistration = allowPublicUserRegistration;
+  }
+
+  @JsonProperty("autoActivateUsers")
+  public boolean getautoActivateUsers() {
+    return autoActivateUsers;
+  }
+
+  @JsonProperty("autoActivateUsers")
+  public void setautoActivateUsers(final boolean autoActivateUsers) {
+    this.autoActivateUsers = autoActivateUsers;
+  }
+
+  @JsonProperty("sendMails")
+  public boolean getsendMails() {
+    return sendMails;
+  }
+
+  @JsonProperty("sendMails")
+  public void setsendMails(boolean sendMails) {
+    this.sendMails = sendMails;
   }
 }

@@ -1,6 +1,7 @@
 package info.scce.cincocloud.core.rest.controller;
 
 import info.scce.cincocloud.auth.PBKDF2Encoder;
+import info.scce.cincocloud.core.rest.inputs.ActivateUserInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateCurrentUserInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateCurrentUserPasswordInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateUserRolesInput;
@@ -14,6 +15,7 @@ import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -88,6 +90,8 @@ public class UserController {
   @RolesAllowed("admin")
   public Response createUser(@Context SecurityContext securityContext, @Valid UserRegistrationInput user) {
     final var createdUser = userService.create(user.getEmail(), user.getUsername(), user.getName(), passwordEncoder.encode(user.getPassword()));
+    userService.activateUser(createdUser, false);
+
     return Response.status(Status.CREATED)
         .entity(UserTO.fromEntity(createdUser, objectCache))
         .build();
@@ -105,6 +109,52 @@ public class UserController {
     }
 
     return Response.ok(result).build();
+  }
+
+  @PUT
+  @Path("{userId}/rpc/activate")
+  @PermitAll
+  public Response activateUser(
+      @Context SecurityContext securityContext,
+      @PathParam("userId") final long userId,
+      @Valid ActivateUserInput input
+  ) {
+      final var subject = UserService.getCurrentUserOptional(securityContext);
+      final var userToActivate = userService.getOrThrow(userId);
+
+      if (subject.isPresent() && subject.get().isAdmin()) {
+        final var updatedUser = userService.activateUser(userToActivate, false);
+        return Response.ok(UserTO.fromEntity(updatedUser, objectCache)).build();
+      }
+
+      if (userToActivate.isDeactivatedByAdmin) {
+        throw new RestException(Status.BAD_REQUEST, "Your account has been deactivated permanently.");
+      } else if (userToActivate.isActivated) {
+        throw new RestException(Status.BAD_REQUEST, "Your account is already activated.");
+      } else if (!userToActivate.activationKey.equals(input.activationToken)) {
+        throw new RestException(Status.BAD_REQUEST, "The activation token is invalid.");
+      }
+
+      final var updatedUser = userService.activateUser(userToActivate, true);
+      return Response.ok(UserTO.fromEntity(updatedUser, objectCache)).build();
+  }
+
+  @PUT
+  @Path("/{userId}/rpc/deactivate")
+  @RolesAllowed("admin")
+  public Response deactivateUser(
+      @Context SecurityContext securityContext,
+      @PathParam("userId") final long userId) {
+    final var subject = UserService.getCurrentUser(securityContext);
+    final var userToDeactivate = userService.getOrThrow(userId);
+
+    if (subject.id.equals(userToDeactivate.id)) {
+      throw new RestException(Status.BAD_REQUEST, "You cannot deactivate your own account.");
+    }
+
+    final var updatedUser = userService.deactivateUser(userToDeactivate);
+
+    return Response.ok(UserTO.fromEntity(updatedUser, objectCache)).build();
   }
 
   @PUT

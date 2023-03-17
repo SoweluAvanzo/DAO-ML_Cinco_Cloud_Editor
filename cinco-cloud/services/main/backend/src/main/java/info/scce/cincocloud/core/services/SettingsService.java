@@ -15,7 +15,20 @@ public class SettingsService {
   public SettingsDB setAllowPublicUserRegistration(boolean allowPublicUserRegistration) {
     final var settings = getSettings();
     settings.allowPublicUserRegistration = allowPublicUserRegistration;
-    settings.persist();
+
+    return settings;
+  }
+
+  public SettingsDB setAutoActivateUsers(boolean autoActivateUsers) {
+    final var settings = getSettings();
+    settings.autoActivateUsers = autoActivateUsers;
+
+    return settings;
+  }
+
+  public SettingsDB setSendMails(boolean sendMails) {
+    final var settings = getSettings();
+    settings.sendMails = sendMails;
 
     return settings;
   }
