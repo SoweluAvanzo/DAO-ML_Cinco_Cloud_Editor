@@ -14,7 +14,7 @@ export interface ScaffoldData {
     packageName: string
 }
 
-export type MessageToClient = ServerError | ServerConfirm
+export type MessageToClient = ServerError | ServerConfirm | Notification
 
 interface ServerError {
     tag: 'ServerError'
@@ -33,6 +33,15 @@ export interface ConfirmQuestion{
     answer: string
     purpose: MessagePurpose
 }
+
+export interface Notification{
+    tag: 'Notification'
+    message: string
+    level: NotificationLevel
+}
+
+type NotificationLevel = 'Information' | 'Warning' | 'Error'
+
 
 type MessagePurpose = 'ClearWorkspace'
 
