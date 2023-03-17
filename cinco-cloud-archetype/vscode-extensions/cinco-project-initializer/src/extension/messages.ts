@@ -12,3 +12,16 @@ export const clearWorkspace:MessageToClient = {
     purpose: 'ClearWorkspace'
 
 };
+
+
+export const projectInitialized:MessageToClient = {
+    tag: 'Notification',
+    message: 'Project has been initialized.',
+    level: 'Information'
+}
+
+export const workspaceCleared:MessageToClient = {
+    tag: 'Notification',
+    message: 'Project cleared.',
+    level: 'Information'
+}

@@ -2,7 +2,7 @@ import * as path from 'path'
 import * as fse from 'fs-extra'
 import * as vscode from 'vscode'
 import { workbenchOutput, extensionContext } from './main'
-import { MessageToClient, MessageToServer,ConfirmQuestion } from '../common/model'
+import { MessageToClient, MessageToServer,ConfirmQuestion, Notification } from '../common/model'
 import { initializeScaffold } from './scaffold'
 import { getWebviewContent } from './webview-template'
 import { getWorkspaceFsPath } from './workspace'
@@ -42,6 +42,28 @@ export async function openProjectInitializationView(
     );
 
     function postMessage(message: MessageToClient): void {
+        if(message.tag == 'Notification'){
+            postNotification(message);   
+        }else{
+            postPenalMessage(message);
+        }
+    }
+
+    function postNotification(message: Notification){
+        switch(message.level){
+            case 'Information':
+                vscode.window.showInformationMessage(message.message);
+                break;
+            case 'Error':
+                vscode.window.showErrorMessage(message.message);
+                break;
+            case 'Warning':
+                vscode.window.showWarningMessage(message.message);
+                break;
+        }
+    }
+
+    function postPenalMessage(message: MessageToClient):void{
         panel.webview.postMessage(message);
     }
 
@@ -94,6 +116,7 @@ export async function openProjectInitializationView(
                         case 'ClearWorkspace':
                             if(message.answer == 'Yes'){
                                 clearDirectorySync(workspaceFsPath)
+                                postMessage(messages.workspaceCleared)
                             }
                         break;
                     }
@@ -121,6 +144,7 @@ function initializeExampleProject(
     const exampleDirectory =
         extensionContext.asAbsolutePath(path.join(exampleFolder));
     fse.copySync(exampleDirectory, workspaceFsPath);
-
+    postMessage(messages.projectInitialized);
+    
     return true;
 }

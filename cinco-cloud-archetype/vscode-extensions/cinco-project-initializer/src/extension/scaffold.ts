@@ -38,7 +38,7 @@ export function initializeScaffold(
         path.join(modelDirectory, `${data.modelName}.style`),
         generateStyle(),
     );
-
+    postMessage(messages.projectInitialized);
     return true;
 }
 
