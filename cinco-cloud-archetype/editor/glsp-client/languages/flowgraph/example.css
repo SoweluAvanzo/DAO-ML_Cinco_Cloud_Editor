@@ -1,0 +1,17 @@
+.flowgraph-activity-toggled > .sprotty-node {
+    fill: #ff0000;
+    animation: rotation 2s infinite linear;
+}
+
+@keyframes rotation {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(359deg);
+    }
+}
+
+.cssnodestyle {
+    fill: #ff0000;
+}

@@ -19,7 +19,7 @@ RUN yarn
 
 # build the theia editor
 # --------------------------------
-FROM docker.io/library/node:18-bookworm-slim
+FROM docker.io/library/python:3.8-slim-bookworm
 # default environment variables
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV CINCO_CLOUD_HOST=cinco-cloud
@@ -45,14 +45,18 @@ RUN apt update && \
     apt install -y libsecret-1-dev && \
     apt install -y make
 
+RUN apt install -y curl
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash
+RUN apt-get install -y nodejs
+RUN corepack enable
+
 RUN apt install -y g++
 
 RUN apt install -y build-essential
 
 # install unzip
 RUN apt install -y unzip
-# install python
-RUN apt install -y python3
+
 # install npm dependencies
 RUN npm install -g node-gyp && npm install -g typescript
 
@@ -68,7 +72,7 @@ COPY --from=cinco-extension-builder /cinco-extension/cinco-extension-0.0.1.vsix 
 COPY --from=cinco-project-initializer-builder /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix /editor/browser-app/plugins
 
 # integrate favicon
-RUN sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
+# RUN sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
 
 # runtime configuration
 VOLUME /editor/workspace
