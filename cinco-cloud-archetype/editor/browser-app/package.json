@@ -35,10 +35,7 @@
     "@theia/vsx-registry": "1.28.0",
     "@theia/workspace": "1.28.0",
     "cinco-authenticator": "1.0.0",
-    "cinco-language-server-extension": "1.0.0",
-    "cinco-frontend-configurator": "1.0.0",
-    "cinco-branding": "1.0.0",
-    "pyro-server-extension": "1.0.0"
+    "cinco-branding": "1.0.0"
   },
   "devDependencies": {
     "@theia/cli": "1.28.0"

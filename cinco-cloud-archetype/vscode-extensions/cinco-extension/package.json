@@ -112,23 +112,22 @@
         "generate:default": "./node_modules/protoc/protoc/bin/protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=outputServices=grpc-js,addGrpcMetadata=true,env=node --ts_proto_out=./src --proto_path=./proto/ cinco-cloud.proto"
     },
     "devDependencies": {
-        "@types/minio": "^7.0.13",
-        "@types/node": "14.14.16",
+        "@types/minio": "^7.1.1",
+        "@types/node": "^18.11",
         "@types/vscode": "1.50",
         "protoc": "^1.0.4",
         "run-script-os": "1.1.6",
         "ts-proto": "^1.82.0",
-        "typescript": "^4.2.2",
+        "typescript": "^5.1.6",
         "vsce": "1.88.0"
     },
     "dependencies": {
-        "@grpc/grpc-js": "^1.3.6",
+        "@grpc/grpc-js": "^1.8.17",
         "copyfiles": "2.3.0",
         "dos2unix-cli": "1.0.1",
         "google-protobuf": "^3.14.3",
         "graphviz": "0.0.9",
-        "grpc": "^1.24.10",
-        "minio": "^7.0.28",
+        "minio": "^7.1.1",
         "original-fs": "1.1.0",
         "protobufjs": "6.11.2",
         "request": "2.88.2",

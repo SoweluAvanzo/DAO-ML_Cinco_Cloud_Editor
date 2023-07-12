@@ -3,17 +3,13 @@
   "scripts": {
     "prepare": "lerna run prepare",
     "rebuild:browser": "theia rebuild:browser",
-    "watch": "lerna run --parallel watch",
-    "lint": "lerna run lint"
+    "watch": "lerna run --parallel watch"
   },
   "devDependencies": {
     "lerna": "~3.13.0"
   },
   "workspaces": [
-    "pyro-server-extension",
-    "cinco-language-server-extension",
     "cinco-authenticator",
-    "cinco-frontend-configurator",
     "cinco-branding",
     "browser-app"
   ],

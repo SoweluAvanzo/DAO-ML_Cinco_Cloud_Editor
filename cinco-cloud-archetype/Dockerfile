@@ -1,41 +1,25 @@
 # build cinco extension
 # --------------------------------
-FROM --platform=linux/amd64 docker.io/library/node:14.18-buster-slim as cinco-extension-builder
+FROM --platform=linux/amd64 docker.io/library/node:18-bookworm-slim as cinco-extension-builder
 WORKDIR /cinco-extension
 COPY ./cinco-cloud-archetype/vscode-extensions/cinco-extension /cinco-extension
+RUN apt-get update && apt-get install -y python3
 # outputs extension to /cinco-extension/cinco-extension-0.0.1.vsix
 RUN npm install -g vsce --unsafe-perm
 RUN yarn
 
 # build cinco-project-initializer
 # --------------------------------
-FROM docker.io/library/node:14.18-buster-slim as cinco-project-initializer-builder
+FROM docker.io/library/node:18-bookworm-slim as cinco-project-initializer-builder
 WORKDIR /cinco-project-initializer
 COPY ./cinco-cloud-archetype/vscode-extensions/cinco-project-initializer /cinco-project-initializer
 # outputs extension to /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix
 RUN npm install -g vsce --unsafe-perm
 RUN yarn
 
-# build pyro client
-# --------------------------------
-FROM docker.io/library/node:14.18-buster-slim as pyro-client-builder
-WORKDIR /pyro-client-extension
-COPY ./cinco-cloud-archetype/vscode-extensions/pyro-client-extension /pyro-client-extension
-# outputs extension to /pyro-client-extension/pyro-client-extension-0.0.1.vsix
-RUN npm install -g vsce --unsafe-perm
-RUN yarn
-
-# build the cinco-language-server
-# --------------------------------
-FROM docker.io/library/maven:3.8.1-jdk-11-openj9 as cinco-ls-builder
-WORKDIR /cinco-ls
-COPY ./cinco-language-server /cinco-ls
-RUN rm -r -f /cinco-ls/workspace-emf-tmp
-RUN mvn clean install
-
 # build the theia editor
 # --------------------------------
-FROM docker.io/library/openjdk:11.0.12-slim-bullseye
+FROM docker.io/library/node:18-bookworm-slim
 # default environment variables
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV CINCO_CLOUD_HOST=cinco-cloud
@@ -48,14 +32,7 @@ ENV MINIO_SECRET_KEY=''
 ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT={{hostname}}
 ENV THEIA_MINI_BROWSER_HOST_PATTERN={{hostname}}
 ENV INTERNAL_USE_SSL="false"
-ENV INTERNAL_PYRO_HOST="localhost"
-ENV INTERNAL_PYRO_PORT=8000
-ENV INTERNAL_PYRO_SUBPATH=""
 ENV EXTERNAL_USE_SSL="false"
-ENV EXTERNAL_PYRO_HOST="localhost"
-ENV EXTERNAL_PYRO_PORT=8000
-ENV EXTERNAL_PYRO_SUBPATH=""
-ENV PYRO_SERVER_BINARIES_FILE=""
 ENV WORKSPACE_PATH="/editor/workspace"
 ENV EDITOR_TYPE="LANGUAGE_EDITOR"
 ENV ENVIRONMENT="local"
@@ -64,19 +41,18 @@ RUN chmod -R 750 /var/run/
 
 # install node, yarn and other dependencies
 RUN apt update && \
-    apt install -y gnupg gnupg2 curl && \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
-    apt update && \
-    apt install -y nodejs npm yarn && \
-    apt remove -y gnupg gnupg2 curl && \
+    apt install -y openjdk-17-jdk && \
     apt install -y libsecret-1-dev && \
-    apt autoremove -y
+    apt install -y make
+
+RUN apt install -y g++
+
+RUN apt install -y build-essential
 
 # install unzip
 RUN apt install -y unzip
 # install python
-RUN apt install -y python && python --version && sleep 10
+RUN apt install -y python3
 # install npm dependencies
 RUN npm install -g node-gyp && npm install -g typescript
 
@@ -90,9 +66,6 @@ RUN yarn
 # copy vscode-extensions into plugins
 COPY --from=cinco-extension-builder /cinco-extension/cinco-extension-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=cinco-project-initializer-builder /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix /editor/browser-app/plugins
-COPY --from=pyro-client-builder /pyro-client-extension/pyro-client-extension-0.0.1.vsix /editor/browser-app/plugins
-# copy cinco-language-server into backend
-COPY --from=cinco-ls-builder /cinco-ls/de.jabc.cinco.meta.core.ide/target/language-server /editor/cinco-language-server-extension/language-server
 
 # integrate favicon
 RUN sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
@@ -115,14 +88,7 @@ CMD cd /editor/browser-app && \
     THEIA_WEBVIEW_EXTERNAL_ENDPOINT="${THEIA_WEBVIEW_EXTERNAL_ENDPOINT}" \
     THEIA_MINI_BROWSER_HOST_PATTERN="${THEIA_MINI_BROWSER_HOST_PATTERN}" \
     INTERNAL_USE_SSL="${INTERNAL_USE_SSL}" \
-    INTERNAL_PYRO_HOST="${INTERNAL_PYRO_HOST}" \
-    INTERNAL_PYRO_PORT="${INTERNAL_PYRO_PORT}" \
-    INTERNAL_PYRO_SUBPATH="${INTERNAL_PYRO_SUBPATH}" \
     EXTERNAL_USE_SSL="${EXTERNAL_USE_SSL}" \
-    EXTERNAL_PYRO_HOST="${EXTERNAL_PYRO_HOST}" \
-    EXTERNAL_PYRO_PORT="${EXTERNAL_PYRO_PORT}" \
-    EXTERNAL_PYRO_SUBPATH="${EXTERNAL_PYRO_SUBPATH}" \
-    PYRO_SERVER_BINARIES_FILE="${PYRO_SERVER_BINARIES_FILE}" \
     WORKSPACE_PATH="${WORKSPACE_PATH}" \
     EDITOR_TYPE="${EDITOR_TYPE}" \
     ENVIRONMENT="${ENVIRONMENT}" \
