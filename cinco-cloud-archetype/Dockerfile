@@ -1,11 +1,9 @@
-# build cinco extension
+# build cinco languages extension
 # --------------------------------
-FROM --platform=linux/amd64 docker.io/library/node:16-bookworm-slim as cinco-extension-builder
-WORKDIR /cinco-extension
-COPY ./cinco-cloud-archetype/vscode-extensions/cinco-extension /cinco-extension
-RUN apt-get update && apt-get install -y python3
-# outputs extension to /cinco-extension/cinco-extension-0.0.1.vsix
-RUN npm install -g vsce --unsafe-perm
+FROM docker.io/library/node:16-bookworm-slim as cinco-languages-extension-builder
+WORKDIR /cinco-languages-extension
+COPY ./cinco-cloud-archetype/vscode-extensions/cinco-languages-extension /cinco-languages-extension
+# outputs extension to /cinco-languages-extension/cinco-langium-0.0.1.vsix
 RUN yarn
 
 # build cinco-project-initializer
@@ -78,7 +76,7 @@ COPY --chown=theia:theia ./cinco-cloud-archetype/editor /editor
 RUN yarn
 
 # copy vscode-extensions into plugins
-COPY --from=cinco-extension-builder /cinco-extension/cinco-extension-0.0.1.vsix /editor/browser-app/plugins
+COPY --from=cinco-languages-extension-builder /cinco-languages-extension/cinco-langium-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=cinco-project-initializer-builder /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix /editor/browser-app/plugins
 
 # integrate favicon

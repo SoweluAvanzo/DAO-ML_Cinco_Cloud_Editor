@@ -1,0 +1,120 @@
+id info.scce.cinco.product.webstory
+stylePath "model/WebStory.style"
+
+@generatable("info.scce.cinco.product.webstory.generator.Generator","generated-html")
+@mcam("check")
+@mcam_checkmodule("info.scce.cinco.product.webstory.check.VariableNames")
+@mcam_checkmodule("info.scce.cinco.product.webstory.check.DataFlowEdges")
+@mcam_checkmodule("info.scce.cinco.product.webstory.check.BackgroundImagePresent")
+graphModel WebStory {
+	iconPath "icons/WS.png"
+	diagramExtension "story"
+	containableElements(Activity)
+}
+	
+@disable(resize)
+@palette("Main Elements")
+@icon("icons/StartMarker.png")
+node StartMarker {
+	style startMarker 
+	outgoingEdges(Transition[1,1])
+}
+
+abstract node Activity {}
+
+@disable(resize)
+@palette("Main Elements")
+@icon("icons/Screen.png")
+container Screen extends Activity {
+	style screen
+	incomingEdges (Transition, TrueTransition, FalseTransition)
+	containableElements (Area)
+	@file("jpg", "JPG", "png")
+	attr String as backgroundImage
+}
+
+/* ELEMENTS THAT ARE PLACED WITHIN SCREENS */
+abstract node Area { }
+
+abstract node ClickArea extends Area {
+	outgoingEdges (Transition[1,1])	
+}
+
+@icon("icons/EllipseClickArea.png")
+@palette("In-Screen Elements")
+node EllipseClickArea extends ClickArea { 
+	style ellipseClickArea
+}
+
+@icon("icons/RectangleClickArea.png")
+@palette("In-Screen Elements")
+node RectangleClickArea extends ClickArea { 
+	style rectangleClickArea
+}
+
+@icon("icons/TextArea.png")
+@palette("In-Screen Elements")
+node TextArea extends Area {
+	style textArea("${text}")
+	attr String as text
+	attr Color as color
+	attr FontSize as fontSize
+}
+
+enum Color {
+	BLACK
+	WHITE
+}
+
+enum FontSize {
+	SMALL
+	MEDIUM
+	LARGE
+}
+
+/* VARIABLES AND THEIR HANDLING */
+@palette("Variables")
+@icon("icons/Condition.png")
+@disable(resize)
+node Condition extends Activity {
+	style condition
+	incomingEdges (DataFlow[1,1], Transition, TrueTransition, FalseTransition)	
+	outgoingEdges (TrueTransition[1,1], FalseTransition[1,1])
+}
+
+@palette("Variables")
+@doubleClickAction("info.scce.cinco.product.webstory.action.ToggleModifyVariable")
+@disable(resize)
+@icon("icons/ModifyVariable.png")
+node ModifyVariable extends Activity {
+	style modifyVariable
+	incomingEdges(Transition, TrueTransition, FalseTransition)
+	outgoingEdges(Transition[1,1], DataFlow[1,1])
+	attr Boolean as value := "false"
+}
+
+@palette("Variables")
+@icon("icons/Variable.png")
+node Variable {
+	style variable("${name}")
+	incomingEdges (DataFlow)
+	outgoingEdges (DataFlow)
+	attr String as name
+}
+
+/* EDGE TYPES */
+edge Transition { 
+	style controlFlow
+}
+
+edge TrueTransition { 
+	style controlFlow
+}
+
+edge FalseTransition { 
+	style falseFlow
+}
+
+edge DataFlow { 
+	style dataFlow
+}

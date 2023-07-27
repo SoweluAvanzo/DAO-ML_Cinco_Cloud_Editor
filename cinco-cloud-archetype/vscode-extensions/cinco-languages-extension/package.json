@@ -1,0 +1,125 @@
+{
+    "name": "cinco-langium",
+    "displayName": "cinco-langium",
+    "description": "Language support for Cinco's MGL, MSL, and CPD",
+    "version": "0.0.1",
+    "author": "ls5",
+    "license": "EPL-2.0",
+    "publisher": "ls5",
+    "repository": "https://gitlab.com/scce/cinco-cloud",
+    "engines": {
+        "vscode": "^1.67.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "mgl",
+                "aliases": [
+                    "MGL",
+                    "mgl"
+                ],
+                "extensions": [
+                    ".mgl"
+                ],
+                "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "cpd",
+                "aliases": [
+                    "CPD",
+                    "cpd"
+                ],
+                "extensions": [
+                    ".cpd"
+                ],
+                "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "msl",
+                "aliases": [
+                    "MSL",
+                    "msl"
+                ],
+                "extensions": [
+                    ".style"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "mgl",
+                "scopeName": "source.mgl",
+                "path": "./syntaxes/mgl.tmLanguage.json"
+            },
+            {
+                "language": "cpd",
+                "scopeName": "source.cpd",
+                "path": "./syntaxes/cpd.tmLanguage.json"
+            },
+            {
+                "language": "msl",
+                "scopeName": "source.msl",
+                "path": "./syntaxes/msl.tmLanguage.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "cincoCloud.generateCincoProduct",
+                "title": "Generate Meta-Specification"
+            }
+        ]
+    },
+    "activationEvents": [
+        "onLanguage:mgl",
+        "onLanguage:cpd",
+        "onLanguage:msl"
+    ],
+    "files": [
+        "bin",
+        "out",
+        "src"
+    ],
+    "bin": {
+        "mgl-cli": "./bin/cli"
+    },
+    "main": "./out/extension.js",
+    "private": true,
+    "scripts": {
+        "vscode:prepublish": "npm run langium:generate && npm run build && npm run lint && npm run bundle",
+        "build": "tsc -b tsconfig.json",
+        "postinstall": "vsce package",
+        "watch": "tsc -b tsconfig.json --watch",
+        "bundle": "webpack",
+        "lint": "eslint src --ext ts",
+        "langium:generate": "langium generate",
+        "langium:watch": "langium generate --watch",
+        "vsce": "vsce package"
+    },
+    "dependencies": {
+        "chalk": "~4.1.2",
+        "chevrotain": "~10.4.2",
+        "commander": "~10.0.0",
+        "langium": "~1.1.0",
+        "vscode-languageclient": "~8.0.2",
+        "vscode-languageserver": "~8.0.2",
+        "vscode-uri": "~3.0.7"
+    },
+    "devDependencies": {
+        "@types/node": "~16.18.11",
+        "@types/vscode": "~1.67.0",
+        "@typescript-eslint/eslint-plugin": "~5.51.0",
+        "@typescript-eslint/parser": "~5.51.0",
+        "@vscode/vsce": "^2.19.0",
+        "eslint": "~8.33.0",
+        "langium-cli": "~1.1.0",
+        "source-map-loader": "^4.0.1",
+        "ts-loader": "^9.4.3",
+        "typescript": "~4.9.5",
+        "webpack": "^5.86.0",
+        "webpack-cli": "^5.1.4"
+    }
+}
