@@ -1,6 +1,6 @@
 # build cinco extension
 # --------------------------------
-FROM --platform=linux/amd64 docker.io/library/node:18-bookworm-slim as cinco-extension-builder
+FROM --platform=linux/amd64 docker.io/library/node:16-bookworm-slim as cinco-extension-builder
 WORKDIR /cinco-extension
 COPY ./cinco-cloud-archetype/vscode-extensions/cinco-extension /cinco-extension
 RUN apt-get update && apt-get install -y python3
@@ -10,16 +10,31 @@ RUN yarn
 
 # build cinco-project-initializer
 # --------------------------------
-FROM docker.io/library/node:18-bookworm-slim as cinco-project-initializer-builder
+FROM docker.io/library/node:16-bookworm-slim as cinco-project-initializer-builder
 WORKDIR /cinco-project-initializer
 COPY ./cinco-cloud-archetype/vscode-extensions/cinco-project-initializer /cinco-project-initializer
 # outputs extension to /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix
 RUN npm install -g vsce --unsafe-perm
 RUN yarn
 
+# Start from a base image with Python 3.8
+FROM docker.io/library/node:16-bookworm-slim as blablabla
+
+RUN apt update
+RUN apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev liblzma-dev libx11-dev libxkbfile-dev libsecret-1-dev
+RUN curl -O https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tar.xz
+RUN tar -xf Python-3.8.2.tar.xz
+RUN cd Python-3.8.2 \
+    && ./configure --enable-optimizations --enable-loadable-sqlite-extensions \
+    && make -j 4 \
+    && make install
+
+RUN corepack enable
+
+
 # build the theia editor
 # --------------------------------
-FROM docker.io/library/python:3.8-slim-bookworm
+FROM blablabla
 # default environment variables
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV CINCO_CLOUD_HOST=cinco-cloud
@@ -41,21 +56,16 @@ RUN chmod -R 750 /var/run/
 
 # install node, yarn and other dependencies
 RUN apt update && \
-    apt install -y openjdk-17-jdk && \
     apt install -y libsecret-1-dev && \
     apt install -y make
 
+# install unzip
+RUN apt install -y unzip
 RUN apt install -y curl
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash
-RUN apt-get install -y nodejs
-RUN corepack enable
 
 RUN apt install -y g++
 
 RUN apt install -y build-essential
-
-# install unzip
-RUN apt install -y unzip
 
 # install npm dependencies
 RUN npm install -g node-gyp && npm install -g typescript

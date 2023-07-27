@@ -1248,7 +1248,7 @@
   integrity sha512-X1Iui3FUNZP18EUvysTHxt+Avu2nlVzyf90YM8OYgP6SGzTzzX/0JgObfO1AQQDzuZtNNz29bVh8h5R97JrjxA==
 
 "@theia/application-package@1.34.0":
-  version "1.34.0"
+  version "^1.34"
   resolved "https://registry.yarnpkg.com/@theia/application-package/-/application-package-1.34.0.tgz#5eb0984e40627ade2e013b4cf6a4d432d064890f"
   integrity sha512-ASy3m+ULpXuAXMNZ01C9keAsMG7Dj/GAMykonq1qDpEy6tFp5Lc3Tgv0UFH3x5GaBVh1oTFtPsHJTyFzecBl1g==
   dependencies:
@@ -1266,7 +1266,7 @@
     write-json-file "^2.2.0"
 
 "@theia/core@1.34.0", "@theia/core@^1.18.0", "@theia/core@^1.34.0", "@theia/core@^1.34.1":
-  version "1.34.0"
+  version "^1.34"
   resolved "https://registry.yarnpkg.com/@theia/core/-/core-1.34.0.tgz#66c456dc71df09c778882f2e7a6fcccf237bb018"
   integrity sha512-A/b0JT3ErkXFxpcK7qS1f1L10sHOLK0nnFydbT7DfP7yy+QDSV9JG8ZJggbs3fOPsGAUj2DG56zbIubxlBUmyQ==
   dependencies:

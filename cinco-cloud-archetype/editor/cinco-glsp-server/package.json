@@ -35,7 +35,7 @@
   ],
   "dependencies": {
     "@eclipse-glsp/server-node": "1.0.0",
-    "@theia/core": "^1.34.1"
+    "@theia/core": "~1.38"
   },
   "devDependencies": {
     "@eclipse-glsp/config": "^1.0.0",
