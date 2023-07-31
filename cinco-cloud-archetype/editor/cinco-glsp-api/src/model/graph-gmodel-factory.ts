@@ -101,25 +101,31 @@ export class GraphGModelFactory implements GModelFactory {
         const cssClasses: string[] = edge.cssClasses ?? [];
 
         const routerKind = spec?.view?.routerKind;
-        const builder = GEdge.builder() //
-            .type(edge.type)
-            .id(edge.id)
-            .sourceId(edge.sourceID)
-            .targetId(edge.targetID);
-        if (cssClasses !== undefined) {
-            cssClasses?.forEach((css: string) => builder.addCssClass(css));
-        }
-        if (routerKind !== undefined) {
-            builder.routerKind(routerKind);
-        }
-        if (add !== undefined) {
-            add(builder, edge);
-        }
 
-        // add routingPoints-, view- and property-information
-        builder.addArg('routingPoints', JSON.stringify(edge.routingPoints));
-        builder.addArg('persistedView', JSON.stringify(edge.view));
-        builder.addArg('properties', JSON.stringify(edge.properties));
-        return builder.build();
+        if (edge.sourceIDs.length === 1) {
+            const sourceID = edge.sourceIDs[0];
+            const builder = GEdge.builder() //
+                .type(edge.type)
+                .id(edge.id)
+                .sourceId(sourceID)
+                .targetId(edge.targetID);
+            if (cssClasses !== undefined) {
+                cssClasses?.forEach((css: string) => builder.addCssClass(css));
+            }
+            if (routerKind !== undefined) {
+                builder.routerKind(routerKind);
+            }
+            if (add !== undefined) {
+                add(builder, edge);
+            }
+
+            // add routingPoints-, view- and property-information
+            builder.addArg('routingPoints', JSON.stringify(edge.routingPoints));
+            builder.addArg('persistedView', JSON.stringify(edge.view));
+            builder.addArg('properties', JSON.stringify(edge.properties));
+            return builder.build();
+        } else {
+            throw new Error('TODO: Render conflict marker');
+        }
     }
 }

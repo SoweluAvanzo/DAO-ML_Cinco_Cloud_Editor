@@ -14,6 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
+import * as crypto from 'crypto';
 import { GEdge, GLSPServerError, GNode, OperationHandler, ReconnectEdgeOperation } from '@eclipse-glsp/server-node';
 import { injectable, inject } from 'inversify';
 
@@ -52,7 +53,7 @@ export class ReconnectEdgeHandler implements OperationHandler {
             throw new Error(`Invalid target in graph model: target ID ${operation.targetElementId}`);
         }
 
-        edge.sourceID = gSource.id;
+        edge.sourceIDAssignments = {[crypto.randomUUID()]: gSource.id};
         edge.targetID = gTarget.id;
         edge.routingPoints = [];
     }

@@ -360,7 +360,7 @@ export class Node extends ModelElement {
 
     get predecessors(): Node[] {
         const edges = this.incomingEdges;
-        return edges.map(e => e.source);
+        return [...new Set(edges.flatMap(edge => edge.sources))];
     }
 
     get outgoingEdges(): Edge[] {
@@ -507,17 +507,22 @@ export namespace Container {
 }
 
 export class Edge extends ModelElement {
-    sourceID: string;
+    sourceIDAssignments: CellAssignments<string>;
     targetID: string;
     _routingPoints: RoutingPoint[];
 
-    get source(): Node {
-        const id = this.sourceID;
-        const node = this.index!.findNode(id);
-        if (!node) {
-            throw new Error("Edge with id '" + this.id + "' has an undefined source!");
-        }
-        return node;
+    get sourceIDs(): string[] {
+        return cellValues(this.sourceIDAssignments);
+    }
+
+    get sources(): Node[] {
+        return this.sourceIDs.map(sourceID => {
+            const node = this.index!.findNode(sourceID);
+            if (!node) {
+                throw new Error("Edge with id '" + this.id + "' has an undefined source!");
+            }
+            return node;
+        });
     }
 
     get target(): Node {
@@ -634,4 +639,11 @@ export namespace GraphModel {
     export function is(object: any): object is GraphModel {
         return AnyObject.is(object) || ModelElement.is(object);
     }
+}
+
+export type CellAssignments<T> = Record<string, T>;
+
+export function cellValues<T>(cellAssignments: CellAssignments<T>): T[] {
+    // TODO: Canonical sort order of values
+    return Object.values(cellAssignments);
 }
