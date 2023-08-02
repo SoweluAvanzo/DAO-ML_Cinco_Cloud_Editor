@@ -49,7 +49,7 @@ public class WorkspaceImageBuildJobLogFileService {
 
   private static final Logger LOGGER = Logger.getLogger(WorkspaceImageBuildJobLogFileService.class.getName());
 
-  public void handleLogMessage(CincoCloudProtos.WorkspaceBuilderLogMessage msg) {
+  public void handleLogMessage(CincoCloudProtos.BuildJobLogMessage msg) {
     LOGGER.info("Received Message - JobId: " + msg.getJobId()
         + " - ProjectId: " + msg.getProjectId()
         + " - Message: " + msg.getLogMessagesList());

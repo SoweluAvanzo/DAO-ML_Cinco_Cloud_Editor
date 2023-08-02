@@ -25,9 +25,6 @@ mainImage: registry.gitlab.com/scce/cinco-cloud/main:latest
 # The image of the ampq service.
 ampqImage: registry.gitlab.com/scce/docker-images/activemq-artemis:2.17.0
 
-# The image of the workspace builder service.
-workspaceBuilderImage: registry.gitlab.com/scce/cinco-cloud/workspace-builder:latest
-
 # Configuration for the ingress controller.
 ingress:
   # The host where CincoCloud is deployed.
@@ -58,11 +55,6 @@ postgres:
   storage: 10Gi
   # The path on the host machine where files are stored
   hostPath: /mnt/data/cincocloud/postgres
-
-# Configuration for the workspace builder service.
-workspaceBuilder:
-  # The amount of replicas available.
-  replicas: 1
 
 # Configuration for the message queue.
 artemis:

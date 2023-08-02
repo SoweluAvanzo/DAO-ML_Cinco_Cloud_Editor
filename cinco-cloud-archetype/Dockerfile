@@ -15,9 +15,9 @@ COPY ./cinco-cloud-archetype/vscode-extensions/cinco-project-initializer /cinco-
 RUN npm install -g vsce --unsafe-perm
 RUN yarn
 
-# Start from a base image with Python 3.8
-FROM docker.io/library/node:16-bookworm-slim as blablabla
-
+# build the base image with Python 3.8
+# --------------------------------
+FROM docker.io/library/node:16-bookworm-slim as base
 RUN apt update
 RUN apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev liblzma-dev libx11-dev libxkbfile-dev libsecret-1-dev
 RUN curl -O https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tar.xz
@@ -26,13 +26,11 @@ RUN cd Python-3.8.2 \
     && ./configure --enable-optimizations --enable-loadable-sqlite-extensions \
     && make -j 4 \
     && make install
-
 RUN corepack enable
 
-
-# build the theia editor
+# build the theia editor image
 # --------------------------------
-FROM blablabla
+FROM base
 # default environment variables
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV CINCO_CLOUD_HOST=cinco-cloud
@@ -52,18 +50,8 @@ ENV ENVIRONMENT="local"
 # make readable for root only
 RUN chmod -R 750 /var/run/
 
-# install node, yarn and other dependencies
-RUN apt update && \
-    apt install -y libsecret-1-dev && \
-    apt install -y make
-
-# install unzip
-RUN apt install -y unzip
-RUN apt install -y curl
-
-RUN apt install -y g++
-
-RUN apt install -y build-essential
+# install dependencies
+RUN apt update && apt install -y libsecret-1-dev make unzip curl g++ build-essential
 
 # install npm dependencies
 RUN npm install -g node-gyp && npm install -g typescript
@@ -79,14 +67,10 @@ RUN yarn
 COPY --from=cinco-languages-extension-builder /cinco-languages-extension/cinco-langium-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=cinco-project-initializer-builder /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix /editor/browser-app/plugins
 
-# integrate favicon
-# RUN sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
-
 # runtime configuration
 VOLUME /editor/workspace
 EXPOSE 3000 8000
 CMD cd /editor/browser-app && \
-    # TODO: comment CINCO_CLOUD_DEBUG out, for debug purpose only (insecure)
     DATABASE_URL="${DATABASE_URL}" \
     DATABASE_USER="${DATABASE_USER}" \
     DATABASE_PASSWORD="${DATABASE_PASSWORD}" \

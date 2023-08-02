@@ -6,18 +6,6 @@ option java_multiple_files = false;
 option java_generic_services = true;
 option java_outer_classname = "CincoCloudProtos";
 
-message CreateImageRequest {
-    uint64 projectId = 1;
-}
-
-message CreateImageReply {
-    uint64 projectId = 1;
-}
-
-message GetBuildJobStatusRequest {
-    uint64 jobId = 1;
-}
-
 message BuildJobStatus {
     uint64 jobId = 1;
     enum Status {
@@ -50,7 +38,7 @@ message GetGitInformationReply {
 
 message Void {}
 
-message WorkspaceBuilderLogMessage {
+message BuildJobLogMessage {
     uint64 projectId = 1;
     uint64 jobId = 2;
     repeated string logMessages = 3;
@@ -59,11 +47,6 @@ message WorkspaceBuilderLogMessage {
 message Empty {}
 
 service MainService {
-    rpc CreateImageFromArchive (CreateImageRequest) returns (CreateImageReply) {
-    }
-
-    rpc GetBuildJobStatus (GetBuildJobStatusRequest) returns (BuildJobStatus) {
-    }
 
     rpc SetBuildJobStatus (BuildJobStatus) returns (BuildJobStatus) {
     }
@@ -71,6 +54,6 @@ service MainService {
     rpc GetGitInformation (GetGitInformationRequest) returns (GetGitInformationReply) {
     }
 
-    rpc SendWorkspaceBuilderLogMessage (WorkspaceBuilderLogMessage) returns (Empty) {
+    rpc SendBuildJobLogMessage (BuildJobLogMessage) returns (Empty) {
     }
 }

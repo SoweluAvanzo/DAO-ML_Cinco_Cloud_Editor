@@ -7,45 +7,31 @@ import info.scce.cincocloud.db.GitInformationDB;
 import info.scce.cincocloud.db.GraphModelTypeDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
-import info.scce.cincocloud.db.WorkspaceImageDB;
-import info.scce.cincocloud.mq.WorkspaceImageBuildJobMessage;
-import info.scce.cincocloud.mq.WorkspaceMQProducer;
 import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.proto.MutinyMainServiceGrpc;
 import info.scce.cincocloud.rest.ObjectCache;
-import info.scce.cincocloud.storage.MinioBuckets;
-import info.scce.cincocloud.storage.MinioService;
 import info.scce.cincocloud.sync.ProjectWebSocket;
 import info.scce.cincocloud.sync.ProjectWebSocket.Messages;
 import io.grpc.Status;
-import io.grpc.Status.Code;
 import io.grpc.StatusRuntimeException;
-import io.minio.GetObjectArgs;
 import io.quarkus.grpc.GrpcService;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import org.apache.commons.io.FileUtils;
 
 @GrpcService
 public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBase {
 
   private static final Logger LOGGER = Logger.getLogger(MainServiceGrpcImpl.class.getName());
-
-  @Inject
-  WorkspaceMQProducer workspaceMQProducer;
 
   @Inject
   ProjectWebSocket projectWebSocket;
@@ -57,109 +43,7 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
   ObjectMapper objectMapper;
 
   @Inject
-  MinioService minio;
-
-  @Inject
   WorkspaceImageBuildJobLogFileService logFileService;
-
-  @Override
-  @Blocking
-  @Transactional
-  public Uni<CincoCloudProtos.CreateImageReply> createImageFromArchive(
-      CincoCloudProtos.CreateImageRequest request) {
-    final var projectId = request.getProjectId();
-
-    LOGGER.log(Level.INFO, "createImageFromArchive(projectId: {0})",
-        new Object[]{projectId});
-
-    if (projectId <= 0) {
-      throw new StatusRuntimeException(Status.fromCode(Status.Code.INVALID_ARGUMENT)
-          .withDescription("projectId must be > 0"));
-    }
-
-    return Uni.createFrom().item(() -> {
-          final var project = (ProjectDB) ProjectDB.findByIdOptional(projectId)
-              .orElseThrow(() -> new StatusRuntimeException(
-                  Status.fromCode(Code.INVALID_ARGUMENT)
-                      .withDescription("project not found")));
-
-          WorkspaceImageBuildJobDB.findByProjectId(projectId).stream()
-              .filter(job -> job.status.equals(WorkspaceImageBuildJobDB.Status.BUILDING))
-              .findFirst()
-              .ifPresent((job) -> {
-                throw new StatusRuntimeException(
-                    Status.fromCode(Code.ALREADY_EXISTS)
-                        .withDescription("a build job for the project already exists"));
-              });
-
-          Path file;
-          try {
-            LOGGER.log(Level.INFO, "fetch archive (projectId: {0})", new Object[]{project.id});
-            final var archiveInBytes = minio.getClient().getObject(GetObjectArgs.builder()
-                    .bucket(MinioBuckets.PROJECTS_KEY)
-                    .object("project-" + projectId + "-pyro-server-sources.zip")
-                    .build())
-                .readAllBytes();
-
-            file = Files.createTempFile("sources", ".zip");
-            FileUtils.writeByteArrayToFile(file.toFile(), archiveInBytes);
-          } catch (Exception e) {
-            e.printStackTrace();
-            throw new StatusRuntimeException(
-                Status.fromCode(Code.INTERNAL)
-                    .withDescription("failed to read archive file"));
-          }
-
-          final var toolSpec = readToolSpecJsonFromArchive(file);
-          mergeGraphModelTypesInProject(project, toolSpec);
-
-          LOGGER.log(
-              Level.INFO,
-              "Create build image job and send it to the message queue (projectId: {0})",
-              new Object[]{project.id}
-          );
-
-          final var job = createBuildJob(project);
-
-          // if there already exists an image that is associated to the project
-          // reuse the uuid so that the image is updated later, otherwise create
-          // a new uuid which will result in a new image being created
-          final var uuid = WorkspaceImageDB.findByProjectId(project.id)
-              .map(i -> i.uuid)
-              .orElse(UUID.randomUUID());
-
-          final var message = new WorkspaceImageBuildJobMessage(uuid, project.id, job.id);
-          workspaceMQProducer.send(message);
-          file.toFile().delete();
-
-          return job;
-        })
-        .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-        .map(job -> createImageReply(job.project.id));
-  }
-
-  @Override
-  @Transactional
-  public Uni<CincoCloudProtos.BuildJobStatus> getBuildJobStatus(
-      CincoCloudProtos.GetBuildJobStatusRequest request) {
-    LOGGER.log(Level.INFO, "getBuildJobStatus(jobId: {0})", new Object[]{request.getJobId()});
-
-    return Uni.createFrom()
-        .item(() -> WorkspaceImageBuildJobDB.findByIdOptional(request.getJobId()))
-        .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-        .map(jobOptional -> {
-          if (jobOptional.isEmpty()) {
-            throw new StatusRuntimeException(Status.fromCode(Status.Code.NOT_FOUND)
-                .withDescription("job not found"));
-          } else {
-            final var job = (WorkspaceImageBuildJobDB) jobOptional.get();
-            return CincoCloudProtos.BuildJobStatus.newBuilder()
-                .setJobId(job.id)
-                .setStatus(jobStatusToProtoJobStatus(job.status))
-                .build();
-          }
-        });
-  }
 
   @Override
   @Transactional
@@ -227,8 +111,8 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
   }
 
   @Override
-  public Uni<CincoCloudProtos.Empty> sendWorkspaceBuilderLogMessage(
-      CincoCloudProtos.WorkspaceBuilderLogMessage request) {
+  public Uni<CincoCloudProtos.Empty> sendBuildJobLogMessage(
+      CincoCloudProtos.BuildJobLogMessage request) {
     logFileService.handleLogMessage(request);
     return Uni.createFrom().item(() -> CincoCloudProtos.Empty.newBuilder().build());
   }
@@ -277,12 +161,6 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
       default:
         throw new IllegalArgumentException("unknown proto job status type: " + status);
     }
-  }
-
-  private CincoCloudProtos.CreateImageReply createImageReply(long projectId) {
-    return CincoCloudProtos.CreateImageReply.newBuilder()
-        .setProjectId(projectId)
-        .build();
   }
 
   private GraphModelTypeSpec readToolSpecJsonFromArchive(Path file) {

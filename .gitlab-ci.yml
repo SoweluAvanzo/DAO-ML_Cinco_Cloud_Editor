@@ -167,61 +167,12 @@ cinco-cloud-build-main:
     IMAGE: main
     VERSION: latest
 
-cinco-cloud-check-dependencies-workspace-builder-backend:
-  extends:
-    - .cinco-cloud-maven-job
-  rules:
-    - *rule-cinco-cloud-main-or-mr
-    - *rule-schedule
-  script:
-    - cd cinco-cloud/services/workspace-builder
-    - mvn dependency-check:check
-  artifacts:
-    when: always
-    paths:
-      - cinco-cloud/services/workspace-builder/target/dependency-check-junit.xml
-      - cinco-cloud/services/workspace-builder/target/dependency-check-report.html
-    reports:
-      junit: cinco-cloud/services/workspace-builder/target/dependency-check-junit.xml
-
-cinco-cloud-lint-workspace-builder-backend:
-  extends:
-    - .cinco-cloud-default-job-main-or-mr
-    - .cinco-cloud-maven-job
-  script:
-    - cd ./cinco-cloud/services/workspace-builder
-    - mvn checkstyle:check
-
-cinco-cloud-install-workspace-builder-backend:
-  extends:
-    - .cinco-cloud-default-job-main-or-mr
-    - .cinco-cloud-maven-job
-  needs:
-    - cinco-cloud-check-dependencies-workspace-builder-backend
-    - cinco-cloud-lint-workspace-builder-backend
-  script:
-    - cd ./cinco-cloud/services/workspace-builder
-    - mvn install -DskipTests
-
-cinco-cloud-build-workspace-builder:
-  extends:
-    - .cinco-cloud-default-job-main
-    - .docker-build-job
-  needs:
-    - cinco-cloud-install-workspace-builder-backend
-  variables:
-    CONTEXT: ./cinco-cloud/services
-    DOCKERFILE: ./cinco-cloud/services/workspace-builder/Dockerfile
-    IMAGE: workspace-builder
-    VERSION: latest
-
 .cinco-cloud-push-image-job:
   extends:
     - .cinco-cloud-default-job-main
     - .docker-push-job
   needs:
     - cinco-cloud-build-main
-    - cinco-cloud-build-workspace-builder
 
 cinco-cloud-push-image-main:
   extends:
@@ -232,22 +183,12 @@ cinco-cloud-push-image-main:
     VERSION: latest
     PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
 
-cinco-cloud-push-image-workspace-builder:
-  extends:
-    - .cinco-cloud-default-job-main
-    - .cinco-cloud-push-image-job
-  variables:
-    IMAGE: workspace-builder
-    VERSION: latest
-    PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
-
 cinco-cloud-deploy-testing:
   extends:
     - .cinco-cloud-default-job-main
     - .cinco-cloud-deploy-job
   needs:
     - cinco-cloud-push-image-main
-    - cinco-cloud-push-image-workspace-builder
   variables:
     PROFILE: demo-k8s-ls5
     NAMESPACE: cinco-cloud-demo
