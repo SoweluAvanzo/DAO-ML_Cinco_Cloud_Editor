@@ -643,7 +643,17 @@ export namespace GraphModel {
 
 export type CellAssignments<T> = Record<string, T>;
 
-export function cellValues<T>(cellAssignments: CellAssignments<T>): T[] {
-    // TODO: Canonical sort order of values
-    return Object.values(cellAssignments);
+export function cellValues<T extends string | number | boolean>(
+    cellAssignments: CellAssignments<T>
+): T[] {
+    // Constrain to (string | number | boolean) to make sure it is sortable
+    const values = Object.values(cellAssignments);
+    values.sort();
+    return removeDuplicatesFromSortedArray(values);
+}
+
+function removeDuplicatesFromSortedArray<T>(array: T[]): T[] {
+    return array.filter(
+        (value, index) => index === 0 || array[index - 1] !== value
+    );
 }
