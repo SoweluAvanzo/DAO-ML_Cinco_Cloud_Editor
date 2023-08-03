@@ -13,8 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import * as crypto from 'crypto';
-import { Edge, GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
+
+import { Edge, GraphModelIndex, assignValue } from '@cinco-glsp/cinco-glsp-api';
 import { getEdgeSpecOf, getEdgeTypes , EdgeType } from '@cinco-glsp/cinco-glsp-common';
 import {
     CreateEdgeOperation
@@ -51,7 +51,7 @@ export class SpecifiedEdgeHandler extends SpecifiedElementHandler {
         const edge = new Edge() as Edge;
         edge.type = elementTypeId;
         edge.initializeProperties();
-        edge.sourceIDAssignments = {[crypto.randomUUID()]: sourceID};
+        edge.sourceIDAssignments = assignValue(sourceID);
         edge.targetID = targetID;
         return edge;
     }

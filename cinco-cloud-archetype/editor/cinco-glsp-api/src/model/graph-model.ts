@@ -53,6 +53,7 @@ import {
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server-node';
 import * as uuid from 'uuid';
+import { CellAssignments, cellValues } from './cell-assignments';
 import { GraphModelIndex } from './graph-model-index';
 
 export interface IdentifiableElement {
@@ -639,21 +640,4 @@ export namespace GraphModel {
     export function is(object: any): object is GraphModel {
         return AnyObject.is(object) || ModelElement.is(object);
     }
-}
-
-export type CellAssignments<T> = Record<string, T>;
-
-export function cellValues<T extends string | number | boolean>(
-    cellAssignments: CellAssignments<T>
-): T[] {
-    // Constrain to (string | number | boolean) to make sure it is sortable
-    const values = Object.values(cellAssignments);
-    values.sort();
-    return removeDuplicatesFromSortedArray(values);
-}
-
-function removeDuplicatesFromSortedArray<T>(array: T[]): T[] {
-    return array.filter(
-        (value, index) => index === 0 || array[index - 1] !== value
-    );
 }

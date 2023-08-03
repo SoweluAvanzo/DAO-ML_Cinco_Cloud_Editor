@@ -23,6 +23,7 @@ export * from './api/double-click-handler';
 export * from './api/generator-handler';
 export * from './api/validation-handler';
 export * from './language-files-registry';
+export * from './model/cell-assignments';
 export * from './model/graph-gmodel-factory';
 export * from './model/graph-model';
 export * from './model/graph-model-index';
