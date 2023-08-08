@@ -1,11 +1,11 @@
 appearance default {
-	lineWidth 2
 	background (144,207,238)
+	lineWidth 2
 }
 
 appearance redBorder extends default {
-	foreground (164,29,29)
 	background (255,255,255)
+	foreground (164,29,29)
 }
 
 nodeStyle redCircle {
@@ -23,8 +23,8 @@ nodeStyle redCircle {
 nodeStyle greenCircle {
 	ellipse {
 		appearance extends default {
-			foreground (81,156,88)
 			background (255,255,255)
+			foreground (81,156,88)
 		} 
 		size(36,36)
 	}

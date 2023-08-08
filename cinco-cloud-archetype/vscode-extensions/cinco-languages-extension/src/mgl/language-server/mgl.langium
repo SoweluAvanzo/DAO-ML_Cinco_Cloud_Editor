@@ -166,10 +166,7 @@ Wildcard:
 DataType returns string:
     'String'
     | 'Boolean'
-    | 'Int'
-    | 'Long'
-    | 'Float'
-    | 'Double'
+    | 'Number'
     | 'Date'
 ;
 

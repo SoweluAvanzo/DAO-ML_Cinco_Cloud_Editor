@@ -8,21 +8,6 @@ entry CincoProduct:
 		('version' version=STRING)?
 		(mgls+=MGLDescriptor)+
 		// TODO Is this needed for Cinco Cloud?
-		('defaultPerspective' defaultPerspective=QNAME)?
-		// TODO Is this needed for Cinco Cloud?
-		('splashScreen' splashScreen=SplashScreen)?
-		// TODO Which of these images are needed for Cinco Cloud?
-		// ('image16' image16=Path)?
-		// ('image32' image32=Path)?
-		// ('image48' image48=Path)?
-		// ('image64' image64=Path)?
-		// ('image128' image128=Path)?
-		// ('image256' image256=Path)?
-		// TODO Are these icons needed for Cinco Cloud?
-		('linuxIcon' linuxIcon=Path)?
-		('macOSIcon' macOSIcon=Path)?
-		('windowsIcon' windowsIcon=Path)?
-		// TODO Is this needed for Cinco Cloud?
 		('about' '{' about=About '}')?
 		// TODO Is this needed for Cinco Cloud?
 		('plugins' '{'plugins+=QNAME (','plugins+=QNAME)*'}')?
@@ -62,16 +47,6 @@ GenModelDescription:
 // TODO Evaluate if unused keywords can be removed entirely
 MGLDescriptor:
     (dontGenerate?='generateNOT')? (forceGenerate?='forceGenerate')? 'mgl' mglPath=STRING
-;
-
-SplashScreen:
-	path=Path
-	('{'
-		('progressBar' '('pbXOffset=INT ',' pbYOffset=INT ',' pbWidth=INT ',' pbHeight=INT ')')?	
-		('progressMessage' '('pmXOffset=INT ',' pmYOffset=INT ',' pmWidth=INT ',' pmHeight=INT ')'
-		 (textColor=Color)?
-		)?
-	'}')?
 ;
 
 XtextDescription:

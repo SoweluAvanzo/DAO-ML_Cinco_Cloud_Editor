@@ -45,7 +45,7 @@ export function initializeScaffold(
 function generateCPD(modelName: string): string {
     return (
 `cincoProduct ${modelName}Tool {
-    mgl "model/${modelName}.mgl"
+    mgl "${modelName}.mgl"
 }
 `
     );
@@ -54,7 +54,7 @@ function generateCPD(modelName: string): string {
 function generateMGL(data: ScaffoldData): string {
     return (
 `id ${data.packageName}.mglid
-stylePath "model/${data.modelName}.style"
+stylePath "${data.modelName}.style"
 
 graphModel ${data.modelName}GraphModel {
 	diagramExtension "${data.modelName.toLowerCase()}"
@@ -67,7 +67,7 @@ node SomeNode {
 	
 	incomingEdges (*)
 	outgoingEdges (*)
-	attr EString as label
+	attr String as label
 }	
 	
 edge Transition {
@@ -80,8 +80,8 @@ edge Transition {
 function generateStyle(): string {
     return(
 `appearance default {
-	lineWidth 2
 	background (229,229,229)
+    lineWidth 2
 }
 
 nodeStyle labeledCircle (1){
