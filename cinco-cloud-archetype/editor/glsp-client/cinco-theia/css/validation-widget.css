@@ -1,0 +1,34 @@
+.validation-widget {
+    padding: 12px;
+}
+
+.validation-widget .validation-icon {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.validation-widget .validation-icon.error {
+    color: #f44336;
+}
+
+.validation-widget .validation-icon.pass {
+    color: #4caf50;
+}
+
+.validation-widget .validation-icon.warning {
+    color: #ffc107;
+}
+
+.validation-widget .validation-icon.info {
+    color: #00bcd4;
+}
+
+.validation-widget .validation-entry {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.validation-widget .validation-messages {
+    padding-left: 25px;
+    flex-basis: 100%;
+}

@@ -38,7 +38,7 @@
     "@theia/workspace": "~1.38",
     "cinco-authenticator": "1.0.0",
     "cinco-branding": "1.0.0",
-    "@cinco-glsp/cinco-glsp-client": "1.0.0"
+    "@cinco-glsp/cinco-theia": "1.0.0"
   },
   "devDependencies": {
     "@theia/cli": "~1.38"
@@ -46,8 +46,8 @@
   "scripts": {
     "prepare": "yarn run download:plugins && theia build",
     "theia": "theia",
-    "start": "theia start --port=3000 --root-dir=../workspace --plugins=local-dir:./plugins",
-    "debug": "theia start --port=3000 --remote-debugging-port=9222 --loglevel=debug --hostname=localhost --no-cluster --root-dir=../workspace --loglevel=debug --plugins=local-dir:./plugins --app-project-path=../",
+    "start": "theia start --port=3000 --CINCO_GLSP=5007 --root-dir=../workspace --plugins=local-dir:./plugins",
+    "debug": "theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --loglevel=debug --hostname=localhost --no-cluster --root-dir=../workspace --loglevel=debug --plugins=local-dir:./plugins --app-project-path=../",
     "watch": "theia build --watch --mode development",
     "download:plugins": "theia download:plugins"
   },

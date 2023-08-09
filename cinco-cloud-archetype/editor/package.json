@@ -14,6 +14,7 @@
     "cinco-glsp-server",
     "glsp-client",
     "glsp-client/cinco-glsp-client",
+    "glsp-client/cinco-theia",
     "browser-app"
   ],
   "resolutions": {
