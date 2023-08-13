@@ -3138,7 +3138,7 @@
     "@theia/monaco-editor-core" "1.72.3"
     anser "^2.0.1"
 
-"@theia/core@1.38.0", "@theia/core@^1.18.0", "@theia/core@^1.34.0", "@theia/core@~1.38":
+"@theia/core@1.28.0", "@theia/core@1.38.0", "@theia/core@^1.18.0", "@theia/core@^1.34.0", "@theia/core@~1.38":
   version "1.38.0"
   resolved "https://registry.yarnpkg.com/@theia/core/-/core-1.38.0.tgz#ec534da6847be1ca0f4d8cefb2ec331e4642d7dd"
   integrity sha512-2/Zz8mqzw0TnQ362TsXp8/s87w9BoKDQ/+wa5czHNXnmCliwyJu0tgsRtrJEJJotPOm3oXT34P2LeYQkK4F/Cg==
@@ -3407,7 +3407,7 @@
   dependencies:
     "@theia/core" "1.38.0"
 
-"@theia/output@1.38.0", "@theia/output@~1.38":
+"@theia/output@1.28.0", "@theia/output@1.38.0", "@theia/output@~1.38":
   version "1.38.0"
   resolved "https://registry.yarnpkg.com/@theia/output/-/output-1.38.0.tgz#be87a0ce5a41c7ca328239953855c6ed5e780813"
   integrity sha512-///SL9/Cy55j9/KfPsUV4WeX/EoNd8dhWEo0LKyqH6IibrU4y8LrDvPNWycmQEtJ6CRh8krtv0vkihFpN7nHNg==
@@ -3678,7 +3678,7 @@
     semver "^5.4.1"
     uuid "^8.0.0"
 
-"@theia/workspace@1.38.0", "@theia/workspace@~1.38":
+"@theia/workspace@1.28.0", "@theia/workspace@1.38.0", "@theia/workspace@~1.38":
   version "1.38.0"
   resolved "https://registry.yarnpkg.com/@theia/workspace/-/workspace-1.38.0.tgz#dc14d16750daf5c0d0f0f4d34b526142592a4d18"
   integrity sha512-nP0jpOf8DX8+xXDDlbE/s5G0b2urY7IH8lrAm3hpcALcekIzdXYDUuxq3UWzAI9NK/LJEBZtpNlTfxfpEK9UVg==
@@ -14927,6 +14927,10 @@ vhost@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/vhost/-/vhost-3.0.2.tgz#2fb1decd4c466aa88b0f9341af33dc1aff2478d5"
   integrity sha512-S3pJdWrpFWrKMboRU4dLYgMrTgoPALsmYwOvyebK2M6X95b9kQrjZy5rwl3uzzpfpENe/XrNYu/2U+e7/bmT5g==
+
+vscode-icons@microsoft/vscode-icons:
+  version "0.0.0"
+  resolved "https://codeload.github.com/microsoft/vscode-icons/tar.gz/2ca0f3225c1ecd16537107f60f109317fcfc3eb0"
 
 vscode-jsonrpc@8.1.0:
   version "8.1.0"

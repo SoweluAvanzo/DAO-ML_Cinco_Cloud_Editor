@@ -46,8 +46,9 @@
   "scripts": {
     "prepare": "yarn run download:plugins && theia build",
     "theia": "theia",
-    "start": "theia start --port=3000 --CINCO_GLSP=5007 --root-dir=../workspace --plugins=local-dir:./plugins",
-    "debug": "theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --loglevel=debug --hostname=localhost --no-cluster --root-dir=../workspace --loglevel=debug --plugins=local-dir:./plugins --app-project-path=../",
+    "start": "theia start --CINCO_GLSP=5007 --root-dir=../workspace --plugins=local-dir:./plugins",
+    "start:external": "theia start --CINCO_GLSP=5007 --root-dir=../workspace --plugins=local-dir:./plugins --debug",
+    "debug": "theia start --mode --CINCO_GLSP=5007 --remote-debugging-port=9222 --loglevel=debug --hostname=localhost --no-cluster --root-dir=../workspace --loglevel=debug --plugins=local-dir:./plugins --app-project-path=../",
     "watch": "theia build --watch --mode development",
     "download:plugins": "theia download:plugins"
   },
