@@ -14,6 +14,15 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
+    EdgeType,
+    getContainmentsOf,
+    getEdgeSources,
+    getEdgeTargets,
+    getEdgeTypes,
+    getNodeTypes,
+    NodeType
+} from '@cinco-glsp/cinco-glsp-common';
+import {
     DiagramConfiguration,
     EdgeTypeHint,
     getDefaultMapping,
@@ -23,15 +32,6 @@ import {
     ShapeTypeHint
 } from '@eclipse-glsp/server-node';
 import { injectable } from 'inversify';
-import {
-    EdgeType,
-    getContainmentsOf,
-    getEdgeSources,
-    getEdgeTargets,
-    getEdgeTypes,
-    getNodeTypes,
-    NodeType
-} from '../shared/meta-specification';
 
 @injectable()
 export class CincoDiagramConfiguration implements DiagramConfiguration {

@@ -13,13 +13,24 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { CreateNodeOperationHandler, Operation } from '@eclipse-glsp/server-node';
+import { ElementType, NodeType, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
+import {
+    CreateEdgeOperation,
+    CreateNodeOperation,
+    GModelElement,
+    Operation,
+    Point,
+    TriggerEdgeCreationAction,
+    TriggerNodeCreationAction,
+    CreateNodeOperationHandler
+} from '@eclipse-glsp/server-node';
 import { injectable } from 'inversify';
-import { ElementType, getSpecOf } from '../shared/meta-specification';
 
 @injectable()
 export class SpecifiedElementHandler extends CreateNodeOperationHandler {
+    override label: string = this.specification?.label ?? 'undefined';
     _specification: ElementType | undefined;
+
     BLACK_LIST: string[] = [];
 
     get elementTypeId(): string | undefined {
@@ -43,14 +54,31 @@ export class SpecifiedElementHandler extends CreateNodeOperationHandler {
     }
 
     override get operationType(): string {
-        throw new Error('Method not implemented.');
+        if (NodeType.is(this._specification)) {
+            return CreateNodeOperation.KIND;
+        } else {
+            return CreateEdgeOperation.KIND;
+        }
     }
 
-    get label(): string {
-        return this.specification!.label;
+    override getTriggerActions(): (TriggerEdgeCreationAction | TriggerNodeCreationAction)[] {
+        if (NodeType.is(this._specification)) {
+            return this.elementTypeIds.map(e => TriggerNodeCreationAction.create(e));
+        } else {
+            return this.elementTypeIds.map(e => TriggerEdgeCreationAction.create(e));
+        }
     }
 
     getLabelFor(elementTypeId: string): string {
         return getSpecOf(elementTypeId)?.label ?? elementTypeId;
+    }
+
+    override getContainer(operation: CreateNodeOperation): GModelElement | undefined {
+        const index = this.modelState.index;
+        return operation.containerId ? index.get(operation.containerId) : undefined;
+    }
+
+    override getLocation(operation: CreateNodeOperation): Point | undefined {
+        return operation.location;
     }
 }

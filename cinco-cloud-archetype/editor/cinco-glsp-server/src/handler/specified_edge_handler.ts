@@ -13,27 +13,32 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { CreateEdgeOperation } from '@eclipse-glsp/server-node';
+import { Edge, GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
+import { getEdgeSpecOf, getEdgeTypes , EdgeType } from '@cinco-glsp/cinco-glsp-common';
+import {
+    ActionDispatcher,
+    CreateEdgeOperation,
+    SaveModelAction
+} from '@eclipse-glsp/server-node';
 import { inject, injectable } from 'inversify';
-import { Edge } from '../model/graph-model';
-import { GraphModelIndex } from '../model/graph-model-index';
-import { getEdgeSpecOf, getEdgeTypes } from '../shared/meta-specification';
 import { SpecifiedElementHandler } from './specified_element_handler';
 
 @injectable()
 export class SpecifiedEdgeHandler extends SpecifiedElementHandler {
     @inject(GraphModelIndex)
     protected index: GraphModelIndex;
+    @inject(ActionDispatcher)
+    readonly actionDispatcher: ActionDispatcher;
+
+    override get operationType(): string {
+        return 'createEdge';
+    }
 
     override get elementTypeIds(): string[] {
         const result = getEdgeTypes()
-            .map(e => e.elementTypeId)
-            .filter(e => this.BLACK_LIST.indexOf(e) < 0);
+            .map((e: EdgeType) => e.elementTypeId)
+            .filter((e: string) => this.BLACK_LIST.indexOf(e) < 0);
         return result;
-    }
-
-    override get operationType(): string {
-        return CreateEdgeOperation.KIND;
     }
 
     override execute(operation: CreateEdgeOperation): void {
@@ -41,7 +46,10 @@ export class SpecifiedEdgeHandler extends SpecifiedElementHandler {
         if (this.checkConstraints(operation)) {
             const edge = this.createEdge(operation.sourceElementId, operation.targetElementId, operation.elementTypeId);
             edge.index = this.index;
-            this.index.getRoot().edges.push(edge);
+            const graphmodel = this.index.getRoot();
+            graphmodel.edges.push(edge);
+            const fileUri = graphmodel._sourceUri;
+            this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
         }
     }
 

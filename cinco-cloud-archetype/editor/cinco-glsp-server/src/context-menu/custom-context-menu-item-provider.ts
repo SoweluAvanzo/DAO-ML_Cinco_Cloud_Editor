@@ -13,63 +13,62 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, Args, ContextMenuItemProvider, MenuItem, Point } from '@eclipse-glsp/server-node';
 
-import { injectable } from 'inversify';
+import { GraphModelState, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { CustomAction, getCustomActions, hasCustomAction } from '@cinco-glsp/cinco-glsp-common';
+import { Args, ContextMenuItemProvider, MenuItem, Point } from '@eclipse-glsp/server-node';
+import { inject, injectable } from 'inversify';
+
 @injectable()
 export class CustomContextMenuItemProvider extends ContextMenuItemProvider {
+    @inject(GraphModelState)
+    protected readonly modelState: GraphModelState;
+
     getItems(selectedElementIds: string[], position: Point, args?: Args | undefined): MenuItem[] {
         const menuItems: MenuItem[] = [];
         // create menuItem for action
-        const menuItem = this.getCustomMenuItem(selectedElementIds);
+        const customMenuItems = this.getCustomMenuItems(selectedElementIds);
         // custom action
         if (selectedElementIds.length <= 0) {
             // graphmodell was clicked
-            menuItems.push(menuItem);
+            menuItems.push(...customMenuItems);
         } else {
             // element was clicked
-            menuItems.push(menuItem);
+            menuItems.push(...customMenuItems);
         }
         return menuItems;
     }
 
-    getCustomMenuItem(selectedElementIds: string[]): MenuItem {
-        // creating example action-specification
-        const label = 'Calculate shortest path';
-        const menuItem = {
-            id: 'action_flowgraph_action-name',
-            label: label,
-            sortString: label.charAt(0),
-            group: 'cinco-action',
-            icon: '',
-            actionKind: CustomAction.KIND,
-            args: [selectedElementIds],
-            actions: [] as CustomAction[]
-            /*
-                // TODO:
-                isEnabled: () => true,
-                isVisible: () => true,
-                isToggled: () => true,
-                children: []
-            */
-        };
-        const customAction: CustomAction = CustomAction.create(selectedElementIds);
-        menuItem.actions.push(customAction);
-        return menuItem;
+    getCustomMenuItems(selectedElementIds: string[]): MenuItem[] {
+        const modelElement = this.modelState.index.findElement(selectedElementIds[0]) as ModelElement;
+        const type = modelElement.type;
+        const menuItems: MenuItem[] = [];
+        const hasAc = hasCustomAction(type);
+        if (hasAc) {
+            for (const action of getCustomActions(modelElement.type)) {
+                const label = action[1];
+                const menuItem = {
+                    id: 'action_graph_custom_' + action[0],
+                    label: label,
+                    sortString: label.charAt(0),
+                    group: 'cinco-action',
+                    icon: '',
+                    actionKind: action[0],
+                    args: [selectedElementIds],
+                    actions: [] as CustomAction[]
+                    /*
+                        // TODO:
+                        isEnabled: () => true,
+                        isVisible: () => true,
+                        isToggled: () => true,
+                        children: []
+                    */
+                };
+                const customAction: CustomAction = CustomAction.create(selectedElementIds[0], selectedElementIds, menuItem.actionKind);
+                menuItem.actions.push(customAction);
+                menuItems.push(menuItem);
+            }
+        }
+        return menuItems;
     }
 }
-export interface CustomAction extends Action {
-    kind: typeof CustomAction.KIND;
-    selectedElementIds: string[];
-}
-export namespace CustomAction {
-    export const KIND = 'ExampleAction';
-
-    export function create(selectedElementIds: string[]): CustomAction {
-        return {
-            kind: KIND,
-            selectedElementIds
-        };
-    }
-}
-export interface CustomAction extends Action {}

@@ -13,11 +13,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { ChangeRoutingPointsOperation, Logger, OperationHandler } from '@eclipse-glsp/server-node';
+import { Edge, GraphModelState } from '@cinco-glsp/cinco-glsp-api';
+import { ChangeAwareRoutingPointsOperation, RoutingPoint } from '@cinco-glsp/cinco-glsp-common';
+import { ChangeRoutingPointsOperation, Logger, MaybePromise, OperationHandler } from '@eclipse-glsp/server-node';
 import { inject, injectable } from 'inversify';
-import { Edge } from '../model/graph-model';
-import { GraphModelState } from '../model/graph-model-state';
-import { ChangeAwareRoutingPointsOperation, RoutingPoint } from '../shared/protocol/routingpoint-protocol';
 
 @injectable()
 export class RoutingPointHandler implements OperationHandler {

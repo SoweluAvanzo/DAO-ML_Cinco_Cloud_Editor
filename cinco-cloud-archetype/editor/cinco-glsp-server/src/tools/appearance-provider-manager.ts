@@ -13,12 +13,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { AppearanceProvider, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { RequestAppearanceUpdateAction, getAppearanceProvider, hasAppearanceProvider } from '@cinco-glsp/cinco-glsp-common';
 import { Action, SaveModelAction } from '@eclipse-glsp/server-node';
 import { injectable } from 'inversify';
-import { ModelElement } from '../model/graph-model';
-import { getAppearanceProvider, hasAppearanceProvider } from '../shared/meta-specification';
-import { RequestAppearanceUpdateAction } from '../shared/protocol/appearance-provider-protocol';
-import { AppearanceProvider } from './api/appearance-provider';
 import { BaseHandlerManager } from './base-handler-manager';
 
 /**

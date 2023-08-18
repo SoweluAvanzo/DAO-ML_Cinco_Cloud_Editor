@@ -13,13 +13,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { APIBaseHandler, GraphModelState, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action, ActionDispatcher, ActionHandler, Logger } from '@eclipse-glsp/server-node';
 import { inject, injectable } from 'inversify';
-import { ModelElement } from '../model/graph-model';
-import { GraphModelState } from '../model/graph-model-state';
-import { ManagedBaseAction } from '../shared/protocol/shared-protocol';
-import { APIBaseHandler } from './api/api-base-handler';
-import { LanguageFilesRegistry } from './language-files-registry';
 
 /**
  * a base handler for the base action
@@ -53,6 +50,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     abstract executeHandler(handler: H, element: ModelElement, action: A, args: any): Promise<Action[]> | Action[];
 
     execute(action: A, ...args: unknown[]): Promise<Action[]> {
+        LanguageFilesRegistry.fetch();
         return new Promise<Action[]>((resolve, _) => {
             const results: Action[] = [];
             this.getActiveHandlers(action, args).then(handlers => {

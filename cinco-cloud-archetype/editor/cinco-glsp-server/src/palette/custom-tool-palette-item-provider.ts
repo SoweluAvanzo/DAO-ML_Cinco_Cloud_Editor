@@ -16,12 +16,7 @@
 import { Args, PaletteItem } from '@eclipse-glsp/protocol';
 import * as fs from 'fs';
 // eslint-disable-next-line max-len
-import { CreateOperationHandler, OperationHandlerRegistry, ToolPaletteItemProvider } from '@eclipse-glsp/server-node';
-import { inject, injectable } from 'inversify';
-import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
-import { SpecifiedElementHandler } from '../handler/specified_element_handler';
-import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
-import { GraphModelState } from '../model/graph-model-state';
+import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
 import {
     ElementType,
     canBeCreated,
@@ -34,7 +29,18 @@ import {
     getSpecOf,
     hasPalette,
     hasPrimeReference
-} from '../shared/meta-specification';
+} from '@cinco-glsp/cinco-glsp-common';
+import {
+    CreateOperationHandler,
+    OperationHandlerRegistry,
+    ToolPaletteItemProvider,
+    TriggerEdgeCreationAction,
+    TriggerNodeCreationAction
+} from '@eclipse-glsp/server-node';
+import { inject, injectable } from 'inversify';
+import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
+import { SpecifiedElementHandler } from '../handler/specified_element_handler';
+import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
 import { getFilesByExtension, getFilesFromFolder, getWorkspaceRootUri } from '../utils/file-helper';
 
 @injectable()
@@ -47,7 +53,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
     getItems(args?: Args): PaletteItem[] {
         const handlers = this.operationHandlerRegistry
             .getAll()
-            .filter(handler => handler instanceof CreateOperationHandler) as CreateOperationHandler[];
+            .filter(handler => handler instanceof SpecifiedElementHandler) as CreateOperationHandler[];
         this.counter = 0;
 
         // add default categories
@@ -248,8 +254,10 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
 
         handlers.forEach(handler => {
             if (handler instanceof SpecifiedElementHandler) {
-                handler.getTriggerActions().forEach(action => {
-                    const elementTypeId = action.elementTypeId;
+                handler.elementTypeIds.forEach(elementTypeId => {
+                    const action = getNodeSpecOf(elementTypeId)
+                        ? TriggerNodeCreationAction.create(elementTypeId)
+                        : TriggerEdgeCreationAction.create(elementTypeId);
                     if (
                         canBeCreated(this.state.graphModel.type, elementTypeId) && // filter out only creatable elements
                         (hasPalette(elementTypeId, categoryId) ||
@@ -258,11 +266,11 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                         if (hasPrimeReference(elementTypeId)) {
                             if (fileList && fileList.length > 0) {
                                 fileList.forEach(file => {
-                                    paletteItems.push(this.create(action, handler, action.elementTypeId, file));
+                                    paletteItems.push(this.create(action, handler, elementTypeId, file));
                                 });
                             }
                         } else {
-                            paletteItems.push(this.create(action, handler, action.elementTypeId));
+                            paletteItems.push(this.create(action, handler, elementTypeId));
                         }
                     }
                 });

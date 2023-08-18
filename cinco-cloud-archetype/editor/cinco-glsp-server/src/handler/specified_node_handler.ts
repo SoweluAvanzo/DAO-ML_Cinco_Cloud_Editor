@@ -13,11 +13,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { ActionDispatcher, CreateNodeOperation, Point } from '@eclipse-glsp/server-node';
+import { Container, GraphModel, GraphModelIndex, Node } from '@cinco-glsp/cinco-glsp-api';
+import { ModelElementContainer, getNodeSpecOf, getNodeTypes , NodeType } from '@cinco-glsp/cinco-glsp-common';
+import {
+    ActionDispatcher,
+    CreateNodeOperation,
+    Point,
+    SaveModelAction
+} from '@eclipse-glsp/server-node';
 import { inject, injectable } from 'inversify';
-import { Container, GraphModel, Node } from '../model/graph-model';
-import { GraphModelIndex } from '../model/graph-model-index';
-import { ModelElementContainer, getNodeSpecOf, getNodeTypes } from '../shared/meta-specification';
 import { SpecifiedElementHandler } from './specified_element_handler';
 
 @injectable()
@@ -28,6 +32,10 @@ export class SpecifiedNodeHandler extends SpecifiedElementHandler {
     readonly actionDispatcher: ActionDispatcher;
 
     override BLACK_LIST: string[] = [];
+
+    override get operationType(): string {
+        return 'createNode';
+    }
 
     override execute(operation: CreateNodeOperation): void {
         // find container
@@ -48,6 +56,10 @@ export class SpecifiedNodeHandler extends SpecifiedElementHandler {
         container.containments.push(node);
         // post hook
         this.postCreateHook(node);
+        // save model
+        const graphmodel = this.index.getRoot();
+        const fileUri = graphmodel._sourceUri;
+        this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
         // update palette
         this.actionDispatcher.dispatch(paletteUpdateAction);
     }
@@ -94,13 +106,9 @@ export class SpecifiedNodeHandler extends SpecifiedElementHandler {
 
     override get elementTypeIds(): string[] {
         const result = getNodeTypes()
-            .map(e => e.elementTypeId)
-            .filter(e => this.BLACK_LIST.indexOf(e) < 0);
+            .map((e: NodeType) => e.elementTypeId)
+            .filter((e: string) => this.BLACK_LIST.indexOf(e) < 0);
         return result;
-    }
-
-    override get operationType(): string {
-        return CreateNodeOperation.KIND;
     }
 
     protected preCreateHook(elementTypeId: string, containerId: string, location: Point | undefined): void {

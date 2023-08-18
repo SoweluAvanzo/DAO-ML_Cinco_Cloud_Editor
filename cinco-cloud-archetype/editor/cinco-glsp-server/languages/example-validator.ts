@@ -13,10 +13,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { LanguageFilesRegistry, ValidationHandler } from '@cinco-glsp/cinco-glsp-api';
+import { ValidationModelAnswerAction, ValidationRequestAction, ValidationStatus } from '@cinco-glsp/cinco-glsp-common';
 import { Action } from '@eclipse-glsp/server-node';
-import { ValidationModelAnswerAction, ValidationRequestAction, ValidationStatus } from '../src/shared/protocol/validation-protocol';
-import { ValidationHandler } from '../src/tools/api/validation-handler';
-import { LanguageFilesRegistry } from '../src/tools/language-files-registry';
 
 /**
  * Language Designer defined example of a Validator

@@ -13,8 +13,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { GraphGModelFactory, GraphModelIndex, GraphModelState, GraphModelStorage, ServerResponseHandler } from '@cinco-glsp/cinco-glsp-api';
+import {
+    ApplyAppearanceUpdateAction,
+    CustomAction,
+    DIAGRAM_TYPE,
+    FileProviderResponse,
+    GeneratorResponseAction,
+    MetaSpecificationResponseAction,
+    PropertyViewResponseAction,
+    ValidationModelAnswerAction
+} from '@cinco-glsp/cinco-glsp-common';
 import {
     ActionHandlerConstructor,
+    BindingTarget,
     ComputedBoundsActionHandler,
     ContextMenuItemProvider,
     DiagramConfiguration,
@@ -27,7 +39,6 @@ import {
     SourceModelStorage,
     ToolPaletteItemProvider
 } from '@eclipse-glsp/server-node';
-import { BindingTarget } from '@eclipse-glsp/server-node/lib/di/binding-target';
 import { injectable } from 'inversify';
 import { CustomContextMenuItemProvider } from '../context-menu/custom-context-menu-item-provider';
 import { GeneratorCreateFileHandler, GeneratorEditHandler } from '../generator/generator-tool';
@@ -35,31 +46,24 @@ import { ApplyLabelEditHandler } from '../handler/apply-label-edit-handler';
 import { ChangeBoundsHandler } from '../handler/change-bounds-handler';
 import { ChangeContainerHandler } from '../handler/change-container-handler';
 import { DeleteHandler } from '../handler/delete-handler';
+import { FileProviderHandler } from '../handler/file-provider-handler';
 import { MetaSpecificationReloadHandler } from '../handler/meta-specification-reload-handler';
+import { MetaSpecificationRequestHandler } from '../handler/meta-specification-request-handler';
 import { RoutingPointHandler } from '../handler/routingpoint-handler';
-import { ShortestPathAction } from '../handler/shortest-path-action';
 import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
 import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
-import { GraphGModelFactory } from '../model/graph-gmodel-factory';
-import { GraphModelIndex } from '../model/graph-model-index';
-import { GraphModelState } from '../model/graph-model-state';
-import { GraphModelStorage } from '../model/graph-storage';
 import { CustomToolPaletteItemProvider } from '../palette/custom-tool-palette-item-provider';
 import { PropertyEditHandler, PropertyViewHandler } from '../property-view/property-view-tool';
-import { ApplyAppearanceUpdateAction } from '../shared/protocol/appearance-provider-protocol';
-import { GeneratorResponseAction } from '../shared/protocol/generator-protocol';
-import { PropertyViewResponseAction } from '../shared/protocol/property-protocol';
-import { ValidationModelAnswerAction } from '../shared/protocol/validation-protocol';
 import { AppearanceProviderManager } from '../tools/appearance-provider-manager';
+import { CustomActionManager } from '../tools/custom-action-manager';
 import { DoubleClickManager } from '../tools/double-click-manager';
 import { GeneratorManager } from '../tools/generator-manager';
-import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
 import { ValidationManager } from '../tools/validation-manager';
 import { CincoDiagramConfiguration } from './cinco-diagram-configuration';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
-    readonly diagramType = 'cinco-diagram';
+    readonly diagramType = DIAGRAM_TYPE;
 
     protected bindDiagramConfiguration(): BindingTarget<DiagramConfiguration> {
         return CincoDiagramConfiguration;
@@ -81,13 +85,15 @@ export class CincoDiagramModule extends DiagramModule {
         super.configureActionHandlers(binding);
         binding.add(ServerResponseHandler); // Response Handle for e.g. Dialogs
         binding.add(ComputedBoundsActionHandler);
-        binding.add(ShortestPathAction); // CustomAction
+        binding.add(CustomActionManager); // CustomAction
         binding.add(DoubleClickManager); // DoubleClick ActionHandler
         binding.add(AppearanceProviderManager); // DoubleClick ActionHandler
         binding.add(PropertyViewHandler); // Property View ActionHandler
         binding.add(ValidationManager); // Validation ActionHandler
         binding.add(GeneratorManager);
         binding.add(MetaSpecificationReloadHandler);
+        binding.add(MetaSpecificationRequestHandler);
+        binding.add(FileProviderHandler);
     }
 
     protected override configureClientActions(binding: InstanceMultiBinding<string>): void {
@@ -96,7 +102,10 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(GeneratorResponseAction.KIND);
         binding.add(ApplyAppearanceUpdateAction.KIND);
         binding.add(ValidationModelAnswerAction.KIND);
+        binding.add(CustomAction.KIND);
         binding.add('enableToolPalette');
+        binding.add(MetaSpecificationResponseAction.KIND);
+        binding.add(FileProviderResponse.KIND);
     }
 
     protected override configureOperationHandlers(binding: InstanceMultiBinding<OperationHandlerConstructor>): void {

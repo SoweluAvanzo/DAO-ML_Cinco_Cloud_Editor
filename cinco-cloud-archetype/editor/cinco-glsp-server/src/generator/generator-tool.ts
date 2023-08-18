@@ -13,11 +13,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
+import { GeneratorCreateFileOperation, GeneratorEditOperation } from '@cinco-glsp/cinco-glsp-common';
 import { Logger, OperationHandler } from '@eclipse-glsp/server-node';
 import * as fs from 'fs-extra';
 import { inject, injectable } from 'inversify';
-import { GraphModelState } from '../model/graph-model-state';
-import { GeneratorCreateFileOperation, GeneratorEditOperation } from '../shared/protocol/generator-protocol';
 
 @injectable()
 export class GeneratorEditHandler implements OperationHandler {
@@ -30,7 +30,7 @@ export class GeneratorEditHandler implements OperationHandler {
 
     execute(operation: GeneratorEditOperation): void {
         const modelElementId: string = operation.modelElementId;
-        console.log(modelElementId); // TODO
+        console.log(modelElementId);
     }
 }
 
@@ -42,7 +42,8 @@ export class GeneratorCreateFileHandler implements OperationHandler {
     protected readonly logger: Logger;
 
     execute(operation: GeneratorCreateFileOperation): void {
-        for (const el of operation.filesContentsMap) {
+        const contents = Array.from(operation.filesContentsMap.entries());
+        for (const el of contents) {
             fs.writeFileSync(el[0]['codeUri']['path'], el[1]);
         }
     }

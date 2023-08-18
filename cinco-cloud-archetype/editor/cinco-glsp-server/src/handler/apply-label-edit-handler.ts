@@ -13,11 +13,18 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
+import { PropertyViewAction } from '@cinco-glsp/cinco-glsp-common';
 import { ApplyLabelEditOperation } from '@eclipse-glsp/protocol';
-import { ActionDispatcher, GLSPServerError, GNode, OperationHandler, toTypeGuard } from '@eclipse-glsp/server-node';
+import {
+    ActionDispatcher,
+    GLSPServerError,
+    GNode,
+    MaybePromise,
+    OperationHandler,
+    toTypeGuard
+} from '@eclipse-glsp/server-node';
 import { inject, injectable } from 'inversify';
-import { GraphModelState } from '../model/graph-model-state';
-import { PropertyViewAction } from '../shared/protocol/property-protocol';
 
 @injectable()
 export class ApplyLabelEditHandler implements OperationHandler {
@@ -29,7 +36,7 @@ export class ApplyLabelEditHandler implements OperationHandler {
     @inject(ActionDispatcher)
     protected readonly actionDispatcher: ActionDispatcher;
 
-    execute(operation: ApplyLabelEditOperation): void {
+    execute(operation: ApplyLabelEditOperation): MaybePromise<void> {
         const index = this.modelState.index;
         // Retrieve the parent node of the label that should be edited
         const activityNode = index.findParentElement(operation.labelId, toTypeGuard(GNode));

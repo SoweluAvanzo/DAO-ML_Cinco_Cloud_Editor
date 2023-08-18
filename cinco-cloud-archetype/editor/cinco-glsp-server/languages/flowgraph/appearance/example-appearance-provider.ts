@@ -13,21 +13,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { AppearanceProvider, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import {
     AbstractShape,
     Appearance,
+    ApplyAppearanceUpdateAction,
     Color,
     Ellipse,
     Font,
     LineStyle,
     NodeStyle,
     Rectangle,
+    RequestAppearanceUpdateAction,
     View
-} from '../../../src/shared/meta-specification';
-import { ApplyAppearanceUpdateAction, RequestAppearanceUpdateAction } from '../../../src/shared/protocol/appearance-provider-protocol';
-import { AppearanceProvider } from '../../../src/tools/api/appearance-provider';
-import { LanguageFilesRegistry } from '../../../src/tools/language-files-registry';
-import { ModelElement } from '../../model/graph-model';
+} from '@cinco-glsp/cinco-glsp-common';
 
 // eslint-disable-next-line no-shadow
 enum CHANGE_APPEARANCE_MODE {

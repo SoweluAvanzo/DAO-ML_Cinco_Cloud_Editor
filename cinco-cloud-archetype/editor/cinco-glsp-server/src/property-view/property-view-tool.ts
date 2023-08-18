@@ -13,35 +13,34 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, ActionHandler, Logger, MaybePromise, OperationHandler } from '@eclipse-glsp/server-node';
-import { inject, injectable } from 'inversify';
-import { ModelElement } from '../model/graph-model';
-import { GraphModelState } from '../model/graph-model-state';
+import { GraphModelState, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import {
     Attribute,
     CustomType,
     EdgeType,
     ElementType,
     GraphType,
+    LabeledModelElementReference,
+    ModelElementIndex,
     NodeType,
+    ObjectPointer,
+    PropertyChange,
+    PropertyEditOperation,
+    PropertyViewAction,
+    PropertyViewResponseAction,
     canAdd,
     canAssign,
     canDelete,
     getAttribute,
     getCustomType,
     getCustomTypes,
-    getModelElementSpecifications,
-    getSpecOf
-} from '../shared/meta-specification';
-import {
-    LabeledModelElementReference,
-    ModelElementIndex,
-    ObjectPointer,
-    PropertyChange,
     getDefaultValue,
+    getModelElementSpecifications,
+    getSpecOf,
     isList
-} from '../shared/protocol/property-model';
-import { PropertyEditOperation, PropertyViewAction, PropertyViewResponseAction } from '../shared/protocol/property-protocol';
+} from '@cinco-glsp/cinco-glsp-common';
+import { Action, ActionHandler, Logger, MaybePromise, OperationHandler } from '@eclipse-glsp/server-node';
+import { inject, injectable } from 'inversify';
 
 /**
  * Handler for action
@@ -69,7 +68,7 @@ export class PropertyViewHandler implements ActionHandler {
         const modelElementIndex: ModelElementIndex = {};
         for (const spec of getModelElementSpecifications()) {
             const allElementsOfType = index.getElements(spec.elementTypeId);
-            modelElementIndex[spec.elementTypeId] = allElementsOfType.map(e => {
+            modelElementIndex[spec.elementTypeId] = allElementsOfType.map((e: any) => {
                 const id = e.id;
                 const elementTypeId = spec.elementTypeId;
                 const properties = e.args?.properties ?? '{ }';
@@ -243,6 +242,7 @@ export class PropertyEditHandler implements OperationHandler {
                 return canAssign(index, bounds);
             }
         }
+        return false;
     }
 
     protected locateObject(element: any, pointer: ObjectPointer): { object: any; objectTypeSpecification: CustomType | undefined } {

@@ -13,12 +13,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { DoubleClickHandler, LanguageFilesRegistry, ModelElement, Node } from '@cinco-glsp/cinco-glsp-api';
+import { DoubleClickAction, RequestAppearanceUpdateAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action } from '@eclipse-glsp/server-node';
-import { RequestAppearanceUpdateAction } from '../../src/shared/protocol/appearance-provider-protocol';
-import { DoubleClickAction } from '../../src/shared/protocol/double-click-protocol';
-import { DoubleClickHandler } from '../../src/tools/api/double-click-handler';
-import { LanguageFilesRegistry } from '../../src/tools/language-files-registry';
-import { ModelElement, Node } from '../model/graph-model';
 
 /**
  * Language Designer defined example of a DoubleClickHandler

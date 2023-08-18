@@ -5,9 +5,15 @@
   },
   "include": [
     "cinco-authenticator/src",
-    "cinco-branding/src"
+    "cinco-branding/src",
+    "cinco-glsp-common/src",
+    "cinco-glsp-api/src",
+    "cinco-glsp-client/src",
+    "cinco-glsp-server/src",
+    "cinco-glsp-theia/src"
   ],
   "exclude": [
-    "node_modules"
+    "**/node_modules",
+    "**/.eslintrc.js"
   ]
 }

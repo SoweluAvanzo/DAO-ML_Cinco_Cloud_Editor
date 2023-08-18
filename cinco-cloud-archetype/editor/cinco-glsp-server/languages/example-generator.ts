@@ -14,17 +14,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { GeneratorHandler, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { GeneratorAction, GeneratorCreateFileOperation } from '@cinco-glsp/cinco-glsp-common';
 import { Action } from '@eclipse-glsp/server-node';
 import URI from '@theia/core/lib/common/uri';
-import { GeneratorAction, GeneratorCreateFileOperation } from '../src/shared/protocol/generator-protocol';
-import { GeneratorHandler } from '../src/tools/api/generator-handler';
-import { LanguageFilesRegistry } from '../src/tools/language-files-registry';
-import { ModelElement } from './model/graph-model';
 
-export interface DidCreateNewResourceEvent {
-    uri: URI;
-    parent: URI;
-}
 /**
  * Language Designer defined example of a Generator
  */

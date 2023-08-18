@@ -696,6 +696,14 @@
         {
           "name": "DoubleClickAction",
           "values": ["ExampleDoubleClickHandler"]
+        },
+        {
+          "name": "CustomAction",
+          "values": ["ShortestPathAction", "Calculate Shortest Path"]
+        },
+        {
+          "name": "CustomAction",
+          "values": ["LongestPathAction", "Calculate Longest Path"]
         }
       ],
       "attributes": [
@@ -886,6 +894,16 @@
             "lowerBound": 0,
             "upperBound": -1
           }
+        }
+      ],
+      "annotations": [
+        {
+          "name": "CustomAction",
+          "values": ["ShortestPathAction", "Calculate Shortest Path"]
+        },
+        {
+          "name": "CustomAction",
+          "values": ["LongestPathAction", "Calculate Longest Path"]
         }
       ]
     },

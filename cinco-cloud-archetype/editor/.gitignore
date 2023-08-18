@@ -12,3 +12,5 @@ server/
 .DS_Store
 .yalc
 workspace/*
+tsconfig.tsbuildinfo
+languages/dummy.ts

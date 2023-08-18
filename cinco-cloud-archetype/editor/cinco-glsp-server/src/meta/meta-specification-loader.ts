@@ -13,16 +13,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { CompositionSpecification, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
 import { ActionDispatcher } from '@eclipse-glsp/server-node';
 import * as fs from 'fs';
-import { CompositionSpecification, MetaSpecification } from '../shared/meta-specification';
-import { getFilesFromFolder, readJson } from '../utils/file-helper';
+import { getFilesFromFolder, getRootUri, readJson } from '../utils/file-helper';
 
 export class MetaSpecificationLoader {
     static ROOT_BASE = '../../../..'; // pivot the rootBasePath to the folder above cinco-glsp-server
 
     static load(metaLanguagesFolder: string, metaSpecificationFileTypes: string[], actionDispatcher?: ActionDispatcher): void {
-        const metaLanguagesPath = `${__dirname}/${this.ROOT_BASE}/${metaLanguagesFolder}`;
+        const metaLanguagesPath = `${getRootUri()}/${metaLanguagesFolder}`;
         console.log(`loading files from:  ${metaLanguagesPath}`);
         const foundFiles2 = getFilesFromFolder(fs, metaLanguagesPath, './');
         foundFiles2
@@ -55,7 +55,7 @@ export class MetaSpecificationLoader {
     static loadClassFiles(languagesFolder: string, supportedDynamicImportFileTypes: string[]): void {
         // Import all injected language-files under './languages/*.ts'
         const pivot = '../../../..';
-        const languagesPath = `${__dirname}/${this.ROOT_BASE}/${languagesFolder}`;
+        const languagesPath = `${getRootUri()}/${languagesFolder}`;
         console.log(`loading files from:  ${languagesPath}`);
         const foundFiles = getFilesFromFolder(fs, languagesPath, './');
         foundFiles

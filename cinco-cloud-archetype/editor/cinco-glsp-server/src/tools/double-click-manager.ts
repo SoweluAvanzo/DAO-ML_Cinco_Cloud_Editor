@@ -13,12 +13,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { DoubleClickHandler, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { DoubleClickAction, getDoubleClickActions, hasDoubleClickAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action } from '@eclipse-glsp/server-node';
 import { injectable } from 'inversify';
-import { ModelElement } from '../model/graph-model';
-import { getDoubleClickActions, hasDoubleClickAction } from '../shared/meta-specification';
-import { DoubleClickAction } from '../shared/protocol/double-click-protocol';
-import { DoubleClickHandler } from './api/double-click-handler';
 import { BaseHandlerManager } from './base-handler-manager';
 
 /**
@@ -36,7 +34,7 @@ export class DoubleClickManager extends BaseHandlerManager<DoubleClickAction, Do
 
     isApplicableHandler(element: ModelElement, handlerClassName: string): boolean {
         return (
-            getDoubleClickActions(element).filter(
+            getDoubleClickActions(element.type).filter(
                 // In the value set of annotations, there exists a value with the handlerClassName
                 a => a.indexOf(handlerClassName) >= 0
             ).length > 0

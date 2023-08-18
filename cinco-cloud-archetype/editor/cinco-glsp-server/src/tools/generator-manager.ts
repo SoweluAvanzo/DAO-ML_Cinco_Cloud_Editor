@@ -14,12 +14,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { GeneratorHandler, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { GeneratorAction, getGeneratorAction, hasGeneratorAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action } from '@eclipse-glsp/server-node';
 import { injectable } from 'inversify';
-import { ModelElement } from '../model/graph-model';
-import { getAnnotations, hasGeneratorAction } from '../shared/meta-specification';
-import { GeneratorAction } from '../shared/protocol/generator-protocol';
-import { GeneratorHandler } from './api/generator-handler';
 import { BaseHandlerManager } from './base-handler-manager';
 
 /**
@@ -37,12 +35,10 @@ export class GeneratorManager extends BaseHandlerManager<GeneratorAction, Genera
 
     isApplicableHandler(element: ModelElement, handlerClassName: string): boolean {
         return (
-            getAnnotations(element.type, 'GeneratorAction')
-                .filter(a => a)
-                .filter(
-                    // In the value Set of any annotation, there exists a value with the handlerClassName
-                    a => a.values.indexOf(handlerClassName) >= 0
-                ).length > 0
+            getGeneratorAction(element.type).filter(
+                // In the value set of annotations, there exists a value with the handlerClassName
+                a => a.indexOf(handlerClassName) >= 0
+            ).length > 0
         );
     }
 

@@ -13,16 +13,42 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { getFileExtension } from '@cinco-glsp/cinco-glsp-common';
 import * as path from 'path';
 
-export function getFilesFromFolder(fs: typeof import('fs'), absRoot: string, folderPath: string): string[] {
+export function getFilesFromDirectories(
+    fs: typeof import('fs'),
+    directories: string[],
+    filterTypes: string[],
+    encoding?: string
+): string[] {
+    let result: string[] = [];
+    for (const dir of directories) {
+        const fileUris = getFiles(fs, dir, filterTypes);
+        result = result.concat(fileUris);
+    }
+    return result;
+}
+
+export function getFiles(fs: typeof import('fs'), absFolderPath: string, filterTypes: string[]): string[] {
+    try {
+        console.log(`loading files from:  ${absFolderPath}`);
+        // TODO: resolve files inside folders
+        return getFilesFromFolder(fs, absFolderPath, './', filterTypes);
+    } catch (e) {
+        console.log('failed to access filesystem.');
+    }
+    return [];
+}
+
+export function getFilesFromFolder(fs: typeof import('fs'), absRoot: string, folderPath: string, filterTypes?: string[]): string[] {
     const absoluteFolderPath = path.join(absRoot, folderPath);
     if (!fs.existsSync(absoluteFolderPath)) {
         return [];
     }
     // file or folder exists
     const found = fs.readdirSync(absoluteFolderPath) as string[]; // all found files and directories
-    const foundFiles = found.filter(file => {
+    let foundFiles = found.filter(file => {
         const absPath = path.join(absoluteFolderPath, file);
         try {
             return fs.readFileSync(absPath); // if file can be read, it is a file
@@ -41,13 +67,19 @@ export function getFilesFromFolder(fs: typeof import('fs'), absRoot: string, fol
     const containedFiles: string[] = [];
     foundFolders.forEach((folder: string) => {
         const relativeFolderPath = path.join(folderPath, folder);
-        const filesFromFolder = getFilesFromFolder(fs, absRoot, relativeFolderPath);
+        const filesFromFolder = getFilesFromFolder(fs, absRoot, relativeFolderPath, filterTypes);
         filesFromFolder.forEach(file => {
             const relativeFilePath = path.join(folder, file);
             containedFiles.push(relativeFilePath);
         });
     });
-    return foundFiles.concat(containedFiles);
+
+    foundFiles = foundFiles.concat(containedFiles);
+    if (filterTypes && filterTypes.length > 0) {
+        // filter by filterTypes
+        foundFiles = getFilesByExtensions(foundFiles, filterTypes);
+    }
+    return foundFiles;
 }
 
 export function readFile(fs: typeof import('fs'), filePath: string, encoding?: string): string | undefined {
@@ -59,6 +91,42 @@ export function readFile(fs: typeof import('fs'), filePath: string, encoding?: s
         result = content;
     } catch (e) {
         console.log(`failed to read file: ${filePath}`);
+    }
+    return result;
+}
+
+export function readFiles(fs: typeof import('fs'), filePaths: string[], encoding?: string): string[] {
+    const contents: string[] = [];
+    for (const filePath of filePaths) {
+        try {
+            console.log(`reading file:  ${filePaths}`);
+            encoding = encoding ?? 'utf-8';
+            const buffer = fs.readFileSync(filePath);
+            const content = buffer.toString();
+            contents.push(content);
+        } catch (e) {
+            console.log(`failed to read file: ${filePaths}`);
+        }
+    }
+    return contents;
+}
+
+export function readFilesFromDirectories(
+    fs: typeof import('fs'),
+    directories: string[],
+    filterTypes: string[] = [],
+    encoding?: string
+): Map<string, string> {
+    const result = new Map<string, string>();
+    for (const dir of directories) {
+        const absDir = `${getRootUri()}/${dir}`;
+        const fileUris = getFiles(fs, absDir, filterTypes).map(f => `${absDir}/${f}`);
+        const contents = readFiles(fs, fileUris);
+        for (let i = 0; i < fileUris.length && contents.length; i++) {
+            if (fileUris[i] && contents[i]) {
+                result.set(fileUris[i], contents[i]);
+            }
+        }
     }
     return result;
 }
@@ -80,8 +148,18 @@ export function getFilesByExtension(files: string[], fileExtension: string): str
     return files.filter(filename => filename.endsWith(fileExtension));
 }
 
-export function getWorkspaceRootUri(): string {
+export function getFilesByExtensions(files: string[], fileExtensions: string[]): string[] {
+    return files.filter(f => fileExtensions.indexOf('.' + getFileExtension(f)) >= 0);
+}
+
+export function getRootUri(): string {
     const ROOT_BASE = '../../../..'; // pivot the rootBasePath to the folder above glsp-server
-    const workspacePath = `${__dirname}/${ROOT_BASE}/glsp-client/workspace`;
+    const root = `${__dirname}/${ROOT_BASE}`;
+    return root;
+}
+
+export function getWorkspaceRootUri(): string {
+    const root = getRootUri();
+    const workspacePath = `${root}/workspace`;
     return workspacePath;
 }

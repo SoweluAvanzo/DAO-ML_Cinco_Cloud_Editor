@@ -13,17 +13,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { Container, GraphModel, GraphModelState, IdentifiableElement, Node } from '@cinco-glsp/cinco-glsp-api';
 import { ChangeContainerOperation, MaybePromise, OperationHandler, Point } from '@eclipse-glsp/server-node';
 import { inject, injectable } from 'inversify';
-import { Container, GraphModel, IdentifiableElement, Node } from '../model/graph-model';
-import { GraphModelState } from '../model/graph-model-state';
 
 @injectable()
 export class ChangeContainerHandler implements OperationHandler {
     readonly operationType = ChangeContainerOperation.KIND;
 
     @inject(GraphModelState)
-    protected modelState: GraphModelState;
+    protected readonly modelState: GraphModelState;
 
     execute(operation: ChangeContainerOperation): MaybePromise<void> {
         this.changeContainer(operation.elementId, operation.targetContainerId, operation.location ?? Point.ORIGIN);
