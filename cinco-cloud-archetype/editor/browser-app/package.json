@@ -44,7 +44,8 @@
     "@theia/cli": "~1.38.0"
   },
   "scripts": {
-    "prepare": "yarn build",
+    "prepare": "yarn run download:plugins && yarn build",
+    "theia": "theia",
     "build": "theia build --mode development",
     "start": "theia start --CINCO_GLSP=5007 --root-dir=../workspace --plugins=local-dir:./plugins",
     "start:external": "theia start --CINCO_GLSP=5007 --root-dir=../workspace --plugins=local-dir:./plugins --debug",

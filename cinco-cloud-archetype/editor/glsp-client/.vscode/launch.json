@@ -1,0 +1,91 @@
+{
+  // Use IntelliSense to learn about possible Node.js debug attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Cinco Theia Backend (Embedded GLSP Server)",
+      "envFile": "${workspaceRoot}/.env",
+      "runtimeExecutable": "yarn",
+      "args": [
+        "start",
+        "--port=3000",
+        "--no-cluster",
+        "--CINCO_GLSP=5007",
+        "--app-project-path=${workspaceRoot}/browser-app",
+        "--root-dir=${workspaceRoot}/workspace"
+      ],
+      "cwd": "${workspaceFolder}/browser-app",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/node_modules/@theia/*/lib/**/*.js",
+        "${workspaceRoot}/node_modules/@eclipse-glsp/*/lib/**/*.js",
+        "${workspaceRoot}/browser-app/lib/**/*.js",
+        "${workspaceRoot}/browser-app/src-gen/backend/*.js",
+        "${workspaceRoot}/cinco-theia/lib/**/*.js",
+        "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
+        "${workspaceRoot}/browser-app/src-gen/**/*.js",
+        "${workspaceRoot}/node_modules/**/*.js",
+        "${workspaceRoot}/cinco-glsp-client/node_modules/**/*.js"
+      ],
+      "smartStep": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "outputCapture": "std"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Cinco Theia Backend (External GLSP Server)",
+      "envFile": "${workspaceRoot}/.env",
+      "runtimeExecutable": "yarn",
+      "args": [
+        "start:external",
+        "--port=3000",
+        "--no-cluster",
+        "--CINCO_GLSP=5007",
+        "--app-project-path=${workspaceRoot}/browser-app",
+        "--root-dir=${workspaceRoot}/workspace"
+      ],
+      "cwd": "${workspaceFolder}/browser-app",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/node_modules/@theia/*/lib/**/*.js",
+        "${workspaceRoot}/node_modules/@eclipse-glsp/*/lib/**/*.js",
+        "${workspaceRoot}/browser-app/lib/**/*.js",
+        "${workspaceRoot}/browser-app/src-gen/backend/*.js",
+        "${workspaceRoot}/cinco-theia/lib/**/*.js",
+        "${workspaceRoot}/cinco-glsp/lib/**/*.js",
+        "${workspaceRoot}/browser-app/src-gen/**/*.js",
+        "${workspaceRoot}/node_modules/**/*.js",
+        "${workspaceRoot}/cinco-glsp/node_modules/**/*.js"
+      ],
+      "smartStep": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "outputCapture": "std"
+    },
+    {
+      "name": "Launch Theia Frontend",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000/#${workspaceRoot}/workspace",
+      "sourceMaps": true,
+      "cleanUp": "wholeBrowser",
+      "webRoot": "${workspaceRoot}/browser-app"
+    }
+  ]
+}

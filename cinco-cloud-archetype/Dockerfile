@@ -19,7 +19,7 @@ RUN yarn
 # --------------------------------
 FROM docker.io/library/node:16-bookworm-slim as base
 RUN apt update
-RUN apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev liblzma-dev libx11-dev libxkbfile-dev libsecret-1-dev
+RUN apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev liblzma-dev libx11-dev libxkbfile-dev libsecret-1-dev git
 RUN curl -O https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tar.xz
 RUN tar -xf Python-3.8.2.tar.xz
 RUN cd Python-3.8.2 \
@@ -47,6 +47,7 @@ ENV EXTERNAL_USE_SSL="false"
 ENV WORKSPACE_PATH="/editor/workspace"
 ENV EDITOR_TYPE="LANGUAGE_EDITOR"
 ENV ENVIRONMENT="local"
+ENV NODE_ENV="development"
 # make readable for root only
 RUN chmod -R 750 /var/run/
 
@@ -88,4 +89,4 @@ CMD cd /editor/browser-app && \
     WORKSPACE_PATH="${WORKSPACE_PATH}" \
     EDITOR_TYPE="${EDITOR_TYPE}" \
     ENVIRONMENT="${ENVIRONMENT}" \
-    yarn run theia start --port=3000 --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
+    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
