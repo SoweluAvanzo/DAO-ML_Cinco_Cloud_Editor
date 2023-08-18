@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { Edge, GraphModelState } from '@cinco-glsp/cinco-glsp-api';
 import { ChangeAwareRoutingPointsOperation, RoutingPoint } from '@cinco-glsp/cinco-glsp-common';
-import { ChangeRoutingPointsOperation, Logger, MaybePromise, OperationHandler } from '@eclipse-glsp/server-node';
+import { ChangeRoutingPointsOperation, Logger, OperationHandler } from '@eclipse-glsp/server-node';
 import { inject, injectable } from 'inversify';
 
 @injectable()
