@@ -8,14 +8,19 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Cinco Theia Backend (Embedded GLSP Server)",
-      "envFile": "${workspaceRoot}/.env",
       "runtimeExecutable": "yarn",
       "cwd": "${workspaceFolder}/browser-app",
       "runtimeArgs": [
         "debug"
       ],
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "EDITOR_TYPE": "MODEL_EDITOR",
+        "THEIA_WEBVIEW_EXTERNAL_ENDPOINT": "{{hostname}}",
+        "THEIA_MINI_BROWSER_HOST_PATTERN": "{{hostname}}",
+        "USE_SSL": "false",
+        "META_DEV_MODE": "true",
       },
       "args": [
         "start",
@@ -48,14 +53,19 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Cinco Theia Backend (External GLSP Server)",
-      "envFile": "${workspaceRoot}/.env",
       "runtimeExecutable": "yarn",
       "cwd": "${workspaceFolder}/browser-app",
       "runtimeArgs": [
         "debug"
       ],
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "EDITOR_TYPE": "MODEL_EDITOR",
+        "THEIA_WEBVIEW_EXTERNAL_ENDPOINT": "{{hostname}}",
+        "THEIA_MINI_BROWSER_HOST_PATTERN": "{{hostname}}",
+        "USE_SSL": "false",
+        "META_DEV_MODE": "true",
       },
       "args": [
         "start:external",
@@ -96,7 +106,8 @@
         "EDITOR_TYPE": "MODEL_EDITOR",
         "THEIA_WEBVIEW_EXTERNAL_ENDPOINT": "{{hostname}}",
         "THEIA_MINI_BROWSER_HOST_PATTERN": "{{hostname}}",
-        "USE_SSL": "false"
+        "USE_SSL": "false",
+        "META_DEV_MODE": "true",
       },
       "args": [
         "-p 5007"

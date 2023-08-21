@@ -21,3 +21,4 @@ export const RESOURCE_TYPES = ['.js', '.css'];
 export const SUPPORTED_DYNAMIC_FILE_TYPES = ['.js'];
 export const DIAGRAM_TYPE = 'cinco-diagram';
 export const DEVELOPMENT_MODE = false;
+export const META_DEV_MODE = 'META_DEV_MODE';

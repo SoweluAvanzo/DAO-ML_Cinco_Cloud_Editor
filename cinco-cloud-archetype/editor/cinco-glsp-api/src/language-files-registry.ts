@@ -14,14 +14,18 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { DEVELOPMENT_MODE, META_LANGUAGES_FOLDER, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
+import { DEVELOPMENT_MODE, META_DEV_MODE, META_LANGUAGES_FOLDER, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
 import * as fs from 'fs';
 import { readFilesFromDirectories } from './utils/file-helper';
 
 export class LanguageFilesRegistry {
     protected static _overwrite = false;
     protected static _registered: { name: string; cls: any }[] = [];
-    protected static DEV_MODE = DEVELOPMENT_MODE;
+    protected static get DEV_MODE(): boolean {
+        const metaDevModeString = process.env[META_DEV_MODE];
+        const metaDevMode = metaDevModeString === 'true' || metaDevModeString === 'True' || DEVELOPMENT_MODE;
+        return metaDevMode;
+    }
 
     static register(cls: any): void {
         const containedClass = this._registered.find(r => r.name === cls.name);

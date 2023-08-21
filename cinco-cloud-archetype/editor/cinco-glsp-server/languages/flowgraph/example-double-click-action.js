@@ -31,7 +31,7 @@ class ExampleDoubleClickHandler extends cinco_glsp_api_1.DoubleClickHandler {
         const modelElementId = action.modelElementId;
         const element = this.modelState.index.findElement(modelElementId);
         // logging
-        const message = 'Elementx [' + element.type + '] was double-clicked with id: ' + element.id;
+        const message = 'Element [' + element.type + '] was double-clicked with id: ' + element.id;
         this.log(message, { show: true });
         this.dialog('DoubleClickEvent!', message).then(dialogResult => {
             const buttonText = dialogResult === 'true' ? 'OK' : 'Cancel';
