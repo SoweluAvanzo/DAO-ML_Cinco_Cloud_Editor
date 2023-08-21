@@ -1,16 +1,11 @@
 node_modules
 .browser_modules
-dist
 lib
-docs
 *.log
 *-app/*
 !*-app/package.json
-!*-app/lib/favion.ico
 .idea/
-server/
 .DS_Store
 .yalc
-workspace/*
 tsconfig.tsbuildinfo
 languages/dummy.ts

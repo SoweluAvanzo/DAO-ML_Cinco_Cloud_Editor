@@ -1,0 +1,99 @@
+{
+  "id": "b7fceced-a020-4dba-8284-3c976e6f008e",
+  "_attributes": {
+    "name": ""
+  },
+  "_containments": [
+    {
+      "id": "1fdfc160-394b-46fe-b782-7b76a9861d19",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:swimlane",
+      "_containments": [
+        {
+          "id": "acef84a7-47b2-4109-ad70-fd2d59bd69df",
+          "_attributes": {
+            "name": ""
+          },
+          "type": "node:start",
+          "_size": {
+            "width": 36,
+            "height": 36
+          },
+          "_position": {
+            "x": 46,
+            "y": 22
+          },
+          "_view": {
+            "style": "greenCircle"
+          }
+        }
+      ],
+      "_size": {
+        "width": 400,
+        "height": 100
+      },
+      "_position": {
+        "x": 268.6323162199554,
+        "y": 354.42621353968764
+      },
+      "_view": {
+        "style": "swimlane",
+        "styleParameter": [
+          "name"
+        ]
+      }
+    },
+    {
+      "id": "5ae04af2-ddff-4c00-ae6c-1f15683c0ad8",
+      "_attributes": {
+        "name": "Look at",
+        "description": "...",
+        "number": "0",
+        "boolean": false,
+        "optional": "",
+        "limit": [],
+        "list": [],
+        "nonemptyList": [],
+        "byte": [],
+        "fiveOrMore": [],
+        "enum": "Green",
+        "tree": {},
+        "activities": []
+      },
+      "type": "node:activity",
+      "_size": {
+        "width": 92,
+        "height": 36
+      },
+      "_position": {
+        "x": 461.4287105827219,
+        "y": 214.3091540204016
+      },
+      "_view": {
+        "style": "blueTextRectangle",
+        "styleParameter": [
+          "name"
+        ]
+      }
+    }
+  ],
+  "_edges": [
+    {
+      "id": "4a11278b-d917-4994-9b7e-5ea5e8983bb5",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:transition",
+      "sourceID": "acef84a7-47b2-4109-ad70-fd2d59bd69df",
+      "targetID": "5ae04af2-ddff-4c00-ae6c-1f15683c0ad8",
+      "_routingPoints": [],
+      "_view": {
+        "style": "simpleArrow"
+      }
+    }
+  ],
+  "type": "graphmodel:flowgraph",
+  "_sourceUri": "/Users/sami/Desktop/cinco-cloud/cinco-cloud/cinco-cloud-archetype/editor/workspace/main.flowgraph"
+}

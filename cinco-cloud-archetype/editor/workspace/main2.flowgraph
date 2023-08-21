@@ -1,0 +1,47 @@
+{
+  "id": "09fd3f13-91f0-4b46-8751-337f582f6039",
+  "_attributes": {
+    "name": ""
+  },
+  "_containments": [
+    {
+      "id": "dc7cce3a-2858-4d6e-ab8e-92cc28dad8ae",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:end",
+      "_size": {
+        "width": 36,
+        "height": 36
+      },
+      "_position": {
+        "x": 707.8438725693765,
+        "y": 335.3025403401299
+      },
+      "_view": {
+        "style": "redCircle"
+      }
+    },
+    {
+      "id": "f28095dc-57e0-4cd0-abc8-fc793e943446",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:start",
+      "_size": {
+        "width": 36,
+        "height": 36
+      },
+      "_position": {
+        "x": 519.8039884153978,
+        "y": 184.3253785676551
+      },
+      "_view": {
+        "style": "greenCircle"
+      }
+    }
+  ],
+  "_edges": [],
+  "type": "graphmodel:flowgraph",
+  "_sourceUri": "/Users/sami/Desktop/cinco-cloud/cinco-cloud/cinco-cloud-archetype/editor/workspace/main2.flowgraph"
+}
