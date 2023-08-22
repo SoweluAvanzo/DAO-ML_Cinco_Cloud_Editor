@@ -19,6 +19,7 @@ EdgeStyle:
     'edgeStyle' name=ID ('(' parameterCount=INT ')')? '{'
 		('appearanceProvider' '('appearanceProvider=STRING')')? 
 		(('appearance' referencedAppearance=[Appearance]) | (inlineAppearance=InlineAppearance) )?
+		// TODO Reevaluate the connectionType property
 		('type' connectionType=ConnectionType)?
 		(decorator+=ConnectionDecorator)*
 	'}';
@@ -157,26 +158,23 @@ Font:
     '('fontName=STRING(','isBold?='BOLD')?(','isItalic?='ITALIC')?','size=INT')';
 
 DecoratorShape:
-	ARROW='ARROW' | DIAMOND='DIAMOND' | CIRCLE='CIRCLE' | TRIANGLE='TRIANGLE'
+	shapeType='ARROW' | shapeType='DIAMOND' | shapeType='CIRCLE' | shapeType='TRIANGLE'
 ;
 
-ContainerAlignment:
-	HORIZONTAL='HORIZONTAL' | VERTICAL='VERTICAL'
-;
 HAlignment: 
- 	LEFT='LEFT' | RIGHT='RIGHT' | CENTER='CENTER'
+ 	alignmentType='LEFT' | alignmentType='RIGHT' | alignmentType='CENTER'
  ;
  
 VAlignment:
-	BOTTOM='BOTTOM' | MIDDLE='MIDDLE' | TOP='TOP'
+	alignmentType='BOTTOM' | alignmentType='MIDDLE' | alignmentType='TOP'
 ;
  
 LineStyle:
-	DASH='DASH' | DASHDOT='DASHDOT' | DASHDOTDOT='DASHDOTDOT' | DOT='DOT' | SOLID='SOLID'
+	lineType='DASH' | lineType='DASHDOT' | lineType='DASHDOTDOT' | lineType='DOT' | lineType='SOLID'
 ;
 
 Boolean:
-	TRUE='true' | FALSE='false'
+	value='true' | value='false'
 ;
 
 ConnectionType:

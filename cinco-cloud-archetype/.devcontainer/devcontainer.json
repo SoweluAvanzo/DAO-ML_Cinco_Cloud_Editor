@@ -29,7 +29,10 @@
 					}
 				  },
 				  "terminal.integrated.defaultProfile.linux": "bash"
-			}
+			},
+			"extensions": [
+				"langium.langium-vscode"
+			]
 		}
 	}
 

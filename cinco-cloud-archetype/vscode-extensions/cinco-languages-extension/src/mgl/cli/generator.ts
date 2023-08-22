@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Appearance, EdgeElementConnection, EdgeStyle, GraphModel, MglModel, Node, NodeContainer, NodeStyle, isEdge, isEdgeStyle, isGraphModel, isNode, isNodeContainer, isNodeStyle } from '../../generated/ast';
+import { AbsolutePosition, AbstractPosition, AbstractShape, Alignment, Color, ContainerShape, EdgeElementConnection, EdgeStyle, Font, GraphModel, Image, InlineAppearance, MglModel, MultiText, Node, NodeContainer, NodeStyle, Point, Polygon, Polyline, RoundedRectangle, Shape, Size, Text, isAbsolutePosition, isAlignment, isContainerShape, isEdge, isEdgeStyle, isEllipse, isGraphModel, isImage, isMultiText, isNode, isNodeContainer, isNodeStyle, isPolygon, isPolyline, isRectangle, isRoundedRectangle, isShape, isText } from '../../generated/ast';
 import { extractDestinationAndName } from './cli-util';
 import { createMslServices } from '../../msl/language-server/msl-module';
 import { extractAstNode } from '../../msl/cli/cli-util';
@@ -11,13 +11,12 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
     const data = extractDestinationAndName(filePath, destination);
     const generatedFilePath = `${path.join(data.destination, data.name)}.json`;
 
-    // TODO Type properly
-    const specification = {
-        graphTypes: [] as any[],
-        nodeTypes: [] as any[],
-        edgeTypes: [] as any[],
-        appearances: [] as any[],
-        styles: [] as any[]
+    const specification: Specification = {
+        graphTypes: [],
+        nodeTypes: [],
+        edgeTypes: [],
+        appearances: [],
+        styles: []
     };
 
     for (const modelElement of model.modelElements) {
@@ -44,15 +43,18 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
                     upperBound: containableElement.upperBound ?? -1,
                     // TODO Add handling of externalContainments
                     elements: containableElement.localContainments.map(localContainment => {
-                        return 'node:' + localContainment.ref?.name;
+                        return 'node:' + localContainment.ref?.name.toLowerCase();
                     }) ?? []
                 }
             });
         }
 
         if (isGraphModel(modelElement)) {
+            const graphModel : GraphModel = modelElement;
+
             // Prepend modelElement type to complete elementTypeId
             modelElementSpec.elementTypeId = 'graphmodel:' + modelElementSpec.elementTypeId;
+            modelElementSpec.diagramExtension = graphModel.fileExtension;
 
             specification.graphTypes.push(modelElementSpec);
         }
@@ -69,7 +71,9 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
             // TODO Use style for these
             modelElementSpec.width = 100;
             modelElementSpec.height = 100;
-            modelElementSpec.view = {};
+            modelElementSpec.view = {
+                "style": node.usedStyle
+            };
 
             // TODO check annotations for this
             modelElementSpec.palettes = [];
@@ -100,7 +104,8 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
 
     if (!fs.existsSync(data.destination)) {
         fs.mkdirSync(data.destination, { recursive: true });
-    }
+    }    
+
     fs.writeFileSync(generatedFilePath, JSON.stringify(specification, null, 4));
     return generatedFilePath;
 }
@@ -120,7 +125,7 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{appearance
         let appearanceConfiguration : any = {};
         
         appearanceConfiguration.name = appearance.name;
-        appearanceConfiguration.parent = appearance.parent;
+        appearanceConfiguration.parent = appearance.parent?.ref?.name;
         appearanceConfiguration.lineWidth = appearance.lineWidth;
         appearanceConfiguration.lineStyle = appearance.lineStyle;
         appearanceConfiguration.filled = appearance.filled;
@@ -130,32 +135,23 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{appearance
         
         const background = appearance.background;
         if(background) {
-            appearanceConfiguration.background = {
-                r: background.red,
-                g: background.green,
-                b: background.blue
-            }
+            appearanceConfiguration.background = handleColor(background);
         }
 
         const foreground = appearance.foreground;
         if(foreground) {
-            appearanceConfiguration.foreground = {
-                r: foreground.red,
-                g: foreground.green,
-                b: foreground.blue
-            }
+            appearanceConfiguration.foreground = handleColor(foreground);
         }
 
         result.appearances.push(appearanceConfiguration);
     }
 
-    // TODO add support for inline appearances
     for (const style of model.styles) {
         // TODO Type properly
         let styleConfiguration : any = {}
 
         styleConfiguration.name = style.name;
-        styleConfiguration.appearance = style.appearanceProvider;
+        styleConfiguration.appearanceProvider = style.appearanceProvider;
         styleConfiguration.parameterCount = style.parameterCount;
 
         if(isEdgeStyle(style)) {
@@ -163,31 +159,46 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{appearance
 
             styleConfiguration.connectionType = edgeStyle.connectionType?.FreeForm;
 
-            // TODO add support for every possible decorator
+            // Appereance
+            const inlineAppearance = edgeStyle.inlineAppearance;
+            if(inlineAppearance) {
+                styleConfiguration.appearance = handleInlineAppearance(inlineAppearance);
+            } else {
+                styleConfiguration.appearance = edgeStyle.referencedAppearance?.ref?.name;
+            }
+
+            // Decorators
             styleConfiguration.decorator = edgeStyle.decorator.map(decorator => {
                 // TODO type properly
                 let decoratorConfiguration : any = {
-                    location: decorator.location
+                    'location': decorator.location,
+                    'movable': decorator.movable
                 };
 
                 const predefinedDecorator = decorator.predefinedDecorator;
+                const decoratorShape = decorator.decoratorShape;
                 if(predefinedDecorator) {
-                    const predefinedDecoratorConfiguration : any = {
-                        appearance: (decorator.predefinedDecorator?.referencedAppearance?.$refNode?.element as Appearance)?.name
-                    };
+                    const predefinedDecoratorConfiguration : any = {};
 
-                    // Identify set shape
-                    if(predefinedDecorator.shape.ARROW) {
-                        predefinedDecoratorConfiguration.shape = 'DecoratorShape.ARROW';
-                    } else if(predefinedDecorator.shape.CIRCLE) {
-                        predefinedDecoratorConfiguration.shape = 'DecoratorShape.CIRCLE';
-                    } else if(predefinedDecorator.shape.DIAMOND) {
-                        predefinedDecoratorConfiguration.shape = 'DecoratorShape.DIAMOND';
-                    } else if(predefinedDecorator.shape.TRIANGLE) {
-                        predefinedDecoratorConfiguration.shape = 'DecoratorShape.TRIANGLE';
+                    // Shape
+                    const shapeType = predefinedDecorator.shape.shapeType;
+                    if(shapeType) {
+                        predefinedDecoratorConfiguration.shape = 'DecoratorShape.' + shapeType;
                     }
 
-                    styleConfiguration.predefinedDecorator = predefinedDecoratorConfiguration;
+                    // Appereance
+                    const inlineAppearance = predefinedDecorator.inlineAppearance;
+                    if(inlineAppearance) {
+                        predefinedDecoratorConfiguration.appearance = handleInlineAppearance(inlineAppearance);
+                    } else {
+                        predefinedDecoratorConfiguration.appearance = predefinedDecorator.referencedAppearance?.ref?.name;
+                    }
+
+                    decoratorConfiguration.predefinedDecorator = predefinedDecoratorConfiguration;
+                } else if(decoratorShape) {
+                    // Decorator Shape
+                    // This casting is possible because of the union types and because AbstractShape is a superset of GraphicsAlgorithm
+                    decoratorConfiguration.decoratorShape = handleAbstractShape(decoratorShape as AbstractShape);
                 }
 
                 return decoratorConfiguration;
@@ -203,14 +214,217 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{appearance
             
             styleConfiguration.fixed = nodeStyle.fixed;
 
-            // TODO add support for shapes
-            // styleConfiguration.mainShape = 
+            styleConfiguration.mainShape = handleAbstractShape(style.mainShape);
+            
         }
 
         result.styles.push(styleConfiguration);
     }
 
     return result;
+}
+
+function handleAbstractShape(abstractShape: AbstractShape) {
+    let result: any = {
+        'anchorShape': abstractShape.anchorShape
+    };
+
+    // Distinguish between ContainerShapes and Shapes and handle specific properties separately
+    if(isContainerShape(abstractShape)) {
+        const containerShape = abstractShape as ContainerShape;
+
+        // Basic type
+        if(isEllipse(containerShape)) {
+            result.type = 'ELLIPSE';
+        } else if(isPolygon(containerShape)) {
+            result.type = 'POLYGON';
+        } else if(isRectangle(containerShape)) {
+            result.type = 'RECTANGLE';
+        } else if(isRoundedRectangle(containerShape)) {
+            result.type = 'ROUNDEDRECTANGLE';
+        }
+
+        // Appereance
+        const inlineAppearance = containerShape.inlineAppearance;
+        if(inlineAppearance) {
+            result.appearance = handleInlineAppearance(inlineAppearance);
+        } else {
+            result.appearance = containerShape.referencedAppearance?.ref?.name;
+        }
+
+        // Position
+        const position = containerShape.position;
+        if(position) {
+            result.position = handlePosition(position);
+        }
+
+        // Size
+        const size = containerShape.size;
+        if(size) {
+            result.size = handleSize(size);
+        }
+
+        // Children
+        result.children = containerShape.children.map((child) => handleAbstractShape(child));
+
+        if(isRoundedRectangle(containerShape)) {
+            const roundedRectangle = containerShape as RoundedRectangle;
+
+            // CornerWidth & CornerHeight
+            result.cornerWidth = roundedRectangle.cornerWidth;
+            result.cornerHeight = roundedRectangle.cornerHeight;
+        }
+
+        if(isPolygon(containerShape)) {
+            const polygon = containerShape as Polygon;
+
+            // Points
+            result.points = handlePoints(polygon.points);
+        }
+    } else if(isShape(abstractShape)) {
+        const shape = abstractShape as Shape;
+
+        // Basic type
+        if(isText(shape)) {
+            result.type = 'TEXT';
+        } else if(isMultiText(shape)) {
+            result.type = 'MULTITEXT';
+        } else if(isImage(shape)) {
+            result.type = 'IMAGE';
+        } else if(isPolyline(shape)) {
+            result.type = 'POLYLINE';
+        }
+
+        // These are treated weirdly because they are almost disjunctive; should be optimized at language level
+        if(!isImage(shape)) {
+            const nonImage = shape as Text | MultiText | Polyline;
+
+            // Appearance
+            const inlineAppearance = nonImage.inlineAppearance;
+            if(inlineAppearance) {
+                result.appearance = handleInlineAppearance(inlineAppearance);
+            } else {
+                result.appearance = nonImage.referencedAppearance?.ref?.name;
+            }
+        }
+        if(!isPolyline(shape)) {
+            const nonPolyline = shape as Text | MultiText | Image;
+
+            // Position
+            const position = nonPolyline.position;
+            if(position) {
+                result.position = handlePosition(position);
+            }
+        }
+        if(isText(shape) || isMultiText(shape)) {
+            const someText = shape as Text | MultiText;
+
+            // Value
+            result.value = someText.value;
+        }
+        if(isImage(shape) || isPolyline(shape)) {
+            const imageOrPolyLine = shape as Image | Polyline;
+
+            // Size
+            const size = imageOrPolyLine.size;
+            if(size) {
+                result.size = handleSize(size);
+            }
+        }
+        if(isImage(shape)) {
+            const image = shape as Image;
+
+            // Path
+            result.path = image.path;
+        }
+        if(isPolyline(shape)) {
+            const polyline = shape as Polyline;
+
+            // Points
+            result.points = handlePoints(polyline.points);
+        }
+    }
+    return result;
+}
+
+function handleInlineAppearance(inlineAppearance: InlineAppearance) {
+    return {
+        'background': inlineAppearance.background ? handleColor(inlineAppearance.background) : null,
+        'parent': inlineAppearance.parent,
+        'foreground': inlineAppearance.foreground ? handleColor(inlineAppearance.foreground) : null,
+        'font': inlineAppearance.font ? handleFont(inlineAppearance.font) : null,
+        'lineStyle': inlineAppearance.lineStyle?.lineType,
+        'lineWidth': inlineAppearance.lineWidth,
+        'transparency': inlineAppearance.transparency,
+        'filled': inlineAppearance.filled?.value,
+        'imagePath': inlineAppearance.imagePath
+    }
+}
+
+function handlePoints(points: Point[]) {
+    return points.map((point) => {
+        return {
+            'x': point.x,
+            'y': point.y
+        }
+    });
+}
+
+function handleSize(size: Size) {
+    return {
+        'width': size.width,
+        'height': size.height,
+        'widthFixed': size.widthFixed,
+        'heightFixed': size.heightFixed
+    };
+}
+
+function handlePosition(abstractPosition: AbstractPosition) {
+    let result = {};
+    if(isAbsolutePosition(abstractPosition)) {
+        const absolutePosition = abstractPosition as AbsolutePosition;
+        result = {
+            'xPos': absolutePosition.xPos,
+            'yPos': absolutePosition.yPos
+        }
+    } else if(isAlignment(abstractPosition)) {
+        const alignment = abstractPosition as Alignment;
+        result = {
+            'horizontal': alignment.horizontal.alignmentType,
+            'xMargin': alignment.xMargin,
+            'vertical': alignment.vertical.alignmentType,
+            'yMargin': alignment.yMargin
+        }
+    }
+    return result;
+}
+
+function handleColor(color: Color) {
+    return {
+        'r': color.r ?? 0,
+        'g': color.g ?? 0,
+        'b': color.b ?? 0
+    }
+}
+
+function handleFont(font: Font) {
+    return {
+        'fontName': font.fontName,
+        'bold': font.isBold,
+        'italic': font.isItalic,
+        'size': font.size,
+        // TODO Implement color handling (here and in msl.langium)
+        'foreground': {
+            'r': 0,
+            'g': 0,
+            'b': 0
+        },
+        'background': {
+            'r': 255,
+            'g': 255,
+            'b': 255
+        }
+    }
 }
 
 function getEdgeElementConnectionObject(edgeElementConnection: EdgeElementConnection) {

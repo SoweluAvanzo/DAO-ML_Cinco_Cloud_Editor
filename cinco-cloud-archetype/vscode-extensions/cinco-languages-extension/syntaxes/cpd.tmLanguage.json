@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.cpd",
-      "match": "\\b(about|cincoProduct|defaultPerspective|extensionClasses|features|forceGenerate|genModel|genModels|generateNOT|id|imagePath|linuxIcon|macOSIcon|mgl|path|platform:/plugin|platform:/resource|plugins|progressBar|progressMessage|project|splashScreen|text|textColor|version|windowsIcon|withEditCode|withEditorCode|withTestCode|xtextLanguage|xtextLanguages)\\b"
+      "match": "\\b(about|cincoProduct|extensionClasses|features|forceGenerate|genModel|genModels|generateNOT|id|imagePath|mgl|path|platform:/plugin|platform:/resource|plugins|project|text|version|withEditCode|withEditorCode|withTestCode|xtextLanguage|xtextLanguages)\\b"
     },
     {
       "name": "string.quoted.double.cpd",
