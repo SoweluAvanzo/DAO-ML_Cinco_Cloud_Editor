@@ -5,7 +5,6 @@
   "recommendations": [
     "editorconfig.editorconfig",
     "dbaeumer.vscode-eslint",
-    "rbbit.typescript-hero",
     "aeschli.vscode-css-formatter",
     "esbenp.prettier-vscode",
     "DavidAnson.vscode-markdownlint"
