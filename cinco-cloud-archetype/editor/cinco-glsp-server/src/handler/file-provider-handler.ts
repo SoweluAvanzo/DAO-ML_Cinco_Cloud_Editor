@@ -18,7 +18,7 @@ import { Action, ActionHandler, Logger, MaybePromise } from '@eclipse-glsp/serve
 import { FileProviderRequest, FileProviderResponse, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
 import * as fs from 'fs';
 import { inject, injectable } from 'inversify';
-import { getFilesFromDirectories, getRootUri, readFilesFromDirectories } from '../utils/file-helper';
+import { getFilesFromDirectories, getRootUri, readFilesFromDirectories } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class FileProviderHandler implements ActionHandler {

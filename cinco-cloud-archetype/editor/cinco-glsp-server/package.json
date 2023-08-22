@@ -64,7 +64,8 @@
     "bundle": "webpack",
     "lint": "eslint -c .eslintrc.js --ext .ts,.tsx ./src",
     "watch": "tsc -w",
-    "start": "node --enable-source-maps lib/src/index.js"
+    "start": "node --enable-source-maps bundle/cinco-glsp-server-packed.js -p 5007 --metaLanguagesFolder='cinco-glsp-server/languages'",
+    "start:devmode": "node --enable-source-maps bundle/cinco-glsp-server-packed.js -p 5007 --metaDevMode --metaLanguagesFolder='cinco-glsp-server/languages'"
   },
   "publishConfig": {
     "access": "public"

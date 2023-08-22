@@ -18,12 +18,16 @@ import {
     GLSPSocketServerContribution,
     GLSPSocketServerContributionOptions
 } from '@eclipse-glsp/theia-integration/lib/node';
+import { DEFAULT_SERVER_PORT, META_DEV_MODE, META_LANGUAGES_FOLDER } from '@cinco-glsp/cinco-glsp-common';
 import { injectable } from 'inversify';
 import * as path from 'path';
 import { getDiagramConfiguration } from '../common/cinco-language';
 
-export const DEFAULT_PORT = 0;
+ // args defined at start of the backend, but passed to the execution of the external server
 export const PORT_ARG_KEY = 'CINCO_GLSP';
+export const LANGUAGES_FOLDER_ARG_KEY = '--META_LANGUAGES_FOLDER';
+export const DEV_MODE_ARG_KEY = `--${META_DEV_MODE}`;
+
 export const LOG_DIR = path.join(__dirname, '..', '..', 'logs');
 const MODULE_PATH = path.join(__dirname, '..', '..', '..', 'cinco-glsp-server', 'bundle', 'cinco-glsp-server-packed.js');
 
@@ -32,12 +36,35 @@ export class CincoGLSPSocketServerContribution extends GLSPSocketServerContribut
     readonly id = getDiagramConfiguration().contributionId;
 
     createContributionOptions(): Partial<GLSPSocketServerContributionOptions> {
+        const port = getPort(PORT_ARG_KEY, DEFAULT_SERVER_PORT);
+        const languagesFolder = getArgs(LANGUAGES_FOLDER_ARG_KEY) ?? META_LANGUAGES_FOLDER;
+        const metaDevMode = hasArg(DEV_MODE_ARG_KEY) ? '--metaDevMode' : '';
         return {
             executable: MODULE_PATH,
-            additionalArgs: ['--no-consoleLog', '--fileLog', 'true', '--logDir', LOG_DIR],
+            additionalArgs: [
+                '-p', `${port}`, '--no-consoleLog', '--fileLog', 'true', '--logDir', LOG_DIR,
+                // cinco specific arguments
+                `--rootFolder='${__dirname + '/../../..'}'`, metaDevMode, `--metaLanguagesFolder='${languagesFolder}'`
+            ],
             socketConnectionOptions: {
-                port: getPort(PORT_ARG_KEY, DEFAULT_PORT)
+                port: port
             }
         };
     }
+}
+
+export function getArgs(argsKey: string): string | undefined {
+    const args = process.argv.filter(a => a.startsWith(argsKey));
+    if (args.length > 0) {
+        const result = args[0].substring(argsKey.length + 1, undefined);
+        if(result) {
+            return result.replace(/"|'/g, ''); // replace quotes
+        }
+    }
+    return undefined;
+}
+
+export function hasArg(argsKey: string): boolean {
+    const args = process.argv.filter(a => a.startsWith(argsKey));
+    return args.length > 0;
 }

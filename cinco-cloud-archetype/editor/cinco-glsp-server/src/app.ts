@@ -25,7 +25,15 @@ import { Container } from 'inversify';
 import { CincoDiagramModule } from './diagram/cinco-diagram-module';
 
 export function launch(argv?: string[]): void {
-    const options = createSocketCliParser().parse(argv);
+    const argParser = createSocketCliParser();
+
+    // add additional args
+    argParser.command.option('--rootFolder <rootFolder>', 'Set absolute path of root folder.', undefined);
+    argParser.command.option('--metaLanguagesFolder <metaLanguagesFolder>', 'Set path to languages folder, relative to root.', undefined);
+    argParser.command.option('--workspaceFolder <workspaceFolder>', 'Set path to workspace folder, relative to root.', undefined);
+    argParser.command.option('--metaDevMode', 'Activate dev mode for language designing.');
+
+    const options = argParser.parse(argv);
     const appContainer = new Container();
     appContainer.load(createAppModule(options));
 
@@ -33,7 +41,7 @@ export function launch(argv?: string[]): void {
     const launcher = appContainer.resolve(SocketServerLauncher);
     const serverModule = new ServerModule().configureDiagramModule(new CincoDiagramModule());
 
-    const errorHandler = (error: any): void => logger.error('Error in workflow server launcher:', error);
+    const errorHandler = (error: any): void => logger.error('Error in cinco server launcher:', error);
     launcher.configure(serverModule);
     resolveAndCatch(() => launcher.start({ port: options.port, host: options.host }), errorHandler);
 }

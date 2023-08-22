@@ -50,7 +50,6 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     abstract executeHandler(handler: H, element: ModelElement, action: A, args: any): Promise<Action[]> | Action[];
 
     execute(action: A, ...args: unknown[]): Promise<Action[]> {
-        LanguageFilesRegistry.fetch();
         return new Promise<Action[]>((resolve, _) => {
             const results: Action[] = [];
             this.getActiveHandlers(action, args).then(handlers => {
@@ -62,17 +61,26 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                 handlers.forEach(handler => {
                     console.log(handler + ' handler will be executed...');
                     const element = this.modelState.index.findElement(action.modelElementId) as ModelElement;
-                    const result = this.executeHandler(handler, element, action, args);
-                    if (result instanceof Promise) {
-                        result.then((v: Action[]) => {
-                            results.push(...v);
+                    try {
+                        const result = this.executeHandler(handler, element, action, args);
+                        if (result instanceof Promise) {
+                            result.then((v: Action[]) => {
+                                results.push(...v);
+                                leftToHandle = leftToHandle - 1;
+                                if (leftToHandle <= 0) {
+                                    resolve(results);
+                                }
+                            });
+                        } else {
+                            results.push(...result);
                             leftToHandle = leftToHandle - 1;
                             if (leftToHandle <= 0) {
                                 resolve(results);
                             }
-                        });
-                    } else {
-                        results.push(...result);
+                        }
+                    } catch(e) {
+                        console.log(`Error executing handler: ${(handler as any).name}`);
+                        console.log(`${e}`);
                         leftToHandle = leftToHandle - 1;
                         if (leftToHandle <= 0) {
                             resolve(results);
@@ -91,11 +99,25 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     getActiveHandlers(action: A, ...args: unknown[]): Promise<H[]> {
         const element = this.modelState.index.findElement(action.modelElementId) as ModelElement;
         return new Promise<H[]>((resolve, reject) => {
-            if (!this.hasHandlerProperty(element)) {
+            try {
+                if (!this.hasHandlerProperty(element)) {
+                    return resolve([]);
+                }
+            } catch(e) {
+                console.log(`Error checking handlerProperties: (${element.type + '|' + element.id})`);
+                console.log(`${e}`);
                 return resolve([]);
             }
-            const applicableHandlerClasses = BaseHandlerManager.getHandlerClasses(this.baseHandlerName, handlerClassName =>
-                this.isApplicableHandler(element, handlerClassName)
+            const applicableHandlerClasses = BaseHandlerManager.getHandlerClasses(this.baseHandlerName,
+                (handlerClassName: string): boolean => {
+                    try {
+                        return this.isApplicableHandler(element, handlerClassName);
+                    } catch(e) {
+                        console.log(`Error checking applicability of: ${handlerClassName}`);
+                        console.log(`${e}`);
+                        return false;
+                    }
+                }
             );
             let leftToHandle: number = applicableHandlerClasses.length;
             const actionHandlers: H[] = [];
@@ -104,14 +126,14 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                 // initialize handler
                 const handler = new handlerClass(this.logger, this.modelState, this.actionDispatcher);
                 // test if handler can be executed =>
-                {
+                try {
                     // test if handler can be executed
                     const canExecute = this.handlerCanBeExecuted(handler, element, action, args);
                     if (canExecute instanceof Promise) {
                         // mark handler as active/executable
                         canExecute.then(value => {
                             if (value) {
-                                console.log('[' + handler + '] can be executed as a ' + this.baseHandlerName + '!');
+                                console.log('[' + handler.name + '] can be executed as a ' + this.baseHandlerName + '!');
                                 actionHandlers.push(handler);
                             }
                             leftToHandle = leftToHandle - 1;
@@ -122,13 +144,20 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                     } else {
                         // mark handler as active/executable
                         if (canExecute) {
-                            console.log('[' + handler + '] can be executed as a ' + this.baseHandlerName + '!');
+                            console.log('[' + handler.name + '] can be executed as a ' + this.baseHandlerName + '!');
                             actionHandlers.push(handler);
                         }
                         leftToHandle = leftToHandle - 1;
                         if (leftToHandle <= 0) {
                             resolve(actionHandlers);
                         }
+                    }
+                } catch(e) {
+                    console.log(`Error checking executability of: ${handlerClass.name}`);
+                    console.log(`${e}`);
+                    leftToHandle = leftToHandle - 1;
+                    if (leftToHandle <= 0) {
+                        resolve(actionHandlers);
                     }
                 }
             }

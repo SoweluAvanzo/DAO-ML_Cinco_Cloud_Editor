@@ -13,7 +13,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { FileProviderRequest, FileProviderResponse, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
+import {
+    FileProviderRequest, FileProviderResponse, FileProviderResponseItem, META_LANGUAGES_FRONTEND_FOLDER
+} from '@cinco-glsp/cinco-glsp-common';
 import { Action, IActionDispatcher, IActionHandler, ICommand } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { injectable } from 'inversify';
@@ -30,7 +32,7 @@ export class DynamicImportLoader implements IActionHandler {
         actionDispatcher: IActionDispatcher
     ): Promise<void> {
         return new Promise<void>((resolve, _) => {
-            const request = FileProviderRequest.create(['languages'], false, supportedDynamicImportFileTypes);
+            const request = FileProviderRequest.create([META_LANGUAGES_FRONTEND_FOLDER], false, supportedDynamicImportFileTypes);
             if (commandService) {
                 // used for theia applications
                 (commandService.executeCommand('fileProviderHandler', request) as Promise<FileProviderResponse>).then(response => {

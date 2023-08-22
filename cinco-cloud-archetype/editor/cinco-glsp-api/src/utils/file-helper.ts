@@ -13,7 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { getFileExtension } from '@cinco-glsp/cinco-glsp-common';
+// TODO: duplicate in api
+import { META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, getFileExtension } from '@cinco-glsp/cinco-glsp-common';
 import * as path from 'path';
 
 export function getFilesFromDirectories(
@@ -152,14 +153,77 @@ export function getFilesByExtensions(files: string[], fileExtensions: string[]):
     return files.filter(f => fileExtensions.indexOf('.' + getFileExtension(f)) >= 0);
 }
 
+/**
+ * Bundled file is per convention in the folder 'bundle' inside servers root-folder
+ */
+export function isBundle(): boolean {
+    return __dirname.endsWith('bundle');
+}
+
+export function getRoot(): string {
+    return getRootUri();
+}
+
 export function getRootUri(): string {
-    const ROOT_BASE = '../../..'; // pivot the rootBasePath to the folder above glsp-server
-    const root = `${__dirname}/${ROOT_BASE}`;
-    return root;
+    let root = getRootFolderArg();
+    if(root) {
+        return root;
+    } else {
+        const ROOT_BASE = isBundle() ? '../..' : '../../..'; // pivot the rootBasePath to the folder above glsp-server
+        root = `${__dirname}/${ROOT_BASE}`;
+        return root;
+    }
 }
 
 export function getWorkspaceRootUri(): string {
+    const workspaceFolder = getWorkspaceFolderArg();
     const root = getRootUri();
-    const workspacePath = `${root}/workspace`;
+    const workspacePath = `${root}/${workspaceFolder ?? 'workspace'}`;
     return workspacePath;
+}
+
+export function getLanguageFolder(): string {
+    const languagesFolder = getLanguageFolderArg();
+    const root = getRootUri();
+    return `${root}/${languagesFolder ?? META_LANGUAGES_FOLDER}`;
+}
+
+export function getLibLanguageFolder(): string {
+    const root = getRootUri();
+    return `${root}/${SERVER_LANGUAGES_FOLDER}`;
+}
+
+export function getRootFolderArg(): string | undefined {
+    const argsKey = '--rootFolder';
+    return getArgs(argsKey);
+}
+
+export function getLanguageFolderArg(): string | undefined {
+    const argsKey = '--metaLanguagesFolder';
+    return getArgs(argsKey);
+}
+
+export function getWorkspaceFolderArg(): string | undefined {
+    const argsKey = '--workspaceFolder';
+    return getArgs(argsKey);
+}
+
+export function isDevModeArg(): boolean {
+    const argsKey = '--metaDevMode';
+    const args = process.argv.filter(a => a.startsWith(argsKey));
+    if (args.length > 0) {
+        return true;
+    }
+    return false;
+}
+
+export function getArgs(argsKey: string): string | undefined {
+    const args = process.argv.filter(a => a.startsWith(argsKey));
+    if (args.length > 0) {
+        const result = args[0].substring(argsKey.length + 1, undefined);
+        if(result) {
+            return result.replace(/"|'/g, ''); // replace quotes
+        }
+    }
+    return undefined;
 }

@@ -17,10 +17,7 @@
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
         "EDITOR_TYPE": "MODEL_EDITOR",
-        "THEIA_WEBVIEW_EXTERNAL_ENDPOINT": "{{hostname}}",
-        "THEIA_MINI_BROWSER_HOST_PATTERN": "{{hostname}}",
-        "USE_SSL": "false",
-        "META_DEV_MODE": "true",
+        "USE_SSL": "false"
       },
       "args": [
         "start",
@@ -30,6 +27,50 @@
         "--hostname=localhost",
         "--root-dir=${workspaceRoot}/workspace",
         "--app-project-path=${workspaceRoot}/"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/node_modules/**/*.js",
+        "${workspaceRoot}/cinco-authenticator/lib/**/*.js",
+        "${workspaceRoot}/cinco-branding/lib/**/*.js",
+        "${workspaceRoot}/browser-app/lib/**/*.js",
+        "${workspaceRoot}/browser-app/src-gen/**/*.js",
+        "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
+        "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
+        "${workspaceRoot}/cinco-glsp-common/lib/**/*.js",
+      ],
+      "smartStep": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "outputCapture": "std"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode)",
+      "runtimeExecutable": "yarn",
+      "cwd": "${workspaceFolder}/browser-app",
+      "runtimeArgs": [
+        "debug"
+      ],
+      "env": {
+        "NODE_ENV": "development",
+        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "EDITOR_TYPE": "MODEL_EDITOR",
+        "USE_SSL": "false"
+      },
+      "args": [
+        "start",
+        "--port=3000",
+        "--no-cluster",
+        "--loglevel=debug",
+        "--hostname=localhost",
+        "--root-dir=${workspaceRoot}/workspace",
+        "--app-project-path=${workspaceRoot}/",
+        "--CINCO_GLSP=5007",
+        "--META_DEV_MODE"
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -62,10 +103,7 @@
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
         "EDITOR_TYPE": "MODEL_EDITOR",
-        "THEIA_WEBVIEW_EXTERNAL_ENDPOINT": "{{hostname}}",
-        "THEIA_MINI_BROWSER_HOST_PATTERN": "{{hostname}}",
-        "USE_SSL": "false",
-        "META_DEV_MODE": "true",
+        "USE_SSL": "false"
       },
       "args": [
         "start:external",
@@ -104,13 +142,14 @@
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
         "EDITOR_TYPE": "MODEL_EDITOR",
-        "THEIA_WEBVIEW_EXTERNAL_ENDPOINT": "{{hostname}}",
-        "THEIA_MINI_BROWSER_HOST_PATTERN": "{{hostname}}",
-        "USE_SSL": "false",
-        "META_DEV_MODE": "true",
+        "USE_SSL": "false"
       },
       "args": [
-        "-p 5007"
+        "-p",
+        "5007",
+        "--metaDevMode",
+        "--metaLanguagesFolder='cinco-glsp-server/languages'",
+        "--rootFolder='${workspaceRoot}'"
       ],
       "sourceMaps": true,
       "outFiles": [

@@ -36,9 +36,8 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
         for (const item of items) {
             const folderPaths = item.folderPaths;
             const supportedFileTypes = item.supportedFileTypes;
-
             for (const folderPath of folderPaths) {
-                MetaSpecificationLoader.load(folderPath, supportedFileTypes, this.actionDispatcher);
+                MetaSpecificationLoader.load(supportedFileTypes, this.actionDispatcher, folderPath);
             }
         }
         return [];

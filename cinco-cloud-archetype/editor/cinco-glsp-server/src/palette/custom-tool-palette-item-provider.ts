@@ -16,7 +16,7 @@
 import { Args, PaletteItem } from '@eclipse-glsp/protocol';
 import * as fs from 'fs';
 // eslint-disable-next-line max-len
-import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
+import { GraphModelState, getFilesByExtension, getFilesFromFolder, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
 import {
     ElementType,
     canBeCreated,
@@ -41,7 +41,6 @@ import { inject, injectable } from 'inversify';
 import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
 import { SpecifiedElementHandler } from '../handler/specified_element_handler';
 import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
-import { getFilesByExtension, getFilesFromFolder, getWorkspaceRootUri } from '../utils/file-helper';
 
 @injectable()
 export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {

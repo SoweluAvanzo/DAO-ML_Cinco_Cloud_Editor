@@ -13,19 +13,19 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { META_FILE_TYPES, META_LANGUAGES_FOLDER, SUPPORTED_DYNAMIC_FILE_TYPES } from '@cinco-glsp/cinco-glsp-common';
+import { META_FILE_TYPES, SUPPORTED_DYNAMIC_FILE_TYPES } from '@cinco-glsp/cinco-glsp-common';
 import 'reflect-metadata';
 import { launch } from './app';
 import { MetaSpecificationLoader } from './meta/meta-specification-loader';
 
 {
     /**
-     * Load all files from '../language'.
+     * Load all files from language-folder.
      * These files contain the language-designer defined hooks, actions, generators, etc.
      */
     try {
-        MetaSpecificationLoader.load(META_LANGUAGES_FOLDER, META_FILE_TYPES);
-        MetaSpecificationLoader.loadClassFiles(META_LANGUAGES_FOLDER, SUPPORTED_DYNAMIC_FILE_TYPES);
+        MetaSpecificationLoader.load(META_FILE_TYPES);
+        MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
     } catch (e) {
         console.log('GLSP server failed to load language-specific scripts');
     }

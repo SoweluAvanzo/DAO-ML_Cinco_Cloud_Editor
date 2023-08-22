@@ -16,45 +16,67 @@
 
 import { DEVELOPMENT_MODE, META_DEV_MODE, META_LANGUAGES_FOLDER, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
 import * as fs from 'fs';
-import { readFilesFromDirectories } from './utils/file-helper';
+import { isDevModeArg, readFilesFromDirectories } from './utils/file-helper';
 
-export class LanguageFilesRegistry {
-    protected static _overwrite = false;
+export abstract class LanguageFilesRegistry {
+    protected static _overwrite = true;
     protected static _registered: { name: string; cls: any }[] = [];
-    protected static get DEV_MODE(): boolean {
+
+    /**
+     * There are three ways to activate DEV_MODE:
+     * - start with arg '--metaDevMode'
+     * - set environment variable 'META_DEV_MODE' to true
+     * - set default DEVELOPMENT_MODE runtime variable to true
+     */
+    static get isMetaDevMode(): boolean {
+        if(isDevModeArg()) {
+            return true;
+        }
+        console.log('--metaDevMode - not set');
         const metaDevModeString = process.env[META_DEV_MODE];
+        if(!metaDevModeString) {
+            console.log('ENV VAR META_DEV_MODE - not set');
+        }
         const metaDevMode = metaDevModeString === 'true' || metaDevModeString === 'True' || DEVELOPMENT_MODE;
         return metaDevMode;
     }
 
     static register(cls: any): void {
         const containedClass = this._registered.find(r => r.name === cls.name);
-        if (LanguageFilesRegistry._overwrite || containedClass === undefined) {
+        if (this._overwrite || containedClass === undefined) {
             if (this._overwrite) {
                 // remove old containedClass
                 this._registered = this._registered.filter(r => r !== containedClass);
+                this._registered.push({ name: cls.name, cls: cls });
                 console.log('Reregistered: ', cls);
             } else {
+                this._registered.push({ name: cls.name, cls: cls });
                 console.log('Registered: ', cls);
             }
-            this._registered.push({ name: cls.name, cls: cls });
         }
     }
 
     static getRegistered(): any[] {
+        this._registered = this.fetch();
         return this._registered.map(r => r.cls);
     }
 
-    static fetch(): void {
-        if (!this.DEV_MODE) {
+    static fetch(): {name: string, cls: any }[] {
+        if (!this.isMetaDevMode) {
             // only reload files in development mode
             // in production this would be a security issue
-            return;
+            return this._registered;
         }
+        console.log('*************** META_DEV_MODE - active ***********');
         const handlerNames = getAllHandlerNames();
         const fileMap = readFilesFromDirectories(fs, [META_LANGUAGES_FOLDER], ['.js']);
         const files = Array.from(fileMap.entries());
         const handlerToImport: { name: string; path: string; content: string }[] = [];
+        if(files.length <= 0) {
+            console.log(`no files found in: ${META_LANGUAGES_FOLDER}`);
+        } else {
+            console.log(`${files.length} file(s) will be prepared for evaluation.`);
+        }
         for (const file of files) {
             const fileContent = file[1];
             for (const handlerName of handlerNames) {
@@ -74,13 +96,31 @@ export class LanguageFilesRegistry {
                 }
             }
         }
-        this._overwrite = true;
         // load handler code
         for (const handler of handlerToImport) {
-            // eslint-disable-next-line no-eval
-            eval(`
-                ${handler.content}
-            `);
+            try {
+                // eslint-disable-next-line no-eval
+                eval(`
+                    ${handler.content}
+                `);
+            } catch(e) {
+                console.log(e);
+            }
         }
+        /**
+         * Javascript can have two static classes of the same time.
+         * In this case the handler registers the LanguageFile in a
+         * dublicate found at require('@cinco-glsp/cinco-glsp-api') instead of
+         * this very static instance. Thats why it needs to self reflect to
+         * access the other static instance used by the evaluated language-file
+         * to update it's own.
+         */
+        // eslint-disable-next-line no-eval
+        const cinco_glsp_api = eval('( require(\'@cinco-glsp/cinco-glsp-api\') )');
+        const registered = cinco_glsp_api.LanguageFilesRegistry._registered;
+        for(const newInstance of registered) {
+            this.register(newInstance.cls);
+        }
+        return this._registered;
     }
 }

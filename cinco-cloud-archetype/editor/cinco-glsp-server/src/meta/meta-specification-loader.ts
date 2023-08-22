@@ -16,13 +16,14 @@
 import { CompositionSpecification, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
 import { ActionDispatcher } from '@eclipse-glsp/server-node';
 import * as fs from 'fs';
-import { getFilesFromFolder, getRootUri, readJson } from '../utils/file-helper';
+import {
+    getFilesFromFolder, getLanguageFolder, getLibLanguageFolder, isBundle, readJson
+} from '@cinco-glsp/cinco-glsp-api';
 
 export class MetaSpecificationLoader {
-    static ROOT_BASE = '../../../..'; // pivot the rootBasePath to the folder above cinco-glsp-server
 
-    static load(metaLanguagesFolder: string, metaSpecificationFileTypes: string[], actionDispatcher?: ActionDispatcher): void {
-        const metaLanguagesPath = `${getRootUri()}/${metaLanguagesFolder}`;
+    static load(metaSpecificationFileTypes: string[], actionDispatcher?: ActionDispatcher, metaLanguagesFolder?: string): void {
+        const metaLanguagesPath = metaLanguagesFolder ?? `${getLanguageFolder()}`;
         console.log(`loading files from:  ${metaLanguagesPath}`);
         const foundFiles2 = getFilesFromFolder(fs, metaLanguagesPath, './');
         foundFiles2
@@ -52,10 +53,9 @@ export class MetaSpecificationLoader {
         MetaSpecification.clear();
     }
 
-    static loadClassFiles(languagesFolder: string, supportedDynamicImportFileTypes: string[]): void {
+    static loadClassFiles(supportedDynamicImportFileTypes: string[]): void {
         // Import all injected language-files under './languages/*.ts'
-        const pivot = '../../../..';
-        const languagesPath = `${getRootUri()}/${languagesFolder}`;
+        const languagesPath = `${getLibLanguageFolder()}`;
         console.log(`loading files from:  ${languagesPath}`);
         const foundFiles = getFilesFromFolder(fs, languagesPath, './');
         foundFiles
@@ -65,11 +65,16 @@ export class MetaSpecificationLoader {
                 return file !== undefined && isSupported;
             })
             .forEach((file: string) => {
-                console.log(`importing:  ${file}`);
-                import(`${pivot}/${languagesFolder}/${file}`).catch(e => {
-                    console.log('having error loading "' + file + '"');
-                    console.log(e);
-                });
+                console.log(`loading compiled resource:  ${file}`);
+                // fixed internal (resources that are compiled into this server)
+                if(isBundle()) {
+                    require(`../../languages/${file}`);
+                } else {
+                    import(`../../../lib/languages/${file}`).catch(e => {
+                        console.log('having error loading "' + file + '"');
+                        console.log(e);
+                    });
+                }
             });
     }
 }
