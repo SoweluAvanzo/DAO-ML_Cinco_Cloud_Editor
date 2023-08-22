@@ -104,7 +104,7 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
 
     if (!fs.existsSync(data.destination)) {
         fs.mkdirSync(data.destination, { recursive: true });
-    }    
+    }
 
     fs.writeFileSync(generatedFilePath, JSON.stringify(specification, null, 4));
     return generatedFilePath;
@@ -350,7 +350,7 @@ function handleAbstractShape(abstractShape: AbstractShape) {
 function handleInlineAppearance(inlineAppearance: InlineAppearance) {
     return {
         'background': inlineAppearance.background ? handleColor(inlineAppearance.background) : null,
-        'parent': inlineAppearance.parent,
+        'parent': inlineAppearance.parent?.ref?.name,
         'foreground': inlineAppearance.foreground ? handleColor(inlineAppearance.foreground) : null,
         'font': inlineAppearance.font ? handleFont(inlineAppearance.font) : null,
         'lineStyle': inlineAppearance.lineStyle?.lineType,
