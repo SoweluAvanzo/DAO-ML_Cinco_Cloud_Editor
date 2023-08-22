@@ -147,6 +147,34 @@
       "args": [
         "-p",
         "5007",
+        "--metaLanguagesFolder='cinco-glsp-server/languages'",
+        "--rootFolder='${workspaceRoot}'"
+      ],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/node_modules/**/*.js",
+        "${workspaceFolder}/cinco-glsp-server/lib/**/*.js",
+        "${workspaceFolder}/cinco-glsp-common/lib/**/*.js",
+        "${workspaceFolder}/cinco-glsp-api/lib/**/*.js"
+      ],
+      "smartStep": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "outputCapture": "std"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Cinco GLSP Server in MetaDevMode",
+      "program": "${workspaceFolder}/cinco-glsp-server/lib/src/index.js",
+      "env": {
+        "NODE_ENV": "development",
+        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "EDITOR_TYPE": "MODEL_EDITOR",
+        "USE_SSL": "false"
+      },
+      "args": [
+        "-p",
+        "5007",
         "--metaDevMode",
         "--metaLanguagesFolder='cinco-glsp-server/languages'",
         "--rootFolder='${workspaceRoot}'"
