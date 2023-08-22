@@ -214,7 +214,7 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{appearance
             
             styleConfiguration.fixed = nodeStyle.fixed;
 
-            styleConfiguration.mainShape = handleAbstractShape(style.mainShape);
+            styleConfiguration.shape = handleAbstractShape(style.mainShape);
             
         }
 
