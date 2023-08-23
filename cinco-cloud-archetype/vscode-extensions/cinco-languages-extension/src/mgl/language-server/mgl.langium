@@ -164,9 +164,9 @@ Wildcard:
 ;
 
 DataType returns string:
-    'String'
-    | 'Boolean'
-    | 'Number'
+    'string'
+    | 'boolean'
+    | 'number'
     | 'Date'
 ;
 

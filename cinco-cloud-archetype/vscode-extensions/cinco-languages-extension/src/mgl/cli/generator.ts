@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { AbsolutePosition, AbstractPosition, AbstractShape, Alignment, Color, ContainerShape, EdgeElementConnection, EdgeStyle, Font, GraphModel, Image, InlineAppearance, MglModel, MultiText, Node, NodeContainer, NodeStyle, Point, Polygon, Polyline, RoundedRectangle, Shape, Size, Text, isAbsolutePosition, isAlignment, isContainerShape, isEdge, isEdgeStyle, isEllipse, isGraphModel, isImage, isMultiText, isNode, isNodeContainer, isNodeStyle, isPolygon, isPolyline, isRectangle, isRoundedRectangle, isShape, isText } from '../../generated/ast';
+import { AbsolutePosition, AbstractPosition, AbstractShape, Alignment, Annotation, Color, ContainerShape, EdgeElementConnection, EdgeStyle, Font, GraphModel, Image, InlineAppearance, MglModel, MultiText, Node, NodeContainer, NodeStyle, Point, Polygon, Polyline, RoundedRectangle, Shape, Size, Text, isAbsolutePosition, isAlignment, isComplexAttribute, isContainerShape, isCustomDataType, isEdge, isEdgeStyle, isEllipse, isGraphModel, isImage, isMultiText, isNode, isNodeContainer, isNodeStyle, isPolygon, isPolyline, isPrimitiveAttribute, isRectangle, isRoundedRectangle, isShape, isText } from '../../generated/ast';
 import { extractDestinationAndName } from './cli-util';
 import { createMslServices } from '../../msl/language-server/msl-module';
 import { extractAstNode } from '../../msl/cli/cli-util';
@@ -22,17 +22,39 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
     for (const modelElement of model.modelElements) {
         const modelElementSpec : any = {};
         
-        // This has to be completed by prepending the modelElement type (see below)
+        // This is completed later by prepending the modelElement type (see below)
         modelElementSpec.elementTypeId = modelElement.name.toLowerCase();
 
         modelElementSpec.type = modelElementSpec.label = modelElement.name;
         
-        modelElementSpec.annotations = modelElement.annotations.map(annotation => {
-            return {
-                name : annotation.name,
-                values : annotation.value ?? []
-            };
-        });
+        modelElementSpec.annotations = modelElement.annotations.map(annotation => handleAnnotation(annotation));
+
+        if(!isCustomDataType(modelElement)) {
+            // Attributes
+            modelElementSpec.attributes = modelElement.attributes.map((attribute) => {
+                const result = {
+                    'annotations': attribute.annotations.map(annotation => handleAnnotation(annotation)),
+                    'final': attribute.notChangeable,
+                    'unique': attribute.unique,
+                    'name': attribute.name,
+                    'defaultValue': attribute.defaultValue ?? "",
+                    'bounds': {
+                        'lowerBound': attribute.lowerBound ?? 0,
+                        'upperBound': attribute.upperBound ?? 1
+                    },
+                    // Type is filled in below
+                    'type': ''
+                };
+
+                if(isPrimitiveAttribute(attribute)) {
+                    result.type = attribute.dataType
+                } else if(isComplexAttribute(attribute)) {
+                    result.type = attribute.type.ref?.name ?? ''
+                }
+
+                return result;
+            });
+        }
 
         if (isGraphModel(modelElement) || isNodeContainer(modelElement)) {
             const containerElement : GraphModel | NodeContainer = modelElement;
@@ -222,6 +244,13 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{appearance
     }
 
     return result;
+}
+
+function handleAnnotation(annotation: Annotation) {
+    return {
+        name : annotation.name,
+        values : annotation.value ?? []
+    };
 }
 
 function handleAbstractShape(abstractShape: AbstractShape) {
@@ -433,7 +462,7 @@ function getEdgeElementConnectionObject(edgeElementConnection: EdgeElementConnec
         upperBound: edgeElementConnection.upperBound ?? -1,
         // TODO Add handling of externalConnections
         elements: edgeElementConnection.localConnection.map(localContainment => {
-            return 'node:' + localContainment.ref?.name;
+            return 'edge:' + localContainment.ref?.name.toLowerCase();
         }) ?? []
     }
 }
