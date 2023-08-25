@@ -60,6 +60,7 @@ import { DoubleClickManager } from '../tools/double-click-manager';
 import { GeneratorManager } from '../tools/generator-manager';
 import { ValidationManager } from '../tools/validation-manager';
 import { CincoDiagramConfiguration } from './cinco-diagram-configuration';
+import { MetaSpecificationUpdateHandler } from '../handler/meta-specification-update-handler';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -93,6 +94,7 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(GeneratorManager);
         binding.add(MetaSpecificationReloadHandler);
         binding.add(MetaSpecificationRequestHandler);
+        binding.add(MetaSpecificationUpdateHandler);
         binding.add(FileProviderHandler);
     }
 

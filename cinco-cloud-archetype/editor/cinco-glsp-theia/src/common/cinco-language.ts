@@ -21,7 +21,7 @@ import {
     MetaSpecification
 } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
-import { CommandContribution, CommandRegistry } from '@theia/core';
+import { CommandContribution, CommandRegistry, logger } from '@theia/core';
 import { injectable } from 'inversify';
 
 export function getDiagramConfiguration(): GLSPDiagramLanguage {
@@ -47,10 +47,21 @@ export class LanguageUpdateCommand implements CommandContribution {
         commands.registerCommand(this.LANGUAGE_UPDATE_COMMAND, {
             execute: (message: LanguageUpdateMessage) => this.updateLanguage(message)
         });
+        commands.registerCommand({ id: 'MetaSpecification.update' }, {
+            execute: (message: LanguageUpdateMessage) => this.updateLanguageServerside(message)
+        });
     }
 
     updateLanguage(message: LanguageUpdateMessage): void {
         // update MetaSpecification
         MetaSpecification.merge(message.metaSpecification);
+    }
+
+    updateLanguageServerside(message: LanguageUpdateMessage): void {
+        logger.info("Received command to update meta specification");
+        window.postMessage({
+            kind: 'meta-specification.update',
+            metaSpecification: message.metaSpecification
+        });
     }
 }

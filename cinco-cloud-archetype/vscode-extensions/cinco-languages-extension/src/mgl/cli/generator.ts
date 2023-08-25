@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import * as vscode from 'vscode';
 import { AbsolutePosition, AbstractPosition, AbstractShape, Alignment, Annotation, Color, ContainerShape, EdgeElementConnection, EdgeStyle, Font, GraphModel, Image, InlineAppearance, MglModel, MultiText, Node, NodeContainer, NodeStyle, Point, Polygon, Polyline, RoundedRectangle, Shape, Size, Text, isAbsolutePosition, isAlignment, isComplexAttribute, isContainerShape, isCustomDataType, isEdge, isEdgeStyle, isEllipse, isGraphModel, isImage, isMultiText, isNode, isNodeContainer, isNodeStyle, isPolygon, isPolyline, isPrimitiveAttribute, isRectangle, isRoundedRectangle, isShape, isText } from '../../generated/ast';
 import { extractDestinationAndName } from './cli-util';
 import { createMslServices } from '../../msl/language-server/msl-module';
@@ -129,6 +130,11 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
     }
 
     fs.writeFileSync(generatedFilePath, JSON.stringify(specification, null, 4));
+
+    vscode.commands.executeCommand("MetaSpecification.update", {
+        metaSpecification: specification
+    });
+
     return generatedFilePath;
 }
 
