@@ -8,6 +8,14 @@ import { extractAstNode } from '../../msl/cli/cli-util';
 import { Styles } from '../../generated/ast';
 import { NodeFileSystem } from 'langium/node';
 
+interface ServerArgs {
+    metaDevMode: boolean;
+    rootFolder: string;
+    languagePath: string;
+    workspacePath: string;
+    port: number;
+}
+
 export async function generateMetaSpecification(model: MglModel, filePath: string, destination: string | undefined): Promise<string> {
     const data = extractDestinationAndName(filePath, destination);
     const generatedFilePath = `${path.join(data.destination, data.name)}.json`;
@@ -131,8 +139,11 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
 
     fs.writeFileSync(generatedFilePath, JSON.stringify(specification, null, 4));
 
-    vscode.commands.executeCommand("MetaSpecification.update", {
-        metaSpecification: specification
+    vscode.commands.executeCommand( 'cinco.provide.glsp-server-args').then( result => {
+        const serverArgs = result as ServerArgs;
+        const targetPath = path.join(serverArgs.rootFolder, serverArgs.languagePath,  data.name) + `.json`;
+        console.log('Integrating meta-specification to: '+ targetPath)
+        fs.writeFileSync(targetPath, JSON.stringify(specification, null, 4));
     });
 
     return generatedFilePath;

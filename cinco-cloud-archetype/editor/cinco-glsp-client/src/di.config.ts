@@ -60,7 +60,6 @@ import { DynamicImportLoader } from './meta/dynamic-import-tool';
 import { MetaModelSideLoader } from './meta/meta-model-sideloader';
 import { MetaSpecificationResponseHandler } from './meta/meta-specification-response-handler';
 import { WorkspaceFileService } from './utils/workspace-file-service';
-import { UpdateMetaSpecificationTool } from './features/update-meta-specification-tool';
 
 export function createCincoDiagramContainer(widgetId: string): Container {
     const container = createClientContainer(cincoDiagramModule);
@@ -134,9 +133,6 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     // bind the validation tool, that will fire ValidationRequestActions to the backend
     bind(TYPES.IDefaultTool).to(ValidationTool);
     configureActionHandler(context, ValidationModelResponseAction.KIND, ValidationModelResponseActionHandler);
-
-    // bind the validation tool, that will fire ValidationRequestActions to the backend
-    bind(TYPES.IDefaultTool).to(UpdateMetaSpecificationTool);
 
     // bind dirty state handler
     configureActionHandler(context, SetDirtyStateAction.KIND, DirtyStateHandler);

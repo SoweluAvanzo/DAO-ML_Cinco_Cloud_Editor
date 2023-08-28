@@ -148,7 +148,8 @@
         "-p",
         "5007",
         "--metaLanguagesFolder='cinco-glsp-server/languages'",
-        "--rootFolder='${workspaceRoot}'"
+        "--rootFolder='${workspaceRoot}'",
+        "--workspaceFolder='workspace"
       ],
       "sourceMaps": true,
       "outFiles": [
@@ -177,7 +178,8 @@
         "5007",
         "--metaDevMode",
         "--metaLanguagesFolder='cinco-glsp-server/languages'",
-        "--rootFolder='${workspaceRoot}'"
+        "--rootFolder='${workspaceRoot}'",
+        "--workspaceFolder='workspace"
       ],
       "sourceMaps": true,
       "outFiles": [

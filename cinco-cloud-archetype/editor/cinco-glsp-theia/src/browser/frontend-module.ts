@@ -32,7 +32,7 @@ import {
 } from '@theia/core/lib/browser';
 
 import { getDiagramConfiguration, LanguageUpdateCommand } from '../common/cinco-language';
-import { ENDPOINT, FilesystemUtilClient, FilesystemUtilServer } from '../common/file-system-util-protocol';
+import { FILESYSTEM_UTIL_ENDPOINT, FilesystemUtilClient, FilesystemUtilServer } from '../common/file-system-util-protocol';
 import { CincoDiagramConfiguration } from './diagram/cinco-diagram-configuration';
 import { CincoDiagramInitiator } from './diagram/cinco-diagram-initiator';
 import { CincoGLSPDiagramMananger } from './diagram/cinco-glsp-diagram-manager';
@@ -61,6 +61,8 @@ import {
 } from './validation-widget/validation-widget-contribution';
 import { ValidationModelWrapperCommandContribution } from './validation-widget/validation-wrapper-commands';
 import { CincoGLSPClientContribution } from './cinco-glsp-client-contribution';
+import { GLSPServerArgsProvider } from './glsp-server-args-provider';
+import { GLSP_SERVER_UTIL_ENDPOINT, GLSPServerUtilClient, GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 
 export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
     protected override get diagramLanguage(): GLSPDiagramLanguage {
@@ -94,7 +96,7 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
             .toDynamicValue(ctx => {
                 const client: FilesystemUtilClient = {};
                 const connection = ctx.container.get(WebSocketConnectionProvider);
-                return connection.createProxy<FilesystemUtilServer>(ENDPOINT, client);
+                return connection.createProxy<FilesystemUtilServer>(FILESYSTEM_UTIL_ENDPOINT, client);
             })
             .inSingletonScope();
         context.bind(FrontendApplicationContribution).to(FileSystemUtilService);
@@ -132,6 +134,19 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
 
         // bind update mechanism for meta-specification changes
         context.bind(CommandContribution).to(LanguageUpdateCommand);
+
+        // server args from backend to frontend
+        context.bind(GLSPServerArgsProvider).to(GLSPServerArgsProvider);
+        context.bind(CommandContribution).to(GLSPServerArgsProvider);
+        context
+            .bind(GLSPServerUtilServer)
+            .toDynamicValue(ctx => {
+                const client: GLSPServerUtilClient = {};
+                const connection = ctx.container.get(WebSocketConnectionProvider);
+                return connection.createProxy<GLSPServerUtilServer>(GLSP_SERVER_UTIL_ENDPOINT, client);
+            })
+            .inSingletonScope();
+        context.bind(FrontendApplicationContribution).to(FileSystemUtilService);
 
         // bind git configuration
         context.bind(FrontendApplicationContribution).to(GitConfigurationContribution);

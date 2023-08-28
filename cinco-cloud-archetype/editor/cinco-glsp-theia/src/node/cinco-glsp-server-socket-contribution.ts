@@ -18,33 +18,50 @@ import {
     GLSPSocketServerContribution,
     GLSPSocketServerContributionOptions
 } from '@eclipse-glsp/theia-integration/lib/node';
-import { DEFAULT_SERVER_PORT, META_DEV_MODE, META_LANGUAGES_FOLDER } from '@cinco-glsp/cinco-glsp-common';
-import { injectable } from 'inversify';
+import { DEFAULT_SERVER_PORT, META_DEV_MODE, META_LANGUAGES_FOLDER, WORKSPACE_FOLDER } from '@cinco-glsp/cinco-glsp-common';
+import { injectable, inject } from 'inversify';
 import * as path from 'path';
 import { getDiagramConfiguration } from '../common/cinco-language';
+import { GLSPServerUtilServerNode } from './glsp_server_args-provider';
 
- // args defined at start of the backend, but passed to the execution of the external server
+// args defined at start of the backend, but passed to the execution of the external server
 export const PORT_ARG_KEY = 'CINCO_GLSP';
 export const LANGUAGES_FOLDER_ARG_KEY = '--META_LANGUAGES_FOLDER';
+export const WORKSPACE_FOLDER_ARG_KEY = '--WORKSPACE_FOLDER';
+export const ROOT_FOLDER_ARG_KEY = '--ROOT_FOLDER';
 export const DEV_MODE_ARG_KEY = `--${META_DEV_MODE}`;
+
+export const DEFAULT_ROOT_FOLDER = __dirname + '/../../..';
+export const DEFAULT_META_LANGUAGES_FOLDER = META_LANGUAGES_FOLDER;
+export const DEFAULT_WORKSPACE_FOLDER = WORKSPACE_FOLDER;
+export const DEFAULT_META_DEV_MODE = '';
 
 export const LOG_DIR = path.join(__dirname, '..', '..', 'logs');
 const MODULE_PATH = path.join(__dirname, '..', '..', '..', 'cinco-glsp-server', 'bundle', 'cinco-glsp-server-packed.js');
 
 @injectable()
 export class CincoGLSPSocketServerContribution extends GLSPSocketServerContribution {
+    @inject(GLSPServerUtilServerNode)
+    protected glspServerArgsProvider: GLSPServerUtilServerNode;
+
     readonly id = getDiagramConfiguration().contributionId;
 
     createContributionOptions(): Partial<GLSPSocketServerContributionOptions> {
         const port = getPort(PORT_ARG_KEY, DEFAULT_SERVER_PORT);
-        const languagesFolder = getArgs(LANGUAGES_FOLDER_ARG_KEY) ?? META_LANGUAGES_FOLDER;
-        const metaDevMode = hasArg(DEV_MODE_ARG_KEY) ? '--metaDevMode' : '';
+        const languagesFolder = getArgs(LANGUAGES_FOLDER_ARG_KEY) ?? DEFAULT_META_LANGUAGES_FOLDER;
+        const workspaceFolder = getArgs(WORKSPACE_FOLDER_ARG_KEY) ?? DEFAULT_WORKSPACE_FOLDER;
+        const rootFolder = getArgs(ROOT_FOLDER_ARG_KEY) ?? DEFAULT_ROOT_FOLDER;
+        const metaDevMode = hasArg(DEV_MODE_ARG_KEY) ? '--metaDevMode' : DEFAULT_META_DEV_MODE;
+        this.glspServerArgsProvider.setServerArgs(metaDevMode !== '', rootFolder, languagesFolder, workspaceFolder, port);
         return {
             executable: MODULE_PATH,
             additionalArgs: [
                 '-p', `${port}`, '--no-consoleLog', '--fileLog', 'true', '--logDir', LOG_DIR,
                 // cinco specific arguments
-                `--rootFolder='${__dirname + '/../../..'}'`, metaDevMode, `--metaLanguagesFolder='${languagesFolder}'`
+                `--rootFolder='${rootFolder}'`,
+                metaDevMode,
+                `--metaLanguagesFolder='${languagesFolder}'`,
+                `--workspaceFolder='${workspaceFolder}'`
             ],
             socketConnectionOptions: {
                 port: port
@@ -57,7 +74,7 @@ export function getArgs(argsKey: string): string | undefined {
     const args = process.argv.filter(a => a.startsWith(argsKey));
     if (args.length > 0) {
         const result = args[0].substring(argsKey.length + 1, undefined);
-        if(result) {
+        if (result) {
             return result.replace(/"|'/g, ''); // replace quotes
         }
     }

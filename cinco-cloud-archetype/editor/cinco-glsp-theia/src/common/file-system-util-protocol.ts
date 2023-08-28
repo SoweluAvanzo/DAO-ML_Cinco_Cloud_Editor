@@ -15,10 +15,11 @@
  ********************************************************************************/
 import { JsonRpcServer } from '@theia/core/lib/common/messaging/proxy-factory';
 
-export const ENDPOINT = 'services/cc_fs_util';
+export const FILESYSTEM_UTIL_ENDPOINT = 'services/cc_fs_util';
 export const FilesystemUtilClient = Symbol('FilesystemUtilClient');
 export interface FilesystemUtilClient {}
 export const FilesystemUtilServer = Symbol('FilesystemUtilServer');
+
 export interface FilesystemUtilServer extends JsonRpcServer<FilesystemUtilClient> {
     connect(): Promise<boolean>;
     // provides all files of a specified absolute folder path

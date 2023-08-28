@@ -13,15 +13,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { JsonRpcServer } from '@theia/core/lib/common/messaging/proxy-factory';
+import { ServerArgs } from '@cinco-glsp/cinco-glsp-common';
 
-export const META_LANGUAGES_FRONTEND_FOLDER = 'languages';
-export const META_LANGUAGES_FOLDER = 'cinco-glsp-server/languages';
-export const WORKSPACE_FOLDER = 'workspace';
-export const SERVER_LANGUAGES_FOLDER = 'cinco-glsp-server/lib/languages'; // @deprecated: this should not be used anymore
-export const META_FILE_TYPES = ['.json'];
-export const RESOURCE_TYPES = ['.js', '.css'];
-export const SUPPORTED_DYNAMIC_FILE_TYPES = ['.js'];
-export const DIAGRAM_TYPE = 'cinco-diagram';
-export const DEVELOPMENT_MODE = false;
-export const META_DEV_MODE = 'META_DEV_MODE';
-export const DEFAULT_SERVER_PORT = 5007;
+export const GLSP_SERVER_UTIL_ENDPOINT = 'services/cc_glsp_server_util';
+export const GLSPServerUtilClient = Symbol('GLSPServerUtilClient');
+export interface GLSPServerUtilClient {}
+export const GLSPServerUtilServer = Symbol('GLSPServerUtilServer');
+
+export interface GLSPServerUtilServer extends JsonRpcServer<GLSPServerUtilClient> {
+    connect(): Promise<boolean>;
+    // provides all files of a specified absolute folder path
+    getArgs(): Promise<ServerArgs> | undefined;
+}
