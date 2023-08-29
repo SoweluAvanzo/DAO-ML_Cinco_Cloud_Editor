@@ -87,7 +87,7 @@ cache:
     - skaffold deploy -p $PROFILE -n $NAMESPACE -t $TAG --status-check=true
 
 .cinco-cloud-node-job-main:
-  image: node:16.14.0
+  image: node:18
 
 cinco-cloud-install-main-frontend:
   extends:
@@ -95,7 +95,7 @@ cinco-cloud-install-main-frontend:
     - .cinco-cloud-node-job-main
   script:
     - cd ./cinco-cloud/services/main/frontend
-    - npm install
+    - yarn install
 
 cinco-cloud-lint-main-frontend:
   extends:
@@ -105,8 +105,8 @@ cinco-cloud-lint-main-frontend:
     - cinco-cloud-install-main-frontend
   script:
     - cd ./cinco-cloud/services/main/frontend
-    - npm install
-    - npm run lint
+    - yarn install
+    - yarn lint
 
 cinco-cloud-check-dependencies-main-backend:
   extends:
@@ -199,36 +199,26 @@ cinco-cloud-deploy-testing:
 # Cinco Cloud Archetype
 # ====================================
 
-.archetype-job:
-  before_script:
-    - cp -r cinco-language-server cinco-cloud-archetype/cinco-ls
-
 .archetype-default-job-main:
-  extends: .archetype-job
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       changes:
-        - cinco-language-server/**/*
         - cinco-cloud-archetype/**/*
 
 .archetype-default-job-main-or-mr:
-  extends: .archetype-job
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:
-        - cinco-language-server/**/*
         - cinco-cloud-archetype/**/*
 
 .archetype-default-job-feature:
-  extends: .archetype-job
   rules:
     - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
       changes:
-        - cinco-language-server/**/*
         - cinco-cloud-archetype/**/*
 
 .archetype-theia-extension-build-job:
-  image: node:14.18-buster-slim
+  image: node:16-bookworm-slim
   cache:
     paths:
       - ./cinco-cloud-archetype/vscode-extensions/$EXTENSION_DIR/node_modules
@@ -237,13 +227,6 @@ cinco-cloud-deploy-testing:
     - npm install -g vsce --unsafe-perm
     - yarn
 
-archetype-test-build-cinco-extension:
-  extends:
-    - .archetype-default-job-main-or-mr
-    - .archetype-theia-extension-build-job
-  variables:
-    EXTENSION_DIR: cinco-extension
-
 archetype-test-build-cinco-project-initializer-extension:
   extends:
     - .archetype-default-job-main-or-mr
@@ -251,23 +234,20 @@ archetype-test-build-cinco-project-initializer-extension:
   variables:
     EXTENSION_DIR: cinco-project-initializer
 
-archetype-test-build-pyro-client-extension:
+archetype-test-build-cinco-languages-extension:
   extends:
     - .archetype-default-job-main-or-mr
     - .archetype-theia-extension-build-job
   variables:
-    EXTENSION_DIR: pyro-client-extension
+    EXTENSION_DIR: cinco-languages-extension
 
 archetype-build:
   extends:
     - .archetype-default-job-main
     - .docker-build-job
   needs:
-    - archetype-test-build-cinco-extension
     - archetype-test-build-cinco-project-initializer-extension
-    - archetype-test-build-pyro-client-extension
-    - cinco-ls-test-compile-frontend
-    - cinco-ls-test-compile-backend
+    - archetype-test-build-cinco-languages-extension
   variables:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
@@ -307,65 +287,6 @@ archetype-push-dev:
     IMAGE: archetype
     VERSION: dev
     PUSH_TAGS: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
-
-
-# ====================================
-# Cinco Language Server
-# ====================================
-
-.cinco-ls-default-job:
-  rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
-      changes:
-        - cinco-language-server/**/*
-        - cinco-cloud-archetype/**/*
-
-.cinco-ls-maven-job:
-  image: maven:3.8.1-jdk-11
-  cache:
-    paths:
-      - .m2/repository
-  variables:
-    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
-
-.cinco-ls-dart-job:
-  image: google/dart:2.4.1
-  cache:
-    paths:
-      - /root/.pub-cache
-
-cinco-ls-install:
-  extends:
-    - .cinco-ls-default-job
-    - .cinco-ls-maven-job
-  script:
-    - cd ./cinco-language-server
-    - mvn clean install
-  artifacts:
-    expire_in: 1 days
-    paths:
-      - ./cinco-language-server/de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/*
-
-cinco-ls-test-compile-frontend:
-  extends:
-    - .cinco-ls-default-job
-    - .cinco-ls-dart-job
-  needs:
-    - cinco-ls-install
-  script:
-    - cd ./cinco-language-server/de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/webapp
-    - pub global activate webdev && pub get && /root/.pub-cache/bin/webdev build
-
-cinco-ls-test-compile-backend:
-  extends:
-    - .cinco-ls-default-job
-    - .cinco-ls-maven-job
-  needs:
-    - cinco-ls-install
-  script:
-    - cd ./cinco-language-server/de.jabc.cinco.meta.productdefinition.ide/test-data/pyro/app
-    - mvn clean package -DskipTests
-
 
 # ====================================
 # GitLab Pages
