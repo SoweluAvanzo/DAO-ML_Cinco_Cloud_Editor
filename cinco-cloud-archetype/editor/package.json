@@ -1,54 +1,80 @@
 {
   "private": true,
+  "name": "parent",
+  "version": "1.0.0",
+  "license": "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
+  "author": {
+    "name": "Cinco Cloud"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/scce/cinco-cloud.git"
+  },
+  "homepage": "https://gitlab.com/scce/cinco-cloud",
+  "bugs": "https://gitlab.com/scce/cinco-cloud/issues",
+  "contributors": [
+    {
+      "name": "Cinco Cloud",
+      "url": "https://gitlab.com/scce/cinco-cloud"
+    }
+  ],
   "scripts": {
     "prepare": "lerna run prepare",
-    "rebuild:browser": "theia rebuild:browser",
     "watch": "lerna run --parallel watch",
-    "lint": "lerna run lint"
+    "build": "yarn install:only && lerna run build",
+    "lint": "lerna run lint --",
+    "install:only": "yarn install --ignore-scripts",
+    "rebuild:browser": "theia rebuild:browser",
+    "start:server": "node cinco-glsp-server/bundle/cinco-glsp-server-packed.js -p 5007"
   },
   "devDependencies": {
-    "lerna": "~3.13.0"
+    "@eclipse-glsp/config": "^1.0.0",
+    "lerna": "^4.0.0",
+    "typescript": "4.5.5"
   },
   "workspaces": [
-    "pyro-server-extension",
-    "cinco-language-server-extension",
     "cinco-authenticator",
-    "cinco-frontend-configurator",
     "cinco-branding",
+    "cinco-glsp-common",
+    "cinco-glsp-api",
+    "cinco-glsp-server",
+    "cinco-glsp-client",
+    "cinco-glsp-theia",
     "browser-app"
   ],
   "resolutions": {
     "ts-md5": "1.2.11",
-    "**/@theia/callhierarchy": "1.28.0",
-    "**/@theia/console": "1.28.0",
-    "**/@theia/core": "1.28.0",
-    "**/@theia/debug": "1.28.0",
-    "**/@theia/editor": "1.28.0",
-    "**/@theia/file-search": "1.28.0",
-    "**/@theia/filesystem": "1.28.0",
-    "**/@theia/keymaps": "1.28.0",
-    "**/@theia/markers": "1.28.0",
-    "**/@theia/messages": "1.28.0",
-    "**/@theia/metrics": "1.28.0",
-    "**/@theia/mini-browser": "1.28.0",
-    "**/@theia/monaco": "1.28.0",
-    "**/@theia/navigator": "1.28.0",
-    "**/@theia/outline-view": "1.28.0",
-    "**/@theia/output": "1.28.0",
-    "**/@theia/plugin-dev": "1.28.0",
-    "**/@theia/plugin-ext": "1.28.0",
-    "**/@theia/plugin-ext-vscode": "1.28.0",
-    "**/@theia/plugin-metrics": "1.28.0",
-    "**/@theia/preferences": "1.28.0",
-    "**/@theia/process": "1.28.0",
-    "**/@theia/search-in-workspace": "1.28.0",
-    "**/@theia/task": "1.28.0",
-    "**/@theia/terminal": "1.28.0",
-    "**/@theia/typehierarchy": "1.28.0",
-    "**/@theia/userstorage": "1.28.0",
-    "**/@theia/variable-resolver": "1.28.0",
-    "**/@theia/vsx-registry": "1.28.0",
-    "**/@theia/workspace": "1.28.0",
-    "**/@theia/cli": "1.28.0"
+    "**/@theia/callhierarchy": "~1.38.0",
+    "**/@theia/console": "~1.38.0",
+    "**/@theia/core": "~1.38.0",
+    "**/@theia/debug": "~1.38.0",
+    "**/@theia/editor": "~1.38.0",
+    "**/@theia/file-search": "~1.38.0",
+    "**/@theia/filesystem": "~1.38.0",
+    "**/@theia/keymaps": "~1.38.0",
+    "**/@theia/markers": "~1.38.0",
+    "**/@theia/messages": "~1.38.0",
+    "**/@theia/metrics": "~1.38.0",
+    "**/@theia/mini-browser": "~1.38.0",
+    "**/@theia/monaco": "~1.38.0",
+    "**/@theia/navigator": "~1.38.0",
+    "**/@theia/outline-view": "~1.38.0",
+    "**/@theia/output": "~1.38.0",
+    "**/@theia/plugin-dev": "~1.38.0",
+    "**/@theia/plugin-ext": "~1.38.0",
+    "**/@theia/plugin-ext-vscode": "~1.38.0",
+    "**/@theia/plugin-metrics": "~1.38.0",
+    "**/@theia/preferences": "~1.38.0",
+    "**/@theia/process": "~1.38.0",
+    "**/@theia/search-in-workspace": "~1.38.0",
+    "**/@theia/task": "~1.38.0",
+    "**/@theia/terminal": "~1.38.0",
+    "**/@theia/typehierarchy": "~1.38.0",
+    "**/@theia/userstorage": "~1.38.0",
+    "**/@theia/variable-resolver": "~1.38.0",
+    "**/@theia/vsx-registry": "~1.38.0",
+    "**/@theia/workspace": "~1.38.0",
+    "**/@theia/cli": "~1.38.0",
+    "**/@eclipse-glsp/config": "^1.0.0"
   }
 }

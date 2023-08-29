@@ -1,5 +1,8 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@eclipse-glsp/ts-config",
   "compilerOptions": {
+    "noEmit": true,
     "skipLibCheck": true,
     "declaration": true,
     "declarationMap": true,

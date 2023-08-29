@@ -1,8 +1,0 @@
-/xtend-gen
-/bin
-/target/
-.classpath
-.project
-.idea
-*.iml
-.settings/

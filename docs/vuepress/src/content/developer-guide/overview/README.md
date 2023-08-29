@@ -42,18 +42,9 @@ Further, the service is connected to the Kubernetes API of the cluster which is 
 **ArtemisMQ** The Artemis service is a message queue that receives jobs from the *Main Service*.
 A job contains information on how to build an image for the modelling environment.
 
-**Workspace Builder** Services of this kind build images for concrete Pyro-based modelling environments.
-They are connected to the message queue and receive jobs based on which images are build and finally pushed to the registry.
-*Workspace Builder* services are ephemeral, meaning they have no internal state such as a database and can be scaled according to the current work load.
-Each service can only work on one job at a time.
-
-**Image Registry** The registry service is composed of a [Podman][podman] image registry and a Python web service.
-The registry contains images build by the *Workspace Builder* for generated modeling environments.
-Additionally, the Python web service offers a single endpoint for triggering the garbage collection of the registry by the *Main Service*.
-
 **Theia Editor**
 The *Theia Editor* is a framework for IDEs, based on [Eclipse Theia](https://github.com/eclipse-theia/theia).
-It represents the artifact that can be built by the *Workspace Builder* and deployed by the *Kubernetes API*.
+It represents the artifact that can be deployed by the *Kubernetes API*.
 Its most basic form for the *Cinco-Cloud*, without specialization for a language, can be found inside the [*Cinco Cloud Archetype*](https://gitlab.com/scce/cinco-cloud/-/tree/main/cinco-cloud-archetype).
 Each project that is deployed by a user via the CincoCloud frontend corresponds to exactly one Theia-based workspace.
 There are two kinds of editors that can be deployed: for the meta-level, a **Language Editor** is deployed that behaves similar to Cinco in a sense that we can define our graphical languages and write our generators here.

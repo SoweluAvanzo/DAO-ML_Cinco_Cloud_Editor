@@ -1,7 +1,7 @@
 import "model/ExternalLibrary.ecore" as externalLibrary
 
 id info.scce.cinco.product.flowgraph
-stylePath "model/FlowGraph.style"
+stylePath "FlowGraph.style"
 
 @primeviewer
 @generatable("info.scce.cinco.product.flowgraph.codegen.Generate","/src-gen/")
@@ -13,7 +13,7 @@ graphModel FlowGraphDiagram {
 	
 	containableElements(Start, End, Activity, Swimlane, ExternalActivity, SubFlowGraph)
 	
-	attr EString as modelName
+	attr String as modelName
 }
 
 @contextMenuAction("info.scce.cinco.product.flowgraph.action.ShortestPathToEnd")
@@ -50,38 +50,42 @@ node Activity {
 	// use the "blueTextRectangle" as this node's style and pass the attribute "name" as a parameter
 	style blueTextRectangle("${name}")
 	
-	attr EString as name
-	attr EString as description
 	incomingEdges ({Transition,LabeledTransition}[1,*])
 	outgoingEdges (LabeledTransition[1,*])
+
+	attr String as name
+	attr String as description
 }
 
 node ExternalActivity {
 	style greenTextRectangle("${activity.name}")
-	
-	@pvLabel(name)
-	@pvFileExtension("elib")
-	prime externalLibrary.ExternalActivity as activity
+
 	incomingEdges ({Transition,LabeledTransition}[1,*])
 	outgoingEdges (LabeledTransition[1,*])
+	
+	// @pvLabel(name)
+	// @pvFileExtension("elib")
+	// prime externalLibrary.ExternalActivity as activity
 }
 
 @jumpToPrime
 node SubFlowGraph {
 	style greenTextRectangle("${subFlowGraph.modelName}")
 	
-	prime this::FlowGraphDiagram as subFlowGraph
 	incomingEdges ({Transition,LabeledTransition}[1,*])
 	outgoingEdges (LabeledTransition[1,*])
+
+	// prime this::FlowGraphDiagram as subFlowGraph
 }
 
 @icon("icons/Swimlane.png")
 @palette("Rectangular Elements")
 container Swimlane {
 	style swimlane("${actor}")
-	
-	attr EString as actor
+
 	containableElements (Start[1,1], Activity, End, ExternalActivity, SubFlowGraph)
+	
+	attr String as actor
 }
 
 edge Transition {
@@ -91,5 +95,5 @@ edge Transition {
 edge LabeledTransition {
 	style labeledArrow("${label}")
 	
-	attr EString as label
+	attr String as label
 }

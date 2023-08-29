@@ -1,0 +1,59 @@
+{
+  "name": "@cinco-glsp/cinco-glsp-common",
+  "version": "1.0.0",
+  "description": "Contains the protocol shared between the cinco-glsp-client and server.",
+  "license": "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
+  "keywords": [
+    "modeling",
+    "visualization",
+    "eclipse",
+    "glsp",
+    "graphics",
+    "diagram",
+    "minimal",
+    "diagram",
+    "diagram editor",
+    "Cinco",
+    "Cinco Cloud",
+    "protocol"
+  ],
+  "author": {
+    "name": "Cinco Cloud"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/scce/cinco-cloud.git"
+  },
+  "homepage": "https://gitlab.com/scce/cinco-cloud",
+  "bugs": "https://gitlab.com/scce/cinco-cloud/issues",
+  "contributors": [
+    {
+      "name": "Cinco Cloud",
+      "url": "https://gitlab.com/scce/cinco-cloud"
+    }
+  ],
+  "files": [
+    "lib",
+    "src",
+    "languages"
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {
+  },
+  "scripts": {
+    "prepare": "yarn clean && yarn build && yarn lint",
+    "install:only": "yarn install --ignore-scripts",
+    "clean": "rimraf tsconfig.tsbuildinfo lib bundle",
+    "build": "yarn install:only && tsc && yarn bundle",
+    "bundle": "webpack",
+    "lint": "eslint -c .eslintrc.js --ext .ts,.tsx ./src",
+    "watch": "tsc -w",
+    "start": "node --enable-source-maps lib/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "lib/index",
+  "types": "lib/index"
+}

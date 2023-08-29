@@ -118,10 +118,6 @@
         "avoidEscape": true
       }
     ],
-    "@typescript-eslint/semi": [
-      "error",
-      "always"
-    ],
     // eslint-plugin-header
     "header/header": [
       2,

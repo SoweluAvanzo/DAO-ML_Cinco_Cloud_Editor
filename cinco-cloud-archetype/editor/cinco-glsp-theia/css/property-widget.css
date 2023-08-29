@@ -1,0 +1,78 @@
+#property-widget {
+    padding: 10px;
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+
+#property-widget input[type='text'],
+#property-widget input[type='number'] {
+    background-color: var(--theia-input-background);
+    border: 0;
+    color: var(--theia-input-foreground);
+    margin: 0;
+    padding: 4px;
+    height: 24px;
+}
+
+#property-widget .property-header {
+    text-align: left;
+    vertical-align: top;
+    white-space: nowrap;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-top: 3px;
+    padding-bottom: 1px;
+    width: 0;
+}
+
+#property-widget td {
+    padding: 0;
+}
+
+#property-widget select {
+    border: none;
+    height: 24px;
+    background-color: white;
+}
+
+#property-widget .empty-cell {
+    padding: 4px;
+}
+
+#property-widget .button-cell {
+    width: 24px;
+    vertical-align: top;
+}
+
+#property-widget .property-table,
+#property-widget .attribute-table {
+    width: 100%;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
+#property-widget .property-table {
+    border: 1px solid var(--theia-input-foreground);
+}
+
+#property-widget td,
+#property-widget th + th {
+    border-left: 1px solid var(--theia-input-foreground);
+}
+#property-widget tr + tr {
+    border-top: 1px solid var(--theia-input-foreground);
+}
+
+#property-widget .property-input-text,
+#property-widget .property-input-number,
+#property-widget select {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+#property-widget .action-button {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+}

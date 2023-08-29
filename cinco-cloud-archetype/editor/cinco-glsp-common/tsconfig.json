@@ -1,0 +1,30 @@
+{
+  "extends": "@eclipse-glsp/ts-config/tsconfig.json",
+  "compilerOptions": {
+    "rootDirs": [
+      "src"
+    ],
+    "outDir": "lib",
+    "reactNamespace": "JSX",
+    "baseUrl": ".",
+    "types": [
+      "node",
+      "mocha",
+      "reflect-metadata"
+    ],
+    "lib": [
+      "ES5",
+      "ES2019"
+    ],
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "**/*.spec.ts",
+    "node_modules",
+    "lib",
+    "bundle",
+    ".vscode"
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "name": "@cinco-glsp/cinco-glsp-server",
+  "version": "1.0.0",
+  "description": "GLSP node server for Cinco GSLP diagrams",
+  "license": "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
+  "keywords": [
+    "modeling",
+    "visualization",
+    "eclipse",
+    "glsp",
+    "graphics",
+    "diagram",
+    "minimal",
+    "diagram",
+    "diagram editor",
+    "Cinco",
+    "Cinco Cloud",
+    "server"
+  ],
+  "author": {
+    "name": "Cinco Cloud"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/scce/cinco-cloud.git"
+  },
+  "homepage": "https://gitlab.com/scce/cinco-cloud",
+  "bugs": "https://gitlab.com/scce/cinco-cloud/issues",
+  "contributors": [
+    {
+      "name": "Cinco Cloud",
+      "url": "https://gitlab.com/scce/cinco-cloud"
+    }
+  ],
+  "files": [
+    "lib",
+    "src",
+    "languages"
+  ],
+  "dependencies": {
+    "inversify": "5.1.1",
+    "@eclipse-glsp/server-node": "1.0.0",
+    "@cinco-glsp/cinco-glsp-common": "1.0.0",
+    "@cinco-glsp/cinco-glsp-api": "1.0.0"
+  },
+  "devDependencies": {
+    "@eclipse-glsp/config": "^1.0.0",
+    "circular-dependency-plugin": "^5.2.2",
+    "fs-extra": "^10.1.0",
+    "reflect-metadata": "^0.1.13",
+    "rimraf": "3.0.2",
+    "source-map-loader": "^3.0.0",
+    "ts-loader": "^9.4.2",
+    "typescript": "5.0.4",
+    "webpack": "^5.48.0",
+    "webpack-cli": "4.7.0",
+    "ignore-loader": "^0.1.2"
+  },
+  "scripts": {
+    "prepare": "yarn clean && yarn build && yarn lint",
+    "install:only": "yarn install --ignore-scripts",
+    "clean": "rimraf tsconfig.tsbuildinfo lib bundle && yarn node clean-languages.js",
+    "build": "yarn install:only && tsc && yarn bundle",
+    "bundle": "webpack",
+    "lint": "eslint -c .eslintrc.js --ext .ts,.tsx ./src",
+    "watch": "tsc -w",
+    "start": "node --enable-source-maps bundle/cinco-glsp-server-packed.js -p 5007 --metaLanguagesFolder='cinco-glsp-server/languages'",
+    "start:devmode": "node --enable-source-maps bundle/cinco-glsp-server-packed.js -p 5007 --metaDevMode --metaLanguagesFolder='cinco-glsp-server/languages'"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "lib/src/index",
+  "types": "lib/src/index"
+}

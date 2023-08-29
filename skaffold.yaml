@@ -8,7 +8,6 @@ deploy:
       - name: release
         artifactOverrides:
           mainImage: registry.gitlab.com/scce/cinco-cloud/main
-          workspaceBuilderImage: registry.gitlab.com/scce/cinco-cloud/workspace-builder
           archetypeImage: registry.gitlab.com/scce/cinco-cloud/archetype
         chartPath: ./infrastructure/helm
         valuesFiles:
@@ -28,10 +27,6 @@ build:
       sync:
         infer:
           - '**/*.{ts,html,scss,css,png,jpg,jpeg}'
-    - image: registry.gitlab.com/scce/cinco-cloud/workspace-builder
-      context: ./cinco-cloud/services
-      docker:
-        dockerfile: ./workspace-builder/Dockerfile
     - image: registry.gitlab.com/scce/cinco-cloud/archetype
       context: .
       docker:

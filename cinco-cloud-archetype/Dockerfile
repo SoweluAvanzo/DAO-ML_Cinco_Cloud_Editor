@@ -1,41 +1,36 @@
-# build cinco extension
+# build cinco languages extension
 # --------------------------------
-FROM --platform=linux/amd64 docker.io/library/node:14.18-buster-slim as cinco-extension-builder
-WORKDIR /cinco-extension
-COPY ./cinco-cloud-archetype/vscode-extensions/cinco-extension /cinco-extension
-# outputs extension to /cinco-extension/cinco-extension-0.0.1.vsix
-RUN npm install -g vsce --unsafe-perm
+FROM docker.io/library/node:16-bookworm-slim as cinco-languages-extension-builder
+WORKDIR /cinco-languages-extension
+COPY ./cinco-cloud-archetype/vscode-extensions/cinco-languages-extension /cinco-languages-extension
+# outputs extension to /cinco-languages-extension/cinco-langium-0.0.1.vsix
 RUN yarn
 
 # build cinco-project-initializer
 # --------------------------------
-FROM docker.io/library/node:14.18-buster-slim as cinco-project-initializer-builder
+FROM docker.io/library/node:16-bookworm-slim as cinco-project-initializer-builder
 WORKDIR /cinco-project-initializer
 COPY ./cinco-cloud-archetype/vscode-extensions/cinco-project-initializer /cinco-project-initializer
 # outputs extension to /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix
 RUN npm install -g vsce --unsafe-perm
 RUN yarn
 
-# build pyro client
+# build the base image with Python 3.8
 # --------------------------------
-FROM docker.io/library/node:14.18-buster-slim as pyro-client-builder
-WORKDIR /pyro-client-extension
-COPY ./cinco-cloud-archetype/vscode-extensions/pyro-client-extension /pyro-client-extension
-# outputs extension to /pyro-client-extension/pyro-client-extension-0.0.1.vsix
-RUN npm install -g vsce --unsafe-perm
-RUN yarn
+FROM docker.io/library/node:16-bookworm-slim as base
+RUN apt update
+RUN apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev liblzma-dev libx11-dev libxkbfile-dev libsecret-1-dev git
+RUN curl -O https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tar.xz
+RUN tar -xf Python-3.8.2.tar.xz
+RUN cd Python-3.8.2 \
+    && ./configure --enable-optimizations --enable-loadable-sqlite-extensions \
+    && make -j 4 \
+    && make install
+RUN corepack enable
 
-# build the cinco-language-server
+# build the theia editor image
 # --------------------------------
-FROM docker.io/library/maven:3.8.1-jdk-11-openj9 as cinco-ls-builder
-WORKDIR /cinco-ls
-COPY ./cinco-language-server /cinco-ls
-RUN rm -r -f /cinco-ls/workspace-emf-tmp
-RUN mvn clean install
-
-# build the theia editor
-# --------------------------------
-FROM docker.io/library/openjdk:11.0.12-slim-bullseye
+FROM base
 # default environment variables
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV CINCO_CLOUD_HOST=cinco-cloud
@@ -48,35 +43,17 @@ ENV MINIO_SECRET_KEY=''
 ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT={{hostname}}
 ENV THEIA_MINI_BROWSER_HOST_PATTERN={{hostname}}
 ENV INTERNAL_USE_SSL="false"
-ENV INTERNAL_PYRO_HOST="localhost"
-ENV INTERNAL_PYRO_PORT=8000
-ENV INTERNAL_PYRO_SUBPATH=""
 ENV EXTERNAL_USE_SSL="false"
-ENV EXTERNAL_PYRO_HOST="localhost"
-ENV EXTERNAL_PYRO_PORT=8000
-ENV EXTERNAL_PYRO_SUBPATH=""
-ENV PYRO_SERVER_BINARIES_FILE=""
 ENV WORKSPACE_PATH="/editor/workspace"
 ENV EDITOR_TYPE="LANGUAGE_EDITOR"
 ENV ENVIRONMENT="local"
+ENV NODE_ENV="development"
 # make readable for root only
 RUN chmod -R 750 /var/run/
 
-# install node, yarn and other dependencies
-RUN apt update && \
-    apt install -y gnupg gnupg2 curl && \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
-    apt update && \
-    apt install -y nodejs npm yarn && \
-    apt remove -y gnupg gnupg2 curl && \
-    apt install -y libsecret-1-dev && \
-    apt autoremove -y
+# install dependencies
+RUN apt update && apt install -y libsecret-1-dev make unzip curl g++ build-essential
 
-# install unzip
-RUN apt install -y unzip
-# install python
-RUN apt install -y python && python --version && sleep 10
 # install npm dependencies
 RUN npm install -g node-gyp && npm install -g typescript
 
@@ -88,20 +65,13 @@ COPY --chown=theia:theia ./cinco-cloud-archetype/editor /editor
 RUN yarn
 
 # copy vscode-extensions into plugins
-COPY --from=cinco-extension-builder /cinco-extension/cinco-extension-0.0.1.vsix /editor/browser-app/plugins
+COPY --from=cinco-languages-extension-builder /cinco-languages-extension/cinco-langium-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=cinco-project-initializer-builder /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix /editor/browser-app/plugins
-COPY --from=pyro-client-builder /pyro-client-extension/pyro-client-extension-0.0.1.vsix /editor/browser-app/plugins
-# copy cinco-language-server into backend
-COPY --from=cinco-ls-builder /cinco-ls/de.jabc.cinco.meta.core.ide/target/language-server /editor/cinco-language-server-extension/language-server
-
-# integrate favicon
-RUN sed -i 's/<\/head>/<link rel="icon" href="favicon.ico" \/><\/head>/g' /editor/browser-app/lib/index.html
 
 # runtime configuration
 VOLUME /editor/workspace
 EXPOSE 3000 8000
 CMD cd /editor/browser-app && \
-    # TODO: comment CINCO_CLOUD_DEBUG out, for debug purpose only (insecure)
     DATABASE_URL="${DATABASE_URL}" \
     DATABASE_USER="${DATABASE_USER}" \
     DATABASE_PASSWORD="${DATABASE_PASSWORD}" \
@@ -115,15 +85,8 @@ CMD cd /editor/browser-app && \
     THEIA_WEBVIEW_EXTERNAL_ENDPOINT="${THEIA_WEBVIEW_EXTERNAL_ENDPOINT}" \
     THEIA_MINI_BROWSER_HOST_PATTERN="${THEIA_MINI_BROWSER_HOST_PATTERN}" \
     INTERNAL_USE_SSL="${INTERNAL_USE_SSL}" \
-    INTERNAL_PYRO_HOST="${INTERNAL_PYRO_HOST}" \
-    INTERNAL_PYRO_PORT="${INTERNAL_PYRO_PORT}" \
-    INTERNAL_PYRO_SUBPATH="${INTERNAL_PYRO_SUBPATH}" \
     EXTERNAL_USE_SSL="${EXTERNAL_USE_SSL}" \
-    EXTERNAL_PYRO_HOST="${EXTERNAL_PYRO_HOST}" \
-    EXTERNAL_PYRO_PORT="${EXTERNAL_PYRO_PORT}" \
-    EXTERNAL_PYRO_SUBPATH="${EXTERNAL_PYRO_SUBPATH}" \
-    PYRO_SERVER_BINARIES_FILE="${PYRO_SERVER_BINARIES_FILE}" \
     WORKSPACE_PATH="${WORKSPACE_PATH}" \
     EDITOR_TYPE="${EDITOR_TYPE}" \
     ENVIRONMENT="${ENVIRONMENT}" \
-    yarn run theia start --port=3000 --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
+    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
