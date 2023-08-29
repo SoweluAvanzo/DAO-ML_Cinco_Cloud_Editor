@@ -61,12 +61,12 @@ WORKDIR /editor
 RUN useradd -ms /bin/bash theia
 COPY --chown=theia:theia ./cinco-cloud-archetype/editor /editor
 
-# build theia-editor
-RUN yarn
-
 # copy vscode-extensions into plugins
 COPY --from=cinco-languages-extension-builder /cinco-languages-extension/cinco-langium-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=cinco-project-initializer-builder /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix /editor/browser-app/plugins
+
+# build theia-editor
+RUN yarn
 
 # runtime configuration
 VOLUME /editor/workspace
