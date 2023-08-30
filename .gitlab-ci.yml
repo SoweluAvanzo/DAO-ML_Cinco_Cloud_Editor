@@ -12,9 +12,9 @@
         - cinco-cloud/**/*
 
 .docker-job:
-  image: docker:20.10.6
+  image: docker:24.0.5
   services:
-    - docker:20.10.6-dind
+    - docker:24.0.5-dind
   variables:
     DOCKER_DRIVER: overlay
 
