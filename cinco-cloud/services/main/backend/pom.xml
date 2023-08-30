@@ -16,7 +16,7 @@
         <jackson-databind.version>2.14.2</jackson-databind.version>
         <jackson-jsog.version>1.1.2</jackson-jsog.version>
         <jsonassert.version>1.5.0</jsonassert.version>
-        <json.version>20151123</json.version>
+        <json.version>20230618</json.version>
         <kubernetes-client.version>6.4.0</kubernetes-client.version>
         <maven-checkstyle.version>3.1.2</maven-checkstyle.version>
         <minio.version>7.1.4</minio.version>
@@ -25,9 +25,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus-plugin.version>2.16.2.Final</quarkus-plugin.version>
+        <quarkus-plugin.version>2.16.10.Final</quarkus-plugin.version>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>2.16.2.Final</quarkus.platform.version>
+        <quarkus.platform.version>2.16.10.Final</quarkus.platform.version>
         <surefire-plugin.version>2.22.1</surefire-plugin.version>
         <smallrye-web-client>2.6.0</smallrye-web-client>
         <testcontainers.version>1.15.3</testcontainers.version>
@@ -294,6 +294,7 @@
                     <formats>HTML,JUNIT</formats>
                     <excludes>
                         <exclude>org.yaml:snakeyaml</exclude>
+                        <exclude>org.quartz-scheduler:quartz</exclude>
                     </excludes>
                 </configuration>
             </plugin>
