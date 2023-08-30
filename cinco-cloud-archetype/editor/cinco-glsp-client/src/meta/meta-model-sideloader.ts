@@ -15,8 +15,6 @@
  ********************************************************************************/
 
 import {
-    META_FILE_TYPES,
-    META_LANGUAGES_FOLDER,
     MetaSpecification,
     RESOURCE_TYPES,
     getEdgeTypes,
@@ -58,7 +56,7 @@ export class MetaModelSideLoader {
             // load frontend language-files
             DynamicImportLoader.load(RESOURCE_TYPES, commandService, actionDispatcher);
             // load meta-specification
-            MetaSpecificationLoader.load(META_LANGUAGES_FOLDER, META_FILE_TYPES, commandService, actionDispatcher).then(_ => {
+            MetaSpecificationLoader.load(actionDispatcher).then(_ => {
                 // apply meta-specification
                 const graphTypes = getGraphTypes().map((n: any) => n.elementTypeId) as any[];
                 const nodeTypes = getNodeTypes().map((n: any) => n.elementTypeId) as any[];

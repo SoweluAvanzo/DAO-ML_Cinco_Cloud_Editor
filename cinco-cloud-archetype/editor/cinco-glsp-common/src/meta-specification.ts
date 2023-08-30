@@ -975,17 +975,18 @@ export function canBeCreated(containerType: string, containmentType: string, see
             (containments.filter((e: NodeType) => e.elementTypeId === containmentType).length > 0 ||
                 containments.filter(
                     c =>
-                        // ... not yet seen ...
+                        // ... there is a containable container c that is not a containment of container above (prevent recursion)...
                         seenContainments.filter(s => s.elementTypeId === c.elementTypeId).length <= 0 &&
-                        // ... and a containment of a container, that is a containment of this container (recursivly), or ...
+                        // then for c holds, if that containment (with type containmentType) is containable by the containble container c,
+                        // then containmentType is also defined as a creatable containment of this container
                         canBeCreated(c.elementTypeId, containmentType, seenContainments.concat(containments))
-                ).length >= 0) // ... not creatable
+                ).length > 0) // ... not creatable
         );
     } else if (edgeSpec) {
         // is EdgeType
         const sources = getEdgeSources(edgeSpec);
         const target = getEdgeTargets(edgeSpec);
-        // there has to be at least one source and one target node inside the containerType!
+        // there has to be at least one source and one target node, that is creatable inside the containerType!
         return (
             sources.find(s => canBeCreated(containerType, s.elementTypeId)) !== undefined &&
             target.find(s => canBeCreated(containerType, s.elementTypeId)) !== undefined

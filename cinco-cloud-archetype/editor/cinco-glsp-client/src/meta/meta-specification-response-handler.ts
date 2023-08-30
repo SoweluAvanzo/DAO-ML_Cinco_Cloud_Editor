@@ -26,14 +26,10 @@ export class MetaSpecificationResponseHandler implements IActionHandler {
 
     handle(action: MetaSpecificationResponseAction): void | Action | ICommand {
         const metaSpec = action.metaSpecification;
-        if (action.clear) {
-            MetaSpecification.clear();
-        }
-        // update meta-specification
+        MetaSpecification.clear();
         MetaSpecification.merge(metaSpec);
         MetaSpecificationResponseHandler._unlock();
-
-        // update palette
+        // update palette after meta-specification is updated
         return {
             kind: 'enableToolPalette'
         };

@@ -20,61 +20,23 @@ import {
     FileProviderResponse,*/
     MetaSpecification,
     MetaSpecificationReloadAction,
-    MetaSpecificationReloadItem,
     MetaSpecificationRequestAction
 } from '@cinco-glsp/cinco-glsp-common';
 import { IActionDispatcher } from '@eclipse-glsp/client';
-import { CommandService } from '@theia/core';
 import { MetaSpecificationResponseHandler } from './meta-specification-response-handler';
 
 export class MetaSpecificationLoader {
     static meta_specifications: any[] = [];
 
     static load(
-        targetFolder: string,
-        supportedFileTypes: string[],
-        commandService: CommandService,
         actionDispatcher: IActionDispatcher
     ): Promise<void> {
         return new Promise<void>((resolve, _) => {
-            // used for theia applications
-            /*
-            if (commandService) {
-                (
-                    commandService.executeCommand('fileProviderHandler', {
-                        directories: [`${targetFolder}`],
-                        readFiles: true,
-                        filter: supportedFileTypes // only read supported files
-                    }) as Promise<FileProviderResponse>
-                ).then((response: FileProviderResponse) => {
-                    // import all files
-                    response.items.forEach(item => {
-                        const metaSpecification = this.parseContent(item.content ?? '{}');
-                        if (CompositionSpecification.is(metaSpecification)) {
-                            MetaSpecification.merge(metaSpecification);
-                        }
-                    });
-                    {
-                        // send a reload to the server
-                        const items = [MetaSpecificationReloadItem.create([`${targetFolder}`], supportedFileTypes)];
-                        const reloadAction = MetaSpecificationReloadAction.create(items, false);
-                        actionDispatcher
-                            .dispatch(reloadAction)
-                            .then(() => resolve())
-                            .catch(() => {
-                                console.log('error: could not call reload meta-specification from frontend in backend.');
-                                resolve();
-                            });
-                    }
-                });
-            } else {
-            */
-                // used for standalone applications
-                actionDispatcher.dispatch(MetaSpecificationRequestAction.create()).then(async _ => {
-                    await MetaSpecificationResponseHandler._meta_spec_loaded;
-                    resolve();
-                });
-            /* }*/
+            // used for standalone applications
+            actionDispatcher.dispatch(MetaSpecificationRequestAction.create(true)).then(async _ => {
+                await MetaSpecificationResponseHandler._meta_spec_loaded;
+                resolve();
+            });
         });
     }
 
@@ -82,8 +44,7 @@ export class MetaSpecificationLoader {
         MetaSpecification.clear();
         {
             // send a reload to the server
-            const items: MetaSpecificationReloadItem[] = [];
-            const reloadAction = MetaSpecificationReloadAction.create(items, true);
+            const reloadAction = MetaSpecificationReloadAction.create([], true);
             actionDispatcher.dispatch(reloadAction);
         }
     }

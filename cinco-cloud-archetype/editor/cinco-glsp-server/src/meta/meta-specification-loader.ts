@@ -14,7 +14,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { CompositionSpecification, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
-import { ActionDispatcher } from '@eclipse-glsp/server-node';
 import * as fs from 'fs';
 import {
     getFilesFromFolder, getLanguageFolder, getLibLanguageFolder, isBundle, readJson
@@ -22,7 +21,10 @@ import {
 
 export class MetaSpecificationLoader {
 
-    static load(metaSpecificationFileTypes: string[], actionDispatcher?: ActionDispatcher, metaLanguagesFolder?: string): void {
+    static load(
+        metaSpecificationFileTypes: string[],
+        metaLanguagesFolder?: string
+    ): void {
         const metaLanguagesPath = metaLanguagesFolder ?? `${getLanguageFolder()}`;
         console.log(`loading files from:  ${metaLanguagesPath}`);
         const foundFiles2 = getFilesFromFolder(fs, metaLanguagesPath, './');
@@ -39,14 +41,6 @@ export class MetaSpecificationLoader {
                     MetaSpecification.merge(metaSpec);
                 }
             });
-
-        // update custom palette
-        if (actionDispatcher) {
-            const paletteUpdateAction = {
-                kind: 'enableToolPalette'
-            };
-            actionDispatcher.dispatch(paletteUpdateAction);
-        }
     }
 
     static clear(): void {

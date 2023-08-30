@@ -50,6 +50,7 @@ export class CustomToolManager extends GLSPToolManager {
             for (const callback of CustomToolManager.callbacks) {
                 callback(this.registry, this.viewRegistry, this.commandService, actionDispatcher);
             }
+            CustomToolManager.callbacks = [];
         });
     }
 

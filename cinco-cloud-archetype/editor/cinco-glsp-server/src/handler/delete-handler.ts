@@ -35,11 +35,7 @@ export class DeleteHandler implements OperationHandler {
 
     execute(operation: DeleteElementOperation): MaybePromise<void> {
         operation.elementIds.forEach(elementId => this.deleteElementById(elementId));
-
-        // save model
-        const graphmodel = this.modelState.index.getRoot();
-        const fileUri = graphmodel._sourceUri;
-        this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
+        this.saveAndUpdate();
     }
 
     protected deleteElementById(elementId: string): void {
@@ -73,5 +69,16 @@ export class DeleteHandler implements OperationHandler {
         } else if (Edge.is(element)) {
             remove(this.modelState.graphModel.edges, element);
         }
+    }
+
+    saveAndUpdate(): void {
+        const paletteUpdateAction = {
+            kind: 'enableToolPalette'
+        };
+        this.actionDispatcher.dispatch(paletteUpdateAction);
+        // save model
+        const graphmodel = this.modelState.index.getRoot();
+        const fileUri = graphmodel._sourceUri;
+        this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
     }
 }

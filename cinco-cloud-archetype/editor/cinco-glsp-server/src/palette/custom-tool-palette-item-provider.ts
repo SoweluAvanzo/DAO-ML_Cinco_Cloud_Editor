@@ -16,12 +16,12 @@
 import { Args, PaletteItem } from '@eclipse-glsp/protocol';
 import * as fs from 'fs';
 // eslint-disable-next-line max-len
-import { GraphModelState, getFilesByExtension, getFilesFromFolder, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
+import { GraphModelState, getFilesFromFolder, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
 import {
     ElementType,
-    canBeCreated,
     getEdgePalettes,
     getEdgeSpecOf,
+    getGraphTypes,
     getNodePalettes,
     getNodeSpecOf,
     getPalettes,
@@ -85,15 +85,16 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                     paletteItems.push(p);
                 }
             });
+
         // add prime node label into palettes
+        const workspacePath = getWorkspaceRootUri();
+        const modelFileExtensions = getGraphTypes().map(gT => '.' + gT.diagramExtension);
+        const modelFiles = getFilesFromFolder(fs, workspacePath, './', modelFileExtensions);
         const primeNodePaletteItems = getPrimeNodePalettes();
-        const workspacePath = getWorkspaceRootUri(); // TODO replace with a correct env.
-        const workspaceFiles = getFilesFromFolder(fs, workspacePath, './');
-        const existingFlowGraph = getFilesByExtension(workspaceFiles, '.flowgraph');
         primeNodePaletteItems
             .filter((e: string) => e !== 'Edges' && e !== 'Nodes')
             .forEach((e: string) => {
-                const p = this.createCustomItem(handlers, e, e.toLowerCase(), e, 'node', true, existingFlowGraph);
+                const p = this.createCustomItem(handlers, e, e.toLowerCase(), e, 'node', modelFiles);
                 if (p) {
                     paletteItems.push(p);
                 }
@@ -176,16 +177,11 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         id: string, // usually just lowercase and without whitespaces
         label: string, // readable GUI name
         type: string, // 'node' or 'edge'
-        isPrime?: boolean,
         fileList?: string[] // is prime node ?
     ): PaletteItem | undefined {
         let handlerItemsOfLabel: PaletteItem[] = [];
         if (type === 'node') {
-            // if (isPrime && fileList) {
-            //     handlerItemsOfLabel = this.createCustomPrimeNodePaletteItems(handlers, categoryId, fileList);
-            // } else {
             handlerItemsOfLabel = this.createCustomNodePaletteItems(handlers, categoryId, fileList);
-            // }
         } else if (type === 'edge') {
             handlerItemsOfLabel = this.createCustomEdgePaletteItems(handlers, categoryId);
         }
@@ -202,19 +198,6 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         };
         return p;
     }
-
-    /* createCustomNodePaletteItems(handlers: CreateOperationHandler[], categoryId: string, fileList?: string[]): PaletteItem[] {
-        const filteredHandlers = handlers
-            .filter(h => h instanceof SpecifiedNodeHandler)
-            .map(h => h as SpecifiedNodeHandler)
-            .filter(nh => {
-                const specs = nh.elementTypeIds.map(e => getNodeSpecOf(e));
-                const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
-                const isPaletteOfCategory = palettesPerSpec.map(palettes => palettes !== undefined && palettes.indexOf(categoryId) >= 0);
-                return isPaletteOfCategory.indexOf(true) >= 0;
-            });
-        return this.createSortedPaletteItems(filteredHandlers, categoryId);
-    } */
 
     createCustomNodePaletteItems(handlers: CreateOperationHandler[], categoryId: string, fileList?: string[]): PaletteItem[] {
         const filteredHandlers = handlers
@@ -250,40 +233,40 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
 
     createSortedPaletteItems(handlers: CreateOperationHandler[], categoryId: string, fileList?: string[]): PaletteItem[] {
         const paletteItems: PaletteItem[] = [];
-
         handlers.forEach(handler => {
             if (handler instanceof SpecifiedElementHandler) {
+                const graphModel = this.state.graphModel;
                 handler.elementTypeIds.forEach(elementTypeId => {
+                    const isPartOfPalette = graphModel.couldContain(elementTypeId);
                     const action = getNodeSpecOf(elementTypeId)
                         ? TriggerNodeCreationAction.create(elementTypeId)
                         : TriggerEdgeCreationAction.create(elementTypeId);
                     if (
-                        canBeCreated(this.state.graphModel.type, elementTypeId) && // filter out only creatable elements
+                        isPartOfPalette && // filter out only creatable elements
                         (hasPalette(elementTypeId, categoryId) ||
                             (getPalettes(elementTypeId).length <= 0 && this.WHITE_LIST.includes(categoryId)))
                     ) {
                         if (hasPrimeReference(elementTypeId)) {
                             if (fileList && fileList.length > 0) {
                                 fileList.forEach(file => {
-                                    paletteItems.push(this.create(action, handler, elementTypeId, file));
+                                    paletteItems.push(this.createPaletteItem(action, handler, elementTypeId, file));
                                 });
                             }
                         } else {
-                            paletteItems.push(this.create(action, handler, elementTypeId));
+                            paletteItems.push(this.createPaletteItem(action, handler, elementTypeId));
                         }
                     }
                 });
             } else {
                 handler.getTriggerActions().forEach(action => {
-                    paletteItems.push(this.create(action, handler));
+                    paletteItems.push(this.createPaletteItem(action, handler));
                 });
             }
         });
-
         return paletteItems.sort((a, b) => a.sortString.localeCompare(b.sortString));
     }
 
-    create(
+    createPaletteItem(
         action: PaletteItem.TriggerElementCreationAction,
         handler: CreateOperationHandler,
         elementTypeId?: string,

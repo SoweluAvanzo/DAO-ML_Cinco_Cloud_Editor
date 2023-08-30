@@ -13,22 +13,35 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { MetaSpecification, MetaSpecificationRequestAction, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
+import {
+    MetaSpecification, MetaSpecificationReloadAction, MetaSpecificationRequestAction, MetaSpecificationResponseAction
+} from '@cinco-glsp/cinco-glsp-common';
 import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server-node';
 import { injectable } from 'inversify';
-import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 
 @injectable()
 export class MetaSpecificationRequestHandler implements ActionHandler {
     actionKinds: string[] = [MetaSpecificationRequestAction.KIND];
 
     execute(action: MetaSpecificationRequestAction, ...args: unknown[]): MaybePromise<Action[]> {
-        const clear = action.clear;
-        if (clear) {
-            MetaSpecificationLoader.clear();
+        const reload = action.reload;
+        if (reload) {
+            return new Promise<Action[]>((resolve, _) => {
+                // first reload than request again without reload
+                const clear = reload;
+                const reloadAction = MetaSpecificationReloadAction.create([], clear);
+                const secondRequest = action;
+                secondRequest.reload = false;
+                return resolve([reloadAction, secondRequest]);
+            });
+        } else {
+            return this.getResponse();
         }
+    }
+
+    getResponse(): MaybePromise<Action[]> {
         const meta_specifications = MetaSpecification.get();
-        const response = MetaSpecificationResponseAction.create(meta_specifications, clear);
+        const response = MetaSpecificationResponseAction.create(meta_specifications);
         return [response];
     }
 }

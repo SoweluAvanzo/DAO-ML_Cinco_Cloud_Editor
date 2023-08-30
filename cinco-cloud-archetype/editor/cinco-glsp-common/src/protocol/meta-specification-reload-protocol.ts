@@ -100,16 +100,16 @@ export namespace MetaSpecificationReloadItem {
 
 export interface MetaSpecificationRequestAction extends Action {
     kind: typeof MetaSpecificationRequestAction.KIND;
-    clear?: boolean;
+    reload?: boolean;
 }
 
 export namespace MetaSpecificationRequestAction {
     export const KIND = 'meta-specification.request';
 
-    export function create(clear?: boolean): MetaSpecificationRequestAction {
+    export function create(reload?: boolean): MetaSpecificationRequestAction {
         return {
             kind: KIND,
-            clear
+            reload
         };
     }
 }
@@ -117,17 +117,15 @@ export namespace MetaSpecificationRequestAction {
 export interface MetaSpecificationResponseAction extends Action {
     kind: typeof MetaSpecificationResponseAction.KIND;
     metaSpecification: CompositionSpecification;
-    clear?: boolean;
 }
 
 export namespace MetaSpecificationResponseAction {
     export const KIND = 'meta-specification.response';
 
-    export function create(metaSpecification: CompositionSpecification, clear?: boolean): MetaSpecificationResponseAction {
+    export function create(metaSpecification: CompositionSpecification): MetaSpecificationResponseAction {
         return {
             kind: KIND,
-            metaSpecification,
-            clear
+            metaSpecification
         };
     }
 }
