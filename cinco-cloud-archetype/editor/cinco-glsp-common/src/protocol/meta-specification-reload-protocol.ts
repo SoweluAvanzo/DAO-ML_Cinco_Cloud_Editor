@@ -129,3 +129,7 @@ export namespace MetaSpecificationResponseAction {
         };
     }
 }
+
+export namespace MetaSpecificationReloadCommand {
+    export const ID = 'cinco.meta-specification.reload';
+}

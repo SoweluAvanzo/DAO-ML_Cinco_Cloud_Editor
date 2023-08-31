@@ -27,12 +27,10 @@ export class MetaSpecificationRequestHandler implements ActionHandler {
         const reload = action.reload;
         if (reload) {
             return new Promise<Action[]>((resolve, _) => {
-                // first reload than request again without reload
+                // first reload (reload triggers response)
                 const clear = reload;
                 const reloadAction = MetaSpecificationReloadAction.create([], clear);
-                const secondRequest = action;
-                secondRequest.reload = false;
-                return resolve([reloadAction, secondRequest]);
+                return resolve([reloadAction]);
             });
         } else {
             return this.getResponse();

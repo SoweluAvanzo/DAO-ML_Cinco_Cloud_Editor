@@ -13,7 +13,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { META_FILE_TYPES, MetaSpecificationReloadAction } from '@cinco-glsp/cinco-glsp-common';
+import {
+    META_FILE_TYPES, MetaSpecification, MetaSpecificationReloadAction, MetaSpecificationResponseAction
+} from '@cinco-glsp/cinco-glsp-common';
 import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server-node';
 import { injectable } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
@@ -43,6 +45,7 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
                 }
             }
         }
-        return [];
+        // forward the update to the clients, after reload
+        return [MetaSpecificationResponseAction.create(MetaSpecification.get())];
     }
 }

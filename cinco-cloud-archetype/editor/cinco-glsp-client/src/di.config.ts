@@ -60,6 +60,8 @@ import { DynamicImportLoader } from './meta/dynamic-import-tool';
 import { MetaModelSideLoader } from './meta/meta-model-sideloader';
 import { MetaSpecificationResponseHandler } from './meta/meta-specification-response-handler';
 import { WorkspaceFileService } from './utils/workspace-file-service';
+import { GraphModelProvider } from './model/graph-model-provider';
+import { MetaSpecificationTheiaCommand } from './meta/meta-specification-theia-command';
 
 export function createCincoDiagramContainer(widgetId: string): Container {
     const container = createClientContainer(cincoDiagramModule);
@@ -141,14 +143,16 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     configureDefaultModelElements(context);
 
+    bind(GraphModelProvider).toSelf().inSingletonScope();
+    bind(TYPES.IDefaultTool).to(MetaSpecificationTheiaCommand);
+
     // swap GLSPToolManager
     rebind(GLSPToolManager)
         .to(CustomToolManager)
         .inSingletonScope()
         .onActivation((ctx: any, injectable: any) => {
             // register modelelements (after the meta-specification is loaded)
-            const callback = MetaModelSideLoader.createPostRegistrationCallback(context, ctx);
-            CustomToolManager.registerCallBack(callback);
+            CustomToolManager.registerCallBack(MetaModelSideLoader.createPostRegistrationCallback(context, ctx));
             return injectable;
         });
 });

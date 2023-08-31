@@ -1,0 +1,44 @@
+/********************************************************************************
+ * Copyright (c) 2023 Cinco Cloud.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * This Source Code may also be made available under the following Secondary
+ * Licenses when the conditions for such availability set forth in the Eclipse
+ * Public License v. 2.0 are satisfied: GNU General Public License, version 2
+ * with the GNU Classpath Exception which is available at
+ * https://www.gnu.org/software/classpath/license.html.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+ ********************************************************************************/
+import {injectable } from 'inversify';
+import { CincoGraphModel } from './model';
+
+@injectable()
+export class GraphModelProvider {
+    private _model: Readonly<CincoGraphModel>;
+    private _locked: ((graphModel: Readonly<CincoGraphModel>) => void)[] = [];
+
+    get graphModel(): Promise<Readonly<CincoGraphModel>> {
+        return new Promise<Readonly<CincoGraphModel>>((resolve, reject) => {
+            if(this._model) {
+                resolve(this._model);
+            } else {
+                this._locked.push(resolve);
+            }
+        });
+    }
+
+    get isLoaded(): boolean {
+        return this._model !== undefined;
+    }
+
+    unlockAll(graphModel: Readonly<CincoGraphModel>): void {
+        for(const unlock of this._locked) {
+            unlock(graphModel);
+        }
+        this._model = graphModel;
+    }
+}
