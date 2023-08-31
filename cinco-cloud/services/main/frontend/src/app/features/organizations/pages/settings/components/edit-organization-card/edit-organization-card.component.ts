@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Organization } from '../../../../../../core/models/organization';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { OrganizationStoreService } from '../../../../services/organization-store.service';
 import { UpdateOrganizationInput } from '../../../../../../core/models/forms/update-organization-input';
 import { FileApiService } from '../../../../../../core/services/api/file-api.service';
@@ -25,9 +25,9 @@ export class EditOrganizationCardComponent implements OnInit {
   logoReference: FileReference;
   updateLogo = false;
 
-  form = new FormGroup({
-    name: new FormControl('', [Validators.required]),
-    description: new FormControl('')
+  form = new UntypedFormGroup({
+    name: new UntypedFormControl('', [Validators.required]),
+    description: new UntypedFormControl('')
   });
 
   constructor(private organizationStore: OrganizationStoreService,

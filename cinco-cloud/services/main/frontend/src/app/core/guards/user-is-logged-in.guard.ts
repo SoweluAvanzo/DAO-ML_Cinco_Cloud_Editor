@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { catchError, map, mergeMap, Observable, of, tap } from 'rxjs';
 import { AuthApiService } from '../services/api/auth-api.service';
 import { AppStoreService } from '../services/stores/app-store.service';
@@ -8,7 +8,7 @@ import { UserApiService } from '../services/api/user-api.service';
 @Injectable({
   providedIn: 'root'
 })
-export class UserIsLoggedInGuard implements CanActivate, CanActivateChild {
+export class UserIsLoggedInGuard  {
 
   constructor(private userApi: UserApiService,
               private authApi: AuthApiService,

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { User } from '../../models/user';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { UserApiService } from '../../services/api/user-api.service';
 import { catchError, debounceTime, filter, map, mergeMap, Observable, of, tap } from 'rxjs';
 import { Organization } from '../../models/organization';
@@ -22,8 +22,8 @@ export class SearchOrganizationInputComponent implements OnInit {
   user: User;
   orgs: Organization[];
 
-  form = new FormGroup({
-    searchTerm: new FormControl('', [Validators.required])
+  form = new UntypedFormGroup({
+    searchTerm: new UntypedFormControl('', [Validators.required])
   });
 
   constructor(private userApi: UserApiService,

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Observable } from 'rxjs';
 import { Project } from '../../../core/models/project';
 import { ProjectApiService } from '../../../core/services/api/project-api.service';
@@ -7,7 +7,7 @@ import { ProjectApiService } from '../../../core/services/api/project-api.servic
 @Injectable({
   providedIn: 'root'
 })
-export class ProjectResolver implements Resolve<Project> {
+export class ProjectResolver  {
 
   constructor(private projectApi: ProjectApiService) {
   }

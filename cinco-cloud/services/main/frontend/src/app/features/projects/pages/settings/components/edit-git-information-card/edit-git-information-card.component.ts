@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Project } from '../../../../../../core/models/project';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { GitInformationApiService } from '../../../../../../core/services/api/git-information-api.service';
 import { fromJsog, toJsog } from '../../../../../../core/utils/jsog-utils';
 import { GitInformation } from '../../../../../../core/models/git-information';
@@ -15,7 +15,7 @@ export class EditGitInformationCardComponent implements OnInit {
   @Input()
   project: Project;
 
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   info: GitInformation;
 
@@ -27,13 +27,13 @@ export class EditGitInformationCardComponent implements OnInit {
     this.gitInformationApi.get(this.project.id).subscribe({
       next: info => {
         this.info = info;
-        this.form = new FormGroup({
-          'type': new FormControl(info.type, [Validators.required]),
-          'repositoryUrl': new FormControl(info.repositoryUrl, [Validators.required]),
-          'username': new FormControl(info.username, [Validators.required]),
-          'password': new FormControl(info.password, [Validators.required]),
-          'branch': new FormControl(info.branch),
-          'genSubdirectory': new FormControl(info.genSubdirectory),
+        this.form = new UntypedFormGroup({
+          'type': new UntypedFormControl(info.type, [Validators.required]),
+          'repositoryUrl': new UntypedFormControl(info.repositoryUrl, [Validators.required]),
+          'username': new UntypedFormControl(info.username, [Validators.required]),
+          'password': new UntypedFormControl(info.password, [Validators.required]),
+          'branch': new UntypedFormControl(info.branch),
+          'genSubdirectory': new UntypedFormControl(info.genSubdirectory),
         });
       }
     });

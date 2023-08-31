@@ -8,7 +8,7 @@ import { ToastService, ToastType } from '../../../../../core/services/toast.serv
 import { Router } from '@angular/router';
 import { ProjectApiService } from '../../../../../core/services/api/project-api.service';
 import { OrganizationApiService } from '../../../../../core/services/api/organization-api.service';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'cc-delete-user-modal',
@@ -28,8 +28,8 @@ export class DeleteUserModalComponent implements OnInit {
 
   admins: User[];
 
-  confirmationForm = new FormGroup({
-    'username': new FormControl('', Validators.required)
+  confirmationForm = new UntypedFormGroup({
+    'username': new UntypedFormControl('', Validators.required)
   })
 
   constructor(public modal: NgbActiveModal,

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 import { AuthApiService } from '../../../../core/services/api/auth-api.service';
 import { User } from '../../../../core/models/user';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { UpdateCurrentUserProfileInput } from '../../../../core/models/forms/update-current-user-profile-input';
 import { UserApiService } from '../../../../core/services/api/user-api.service';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
@@ -18,10 +18,10 @@ export class PersonalInformationComponent implements OnInit {
 
   private allowedFileTypes = ['image/jpeg', 'image/png'];
 
-  informationChangeForm: FormGroup = new FormGroup({
-    'name': new FormControl('', [Validators.required]),
-    'email': new FormControl('', [Validators.required, Validators.email]),
-    'picture': new FormControl('')
+  informationChangeForm: UntypedFormGroup = new UntypedFormGroup({
+    'name': new UntypedFormControl('', [Validators.required]),
+    'email': new UntypedFormControl('', [Validators.required, Validators.email]),
+    'picture': new UntypedFormControl('')
   });
 
   pictureReference: FileReference;

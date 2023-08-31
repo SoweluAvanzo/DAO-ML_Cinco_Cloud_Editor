@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 import { AuthApiService } from '../../../../core/services/api/auth-api.service';
 import { UserApiService } from '../../../../core/services/api/user-api.service';
@@ -13,9 +13,9 @@ import { ToastService, ToastType } from '../../../../core/services/toast.service
 })
 export class PasswordChangeComponent {
 
-  public passwordChangeForm: FormGroup = new FormGroup({
-    'password': new FormControl('', [Validators.required, Validators.minLength(5)]),
-    'new_password': new FormControl('', [Validators.required, Validators.minLength(5)])
+  public passwordChangeForm: UntypedFormGroup = new UntypedFormGroup({
+    'password': new UntypedFormControl('', [Validators.required, Validators.minLength(5)]),
+    'new_password': new UntypedFormControl('', [Validators.required, Validators.minLength(5)])
   })
 
   constructor(private authApi: AuthApiService,
