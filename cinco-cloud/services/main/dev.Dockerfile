@@ -2,21 +2,17 @@
 # Build the quarkus backend. Move static frontend files to the quarkus resource
 # folder so that we can build a fat jar that includes the frontend.
 #
-FROM docker.io/library/node:16.14.0-bullseye
+FROM docker.io/library/node:18-bullseye
 WORKDIR /app/main
 RUN apt-get update
 RUN apt-get -y install maven
-# install Node.js
-#RUN apt-get -y install curl
-#RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-#RUN apt-get -y install nodejs
 # create directories
 RUN mkdir /app/main/backend
 RUN mkdir /app/main/frontend
 RUN mkdir /app/resources
 # copy frontend files
 COPY ./main/frontend/*.json /app/main/frontend/
-RUN cd ./frontend && npm install
+RUN cd ./frontend && yarn
 COPY ./main/frontend/src /app/main/frontend/src
 # copy backend files
 COPY ./resources /app/resources
