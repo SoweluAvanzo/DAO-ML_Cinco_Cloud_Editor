@@ -13,7 +13,7 @@
 	"forwardPorts": [3000],
 
 	"mounts": [
-		"source=${localWorkspaceFolder},target=/home/developer/cinco-cloud-archetype,type=bind,consistency=cached"
+		"source=${localWorkspaceFolder},target=/home/node/cinco-cloud-archetype,type=bind,consistency=cached"
 	],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
@@ -34,7 +34,8 @@
 				"langium.langium-vscode"
 			]
 		}
-	}
+	},
+	"remoteUser": "node"
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"

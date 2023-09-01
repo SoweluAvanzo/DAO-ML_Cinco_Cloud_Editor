@@ -10,7 +10,3 @@ RUN cd Python-3.8.2 \
     && make -j 4 \
     && make install
 RUN corepack enable
-
-
-RUN groupadd -r developer && useradd -r -g developer -m developer
-USER developer
