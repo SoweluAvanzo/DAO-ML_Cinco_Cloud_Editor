@@ -17,9 +17,12 @@ import {
     AbsolutePosition,
     Appearance,
     Attribute,
+    canBeCreated,
     Constraint,
     ContainerShape,
     EdgeStyle,
+    EdgeType,
+    ElementType,
     Ellipse,
     getAppearanceByNameOf,
     getAttributesOf,
@@ -30,6 +33,7 @@ import {
     getStyleByNameOf,
     getUserDefinedType,
     GraphModelStyle,
+    GraphType,
     Image,
     isList,
     isPrimitivePropertyType,
@@ -86,6 +90,10 @@ export class ModelElement implements IdentifiableElement {
     }
     set index(index: GraphModelIndex | undefined) {
         this._index = index;
+    }
+
+    getSpec(): ElementType {
+        return getSpecOf(this.type)!;
     }
 
     getGraphModel(): GraphModel {
@@ -558,6 +566,10 @@ export class Edge extends ModelElement {
     set bendPoints(bendPoints: RoutingPoint[]) {
         this._routingPoints = bendPoints;
     }
+
+    override getSpec(): EdgeType {
+        return super.getSpec() as EdgeType;
+    }
 }
 
 export namespace Edge {
@@ -607,6 +619,14 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
         const constraints: Constraint[] = spec.containments;
         const elements = this.containments;
         return this.checkViolations(type, elements, constraints).length <= 0;
+    }
+
+    couldContain(type: string): boolean {
+        return canBeCreated(this.type, type);
+    }
+
+    override getSpec(): GraphType {
+        return super.getSpec() as GraphType;
     }
 }
 

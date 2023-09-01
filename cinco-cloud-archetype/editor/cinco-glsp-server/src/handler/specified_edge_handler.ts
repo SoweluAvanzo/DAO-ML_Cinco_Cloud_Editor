@@ -16,19 +16,13 @@
 import { Edge, GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
 import { getEdgeSpecOf, getEdgeTypes , EdgeType } from '@cinco-glsp/cinco-glsp-common';
 import {
-    ActionDispatcher,
-    CreateEdgeOperation,
-    SaveModelAction
+    CreateEdgeOperation
 } from '@eclipse-glsp/server-node';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { SpecifiedElementHandler } from './specified_element_handler';
 
 @injectable()
 export class SpecifiedEdgeHandler extends SpecifiedElementHandler {
-    @inject(GraphModelIndex)
-    protected index: GraphModelIndex;
-    @inject(ActionDispatcher)
-    readonly actionDispatcher: ActionDispatcher;
 
     override get operationType(): string {
         return 'createEdge';
@@ -48,8 +42,7 @@ export class SpecifiedEdgeHandler extends SpecifiedElementHandler {
             edge.index = this.index;
             const graphmodel = this.index.getRoot();
             graphmodel.edges.push(edge);
-            const fileUri = graphmodel._sourceUri;
-            this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
+            this.saveAndUpdate();
         }
     }
 

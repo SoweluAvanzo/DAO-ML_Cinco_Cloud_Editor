@@ -15,7 +15,7 @@
  ********************************************************************************/
 
 import { getFileExtension, getGraphModelOfFileType } from '@cinco-glsp/cinco-glsp-common';
-import { AbstractJsonModelStorage, ActionDispatcher, MaybePromise, RequestModelAction, SaveModelAction } from '@eclipse-glsp/server-node';
+import { AbstractJsonModelStorage, MaybePromise, RequestModelAction, SaveModelAction } from '@eclipse-glsp/server-node';
 import { inject, injectable } from 'inversify';
 import { GraphModel } from './graph-model';
 import { GraphModelState } from './graph-model-state';
@@ -24,19 +24,12 @@ import { GraphModelState } from './graph-model-state';
 export class GraphModelStorage extends AbstractJsonModelStorage {
     @inject(GraphModelState)
     protected override modelState: GraphModelState;
-    @inject(ActionDispatcher)
-    readonly actionDispatcher: ActionDispatcher;
 
     loadSourceModel(action: RequestModelAction): MaybePromise<void> {
         const sourceUri = this.getSourceUri(action);
         let graphModel = this.loadFromFile(sourceUri, GraphModel.is);
         graphModel = this.fixMissingProperties(graphModel, sourceUri);
         this.modelState.graphModel = graphModel;
-        // update palette
-        const paletteUpdateAction = {
-            kind: 'enableToolPalette'
-        };
-        this.actionDispatcher.dispatch(paletteUpdateAction);
     }
 
     fixMissingProperties(graphModel: GraphModel, sourceUri: string): GraphModel {

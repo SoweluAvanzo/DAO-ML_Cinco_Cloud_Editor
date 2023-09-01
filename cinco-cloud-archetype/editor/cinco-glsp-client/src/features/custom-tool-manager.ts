@@ -17,6 +17,7 @@ import { IActionDispatcher, SModelElementRegistration, SModelRegistry, TYPES, To
 import { GLSPToolManager } from '@eclipse-glsp/client/lib/base/tool-manager/glsp-tool-manager';
 import { CommandService } from '@theia/core';
 import { inject, injectable, multiInject, optional } from 'inversify';
+import { GraphModelProvider } from '../model/graph-model-provider';
 
 @injectable()
 export class CustomToolManager extends GLSPToolManager {
@@ -24,6 +25,7 @@ export class CustomToolManager extends GLSPToolManager {
     @inject(TYPES.SModelRegistry) registry: SModelRegistry;
     @inject(TYPES.ViewRegistry) viewRegistry: ViewRegistry;
     @inject(TYPES.IActionDispatcherProvider) protected actionDispatcherProvider: () => Promise<IActionDispatcher>;
+    @inject(GraphModelProvider) protected graphModelProvider: GraphModelProvider;
     @multiInject(TYPES.SModelElementRegistration) @optional() registrations: SModelElementRegistration[];
 
     protected deactivatedTools: string[] = ['glsp.change-bounds-tool', 'glsp.edge-edit-tool']; // put deactivated tool-ids here
@@ -32,7 +34,8 @@ export class CustomToolManager extends GLSPToolManager {
         registry: SModelRegistry,
         viewRegistry: ViewRegistry,
         commandService: CommandService,
-        actionDispatcher: IActionDispatcher
+        actionDispatcher: IActionDispatcher,
+        graphModelProvider?: GraphModelProvider
     ) => void)[] = [];
 
     override initialize(): void {
@@ -48,8 +51,9 @@ export class CustomToolManager extends GLSPToolManager {
         // register callbacks
         this.actionDispatcherProvider().then(actionDispatcher => {
             for (const callback of CustomToolManager.callbacks) {
-                callback(this.registry, this.viewRegistry, this.commandService, actionDispatcher);
+                callback(this.registry, this.viewRegistry, this.commandService, actionDispatcher, this.graphModelProvider);
             }
+            CustomToolManager.callbacks = [];
         });
     }
 
@@ -66,7 +70,8 @@ export class CustomToolManager extends GLSPToolManager {
             registry: SModelRegistry,
             viewRegistry: ViewRegistry,
             commandService: CommandService,
-            actionDispatcher: IActionDispatcher
+            actionDispatcher: IActionDispatcher,
+            graphModelProvider?: GraphModelProvider
         ) => void
     ): void {
         CustomToolManager.callbacks.push(callback);

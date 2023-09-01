@@ -13,17 +13,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { MetaSpecificationReloadAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionDispatcher, ActionHandler, Logger, MaybePromise } from '@eclipse-glsp/server-node';
-import { inject, injectable } from 'inversify';
+import {
+    META_FILE_TYPES, MetaSpecification, MetaSpecificationReloadAction, MetaSpecificationResponseAction
+} from '@cinco-glsp/cinco-glsp-common';
+import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server-node';
+import { injectable } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
+import { getLanguageFolder } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class MetaSpecificationReloadHandler implements ActionHandler {
-    @inject(Logger)
-    readonly logger: Logger;
-    @inject(ActionDispatcher)
-    readonly actionDispatcher: ActionDispatcher;
 
     actionKinds: string[] = [MetaSpecificationReloadAction.KIND];
 
@@ -33,13 +32,20 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
         if (clear) {
             MetaSpecificationLoader.clear();
         }
-        for (const item of items) {
-            const folderPaths = item.folderPaths;
-            const supportedFileTypes = item.supportedFileTypes;
-            for (const folderPath of folderPaths) {
-                MetaSpecificationLoader.load(supportedFileTypes, this.actionDispatcher, folderPath);
+        if(items === undefined || items.length <= 0) { // default behaviour
+            const folderPath = getLanguageFolder();
+            const supportedFileTypes = META_FILE_TYPES;
+            MetaSpecificationLoader.load(supportedFileTypes, folderPath);
+        } else {
+            for (const item of items) {
+                const folderPaths = item.folderPaths;
+                const supportedFileTypes = item.supportedFileTypes;
+                for (const folderPath of folderPaths) {
+                    MetaSpecificationLoader.load(supportedFileTypes, folderPath);
+                }
             }
         }
-        return [];
+        // forward the update to the clients, after reload
+        return [MetaSpecificationResponseAction.create(MetaSpecification.get())];
     }
 }

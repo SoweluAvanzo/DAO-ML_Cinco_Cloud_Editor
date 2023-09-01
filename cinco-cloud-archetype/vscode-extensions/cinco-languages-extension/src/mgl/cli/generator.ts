@@ -144,6 +144,7 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
         const targetPath = path.join(serverArgs.rootFolder, serverArgs.languagePath,  data.name) + `.json`;
         console.log('Integrating meta-specification to: '+ targetPath)
         fs.writeFileSync(targetPath, JSON.stringify(specification, null, 4));
+        vscode.commands.executeCommand('cinco.meta-specification.reload')
     });
 
     return generatedFilePath;

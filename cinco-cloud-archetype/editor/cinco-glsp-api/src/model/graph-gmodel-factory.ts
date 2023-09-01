@@ -15,7 +15,6 @@
  ********************************************************************************/
 import { EdgeType, NodeType, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
 import {
-    ActionDispatcher,
     GEdge,
     GEdgeBuilder,
     GGraph,
@@ -32,8 +31,6 @@ import { GraphModelState } from './graph-model-state';
 export class GraphGModelFactory implements GModelFactory {
     @inject(GraphModelState)
     readonly modelState: GraphModelState;
-    @inject(ActionDispatcher)
-    readonly actionDispatcher: ActionDispatcher;
 
     createModel(): void {
         const graphmodel = this.modelState.graphModel;

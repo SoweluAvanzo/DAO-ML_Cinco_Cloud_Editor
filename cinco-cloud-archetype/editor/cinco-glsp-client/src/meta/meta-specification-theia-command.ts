@@ -13,57 +13,42 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { ValidationModelResponseAction, ValidationRequestAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, BaseGLSPTool, IActionHandler, ICommand } from '@eclipse-glsp/client';
+import {
+    MetaSpecificationReloadAction, MetaSpecificationReloadCommand
+} from '@cinco-glsp/cinco-glsp-common';
+import { BaseGLSPTool } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { inject, injectable, optional, postConstruct } from 'inversify';
 import { GraphModelProvider } from '../model/graph-model-provider';
 
 @injectable()
-export class ValidationTool extends BaseGLSPTool {
+export class MetaSpecificationTheiaCommand extends BaseGLSPTool {
     @inject(CommandService) @optional() commandService: CommandService;
     @inject(GraphModelProvider) graphModelProvider: GraphModelProvider;
+
+    static readonly ID = 'meta-specification-theia-command-tool';
+
+    @postConstruct()
+    registerTheiaCommand(): void {
+        if (this.commandService && this.graphModelProvider) {
+            this.graphModelProvider.graphModel.then(model =>
+                this.commandService.executeCommand('registerFromGLSP2Theia', {
+                    commandId: MetaSpecificationReloadCommand.ID,
+                    instanceId: model.id,
+                    callbacks: [() => {
+                        this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
+                    }]
+            }));
+        }
+    }
+
+    get id(): string {
+        return MetaSpecificationTheiaCommand.ID;
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     enable(): void {}
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     disable(): void {}
-
-    static readonly ID = 'validation-tool';
-
-    @postConstruct()
-    registerValidationToolCommand(): void {
-        if (this.commandService) {
-            this.graphModelProvider.graphModel.then(model =>
-                this.commandService.executeCommand('registerFromGLSP2Theia', {
-                    commandId: 'validationRequestModel',
-                    instanceId: model.id,
-                    callbacks: () => {
-                        this.sendValidationRequest();
-                    }
-                })
-            );
-        }
-    }
-
-    sendValidationRequest(): void {
-        const action = ValidationRequestAction.create(this.editorContext.modelRoot.id);
-        this.actionDispatcher.dispatch(action);
-    }
-
-    get id(): string {
-        return ValidationTool.ID;
-    }
-}
-
-@injectable()
-export class ValidationModelResponseActionHandler implements IActionHandler {
-    @inject(CommandService) @optional() commandService: CommandService;
-
-    handle(action: ValidationModelResponseAction): void | Action | ICommand {
-        if (this.commandService) {
-            this.commandService.executeCommand('CincoCloud.updateValidationModel', action.messages);
-        }
-    }
 }

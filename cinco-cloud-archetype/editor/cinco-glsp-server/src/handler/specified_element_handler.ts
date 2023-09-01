@@ -13,6 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
 import { ElementType, NodeType, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
 import {
     CreateEdgeOperation,
@@ -22,12 +23,19 @@ import {
     Point,
     TriggerEdgeCreationAction,
     TriggerNodeCreationAction,
-    CreateNodeOperationHandler
+    CreateNodeOperationHandler,
+    ActionDispatcher,
+    SaveModelAction
 } from '@eclipse-glsp/server-node';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 
 @injectable()
 export class SpecifiedElementHandler extends CreateNodeOperationHandler {
+    @inject(GraphModelIndex)
+    protected index: GraphModelIndex;
+    @inject(ActionDispatcher)
+    readonly actionDispatcher: ActionDispatcher;
+
     override label: string = this.specification?.label ?? 'undefined';
     _specification: ElementType | undefined;
 
@@ -80,5 +88,16 @@ export class SpecifiedElementHandler extends CreateNodeOperationHandler {
 
     override getLocation(operation: CreateNodeOperation): Point | undefined {
         return operation.location;
+    }
+
+    saveAndUpdate(): void {
+        const paletteUpdateAction = {
+            kind: 'enableToolPalette'
+        };
+        this.actionDispatcher.dispatch(paletteUpdateAction);
+        // save model
+        const graphmodel = this.index.getRoot();
+        const fileUri = graphmodel._sourceUri;
+        this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
     }
 }

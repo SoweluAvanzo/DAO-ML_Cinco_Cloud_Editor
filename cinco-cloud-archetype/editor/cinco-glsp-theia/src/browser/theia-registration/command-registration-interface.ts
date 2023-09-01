@@ -34,6 +34,7 @@ export class GLSP2TheiaCommandRegistrationContribution implements CommandContrib
 export class GLSP2TheiaCommandRegistration implements CommandHandler {
     static ID = 'registerFromGLSP2Theia';
     commands: CommandRegistry;
+    static registeredCommands = new Map<string, Map<string, GLSP2TheiaCommandRegistrationParameter>>();
 
     constructor(commands: CommandRegistry) {
         this.commands = commands;
@@ -42,9 +43,29 @@ export class GLSP2TheiaCommandRegistration implements CommandHandler {
     execute(...args: any[]): any {
         return new Promise<Disposable>(resolve => {
             const param = args[0] as GLSP2TheiaCommandRegistrationParameter;
-            const commandId = param.commandId;
-            const disposable = this.commands.registerCommand({ id: commandId }, new GLSP2TheiaCommandHandler(param));
-            resolve(disposable);
+            const commandId = param.commandId ?? 'undefined';
+            const instanceId = param.instanceId;
+            if(GLSP2TheiaCommandRegistration.registeredCommands.has(commandId)) {
+                // expand registered command and add callback
+                const registeredCommands = GLSP2TheiaCommandRegistration.registeredCommands.get(commandId)!;
+                // update (overwrite) param for model
+                registeredCommands.set(instanceId, param);
+                // update command
+                this.commands.unregisterCommand(commandId);
+                const params = Array.from(registeredCommands.values());
+                const disposable = this.commands.registerCommand(
+                    {id: commandId },
+                    new GLSP2TheiaCommandHandler(param.commandId, params, param.visible));
+                resolve(disposable);
+            } else {
+                // register new
+                GLSP2TheiaCommandRegistration.registeredCommands.set(commandId, new Map());
+                GLSP2TheiaCommandRegistration.registeredCommands.get(commandId)!.set(param.instanceId, param);
+                const disposable = this.commands.registerCommand(
+                    {id: commandId },
+                    new GLSP2TheiaCommandHandler(param.commandId, [param], param.visible));
+                resolve(disposable);
+            }
         });
     }
 
@@ -63,23 +84,39 @@ export class GLSP2TheiaCommandRegistration implements CommandHandler {
 
 export interface GLSP2TheiaCommandRegistrationParameter {
     commandId: string;
-    callback: (arg: any) => any;
+    instanceId: string;
+    callbacks: ((arg: any) => any)[];
     visible?: boolean;
 }
 
 export class GLSP2TheiaCommandHandler implements CommandHandler {
     commandId: string;
-    callback: (arg: any) => any;
+    entries: GLSP2TheiaCommandRegistrationParameter[];
     visible: boolean;
 
-    constructor(config: GLSP2TheiaCommandRegistrationParameter) {
-        this.callback = config.callback;
-        this.commandId = config.commandId;
-        this.visible = config.visible ?? false;
+    constructor(commandId: string, entries: GLSP2TheiaCommandRegistrationParameter[], visible?: boolean) {
+        this.commandId = commandId;
+        this.entries = entries;
+        this.visible = visible ?? false;
     }
 
-    execute(...args: any[]): any {
-        return this.callback(args);
+    execute(instanceId?: string, ...args: any[]): any { // filterable for modelIds, types or something else
+        const results: any[] = [];
+        let toExecute = this.entries;
+        if(instanceId) {
+            toExecute = toExecute.filter(entry => entry.instanceId === instanceId);
+        }
+        for(const entry of toExecute) {
+            for(const callback of entry.callbacks) {
+                try {
+                    const result = callback(args);
+                    results.push(result);
+                } catch(e) {
+                    console.log(e);
+                }
+            }
+        }
+        return results;
     }
 
     isEnabled?(...args: any[]): boolean {

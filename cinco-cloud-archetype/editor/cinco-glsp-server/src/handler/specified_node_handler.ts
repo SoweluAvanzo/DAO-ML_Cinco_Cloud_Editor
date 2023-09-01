@@ -16,20 +16,14 @@
 import { Container, GraphModel, GraphModelIndex, Node } from '@cinco-glsp/cinco-glsp-api';
 import { ModelElementContainer, getNodeSpecOf, getNodeTypes , NodeType } from '@cinco-glsp/cinco-glsp-common';
 import {
-    ActionDispatcher,
     CreateNodeOperation,
-    Point,
-    SaveModelAction
+    Point
 } from '@eclipse-glsp/server-node';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { SpecifiedElementHandler } from './specified_element_handler';
 
 @injectable()
 export class SpecifiedNodeHandler extends SpecifiedElementHandler {
-    @inject(GraphModelIndex)
-    protected index: GraphModelIndex;
-    @inject(ActionDispatcher)
-    readonly actionDispatcher: ActionDispatcher;
 
     override BLACK_LIST: string[] = [];
 
@@ -43,9 +37,6 @@ export class SpecifiedNodeHandler extends SpecifiedElementHandler {
         if (container === undefined) {
             return;
         }
-        const paletteUpdateAction = {
-            kind: 'enableToolPalette'
-        };
         // pre hook
         this.preCreateHook(operation.elementTypeId, container.id, operation.location);
         // creation
@@ -56,12 +47,7 @@ export class SpecifiedNodeHandler extends SpecifiedElementHandler {
         container.containments.push(node);
         // post hook
         this.postCreateHook(node);
-        // save model
-        const graphmodel = this.index.getRoot();
-        const fileUri = graphmodel._sourceUri;
-        this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
-        // update palette
-        this.actionDispatcher.dispatch(paletteUpdateAction);
+        this.saveAndUpdate();
     }
 
     protected createNode(position: Point, elementTypeId: string): Node {
