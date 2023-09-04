@@ -24,6 +24,9 @@ Hier ein kleiner Abstract über was genau Cinco Cloud ist. (Modernisierung des C
     *   [Usage](#usage)
     *   [Developing](#developing)
     *   [Wiki](#wiki)
+*   [Inhalt](#inhalt)
+    * [Cinco Cloud](#cinco-cloud)
+    * [Archetype](#archetype) 
 *   [Anmerkungen](#anmerkungen)
     * [Used Technologies](#used-technologies)
     * [Project Goals](#project-goals)
@@ -66,6 +69,19 @@ Mit schönen Bildern und GIFs?
 Unterschied User/Developer wie im Wiki?
 Hier noch mal auf besonderheiten eingehen?
 
+## Inhalt
+
+Welche Projekte stecken in diesem Monorepo
+
+### Cinco Cloud
+
+Aufgeteilt in Frontend/Backend; was wird in diesem projekt genau gemacht.
+
+### Archetype
+
+Der Editor, der in Cinco Cloud geladen wird.
+Erklärung über Aufbau, Nutzen, usw.
+
 ## Anmerkungen
 
 Alles was irgendwie wichtig sein könnte, um möglichst viele Fragen vorweg zu nehmen
@@ -73,7 +89,7 @@ Alles was irgendwie wichtig sein könnte, um möglichst viele Fragen vorweg zu n
 ### Used technologies
 
 Auflistung von allem was in Cinco Cloud steckt.
-Docker, Theia, GLSP, Angular/TS, Vuepress, etc. pp.
+Docker, Theia, GLSP, Angular/TS, Helm, etc. pp.
 
 ### Project Goals
 
