@@ -1,7 +1,3 @@
-# Cinco Cloud
-
-![logo](./docs/vuepress/src/.vuepress/public/assets/cinco-logo.png)
-
 <p align="center">
     <img src="./docs/vuepress/src/.vuepress/public/assets/cinco-logo.png" width="100%" alt="Cinco Cloud Logo" />
 </p>
