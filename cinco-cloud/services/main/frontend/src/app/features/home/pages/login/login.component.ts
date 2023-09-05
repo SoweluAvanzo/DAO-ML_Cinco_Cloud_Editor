@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { AuthApiService } from '../../../../core/services/api/auth-api.service';
 import { SettingsApiService } from '../../../../core/services/api/settings-api.service';
 import { Settings } from '../../../../core/models/settings';
@@ -17,9 +17,9 @@ export class LoginComponent implements OnInit {
 
   public settings: Settings;
 
-  public loginForm: FormGroup = new FormGroup({
-    'emailOrUsername': new FormControl('', [Validators.required]),
-    'password': new FormControl('', [Validators.required, Validators.minLength(5)])
+  public loginForm: UntypedFormGroup = new UntypedFormGroup({
+    'emailOrUsername': new UntypedFormControl('', [Validators.required]),
+    'password': new UntypedFormControl('', [Validators.required, Validators.minLength(5)])
   });
 
   constructor(private authApi: AuthApiService,

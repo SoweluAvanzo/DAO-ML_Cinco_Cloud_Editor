@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Project } from '../../../../../../core/models/project';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ProjectStoreService } from '../../../../services/project-store.service';
 import { UpdateProjectInput } from '../../../../../../core/models/forms/update-project-input';
 import { FileReference } from '../../../../../../core/models/file-reference';
@@ -25,9 +25,9 @@ export class EditProjectCardComponent implements OnInit {
   logoReference: FileReference;
   updateLogo = false;
 
-  form = new FormGroup({
-    name: new FormControl('', [Validators.required]),
-    description: new FormControl('')
+  form = new UntypedFormGroup({
+    name: new UntypedFormControl('', [Validators.required]),
+    description: new UntypedFormControl('')
   });
 
   constructor(private projectStore: ProjectStoreService,

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { OrganizationApiService } from '../../../../core/services/api/organization-api.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Organization } from '../../../../core/models/organization';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
@@ -11,9 +11,9 @@ import { ToastService, ToastType } from '../../../../core/services/toast.service
 })
 export class CreateOrganizationModalComponent {
 
-  form = new FormGroup({
-    name: new FormControl('', [Validators.required]),
-    description: new FormControl('')
+  form = new UntypedFormGroup({
+    name: new UntypedFormControl('', [Validators.required]),
+    description: new UntypedFormControl('')
   });
 
   errorMessage: string = null

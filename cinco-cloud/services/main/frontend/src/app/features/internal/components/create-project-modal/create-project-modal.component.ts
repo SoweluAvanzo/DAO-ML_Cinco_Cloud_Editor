@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { ProjectApiService } from '../../../../core/services/api/project-api.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { WorkspaceImage } from '../../../../core/models/workspace-image';
 import { Project } from '../../../../core/models/project';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
@@ -19,9 +19,9 @@ export class CreateProjectModalComponent {
   @Input()
   organization: Organization;
 
-  form = new FormGroup({
-    name: new FormControl('', [Validators.required]),
-    description: new FormControl('')
+  form = new UntypedFormGroup({
+    name: new UntypedFormControl('', [Validators.required]),
+    description: new UntypedFormControl('')
   });
 
   withProjectImage: boolean = false;

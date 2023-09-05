@@ -29,11 +29,12 @@ import { ProjectListComponent } from './components/project-list/project-list.com
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'overview'
+    redirectTo: 'overview',
+    pathMatch: 'full'
   },
   {
     path: '',
-    pathMatch: 'exact',
+    pathMatch: 'prefix',
     component: InternalComponent,
     children: [
       {

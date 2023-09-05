@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { WorkspaceImage } from '../../models/workspace-image';
 import { WorkspaceImageApiService } from '../../services/api/workspace-image-api.service';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { debounceTime } from 'rxjs';
 
 @Component({
@@ -14,8 +14,8 @@ export class WorkspaceImageSearchInputComponent implements OnInit {
   @Output()
   selectImage = new EventEmitter<WorkspaceImage>();
 
-  form = new FormGroup({
-    input: new FormControl('')
+  form = new UntypedFormGroup({
+    input: new UntypedFormControl('')
   });
 
   searched = false;

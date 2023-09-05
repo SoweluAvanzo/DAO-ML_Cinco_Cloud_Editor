@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { UserApiService } from '../../../../core/services/api/user-api.service';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { UserRegisterInput } from '../../../../core/models/forms/user-register-input';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
 
@@ -11,11 +11,11 @@ import { ToastService, ToastType } from '../../../../core/services/toast.service
 })
 export class CreateUserModalComponent {
 
-  form = new FormGroup({
-    name: new FormControl('', [Validators.required]),
-    username: new FormControl('', [Validators.required]),
-    email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [Validators.required, Validators.minLength(5)])
+  form = new UntypedFormGroup({
+    name: new UntypedFormControl('', [Validators.required]),
+    username: new UntypedFormControl('', [Validators.required]),
+    email: new UntypedFormControl('', [Validators.required, Validators.email]),
+    password: new UntypedFormControl('', [Validators.required, Validators.minLength(5)])
   });
 
   constructor(private userApi: UserApiService,

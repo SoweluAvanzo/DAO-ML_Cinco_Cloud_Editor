@@ -16,11 +16,12 @@ import { ReactiveFormsModule } from '@angular/forms';
 const routes: Routes = [
   {
     path: '',
+    pathMatch: 'full',
     redirectTo: 'users'
   },
   {
     path: '',
-    pathMatch: 'exact',
+    pathMatch: 'prefix',
     component: AdminComponent,
     children: [
       {

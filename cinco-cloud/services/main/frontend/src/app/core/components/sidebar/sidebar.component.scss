@@ -1,4 +1,5 @@
-@import "~src/assets/scss/bootstrap";
+@import "../../../../../node_modules/bootstrap/scss/bootstrap.scss";
+@import "../../../../assets/scss/variables.scss";
 
 .sidebar {
   background: $color-darkest;
