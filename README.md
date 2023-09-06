@@ -1,122 +1,100 @@
-<p align="center">
+<div align="center">
     <img src="./docs/vuepress/src/.vuepress/public/assets/cinco-logo.png" width="100%" alt="Cinco Cloud Logo" />
-</p>
+    Cinco Cloud is a development environment for domain-specific modeling tools. It is the cloud based evolution of [Cinco](https://cinco.scce.info/about/).
+</div>
 
-Welcome to the Cinco Cloud Meta Tooling Framework.
 
-## Intro
 
-Hier ein kleiner Abstract über was genau Cinco Cloud ist. (Modernisierung des Cinco [Einleitungstextes](https://cinco.scce.info/about/)?
+- [Website](#website)
+- [Releases](#releases)
+- [Scope](#scope)
+- [Roadmap](#roadmap)
+- [Project Contents](#project-contents)
+- [Getting Started](#getting-started)
+- [Contributing](#contributing)
+- [Feedback](#feedback)
+- [Documentation](#documentation)
+- [License](#license)
+- [Sources and used technologies](#sources-and-used-technologies)
 
-## Feature overview
 
-*   [x] **Was ist in CC drin?**
-*   [x] **Müssen/Wollen** wir das alles so auflisten?
-*   [ ] Und was fehlt noch oder steht noch aus
 
-## Contents
+## Website
 
-*   [What is Cinco Cloud](#what-is-cinco-cloud)
-*   [Why should I use this?](#why-should-i-use-this)
-*   [Getting started](#getting-started)
-    *   [Requirements](#requirements)
-    *   [Install](#install)
-    *   [Usage](#usage)
-    *   [Developing](#developing)
-    *   [Wiki](#wiki)
-*   [Inhalt](#inhalt)
-    * [Cinco Cloud](#cinco-cloud)
-    * [Archetype](#archetype) 
-*   [Anmerkungen](#anmerkungen)
-    * [Used Technologies](#used-technologies)
-    * [Project Goals](#project-goals)
-    * [Noch etwas?](#noch-etwas)
-*   [Contribute](#contribute)
-*   [License](#license)
-*   [Sources](#sources)
+Visit the [Cinco Cloud Website](https://scce.gitlab.io/cinco-cloud/) for indepth information.
+And visit the [Cinco Website](https://cinco.scce.info/) for an indepth look at what Cinco was made for.
 
-## What is Cinco Cloud?
+## Releases
 
-Detailliertere Erklärung zu Cinco Cloud hier
+There are currently no releases for Cinco Cloud. If you want to use it, you will have to go through the [manual installtion process](#getting-started).
 
-## Why should I use this?
+(Anm. Es gibt die Cinco Cloud Instanz auf den Lehrstuhlservern, soll die hier verlinkt werden?)
 
-Hier könnte eine gute Begründung stehen
+## Scope
+
+- Modernize the Cinco workflow
+- Run Cinco in a cloud based system, to eliminate hardware bottlenecks
+- Make Cinco more accessible and extendable for developers
+
+## Roadmap
+
+You can find the general roadmap in form of discussions in our [issues](https://gitlab.com/scce/cinco-cloud/-/issues/?label_name%5B%5D=Discussion).
+
+## Project Contents
+
+This monorepo hosts two major projects: the [Cinco Cloud browser based frontend and backend](https://gitlab.com/scce/cinco-cloud/-/tree/main/cinco-cloud?ref_type=heads) and the [Cinco Editor](https://gitlab.com/scce/cinco-cloud/-/tree/main/cinco-cloud-archetype?ref_type=heads).
+Both can run independently, while the former provides the complete framework to run Cinco Cloud on a server and the latter provides the actual editor in which Cinco products are built.
 
 ## Getting Started
 
-Wie ist CC zu benutzen:
+[Set up Cinco Cloud to run locally on your machine](https://scce.gitlab.io/cinco-cloud/content/developer-guide/installation/#preparations)
 
-### Requirements
+[Get familliar with the project architecture](https://scce.gitlab.io/cinco-cloud/content/developer-guide/overview/#directories)
 
-* Dieses Repo clonen
-* Docker
-* ???
-* Läuft bestimmt OOTB
+[Check out how to build Cinco products in Cinco Cloud](https://scce.gitlab.io/cinco-cloud/content/user-guide/building-cinco-products/)
 
-### Install
+## Contributing
 
-Install Guide aus dem Wiki hier übernehmen? Oder auf das Wiki verweisen?
+(Anm. Contribution erlaubt/gewünscht? Alles wie normal über Merge Requests auf Feature Branches?)
 
-### Usage
+## Feedback
 
-Selbes hier nochmal. Copy-paste oder Wikiverweis?
+If you have general feedback or bug reports, you can submit an [issue](https://gitlab.com/scce/cinco-cloud/-/issues/new).
 
-Mit schönen Bildern und GIFs?
+(Anm. haben wir weitere Kanäle für so etwas?)
 
-### Developing
+## Documentation
 
-Unterschied User/Developer wie im Wiki?
-Hier noch mal auf besonderheiten eingehen?
-
-## Inhalt
-
-Welche Projekte stecken in diesem Monorepo
-
-### Cinco Cloud
-
-Aufgeteilt in Frontend/Backend; was wird in diesem projekt genau gemacht.
-
-### Archetype
-
-Der Editor, der in Cinco Cloud geladen wird.
-Erklärung über Aufbau, Nutzen, usw.
-
-## Anmerkungen
-
-Alles was irgendwie wichtig sein könnte, um möglichst viele Fragen vorweg zu nehmen
-
-### Used technologies
-
-Auflistung von allem was in Cinco Cloud steckt.
-Docker, Theia, GLSP, Angular/TS, Helm, etc. pp.
-
-### Project Goals
-
-Wo wollen wir hin, was wollen wir erreichen?
-
-### Wiki
-
-[Click Here](https://scce.gitlab.io/cinco-cloud/)
-
-### Noch etwas?
-
-Was wäre noch wichtig zu erwähnen?
-
-
-## Contribute
-
-Contribution erlaubt/gewünscht? Alles wie normal über Merge Requests auf Feature Branches.
+Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
 
 ## License
+
 [EPL2](https://www.eclipse.org/legal/epl-2.0/)
 
-## Sources
+## Sources and Used Technologies
 
-[Theia][theia] - Basis des Editors
+[Theia][theia] - We are using Theia as a foundation for our editor.
 
-[GLSP][glsp] - Basis für den Diagram Editor
+[GLSP][glsp] - Our graphical editor is based on the GLSP project.
+
+[Docker][docker] - 
+
+[Helm][helm] - 
+
+[Angular/TS][angular] - 
+
+[Java][java] - 
 
 [//]: # "Source definitions"
 [theia]: https://github.com/eclipse-theia/theia "Theia"
 [glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
+[docker]: https://www.docker.com/ "Docker"
+[helm]: https://helm.sh/ "Helm"
+[angular]: https://angular.io/ "Angular"
+[java]: https://www.java.com/de/ "Java"
+
+
+
+
+
+
