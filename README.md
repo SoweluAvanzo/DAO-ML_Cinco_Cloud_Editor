@@ -9,13 +9,13 @@
 - [Releases](#releases)
 - [Scope](#scope)
 - [Roadmap](#roadmap)
-- [Project Contents](#project-contents)
-- [Getting Started](#getting-started)
+- [Project contents](#project-contents)
+- [Getting started](#getting-started)
 - [Contributing](#contributing)
 - [Feedback](#feedback)
 - [Documentation](#documentation)
 - [License](#license)
-- [Sources and used technologies](#sources-and-used-technologies)
+- [Related projects and used technologies](#related-projects-and-used-technologies)
 
 
 
@@ -26,9 +26,7 @@ And visit the [Cinco Website](https://cinco.scce.info/) for an indepth look at w
 
 ## Releases
 
-There are currently no releases for Cinco Cloud. If you want to use it, you will have to go through the [manual installtion process](#getting-started).
-
-(Anm. Es gibt die Cinco Cloud Instanz auf den Lehrstuhlservern, soll die hier verlinkt werden?)
+There are currently no releases for Cinco Cloud. If you want to use or test it, you will have to go through the [manual installtion process](#getting-started).
 
 ## Scope
 
@@ -55,13 +53,20 @@ Both can run independently, while the former provides the complete framework to 
 
 ## Contributing
 
-(Anm. Contribution erlaubt/gewünscht? Alles wie normal über Merge Requests auf Feature Branches?)
+If you want to contribute, please contact any of the project owners.
+Contribution works by following simple steps:
+- Either create new issues or take responsibility for any open issues.
+- Implement your solution on a seperate feature branch.
+- Create a merge/pull request.
+
+(Anm. If you want to get even further involved, you can join the weekly stand-up; you can get more details from the project owners.
+
+Anstatt project owners lieber die jeweiligen direkt benennen?)
 
 ## Feedback
 
 If you have general feedback or bug reports, you can submit an [issue](https://gitlab.com/scce/cinco-cloud/-/issues/new).
 
-(Anm. haben wir weitere Kanäle für so etwas?)
 
 ## Documentation
 
@@ -71,19 +76,19 @@ Indepth Documentation is under construction and will be found as part of our [we
 
 [EPL2](https://www.eclipse.org/legal/epl-2.0/)
 
-## Sources and Used Technologies
+## Related projects and Used Technologies
 
 [Theia][theia] - We are using Theia as a foundation for our editor.
 
 [GLSP][glsp] - Our graphical editor is based on the GLSP project.
 
-[Docker][docker] - 
+[Docker][docker] - Facilitating set up and development.
 
-[Helm][helm] - 
+[Helm][helm] - Kubernetes management system.
 
-[Angular/TS][angular] - 
+[Angular/TS][angular] - Angular TypeScript based frontend.
 
-[Java][java] - 
+[Java][java] - Backend language.
 
 [//]: # "Source definitions"
 [theia]: https://github.com/eclipse-theia/theia "Theia"
