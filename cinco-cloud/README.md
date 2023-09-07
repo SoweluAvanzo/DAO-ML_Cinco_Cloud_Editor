@@ -2,7 +2,7 @@
 
 <br />
 
-<img src="./docs/vuepress/src/.vuepress/public/assets/cinco-cloud-logo.png" width="100%" alt="Cinco Cloud Logo" />
+<img src="../docs/vuepress/src/.vuepress/public/assets/cinco-cloud-logo.png" width="100%" alt="Cinco Cloud Logo" />
 
 <h2>CINCO CLOUD - ONLINE PLATORM</h2>
 
