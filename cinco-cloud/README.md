@@ -12,7 +12,11 @@
 
 ## Description
 
-The framework application that runs the cloud instance of Cinco. Takes care of things like browser GUI, user account management and project management. 
+The framework application that runs the cloud instance of Cinco. Takes care of things like browser GUI, user account, organization and project management. 
+
+## Documentation
+
+Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
 
 ## Used Technologies
 
