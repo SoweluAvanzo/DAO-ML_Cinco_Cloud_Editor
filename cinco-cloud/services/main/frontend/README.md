@@ -1,9 +1,8 @@
-
 <div align='center'>
 
 <br />
 
-<img src="../docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
+<img src="../../../../docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
 
 <h2>CINCO CLOUD - FRONTEND</h2>
 
