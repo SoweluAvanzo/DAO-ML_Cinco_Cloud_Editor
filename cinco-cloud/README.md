@@ -2,7 +2,7 @@
 
 <br />
 
-<img src="../docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="100%" alt="Cinco Cloud Logo" />
+<img src="../docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
 
 <h2>CINCO CLOUD - ONLINE PLATORM</h2>
 
@@ -29,3 +29,7 @@ The framework application that runs the cloud instance of Cinco. Takes care of t
 [angular]: https://angular.io/ "Angular"
 [java]: https://www.java.com/de/ "Java"
 [quarkus]: https://quarkus.io/ "Quarkus"
+
+## License
+
+[EPL2](https://www.eclipse.org/legal/epl-2.0/)
