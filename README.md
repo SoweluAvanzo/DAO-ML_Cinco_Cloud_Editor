@@ -72,10 +72,6 @@ If you have general feedback or bug reports, you can submit an [issue](https://g
 
 Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
 
-## License
-
-[EPL2](https://www.eclipse.org/legal/epl-2.0/)
-
 ## Related projects and Used Technologies
 
 [Theia][theia] - We are using Theia as a foundation for our editor.
@@ -97,6 +93,12 @@ Indepth Documentation is under construction and will be found as part of our [we
 [helm]: https://helm.sh/ "Helm"
 [angular]: https://angular.io/ "Angular"
 [java]: https://www.java.com/de/ "Java"
+
+## License
+
+[EPL2](https://www.eclipse.org/legal/epl-2.0/)
+
+
 
 
 
