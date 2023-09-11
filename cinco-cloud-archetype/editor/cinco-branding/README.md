@@ -17,3 +17,7 @@ Adds a logo to the frontend:
 
 ## changing the logo
 The files are located in the icons-folder. Just replace them.
+
+## License
+
+[EPL2](https://www.eclipse.org/legal/epl-2.0/)

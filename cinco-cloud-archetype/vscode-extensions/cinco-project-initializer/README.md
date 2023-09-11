@@ -4,17 +4,17 @@
 
 <img src="../../../docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
 
-<h2>CINCO CLOUD - ARCHETYPE - GLSP</h2>
+<h2>CINCO CLOUD - ARCHETYPE - PROJECT INITIALIZER</h2>
 
 <hr />
 
-🖥️ Node ● 🗂️ Custom JSON ● 🖼️ Theia
+Theia Extension
 
 </div>
 
-## Cinco GLSP Common
+## Cinco Project Initializer
 
-Contains everything (e.g. protocol) that is shared between the cinco-glsp-client and server.
+Under construction
 
 ## License
 
