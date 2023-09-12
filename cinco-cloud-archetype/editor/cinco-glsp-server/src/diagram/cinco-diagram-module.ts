@@ -60,6 +60,7 @@ import { DoubleClickManager } from '../tools/double-click-manager';
 import { GeneratorManager } from '../tools/generator-manager';
 import { ValidationManager } from '../tools/validation-manager';
 import { CincoDiagramConfiguration } from './cinco-diagram-configuration';
+import { ReconnectEdgeHandler } from '../handler/reconnect-edge-handler';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -120,6 +121,7 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(RoutingPointHandler);
         binding.add(GeneratorEditHandler);
         binding.add(GeneratorCreateFileHandler);
+        binding.add(ReconnectEdgeHandler);
     }
 
     protected override bindGModelIndex(): BindingTarget<GModelIndex> {
