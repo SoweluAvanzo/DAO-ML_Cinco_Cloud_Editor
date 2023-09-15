@@ -53,7 +53,7 @@ import {
     View
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server-node';
-import { CellAssignments, cellValues } from './cell-assignments';
+import { assignValues, CellAssignments, cellValues } from './cell-assignments';
 import { GraphModelIndex } from './graph-model-index';
 
 export interface IdentifiableElement {
@@ -507,13 +507,57 @@ export namespace Container {
     }
 }
 
+export class NewEdge extends ModelElement {
+    protected entity?: EdgeEntity;
+    protected deletionIDs?: string[];
+
+    sourceIDs(): string[] {
+        return cellValues(this.entity!.sourceIDAssignments);
+    }
+
+    assignSourceIDs(sourceIDs: string[]): void {
+        this.entity!.sourceIDAssignments = assignValues(sourceIDs);
+    }
+
+    delete(): void {
+        delete this.entity;
+        this.deletionIDs = [crypto.randomUUID()];
+    }
+
+    hasEditDeleteConflict(): boolean {
+        return this.entity !== undefined && (this.deletionIDs ?? []).length > 0;
+    }
+}
+
+export class Tombstone implements IdentifiableElement {
+    id: string;
+    deletionIDs: string[];
+}
+
 export class Edge extends ModelElement {
     sourceIDAssignments: CellAssignments<string>;
     targetID: string;
     _routingPoints: RoutingPoint[];
+    deletionIDs?: string[];
+
+    constructor() {
+        super();
+    }
 
     get sourceIDs(): string[] {
         return cellValues(this.sourceIDAssignments);
+    }
+
+    set sourceIDs(sourceIDs: string[]) {
+        this.sourceIDAssignments = assignValues(sourceIDs);
+    }
+
+    get hasEditDeleteConflict(): boolean {
+        return (this.deletionIDs ?? []).length > 0;
+    }
+
+    clearEditDeleteConflict(): void {
+        delete this.deletionIDs;
     }
 
     get sources(): Node[] {
