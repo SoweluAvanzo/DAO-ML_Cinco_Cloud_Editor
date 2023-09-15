@@ -1,7 +1,7 @@
 # Cinco Cloud
 
 <div align="center">
-    <img src="docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="33%" alt="Cinco Cloud Logo" />
+    <img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="33%" alt="Cinco Cloud Logo" />
     <div>Cinco Cloud is a development environment for graphical domain-specific modeling tools.</div>
     <hr />
 </div>
