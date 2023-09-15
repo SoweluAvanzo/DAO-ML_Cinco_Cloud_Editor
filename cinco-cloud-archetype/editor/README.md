@@ -6,8 +6,6 @@
 
 <h2>CINCO CLOUD - ARCHETYPE - FRONTEND</h2>
 
-<hr />
-
 This part contains the frontend of the CINCO-Cloud IDE shown in the browser.
 
 </div>

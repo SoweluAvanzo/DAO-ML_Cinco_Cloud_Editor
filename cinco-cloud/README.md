@@ -6,8 +6,6 @@
 
 <h2>CINCO CLOUD - ONLINE PLATORM</h2>
 
-<hr />
-
 </div>
 
 ## Description

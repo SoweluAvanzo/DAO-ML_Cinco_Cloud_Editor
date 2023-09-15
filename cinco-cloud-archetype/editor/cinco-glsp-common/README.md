@@ -6,10 +6,6 @@
 
 <h2>CINCO CLOUD - ARCHETYPE - GLSP</h2>
 
-<hr />
-
-🖥️ Node ● 🗂️ Custom JSON ● 🖼️ Theia
-
 </div>
 
 ## Cinco GLSP Common

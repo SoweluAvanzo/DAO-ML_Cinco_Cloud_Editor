@@ -6,10 +6,6 @@
 
 <h2>CINCO CLOUD - ARCHETYPE - LANGUAGES EXTENSION</h2>
 
-<hr />
-
-Theia Extension
-
 </div>
 
 ## Cinco Languages Extension

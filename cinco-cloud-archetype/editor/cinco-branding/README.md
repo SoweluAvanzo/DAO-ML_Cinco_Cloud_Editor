@@ -6,8 +6,6 @@
 
 <h2>CINCO CLOUD - ARCHETYPE - BRANDING</h2>
 
-<hr />
-
 </div>
 
 ## Contents

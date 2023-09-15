@@ -6,9 +6,6 @@
 
 <h2>CINCO CLOUD - ARCHETYPE - CINCO AUTHENTICATOR</h2>
 
-<hr />
-
-🖥️ Node ● 🗂️ Custom JSON ● 🖼️ Theia
 
 </div>
 

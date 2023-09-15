@@ -6,8 +6,6 @@
 
 <h2>CINCO CLOUD - ARCHETYPE</h2>
 
-<hr />
-
 This project represents an archetypical theia-editor for a cinco-cloud product.
 
 </div>

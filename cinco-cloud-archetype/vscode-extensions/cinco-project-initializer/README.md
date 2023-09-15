@@ -6,10 +6,6 @@
 
 <h2>CINCO CLOUD - ARCHETYPE - PROJECT INITIALIZER</h2>
 
-<hr />
-
-Theia Extension
-
 </div>
 
 ## Cinco Project Initializer

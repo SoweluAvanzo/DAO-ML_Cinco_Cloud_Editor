@@ -6,8 +6,6 @@
 
 <h2>CINCO CLOUD - BACKEND</h2>
 
-<hr />
-
 This service is build on the [Quarkus][quarkus] framework and developed in Java 11.
 
 </div>
