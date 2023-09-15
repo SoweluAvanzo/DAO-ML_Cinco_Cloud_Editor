@@ -1,6 +1,14 @@
-# Cinco Cloud Archetype
+<div align='center'>
+
+<br />
+
+<img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
+
+<h2>CINCO CLOUD - ARCHETYPE</h2>
 
 This project represents an archetypical theia-editor for a cinco-cloud product.
+
+</div>
 
 ## Structure
 
@@ -28,3 +36,7 @@ USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
 
 optional:
     the `env.list` contains environment variables which will be used by the run-script.
+
+## License
+
+[EPL2](https://www.eclipse.org/legal/epl-2.0/)

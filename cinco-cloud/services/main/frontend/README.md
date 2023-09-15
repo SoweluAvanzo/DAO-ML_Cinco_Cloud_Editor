@@ -1,6 +1,14 @@
-# CincoCloudTS
+<div align='center'>
+
+<br />
+
+<img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
+
+<h2>CINCO CLOUD - FRONTEND</h2>
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.2.0.
+
+</div>
 
 ## Development server
 
@@ -25,3 +33,7 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
+## License
+
+[EPL2](https://www.eclipse.org/legal/epl-2.0/)

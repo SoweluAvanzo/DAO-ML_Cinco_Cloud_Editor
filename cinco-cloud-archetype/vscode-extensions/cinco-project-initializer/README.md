@@ -4,13 +4,13 @@
 
 <img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
 
-<h2>CINCO CLOUD - ARCHETYPE - GLSP</h2>
+<h2>CINCO CLOUD - ARCHETYPE - PROJECT INITIALIZER</h2>
 
 </div>
 
-## Cinco GLSP Common
+## Cinco Project Initializer
 
-Contains everything (e.g. protocol) that is shared between the cinco-glsp-client and server.
+Under construction
 
 ## License
 
