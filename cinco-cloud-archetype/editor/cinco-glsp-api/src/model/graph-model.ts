@@ -13,6 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import * as crypto from 'crypto';
 import {
     AbsolutePosition,
     Appearance,
@@ -52,7 +53,6 @@ import {
     View
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server-node';
-import * as uuid from 'uuid';
 import { CellAssignments, cellValues } from './cell-assignments';
 import { GraphModelIndex } from './graph-model-index';
 
@@ -78,7 +78,7 @@ export namespace ModelElementContainer {
 
 export class ModelElement implements IdentifiableElement {
     protected _index?: GraphModelIndex;
-    id: string = uuid.v4();
+    id: string = crypto.randomUUID();
     type: string;
     protected _attributes: Record<string, any> = {};
     protected _view?: View;

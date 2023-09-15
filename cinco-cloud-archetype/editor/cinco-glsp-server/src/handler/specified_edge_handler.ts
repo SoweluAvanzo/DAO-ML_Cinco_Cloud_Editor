@@ -48,7 +48,7 @@ export class SpecifiedEdgeHandler extends SpecifiedElementHandler {
     }
 
     protected createEdge(sourceID: string, targetID: string, elementTypeId: string): Edge {
-        const edge = new Edge() as Edge;
+        const edge = new Edge();
         edge.type = elementTypeId;
         edge.initializeProperties();
         edge.sourceIDAssignments = assignValue(sourceID);
