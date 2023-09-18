@@ -1,3 +1,6 @@
+/* required to properly layout elements with css grid */
+$enable-cssgrid: true;
+
 @import "../node_modules/bootstrap/scss/bootstrap";
 @import "assets/scss/variables";
 
@@ -59,6 +62,7 @@ body {
   .list-group-item {
     background: $color-dark;
     color: $text-color-light;
+    border-color: #333333;
 
     &.list-group-item-action {
       cursor: pointer;
@@ -106,8 +110,10 @@ body {
   }
 }
 
-.table {
-  color: $text-color-light
+.table > :not(caption) > * > * {
+  background: none;
+  color: $text-color-light;
+  border-color: rgba(255, 255, 255, .2);
 }
 
 ul[role=tablist] {

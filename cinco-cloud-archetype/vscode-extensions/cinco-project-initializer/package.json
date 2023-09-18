@@ -6,7 +6,11 @@
 	"license": "EPL-2.0",
 	"version": "0.0.1",
 	"publisher": "ls5",
-	"repository": "https://gitlab.com/scce/cinco-cloud",
+	"repository": {
+		"type": "git",
+		"url": "https://gitlab.com/scce/cinco-cloud",
+		"directory": "cinco-cloud-archetype/vscode-extensions/cinco-project-initializer"
+	},
 	"categories": [
 		"Other"
 	],

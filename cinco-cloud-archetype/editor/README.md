@@ -1,6 +1,14 @@
-# CINCO-Cloud IDE - Frontend
+<div align='center'>
+
+<br />
+
+<img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
+
+<h2>CINCO CLOUD - ARCHETYPE - FRONTEND</h2>
 
 This part contains the frontend of the CINCO-Cloud IDE shown in the browser.
+
+</div>
 
 ## Dependencies
 
@@ -59,3 +67,7 @@ Please check the installation description [here](https://github.com/nodejs/node-
    This start the browser app on `http://localhost:3000`
 
 **NOTE**: The browser does not reload automatically whenever you changed something, you need to reload yourself currently.
+
+## License
+
+[EPL2](https://www.eclipse.org/legal/epl-2.0/)

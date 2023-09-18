@@ -1,6 +1,14 @@
-# CincoCloud Main
+<div align='center'>
+
+<br />
+
+<img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
+
+<h2>CINCO CLOUD - BACKEND</h2>
 
 This service is build on the [Quarkus][quarkus] framework and developed in Java 11.
+
+</div>
 
 ## Run the application
 
@@ -40,3 +48,7 @@ Database migrations are done using [Flyway][flyway].
 Migration scripts can be found under `src/main/resources/db/migration`.
 
 [flyway]: https://flywaydb.org/
+
+## License
+
+[EPL2](https://www.eclipse.org/legal/epl-2.0/)
