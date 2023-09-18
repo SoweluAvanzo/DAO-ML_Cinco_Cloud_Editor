@@ -54,7 +54,7 @@ import {
 import { SelectionListener, SelectionService } from '@eclipse-glsp/client/lib/features/select/selection-service';
 import { Action, ReconnectEdgeOperation } from '@eclipse-glsp/protocol';
 import { inject, injectable, optional } from 'inversify';
-import { CincoEdge } from '../model/model';
+import { CincoEdge, CincoNode } from '../model/model';
 
 @injectable()
 export class RoutingPointAwareEdgeEditTool extends EdgeEditTool {
@@ -273,6 +273,9 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
 
     override mouseUp(target: SModelElement, event: MouseEvent): Action[] {
         const result = super.mouseUp(target, event);
+        if(target instanceof CincoNode) {
+            this.setNewConnectable(target);
+        }
         if (!this.isReadyToReconnect() && !this.isReadyToReroute()) {
             return result;
         }
