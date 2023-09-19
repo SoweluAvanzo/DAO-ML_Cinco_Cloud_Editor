@@ -9,3 +9,4 @@ lib
 .yalc
 tsconfig.tsbuildinfo
 languages/dummy.ts
+workspace/
