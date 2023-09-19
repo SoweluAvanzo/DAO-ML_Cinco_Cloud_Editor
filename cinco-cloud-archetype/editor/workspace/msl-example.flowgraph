@@ -32,7 +32,7 @@
         {
           "id": "776c6c43-a087-4760-9766-b71434bc0737",
           "_attributes": {
-            "name": "example.png"
+            "name": "cinco-logo-square.png"
           },
           "type": "node:imagenode2",
           "_size": {
@@ -93,7 +93,7 @@
         {
           "id": "11ef293f-bf5b-4ce6-a2a7-f011b626d425",
           "_attributes": {
-            "name": ""
+            "name": "cinco-logo-square.png"
           },
           "type": "node:imagenode2",
           "_size": {
@@ -101,7 +101,7 @@
             "height": 100
           },
           "_position": {
-            "x": 225.6046980342552,
+            "x": 280.6896086906536,
             "y": 78.68597879817014
           },
           "_view": {
@@ -353,27 +353,6 @@
       },
       "_view": {
         "style": "redCircle"
-      }
-    },
-    {
-      "id": "2402ce23-3d7c-43e5-80ed-eff3c928ef77",
-      "_attributes": {
-        "name": ""
-      },
-      "type": "node:imagenode2",
-      "_size": {
-        "width": 100,
-        "height": 100
-      },
-      "_position": {
-        "x": 1962.621923164528,
-        "y": -661.9833663151039
-      },
-      "_view": {
-        "style": "imageTest2",
-        "styleParameter": [
-          "name"
-        ]
       }
     }
   ],
@@ -631,5 +610,5 @@
   ],
   "type": "graphmodel:flowgraph",
   "name": "qwe32122sasd",
-  "_sourceUri": "/home/node/cinco-cloud-archetype/editor/workspace/msl-example.flowgraph"
+  "_sourceUri": "/Users/sami/Desktop/cinco-cloud/cinco-cloud/cinco-cloud-archetype/editor/workspace/msl-example.flowgraph"
 }
