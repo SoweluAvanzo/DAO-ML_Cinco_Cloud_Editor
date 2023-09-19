@@ -1,0 +1,635 @@
+{
+  "id": "c52860ba-bca7-4166-95c6-b467d55ff58e",
+  "_attributes": {
+    "name": ""
+  },
+  "_containments": [
+    {
+      "id": "b1b7dee0-ce52-4e45-bf18-bd79de093914",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:swimlane",
+      "_containments": [
+        {
+          "id": "761b01f2-3204-451b-a77c-7b18292f27dd",
+          "_attributes": {
+            "name": ""
+          },
+          "type": "node:imagenode",
+          "_size": {
+            "width": 75.19790505359323,
+            "height": 77.95369338097169
+          },
+          "_position": {
+            "x": 444.73813451229597,
+            "y": 74.33500846106125
+          },
+          "_view": {
+            "style": "imageTest"
+          }
+        },
+        {
+          "id": "776c6c43-a087-4760-9766-b71434bc0737",
+          "_attributes": {
+            "name": "example.png"
+          },
+          "type": "node:imagenode2",
+          "_size": {
+            "width": 139.49963269242582,
+            "height": 101.83719221825237
+          },
+          "_position": {
+            "x": 113.02186325503806,
+            "y": 91.67925982341485
+          },
+          "name": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
+          "_view": {
+            "style": "imageTest2",
+            "styleParameter": [
+              "name"
+            ]
+          }
+        },
+        {
+          "id": "925a36d0-8e66-434f-af3b-af5e4ae44a41",
+          "_attributes": {
+            "name": ""
+          },
+          "type": "node:start",
+          "_size": {
+            "width": 36,
+            "height": 36
+          },
+          "_position": {
+            "x": 35.16694527728155,
+            "y": 63.847535362117284
+          },
+          "_view": {
+            "style": "greenCircle"
+          }
+        },
+        {
+          "id": "73ebe683-c7a4-4acc-b6b5-9cdab4ffc70b",
+          "_attributes": {
+            "name": ""
+          },
+          "type": "node:cssnode",
+          "_size": {
+            "width": 100,
+            "height": 100
+          },
+          "_position": {
+            "x": 544.1753262942874,
+            "y": 58.87608376079143
+          },
+          "name": "",
+          "_view": {
+            "cssClass": [
+              "cssnodestyle"
+            ]
+          }
+        },
+        {
+          "id": "11ef293f-bf5b-4ce6-a2a7-f011b626d425",
+          "_attributes": {
+            "name": ""
+          },
+          "type": "node:imagenode2",
+          "_size": {
+            "width": 100,
+            "height": 100
+          },
+          "_position": {
+            "x": 225.6046980342552,
+            "y": 78.68597879817014
+          },
+          "_view": {
+            "style": "imageTest2",
+            "styleParameter": [
+              "name"
+            ]
+          }
+        }
+      ],
+      "_size": {
+        "width": 673.643372747256,
+        "height": 199.71117803046258
+      },
+      "_position": {
+        "x": 867.5043384455829,
+        "y": -135.73680823406858
+      },
+      "_view": {
+        "style": "swimlane",
+        "styleParameter": [
+          "name"
+        ]
+      },
+      "name": "qwe32122asd"
+    },
+    {
+      "id": "743da5c2-9321-4452-ba51-0959834273c8",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:polyline",
+      "_size": {
+        "width": 125.21636990088788,
+        "height": 90.80276024262105
+      },
+      "_position": {
+        "x": 543.3991390773136,
+        "y": -239.8726291472949
+      },
+      "_view": {
+        "style": "guiSIB",
+        "styleParameter": [
+          "name"
+        ]
+      },
+      "name": "some activityss"
+    },
+    {
+      "id": "b8cb1d84-d757-42e4-8a98-3e42bcddd8d3",
+      "_attributes": {
+        "name": "Newnode:activity",
+        "description": ""
+      },
+      "type": "node:multitextnode",
+      "_size": {
+        "width": 130.42118211560617,
+        "height": 72.82522668042226
+      },
+      "_position": {
+        "x": 692.1461380516519,
+        "y": -219.9693322651768
+      },
+      "_view": {
+        "style": "multiTextTest",
+        "styleParameter": [
+          "name"
+        ]
+      },
+      "name": "aasddddsdsadasdasdsaasddddsdsadasdasdsaasddddsdsadasdasdsaasddddsdsadasdasdsaasddddsdsadasdasdsaasddddsdsadasdasds"
+    },
+    {
+      "id": "8e2b2672-2f4e-40cf-a071-1d70c079408d",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:alignmentTest",
+      "_size": {
+        "width": 309.631678168349,
+        "height": 128.24896132679646
+      },
+      "_position": {
+        "x": 539.1938042983762,
+        "y": -377.3948771143664
+      },
+      "_view": {
+        "style": "alignmentTest"
+      }
+    },
+    {
+      "id": "c60121e1-da5f-49d4-84ce-7e01e89d4391",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:polygon",
+      "_size": {
+        "width": 118.20129917369208,
+        "height": 68.54261828480227
+      },
+      "_position": {
+        "x": 1237.1238631937683,
+        "y": -217.0143265338986
+      },
+      "_view": {
+        "style": "embeddedStyle",
+        "styleParameter": [
+          "name"
+        ]
+      },
+      "name": "leftsd"
+    },
+    {
+      "id": "0f485fc5-1ab8-483f-912b-f7edafb9fa53",
+      "_attributes": {
+        "name": "Newnode:activity",
+        "description": "...",
+        "number": "0",
+        "boolean": false,
+        "optional": "",
+        "limit": [],
+        "list": [],
+        "nonemptyList": [],
+        "byte": [],
+        "fiveOrMore": [],
+        "enum": "Green",
+        "tree": {},
+        "activities": []
+      },
+      "type": "node:activity",
+      "_size": {
+        "width": 156.45495661216654,
+        "height": 77.62429034895948
+      },
+      "_position": {
+        "x": 871.6448068174778,
+        "y": -220.51041630470442
+      },
+      "name": "Push",
+      "description": "",
+      "_view": {
+        "style": "blueTextRectangle",
+        "styleParameter": [
+          "name"
+        ]
+      }
+    },
+    {
+      "id": "2d38cd30-0dd2-4863-9ff9-128abfb30dd9",
+      "_attributes": {
+        "name": "Newnode:activity",
+        "description": "...",
+        "number": "0",
+        "boolean": false,
+        "optional": "",
+        "limit": [],
+        "list": [],
+        "nonemptyList": [],
+        "byte": [],
+        "fiveOrMore": [],
+        "enum": "Green",
+        "tree": {},
+        "activities": []
+      },
+      "type": "node:activity",
+      "_size": {
+        "width": 135.93702774264904,
+        "height": 68.19531875000092
+      },
+      "_position": {
+        "x": 1065.782025002525,
+        "y": -216.39819585720113
+      },
+      "name": "Pick up",
+      "description": "",
+      "_view": {
+        "style": "blueTextRectangle",
+        "styleParameter": [
+          "name"
+        ]
+      }
+    },
+    {
+      "id": "d98690f3-0729-4921-a1d7-9dd49694365a",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:end",
+      "_size": {
+        "width": 36,
+        "height": 36
+      },
+      "_position": {
+        "x": 1301.6741505049922,
+        "y": -319.1346360600778
+      },
+      "_view": {
+        "style": "redCircle"
+      }
+    },
+    {
+      "id": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:start",
+      "_size": {
+        "width": 36,
+        "height": 36
+      },
+      "_position": {
+        "x": 918.1460270600236,
+        "y": -407.76156193319054
+      },
+      "_view": {
+        "style": "greenCircle"
+      }
+    },
+    {
+      "id": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:end",
+      "_size": {
+        "width": 36,
+        "height": 36
+      },
+      "_position": {
+        "x": 528.4977166900081,
+        "y": -558.9211071427667
+      },
+      "_view": {
+        "style": "redCircle"
+      }
+    },
+    {
+      "id": "1efd93f5-ac37-4170-8612-f08bba6edad9",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:end",
+      "_size": {
+        "width": 36,
+        "height": 36
+      },
+      "_position": {
+        "x": 590.1398500373781,
+        "y": -41.394721695938486
+      },
+      "_view": {
+        "style": "redCircle"
+      }
+    },
+    {
+      "id": "2402ce23-3d7c-43e5-80ed-eff3c928ef77",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "node:imagenode2",
+      "_size": {
+        "width": 100,
+        "height": 100
+      },
+      "_position": {
+        "x": 1962.621923164528,
+        "y": -661.9833663151039
+      },
+      "_view": {
+        "style": "imageTest2",
+        "styleParameter": [
+          "name"
+        ]
+      }
+    }
+  ],
+  "_edges": [
+    {
+      "id": "fb6a5b31-b7d6-4cb1-847c-f07eb9d96f14",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:arrow",
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "d98690f3-0729-4921-a1d7-9dd49694365a",
+      "_routingPoints": [
+        {
+          "x": 1179.8200231740595,
+          "y": -378.46163632278103
+        },
+        {
+          "x": 1368.215365285547,
+          "y": -322.497918353806
+        },
+        {
+          "x": 1344.0684829393947,
+          "y": -317.60385793598
+        }
+      ],
+      "_view": {
+        "style": "simpleArrowDashDotBlue"
+      }
+    },
+    {
+      "id": "e35a06ac-c1d9-4402-8eb1-eef519373095",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:circle",
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "d98690f3-0729-4921-a1d7-9dd49694365a",
+      "_routingPoints": [
+        {
+          "x": 1071.5633485017502,
+          "y": -449.80547550943436
+        },
+        {
+          "x": 1246.117414533599,
+          "y": -395.4146901658801
+        }
+      ],
+      "_view": {
+        "style": "simpleCircleDashDefault"
+      }
+    },
+    {
+      "id": "8a41e99e-1d42-4951-b863-30216cb64dd0",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:diamond",
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "d98690f3-0729-4921-a1d7-9dd49694365a",
+      "_routingPoints": [],
+      "_view": {
+        "style": "simpleDiamondDotRed"
+      }
+    },
+    {
+      "id": "2aae8536-725a-4426-91ba-24612d450e4d",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:triangle",
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "d98690f3-0729-4921-a1d7-9dd49694365a",
+      "_routingPoints": [
+        {
+          "x": 1203.1492517470786,
+          "y": -285.934165805705
+        }
+      ],
+      "_view": {
+        "style": "simpleTriangleDashDotDotGreen"
+      }
+    },
+    {
+      "id": "1a9cbf09-75e1-4b88-8bee-26ef2aa56246",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:text",
+      "name": "asdyxcyxcyxcxcx",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 805.2950662349708,
+          "y": -550.1781930913228
+        },
+        {
+          "x": 776.6394898772412,
+          "y": -617.314114843718
+        }
+      ],
+      "_view": {
+        "style": "simpleText",
+        "styleParameter": [
+          "name"
+        ]
+      }
+    },
+    {
+      "id": "2cb71796-7a46-409b-a801-7f46d7aa9768",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:container",
+      "name": "asd",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 784.8267974080211,
+          "y": -662.3443062630075
+        }
+      ],
+      "_view": {
+        "style": "simpleContainer",
+        "styleParameter": [
+          "name"
+        ]
+      }
+    },
+    {
+      "id": "a17cd691-29b4-4e90-ae51-c270ea62c90b",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:ellipse",
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 750.4401057787454,
+          "y": -573.1026541775066
+        }
+      ],
+      "_view": {
+        "style": "simpleEllipse"
+      }
+    },
+    {
+      "id": "d4d5fd69-b3ff-4173-8ac8-29b6bc714255",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:image",
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 732.4280292110296,
+          "y": -539.534693301309
+        }
+      ],
+      "_view": {
+        "style": "simpleImage"
+      }
+    },
+    {
+      "id": "96545fb5-dae6-4e82-bbd9-d79f136c2537",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:multitext",
+      "name": "sdfasdasdasdmlcmklacmsmclsalmksamcklsmc",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 700.7761839146907,
+          "y": -463.22131187826676
+        }
+      ],
+      "_view": {
+        "style": "simpleMultiText",
+        "styleParameter": [
+          "name"
+        ]
+      }
+    },
+    {
+      "id": "46f93492-13bd-46a5-a789-fd78d88b8d71",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:polygon",
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 857.3133128638757,
+          "y": -387.02371848558636
+        },
+        {
+          "x": 663.6546459524784,
+          "y": -410.9939650680643
+        }
+      ],
+      "_view": {
+        "style": "simplePolygon"
+      }
+    },
+    {
+      "id": "a7aa1946-9447-45d8-a024-02639d086ce9",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:polyline",
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 842.5041927979289,
+          "y": -772.3393560522085
+        }
+      ],
+      "_view": {
+        "style": "simplePolyline"
+      }
+    },
+    {
+      "id": "0e5ef3d1-e435-4bd5-9de4-e851ffbc082e",
+      "_attributes": {
+        "name": ""
+      },
+      "type": "edge:labeledtransition",
+      "name": "asdasdsd",
+      "sourceID": "925a36d0-8e66-434f-af3b-af5e4ae44a41",
+      "targetID": "1efd93f5-ac37-4170-8612-f08bba6edad9",
+      "_routingPoints": [],
+      "_view": {
+        "style": "labeledArrow",
+        "styleParameter": [
+          "name"
+        ]
+      }
+    }
+  ],
+  "type": "graphmodel:flowgraph",
+  "name": "qwe32122sasd",
+  "_sourceUri": "/home/node/cinco-cloud-archetype/editor/workspace/msl-example.flowgraph"
+}
