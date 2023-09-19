@@ -18,7 +18,7 @@ interface ServerArgs {
 
 export async function generateMetaSpecification(model: MglModel, filePath: string, destination: string | undefined): Promise<string> {
     const data = extractDestinationAndName(filePath, destination);
-    const generatedFilePath = `${path.join(data.destination, data.name)}.json`;
+    const generatedFilePath = path.join(data.destination, 'meta-specification.json');
 
     const specification: Specification = {
         graphTypes: [],
@@ -141,7 +141,7 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
 
     vscode.commands.executeCommand( 'cinco.provide.glsp-server-args').then( result => {
         const serverArgs = result as ServerArgs;
-        const targetPath = path.join(serverArgs.rootFolder, serverArgs.languagePath,  data.name) + `.json`;
+        const targetPath = path.join(serverArgs.rootFolder, serverArgs.languagePath, 'meta-specifciation.json');
         console.log('Integrating meta-specification to: '+ targetPath)
         fs.writeFileSync(targetPath, JSON.stringify(specification, null, 4));
         vscode.commands.executeCommand('cinco.meta-specification.reload')
