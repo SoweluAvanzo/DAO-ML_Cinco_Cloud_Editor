@@ -9,7 +9,7 @@
     ![collaboration](https://img.shields.io/badge/Collaboration-Welcome-green)
     ![pipeline](https://gitlab.com/scce/cinco-cloud/badges/main/pipeline.svg)
     ![coverage](https://gitlab.com/scce/cinco-cloud/badges/main/coverage.svg)
-    [![Bug](https://img.shields.io/badge/Submit-Bug-red)](https://gitlab.com/scce/cinco-cloud/-/issues/new)
+    ![Bug](https://img.shields.io/badge/Submit-Bug-red?link=https%3A%2F%2Fgitlab.com%2Fscce%2Fcinco-cloud%2F-%2Fissues%2Fnew)
 
     Cinco Cloud is a development environment for domain-specific modeling tools.
 </div>

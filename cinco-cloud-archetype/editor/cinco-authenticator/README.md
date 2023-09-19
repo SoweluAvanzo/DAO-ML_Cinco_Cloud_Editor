@@ -6,6 +6,8 @@
 
 <h2>CINCO CLOUD - ARCHETYPE - CINCO AUTHENTICATOR</h2>
 
+</div>
+
 ## Contents
 
 Theia extension providingg authentication between the Cinco editor and the Cinco Cloud web application.
