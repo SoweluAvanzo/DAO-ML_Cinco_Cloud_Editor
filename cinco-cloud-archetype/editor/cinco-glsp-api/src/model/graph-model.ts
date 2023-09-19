@@ -385,23 +385,37 @@ export class Node extends ModelElement {
         return [];
     }
 
-    canBeEdgeTarget(edgeType: string): boolean {
+    canBeEdgeTarget(edgeType: string, filter?: (e: Edge) => boolean): boolean {
         const spec = getSpecOf(this.type) as NodeType;
         if (!spec.incomingEdges) {
             return false;
         }
         const constraints: Constraint[] = spec.incomingEdges;
-        const elements = this.incomingEdges;
+        if (constraints.length <= 0) {
+            // cannot contain elements, if no relating constraints are defined
+            return false;
+        }
+        let elements = this.incomingEdges;
+        if(filter) {
+            elements = elements.filter(e => filter(e));
+        }
         return this.checkViolations(edgeType, elements, constraints).length <= 0;
     }
 
-    canBeEdgeSource(edgeType: string): boolean {
+    canBeEdgeSource(edgeType: string, filter?: (e: Edge) => boolean): boolean {
         const spec = getSpecOf(this.type) as NodeType;
         if (!spec.outgoingEdges) {
             return false;
         }
         const constraints: Constraint[] = spec.outgoingEdges;
-        const elements = this.outgoingEdges;
+        if (constraints.length <= 0) {
+            // cannot contain elements, if no relating constraints are defined
+            return false;
+        }
+        let elements = this.outgoingEdges;
+        if(filter) {
+            elements = elements.filter(e => filter(e));
+        }
         return this.checkViolations(edgeType, elements, constraints).length <= 0;
     }
 
@@ -529,12 +543,12 @@ export class Edge extends ModelElement {
         return node;
     }
 
-    canConnectToTarget(node: Node): boolean {
-        return node.canBeEdgeTarget(this.type);
+    canConnectToTarget(node: Node, filter?: (e: Edge) => boolean): boolean {
+        return node.canBeEdgeTarget(this.type, filter);
     }
 
-    canConnectToSource(node: Node): boolean {
-        return node.canBeEdgeSource(this.type);
+    canConnectToSource(node: Node, filter?: (e: Edge) => boolean): boolean {
+        return node.canBeEdgeSource(this.type, filter);
     }
 
     get routingPoints(): RoutingPoint[] {
