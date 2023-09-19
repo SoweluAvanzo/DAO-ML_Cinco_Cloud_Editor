@@ -16,6 +16,7 @@
 import { ChangeAwareRoutingPointsOperation } from '@cinco-glsp/cinco-glsp-common';
 import {
     AnchorComputerRegistry,
+    Bounds,
     Connectable,
     CursorCSS,
     DragAwareMouseListener,
@@ -23,15 +24,20 @@ import {
     DrawFeedbackEdgeSourceAction,
     EdgeEditTool,
     EdgeRouterRegistry,
+    FeedbackEdgeEnd,
     FeedbackEdgeRouteMovingMouseListener,
     FeedbackEdgeSourceMovingMouseListener,
     FeedbackEdgeTargetMovingMouseListener,
     HideEdgeReconnectHandlesFeedbackAction,
     ISnapper,
+    MoveAction,
     Point,
     RemoveFeedbackEdgeAction,
+    SConnectableElement,
+    SEdge,
     SModelElement,
     SModelRoot,
+    SNode,
     SReconnectHandle,
     SRoutableElement,
     SRoutingHandle,
@@ -40,8 +46,12 @@ import {
     TYPES,
     canEditRouting,
     cursorFeedbackAction,
+    feedbackEdgeEndId,
     feedbackEdgeId,
+    findChildrenAtPosition,
     findParentByFeature,
+    getAbsolutePosition,
+    isBoundsAware,
     isConnectable,
     isReconnectHandle,
     isReconnectable,
@@ -55,6 +65,64 @@ import { SelectionListener, SelectionService } from '@eclipse-glsp/client/lib/fe
 import { Action, ReconnectEdgeOperation } from '@eclipse-glsp/protocol';
 import { inject, injectable, optional } from 'inversify';
 import { CincoEdge, CincoNode } from '../model/model';
+import { getCurrentMousePosition, getNodeBehindEdge } from '../utils/canvas-utils';
+import { canBeEdgeSource, canBeEdgeTarget } from '../utils/constraint-utils';
+
+/*
+ * TODO: This is a fix for a Sprotty/GLSP Bug. Please review when the glsp is updated! This could very well be omitted!
+ * GLSP-Client-Version: 1.0.0
+ */
+export class CincoFeedbackEdgeSourceMovingMouseListener extends FeedbackEdgeSourceMovingMouseListener {
+
+    override mouseMove(target: SModelElement, event: MouseEvent): Action[] {
+        const root = target.root;
+        const edgeEnd = root.index.getById(feedbackEdgeEndId(root));
+        if (!(edgeEnd instanceof FeedbackEdgeEnd) || !edgeEnd.feedbackEdge) {
+            return [];
+        }
+
+        const edge = edgeEnd.feedbackEdge;
+        const position = getAbsolutePosition(edgeEnd, event);
+        const endAtMousePosition = findChildrenAtPosition(target.root, position).find(
+            e => isConnectable(e) && e.canConnect(edge, 'source')
+        );
+
+        if (endAtMousePosition instanceof SConnectableElement && edge.target && isBoundsAware(edge.target)) {
+            const anchor = this.computeAbsoluteAnchor(endAtMousePosition, Bounds.center(edge.target.bounds));
+            return [MoveAction.create([{ elementId: edgeEnd.id, toPosition: anchor }], { animate: false })];
+        } else {
+            return [MoveAction.create([{ elementId: edgeEnd.id, toPosition: position }], { animate: false })];
+        }
+    }
+}
+
+/*
+ * TODO: This is a fix for a Sprotty/GLSP Bug. Please review when the glsp is updated! This could very well be omitted!
+ * GLSP-Client-Version: 1.0.0
+ */
+export class CincoFeedbackEdgeTargetMovingMouseListener extends FeedbackEdgeTargetMovingMouseListener {
+
+    override mouseMove(target: SModelElement, event: MouseEvent): Action[] {
+        const root = target.root;
+        const edgeEnd = root.index.getById(feedbackEdgeEndId(root));
+        if (!(edgeEnd instanceof FeedbackEdgeEnd) || !edgeEnd.feedbackEdge) {
+            return [];
+        }
+
+        const edge = edgeEnd.feedbackEdge;
+        const position = getAbsolutePosition(edgeEnd, event);
+        const endAtMousePosition = findChildrenAtPosition(target.root, position).find(
+            e => isConnectable(e) && e.canConnect(edge, 'target')
+        );
+
+        if (endAtMousePosition instanceof SConnectableElement && edge.target && isBoundsAware(edge.target)) {
+            const anchor = this.computeAbsoluteAnchor(endAtMousePosition, Bounds.center(edge.target.bounds));
+            return [MoveAction.create([{ elementId: edgeEnd.id, toPosition: anchor }], { animate: false })];
+        } else {
+            return [MoveAction.create([{ elementId: edgeEnd.id, toPosition: position }], { animate: false })];
+        }
+    }
+}
 
 @injectable()
 export class RoutingPointAwareEdgeEditTool extends EdgeEditTool {
@@ -80,8 +148,8 @@ export class RoutingPointAwareEdgeEditTool extends EdgeEditTool {
         this.selectionService.register(this.routingPointAwareEdgeEditListener);
 
         // install feedback move mouse listener for client-side move updates
-        this.feedbackEdgeSourceMovingListener = new FeedbackEdgeSourceMovingMouseListener(this.anchorRegistry);
-        this.feedbackEdgeTargetMovingListener = new FeedbackEdgeTargetMovingMouseListener(this.anchorRegistry);
+        this.feedbackEdgeSourceMovingListener = new CincoFeedbackEdgeSourceMovingMouseListener(this.anchorRegistry);
+        this.feedbackEdgeTargetMovingListener = new CincoFeedbackEdgeTargetMovingMouseListener(this.anchorRegistry);
         this.feedbackMovingListener = new FeedbackEdgeRouteMovingMouseListener(this.edgeRouterRegistry, this.snapper);
     }
 
@@ -254,7 +322,7 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
 
     override mouseMove(target: SModelElement, event: MouseEvent): Action[] {
         const result = super.mouseMove(target, event);
-        if (this.isMouseDrag) {
+        if (this.isMouseDrag && !(target instanceof CincoNode || target instanceof CincoEdge)) {
             // reset any selected connectables when we are dragging, maybe the user is just panning
             this.setNewConnectable(undefined);
         }
@@ -264,7 +332,7 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
                 ? findParentByFeature(target, isRoutable)
                 : findParentByFeature(this.routingHandle ?? this.edge, isRoutable) ?? this.edge;
             if (this.isEdgeSelected() && this.isMouseDown && edge instanceof CincoEdge) {
-                const position = edge.root.parentToLocal({ x: event.offsetX, y: event.offsetY });
+                const position = getCurrentMousePosition(edge.root, event);
                 this.setRoutingHandleSelected(edge, position);
             }
         }
@@ -281,10 +349,21 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
         }
 
         if (this.edge && this.newConnectable) {
+            const type = this.edge.type;
+            const index = this.edge.root.index;
             const sourceElementId = this.isReconnectingNewSource() ? this.newConnectable.id : this.edge.sourceId;
             const targetElementId = this.isReconnectingNewSource() ? this.edge.targetId : this.newConnectable.id;
-            if (this.requiresReconnect(sourceElementId, targetElementId)) {
-                result.push(ReconnectEdgeOperation.create({ edgeElementId: this.edge.id, sourceElementId, targetElementId }));
+            const sourceNode = index.getById(sourceElementId) as SNode;
+            const targetNode = index.getById(targetElementId) as SNode;
+            const changingEdgeFilter = (e: SEdge): boolean => false;
+            if(
+                sourceNode && targetNode &&
+                canBeEdgeSource(sourceNode, type, changingEdgeFilter) &&
+                canBeEdgeTarget(targetNode, type, changingEdgeFilter))
+            {
+                if (this.requiresReconnect(sourceElementId, targetElementId)) {
+                    result.push(ReconnectEdgeOperation.create({ edgeElementId: this.edge.id, sourceElementId, targetElementId }));
+                }
             }
             this.reset();
         } else if (this.edge && this.routingHandle) {
@@ -352,10 +431,12 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
 
     override mouseOver(target: SModelElement, event: MouseEvent): Action[] {
         if (this.edge && this.isReconnecting()) {
-            const currentTarget = findParentByFeature(target, isConnectable);
-            if (!this.newConnectable || currentTarget !== this.newConnectable) {
+            const mousePosition = getCurrentMousePosition(target.root, event);
+            const currentTarget = getNodeBehindEdge(mousePosition, target) as (SModelElement & Connectable);
+            // const isNewConnectable = (!this.newConnectable ||  currentTarget !== this.newConnectable);
+            if (isConnectable(currentTarget)) {
                 this.setNewConnectable(currentTarget);
-                if (currentTarget) {
+                if (currentTarget instanceof SNode) {
                     if (
                         (this.reconnectMode === 'NEW_SOURCE' && currentTarget.canConnect(this.edge, 'source')) ||
                         (this.reconnectMode === 'NEW_TARGET' && currentTarget.canConnect(this.edge, 'target'))
@@ -364,7 +445,9 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
                         return [];
                     }
                 }
-                this.tool.dispatchFeedback([cursorFeedbackAction(CursorCSS.OPERATION_NOT_ALLOWED)]);
+                if(!(currentTarget instanceof SModelRoot || currentTarget instanceof SEdge)) {
+                    this.tool.dispatchFeedback([cursorFeedbackAction(CursorCSS.OPERATION_NOT_ALLOWED)]);
+                }
             }
         }
         return [];
