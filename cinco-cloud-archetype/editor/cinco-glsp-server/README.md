@@ -8,9 +8,26 @@
 
 </div>
 
-## Cinco GLSP Server
+## Contents
 
-Under construction
+Theia Extension providing the server for our GLSP based language.
+
+## Documentation
+
+Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
+
+## Related projects and Used Technologies
+
+[Theia][theia] - We are using Theia as a foundation for our editor.
+
+[Typescript][typescript] - Programming language.
+
+[GLSP][glsp] - Our graphical editor is based on the GLSP project.
+
+[//]: # "Source definitions"
+[theia]: https://github.com/eclipse-theia/theia "Theia"
+[typescript]: https://www.typescriptlang.org/ "Typescript"
+[glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
 
 ## License
 

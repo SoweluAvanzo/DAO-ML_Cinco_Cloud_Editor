@@ -8,7 +8,7 @@
 
 </div>
 
-## Description
+## Contents
 
 The framework application that runs the cloud instance of Cinco. Takes care of things like browser GUI, user account, organization and project management. 
 

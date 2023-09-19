@@ -8,9 +8,24 @@
 
 </div>
 
-## Cinco Project Initializer
+## Contents
 
-Under construction
+Theia Extension that provides a view to correctly initialize new or imported Cinco Cloud projects/workspaces.
+Project initialization functionality happens mostly in projectInitialization.ts.  New projects are either a predefined example project or use scaffold to provide basic outlines for Cinco projects.
+
+## Documentation
+
+Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
+
+## Related projects and Used Technologies
+
+[Theia][theia] - We are using Theia as a foundation for our editor.
+
+[Typescript][typescript] - Programming language.
+
+[//]: # "Source definitions"
+[theia]: https://github.com/eclipse-theia/theia "Theia"
+[typescript]: https://www.typescriptlang.org/ "Typescript"
 
 ## License
 

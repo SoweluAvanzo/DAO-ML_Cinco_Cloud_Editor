@@ -2,8 +2,16 @@
 
 <div align="center">
     <img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="33%" alt="Cinco Cloud Logo" />
-    <div>Cinco Cloud is a development environment for graphical domain-specific modeling tools.</div>
     <hr />
+</div>
+
+<div id="badges" align="center">
+    ![collaboration](https://img.shields.io/badge/Collaboration-Welcome-green)
+    ![pipeline](https://gitlab.com/scce/cinco-cloud/badges/main/pipeline.svg)
+    ![coverage](https://gitlab.com/scce/cinco-cloud/badges/main/coverage.svg)
+    [![Bug](https://img.shields.io/badge/Submit-Bug-red)](https://gitlab.com/scce/cinco-cloud/-/issues/new)
+
+    Cinco Cloud is a development environment for domain-specific modeling tools.
 </div>
 
 - [Website](#website)
@@ -20,46 +28,48 @@
 
 ## Website
 
-Visit the [Cinco Cloud website](https://scce.gitlab.io/cinco-cloud/) for in-depth information.
-And visit the [Cinco website](https://cinco.scce.info/) for a deeper look at what Cinco was made for.
+Visit the [Cinco Cloud Website](https://scce.gitlab.io/cinco-cloud/) for indepth information.
+And visit the [Cinco Website](https://cinco.scce.info/) for an indepth look at what Cinco was made for.
 
 ## Releases
 
-There are currently no releases available for Cinco Cloud. If you want to use or test it, you should go through the [manual installation process](#getting-started).
+There are currently no releases for Cinco Cloud. If you want to use or test it, you will have to go through the [manual installtion process](#getting-started).
 
 ## Scope
 
 - Modernize the Cinco workflow
-- Run Cinco in a cloud-based system to eliminate hardware bottlenecks
-- Make Cinco more accessible and extensible to developers
+- Run Cinco in a cloud based system, to eliminate hardware bottlenecks
+- Make Cinco more accessible and extendable for developers
 
 ## Roadmap
 
-You can find the general roadmap in the form of discussions in our [issues](https://gitlab.com/scce/cinco-cloud/-/issues/?label_name%5B%5D=Discussion).
+You can find the general roadmap in form of discussions in our [issues](https://gitlab.com/scce/cinco-cloud/-/issues/?label_name%5B%5D=Discussion).
 
 ## Project Contents
 
-This monorepo hosts two major projects: the [Cinco Cloud browser-based frontend and backend](https://gitlab.com/scce/cinco-cloud/-/tree/main/cinco-cloud?ref_type=heads), and the [Cinco Editor](https://gitlab.com/scce/cinco-cloud/-/tree/main/cinco-cloud-archetype?ref_type=heads).
-Both can run independently, while the former provides the complete framework to run Cinco Cloud on a server, and the latter provides the actual editor in which Cinco products are built.
+This monorepo hosts two major projects: the [Cinco Cloud browser based frontend and backend](https://gitlab.com/scce/cinco-cloud/-/tree/main/cinco-cloud?ref_type=heads) and the [Cinco Editor](https://gitlab.com/scce/cinco-cloud/-/tree/main/cinco-cloud-archetype?ref_type=heads).
+Both can run independently, while the former provides the complete framework to run Cinco Cloud on a server and the latter provides the actual editor in which Cinco products are built.
 
 ## Getting Started
 
 [Set up Cinco Cloud to run locally on your machine](https://scce.gitlab.io/cinco-cloud/content/developer-guide/installation/#preparations)
 
-[Become familiar with the project architecture](https://scce.gitlab.io/cinco-cloud/content/developer-guide/overview/#directories)
+[Get familliar with the project architecture](https://scce.gitlab.io/cinco-cloud/content/developer-guide/overview/#directories)
 
-[Learn how to build Cinco products in Cinco Cloud](https://scce.gitlab.io/cinco-cloud/content/user-guide/building-cinco-products/)
+[Check out how to build Cinco products in Cinco Cloud](https://scce.gitlab.io/cinco-cloud/content/user-guide/building-cinco-products/)
 
 ## Contributing
 
-If you would like to contribute, please contact one of the project owners.
-Contributing works by following simple steps:
+If you want to contribute, please contact any of the project owners.
+Contribution works by following simple steps:
 
-1. Either create new issues or take ownership of open issues.
-2. Implement your solution in a separate feature branch.
-3. Create a merge/pull request.
+- Either create new issues or take responsibility for any open issues.
+- Implement your solution on a seperate feature branch.
+- Create a merge/pull request.
 
-(If you want to get even more involved, you can join the weekly catch-up meeting; contact the project owners for more details).
+(Anm. If you want to get even further involved, you can join the weekly stand-up; you can get more details from the project owners.
+
+Anstatt project owners lieber die jeweiligen direkt benennen?)
 
 ## Feedback
 
@@ -67,32 +77,38 @@ If you have general feedback or bug reports, you can submit an [issue](https://g
 
 ## Documentation
 
-Detailed documentation is under construction and will be available as part of our [wiki website](https://scce.gitlab.io/cinco-cloud/).
+Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
 
 ## Related projects and Used Technologies
 
-[Theia][theia] - We use Theia as the base for our IDE environments.
+[Theia][theia] - We are using Theia as a foundation for our editor.
 
-[GLSP][glsp] - Our graphical editors use GLSP to provide their modeling languages.
+[GLSP][glsp] - Our graphical editor is based on the GLSP project.
 
-[Sprotty][sprotty] - Used to visualize and edit graphical models.
-
-[Langium][langium] - Textual meta-languages are provided using Langium.
+[Docker][docker] - Facilitating set up and development.
 
 [Helm][helm] - Kubernetes management system.
 
-[Angular/TS][angular] - Angular TypeScript-based frontend.
+[Angular/TS][angular] - Angular TypeScript based frontend.
 
 [Java][java] - Backend language.
+
+[Quarkus][quarkus] - Backend service.
+
+[Language Server Protocol][lsp] - A protocol for IDE agnostic programming language development.
+
+[Langium][langium] - Framework for the Language Server Protocol.
 
 [//]: # "Source definitions"
 [theia]: https://github.com/eclipse-theia/theia "Theia"
 [glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
-[sprotty]: https://sprotty.org/ "Sprotty"
-[langium]: https://langium.org/ "Langium"
+[docker]: https://www.docker.com/ "Docker"
 [helm]: https://helm.sh/ "Helm"
 [angular]: https://angular.io/ "Angular"
 [java]: https://www.java.com/de/ "Java"
+[quarkus]: https://quarkus.io/ "Quarkus"
+[lsp]: https://microsoft.github.io/language-server-protocol/ "Language Server Protocol"
+[langium]: https://langium.org/ "Langium"
 
 ## License
 

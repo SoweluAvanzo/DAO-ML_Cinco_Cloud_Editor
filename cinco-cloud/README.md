@@ -20,6 +20,8 @@ Indepth Documentation is under construction and will be found as part of our [we
 
 [Docker][docker] - Facilitating set up and development.
 
+[Docker][docker] - Facilitating set up and development.
+
 [Angular/TS][angular] - Frontend language.
 
 [Java][java] - Backend language.

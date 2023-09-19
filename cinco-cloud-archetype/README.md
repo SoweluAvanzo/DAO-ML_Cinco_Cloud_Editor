@@ -6,17 +6,24 @@
 
 <h2>CINCO CLOUD - ARCHETYPE</h2>
 
-This project represents an archetypical theia-editor for a cinco-cloud product.
-
 </div>
 
-## Structure
+## Contents
+
+This project represents an archetypical theia-editor for a cinco-cloud product.
+
+## Documentation
+
+Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
+
+
+### Structure
 
 - `vscode-extensions` contains all extensions, that can be developed within vscode. They are used inside the theia editor by installing the packaged *.vsix into the `editor/browser-app/plugins`-folder.
 - `editor` contains a eclipse theia-editor-project with all needed theia-extensions and files
 - `cinco-ls` contains the language-server project for the Cinco-DSLs (CPD, MGL, Style)
 
-## Getting started
+### Getting started
 
 USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
 
@@ -36,6 +43,25 @@ USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
 
 optional:
     the `env.list` contains environment variables which will be used by the run-script.
+
+## Related projects and Used Technologies
+
+[Theia][theia] - We are using Theia as a foundation for our editor.
+
+[Typescript][typescript] - Programming language.
+
+[GLSP][glsp] - Our graphical editor is based on the GLSP project.
+
+[Language Server Protocol][lsp] - A protocol for IDE agnostic programming language development.
+
+[Langium][langium] - Framework for the Language Server Protocol.
+
+[//]: # "Source definitions"
+[theia]: https://github.com/eclipse-theia/theia "Theia"
+[typescript]: https://www.typescriptlang.org/ "Typescript"
+[glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
+[lsp]: https://microsoft.github.io/language-server-protocol/ "Language Server Protocol"
+[langium]: https://langium.org/ "Langium"
 
 ## License
 

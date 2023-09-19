@@ -4,13 +4,19 @@
 
 <img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
 
-<h2>CINCO CLOUD - ARCHETYPE - FRONTEND</h2>
-
-This part contains the frontend of the CINCO-Cloud IDE shown in the browser.
+<h2>CINCO CLOUD - ARCHETYPE - EDITOR</h2>
 
 </div>
 
-## Dependencies
+## Contents
+
+This project contains the custom Theia extensions for the editor used in the Cinco Cloud web application.
+
+## Documentation
+
+Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
+
+### Dependencies
 
 - NodeJS (version 18.9.0)
 - Yarn
@@ -21,23 +27,23 @@ NOTE: we recommend using [nvm](https://github.com/creationix/nvm#install-script)
     nvm use 18.9.0
     npm install -g yarn
 
-### Common Pitfall
+#### Common Pitfall
 
 If you change the node version using nvm while using vscode and want to execute a run/debug configuration of
 the project, vscode will use the version of node, that was present while it was opened. vscode will not
 update the node version using nvm.
 
-## Install linux packages (if necessary)
+### Install linux packages (if necessary)
 
     sudo apt-get install g++-4.8 libsecret-1-dev xvfb libx11-dev libxkbfile-dev libxml2-utils
 
-## Install python and additional dependencies (needed by theia dependencies)
+### Install python and additional dependencies (needed by theia dependencies)
 
 Please check the installation description [here](https://github.com/nodejs/node-gyp#installation).
 
 (On Windows run: ```npm config set msvs_version 2019```)
 
-## Developing with the browser example (untested)
+### Developing with the browser example (untested)
 
 0. If you want to build everything run the following command inside this folder:
 
@@ -67,6 +73,25 @@ Please check the installation description [here](https://github.com/nodejs/node-
    This start the browser app on `http://localhost:3000`
 
 **NOTE**: The browser does not reload automatically whenever you changed something, you need to reload yourself currently.
+
+## Related projects and Used Technologies
+
+[Theia][theia] - We are using Theia as a foundation for our editor.
+
+[Typescript][typescript] - Programming language.
+
+[GLSP][glsp] - Our graphical editor is based on the GLSP project.
+
+[Language Server Protocol][lsp] - A protocol for IDE agnostic programming language development.
+
+[Langium][langium] - Framework for the Language Server Protocol.
+
+[//]: # "Source definitions"
+[theia]: https://github.com/eclipse-theia/theia "Theia"
+[typescript]: https://www.typescriptlang.org/ "Typescript"
+[glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
+[lsp]: https://microsoft.github.io/language-server-protocol/ "Language Server Protocol"
+[langium]: https://langium.org/ "Langium"
 
 ## License
 

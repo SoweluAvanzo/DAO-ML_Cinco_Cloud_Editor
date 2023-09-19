@@ -6,12 +6,23 @@
 
 <h2>CINCO CLOUD - ARCHETYPE - CINCO AUTHENTICATOR</h2>
 
+## Contents
 
-</div>
+Theia extension providingg authentication between the Cinco editor and the Cinco Cloud web application.
 
-## Cinco Authenticator
+## Documentation
 
-Under construction
+Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
+
+## Related projects and Used Technologies
+
+[Theia][theia] - We are using Theia as a foundation for our editor.
+
+[Typescript][typescript] - Programming language.
+
+[//]: # "Source definitions"
+[theia]: https://github.com/eclipse-theia/theia "Theia"
+[typescript]: https://www.typescriptlang.org/ "Typescript"
 
 ## License
 
