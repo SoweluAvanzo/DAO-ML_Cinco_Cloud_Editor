@@ -93,7 +93,7 @@
         {
           "id": "11ef293f-bf5b-4ce6-a2a7-f011b626d425",
           "_attributes": {
-            "name": "cinco-logo-square.png"
+            "name": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png"
           },
           "type": "node:imagenode2",
           "_size": {
