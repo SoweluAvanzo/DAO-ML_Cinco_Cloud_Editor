@@ -141,7 +141,7 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
 
     vscode.commands.executeCommand( 'cinco.provide.glsp-server-args').then( result => {
         const serverArgs = result as ServerArgs;
-        const targetPath = path.join(serverArgs.rootFolder, serverArgs.languagePath, 'meta-specifciation.json');
+        const targetPath = path.join(serverArgs.rootFolder, serverArgs.languagePath, 'meta-specification.json');
         console.log('Integrating meta-specification to: '+ targetPath)
         fs.writeFileSync(targetPath, JSON.stringify(specification, null, 4));
         vscode.commands.executeCommand('cinco.meta-specification.reload')
