@@ -18,16 +18,13 @@ Indepth Documentation is under construction and will be found as part of our [we
 
 ## Used Technologies
 
-[Docker][docker] - Facilitating set up and development.
-
 [Angular/TS][angular] - Frontend language.
 
 [Java][java] - Backend language.
 
-[Quarkus][quarkus] - Backend framework
+[Quarkus][quarkus] - Backend framework.
 
 [//]: # "Source definitions"
-[docker]: https://www.docker.com/ "Docker"
 [angular]: https://angular.io/ "Angular"
 [java]: https://www.java.com/de/ "Java"
 [quarkus]: https://quarkus.io/ "Quarkus"

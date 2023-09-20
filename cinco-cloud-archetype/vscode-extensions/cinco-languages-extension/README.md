@@ -22,7 +22,7 @@ Indepth Documentation is under construction and will be found as part of our [we
 
 [Theia][theia] - We are using Theia as a foundation for our editor.
 
-[Langium][langium] - Framework for the Language Server Protocol.
+[Langium][langium] - Textual meta-languages are provided using Langium.
 
 [Typescript][typescript] - Programming language.
 

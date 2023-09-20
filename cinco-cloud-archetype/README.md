@@ -54,7 +54,9 @@ optional:
 
 [Language Server Protocol][lsp] - A protocol for IDE agnostic programming language development.
 
-[Langium][langium] - Framework for the Language Server Protocol.
+[Langium][langium] - Textual meta-languages are provided using Langium.
+
+[Sprotty][sprotty] - Used to visualize and edit graphical models.
 
 [//]: # "Source definitions"
 [theia]: https://github.com/eclipse-theia/theia "Theia"
@@ -62,6 +64,7 @@ optional:
 [glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
 [lsp]: https://microsoft.github.io/language-server-protocol/ "Language Server Protocol"
 [langium]: https://langium.org/ "Langium"
+[sprotty]: https://sprotty.org/ "Sprotty"
 
 ## License
 
