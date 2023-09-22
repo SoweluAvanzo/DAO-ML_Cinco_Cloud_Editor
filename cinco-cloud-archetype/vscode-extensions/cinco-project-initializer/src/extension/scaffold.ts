@@ -65,9 +65,9 @@ graphModel ${data.modelName}GraphModel {
 node SomeNode {
 	style labeledCircle("\${label}")
 	
-	incomingEdges (*)
-	outgoingEdges (*)
-	attr String as label
+	incomingEdges (Transition)
+	outgoingEdges (Transition)
+	attr string as label
 }	
 	
 edge Transition {
