@@ -44,7 +44,6 @@ export class ReconnectEdgeHandler implements OperationHandler {
         if (!edge) {
             throw new Error(`Invalid edge in source model: edge ID ${gEdge.id}`);
         }
-
         if (!gSource) {
             throw new Error(`Invalid source in graph model: source ID ${operation.sourceElementId}`);
         }
@@ -52,9 +51,19 @@ export class ReconnectEdgeHandler implements OperationHandler {
             throw new Error(`Invalid target in graph model: target ID ${operation.targetElementId}`);
         }
 
-        edge.sourceID = gSource.id;
-        edge.targetID = gTarget.id;
-        edge.routingPoints = [];
+        const source = index.findNode(gSource.id);
+        const target = index.findNode(gTarget.id);
+        if(
+            source && target &&
+            edge.canConnectToSource(source, _ => false) &&
+            edge.canConnectToTarget(target, _ => false)
+        ) {
+            edge.sourceID = gSource.id;
+            edge.targetID = gTarget.id;
+            edge.routingPoints = [];
+        } else {
+            throw new Error(`Could not change source and target of edge: ${edge.id}`);
+        }
     }
 }
 

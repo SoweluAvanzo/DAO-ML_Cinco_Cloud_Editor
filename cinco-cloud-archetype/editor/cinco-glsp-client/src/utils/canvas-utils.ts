@@ -23,6 +23,7 @@ import {
     isViewport,
     Point,
     SChildElement,
+    SEdge,
     SGraph,
     SModelElement,
     SModelRoot,
@@ -66,26 +67,10 @@ export function getHoveredContainer(
     // mouse is potencially ontop of a selectedElement and
     // hovers over potencial container
     else if (mouseTarget instanceof SNode) {
-        const children = Array.from(mouseTarget.root.index.all());
-        const potencialContainers: SParentElement[] = children
-            .filter(n => isContainer(n.type) && n instanceof SParentElement)
-            .filter(n => {
-                // all container that lie under the dragged element
-                if (n instanceof SNode && mouseTarget !== n) {
-                    const absoluteBounds = toAbsoluteBounds(n);
-                    const left = absoluteBounds.x;
-                    const right = absoluteBounds.x + absoluteBounds.width;
-                    const top = absoluteBounds.y;
-                    const bottom = absoluteBounds.y + absoluteBounds.height;
-                    return left <= mousePosition.x && mousePosition.x <= right && top <= mousePosition.y && mousePosition.y <= bottom;
-                }
-                return false;
-            })
-            // sprotty seems to draw all SModelElements in order.
-            // That means the last container should be the one the mouse hovers over
-            .reverse() as SParentElement[];
-        if (potencialContainers.length > 0) {
-            return potencialContainers[0];
+        const potencialTargets = getNodeAtPosition(mouseTarget.root, mousePosition, n => n !== mouseTarget)
+            .filter(n => isContainer(n.type) && n instanceof SParentElement) as SParentElement[];
+        if (potencialTargets.length > 0) {
+            return potencialTargets[0];
         }
     }
     if (mouseTarget.root instanceof SGraph || mouseTarget.root instanceof SModelRoot) {
@@ -93,6 +78,53 @@ export function getHoveredContainer(
         return mouseTarget.root;
     }
     throw Error('Type is out of scope');
+}
+
+export function getNodeBehindEdge(
+    mousePosition: Point,
+    mouseTarget: SModelElement
+): SModelElement {
+    if (mouseTarget instanceof SNode) {
+        // a selected node
+        return mouseTarget;
+    }
+    // mouse is potencially hovering ontop of a targeted node
+    else if (mouseTarget instanceof SEdge) {
+        const potencialTargets = getNodeAtPosition(mouseTarget.root, mousePosition);
+        if (potencialTargets.length > 0) {
+            return potencialTargets[0];
+        }
+    }
+    else if (!(mouseTarget instanceof SNode || mouseTarget instanceof SModelRoot) && mouseTarget instanceof SChildElement) {
+        // something else like a container
+        return getNodeBehindEdge(mousePosition, mouseTarget.parent);
+    }
+    // graphModel (there cannot be something behind a SGraph)
+    return mouseTarget;
+}
+
+export function getNodeAtPosition(root: SParentElement, position: Point, filter?: (n: SNode) => boolean): SModelElement[]  {
+    const children = Array.from(root.index.all());
+    const potencialTarget: SModelElement[] = children
+        .filter(n => {
+            // all container that lie under the dragged element
+            if (n instanceof SNode) {
+                if(filter !== undefined && !filter(n)) {
+                    return false;
+                }
+                const absoluteBounds = toAbsoluteBounds(n);
+                const left = absoluteBounds.x;
+                const right = absoluteBounds.x + absoluteBounds.width;
+                const top = absoluteBounds.y;
+                const bottom = absoluteBounds.y + absoluteBounds.height;
+                return left <= position.x && position.x <= right && top <= position.y && position.y <= bottom;
+            }
+            return false;
+        })
+        // sprotty seems to draw all SModelElements in order.
+        // That means the last container should be the one the mouse hovers over
+        .reverse() as SParentElement[];
+    return potencialTarget;
 }
 
 export function createFromToPosition(

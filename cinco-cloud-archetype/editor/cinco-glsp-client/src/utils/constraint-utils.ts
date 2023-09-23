@@ -15,21 +15,28 @@
  ********************************************************************************/
 
 import { Constraint, getSpecOf, isContainer, NodeType } from '@cinco-glsp/cinco-glsp-common';
-import { SChildElement, SGraph, SModelElement, SNode } from '@eclipse-glsp/client';
+import { SChildElement, SEdge, SGraph, SModelElement, SNode } from '@eclipse-glsp/client';
 
-export function canBeEdgeTarget(target: SNode, edgeType: string): boolean {
+export function canBeEdgeTarget(target: SNode, edgeType: string, filter?: (e: SEdge) => boolean): boolean {
     const spec = getSpecOf(target.type) as NodeType;
     if (spec.incomingEdges === undefined) {
         return false;
     }
     const constraints: Constraint[] = spec.incomingEdges;
+    if (constraints.length <= 0) {
+        // cannot contain elements, if no relating constraints are defined
+        return false;
+    }
     const incomingEdges = target.incomingEdges;
-    const elements = Array.from(incomingEdges ?? []);
+    let elements = Array.from(incomingEdges ?? []);
+    if(filter) {
+        elements = elements.filter(e => filter(e));
+    }
     return checkViolations(edgeType, elements, constraints).length <= 0;
 }
 
-export function canBeEdgeSource(target: SNode, edgeType: string): boolean {
-    const spec = getSpecOf(target.type) as NodeType;
+export function canBeEdgeSource(source: SNode, edgeType: string, filter?: (e: SEdge) => boolean): boolean {
+    const spec = getSpecOf(source.type) as NodeType;
     if (spec.outgoingEdges === undefined) {
         return false;
     }
@@ -38,12 +45,15 @@ export function canBeEdgeSource(target: SNode, edgeType: string): boolean {
         // cannot contain elements, if no relating constraints are defined
         return false;
     }
-    const outgoingEdges = target.outgoingEdges;
-    const elements = Array.from(outgoingEdges ?? []);
+    const outgoingEdges = source.outgoingEdges;
+    let elements = Array.from(outgoingEdges ?? []);
+    if(filter) {
+        elements = elements.filter(e => filter(e));
+    }
     return checkViolations(edgeType, elements, constraints).length <= 0;
 }
 
-export function canContain(container: SNode | SGraph, containmentType: string): boolean {
+export function canContain(container: SNode | SGraph, containmentType: string, filter?: (e: SChildElement) => boolean): boolean {
     const containerSpec = getSpecOf(container.type) as NodeType;
     if (!isContainer(container.type)) {
         return false;
@@ -53,7 +63,10 @@ export function canContain(container: SNode | SGraph, containmentType: string): 
         // cannot contain elements, if no relating constraints are defined
         return false;
     }
-    const elements = container.children.filter(e => e instanceof SNode);
+    let elements = container.children.filter(e => e instanceof SNode);
+    if(filter) {
+        elements = elements.filter(e => filter(e));
+    }
     return checkViolations(containmentType, elements, constraints).length <= 0;
 }
 
