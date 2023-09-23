@@ -2,9 +2,17 @@
 
 <div align="center">
     <img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="33%" alt="Cinco Cloud Logo" />
-    <div>Cinco Cloud is a development environment for graphical domain-specific modeling tools.</div>
     <hr />
+    <div id="badges" align="center">
+        ![collaboration](https://img.shields.io/badge/Collaboration-Welcome-green)
+        ![pipeline](https://gitlab.com/scce/cinco-cloud/badges/main/pipeline.svg)
+        ![coverage](https://gitlab.com/scce/cinco-cloud/badges/main/coverage.svg)
+        ![Bug](https://img.shields.io/badge/Submit-Bug-red?link=https%3A%2F%2Fgitlab.com%2Fscce%2Fcinco-cloud%2F-%2Fissues%2Fnew)
+    </div>
+    <div>Cinco Cloud is a development environment for domain-specific modeling tools.</div>
 </div>
+
+
 
 - [Website](#website)
 - [Releases](#releases)
@@ -20,8 +28,8 @@
 
 ## Website
 
-Visit the [Cinco Cloud website](https://scce.gitlab.io/cinco-cloud/) for in-depth information.
-And visit the [Cinco website](https://cinco.scce.info/) for a deeper look at what Cinco was made for.
+Visit the [Cinco Cloud Website](https://scce.gitlab.io/cinco-cloud/) for in-depth information.
+And visit the [Cinco Website](https://cinco.scce.info/) for a deeper look at what Cinco was made for.
 
 ## Releases
 
@@ -85,14 +93,20 @@ Detailed documentation is under construction and will be available as part of ou
 
 [Java][java] - Backend language.
 
+[Quarkus][quarkus] - Backend service.
+
+[Language Server Protocol][lsp] - A protocol for IDE agnostic programming language development.
+
 [//]: # "Source definitions"
 [theia]: https://github.com/eclipse-theia/theia "Theia"
 [glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
-[sprotty]: https://sprotty.org/ "Sprotty"
-[langium]: https://langium.org/ "Langium"
 [helm]: https://helm.sh/ "Helm"
 [angular]: https://angular.io/ "Angular"
 [java]: https://www.java.com/de/ "Java"
+[quarkus]: https://quarkus.io/ "Quarkus"
+[lsp]: https://microsoft.github.io/language-server-protocol/ "Language Server Protocol"
+[langium]: https://langium.org/ "Langium"
+[sprotty]: https://sprotty.org/ "Sprotty"
 
 ## License
 
