@@ -25,3 +25,4 @@ export const DIAGRAM_TYPE = 'cinco-diagram';
 export const DEVELOPMENT_MODE = false;
 export const META_DEV_MODE = 'META_DEV_MODE';
 export const DEFAULT_SERVER_PORT = 5007;
+export const DEFAULT_THEIA_PORT = 3000;

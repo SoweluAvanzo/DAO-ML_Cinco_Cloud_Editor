@@ -14,6 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { DEFAULT_THEIA_PORT } from '@cinco-glsp/cinco-glsp-common';
 import { CommandService } from '@theia/core';
 import URI from '@theia/core/lib/common/uri';
 import { inject, injectable, optional } from 'inversify';
@@ -97,15 +98,15 @@ export class WorkspaceFileService {
     }
 
     protected getRestUrl(options: { protocol?: string; location?: string; pathname?: string; path?: string }): URI {
-        let path = '';
+        let url_path = '';
         if (options.path) {
             if (options.path.startsWith('/')) {
-                path = options.path;
+                url_path = options.path;
             } else {
-                path = '/' + options.path;
+                url_path = '/' + options.path;
             }
         }
-        let pathname = '/';
+        let pathname = '';
         if (options.pathname) {
             if (options.pathname === '/') {
                 pathname = '';
@@ -115,6 +116,6 @@ export class WorkspaceFileService {
                 pathname = options.pathname;
             }
         }
-        return new URI(`${options.protocol ?? 'http'}://${options.location ?? 'localhost'}${pathname}${path}`);
+        return new URI(`${options.protocol ?? 'http'}://${options.location ?? 'localhost:' + DEFAULT_THEIA_PORT}${pathname}${url_path}`);
     }
 }
