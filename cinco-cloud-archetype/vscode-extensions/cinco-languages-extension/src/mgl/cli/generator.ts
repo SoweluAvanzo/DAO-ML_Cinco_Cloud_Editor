@@ -97,7 +97,7 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
             modelElementSpec.elementTypeId = 'node:' + modelElementSpec.elementTypeId;
 
             // TODO Check for disable annotation for these
-            modelElementSpec.deletable = modelElementSpec.reparentable = modelElementSpec.repositionable = modelElementSpec.resizeable = true;
+            modelElementSpec.deletable = modelElementSpec.reparentable = modelElementSpec.repositionable = modelElementSpec.resizable = true;
             
             // TODO Use style for these
             modelElementSpec.width = 100;

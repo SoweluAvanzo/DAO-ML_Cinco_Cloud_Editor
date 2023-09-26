@@ -79,6 +79,8 @@ export class ModelElement implements IdentifiableElement {
     protected _index?: GraphModelIndex;
     id: string = uuid.v4();
     type: string;
+    _position: Point;
+    _size?: Size;
     protected _attributes: Record<string, any> = {};
     protected _view?: View;
 
@@ -90,6 +92,28 @@ export class ModelElement implements IdentifiableElement {
     }
     set index(index: GraphModelIndex | undefined) {
         this._index = index;
+    }
+
+    get size(): Size {
+        if (this._size) {
+            return this._size;
+        }
+        return { width: 0, height: 0 };
+    }
+
+    set size(size: Size) {
+        this._size = size;
+    }
+
+    get position(): Point {
+        if (this._position) {
+            return this._position;
+        }
+        return { x: 0, y: 0 };
+    }
+
+    set position(pos: Point) {
+        this._position = pos;
     }
 
     getSpec(): ElementType {
@@ -346,8 +370,6 @@ export namespace ModelElement {
 }
 
 export class Node extends ModelElement {
-    _position: Point;
-    _size?: Size;
 
     get parent(): ModelElementContainer | undefined {
         return this.index!.findContainment(this);
@@ -423,7 +445,7 @@ export class Node extends ModelElement {
         return c.canContain(this.type);
     }
 
-    get size(): Size {
+    override get size(): Size {
         if (this._size) {
             return this._size;
         }
@@ -444,11 +466,11 @@ export class Node extends ModelElement {
         return { width: 10, height: 10 };
     }
 
-    set size(size: Size) {
+    override set size(size: Size) {
         this._size = size;
     }
 
-    get position(): Point {
+    override get position(): Point {
         if (this._position) {
             return this._position;
         }
@@ -456,7 +478,7 @@ export class Node extends ModelElement {
         return { x: pos.xPos, y: pos.yPos };
     }
 
-    set position(pos: Point) {
+    override set position(pos: Point) {
         this._position = pos;
     }
 
