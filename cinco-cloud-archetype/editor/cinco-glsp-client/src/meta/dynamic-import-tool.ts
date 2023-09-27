@@ -17,33 +17,25 @@ import {
     FileProviderRequest, FileProviderResponse, FileProviderResponseItem, META_LANGUAGES_FRONTEND_FOLDER
 } from '@cinco-glsp/cinco-glsp-common';
 import { Action, IActionDispatcher, IActionHandler, ICommand } from '@eclipse-glsp/client';
-import { CommandService } from '@theia/core';
 import { injectable } from 'inversify';
 
 @injectable()
 export class DynamicImportLoader implements IActionHandler {
+    static REQUESTED_IDs: string[] = [];
+
     handle(action: FileProviderResponse): ICommand | Action | void {
-        DynamicImportLoader.importResources(action.items);
+        if(DynamicImportLoader.REQUESTED_IDs.indexOf(action.requestId) >= 0) {
+            DynamicImportLoader.importResources(action.items);
+        }
     }
 
     static load(
         supportedDynamicImportFileTypes: string[],
-        commandService: CommandService,
         actionDispatcher: IActionDispatcher
     ): Promise<void> {
-        return new Promise<void>((resolve, _) => {
-            const request = FileProviderRequest.create([META_LANGUAGES_FRONTEND_FOLDER], false, supportedDynamicImportFileTypes);
-            if (commandService) {
-                // used for theia applications
-                (commandService.executeCommand('fileProviderHandler', request) as Promise<FileProviderResponse>).then(response => {
-                    this.importResources(response.items, supportedDynamicImportFileTypes);
-                    resolve();
-                });
-            } else {
-                // used for standalone applications
-                actionDispatcher.dispatch(request);
-            }
-        });
+        const request = FileProviderRequest.create([META_LANGUAGES_FRONTEND_FOLDER], false, supportedDynamicImportFileTypes);
+        this.REQUESTED_IDs.push(request.requestId);
+        return actionDispatcher.dispatch(request);
     }
 
     static importResources(resources: FileProviderResponseItem[], supportedFileTypes: string[] = []): void {

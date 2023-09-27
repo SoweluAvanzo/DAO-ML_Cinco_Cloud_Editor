@@ -54,7 +54,7 @@ export class MetaModelSideLoader {
             actionDispatcher: IActionDispatcher
         ): void => {
             // load frontend language-files
-            DynamicImportLoader.load(RESOURCE_TYPES, commandService, actionDispatcher);
+            DynamicImportLoader.load(RESOURCE_TYPES, actionDispatcher);
             // load meta-specification
             MetaSpecificationLoader.load(actionDispatcher).then(_ => {
                 // apply meta-specification

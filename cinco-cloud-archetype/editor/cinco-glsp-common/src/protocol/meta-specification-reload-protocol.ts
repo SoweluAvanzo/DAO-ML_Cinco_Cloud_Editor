@@ -16,19 +16,22 @@
 
 import { CompositionSpecification } from '../meta-specification';
 import { Action } from './shared-protocol';
+import * as uuid from 'uuid';
 
 export interface FileProviderResponse extends Action {
     kind: typeof FileProviderResponse.KIND;
     items: FileProviderResponseItem[];
+    requestId: string;
 }
 
 export namespace FileProviderResponse {
     export const KIND = 'fileprovider.response';
 
-    export function create(items: FileProviderResponseItem[]): FileProviderResponse {
+    export function create(items: FileProviderResponseItem[], requestId: string): FileProviderResponse {
         return {
             kind: KIND,
-            items
+            items,
+            requestId
         };
     }
 }
@@ -50,6 +53,7 @@ export namespace FileProviderResponseItem {
 export interface FileProviderRequest extends Action {
     kind: typeof FileProviderRequest.KIND;
     directories: string[];
+    requestId: string
     readFiles?: boolean;
     supportedTypes: string[];
 }
@@ -57,12 +61,17 @@ export interface FileProviderRequest extends Action {
 export namespace FileProviderRequest {
     export const KIND = 'fileprovider.request';
 
-    export function create(directories: string[], readFiles?: boolean, supportedTypes: string[] = []): FileProviderRequest {
+    export function create(
+        directories: string[],
+        readFiles?: boolean,
+        supportedTypes: string[] = []
+    ): FileProviderRequest {
         return {
             kind: KIND,
             directories,
             readFiles,
-            supportedTypes
+            supportedTypes,
+            requestId: uuid.v4()
         };
     }
 }
