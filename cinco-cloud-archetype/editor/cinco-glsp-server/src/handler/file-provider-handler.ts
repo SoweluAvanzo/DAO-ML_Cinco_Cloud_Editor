@@ -32,18 +32,17 @@ export class FileProviderHandler implements ActionHandler {
         const readFiles: boolean = action.readFiles ?? false;
 
         const dirs = directories.map(dir => `${getRootUri()}/${dir}`);
-        let response;
+        let items: FileProviderResponseItem[];
         if (readFiles) {
             const fileContents = readFilesFromDirectories(fs, dirs, action.supportedTypes);
-            const items: FileProviderResponseItem[] = Array.from(fileContents.entries()).map(entry =>
+            items = Array.from(fileContents.entries()).map(entry =>
                 FileProviderResponseItem.create(entry[0], entry[1])
             );
-            response = FileProviderResponse.create(items);
         } else {
             const files = getFilesFromDirectories(fs, dirs, action.supportedTypes);
-            const items: FileProviderResponseItem[] = files.map(entry => FileProviderResponseItem.create(entry, undefined));
-            response = FileProviderResponse.create(items);
+            items = files.map(entry => FileProviderResponseItem.create(entry, undefined));
         }
+        const response = FileProviderResponse.create(items, action.requestId);
         return [response];
     }
 }

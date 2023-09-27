@@ -15,9 +15,6 @@
  ********************************************************************************/
 
 import {
-    /*
-    CompositionSpecification,
-    FileProviderResponse,*/
     MetaSpecification,
     MetaSpecificationReloadAction,
     MetaSpecificationRequestAction

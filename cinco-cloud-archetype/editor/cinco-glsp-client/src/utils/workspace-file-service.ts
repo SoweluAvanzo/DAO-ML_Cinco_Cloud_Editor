@@ -20,6 +20,9 @@ import URI from '@theia/core/lib/common/uri';
 import { inject, injectable, optional } from 'inversify';
 import * as path from 'path';
 
+/**
+ * THEIA-related
+ */
 @injectable()
 export class WorkspaceFileService {
     @inject(CommandService) @optional() commandService: CommandService;
@@ -30,7 +33,7 @@ export class WorkspaceFileService {
             return undefined;
         }
         const relativePath = (relativeFolder ?? '') + filePath;
-        const roots: URI[] = (await this.commandService.executeCommand('rootProviderHandler')) ?? [];
+        const roots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
         for (const root of roots) {
             // eslint-disable-next-line no-async-promise-executor
             const result = await new Promise<{ response: Response; jsonResponse: any }>(async resolve => {

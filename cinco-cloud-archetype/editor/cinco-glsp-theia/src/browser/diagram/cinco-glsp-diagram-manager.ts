@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { META_FILE_TYPES, META_LANGUAGES_FOLDER } from '@cinco-glsp/cinco-glsp-common/lib/meta-resource';
+import { META_FILE_TYPES } from '@cinco-glsp/cinco-glsp-common/lib/meta-resource';
 import { CompositionSpecification, MetaSpecification } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
 import { GLSPDiagramManager } from '@eclipse-glsp/theia-integration';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
@@ -22,6 +22,8 @@ import { inject, injectable } from 'inversify';
 
 import { getDiagramConfiguration } from '../../common/cinco-language';
 import { FileProviderResponse } from '../theia-registration/file-provider';
+import { ARGS_PROVIDER_ID } from '@cinco-glsp/cinco-glsp-common';
+import * as path from 'path';
 
 @injectable()
 export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
@@ -47,23 +49,27 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
     }
 
     public loadUpdates(): void {
-        (
-            this.commandService.executeCommand('fileProviderHandler', {
-                directories: [`${META_LANGUAGES_FOLDER}`],
-                readFiles: true,
-                filter: META_FILE_TYPES // only read supported files
-            }) as Promise<FileProviderResponse>
-        ).then((response: FileProviderResponse) => {
-            // merge all meta-specification files
-            response.items.forEach(item => {
-                try {
-                    const metaSpecification = JSON.parse(item.content ?? '{}');
-                    if (CompositionSpecification.is(metaSpecification)) {
-                        MetaSpecification.merge(metaSpecification);
+        this.commandService.executeCommand(ARGS_PROVIDER_ID).then((server_args: any) => {
+            const rootFolder = path.resolve(server_args.rootFolder);
+            const languageFolder = path.join(rootFolder, server_args.languagePath);
+            (
+                this.commandService.executeCommand('fileProviderHandler', {
+                    directories: [`${languageFolder}`],
+                    readFiles: true,
+                    filter: META_FILE_TYPES // only read supported files
+                }) as Promise<FileProviderResponse>
+            ).then((response: FileProviderResponse) => {
+                // merge all meta-specification files
+                response.items.forEach(item => {
+                    try {
+                        const metaSpecification = JSON.parse(item.content ?? '{}');
+                        if (CompositionSpecification.is(metaSpecification)) {
+                            MetaSpecification.merge(metaSpecification);
+                        }
+                    } catch (err) {
+                        console.error(err);
                     }
-                } catch (err) {
-                    console.error(err);
-                }
+                });
             });
         });
     }
