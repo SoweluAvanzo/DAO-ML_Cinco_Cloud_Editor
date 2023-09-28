@@ -463,12 +463,11 @@ export function resolveText(e: CincoNode | CincoEdge, text: string, parameterCou
  * @param text the value of the text-shape.
  * @returns returns the resolved string
  */
-export function resolveTextIterative(e: CincoNode | CincoEdge, text: string): string {
+export function resolveTextIterative(node: CincoNode | CincoEdge, text: string): string {
     let result: string = text;
     const iterativePlaceholderPattern = /%s/g;
-    const styleParameters: string[] | undefined = e.view?.styleParameter;
+    const styleParameters: string[] | undefined = node.view?.styleParameter;
     if (styleParameters) {
-        const properties = e.properties;
         let currentFind;
         let currentIndex = 0;
         while ((currentFind = iterativePlaceholderPattern.exec(result))) {
@@ -476,8 +475,12 @@ export function resolveTextIterative(e: CincoNode | CincoEdge, text: string): st
             const endIndex = startIndex + currentFind.length + 1;
             const prefix = result.substring(0, startIndex);
             const postfix = result.substring(endIndex, result.length);
-            const parameterName = styleParameters[currentIndex];
-            const property = properties ? properties[parameterName] ?? '' : '';
+            const parameterText = styleParameters[currentIndex];
+            let property = '';
+            if (parameterText) {
+                // resolve parameter from attribute
+                property = resolveParameter(node, parameterText);
+            }
             result = prefix + property + postfix;
             currentIndex += 1;
         }
@@ -501,11 +504,10 @@ export function resolveTextIterative(e: CincoNode | CincoEdge, text: string): st
 export function resolveTextIndexed(node: CincoNode | CincoEdge, text: string, parameterCount: number): string {
     let result: string = text;
     const styleParameters: string[] | undefined = node.view?.styleParameter;
-    const properties = node.properties;
     for (let i = 0; i < parameterCount; i++) {
         let currentFind;
+        const indexedPlaceholderPattern = RegExp('(%(' + (i + 1) + ')(\\$s))', 'g');
         do {
-            const indexedPlaceholderPattern = RegExp('(%(' + (i + 1) + ')(\\$s))', 'g');
             currentFind = indexedPlaceholderPattern.exec(result);
             if (currentFind) {
                 const startIndex = currentFind.index;
@@ -513,14 +515,39 @@ export function resolveTextIndexed(node: CincoNode | CincoEdge, text: string, pa
                 const prefix = result.substring(0, startIndex);
                 const postfix = result.substring(endIndex, result.length);
                 const foundIndex = Number.parseInt(currentFind[2], 10) - 1;
-                const parameterName = styleParameters?.at(foundIndex);
-                if (parameterName) {
-                    const property = properties ? properties[parameterName] ?? '' : '';
-                    result = prefix + property + postfix;
+                const parameterText = styleParameters?.at(foundIndex);
+                let property = '';
+                if (parameterText) {
+                    // resolve parameter from attribute
+                    property = resolveParameter(node, parameterText);
                 }
+                result = prefix + property + postfix;
             }
         } while (currentFind);
     }
+    return result;
+}
+
+export function resolveParameter(node: CincoNode | CincoEdge, parameter: string): string {
+    const properties = node.properties;
+    const parameterPattern = RegExp('(\\$\\{(.*)\\})', 'g');
+    let result: string = parameter;
+    let currentFind;
+    do {
+        currentFind = parameterPattern.exec(result);
+        if (currentFind) {
+            const startIndex = currentFind.index;
+            const endIndex = startIndex + currentFind[0].length;
+            const prefix = result.substring(0, startIndex);
+            const postfix = result.substring(endIndex, result.length);
+            const attributeName = currentFind[2];
+            if (attributeName) {
+                // resolve parameter from attribute
+                const property = properties ? properties[attributeName] ?? '' : '';
+                result = prefix + property + postfix;
+            }
+        }
+    } while (currentFind);
     return result;
 }
 

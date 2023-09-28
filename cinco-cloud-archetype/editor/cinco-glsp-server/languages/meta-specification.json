@@ -49,7 +49,9 @@
             "node:polygon",
             "node:othercategorynode",
             "node:stylelessnode",
-            "node:cssnode"
+            "node:cssnode",
+            "node:consttext",
+            "node:injectedParameterText"
           ]
         }
       ],
@@ -170,7 +172,7 @@
       "palettes": ["Test"],
       "view": {
         "style": "guiSIB",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -207,7 +209,7 @@
       "palettes": ["Test"],
       "view": {
         "style": "embeddedStyle",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -500,7 +502,7 @@
       "palettes": ["Test"],
       "view": {
         "style": "imageTest2",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -588,7 +590,7 @@
       "icon": "icon_flowgraph_activity",
       "view": {
         "style": "multiTextTest",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -792,7 +794,7 @@
       "icon": "icon_flowgraph_activity",
       "view": {
         "style": "blueTextRectangle",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1048,7 +1050,7 @@
       "icon": "icon_flowgraph_swimlane",
       "view": {
         "style": "swimlane",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1139,7 +1141,7 @@
       "icon": "icon_flowgraph_activity",
       "view": {
         "style": "blueTextRectangle",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1189,6 +1191,66 @@
           "final": false
         }
       ]
+    },
+    {
+      "elementTypeId": "node:consttext",
+      "label": "ConstantText",
+      "deletable": true,
+      "reparentable": true,
+      "repositionable": true,
+      "resizable": true,
+      "outgoingEdges": [
+      ],
+      "incomingEdges": [
+      ],
+      "width": 92,
+      "height": 36,
+      "palettes": ["Test"],
+      "icon": "icon_flowgraph_activity",
+      "view": {
+        "style": "blueTextRectangle",
+        "styleParameter": ["constant text"]
+      },
+      "attributes": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "Newnode:activity",
+          "final": false
+        }
+      ],
+      "annotations": [
+      ]
+    },
+    {
+      "elementTypeId": "node:injectedParameterText",
+      "label": "InjectedTextParameter",
+      "deletable": true,
+      "reparentable": true,
+      "repositionable": true,
+      "resizable": true,
+      "outgoingEdges": [
+      ],
+      "incomingEdges": [
+      ],
+      "width": 92,
+      "height": 36,
+      "palettes": ["Test"],
+      "icon": "icon_flowgraph_activity",
+      "view": {
+        "style": "blueTextRectangle",
+        "styleParameter": ["inject name here ->${name}<-"]
+      },
+      "attributes": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "Newnode:activity",
+          "final": false
+        }
+      ],
+      "annotations": [
+      ]
     }
   ],
   "edgeTypes": [
@@ -1219,7 +1281,7 @@
       "routable": true,
       "view": {
         "style": "labeledArrow",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1391,7 +1453,7 @@
       "palettes": ["TestEdges"],
       "view": {
         "style": "simpleText",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1411,7 +1473,7 @@
       "palettes": ["TestEdges"],
       "view": {
         "style": "simpleMultiText",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1431,7 +1493,7 @@
       "palettes": ["TestEdges"],
       "view": {
         "style": "simpleContainer",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
