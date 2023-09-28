@@ -81,7 +81,7 @@ export class ModelElement implements IdentifiableElement {
     type: string;
     _position: Point;
     _size?: Size;
-    protected _attributes: Record<string, any> = {};
+    protected _attributes: Record<string, any>;
     protected _view?: View;
 
     get index(): GraphModelIndex {
@@ -278,11 +278,8 @@ export class ModelElement implements IdentifiableElement {
         }
     }
 
-    get propertyDefinitions(): Attribute[] {
-        return getAttributesOf(this.type);
-    }
-
-    get properties(): Record<string, any> {
+    initializeProperties(): void {
+        this._attributes = {};
         // fix all properties, that are not present
         const definitions = this.propertyDefinitions;
         for (const definition of definitions) {
@@ -294,6 +291,17 @@ export class ModelElement implements IdentifiableElement {
                 }
             }
         }
+    }
+
+    get propertyDefinitions(): Attribute[] {
+        return getAttributesOf(this.type);
+    }
+
+    get properties(): Record<string, any> {
+        if(this._attributes) {
+            return this._attributes;
+        }
+        this.initializeProperties();
         return this._attributes;
     }
 
@@ -307,18 +315,6 @@ export class ModelElement implements IdentifiableElement {
                     definition.name,
                     properties[definition.name] ?? definition.defaultValue ?? getFallbackDefaultValue(definition.type)
                 );
-            }
-        }
-    }
-
-    initializeProperties(): void {
-        const definitions = this.propertyDefinitions;
-        this._attributes = {};
-        for (const definition of definitions) {
-            if (!isList(definition)) {
-                this._attributes[definition.name] = getDefaultValue(this.type, definition.name);
-            } else {
-                this._attributes[definition.name] = [];
             }
         }
     }
