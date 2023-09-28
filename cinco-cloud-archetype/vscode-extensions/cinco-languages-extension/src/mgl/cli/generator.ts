@@ -167,7 +167,7 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{appearance
         appearanceConfiguration.name = appearance.name;
         appearanceConfiguration.parent = appearance.parent?.ref?.name;
         appearanceConfiguration.lineWidth = appearance.lineWidth;
-        appearanceConfiguration.lineStyle = appearance.lineStyle;
+        appearanceConfiguration.lineStyle = appearance.lineStyle?.lineType;
         appearanceConfiguration.filled = appearance.filled;
         appearanceConfiguration.font = appearance.font?.fontName;
         appearanceConfiguration.imagePath = appearance.imagePath;
