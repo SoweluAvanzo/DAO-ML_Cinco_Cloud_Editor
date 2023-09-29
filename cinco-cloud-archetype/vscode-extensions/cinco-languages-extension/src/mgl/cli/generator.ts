@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
-import { AbsolutePosition, AbstractPosition, AbstractShape, Alignment, Annotation, Color, ContainerShape, EdgeElementConnection, EdgeStyle, Font, GraphModel, Image, InlineAppearance, MglModel, MultiText, Node, NodeContainer, NodeStyle, Point, Polygon, Polyline, RoundedRectangle, Shape, Size, Text, isAbsolutePosition, isAlignment, isComplexAttribute, isContainerShape, isCustomDataType, isEdge, isEdgeStyle, isEllipse, isGraphModel, isImage, isMultiText, isNode, isNodeContainer, isNodeStyle, isPolygon, isPolyline, isPrimitiveAttribute, isRectangle, isRoundedRectangle, isShape, isText } from '../../generated/ast';
+import { AbsolutePosition, AbstractPosition, AbstractShape, Alignment, Annotation, Color, ContainerShape, Edge, EdgeElementConnection, EdgeStyle, Font, GraphModel, Image, InlineAppearance, MglModel, MultiText, Node, NodeContainer, NodeStyle, Point, Polygon, Polyline, RoundedRectangle, Shape, Size, Text, isAbsolutePosition, isAlignment, isComplexAttribute, isContainerShape, isCustomDataType, isEdge, isEdgeStyle, isEllipse, isGraphModel, isImage, isMultiText, isNode, isNodeContainer, isNodeStyle, isPolygon, isPolyline, isPrimitiveAttribute, isRectangle, isRoundedRectangle, isShape, isText } from '../../generated/ast';
 import { extractDestinationAndName } from './cli-util';
 import { createMslServices } from '../../msl/language-server/msl-module';
 import { extractAstNode } from '../../msl/cli/cli-util';
@@ -80,6 +80,17 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
             });
         }
 
+        if (isNode(modelElement) || isEdge(modelElement) || isNodeContainer(modelElement)) {
+            const graphicalElement : Node | Edge | NodeContainer = modelElement;
+
+            modelElementSpec.view = {
+                "style": graphicalElement.usedStyle
+            };
+            if (graphicalElement.styleParameters) {
+                modelElementSpec.view.styleParameter = graphicalElement.styleParameters;
+            }
+        }
+
         if (isGraphModel(modelElement)) {
             const graphModel : GraphModel = modelElement;
 
@@ -90,8 +101,8 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
             specification.graphTypes.push(modelElementSpec);
         }
 
-        if (isNode(modelElement)) {
-            const node = modelElement as Node;
+        if (isNode(modelElement) || isNodeContainer(modelElement)) {
+            const node = modelElement as Node | NodeContainer;
 
             // Prepend modelElement type to complete elementTypeId
             modelElementSpec.elementTypeId = 'node:' + modelElementSpec.elementTypeId;
@@ -102,9 +113,6 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
             // TODO Use style for these
             modelElementSpec.width = 100;
             modelElementSpec.height = 100;
-            modelElementSpec.view = {
-                "style": node.usedStyle
-            };
 
             // TODO check annotations for this
             modelElementSpec.palettes = [];
