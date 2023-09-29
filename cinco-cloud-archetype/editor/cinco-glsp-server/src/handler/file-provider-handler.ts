@@ -16,7 +16,6 @@
 import { Action, ActionHandler, Logger, MaybePromise } from '@eclipse-glsp/server-node';
 
 import { FileProviderRequest, FileProviderResponse, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
-import * as fs from 'fs';
 import { inject, injectable } from 'inversify';
 import { getFilesFromDirectories, getRootUri, readFilesFromDirectories } from '@cinco-glsp/cinco-glsp-api';
 
@@ -34,12 +33,12 @@ export class FileProviderHandler implements ActionHandler {
         const dirs = directories.map(dir => `${getRootUri()}/${dir}`);
         let items: FileProviderResponseItem[];
         if (readFiles) {
-            const fileContents = readFilesFromDirectories(fs, dirs, action.supportedTypes);
+            const fileContents = readFilesFromDirectories(dirs, action.supportedTypes);
             items = Array.from(fileContents.entries()).map(entry =>
                 FileProviderResponseItem.create(entry[0], entry[1])
             );
         } else {
-            const files = getFilesFromDirectories(fs, dirs, action.supportedTypes);
+            const files = getFilesFromDirectories(dirs, action.supportedTypes);
             items = files.map(entry => FileProviderResponseItem.create(entry, undefined));
         }
         const response = FileProviderResponse.create(items, action.requestId);

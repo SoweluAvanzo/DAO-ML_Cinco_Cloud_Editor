@@ -14,7 +14,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { CompositionSpecification, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
-import * as fs from 'fs';
 import {
     getFilesFromFolder, getLanguageFolder, getLibLanguageFolder, isBundle, readJson
 } from '@cinco-glsp/cinco-glsp-api';
@@ -27,7 +26,7 @@ export class MetaSpecificationLoader {
     ): void {
         const metaLanguagesPath = metaLanguagesFolder ?? `${getLanguageFolder()}`;
         console.log(`loading files from:  ${metaLanguagesPath}`);
-        const foundFiles2 = getFilesFromFolder(fs, metaLanguagesPath, './');
+        const foundFiles2 = getFilesFromFolder(metaLanguagesPath, './');
         foundFiles2
             .filter((file: string) => {
                 const fileExtension = file.slice(file.indexOf('.'));
@@ -36,7 +35,7 @@ export class MetaSpecificationLoader {
             })
             .forEach((file: string) => {
                 console.log(`loading meta-specification:  ${file}`);
-                const metaSpec = readJson(fs, `${metaLanguagesPath}/${file}`);
+                const metaSpec = readJson(`${metaLanguagesPath}/${file}`);
                 if (CompositionSpecification.is(metaSpec)) {
                     MetaSpecification.merge(metaSpec);
                 }
@@ -51,7 +50,7 @@ export class MetaSpecificationLoader {
         // Import all injected language-files under './languages/*.ts'
         const languagesPath = `${getLibLanguageFolder()}`;
         console.log(`loading files from:  ${languagesPath}`);
-        const foundFiles = getFilesFromFolder(fs, languagesPath, './');
+        const foundFiles = getFilesFromFolder(languagesPath, './');
         foundFiles
             .filter((file: string) => {
                 const fileExtension = file.slice(file.indexOf('.'));
