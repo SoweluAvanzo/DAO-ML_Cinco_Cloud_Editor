@@ -14,8 +14,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Args, PaletteItem } from '@eclipse-glsp/protocol';
-import * as fs from 'fs';
-// eslint-disable-next-line max-len
 import { GraphModelState, getFilesFromFolder, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
 import {
     ElementType,
@@ -89,7 +87,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         // add prime node label into palettes
         const workspacePath = getWorkspaceRootUri();
         const modelFileExtensions = getGraphTypes().map(gT => '.' + gT.diagramExtension);
-        const modelFiles = getFilesFromFolder(fs, workspacePath, './', modelFileExtensions);
+        const modelFiles = getFilesFromFolder(workspacePath, './', modelFileExtensions);
         const primeNodePaletteItems = getPrimeNodePalettes();
         primeNodePaletteItems
             .filter((e: string) => e !== 'Edges' && e !== 'Nodes')

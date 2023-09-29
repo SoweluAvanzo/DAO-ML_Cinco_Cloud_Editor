@@ -69,9 +69,24 @@
         "commands": [
             {
                 "command": "cincoCloud.generateCincoProduct",
-                "title": "Generate Meta-Specification"
+                "title": "Generate Meta-Specification",
+                "category": "CINCO",
+                "icon": {
+                    "light": "./resources/generate_light.svg",
+                    "dark": "./resources/generate_dark.svg"
+                }
             }
-        ]
+        ],
+        "menus": {
+            "editor/title": [
+                {
+                    "when": "resourceLangId == mgl",
+                    "command": "cincoCloud.generateCincoProduct",
+                    "group": "navigation"
+                }
+            ]
+        }
+
     },
     "activationEvents": [
         "onLanguage:mgl",

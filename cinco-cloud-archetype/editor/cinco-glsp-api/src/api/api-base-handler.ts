@@ -19,6 +19,9 @@ import { ActionDispatcher, Logger, LogLevel, ServerMessageAction, ServerSeverity
 import { ModelElement } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
+import { getWorkspaceRootUri } from '../utils/file-helper';
+import * as path from 'path';
+import * as fileHelper from '../utils/file-helper';
 
 export abstract class APIBaseHandler {
     protected readonly logger: Logger;
@@ -97,5 +100,15 @@ export abstract class APIBaseHandler {
             const serverDialog = ServerDialogAction.create(messageId, title, message);
             this.actionDispatcher.dispatch(serverDialog);
         });
+    }
+
+    readFile(relativePath: string, encoding?: string): string | undefined {
+        const targetPath = path.join(getWorkspaceRootUri(), relativePath);
+        return fileHelper.readFile(targetPath, encoding);
+    }
+
+    createFile(relativePath: string, content: string, encoding?: string): void {
+        const targetPath = path.join(getWorkspaceRootUri(), relativePath);
+        fileHelper.writeFile(targetPath, content, encoding);
     }
 }

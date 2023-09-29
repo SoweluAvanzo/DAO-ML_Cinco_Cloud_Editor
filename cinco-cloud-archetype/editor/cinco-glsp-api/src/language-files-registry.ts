@@ -15,7 +15,6 @@
  ********************************************************************************/
 
 import { DEVELOPMENT_MODE, META_DEV_MODE, META_LANGUAGES_FOLDER, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
-import * as fs from 'fs';
 import { isDevModeArg, readFilesFromDirectories } from './utils/file-helper';
 
 export abstract class LanguageFilesRegistry {
@@ -69,7 +68,7 @@ export abstract class LanguageFilesRegistry {
         }
         console.log('*************** META_DEV_MODE - active ***********');
         const handlerNames = getAllHandlerNames();
-        const fileMap = readFilesFromDirectories(fs, [META_LANGUAGES_FOLDER], ['.js']);
+        const fileMap = readFilesFromDirectories([META_LANGUAGES_FOLDER], ['.js']);
         const files = Array.from(fileMap.entries());
         const handlerToImport: { name: string; path: string; content: string }[] = [];
         if(files.length <= 0) {

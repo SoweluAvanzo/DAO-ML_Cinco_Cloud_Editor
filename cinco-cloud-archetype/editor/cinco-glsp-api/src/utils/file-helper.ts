@@ -16,33 +16,47 @@
 // TODO: duplicate in api
 import { META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, getFileExtension } from '@cinco-glsp/cinco-glsp-common';
 import * as path from 'path';
+import * as fs from 'fs';
+
+/**
+ *
+ * @param fs
+ * @param targetPath
+ * @param content
+ * @param encoding | 'ascii', 'utf8', 'utf-8', 'utf16le', 'ucs2', 'ucs-2', 'base64', 'base64url', 'latin1', 'binary', 'hex'
+ */
+export function writeFile(
+    targetPath: string,
+    content: string,
+    encoding = 'utf-8'
+): void {
+    fs.writeFileSync(targetPath, content, { encoding: encoding as BufferEncoding });
+}
 
 export function getFilesFromDirectories(
-    fs: typeof import('fs'),
     directories: string[],
-    filterTypes: string[],
-    encoding?: string
+    filterTypes: string[]
 ): string[] {
     let result: string[] = [];
     for (const dir of directories) {
-        const fileUris = getFiles(fs, dir, filterTypes);
+        const fileUris = getFiles(dir, filterTypes);
         result = result.concat(fileUris);
     }
     return result;
 }
 
-export function getFiles(fs: typeof import('fs'), absFolderPath: string, filterTypes: string[]): string[] {
+export function getFiles(absFolderPath: string, filterTypes: string[]): string[] {
     try {
         console.log(`loading files from:  ${absFolderPath}`);
         // TODO: resolve files inside folders
-        return getFilesFromFolder(fs, absFolderPath, './', filterTypes);
+        return getFilesFromFolder(absFolderPath, './', filterTypes);
     } catch (e) {
         console.log('failed to access filesystem.');
     }
     return [];
 }
 
-export function getFilesFromFolder(fs: typeof import('fs'), absRoot: string, folderPath: string, filterTypes?: string[]): string[] {
+export function getFilesFromFolder(absRoot: string, folderPath: string, filterTypes?: string[]): string[] {
     const absoluteFolderPath = path.join(absRoot, folderPath);
     if (!fs.existsSync(absoluteFolderPath)) {
         return [];
@@ -68,7 +82,7 @@ export function getFilesFromFolder(fs: typeof import('fs'), absRoot: string, fol
     const containedFiles: string[] = [];
     foundFolders.forEach((folder: string) => {
         const relativeFolderPath = path.join(folderPath, folder);
-        const filesFromFolder = getFilesFromFolder(fs, absRoot, relativeFolderPath, filterTypes);
+        const filesFromFolder = getFilesFromFolder(absRoot, relativeFolderPath, filterTypes);
         filesFromFolder.forEach(file => {
             const relativeFilePath = path.join(folder, file);
             containedFiles.push(relativeFilePath);
@@ -83,9 +97,8 @@ export function getFilesFromFolder(fs: typeof import('fs'), absRoot: string, fol
     return foundFiles;
 }
 
-export function readFile(fs: typeof import('fs'), filePath: string, encoding?: string): string | undefined {
+export function readFile(filePath: string, encoding = 'utf-8'): string | undefined {
     let result: string | undefined;
-    encoding = encoding ?? 'utf-8';
     try {
         const buffer = fs.readFileSync(filePath);
         const content = buffer.toString();
@@ -96,7 +109,7 @@ export function readFile(fs: typeof import('fs'), filePath: string, encoding?: s
     return result;
 }
 
-export function readFiles(fs: typeof import('fs'), filePaths: string[], encoding?: string): string[] {
+export function readFiles(filePaths: string[], encoding?: string): string[] {
     const contents: string[] = [];
     for (const filePath of filePaths) {
         try {
@@ -113,7 +126,6 @@ export function readFiles(fs: typeof import('fs'), filePaths: string[], encoding
 }
 
 export function readFilesFromDirectories(
-    fs: typeof import('fs'),
     directories: string[],
     filterTypes: string[] = [],
     encoding?: string
@@ -121,8 +133,8 @@ export function readFilesFromDirectories(
     const result = new Map<string, string>();
     for (const dir of directories) {
         const absDir = `${getRootUri()}/${dir}`;
-        const fileUris = getFiles(fs, absDir, filterTypes).map(f => `${absDir}/${f}`);
-        const contents = readFiles(fs, fileUris);
+        const fileUris = getFiles(absDir, filterTypes).map(f => `${absDir}/${f}`);
+        const contents = readFiles(fileUris);
         for (let i = 0; i < fileUris.length && contents.length; i++) {
             if (fileUris[i] && contents[i]) {
                 result.set(fileUris[i], contents[i]);
@@ -132,8 +144,8 @@ export function readFilesFromDirectories(
     return result;
 }
 
-export function readJson(fs: typeof import('fs'), filePath: string, encoding?: string): object | undefined {
-    const content = readFile(fs, filePath);
+export function readJson(filePath: string, encoding?: string): object | undefined {
+    const content = readFile(filePath);
     if (content) {
         try {
             return JSON.parse(content);

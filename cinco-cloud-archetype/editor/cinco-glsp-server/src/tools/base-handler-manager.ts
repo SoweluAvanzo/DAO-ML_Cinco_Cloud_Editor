@@ -170,7 +170,6 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     static getHandlerClasses(name: string, filter?: (arg0: string) => boolean): any[] {
         const result: any[] = [];
         for (const clss of LanguageFilesRegistry.getRegistered()) {
-            console.log(clss.__proto__.name);
             if (clss.__proto__.name === name && (filter === undefined || filter(clss.name))) {
                 result.push(clss);
             }
