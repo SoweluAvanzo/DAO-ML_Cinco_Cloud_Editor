@@ -14,8 +14,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { DEVELOPMENT_MODE, META_DEV_MODE, META_LANGUAGES_FOLDER, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
-import { isDevModeArg, readFilesFromDirectories } from './utils/file-helper';
+import { DEVELOPMENT_MODE, META_DEV_MODE, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
+import { getLanguageFolder, isDevModeArg, readFilesFromDirectories } from './utils/file-helper';
 
 export abstract class LanguageFilesRegistry {
     protected static _overwrite = true;
@@ -68,11 +68,11 @@ export abstract class LanguageFilesRegistry {
         }
         console.log('*************** META_DEV_MODE - active ***********');
         const handlerNames = getAllHandlerNames();
-        const fileMap = readFilesFromDirectories([META_LANGUAGES_FOLDER], ['.js']);
+        const fileMap = readFilesFromDirectories([getLanguageFolder()], ['.js']);
         const files = Array.from(fileMap.entries());
         const handlerToImport: { name: string; path: string; content: string }[] = [];
         if(files.length <= 0) {
-            console.log(`no files found in: ${META_LANGUAGES_FOLDER}`);
+            console.log(`no files found in: ${getLanguageFolder()}`);
         } else {
             console.log(`${files.length} file(s) will be prepared for evaluation.`);
         }
@@ -85,11 +85,13 @@ export abstract class LanguageFilesRegistry {
                  * In this case that file will still be evaluated, i.e. executed.
                  */
                 const classDeclaration = `class(\\s)+(${handlerName})(\\s)+extends(\\s)`;
+                const classDeclarationTranspiled = `var ${handlerName} = \\/\\*\\* @class \\*\\/`;
                 const classRegistration = `(LanguageFilesRegistry\\.register\\()\\s*(${handlerName})(\\s)*(\\))`;
                 const containsHandlerName = new RegExp(classDeclaration, 'g').test(fileContent);
+                const containsHandlerNameTranspiled = new RegExp(classDeclarationTranspiled, 'g').test(fileContent);
                 const containsRegistration = new RegExp(classRegistration, 'g').test(fileContent);
 
-                if (containsHandlerName && containsRegistration) {
+                if ((containsHandlerName || containsHandlerNameTranspiled) && containsRegistration) {
                     handlerToImport.push({ name: handlerName, path: file[0], content: fileContent });
                     break;
                 }

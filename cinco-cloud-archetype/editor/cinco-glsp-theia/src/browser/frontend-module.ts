@@ -61,7 +61,7 @@ import {
 } from './validation-widget/validation-widget-contribution';
 import { ValidationModelWrapperCommandContribution } from './validation-widget/validation-wrapper-commands';
 import { CincoGLSPClientContribution } from './cinco-glsp-client-contribution';
-import { GLSPServerArgsProvider } from './glsp-server-args-provider';
+import { GLSPServerUtilsProvider } from './glsp-server-utils-provider';
 import { GLSP_SERVER_UTIL_ENDPOINT, GLSPServerUtilClient, GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 
 export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
@@ -136,8 +136,8 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         context.bind(CommandContribution).to(LanguageUpdateCommand);
 
         // server args from backend to frontend
-        context.bind(GLSPServerArgsProvider).to(GLSPServerArgsProvider);
-        context.bind(CommandContribution).to(GLSPServerArgsProvider);
+        context.bind(GLSPServerUtilsProvider).to(GLSPServerUtilsProvider);
+        context.bind(CommandContribution).to(GLSPServerUtilsProvider);
         context
             .bind(GLSPServerUtilServer)
             .toDynamicValue(ctx => {
@@ -146,10 +146,10 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
                 return connection.createProxy<GLSPServerUtilServer>(GLSP_SERVER_UTIL_ENDPOINT, client);
             })
             .inSingletonScope();
-        context.bind(FrontendApplicationContribution).to(FileSystemUtilService);
+        context.bind(FrontendApplicationContribution).to(GLSPServerUtilsProvider);
 
         // bind git configuration
-        context.bind(FrontendApplicationContribution).to(GitConfigurationContribution);
+context.bind(FrontendApplicationContribution).to(GitConfigurationContribution);
     }
 
     override configureDiagramManager(context: ContainerContext): void {

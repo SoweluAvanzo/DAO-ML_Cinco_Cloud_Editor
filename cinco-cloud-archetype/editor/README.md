@@ -74,6 +74,46 @@ Please check the installation description [here](https://github.com/nodejs/node-
 
 **NOTE**: The browser does not reload automatically whenever you changed something, you need to reload yourself currently.
 
+## Flags for Backend
+
+There are several flags that can be used on the execution of the backend:
+
+- `--ROOT_FOLDER <absolutePath>`: Sets the root folder to the given `absolutePath`.
+
+- `--WORKSPACE_FOLDER <relativePath to root>`: Sets the workspace folder to the given `relativePath`. The workspace folder is the folder the user of the graphical languages uses and is presented in the theia editor.
+
+- `--META_LANGUAGES_FOLDER <relativePath to root>`: Sets the languages folder to the given `relativePath`. The languages folder is per default `cinco-glsp-server/languages` and contains the `meta-specification` of the graphical language, as well as it's hooks and actions.
+
+- `--META_DEV_MODE`: Executes the `GLSP Server` in `MetaDevMode`. This means, that `*.js`-files inside the `languages`-folder (default: `cinco-glsp-server/languages`) can be modified, while using. Default is `false`.
+
+## Run Configurations
+
+There are several launch configurations in this project. A running instance is always a combination of a `Cinco Theia Backend`, `Cinco GLSP Server` and a `Frontend`. The first two can be executed in multiple optional ways.
+
+The Frontend can be executed with the following:
+
+1. `Launch Theia Frontend`: This configuration launches a browser showing the frontend with the `workspace` folder opened.
+
+The Backend can be executed by the following:
+
+1. `Launch Cinco Theia Backend (Embedded GLSP Server)`: This configuration executes the Theia Backend. This way the Theia frontend can be accessed on `127.0.0.1:3000`. It also starts a `GLSP Server` in the background. This way, the `Launch Cinco GLSP Server` configurations are not needed, and also not possible to execute. This configuration is a production case. Don't use it if you want to debug the `GLSP Server`.
+
+2. `Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode)`: This configuration does the save as `Launch Cinco Theia Backend (Embedded GLSP Server)`. Additionally it executes the `GLSP Server` in `MetaDevMode`. This means, that `*.js`-files inside the `languages`-folder (default: `cinco-glsp-server/languages`) can be modified, while using.
+
+3. `Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode in Workspace)`: `Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode)`. Additionally, the `languages`-folder is set to `workspace/languages`. This way, a developer, who designs a language, can develop hooks and actions directly inside the theia-editor for the graphical language while using the language, on the fly.
+
+4. `Launch Cinco Theia Backend (External GLSP Server)`: This configuration executes the Theia Backend. This way the Theia frontend can be accessed on `127.0.0.1:3000`. Also it does not execute a `GLSP Server` in the background like `Launch Cinco Theia Backend (Embedded GLSP Server)` does. You need to launch it using `Launch Cinco GLSP Server` or one of the alternatives.
+
+5. `Launch Cinco Theia Backend (External GLSP Server in Workspace)`: This does the same as `Launch Cinco Theia Backend (External GLSP Server)`. Additionally, the `languages`-folder is set to `workspace/languages`. This way, a developer, who designs a language, can develop hooks and actions directly inside the theia-editor for the graphical language while using the language, on the fly.
+
+The Server can be executed with the following:
+
+1. `Launch Cinco GLSP Server`: This launches a `GLSP Server`. Launch this if you use `Launch Cinco Theia Backend (External GLSP Server)` or an equivalent run configuration. Use this if you want to debug the `GLSP Server`.
+
+2. `Launch Cinco GLSP Server in MetaDevMode`: This does the same as `Launch Cinco GLSP Server`. Additionally it executes the `GLSP Server` in `MetaDevMode`. This means, that `*.js`-files inside the `languages`-folder (default: `cinco-glsp-server/languages`) can be modified, while using.
+
+3. `Launch Cinco GLSP Server in MetaDevMode in Workspace`: This does the same as `Launch Cinco GLSP Server in MetaDevMode`. Additionally, the `languages`-folder is set to `workspace/languages`. This way, a developer, who designs a language, can develop hooks and actions directly inside the theia-editor for the graphical language while using the language, on the fly.
+
 ## Related projects and Used Technologies
 
 [Theia][theia] - We are using Theia as a foundation for our editor.

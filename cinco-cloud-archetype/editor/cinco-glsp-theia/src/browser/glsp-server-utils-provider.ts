@@ -20,7 +20,7 @@ import { injectable, inject } from 'inversify';
 import { GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 
 @injectable()
-export class GLSPServerArgsProvider implements CommandContribution {
+export class GLSPServerUtilsProvider implements CommandContribution {
     @inject(GLSPServerUtilServer) glspServerUtilServer: GLSPServerUtilServer;
 
     registerCommands(commands: CommandRegistry): void {
@@ -32,6 +32,31 @@ export class GLSPServerArgsProvider implements CommandContribution {
                 commands.registerCommand({ id: ARGS_PROVIDER_ID }, {
                     execute: () => this.glspServerUtilServer.getArgs()
                 });
+                commands.registerCommand(
+                    { id: 'cinco-cloud.glsp.transpile', label: 'transpile languages-folder in workspace', category: 'Cinco Cloud' },
+                    {
+                        execute: () => {
+                            console.log('triggered transpilation on languages-folder in workspace...');
+                            return this.glspServerUtilServer.transpileLanguagesFolder();
+                        },
+                        isVisible: () => true,
+                        isEnabled: () => true
+                    }
+                );
+                commands.registerCommand(
+                    {
+                        id: 'cinco-cloud.glsp.transpile-watch',
+                        label: 'transpile languages-folder in workspace in watchmode',
+                        category: 'Cinco Cloud' },
+                    {
+                        execute: () => {
+                            console.log('triggered transpilation in watchmode on languages-folder in workspace...');
+                            return this.glspServerUtilServer.transpileWatchLanguagesFolder();
+                        },
+                        isVisible: () => true,
+                        isEnabled: () => true
+                    }
+                );
                 /*
                  * Use command like this (result: ServerArgs):
                  *
@@ -44,6 +69,6 @@ export class GLSPServerArgsProvider implements CommandContribution {
                  * });
                  */
             })
-            .catch(error => console.log('*** Failed to start file system utils: "' + error + '" ***'));
+            .catch(error => console.log('*** Failed to start server utils: "' + error + '" ***'));
     }
 }
