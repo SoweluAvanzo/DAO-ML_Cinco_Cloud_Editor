@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
-import { AbsolutePosition, AbstractPosition, AbstractShape, Alignment, Annotation, Color, ContainerShape, Edge, EdgeElementConnection, EdgeStyle, Font, GraphModel, Image, InlineAppearance, MglModel, MultiText, Node, NodeContainer, NodeStyle, Point, Polygon, Polyline, RoundedRectangle, Shape, Size, Text, isAbsolutePosition, isAlignment, isComplexAttribute, isContainerShape, isCustomDataType, isEdge, isEdgeStyle, isEllipse, isGraphModel, isImage, isMultiText, isNode, isNodeContainer, isNodeStyle, isPolygon, isPolyline, isPrimitiveAttribute, isRectangle, isRoundedRectangle, isShape, isText } from '../../generated/ast';
-import { extractDestinationAndName } from './cli-util';
+import { AbsolutePosition, AbstractPosition, AbstractShape, Alignment, Annotation, Color, ContainerShape, Edge, EdgeElementConnection, EdgeStyle, Font, GraphModel, Image, InlineAppearance, MglModel, ModelElement, MultiText, Node, NodeContainer, NodeStyle, Point, Polygon, Polyline, RoundedRectangle, Shape, Size, Text, isAbsolutePosition, isAlignment, isComplexAttribute, isContainerShape, isCustomDataType, isEdge, isEdgeStyle, isEllipse, isEnum, isGraphModel, isImage, isMultiText, isNode, isNodeContainer, isNodeStyle, isPolygon, isPolyline, isPrimitiveAttribute, isRectangle, isRoundedRectangle, isShape, isText } from '../../generated/ast';
+import { extractDestinationAndName, mergeArrays, replaceInMapValues, replaceKeyInMap, topologicalSortWithDescendants } from './cli-util';
 import { createMslServices } from '../../msl/language-server/msl-module';
 import { extractAstNode } from '../../msl/cli/cli-util';
 import { Styles } from '../../generated/ast';
@@ -16,11 +16,8 @@ interface ServerArgs {
     port: number;
 }
 
-export async function generateMetaSpecification(model: MglModel, filePath: string, destination: string | undefined): Promise<string> {
-    const data = extractDestinationAndName(filePath, destination);
-    const generatedFilePath = path.join(data.destination, 'meta-specification.json');
-
-    const specification: Specification = {
+export class MGLGenerator {
+    specification: Specification = {
         graphTypes: [],
         nodeTypes: [],
         edgeTypes: [],
@@ -28,47 +25,134 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
         styles: []
     };
 
-    for (const modelElement of model.modelElements) {
-        const modelElementSpec : any = {};
-        
+    abstractModelElements: Specification = {
+        graphTypes: [],
+        nodeTypes: [],
+        edgeTypes: [],
+        appearances: [],
+        styles: []
+    };
+
+    async generateMetaSpecification(model: MglModel, filePath: string, destination: string | undefined): Promise<string> {
+        const data = extractDestinationAndName(filePath, destination);
+        const generatedFilePath = path.join(data.destination, 'meta-specification.json');
+    
+        const { sortedModelElements, descendantsMap } = topologicalSortWithDescendants(model.modelElements);
+        const abstractElementTypeIds = [];
+    
+        // Handle all model elements; abstract definitions are handled separately
+        for (const modelElement of sortedModelElements) {
+            let elementTypeId = '';
+            if (!isEnum(modelElement) && modelElement.isAbstract) {
+                elementTypeId = this.handleModelElement(modelElement, this.abstractModelElements);
+                abstractElementTypeIds.push(elementTypeId);
+            } else {
+                elementTypeId = this.handleModelElement(modelElement, this.specification);
+            }
+
+            // Replace in descendants map to 
+            replaceKeyInMap(descendantsMap, modelElement.name, elementTypeId);
+            replaceInMapValues(descendantsMap, modelElement.name, elementTypeId);
+        }
+
+        this.introduceInheritanceToConstraints(descendantsMap, abstractElementTypeIds);
+    
+        // Trim path to MGL to retrieve the project path
+        const pathToProject = filePath.substring(0, filePath.lastIndexOf('/') + 1);
+        const appearancesAndStyles = await inferAppearancesAndStyles(pathToProject + model.stylePath);
+        this.specification.appearances = appearancesAndStyles.appearances;
+        this.specification.styles = appearancesAndStyles.styles;
+    
+        if (!fs.existsSync(data.destination)) {
+            fs.mkdirSync(data.destination, { recursive: true });
+        }
+    
+        const stringifiedSpecification = JSON.stringify(this.specification, null, 4);
+        fs.writeFileSync(generatedFilePath, stringifiedSpecification);
+    
+        vscode.commands.executeCommand( 'cinco.provide.glsp-server-args').then( result => {
+            const serverArgs = result as ServerArgs;
+            const targetPath = path.join(serverArgs.rootFolder, serverArgs.languagePath, 'meta-specification.json');
+            console.log('Integrating meta-specification to: '+ targetPath)
+            fs.writeFileSync(targetPath, stringifiedSpecification);
+            vscode.commands.executeCommand('cinco.meta-specification.reload')
+        });
+    
+        return generatedFilePath;
+    }
+    
+    // Constructs the modelElementSpec and returns the resulting elementTypeId
+    handleModelElement(modelElement: ModelElement, specification: Specification): string {
+        var modelElementSpec : any = {};
+
+        // If parent exists, first copy its entire specifications and overwrite customizations afterwards
+        if(!isEnum(modelElement)) {
+            const parentName = modelElement.localExtension?.ref?.name.toLowerCase();
+            if(parentName) {
+                let foundParent = undefined;
+                if(isGraphModel(modelElement)) {
+                    foundParent = [...this.specification.graphTypes, ...this.abstractModelElements.graphTypes].find((graphType) => 
+                        graphType.elementTypeId.split(':')[1] === parentName
+                    );
+                } else if(isNode(modelElement) || isNodeContainer(modelElement)) {
+                    foundParent = [...this.specification.nodeTypes, ...this.abstractModelElements.nodeTypes].find((nodeType) => 
+                        nodeType.elementTypeId.split(':')[1] === parentName
+                    );
+                } else if(isEdge(modelElement)) {
+                    foundParent = [...this.specification.edgeTypes, ...this.abstractModelElements.edgeTypes].find((edgeType) => 
+                        edgeType.elementTypeId.split(':')[1] === parentName
+                    );
+                }
+                // Copy the parent deeply
+                if(foundParent) {
+                    modelElementSpec = JSON.parse(JSON.stringify(foundParent));
+                }
+            }
+        }
+            
         // This is completed later by prepending the modelElement type (see below)
         modelElementSpec.elementTypeId = modelElement.name.toLowerCase();
 
         modelElementSpec.type = modelElementSpec.label = modelElement.name;
         
-        modelElementSpec.annotations = modelElement.annotations.map(annotation => handleAnnotation(annotation));
+        modelElementSpec.annotations = mergeArrays(modelElementSpec.annotations,
+            modelElement.annotations.map(annotation => handleAnnotation(annotation)),
+            'name');
 
         if(!isCustomDataType(modelElement)) {
             // Attributes
-            modelElementSpec.attributes = modelElement.attributes.map((attribute) => {
-                const result = {
-                    'annotations': attribute.annotations.map(annotation => handleAnnotation(annotation)),
-                    'final': attribute.notChangeable,
-                    'unique': attribute.unique,
-                    'name': attribute.name,
-                    'defaultValue': attribute.defaultValue ?? "",
-                    'bounds': {
-                        'lowerBound': attribute.lowerBound ?? 0,
-                        'upperBound': attribute.upperBound ?? 1
-                    },
-                    // Type is filled in below
-                    'type': ''
-                };
+            modelElementSpec.attributes = mergeArrays(modelElementSpec.attributes,
+                modelElement.attributes.map((attribute) => {
+                    const result = {
+                        'annotations': attribute.annotations.map(annotation => handleAnnotation(annotation)),
+                        'final': attribute.notChangeable,
+                        'unique': attribute.unique,
+                        'name': attribute.name,
+                        'defaultValue': attribute.defaultValue ?? "",
+                        'bounds': {
+                            'lowerBound': attribute.lowerBound ?? 0,
+                            'upperBound': attribute.upperBound ?? 1
+                        },
+                        // Type is filled in below
+                        'type': ''
+                    };
 
-                if(isPrimitiveAttribute(attribute)) {
-                    result.type = attribute.dataType
-                } else if(isComplexAttribute(attribute)) {
-                    result.type = attribute.type.ref?.name ?? ''
-                }
+                    if(isPrimitiveAttribute(attribute)) {
+                        result.type = attribute.dataType
+                    } else if(isComplexAttribute(attribute)) {
+                        result.type = attribute.type.ref?.name ?? ''
+                    }
 
-                return result;
-            });
+                    return result;
+                }),
+                'name');
         }
 
         if (isGraphModel(modelElement) || isNodeContainer(modelElement)) {
             const containerElement : GraphModel | NodeContainer = modelElement;
 
-            modelElementSpec.containments = containerElement.containableElements.map(containableElement => {
+            modelElementSpec.containments = mergeElementConstraints(modelElementSpec.containments,
+                containerElement.containableElements.map(containableElement => {
                 return {
                     lowerBound: containableElement.lowerBound ?? -1,
                     upperBound: containableElement.upperBound ?? -1,
@@ -77,7 +161,7 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
                         return 'node:' + localContainment.ref?.name.toLowerCase();
                     }) ?? []
                 }
-            });
+            }));
         }
 
         if (isNode(modelElement) || isEdge(modelElement) || isNodeContainer(modelElement)) {
@@ -117,13 +201,15 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
             // TODO check annotations for this
             modelElementSpec.palettes = [];
 
-            modelElementSpec.incomingEdges = node.incomingEdgeConnections.map(incomingEdgeConnection => {
-                return getEdgeElementConnectionObject(incomingEdgeConnection);
-            });
+            modelElementSpec.incomingEdges = mergeElementConstraints(modelElementSpec.incomingEdges,
+                node.incomingEdgeConnections.map(incomingEdgeConnection => {
+                    return getEdgeElementConnectionObject(incomingEdgeConnection);
+                }));
 
-            modelElementSpec.outgoingEdges = node.outgoingEdgeConnections.map(outgoingEdgeConnection => {
-                return getEdgeElementConnectionObject(outgoingEdgeConnection);
-            });
+            modelElementSpec.outgoingEdges = mergeElementConstraints(modelElementSpec.outgoingEdges,
+                node.outgoingEdgeConnections.map(outgoingEdgeConnection => {
+                    return getEdgeElementConnectionObject(outgoingEdgeConnection);
+                }));
 
             specification.nodeTypes.push(modelElementSpec);
         }
@@ -133,29 +219,58 @@ export async function generateMetaSpecification(model: MglModel, filePath: strin
 
             specification.edgeTypes.push(modelElementSpec);
         }
+
+        return modelElementSpec.elementTypeId;
     }
 
-    // Trim path to MGL to retrieve the project path
-    const pathToProject = filePath.substring(0, filePath.lastIndexOf('/') + 1);
-    const appearancesAndStyles = await inferAppearancesAndStyles(pathToProject + model.stylePath);
-    specification.appearances = appearancesAndStyles.appearances;
-    specification.styles = appearancesAndStyles.styles;
+    introduceInheritanceToConstraints(descendantMap: Record<string, Set<string>>, abstractElementTypeIds: string[]): void {
+        // Helper function to recursively replace elements in a constraints array
+        const replaceInConstraints = (constraintsArray?: {lowerBound: number | '*', upperBound: number | '*', elements: string[]}[]) => {
+            if (!constraintsArray) return;
 
-    if (!fs.existsSync(data.destination)) {
-        fs.mkdirSync(data.destination, { recursive: true });
+            for (let constraint of constraintsArray) {
+                let newElements: string[] = [];
+
+                const recursivelyReplace = (element: string) => {
+                    if (descendantMap[element]) {
+                        if (!abstractElementTypeIds.includes(element)) {
+                            newElements.push(element);
+                        }
+                        for (let descendant of descendantMap[element]) {
+                            recursivelyReplace(descendant);
+                        }
+                    } else {
+                        // If the element doesn't have descendants, add it to the newElements list
+                        newElements.push(element);
+                    }
+                };
+
+                for (let element of constraint.elements) {
+                    recursivelyReplace(element);
+                }
+
+                constraint.elements = newElements;
+            }
+        };
+
+        // Replace in graphTypes
+        if (this.specification.graphTypes) {
+            for (let graphType of this.specification.graphTypes) {
+                replaceInConstraints(graphType.containments);
+            }
+        }
+
+        // Replace in nodeTypes
+        if (this.specification.nodeTypes) {
+            for (let nodeType of this.specification.nodeTypes) {
+                if ((nodeType as ContainerType).containments !== undefined) {
+                    replaceInConstraints((nodeType as ContainerType).containments);
+                }
+                replaceInConstraints(nodeType.incomingEdges);
+                replaceInConstraints(nodeType.outgoingEdges);
+            }
+        }
     }
-
-    fs.writeFileSync(generatedFilePath, JSON.stringify(specification, null, 4));
-
-    vscode.commands.executeCommand( 'cinco.provide.glsp-server-args').then( result => {
-        const serverArgs = result as ServerArgs;
-        const targetPath = path.join(serverArgs.rootFolder, serverArgs.languagePath, 'meta-specification.json');
-        console.log('Integrating meta-specification to: '+ targetPath)
-        fs.writeFileSync(targetPath, JSON.stringify(specification, null, 4));
-        vscode.commands.executeCommand('cinco.meta-specification.reload')
-    });
-
-    return generatedFilePath;
 }
 
 async function inferAppearancesAndStyles(stylePath: string): Promise<{appearances: any[], styles: any[]}> {
@@ -271,6 +386,30 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{appearance
 
     return result;
 }
+
+function mergeElementConstraints(baseConstraints: {lowerBound: number | '*', upperBound: number | '*', elements: string[]}[], dominantConstraints: {lowerBound: number | '*', upperBound: number | '*', elements: string[]}[]): {lowerBound: number | '*', upperBound: number | '*', elements: string[]}[] {
+    if (!baseConstraints && !dominantConstraints) return [];
+
+    baseConstraints = baseConstraints || [];
+    dominantConstraints = dominantConstraints || [];
+
+    // Create a set of all unique elements in dominantConstraints
+    const dominantConstraintsElements = new Set<string>();
+    for (const entry of dominantConstraints) {
+        for (const element of entry.elements) {
+            dominantConstraintsElements.add(element);
+        }
+    }
+
+    // Remove elements in baseConstraints that exist in dominantConstraints
+    for (const entry of baseConstraints) {
+        entry.elements = entry.elements.filter(element => !dominantConstraintsElements.has(element));
+    }
+
+    // Concatenate the arrays and filter out entries with empty elements
+    return [...baseConstraints, ...dominantConstraints].filter(entry => entry.elements.length > 0);
+}
+
 
 function handleAnnotation(annotation: Annotation) {
     return {
