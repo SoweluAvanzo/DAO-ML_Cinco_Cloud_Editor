@@ -25,4 +25,6 @@ export interface GLSPServerUtilServer extends JsonRpcServer<GLSPServerUtilClient
     connect(): Promise<boolean>;
     // provides all files of a specified absolute folder path
     getArgs(): Promise<ServerArgs> | undefined;
+    transpileLanguagesFolder(): Promise<void> | undefined;
+    transpileWatchLanguagesFolder(): Promise<void> | undefined;
 }

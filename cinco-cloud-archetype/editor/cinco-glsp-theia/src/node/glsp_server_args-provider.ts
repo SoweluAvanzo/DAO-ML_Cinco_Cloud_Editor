@@ -23,17 +23,20 @@ import {
 } from './cinco-glsp-server-socket-contribution';
 import { GLSPServerUtilClient, GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 import * as path from 'path';
-
+import * as childProcess from 'child_process';
+import { getFilesFromFolder } from './utils/file-helper';
 @injectable()
 export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
     protected static SERVER_ARGS: ServerArgs;
     client: GLSPServerUtilClient | undefined;
 
     constructor() {
-        this.setServerArgs(
-            DEFAULT_META_DEV_MODE !== '', DEFAULT_ROOT_FOLDER,
-            DEFAULT_META_LANGUAGES_FOLDER, DEFAULT_WORKSPACE_FOLDER, DEFAULT_SERVER_PORT)
-        ;
+        if(!GLSPServerUtilServerNode.SERVER_ARGS) {
+            this.setServerArgs(
+                DEFAULT_META_DEV_MODE !== '', DEFAULT_ROOT_FOLDER,
+                DEFAULT_META_LANGUAGES_FOLDER, DEFAULT_WORKSPACE_FOLDER, DEFAULT_SERVER_PORT)
+            ;
+        }
     }
 
     async connect(): Promise<boolean> {
@@ -72,5 +75,41 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
 
     getServerArgs(): ServerArgs {
         return GLSPServerUtilServerNode.SERVER_ARGS;
+    }
+
+    transpileLanguagesFolder(): Promise<void> | undefined {
+        const serverArgs = this.getServerArgs();
+        const languagesFolder = path.join(serverArgs.rootFolder, serverArgs.languagePath);
+        const files = getFilesFromFolder(languagesFolder, './', ['.ts']);
+        const filePaths = files.join(' ');
+        const exec = `cd ${languagesFolder} && tsc --module none --target es2015 --strict false ${filePaths}`;
+        childProcess.exec(exec, (error, stdout, stderr) => {
+            if (error) {
+              console.error(`error: ${error.message}`);
+            } else if (stderr) {
+              console.error(`stderr: ${stderr}`);
+            } else {
+                console.log(`stdout:\n${stdout}`);
+            }
+          });
+        return undefined;
+    }
+
+    transpileWatchLanguagesFolder(): Promise<void> | undefined {
+        const serverArgs = this.getServerArgs();
+        const languagesFolder = path.join(serverArgs.rootFolder, serverArgs.languagePath);
+        const files = getFilesFromFolder(languagesFolder, './', ['.ts']);
+        const filePaths = files.join(' ');
+        const exec = `cd ${languagesFolder} && tsc --module none --target es2015 --strict false --watch ${filePaths}`;
+        childProcess.exec(exec, (error, stdout, stderr) => {
+            if (error) {
+              console.error(`error: ${error.message}`);
+            } else if (stderr) {
+              console.error(`stderr: ${stderr}`);
+            } else {
+                console.log(`stdout:\n${stdout}`);
+            }
+          });
+        return undefined;
     }
 }

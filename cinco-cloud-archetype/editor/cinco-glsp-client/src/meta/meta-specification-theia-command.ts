@@ -35,6 +35,8 @@ export class MetaSpecificationTheiaCommand extends BaseGLSPTool {
                 this.commandService.executeCommand('registerFromGLSP2Theia', {
                     commandId: MetaSpecificationReloadCommand.ID,
                     instanceId: model.id,
+                    visible: true,
+                    label: 'Reload Meta-Specification',
                     callbacks: [() => {
                         this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
                     }]
