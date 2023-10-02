@@ -63,6 +63,7 @@ COPY --chown=theia:theia ./cinco-cloud-archetype/editor /editor
 
 # copy vscode-extensions into plugins; remove symlink before that
 RUN rm -f ./cinco-cloud-archetype/editor/browser-app/plugins/*
+RUN mkdir /editor/browser-app/plugins
 COPY --from=cinco-languages-extension-builder /cinco-languages-extension/cinco-langium-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=cinco-project-initializer-builder /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix /editor/browser-app/plugins
 
