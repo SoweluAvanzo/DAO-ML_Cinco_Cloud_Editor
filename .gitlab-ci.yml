@@ -362,7 +362,12 @@ helm-package:
   needs:
     - helm-lint
   script:
-    - helm package .
+    # Extract current chart version
+    - CHART_VERSION=$(grep 'version:' infrastructure/helm/Chart.yaml | awk '{print $2}')
+    # Combine chart version with commit hash
+    - PACKAGE_VERSION=${CHART_VERSION}-${CI_COMMIT_SHORT_SHA}
+    # Package the helm chart with the appended version
+    - helm package . --version ${PACKAGE_VERSION}
   artifacts:
     paths:
       - infrastructure/helm/*.tgz
@@ -377,5 +382,9 @@ helm-push:
   needs: 
     - helm-package
   script:
-    - CHART_VERSION=$(find . -name cincocloud-*.tgz | grep -Eo "([0-9]+.[0-9]+.[0-9]+)")
-    - curl --request POST --user gitlab-ci-token:$CI_JOB_TOKEN --form "chart=@infrastructure/helm/cincocloud-${CHART_VERSION}.tgz" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/stable/charts"
+    # Extract current chart version
+    - CHART_VERSION=$(grep 'version:' infrastructure/helm/Chart.yaml | awk '{print $2}')
+    # Combine chart version with commit hash
+    - PACKAGE_VERSION=${CHART_VERSION}-${CI_COMMIT_SHORT_SHA}
+    # Use the PACKAGE_VERSION for the curl POST request
+    - curl --request POST --user gitlab-ci-token:$CI_JOB_TOKEN --form "chart=@infrastructure/helm/cincocloud-${PACKAGE_VERSION}.tgz" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/stable/charts"
