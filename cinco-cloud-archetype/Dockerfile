@@ -62,8 +62,8 @@ RUN useradd -ms /bin/bash theia
 COPY --chown=theia:theia ./cinco-cloud-archetype/editor /editor
 
 # copy vscode-extensions into plugins; remove symlink before that
+RUN mkdir -p /editor/browser-app/plugins
 RUN rm -f ./cinco-cloud-archetype/editor/browser-app/plugins/*
-RUN mkdir /editor/browser-app/plugins
 COPY --from=cinco-languages-extension-builder /cinco-languages-extension/cinco-langium-0.0.1.vsix /editor/browser-app/plugins
 COPY --from=cinco-project-initializer-builder /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix /editor/browser-app/plugins
 
@@ -91,4 +91,4 @@ CMD cd /editor/browser-app && \
     WORKSPACE_PATH="${WORKSPACE_PATH}" \
     EDITOR_TYPE="${EDITOR_TYPE}" \
     ENVIRONMENT="${ENVIRONMENT}" \
-    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
+    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0 --app-project-path=/editor/ --META_DEV_MODE --META_LANGUAGES_FOLDER=workspace/languages
