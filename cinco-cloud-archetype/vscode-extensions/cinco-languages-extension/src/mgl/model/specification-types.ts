@@ -1,3 +1,5 @@
+import { Size } from '../../generated/ast';
+
 interface Annotation {
 	name: string;
 	values: string[];
@@ -20,7 +22,7 @@ interface Containable {
 	containments: Containment[];
 }
 
-interface ContainerType extends Containable, NodeType {}
+export interface ContainerType extends Containable, NodeType {}
 
 interface Containment {
 	lowerBound: number;
@@ -40,7 +42,7 @@ interface EdgeElementConnection {
 	elements: string[];
 }
 
-interface EdgeStyle extends Style {
+export interface EdgeStyle extends Style {
 	connectionType?: string;
 	decorator: Decorator;
 	predefinedDecorator: PredefinedDecorator;
@@ -55,7 +57,7 @@ interface Element {
 
 interface GraphType extends Containable, Element {}
 
-interface NodeStyle extends Style {
+export interface NodeStyle extends Style {
 	fixed: boolean;
 	styleType: 'NodeStyle';
 }
@@ -83,7 +85,7 @@ interface RgbColor {
 	r: number;
 }
 
-interface Specification {
+export interface Specification {
 	appearances: Appearance[];
 	edgeTypes: EdgeType[];
 	graphTypes: GraphType[];
@@ -94,5 +96,11 @@ interface Specification {
 interface Style {
 	name: string;
 	appearance: string;
-	parameterCound: number;
+	parameterCount: number;
+	shape: Shape;
+}
+
+interface Shape {
+	type: string;
+	size: Size;
 }

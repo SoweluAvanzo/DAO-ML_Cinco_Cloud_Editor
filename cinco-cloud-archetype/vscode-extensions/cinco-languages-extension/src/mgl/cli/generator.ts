@@ -7,6 +7,7 @@ import { createMslServices } from '../../msl/language-server/msl-module';
 import { extractAstNode } from '../../msl/cli/cli-util';
 import { Styles } from '../../generated/ast';
 import { NodeFileSystem } from 'langium/node';
+import { ContainerType, Specification } from '../model/specification-types';
 
 interface ServerArgs {
     metaDevMode: boolean;
@@ -36,7 +37,15 @@ export class MGLGenerator {
     async generateMetaSpecification(model: MglModel, filePath: string, destination: string | undefined): Promise<string> {
         const data = extractDestinationAndName(filePath, destination);
         const generatedFilePath = path.join(data.destination, 'meta-specification.json');
+
+        // Handle appearances and styles first
+        // Trim path to MGL to retrieve the project path
+        const pathToProject = filePath.substring(0, filePath.lastIndexOf('/') + 1);
+        const appearancesAndStyles = await inferAppearancesAndStyles(pathToProject + model.stylePath);
+        this.specification.appearances = appearancesAndStyles.appearances;
+        this.specification.styles = appearancesAndStyles.styles;
     
+        // Handle MGL
         const { sortedModelElements, descendantsMap } = topologicalSortWithDescendants(model.modelElements);
         const abstractElementTypeIds = [];
     
@@ -56,12 +65,6 @@ export class MGLGenerator {
         }
 
         this.introduceInheritanceToConstraints(descendantsMap, abstractElementTypeIds);
-    
-        // Trim path to MGL to retrieve the project path
-        const pathToProject = filePath.substring(0, filePath.lastIndexOf('/') + 1);
-        const appearancesAndStyles = await inferAppearancesAndStyles(pathToProject + model.stylePath);
-        this.specification.appearances = appearancesAndStyles.appearances;
-        this.specification.styles = appearancesAndStyles.styles;
     
         if (!fs.existsSync(data.destination)) {
             fs.mkdirSync(data.destination, { recursive: true });
@@ -166,9 +169,10 @@ export class MGLGenerator {
 
         if (isNode(modelElement) || isEdge(modelElement) || isNodeContainer(modelElement)) {
             const graphicalElement : Node | Edge | NodeContainer = modelElement;
+            const usedStyle = graphicalElement.usedStyle;
 
             modelElementSpec.view = {
-                "style": graphicalElement.usedStyle
+                "style": usedStyle
             };
             if (graphicalElement.styleParameters) {
                 modelElementSpec.view.styleParameter = graphicalElement.styleParameters;
@@ -187,6 +191,10 @@ export class MGLGenerator {
 
         if (isNode(modelElement) || isNodeContainer(modelElement)) {
             const node = modelElement as Node | NodeContainer;
+            // Retrieve the main (container) shape to display width and height properly
+            const usedStyleName = node.usedStyle;
+            const usedStyle = this.specification.styles.find((style) => style.name === usedStyleName);
+            const mainShape = usedStyle?.shape;
 
             // Prepend modelElement type to complete elementTypeId
             modelElementSpec.elementTypeId = 'node:' + modelElementSpec.elementTypeId;
@@ -194,9 +202,9 @@ export class MGLGenerator {
             // TODO Check for disable annotation for these
             modelElementSpec.deletable = modelElementSpec.reparentable = modelElementSpec.repositionable = modelElementSpec.resizable = true;
             
-            // TODO Use style for these
-            modelElementSpec.width = 100;
-            modelElementSpec.height = 100;
+
+            modelElementSpec.width = mainShape?.size?.width ?? 100;
+            modelElementSpec.height = mainShape?.size?.height ?? 100;
 
             // TODO check annotations for this
             modelElementSpec.palettes = [];
