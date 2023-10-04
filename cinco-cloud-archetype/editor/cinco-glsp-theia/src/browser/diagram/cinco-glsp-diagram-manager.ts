@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { META_FILE_TYPES } from '@cinco-glsp/cinco-glsp-common/lib/meta-resource';
 import { CompositionSpecification, MetaSpecification } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
-import { GLSPDiagramManager } from '@eclipse-glsp/theia-integration';
+import { DiagramWidget, DiagramWidgetOptions, GLSPDiagramManager } from '@eclipse-glsp/theia-integration';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
 import { CommandService } from '@theia/core';
 import { inject, injectable } from 'inversify';
@@ -24,6 +24,8 @@ import { getDiagramConfiguration } from '../../common/cinco-language';
 import { FileProviderResponse } from '../theia-registration/file-provider';
 import { ARGS_PROVIDER_ID } from '@cinco-glsp/cinco-glsp-common';
 import * as path from 'path';
+import { CincoGLSPDiagramWidget } from './cinco-glsp-diagram-widget';
+import { configureServerActions } from '@eclipse-glsp/client';
 
 @injectable()
 export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
@@ -99,5 +101,28 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
     override get iconClass(): string {
         this._iconClass = getDiagramConfiguration().iconClass ?? this._iconClass;
         return this._iconClass;
+    }
+
+    override async createWidget(options?: any): Promise<DiagramWidget> {
+        if (DiagramWidgetOptions.is(options)) {
+            const clientId = this.createClientId();
+            const widgetId = this.createWidgetId(options);
+            const config = this.getDiagramConfiguration(options);
+            const diContainer = config.createContainer(clientId);
+            const initializeResult = await this.diagramConnector.initializeResult;
+            await configureServerActions(initializeResult, this.diagramType, diContainer);
+            const widget = new CincoGLSPDiagramWidget(
+                options,
+                widgetId,
+                diContainer,
+                this.editorPreferences,
+                this.storage,
+                this.theiaSelectionService,
+                this.diagramConnector
+            );
+            widget.listenToFocusState(this.shell);
+            return widget;
+        }
+        throw Error('DiagramWidgetFactory needs DiagramWidgetOptions but got ' + JSON.stringify(options));
     }
 }
