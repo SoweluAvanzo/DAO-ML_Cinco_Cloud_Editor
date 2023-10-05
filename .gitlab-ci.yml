@@ -393,7 +393,7 @@ helm-push:
     - helm-package
   script:
     # Extract current chart version
-    - CHART_VERSION=$(grep 'version:' Chart.yaml | awk '{print $2}')
+    - CHART_VERSION=$(grep 'version:' infrastructure/helm/Chart.yaml | awk '{print $2}')
     # Combine chart version with commit hash
     - PACKAGE_VERSION=${CHART_VERSION}-${CI_COMMIT_SHORT_SHA}
     # Use the PACKAGE_VERSION for the curl POST request
