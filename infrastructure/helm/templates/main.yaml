@@ -17,9 +17,8 @@ data:
   CINCO_CLOUD_MAILER_FROM: {{ .Values.main.mailer.from }}
   {{ if eq .Values.serverTier "local" }}
   ARCHETYPE_IMAGE: registry.gitlab.com/scce/cinco-cloud/archetype:local
-  {{- else -}}
-  ARCHETYPE_IMAGE: {{ .Values.archetype.image }}
   {{- end }}
+  ARCHETYPE_IMAGE: ""
   ARCHETYPE_STORAGE_CLASS_NAME: {{ .Values.storageClassName }}
   ARCHETYPE_STORAGE: {{ .Values.archetype.storage }}
   ARCHETYPE_HOST_PATH: {{ .Values.archetype.hostPath }}
