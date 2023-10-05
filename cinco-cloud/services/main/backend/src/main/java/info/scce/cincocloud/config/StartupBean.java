@@ -44,16 +44,13 @@ public class StartupBean {
     if (SettingsDB.listAll().isEmpty()) {
       settings.allowPublicUserRegistration = true;
       settings.sendMails = false;
-      settings.archetypeImage = !Strings.isNullOrEmpty(properties.getArchetypeImage())
-        ? properties.getArchetypeImage()
-        : "registry.gitlab.com/scce/cinco-cloud/archetype:latest";
+      settings.archetypeImage = properties.getArchetypeImage()
+              .orElse("registry.gitlab.com/scce/cinco-cloud/archetype:latest");
       settings.persist();
     }
 
     // update archetype image if environment variable has been set externally
-    settings.archetypeImage = !Strings.isNullOrEmpty(properties.getArchetypeImage())
-      ? properties.getArchetypeImage()
-      : settings.archetypeImage;
+    settings.archetypeImage = properties.getArchetypeImage().orElse(settings.archetypeImage);
     settings.persist();
   }
 }
