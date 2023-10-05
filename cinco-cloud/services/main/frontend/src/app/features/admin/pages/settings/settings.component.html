@@ -1,11 +1,11 @@
 <div class="container mt-3">
   <div class="d-flex">
-    <button (click)="saveSettings()" class="btn btn-primary ms-auto">Save</button>
+    <button (click)="saveSettings()" [disabled]="!canSave" class="btn btn-primary ms-auto">Save</button>
   </div>
 
   <hr>
 
-  <div *ngIf="settings != null" class="list-group">
+  <form [formGroup]="settingsForm" (submit)="$event.preventDefault()" *ngIf="settings != null" class="list-group">
     <div class="list-group-item d-flex flex-row">
       <div class="w-100 mr-3">
         <strong>Allow user registration</strong>
@@ -57,5 +57,20 @@
         </span>
       </div>
     </div>
-  </div>
+
+    <div class="list-group-item d-flex flex-column">
+      <div class="w-100 mr-3">
+        <strong>Archetype Image</strong>
+      </div>
+      <div>
+        <input
+          type="text"
+          name="archetypeImage"
+          class="form-control"
+          placeholder="Enter the full URL of the archetype image"
+          formControlName="archetypeImage"
+        >
+      </div>
+    </div>
+  </form>
 </div>

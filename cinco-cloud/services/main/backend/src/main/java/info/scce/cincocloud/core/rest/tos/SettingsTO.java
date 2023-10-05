@@ -9,8 +9,8 @@ public class SettingsTO extends RESTBaseImpl {
 
   private boolean allowPublicUserRegistration;
   private boolean autoActivateUsers;
-
   private boolean sendMails;
+  private String archetypeImage;
 
   public static SettingsTO fromEntity(
       final SettingsDB entity,
@@ -25,6 +25,7 @@ public class SettingsTO extends RESTBaseImpl {
     result.setallowPublicUserRegistration(entity.allowPublicUserRegistration);
     result.setautoActivateUsers(entity.autoActivateUsers);
     result.setsendMails(entity.sendMails);
+    result.setArchetypeImage(entity.archetypeImage);
 
     objectCache.putRestTo(entity, result);
 
@@ -59,5 +60,15 @@ public class SettingsTO extends RESTBaseImpl {
   @JsonProperty("sendMails")
   public void setsendMails(boolean sendMails) {
     this.sendMails = sendMails;
+  }
+
+  @JsonProperty("archetypeImage")
+  public String getArchetypeImage() {
+    return archetypeImage;
+  }
+
+  @JsonProperty("archetypeImage")
+  public void setArchetypeImage(String archetypeImage) {
+    this.archetypeImage = archetypeImage;
   }
 }

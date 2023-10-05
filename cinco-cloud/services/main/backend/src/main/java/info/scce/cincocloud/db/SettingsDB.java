@@ -11,4 +11,6 @@ public class SettingsDB extends PanacheEntity {
   public boolean autoActivateUsers = false;
 
   public boolean sendMails = true;
+
+  public String archetypeImage = "";
 }

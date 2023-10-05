@@ -58,6 +58,9 @@ public class ProjectDeploymentService {
   K8SClientService clientService;
 
   @Inject
+  SettingsService settingsService;
+
+  @Inject
   K8SIngressService ingressService;
 
   @Inject
@@ -71,9 +74,6 @@ public class ProjectDeploymentService {
 
   @ConfigProperty(name = "cincocloud.environment")
   String environment;
-
-  @ConfigProperty(name = "archetype.image")
-  String archetypeImage;
 
   @ConfigProperty(name = "archetype.storage-class-name")
   String archetypeStorageClassName;
@@ -135,8 +135,8 @@ public class ProjectDeploymentService {
     final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project, pvOptions);
     final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project, pvOptions);
     final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim,
-        host, environment, archetypeImage, properties.getMinioHost(), properties.getMinioPort(),
-        properties.getMinioAccessKey(), properties.getMinioSecretKey(), project);
+        host, environment, settingsService.getSettings().archetypeImage, properties.getMinioHost(),
+        properties.getMinioPort(), properties.getMinioAccessKey(), properties.getMinioSecretKey(), project);
     final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host,
         ingressService.getWorkspaceRootPath());
     final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host,
@@ -229,9 +229,9 @@ public class ProjectDeploymentService {
     final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project, pvOptions);
     final var persistentVolume = new TheiaK8SPersistentVolume(client, project, pvOptions);
     final var service = new TheiaK8SService(client, project);
-    final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project, archetypeImage,
-        environment, properties.getMinioHost(), properties.getMinioPort(), properties.getMinioAccessKey(),
-        properties.getMinioSecretKey());
+    final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project,
+        settingsService.getSettings().archetypeImage, environment, properties.getMinioHost(), properties.getMinioPort(),
+        properties.getMinioAccessKey(), properties.getMinioSecretKey());
     final var ingress = new TheiaK8SIngress(client, service, project, host, ingressService.getWorkspaceRootPath());
 
     final var deployedDeploymentOptional = client.apps().statefulSets().list().getItems().stream()
@@ -363,8 +363,8 @@ public class ProjectDeploymentService {
     final var appPersistentVolume = new PyroAppK8SPersistentVolume(client, project, pvOptions);
     final var appPersistentVolumeClaim = new PyroAppK8SPersistentVolumeClaim(client, project, pvOptions);
     final var appDeployment = new PyroAppK8SDeployment(client, appPersistentVolumeClaim,
-        host, environment, archetypeImage, properties.getMinioHost(), properties.getMinioPort(),
-        properties.getMinioAccessKey(), properties.getMinioSecretKey(), project);
+        host, environment, settingsService.getSettings().archetypeImage, properties.getMinioHost(),
+        properties.getMinioPort(), properties.getMinioAccessKey(), properties.getMinioSecretKey(), project);
     final var appIngressFrontend = new PyroAppK8SIngressFrontend(client, appService, project, host,
         ingressService.getWorkspaceRootPath());
     final var appIngressBackend = new PyroAppK8SIngressBackend(client, appService, project, host,
@@ -388,9 +388,9 @@ public class ProjectDeploymentService {
   private void stopLanguageEditor(ProjectDB project) {
     final var persistentVolumeClaim = new TheiaK8SPersistentVolumeClaim(client, project, pvOptions);
     final var service = new TheiaK8SService(client, project);
-    final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project, archetypeImage,
-        environment, properties.getMinioHost(), properties.getMinioPort(), properties.getMinioAccessKey(),
-        properties.getMinioSecretKey());
+    final var deployment = new TheiaK8SDeployment(client, persistentVolumeClaim, project,
+        settingsService.getSettings().archetypeImage, environment, properties.getMinioHost(), properties.getMinioPort(),
+        properties.getMinioAccessKey(), properties.getMinioSecretKey());
     final var ingress = new TheiaK8SIngress(client, service, project, host, ingressService.getWorkspaceRootPath());
 
     client.services().delete(service.getResource());

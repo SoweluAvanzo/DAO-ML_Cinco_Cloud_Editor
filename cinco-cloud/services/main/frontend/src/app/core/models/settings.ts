@@ -4,4 +4,5 @@ export class Settings extends BaseEntity {
   allowPublicUserRegistration: boolean;
   autoActivateUsers: boolean;
   sendMails: boolean;
+  archetypeImage: string;
 }

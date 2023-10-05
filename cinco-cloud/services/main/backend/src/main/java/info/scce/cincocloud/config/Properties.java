@@ -24,6 +24,9 @@ public class Properties {
   @ConfigProperty(name = "cincocloud.data.dir")
   String dataDir;
 
+  @ConfigProperty(name = "archetype.image")
+  String archetypeImage;
+
   public String getMinioHost() {
     return minioHost;
   }
@@ -46,5 +49,9 @@ public class Properties {
 
   public String getDataDir() {
     return dataDir;
+  }
+
+  public String getArchetypeImage() {
+    return archetypeImage;
   }
 }

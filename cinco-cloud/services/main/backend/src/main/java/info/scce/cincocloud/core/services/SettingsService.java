@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core.services;
 
+import info.scce.cincocloud.core.rest.tos.SettingsTO;
 import info.scce.cincocloud.db.SettingsDB;
 import javax.enterprise.context.ApplicationScoped;
 import javax.transaction.Transactional;
@@ -12,24 +13,12 @@ public class SettingsService {
     return SettingsDB.findAll().firstResult();
   }
 
-  public SettingsDB setAllowPublicUserRegistration(boolean allowPublicUserRegistration) {
+  public SettingsDB updateSettings(SettingsTO settingsTO) {
     final var settings = getSettings();
-    settings.allowPublicUserRegistration = allowPublicUserRegistration;
-
-    return settings;
-  }
-
-  public SettingsDB setAutoActivateUsers(boolean autoActivateUsers) {
-    final var settings = getSettings();
-    settings.autoActivateUsers = autoActivateUsers;
-
-    return settings;
-  }
-
-  public SettingsDB setSendMails(boolean sendMails) {
-    final var settings = getSettings();
-    settings.sendMails = sendMails;
-
+    settings.allowPublicUserRegistration = settingsTO.getallowPublicUserRegistration();
+    settings.autoActivateUsers = settingsTO.getautoActivateUsers();
+    settings.sendMails = settingsTO.getsendMails();
+    settings.archetypeImage = settingsTO.getArchetypeImage();
     return settings;
   }
 }
