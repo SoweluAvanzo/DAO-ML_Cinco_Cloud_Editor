@@ -48,6 +48,16 @@ export const CreateGenerateGraphDiagramCommand = {
     id: 'CreateGenerateGraphDiagramCommand.command'
 };
 
+export const CreateGeneratorTemplateCommand = {
+    id: 'cincocloud.createGeneratorTemplate',
+    label: 'Cinco Cloud: Create Generator Template'
+};
+
+export const CreateJavascriptGeneratorTemplateCommand = {
+    id: 'cincocloud.createJSGeneratorTemplate',
+    label: 'Cinco Cloud: Create JS Generator Template'
+};
+
 /**
  * Action
  *

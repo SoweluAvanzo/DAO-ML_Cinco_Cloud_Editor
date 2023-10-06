@@ -32,7 +32,7 @@ export class ExampleGeneratorHandler extends GeneratorHandler {
         this.generate(model);
 
         //  logging
-        const message = 'Element [' + model.type + '] generation process  started';
+        const message = 'Element [' + model.type + '] generation process started';
         this.log(message, { show: true });
 
         // const target: string = action.targetFolder ?? '';

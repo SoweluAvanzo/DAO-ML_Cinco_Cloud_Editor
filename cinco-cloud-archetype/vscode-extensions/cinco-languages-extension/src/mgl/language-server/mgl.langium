@@ -5,6 +5,7 @@ entry MglModel:
     (annotations+=Annotation)*
     ('id' package=QNAME)?
     'stylePath' stylePath=STRING
+	('includeResources' '(' includeResources+=STRING (',' includeResources+=STRING)* ')')?
     modelElements+=ModelElement*
 ;
 

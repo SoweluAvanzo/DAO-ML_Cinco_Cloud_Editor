@@ -19,11 +19,7 @@ import { Action } from '@eclipse-glsp/server-node';
 import { APIBaseHandler } from './api-base-handler';
 
 export abstract class GeneratorHandler extends APIBaseHandler {
-    execute(action: GeneratorAction, ...args: unknown[]): Promise<Action[]> | Action[] {
-        throw new Error('not implemented');
-    }
+    abstract execute(action: GeneratorAction, ...args: unknown[]): Promise<Action[]> | Action[];
 
-    canExecute(action: GeneratorAction, ...args: unknown[]): Promise<boolean> | boolean {
-        return false;
-    }
+    abstract canExecute(action: GeneratorAction, ...args: unknown[]): Promise<boolean> | boolean;
 }

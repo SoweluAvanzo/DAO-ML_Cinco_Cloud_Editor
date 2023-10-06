@@ -39,6 +39,7 @@ import { CincoGLSPDiagramMananger } from './diagram/cinco-glsp-diagram-manager';
 import { FileSystemUtilService } from './file-system-util-contribution';
 import {
     CreateGenerateGraphDiagramCommandContribution,
+    CreateGeneratorTemplateCommandContribution,
     GenerateGraphDiagramCommandContribution,
     GenerateGraphDiagramMenuContribution
 } from './generator/generator-contribution';
@@ -88,6 +89,7 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         context.bind(CommandContribution).to(FileProviderContribution);
         context.bind(CommandContribution).to(GenerateGraphDiagramCommandContribution);
         context.bind(CommandContribution).to(CreateGenerateGraphDiagramCommandContribution);
+        context.bind(CommandContribution).to(CreateGeneratorTemplateCommandContribution);
         context.bind(MenuContribution).to(GenerateGraphDiagramMenuContribution);
 
         // provision of fileSystemUtils from backend to frontend
