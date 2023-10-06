@@ -157,3 +157,22 @@ export function mergeArrays(baseArray: any[], dominantArray: any[], uniqueProper
     // Convert the map back to an array
     return Object.values(map);
 }
+
+export function copyDirectory(source: string, target: string) {
+    if (!fs.existsSync(target)) {
+        fs.mkdirSync(target, { recursive: true });
+    }
+
+    const files = fs.readdirSync(source, { withFileTypes: true });
+
+    for (const file of files) {
+        const sourcePath = path.join(source, file.name);
+        const targetPath = path.join(target, file.name);
+
+        if (file.isDirectory()) {
+            copyDirectory(sourcePath, targetPath);
+        } else if (file.isFile()) {
+            fs.copyFileSync(sourcePath, targetPath);
+        }
+    }
+}

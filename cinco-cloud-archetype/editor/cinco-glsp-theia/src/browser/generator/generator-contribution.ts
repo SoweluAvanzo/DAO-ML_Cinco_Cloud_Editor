@@ -15,7 +15,9 @@
  ********************************************************************************/
 import {
     CreateGenerateGraphDiagramCommand,
-    GenerateGraphDiagramCommand
+    GenerateGraphDiagramCommand,
+    CreateGeneratorTemplateCommand,
+    CreateJavascriptGeneratorTemplateCommand
 } from '@cinco-glsp/cinco-glsp-common/lib/protocol/generator-protocol';
 import { TYPES } from '@eclipse-glsp/client';
 import { SelectionService } from '@eclipse-glsp/client/lib/features/select/selection-service';
@@ -27,7 +29,8 @@ import {
     CommandService,
     Emitter,
     MenuContribution,
-    MenuModelRegistry
+    MenuModelRegistry,
+    QuickInputService
 } from '@theia/core/lib/common';
 import { SelectionService as SelectionServiceT } from '@theia/core/lib/common/selection-service';
 import { URI } from '@theia/core/lib/common/uri';
@@ -37,10 +40,64 @@ import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { FilesystemSaveResourceService } from '@theia/filesystem/lib/browser/filesystem-save-resource-service';
 import { FileStat } from '@theia/filesystem/lib/common/files';
 import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
+import { GeneratorTemplate } from './generator-template';
 
 interface DidCreateNewResourceEvent {
     uri: URI;
     parent: URI;
+}
+
+@injectable()
+export class CreateGeneratorTemplateCommandContribution implements CommandContribution {
+    @inject(FileService) protected readonly fileService: FileService;
+    @inject(WorkspaceService) protected readonly workspaceService: WorkspaceService;
+    @inject(QuickInputService) protected readonly quickInputService: QuickInputService;
+
+    private readonly onDidCreateNewFileEmitter = new Emitter<DidCreateNewResourceEvent>();
+
+    registerCommands(commands: CommandRegistry): void {
+        commands.registerCommand(CreateJavascriptGeneratorTemplateCommand, {
+            execute: async () => {
+                var name = await this.quickInputService.input({ prompt: 'Enter your generator name', placeHolder: 'ExampleGenerator' });
+                if (name === '') {
+                    name = 'ExampleGenerator';
+                }
+                if (name) {
+                    const generatorName = name.replace(/[^a-zA-Z0-9]/g, '');
+                    const targetFolder = this.workspaceService.tryGetRoots()[0].resource.resolve("src");
+                    await this.fileService.createFolder(targetFolder);
+                    const fileUri = targetFolder.resolve("generator.js");
+                    this.fileService.create(fileUri, GeneratorTemplate.getJavascriptGeneratorTemplate(generatorName), { overwrite: true }).then(() => {
+                        this.onDidCreateNewFileEmitter.fire({ parent: fileUri.parent, uri: fileUri });
+                    }).catch(err => {
+                        console.error("Error creating file:", err);
+                    });
+                }
+            }
+        });
+
+        commands.registerCommand(CreateGeneratorTemplateCommand, {
+            execute: async () => {
+                var name = await this.quickInputService.input({ prompt: 'Enter your generator name', placeHolder: 'ExampleGenerator' });
+                if (name === '') {
+                    name = 'ExampleGenerator';
+                }
+                if (name) {
+                    const generatorName = name.replace(/[^a-zA-Z0-9]/g, '');
+                    const targetFolder = this.workspaceService.tryGetRoots()[0].resource.resolve("src");
+                    await this.fileService.createFolder(targetFolder);
+                    const fileUri = targetFolder.resolve("generator.ts");
+                    this.fileService.create(fileUri, GeneratorTemplate.getTypescriptGeneratorTemplate(generatorName), { overwrite: true }).then(() => {
+                        this.onDidCreateNewFileEmitter.fire({ parent: fileUri.parent, uri: fileUri });
+                    }).catch(err => {
+                        console.error("Error creating file:", err);
+                    });
+                }
+            }
+        });
+    }
+
+
 }
 
 @injectable()
@@ -67,7 +124,7 @@ export class CreateGenerateGraphDiagramCommandContribution implements CommandCon
         try {
             stat = await this.fileService.resolve(candidate);
             // eslint-disable-next-line no-empty
-        } catch {}
+        } catch { }
         if (stat && stat.isDirectory) {
             return stat;
             // eslint-disable-next-line no-empty
@@ -126,7 +183,7 @@ export class GenerateGraphDiagramCommandContribution implements CommandContribut
         try {
             stat = await this.fileService.resolve(candidate);
             // eslint-disable-next-line no-empty
-        } catch {}
+        } catch { }
         if (stat && stat.isDirectory) {
             return stat;
             // eslint-disable-next-line no-empty
