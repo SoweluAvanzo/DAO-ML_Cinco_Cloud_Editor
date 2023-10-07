@@ -1,4 +1,4 @@
-<div *ngIf="deployment == null || deployment.status == 'DEPLOYING'" class="text-center my-4">
+<div *ngIf="deployment == null || deployment.status == 'DEPLOYING' || !showEditor" class="text-center my-4">
   <div>
     <fa-stack size="3x">
       <fa-icon [icon]="['fas', 'cloud']" stackItemSize="2x"></fa-icon>
@@ -12,7 +12,11 @@
 </div>
 
 <ng-container *ngIf="editorUrl != null && deployment.status == 'READY'">
-  <iframe [src]="editorUrl" class="d-flex border-0 h-100 w-100"></iframe>
+  <iframe #editorFrame
+          [src]="editorUrl"
+          class="d-flex border-0 h-100 w-100"
+          [style.visibility]="showEditor ? 'visible' : 'hidden'">
+  </iframe>
 </ng-container>
 
 <div *ngIf="deployment != null && deployment.status == 'FAILED'" class="container mt-3">

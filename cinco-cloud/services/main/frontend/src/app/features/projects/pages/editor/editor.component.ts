@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ProjectStoreService } from '../../services/project-store.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ProjectApiService } from '../../../../core/services/api/project-api.service';
@@ -25,12 +25,16 @@ import { Router } from '@angular/router';
 })
 export class EditorComponent implements OnInit {
 
+  @ViewChild('editorFrame')
+  editorFrame: ElementRef;
+
   project: Project;
   deployment: ProjectDeployment;
   editorUrl: SafeResourceUrl;
   currentJob: WorkspaceImageBuildJob;
 
   redeploy: boolean = false;
+  showEditor: boolean = false;
 
   constructor(private projectStore: ProjectStoreService,
               private authApi: AuthApiService,
@@ -79,6 +83,7 @@ export class EditorComponent implements OnInit {
             switch (message.event) {
               case WebSocketEvent.UPDATE_POD_DEPLOYMENT_STATUS:
                 this.deployment = message.content;
+                this.waitForTheiaToBeReady();
                 break;
               case WebSocketEvent.UPDATE_BUILD_JOB_STATUS:
                 const job: WorkspaceImageBuildJob = fromJsog(message.content, WorkspaceImageBuildJob);
@@ -99,6 +104,7 @@ export class EditorComponent implements OnInit {
         this.deployment = deployment;
         const url = environment.baseUrl + deployment.url + '?jwt=' + this.authApi.getToken() + '&projectId=' + this.project.id;
         this.editorUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(url);
+        this.waitForTheiaToBeReady();
       },
       error: res => {
         this.toastService.show({
@@ -108,5 +114,27 @@ export class EditorComponent implements OnInit {
         console.log(res.error.message)
       }
     });
+  }
+
+  private waitForTheiaToBeReady() {
+    if (this.deployment.status === 'READY') {
+      let interval = -1;
+
+      const f = () => {
+        if (!this.showEditor && this.editorFrame != null) {
+          const innerHtml = this.editorFrame.nativeElement.contentWindow.document.body.innerHTML;
+          if (innerHtml.includes('theia-preload')) {
+            this.showEditor = true;
+          } else if (innerHtml.includes('Service Temporarily Unavailable')) {
+            this.editorFrame.nativeElement.contentWindow.location.reload();
+          }
+        } else {
+          window.clearInterval(interval);
+        }
+      }
+
+      f();
+      interval = setInterval(f, 1000);
+    }
   }
 }

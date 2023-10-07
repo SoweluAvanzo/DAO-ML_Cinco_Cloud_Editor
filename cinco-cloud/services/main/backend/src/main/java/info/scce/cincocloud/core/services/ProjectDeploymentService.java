@@ -34,10 +34,10 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.StartupEvent;
+import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
 import java.time.Duration;
-import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -292,20 +292,15 @@ public class ProjectDeploymentService {
   private void waitUntilPyroPodIsReady(ProjectDB project, Deployment deployment,
       Service service, PyroAppK8SIngressFrontend ingress) {
     WaitUtils.asyncWaitUntil(
-        vertx,
-        () -> {
+        Uni.createFrom().item(() -> {
           final var s = K8SUtils.getDeploymentByName(client, deployment.getMetadata().getName());
           return s.isPresent() && K8SUtils.isDeploymentRunning(s.get());
-        },
+        }),
+        () -> waitUntilAppIsReady(project, service, ingress.getPath()),
         () -> {
-          final var webClient = WebClient.create(vertx);
-          waitUntilAppIsReady(webClient, project, service, ingress.getPath());
-        },
-        () -> {
-          final var s2 = new ProjectDeploymentTO(ingress.getPath(),
-              ProjectDeploymentStatus.FAILED);
-          CDIUtils.getBean(ProjectWebSocket.class)
-              .send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+          final var s2 = new ProjectDeploymentTO(ingress.getPath(), ProjectDeploymentStatus.FAILED);
+          final var socket = CDIUtils.getBean(ProjectWebSocket.class);
+          socket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
         },
         Duration.ofMinutes(TIMEOUT_TIME_MIN),
         Duration.ofSeconds(DELAY_TIME_SEC)
@@ -315,43 +310,45 @@ public class ProjectDeploymentService {
   private void waitUntilTheaiPodIsReady(ProjectDB project, StatefulSet statefulSet,
       Service service, TheiaK8SIngress ingress) {
     WaitUtils.asyncWaitUntil(
-        vertx,
-        () -> {
+        Uni.createFrom().item(() -> {
           final var s = K8SUtils.getStatefulSetByName(client, statefulSet.getMetadata().getName());
           return s.isPresent() && K8SUtils.isStatefulSetRunning(s.get());
-        },
-        () -> {
-          final var webClient = WebClient.create(vertx);
-          waitUntilAppIsReady(webClient, project, service, ingress.getPath());
-        },
+        }),
+        () -> waitUntilAppIsReady(project, service, ingress.getPath()),
         () -> {
           final var s2 = new ProjectDeploymentTO(ingress.getPath(), ProjectDeploymentStatus.FAILED);
-          CDIUtils.getBean(ProjectWebSocket.class)
-              .send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+          final var socket = CDIUtils.getBean(ProjectWebSocket.class);
+          socket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
         },
         Duration.ofMinutes(TIMEOUT_TIME_MIN),
         Duration.ofSeconds(DELAY_TIME_SEC)
     );
   }
 
-  private void waitUntilAppIsReady(WebClient webClient, ProjectDB project, Service service, String path) {
+  private void waitUntilAppIsReady(ProjectDB project, Service service, String path) {
+    final var webClient = WebClient.create(vertx);
+
+    final var port = service.getSpec().getPorts().get(0).getPort();
+    final var host = service.getSpec().getClusterIP();
+
     WaitUtils.asyncWaitUntil(
-        vertx,
         webClient
-            .get(service.getSpec().getPorts().get(0).getPort(), service.getSpec().getClusterIP(),
-                "")
+            .get(port, host, "")
             .send()
-            .map(res -> List.of(200, 403).contains(res.statusCode())
-                && res.bodyAsString().contains("theia-preload")),
+            .map(res -> {
+              final var status = res.statusCode();
+              final var body = res.bodyAsString();
+              return status == 200 && body.contains("theia-preload");
+            }),
         () -> {
           final var s2 = new ProjectDeploymentTO(path, ProjectDeploymentStatus.READY);
-          CDIUtils.getBean(ProjectWebSocket.class)
-              .send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+          final var socket = CDIUtils.getBean(ProjectWebSocket.class);
+          socket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
         },
         () -> {
           final var s2 = new ProjectDeploymentTO(path, ProjectDeploymentStatus.FAILED);
-          CDIUtils.getBean(ProjectWebSocket.class)
-              .send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
+          final var socket = CDIUtils.getBean(ProjectWebSocket.class);
+          socket.send(project.id, ProjectWebSocket.Messages.podDeploymentStatus(s2));
         },
         Duration.ofMinutes(TIMEOUT_TIME_MIN),
         Duration.ofSeconds(DELAY_TIME_SEC)

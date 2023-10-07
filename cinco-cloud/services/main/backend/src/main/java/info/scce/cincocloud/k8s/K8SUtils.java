@@ -50,12 +50,30 @@ public class K8SUtils {
   }
 
   public static boolean isDeploymentRunning(Deployment deployment) {
-    final var status = deployment.getStatus();
-    return status != null && status.getReadyReplicas() != null && status.getReadyReplicas() >= 1;
+    if (deployment.getStatus() == null) return  false;
+
+    final var desiredReplicas = deployment.getSpec().getReplicas();
+    final var currentReplicas = deployment.getStatus().getReplicas();
+    final var updatedReplicas = deployment.getStatus().getUpdatedReplicas();
+    final var availableReplicas = deployment.getStatus().getAvailableReplicas();
+
+    return desiredReplicas != null
+            && desiredReplicas.equals(currentReplicas)
+            && desiredReplicas.equals(updatedReplicas)
+            && desiredReplicas.equals(availableReplicas);
   }
 
   public static boolean isStatefulSetRunning(StatefulSet statefulSet) {
-    final var status = statefulSet.getStatus();
-    return status != null && status.getReadyReplicas() != null && status.getReadyReplicas() >= 1;
+    if (statefulSet.getStatus() == null) return  false;
+
+    final var desiredReplicas = statefulSet.getSpec().getReplicas();
+    final var currentReplicas = statefulSet.getStatus().getReplicas();
+    final var updatedReplicas = statefulSet.getStatus().getUpdatedReplicas();
+    final var availableReplicas = statefulSet.getStatus().getAvailableReplicas();
+
+    return desiredReplicas != null
+            && desiredReplicas.equals(currentReplicas)
+            && desiredReplicas.equals(updatedReplicas)
+            && desiredReplicas.equals(availableReplicas);
   }
 }
