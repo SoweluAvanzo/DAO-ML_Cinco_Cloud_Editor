@@ -70,7 +70,7 @@
             {
                 "command": "cincoCloud.generateCincoProduct",
                 "title": "Generate Meta-Specification",
-                "category": "CINCO",
+                "category": "Cinco Cloud",
                 "icon": {
                     "light": "./resources/generate_light.svg",
                     "dark": "./resources/generate_dark.svg"

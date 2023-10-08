@@ -16,8 +16,7 @@ export class CommandProvider implements FrontendApplicationContribution {
 
     registerCommands(registry: CommandRegistry): void {
         const PROJECT_ID_PROVIDER: Command = {
-            id: 'info.scce.cinco.cloud.projectid',
-            label: 'info.scce.cinco.cloud.projectid'
+            id: 'info.scce.cinco.cloud.projectid'
         };
         registry.registerCommand(PROJECT_ID_PROVIDER, {
             execute: this.passProjectId
@@ -25,8 +24,7 @@ export class CommandProvider implements FrontendApplicationContribution {
         console.log('registered command: ' + PROJECT_ID_PROVIDER.id);
 
         const JWT_PROVIDER: Command = {
-            id: 'info.scce.cinco.cloud.jwt',
-            label: 'info.scce.cinco.cloud.jwt'
+            id: 'info.scce.cinco.cloud.jwt'
         };
         registry.registerCommand(JWT_PROVIDER, {
             execute: this.passJWT

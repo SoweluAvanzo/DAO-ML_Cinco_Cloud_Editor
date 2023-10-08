@@ -36,11 +36,11 @@ export class FileProviderContribution implements CommandContribution {
 
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(
-            { id: FileProviderHandler.ID, label: 'Providing file-information' },
+            { id: FileProviderHandler.ID, label: 'Providing file-information', category: 'Cinco Cloud'},
             new FileProviderHandler(this.workspaceService, this.fsUtils)
         );
         commands.registerCommand(
-            { id: WorkspaceRootProviderHandler.ID, label: 'Providing root-information' },
+            { id: WorkspaceRootProviderHandler.ID, label: 'Providing root-information', category: 'Cinco Cloud'},
             new WorkspaceRootProviderHandler(this.workspaceService, this.fsUtils)
         );
     }
