@@ -19,6 +19,9 @@ import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 
+/**
+ * TODO: THIS IS PROBABLY DEPRECATED
+ */
 @ApplicationScoped
 public class WorkspaceMQConsumer {
 

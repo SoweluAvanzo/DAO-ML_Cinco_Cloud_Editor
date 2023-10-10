@@ -4,7 +4,6 @@ import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.rest.ObjectCache;
 import info.scce.cincocloud.rest.RESTBaseImpl;
 import java.time.Instant;
-import java.util.UUID;
 
 public class WorkspaceImageTO extends RESTBaseImpl {
 
@@ -12,7 +11,6 @@ public class WorkspaceImageTO extends RESTBaseImpl {
   public boolean published;
   public ProjectTO project;
   public Instant createdAt;
-  public UUID uuid;
 
   public static WorkspaceImageTO fromEntity(
       final WorkspaceImageDB entity,
@@ -28,7 +26,6 @@ public class WorkspaceImageTO extends RESTBaseImpl {
     result.published = entity.published;
     result.project = ProjectTO.fromEntity(entity.project, objectCache);
     result.createdAt = entity.createdAt;
-    result.uuid = entity.uuid;
 
     objectCache.putRestTo(entity, result);
 

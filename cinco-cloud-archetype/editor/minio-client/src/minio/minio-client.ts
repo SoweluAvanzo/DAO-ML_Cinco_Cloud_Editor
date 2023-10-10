@@ -14,26 +14,20 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-export const ARGS_PROVIDER_ID = 'cinco.provide.glsp-server-args';
+import * as minio_values from './minio_values';
 
-export interface ServerArgs {
-    metaDevMode: boolean;
-    rootFolder: string;
-    languagePath: string;
-    workspacePath: string;
-    port: number;
-}
+let clientInstance;
 
-export namespace ServerArgs {
-    export function create(
-        metaDevMode: boolean, rootFolder: string, languagePath: string, workspacePath: string, port: number
-    ): ServerArgs {
-        return {
-            metaDevMode: metaDevMode,
-            rootFolder: rootFolder,
-            languagePath: languagePath,
-            workspacePath: workspacePath,
-            port: port
-        };
+export function createClient() {
+    const minio = require('minio');
+    if (clientInstance === undefined) {
+        clientInstance = new minio.Client({
+            endPoint: minio_values.MINIO_HOST,
+            port: Number(minio_values.MINIO_PORT),
+            useSSL: false,
+            accessKey: minio_values.MINIO_ACCESS_KEY,
+            secretKey: minio_values.MINIO_SECRET_KEY
+        });
     }
+    return clientInstance;
 }

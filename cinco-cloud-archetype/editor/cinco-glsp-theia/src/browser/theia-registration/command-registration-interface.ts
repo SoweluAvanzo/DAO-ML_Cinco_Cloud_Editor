@@ -55,13 +55,13 @@ export class GLSP2TheiaCommandRegistration implements CommandHandler {
                 this.commands.unregisterCommand(commandId);
                 const params = Array.from(registeredCommands.values());
                 const disposable = this.commands.registerCommand(
-                    {id: commandId },
+                    {id: commandId, label: label, category: 'Cinco Cloud'  },
                     new GLSP2TheiaCommandHandler(param.commandId, params, param.visible));
                 resolve(disposable);
             } else {
                 // register new
                 GLSP2TheiaCommandRegistration.registeredCommands.set(commandId, new Map());
-                GLSP2TheiaCommandRegistration.registeredCommands.get(commandId)!.set(param.instanceId, param);
+                GLSP2TheiaCommandRegistration.registeredCommands.get(commandId)!.set(instanceId, param);
                 const disposable = this.commands.registerCommand(
                     {id: commandId, label: label, category: 'Cinco Cloud' },
                     new GLSP2TheiaCommandHandler(param.commandId, [param], param.visible));

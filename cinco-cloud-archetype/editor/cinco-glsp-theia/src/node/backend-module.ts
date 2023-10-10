@@ -21,10 +21,11 @@ import { CincoGLSPSocketServerContribution } from './cinco-glsp-server-socket-co
 import { FilesystemUtilServerNode } from './file-system-util-server-node';
 import { GLSP_SERVER_UTIL_ENDPOINT, GLSPServerUtilClient, GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 import { FILESYSTEM_UTIL_ENDPOINT, FilesystemUtilClient, FilesystemUtilServer } from '../common/file-system-util-protocol';
-import { GLSPServerUtilServerNode } from './glsp_server_args-provider';
+import { GLSPServerUtilServerNode } from './glsp-server-util-server-node';
+import { CincoGLSPServerArgsSetup } from './cinco-glsp-server-args-setup';
 
 export default new ContainerModule(bind => {
-
+    bind(CincoGLSPServerArgsSetup).toSelf().inSingletonScope();
     bind(CincoGLSPSocketServerContribution).toSelf().inSingletonScope();
     bind(GLSPServerContribution).toService(CincoGLSPSocketServerContribution);
 

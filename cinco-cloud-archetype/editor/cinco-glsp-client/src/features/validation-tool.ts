@@ -39,9 +39,11 @@ export class ValidationTool extends BaseGLSPTool {
                 this.commandService.executeCommand('registerFromGLSP2Theia', {
                     commandId: 'validationRequestModel',
                     instanceId: model.id,
-                    callbacks: () => {
-                        this.sendValidationRequest();
-                    }
+                    callbacks: [
+                        () => {
+                            this.sendValidationRequest();
+                        }
+                    ]
                 })
             );
         }

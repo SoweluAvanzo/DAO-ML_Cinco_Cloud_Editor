@@ -151,7 +151,7 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         context.bind(FrontendApplicationContribution).to(GLSPServerUtilsProvider);
 
         // bind git configuration
-context.bind(FrontendApplicationContribution).to(GitConfigurationContribution);
+        context.bind(FrontendApplicationContribution).to(GitConfigurationContribution);
     }
 
     override configureDiagramManager(context: ContainerContext): void {

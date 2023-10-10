@@ -31,16 +31,18 @@ export class MetaSpecificationTheiaCommand extends BaseGLSPTool {
     @postConstruct()
     registerTheiaCommand(): void {
         if (this.commandService && this.graphModelProvider) {
-            this.graphModelProvider.graphModel.then(model =>
+            this.graphModelProvider.graphModel.then(model => {
+                const filePath = model.id; // TODO: put workspace-file-path here
                 this.commandService.executeCommand('registerFromGLSP2Theia', {
-                    commandId: MetaSpecificationReloadCommand.ID,
+                    commandId: MetaSpecificationReloadCommand.ID + '.' + model.id,
                     instanceId: model.id,
                     visible: true,
-                    label: 'Reload Meta-Specification',
+                    label: 'Reload Meta-Specification current model (' + filePath + ')',
                     callbacks: [() => {
                         this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
                     }]
-            }));
+                });
+            });
         }
     }
 

@@ -14,26 +14,20 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-export const ARGS_PROVIDER_ID = 'cinco.provide.glsp-server-args';
-
-export interface ServerArgs {
-    metaDevMode: boolean;
-    rootFolder: string;
-    languagePath: string;
-    workspacePath: string;
-    port: number;
+export function getArgs(key: string, marker = true): string | undefined {
+    key = marker ? '--' + key : key;
+    const args = process.argv.filter(a => a.startsWith(key));
+    if (args.length > 0) {
+        const result = args[0].substring(key.length + 1, undefined);
+        if (result) {
+            return result.replace(/"|'/g, ''); // replace quotes
+        }
+    }
+    return undefined;
 }
 
-export namespace ServerArgs {
-    export function create(
-        metaDevMode: boolean, rootFolder: string, languagePath: string, workspacePath: string, port: number
-    ): ServerArgs {
-        return {
-            metaDevMode: metaDevMode,
-            rootFolder: rootFolder,
-            languagePath: languagePath,
-            workspacePath: workspacePath,
-            port: port
-        };
-    }
+export function hasArg(argsKey: string, marker = true): boolean {
+    argsKey = marker ? '--' + argsKey : argsKey;
+    const args = process.argv.filter(a => a.startsWith(argsKey));
+    return args.length > 0;
 }
