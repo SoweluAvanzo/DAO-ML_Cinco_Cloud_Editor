@@ -30,6 +30,7 @@ import { ValidateFormInputPipe } from './pipes/validate-form-input.pipe';
 import { SearchOrganizationInputComponent } from './components/search-organization-input/search-organization-input.component';
 import { ToggleButtonComponent } from './components/toggle-button/toggle-button.component';
 import { PaginationComponent } from './components/pagination/pagination.component';
+import { LogoComponent } from './components/logo/logo.component';
 
 @NgModule({
   declarations: [
@@ -50,7 +51,8 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     ValidateFormInputPipe,
     SearchOrganizationInputComponent,
     ToggleButtonComponent,
-    PaginationComponent
+    PaginationComponent,
+    LogoComponent
   ],
   providers: [],
   exports: [
@@ -70,7 +72,8 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     ValidationErrorMessageComponent,
     SearchOrganizationInputComponent,
     ToggleButtonComponent,
-    PaginationComponent
+    PaginationComponent,
+    LogoComponent
   ],
   imports: [
     CommonModule,
