@@ -67,7 +67,8 @@ export class CincoCloudProjectValidationWidgetContribution extends AbstractViewC
         commands.registerCommand(
             {
                 id: 'validationTestCommand',
-                label: 'Validate Test Command'
+                label: 'Validate Test Command',
+                category: 'Cinco Cloud'
             },
             {
                 execute: () => console.log('success')

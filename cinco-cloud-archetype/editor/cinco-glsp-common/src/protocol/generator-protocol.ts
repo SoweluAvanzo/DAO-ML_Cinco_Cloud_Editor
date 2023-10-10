@@ -41,7 +41,8 @@ export namespace GeneratorAction {
 
 export const GenerateGraphDiagramCommand = {
     id: 'GenerateGraphDiagram.command',
-    label: 'Generate Graph'
+    label: 'Generate Graph',
+    category: 'Cinco Cloud'
 };
 
 export const CreateGenerateGraphDiagramCommand = {
@@ -50,12 +51,14 @@ export const CreateGenerateGraphDiagramCommand = {
 
 export const CreateGeneratorTemplateCommand = {
     id: 'cincocloud.createGeneratorTemplate',
-    label: 'Cinco Cloud: Create Generator Template'
+    label: 'Create Generator Template',
+    category: 'Cinco Cloud'
 };
 
 export const CreateJavascriptGeneratorTemplateCommand = {
     id: 'cincocloud.createJSGeneratorTemplate',
-    label: 'Cinco Cloud: Create JS Generator Template'
+    label: 'Create JS Generator Template',
+    category: 'Cinco Cloud'
 };
 
 /**

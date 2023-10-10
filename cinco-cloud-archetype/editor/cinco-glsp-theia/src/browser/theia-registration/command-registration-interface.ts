@@ -25,7 +25,7 @@ import { injectable } from 'inversify';
 export class GLSP2TheiaCommandRegistrationContribution implements CommandContribution {
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(
-            { id: GLSP2TheiaCommandRegistration.ID, label: 'glsp2theia command registration' },
+            { id: GLSP2TheiaCommandRegistration.ID, label: 'glsp2theia command registration', category: 'Cinco Cloud'},
             new GLSP2TheiaCommandRegistration(commands)
         );
     }

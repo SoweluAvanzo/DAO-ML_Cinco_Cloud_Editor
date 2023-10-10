@@ -25,7 +25,8 @@ export const CincoCloudProjectValidationWidgetCommand = { id: 'cincoCloudProject
 export const CincoCloudModelValidationWidgetCommand = { id: 'cincoCloudModelValidation:toggle' };
 export const ValidationModelWrapperCommand = {
     id: 'CincoCloud.triggerModelValidation',
-    label: 'Cinco Cloud: Validate Model'
+    label: 'Validate Model',
+    category: 'Cinco Cloud'
 };
 
 /**
