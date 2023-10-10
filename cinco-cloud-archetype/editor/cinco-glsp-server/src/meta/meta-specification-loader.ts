@@ -36,7 +36,7 @@ export class MetaSpecificationLoader {
             .forEach((file: string) => {
                 console.log(`loading meta-specification:  ${file}`);
                 const metaSpec = readJson(`${metaLanguagesPath}/${file}`);
-                if (CompositionSpecification.is(metaSpec)) {
+                if (metaSpec && CompositionSpecification.is(metaSpec)) {
                     MetaSpecification.merge(metaSpec);
                 }
             });

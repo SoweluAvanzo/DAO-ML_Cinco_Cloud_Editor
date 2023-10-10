@@ -20,7 +20,6 @@ export function activate(context: vscode.ExtensionContext): void {
     // Add command to allow triggering generation
     context.subscriptions.push(vscode.commands.registerCommand(
         'cincoCloud.generateCincoProduct',
-        // TODO generalize target
         () => {
             // Retrieve active editor and check if its an MGL
             let activeEditor = vscode.window.activeTextEditor;
@@ -29,6 +28,23 @@ export function activate(context: vscode.ExtensionContext): void {
                 generateAction(filePath, {
                     destination: vscode.workspace.workspaceFolders?.at(0)?.uri.fsPath +  '/meta-specification'
                 })
+            } else {
+                error('Please open a MGL to generate a meta-specification!');
+            }         
+        }
+    ));
+
+    // Add command to allow triggering generation and included upload
+    context.subscriptions.push(vscode.commands.registerCommand(
+        'cincoCloud.generateAndUploadCincoProduct',
+        () => {
+            // Retrieve active editor and check if its an MGL
+            let activeEditor = vscode.window.activeTextEditor;
+            let filePath = activeEditor?.document.uri.fsPath;
+            if (filePath && filePath.endsWith('mgl')) {
+                generateAction(filePath, {
+                    destination: vscode.workspace.workspaceFolders?.at(0)?.uri.fsPath +  '/meta-specification'
+                }, true)
             } else {
                 error('Please open a MGL to generate a meta-specification!');
             }         

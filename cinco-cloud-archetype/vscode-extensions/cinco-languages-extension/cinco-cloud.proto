@@ -54,7 +54,7 @@ service MainService {
 
     rpc SetBuildJobStatus (BuildJobStatus) returns (BuildJobStatus) {
     }
-    
+
     rpc CreateBuildJob (CreateBuildJobMessage) returns (BuildJobStatus) {
     }
 

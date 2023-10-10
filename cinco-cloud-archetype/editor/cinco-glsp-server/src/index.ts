@@ -18,17 +18,15 @@ import 'reflect-metadata';
 import { launch } from './app';
 import { MetaSpecificationLoader } from './meta/meta-specification-loader';
 
-{
-    /**
-     * Load all files from language-folder.
-     * These files contain the language-designer defined hooks, actions, generators, etc.
-     */
-    try {
-        MetaSpecificationLoader.load(META_FILE_TYPES);
-        MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
-    } catch (e) {
-        console.log('GLSP server failed to load language-specific scripts');
-    }
-}
-
+loadMetaFiles();
 launch();
+
+function loadMetaFiles(): void {
+    /**
+    * Load meta specification if available
+    * Load all files from language-folder.
+    * These files contain the language-designer defined hooks, actions, generators, etc.
+    */
+    MetaSpecificationLoader.load(META_FILE_TYPES);
+    MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
+}

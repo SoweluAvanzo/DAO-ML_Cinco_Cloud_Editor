@@ -20,7 +20,7 @@ import {
     DEFAULT_META_LANGUAGES_FOLDER,
     DEFAULT_ROOT_FOLDER,
     DEFAULT_WORKSPACE_FOLDER
-} from './cinco-glsp-server-socket-contribution';
+} from './cinco-glsp-server-args-setup';
 import { GLSPServerUtilClient, GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 import * as path from 'path';
 import * as childProcess from 'child_process';
@@ -61,7 +61,7 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
     setClient(client: GLSPServerUtilClient | undefined): void {
         this.client = client;
     }
-
+ 
     setServerArgs(metaDevMode: boolean, rootFolder: string, languagePath: string, workspacePath: string, port: number): void {
         const absoluteRootPath = path.resolve(rootFolder);
         GLSPServerUtilServerNode.SERVER_ARGS = {
@@ -85,9 +85,9 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
         const exec = `cd ${languagesFolder} && tsc --module none --target es2015 --strict false ${filePaths}`;
         childProcess.exec(exec, (error, stdout, stderr) => {
             if (error) {
-              console.error(`error: ${error.message}`);
+                console.error(`error: ${error.message}`);
             } else if (stderr) {
-              console.error(`stderr: ${stderr}`);
+                console.error(`stderr: ${stderr}`);
             } else {
                 console.log(`stdout:\n${stdout}`);
             }
@@ -103,9 +103,9 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
         const exec = `cd ${languagesFolder} && tsc --module none --target es2015 --strict false --watch ${filePaths}`;
         childProcess.exec(exec, (error, stdout, stderr) => {
             if (error) {
-              console.error(`error: ${error.message}`);
+                console.error(`error: ${error.message}`);
             } else if (stderr) {
-              console.error(`stderr: ${stderr}`);
+                console.error(`stderr: ${stderr}`);
             } else {
                 console.log(`stdout:\n${stdout}`);
             }

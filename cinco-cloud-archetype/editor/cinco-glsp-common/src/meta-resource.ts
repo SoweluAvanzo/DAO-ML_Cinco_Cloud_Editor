@@ -23,6 +23,12 @@ export const RESOURCE_TYPES = ['.js', '.css'];
 export const SUPPORTED_DYNAMIC_FILE_TYPES = ['.js'];
 export const DIAGRAM_TYPE = 'cinco-diagram';
 export const DEVELOPMENT_MODE = false;
-export const META_DEV_MODE = 'META_DEV_MODE';
 export const DEFAULT_SERVER_PORT = 5007;
+
+// environment and args keys
+export const META_DEV_MODE = 'META_DEV_MODE';
+export const PORT_KEY = 'CINCO_GLSP';
+export const LANGUAGES_FOLDER_KEY = 'META_LANGUAGES_FOLDER';
+export const WORKSPACE_FOLDER_KEY = 'WORKSPACE_FOLDER';
+export const ROOT_FOLDER_KEY = 'ROOT_FOLDER';
 export const DEFAULT_THEIA_PORT = 3000;

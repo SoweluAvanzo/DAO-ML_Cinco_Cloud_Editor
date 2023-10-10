@@ -14,26 +14,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-export const ARGS_PROVIDER_ID = 'cinco.provide.glsp-server-args';
+import { DefaultGLSPServer } from '@eclipse-glsp/server-node';
+import { injectable } from 'inversify';
 
-export interface ServerArgs {
-    metaDevMode: boolean;
-    rootFolder: string;
-    languagePath: string;
-    workspacePath: string;
-    port: number;
-}
+@injectable()
+export class CincoGLSPServer extends DefaultGLSPServer {
 
-export namespace ServerArgs {
-    export function create(
-        metaDevMode: boolean, rootFolder: string, languagePath: string, workspacePath: string, port: number
-    ): ServerArgs {
-        return {
-            metaDevMode: metaDevMode,
-            rootFolder: rootFolder,
-            languagePath: languagePath,
-            workspacePath: workspacePath,
-            port: port
-        };
-    }
 }

@@ -27,6 +27,8 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
   private final String minioPort;
   private final String minioAccessKey;
   private final String minioSecretKey;
+  private final String minioResourceId;
+  private final String projectType;
 
   public TheiaK8SDeployment(
       KubernetesClient client,
@@ -47,6 +49,13 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
     this.minioPort = minioPort;
     this.minioAccessKey = minioAccessKey;
     this.minioSecretKey = minioSecretKey;
+    if(project.template != null && project.template.project != null) {
+        this.minioResourceId = Long.toString(project.template.project.id);
+        this.projectType = EditorType.MODEL_EDITOR.name();
+    } else {
+        this.minioResourceId = Long.toString(project.id);
+        this.projectType = EditorType.LANGUAGE_EDITOR.name();
+    }
     this.resource = build();
   }
 
@@ -121,10 +130,14 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                             new EnvVarBuilder()
                                 .withName("MINIO_ACCESS_KEY")
                                 .withValue(minioAccessKey)
-                                .build(),
+                                .build(), 
                             new EnvVarBuilder()
                                 .withName("MINIO_SECRET_KEY")
                                 .withValue(minioSecretKey)
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("MINIO_RESOURCE_ID")
+                                .withValue(minioResourceId)
                                 .build(),
                             new EnvVarBuilder()
                                 .withName("USE_SSL")
@@ -132,7 +145,11 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                                 .build(),
                             new EnvVarBuilder()
                                 .withName(EditorType.KEY)
-                                .withValue(EditorType.LANGUAGE_EDITOR.name())
+                                .withValue(projectType)
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("META_LANGUAGES_FOLDER")
+                                .withValue(projectType == EditorType.LANGUAGE_EDITOR.name() ? "workspace/languages" : "cinco-glsp-server/languages")
                                 .build(),
                             new EnvVarBuilder()
                                 .withName("THEIA_WEBVIEW_EXTERNAL_ENDPOINT")

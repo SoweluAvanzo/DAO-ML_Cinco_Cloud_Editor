@@ -1,23 +1,13 @@
-import fs from 'fs';
-import path from 'path';
-import * as vscode from 'vscode';
 import { AbsolutePosition, AbstractPosition, AbstractShape, Alignment, Annotation, Color, ContainerShape, Edge, EdgeElementConnection, EdgeStyle, Font, GraphModel, Image, InlineAppearance, MglModel, ModelElement, MultiText, Node, NodeContainer, NodeStyle, Point, Polygon, Polyline, RoundedRectangle, Shape, Size, Text, isAbsolutePosition, isAlignment, isComplexAttribute, isContainerShape, isCustomDataType, isEdge, isEdgeStyle, isEllipse, isEnum, isGraphModel, isImage, isMultiText, isNode, isNodeContainer, isNodeStyle, isPolygon, isPolyline, isPrimitiveAttribute, isRectangle, isRoundedRectangle, isShape, isText } from '../../generated/ast';
-import { extractDestinationAndName, mergeArrays, replaceInMapValues, replaceKeyInMap, topologicalSortWithDescendants } from './cli-util';
+import { mergeArrays, replaceInMapValues, replaceKeyInMap, topologicalSortWithDescendants } from './cli-util';
 import { createMslServices } from '../../msl/language-server/msl-module';
 import { extractAstNode } from '../../msl/cli/cli-util';
 import { Styles } from '../../generated/ast';
 import { NodeFileSystem } from 'langium/node';
 import { ContainerType, Specification } from '../model/specification-types';
 
-interface ServerArgs {
-    metaDevMode: boolean;
-    rootFolder: string;
-    languagePath: string;
-    workspacePath: string;
-    port: number;
-}
-
 export class MGLGenerator {
+    
     specification: Specification = {
         graphTypes: [],
         nodeTypes: [],
@@ -35,9 +25,6 @@ export class MGLGenerator {
     };
 
     async generateMetaSpecification(model: MglModel, filePath: string, destination: string | undefined): Promise<string> {
-        const data = extractDestinationAndName(filePath, destination);
-        const generatedFilePath = path.join(data.destination, 'meta-specification.json');
-
         // Handle appearances and styles first
         // Trim path to MGL to retrieve the project path
         const pathToProject = filePath.substring(0, filePath.lastIndexOf('/') + 1);
@@ -65,23 +52,7 @@ export class MGLGenerator {
         }
 
         this.introduceInheritanceToConstraints(descendantsMap, abstractElementTypeIds);
-    
-        if (!fs.existsSync(data.destination)) {
-            fs.mkdirSync(data.destination, { recursive: true });
-        }
-    
-        const stringifiedSpecification = JSON.stringify(this.specification, null, 4);
-        fs.writeFileSync(generatedFilePath, stringifiedSpecification);
-    
-        vscode.commands.executeCommand( 'cinco.provide.glsp-server-args').then( result => {
-            const serverArgs = result as ServerArgs;
-            const targetPath = path.join(serverArgs.rootFolder, serverArgs.languagePath, 'meta-specification.json');
-            console.log('Integrating meta-specification to: '+ targetPath)
-            fs.writeFileSync(targetPath, stringifiedSpecification);
-            vscode.commands.executeCommand('cinco.meta-specification.reload')
-        });
-    
-        return generatedFilePath;
+        return JSON.stringify(this.specification, null, 4);
     }
     
     // Constructs the modelElementSpec and returns the resulting elementTypeId

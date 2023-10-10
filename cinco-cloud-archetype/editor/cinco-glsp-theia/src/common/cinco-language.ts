@@ -17,6 +17,7 @@ import '../../css/cinco.css';
 
 import {
     CompositionSpecification,
+    DIAGRAM_TYPE,
     getGraphTypes,
     MetaSpecification
 } from '@cinco-glsp/cinco-glsp-common';
@@ -28,7 +29,7 @@ export function getDiagramConfiguration(): GLSPDiagramLanguage {
     const fileExtensions = getGraphTypes()?.map(g => g.diagramExtension) ?? [];
     return {
         contributionId: 'cinco',
-        diagramType: 'cinco-diagram',
+        diagramType: DIAGRAM_TYPE,
         fileExtensions: fileExtensions,
         label: 'Cinco Diagram',
         iconClass: 'codicon codicon-type-hierarchy-sub'

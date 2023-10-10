@@ -65,7 +65,7 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
                 response.items.forEach(item => {
                     try {
                         const metaSpecification = JSON.parse(item.content ?? '{}');
-                        if (CompositionSpecification.is(metaSpecification)) {
+                        if (metaSpecification && CompositionSpecification.is(metaSpecification)) {
                             MetaSpecification.merge(metaSpecification);
                         }
                     } catch (err) {

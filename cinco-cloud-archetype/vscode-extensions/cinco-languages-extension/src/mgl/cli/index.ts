@@ -6,15 +6,40 @@ import { createMglServices } from '../language-server/mgl-module';
 import { extractAstNode } from './cli-util';
 import { MGLGenerator } from './generator';
 import { NodeFileSystem } from 'langium/node';
+import { saveToLanguagesFolder, uploadToMinio } from './persistence_handler';
 
-export const generateAction = async (fileName: string, opts: GenerateOptions): Promise<void> => {
+export const generateAction = async (filePath: string, opts: GenerateOptions, uploadMetaSpecification?: boolean): Promise<void> => {
     console.log(chalk.green(`Starting generation for currently opened MGL...`));
     const services = createMglServices(NodeFileSystem).Mgl;
-    const model = await extractAstNode<MglModel>(fileName, services);
+    const model = await extractAstNode<MglModel>(filePath, services);
     const mglGenerator = new MGLGenerator();
-    const generatedFilePath = await mglGenerator.generateMetaSpecification(model, fileName, opts.destination);
-    console.log(chalk.green(`JavaScript code generated successfully: ${generatedFilePath}`));
+    const generatedMetaSpecification = await mglGenerator.generateMetaSpecification(model, filePath, opts.destination);
+
+    const fileName = getFileName(filePath)
+    const specificationName = `${fileName}_spec.json`;
+    saveToLanguagesFolder(generatedMetaSpecification, specificationName).then((languagesFolder) => {
+        if(uploadMetaSpecification) {
+            uploadToMinio(languagesFolder);
+        }
+    })
 };
+
+/**
+ * @param filePath path to a file or folder.
+ * @returns returns only the last segment of the filePath, without file extension
+ */
+function getFileName(filePath: string): string {
+    let fileName = filePath;
+    if(fileName.lastIndexOf('/') > 0) {
+        const lastSegment = fileName.lastIndexOf('/');
+        fileName = fileName.slice(lastSegment + 1);
+    }
+    if(fileName.indexOf('.') > 0) {
+        const index = fileName.indexOf('.');
+        return fileName.substring(0, index);
+    }
+    return fileName;
+}
 
 export type GenerateOptions = {
     destination?: string;
