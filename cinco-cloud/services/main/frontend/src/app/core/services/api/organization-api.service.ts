@@ -90,7 +90,7 @@ export class OrganizationApiService extends BaseApiService {
   }
 
   public createProject(newProject: Project): Observable<Project> {
-    return this.http.post(`${this.apiUrl}/organizations/${newProject.organization.id}/projects`, newProject, this.defaultHttpOptions).pipe(
+    return this.http.post(`${this.apiUrl}/organizations/${newProject.organization.id}/projects`, toJsog(newProject), this.defaultHttpOptions).pipe(
       map(body => this.transformSingleProject(body))
     )
   }
