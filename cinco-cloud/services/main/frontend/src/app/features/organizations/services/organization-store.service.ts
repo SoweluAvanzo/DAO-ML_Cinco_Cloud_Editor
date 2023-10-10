@@ -101,7 +101,7 @@ export class OrganizationStoreService {
       },
       error: res => {
         this.toastService.show({
-          type: ToastType.SUCCESS,
+          type: ToastType.DANGER,
           message: `Could not make ${user.name} a member of the organization. ${res.error.message}`
         });
       }
@@ -116,7 +116,7 @@ export class OrganizationStoreService {
       },
       error: res => {
         this.toastService.show({
-          type: ToastType.SUCCESS,
+          type: ToastType.DANGER,
           message: `Could not make ${user.name} an owner of the organization. ${res.error.message}`
         });
       }

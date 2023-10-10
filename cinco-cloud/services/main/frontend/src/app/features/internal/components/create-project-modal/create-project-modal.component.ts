@@ -59,16 +59,17 @@ export class CreateProjectModalComponent {
       : this.organizationApi.createProject(newProject);
 
     obs.subscribe({
-        next: createdProject => {
-          this.toastService.show({
-            message: `The project "${createdProject.name}" has been created.`,
-            type: ToastType.SUCCESS
-          });
-          this.modal.close(createdProject);
-        },
-        error: res => {
-          this.errorMessage = `The project could not be created: ${res.error.message}`;
-        }
+      next: createdProject => {
+        this.toastService.show({
+          message: `The project "${createdProject.name}" has been created.`,
+          type: ToastType.SUCCESS
+        });
+        this.modal.close(createdProject);
+      },
+      error: res => {
+        console.log(res)
+        this.errorMessage = `The project could not be created: ${res.error.message}`;
+      }
     });
   }
 }
