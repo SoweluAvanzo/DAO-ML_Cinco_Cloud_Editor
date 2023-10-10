@@ -8,6 +8,7 @@ import { AppStoreService } from '../../../../core/services/stores/app-store.serv
 import { Organization } from '../../../../core/models/organization';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
 import { OrganizationApiService } from "../../../../core/services/api/organization-api.service";
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'cc-create-project-modal',
@@ -15,6 +16,7 @@ import { OrganizationApiService } from "../../../../core/services/api/organizati
   styleUrls: ['./create-project-modal.component.scss']
 })
 export class CreateProjectModalComponent {
+  faTimes = faTimes;
 
   @Input()
   organization: Organization;

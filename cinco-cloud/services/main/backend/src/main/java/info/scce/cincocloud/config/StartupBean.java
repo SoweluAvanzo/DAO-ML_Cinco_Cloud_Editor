@@ -1,6 +1,7 @@
 package info.scce.cincocloud.config;
 
 import com.google.common.base.Strings;
+import info.scce.cincocloud.core.services.SettingsService;
 import info.scce.cincocloud.db.SettingsDB;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
@@ -23,6 +24,9 @@ public class StartupBean {
   @Inject
   Properties properties;
 
+  @Inject
+  SettingsService settingsService;
+
   @Transactional
   public void startup(@Observes StartupEvent event) throws Exception {
     initDataDirectory();
@@ -39,18 +43,19 @@ public class StartupBean {
 
   private void initSettings() {
     LOGGER.log(Level.INFO, "Init application settings.");
-    final var settings = new SettingsDB();
 
     if (SettingsDB.listAll().isEmpty()) {
+      final var settings = new SettingsDB();
       settings.allowPublicUserRegistration = true;
       settings.sendMails = false;
       settings.archetypeImage = properties.getArchetypeImage()
               .orElse("registry.gitlab.com/scce/cinco-cloud/archetype:latest");
       settings.persist();
+    } else {
+      // update archetype image if environment variable has been set externally
+      final var settings = settingsService.getSettings();
+      settings.archetypeImage = properties.getArchetypeImage().orElse(settings.archetypeImage);
+      settings.persist();
     }
-
-    // update archetype image if environment variable has been set externally
-    settings.archetypeImage = properties.getArchetypeImage().orElse(settings.archetypeImage);
-    settings.persist();
   }
 }

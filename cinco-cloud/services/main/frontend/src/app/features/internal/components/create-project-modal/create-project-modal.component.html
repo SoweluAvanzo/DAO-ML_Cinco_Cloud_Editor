@@ -60,7 +60,10 @@
           <cc-workspace-image-badge [image]="selectedProjectImage"></cc-workspace-image-badge>
         </div>
         <div>
-          <i (click)="selectedProjectImage = null" class="fa fa-fw fa-times cursor-pointer"></i>
+          <fa-icon
+            [icon]="faTimes"
+            (click)="selectedProjectImage = null"
+            [fixedWidth]="true" class="cursor-pointer"/>
         </div>
       </div>
     </div>

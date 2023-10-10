@@ -1,11 +1,11 @@
 <div class="btn-group" *ngIf="page != null">
   <button class="btn btn-outline-light" (click)="previousPage.emit(null)" [disabled]="!page.hasPreviousPage">
-    <i class="fas fa-fw fa-angle-left"></i> Previous page
+    <fa-icon [icon]="faAngleLeft" [fixedWidth]="true" /> Previous page
   </button>
   <button class="btn btn-outline-light" disabled>
     {{(page.number + 1)}} / {{page.amountOfPages}}
   </button>
   <button class="btn btn-outline-light" (click)="nextPage.emit(null)" [disabled]="!page.hasNextPage">
-    Next page <i class="fas fa-fw fa-angle-right"></i>
+    Next page <fa-icon [icon]="faAngleRight" [fixedWidth]="true" />
   </button>
 </div>

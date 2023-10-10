@@ -16,7 +16,7 @@ export class LogoutComponent implements OnInit {
     this.appStore.logout().subscribe({
       next: () => this.toastService.show({
         message: 'You have been logged out.',
-        type: ToastType.INFO
+        type: ToastType.SUCCESS
       }),
       error: res => {
         this.toastService.show({
