@@ -66,7 +66,7 @@ body {
 
     &.list-group-item-action {
       cursor: pointer;
-      transition: background .2s ease-in-out;
+      transition: background .2s ease-in-out, border-color .2s ease-in-out;;
 
       &:hover {
         background: lighten($color-dark, 5);
@@ -190,6 +190,17 @@ select.form-control option {
   .list-group-item {
     background: $white;
     color: $text-color-dark;
+    border-color: #dee2e6;
+
+    &:hover {
+      background: #f8f9fa !important;
+    }
+
+    &.active {
+      background: #0d6efd !important;
+      border-color: #0d6efd !important;;
+      color: white !important;;
+    }
 
     &:focus, &:active {
       color: $text-color-dark;

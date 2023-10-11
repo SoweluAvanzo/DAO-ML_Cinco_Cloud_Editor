@@ -7,6 +7,7 @@ import { User } from '../../models/user';
 import { UpdateCurrentUserProfileInput } from '../../models/forms/update-current-user-profile-input';
 import { UpdateCurrentUserPasswordInput } from '../../models/forms/update-current-user-password-input';
 import { fromJsog, fromJsogList } from '../../utils/jsog-utils';
+import { Page } from '../../models/page';
 
 @Injectable({
   providedIn: 'root'
@@ -48,15 +49,27 @@ export class UserApiService extends BaseApiService {
     );
   }
 
-  public getAll(): Observable<User[]> {
-    return this.http.get(`${this.apiUrl}/users`, this.defaultHttpOptions).pipe(
-      map((body: any) => this.transformList(body))
+  public getAll(page = 0, size = 25, role: string|null = null): Observable<Page<User>> {
+    const params: any = { page, size };
+    if (role) params.role = role;
+    const options = {
+      ...this.defaultHttpOptions,
+      params
+    };
+    return this.http.get(`${this.apiUrl}/users`, options).pipe(
+      map((body: any) => this.transformPage(body))
     );
   }
 
-  public search(usernameOrEmail: string): Observable<User> {
-    return this.http.get(`${this.apiUrl}/users?search=${usernameOrEmail}`, this.defaultHttpOptions).pipe(
-      map(body => this.transformSingle(body))
+  public search(page = 0, size = 25, search: string|null = null): Observable<Page<User>> {
+    const params: any = { page, size };
+    if (search) params.search = search;
+    const options = {
+      ...this.defaultHttpOptions,
+      params
+    };
+    return this.http.get(`${this.apiUrl}/users`, options).pipe(
+      map((body: any) => this.transformPage(body))
     );
   }
 
@@ -96,5 +109,9 @@ export class UserApiService extends BaseApiService {
 
   private transformList(body: any[]): User[] {
     return fromJsogList(body, User);
+  }
+
+  private transformPage(body: any): Page<User> {
+    return Page.fromObject(body, this.transformList(body.items));
   }
 }

@@ -6,6 +6,8 @@ import { CreateUserModalComponent } from '../../components/create-user-modal/cre
 import { AddAdminModalComponent } from '../../components/add-admin-modal/add-admin-modal.component';
 import { ModalUtilsService } from '../../../../core/services/utils/modal-utils.service';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Page } from '../../../../core/models/page';
 
 @Component({
   selector: 'cc-users',
@@ -15,38 +17,67 @@ export class UsersComponent implements OnInit {
 
   @ViewChild('nav') nav: NgbNav;
 
-  users: User[] = [];
-  admins: User[] = [];
+  activeTab = 'users';
+  usersPage: Page<User>;
+  adminsPage: Page<User>;
 
   constructor(private userApi: UserApiService,
               private modalService: NgbModal,
               private modalUtils: ModalUtilsService,
-              private toastService: ToastService) {
+              private toastService: ToastService,
+              private router: Router,
+              private activatedRoute: ActivatedRoute) {
   }
 
   ngOnInit(): void {
-    this.userApi.getAll().subscribe({
-      next: users => {
-        this.users = users;
-        this.admins = users.filter(user => user.isAdmin);
-      }
+    this.activatedRoute.queryParams.subscribe(params => {
+      const tab = params['tab'] == null ? 'users' : params['tab'];
+      this.activeTab = tab;
+      this.handleTabChange({ nextId: tab });
     });
+    this.loadUsers(0);
+    this.loadAdmins(0);
+  }
+
+  loadUsers(page = 0): void {
+    this.userApi.getAll(page, 25).subscribe({
+      next: page => this.usersPage = page
+    });
+  }
+
+  loadAdmins(page = 0): void {
+    this.userApi.getAll(page, 25, "ADMIN").subscribe({
+      next: page => this.adminsPage = page
+    });
+  }
+
+  reloadPages(): void {
+    this.loadUsers(this.usersPage.number);
+    this.loadAdmins(this.adminsPage.number);
+  }
+
+  handleTabChange(tab: any): void {
+    this.router.navigate(
+      [],
+      {
+        relativeTo: this.activatedRoute,
+        queryParams: { tab: tab.nextId },
+        queryParamsHandling: 'merge'
+      });
   }
 
   openCreateUserModal() {
     const ref = this.modalService.open(CreateUserModalComponent);
-    ref.result.then(
-      createdUser => this.users.push(createdUser)
-    ).catch(() => {
-    });
+    ref.result
+      .then(() => this.loadUsers(this.usersPage.number))
+      .catch(() => {});
   }
 
   openAddAdminModal() {
     const ref = this.modalService.open(AddAdminModalComponent);
-    ref.result.then(
-      addedAdmin => this.admins.push(addedAdmin)
-    ).catch(() => {
-    });
+    ref.result
+      .then(() => this.loadAdmins(this.adminsPage.number))
+      .catch(() => {});
   }
 
   deleteUser(user: User) {
@@ -56,10 +87,7 @@ export class UsersComponent implements OnInit {
     }).then(() => {
       this.userApi.delete(user).subscribe({
         next: () => {
-          this.users.splice(this.users.findIndex(u => u.id === user.id), 1);
-          if (user.isAdmin) {
-            this.admins.splice(this.admins.findIndex(a => a.id === user.id), 1);
-          }
+          this.reloadPages();
           this.toastService.show({
             type: ToastType.SUCCESS,
             message: 'User has been deleted.'
@@ -83,7 +111,7 @@ export class UsersComponent implements OnInit {
     }).then(() => {
       this.userApi.removeAdminRole(admin).subscribe({
         next: () => {
-          this.admins.splice(this.admins.findIndex(a => a.id === admin.id), 1);
+          this.reloadPages();
           this.toastService.show({
             type: ToastType.SUCCESS,
             message: 'Admin rights have been removed for the user.'
@@ -103,8 +131,8 @@ export class UsersComponent implements OnInit {
   toggleUserStatus(user: User) {
     if (user.activated) {
       this.userApi.deactivate(user.id).subscribe({
-        next: (updatedUser) => {
-          this.users.splice(this.users.findIndex(u => u.id === updatedUser.id), 1, updatedUser);
+        next: () => {
+          this.reloadPages();
           this.toastService.show({
             type: ToastType.SUCCESS,
             message: 'User has been deactivated.'
@@ -119,8 +147,8 @@ export class UsersComponent implements OnInit {
       })
     } else {
       this.userApi.activate(String(user.id), "").subscribe({
-        next: (updatedUser) => {
-          this.users.splice(this.users.findIndex(u => u.id === updatedUser.id), 1, updatedUser);
+        next: () => {
+          this.reloadPages();
           this.toastService.show({
             type: ToastType.SUCCESS,
             message: 'User has been activated.'
@@ -134,5 +162,13 @@ export class UsersComponent implements OnInit {
         }
       })
     }
+  }
+
+  get users() {
+    return this.usersPage == null ? [] : this.usersPage.items;
+  }
+
+  get admins() {
+    return this.adminsPage == null ? [] : this.adminsPage.items;
   }
 }
