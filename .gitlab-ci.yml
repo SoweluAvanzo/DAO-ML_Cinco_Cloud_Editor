@@ -238,12 +238,12 @@ deploy-testing-manual:
     - npm install -g vsce --unsafe-perm
     - yarn
 
-archetype-test-build-cinco-project-initializer-extension:
+archetype-test-build-cinco-cloud-project-initializer-extension:
   extends:
     - .archetype-default-job-main-or-mr
     - .archetype-theia-extension-build-job
   variables:
-    EXTENSION_DIR: cinco-project-initializer
+    EXTENSION_DIR: cinco-cloud-project-initializer
 
 archetype-test-build-cinco-languages-extension:
   extends:
@@ -257,7 +257,7 @@ archetype-build:
     - .archetype-default-job-main
     - .docker-build-job
   needs:
-    - archetype-test-build-cinco-project-initializer-extension
+    - archetype-test-build-cinco-cloud-project-initializer-extension
     - archetype-test-build-cinco-languages-extension
   variables:
     CONTEXT: .
