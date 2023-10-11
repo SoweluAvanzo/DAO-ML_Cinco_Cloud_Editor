@@ -24,7 +24,10 @@ export class GitConfigurationContribution implements FrontendApplicationContribu
     protected commands: CommandRegistry;
 
     onStart?(app: FrontendApplication): MaybePromise<void> {
-        this.commands.executeCommand('scmView:toggle');
-        this.commands.executeCommand('scm-history:open-branch-history');
+        this.commands.executeCommand('scmView:toggle').then(_a => {
+            this.commands.executeCommand('scm-history:open-branch-history').then(_b => {
+                this.commands.executeCommand('fileNavigator:toggle');
+            });
+        });
     }
 }
