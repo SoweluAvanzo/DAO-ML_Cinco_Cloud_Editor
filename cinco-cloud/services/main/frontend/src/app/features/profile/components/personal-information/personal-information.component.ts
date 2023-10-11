@@ -1,6 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
-import { AuthApiService } from '../../../../core/services/api/auth-api.service';
 import { User } from '../../../../core/models/user';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { UpdateCurrentUserProfileInput } from '../../../../core/models/forms/update-current-user-profile-input';
@@ -8,6 +7,8 @@ import { UserApiService } from '../../../../core/services/api/user-api.service';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
 import { FileApiService, Upload } from '../../../../core/services/api/file-api.service';
 import { FileReference } from '../../../../core/models/file-reference';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FileInputComponent } from '../../../../core/components/file-input/file-input.component';
 
 @Component({
   selector: 'cc-personal-information',
@@ -15,19 +16,21 @@ import { FileReference } from '../../../../core/models/file-reference';
   styleUrls: ['./personal-information.scss']
 })
 export class PersonalInformationComponent implements OnInit {
+  faTrash = faTrash;
+
+  @ViewChild("input")
+  input: FileInputComponent;
 
   private allowedFileTypes = ['image/jpeg', 'image/png'];
 
   informationChangeForm: UntypedFormGroup = new UntypedFormGroup({
     'name': new UntypedFormControl('', [Validators.required]),
-    'email': new UntypedFormControl('', [Validators.required, Validators.email]),
-    'picture': new UntypedFormControl('')
+    'email': new UntypedFormControl('', [Validators.required, Validators.email])
   });
 
   pictureReference: FileReference;
 
-  constructor(private authApi: AuthApiService,
-              private appStore: AppStoreService,
+  constructor(private appStore: AppStoreService,
               private userApi: UserApiService,
               private toastService: ToastService,
               private fileApi: FileApiService) {
@@ -41,28 +44,17 @@ export class PersonalInformationComponent implements OnInit {
 
   handleFileSelect(files: File[]): void {
     if (files.length > 0) {
-      this.informationChangeForm.get('picture').setValue(files[0]);
-    }
-  }
-
-  handleClear(): void {
-    this.informationChangeForm.get('picture').setValue(null);
-  }
-
-  changeInformation(): void {
-    let input = new UpdateCurrentUserProfileInput();
-    input.name = this.informationChangeForm.get('name').value;
-    input.email = this.informationChangeForm.get('email').value;
-
-    if (this.informationChangeForm.get('picture').value) {
-      const file: File = this.informationChangeForm.get('picture').value;
-
+      const file = files[0];
       if (this.allowedFileTypes.some(x => x === file.type)) {
         this.fileApi.upload(file).subscribe({
           next: (upload: Upload) => {
             if (upload.file != null) {
+              let input = new UpdateCurrentUserProfileInput();
+              input.name = this.currentUser.name;
+              input.email = this.currentUser.email;
               input.profilePicture = upload.file;
               this.updateProfile(input);
+              this.input.reset();
             }
           },
           error: res => {
@@ -78,9 +70,22 @@ export class PersonalInformationComponent implements OnInit {
           message: 'Please upload a jpeg/png'
         });
       }
-    } else {
-      this.updateProfile(input);
     }
+  }
+
+  removeAvatar(): void {
+    let input = new UpdateCurrentUserProfileInput();
+    input.name = this.currentUser.name;
+    input.email = this.currentUser.email;
+    input.profilePicture = null;
+    this.updateProfile(input);
+  }
+
+  changeInformation(): void {
+    let input = new UpdateCurrentUserProfileInput();
+    input.name = this.informationChangeForm.get('name').value;
+    input.email = this.informationChangeForm.get('email').value;
+    this.updateProfile(input);
   }
 
   private updateProfile(input: UpdateCurrentUserProfileInput): void {
@@ -108,8 +113,12 @@ export class PersonalInformationComponent implements OnInit {
   }
 
   get profilePictureStyle(): any {
+    const imageUrl = this.currentUser.profilePicture == null ?
+      `https://www.gravatar.com/avatar/${this.currentUser.emailHash}?d=retro`
+      : this.pictureReference.downloadPath;
+
     return {
-      backgroundImage: `url(${this.pictureReference.downloadPath})`,
+      backgroundImage: `url(${imageUrl})`,
       backgroundSize: 'cover',
       width: '100px',
       height: '100px'

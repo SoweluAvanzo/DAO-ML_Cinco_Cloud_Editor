@@ -23,7 +23,6 @@ export class EditOrganizationCardComponent implements OnInit {
 
   logo: File;
   logoReference: FileReference;
-  updateLogo = false;
 
   form = new UntypedFormGroup({
     name: new UntypedFormControl('', [Validators.required]),
@@ -44,7 +43,7 @@ export class EditOrganizationCardComponent implements OnInit {
   update(): void {
     const input: UpdateOrganizationInput = this.form.value;
 
-    if (this.updateLogo && this.logo != null) {
+    if (this.logo != null) {
       this.fileApi.create(this.logo).subscribe({
         next: (file: FileReference) => {
           input.logo = file;
@@ -52,26 +51,29 @@ export class EditOrganizationCardComponent implements OnInit {
           this.logoReference = file;
           this.input.reset();
         },
-        error: () => this.toastService.show({ type: ToastType.DANGER, message: 'The logo could not be uploaded.' })
+        error: () => {
+          this.toastService.show({ type: ToastType.DANGER, message: 'The logo could not be uploaded.' })
+        }
       });
     } else {
+      input.logo = null;
       this.organizationStore.updateOrganization(input);
     }
   }
 
   handleFileSelect(files: File[]): void {
-    this.logo = files[0];
-    this.updateLogo = true;
+    this.logo = files.length === 0 ? null : files[0];
   }
 
-  handleClear(): void {
+  removeLogo(e): void {
+    if (e) e.preventDefault();
     this.logo = null;
-    this.updateLogo = false;
+    this.logoReference = null;
   }
 
   get logoStyle(): any {
     return {
-      backgroundImage: `url(${this.logoReference.downloadPath})`,
+      backgroundImage: `url(${this.organization.logo?.downloadPath})`,
       backgroundSize: 'cover',
       width: '100px',
       height: '100px'

@@ -4,10 +4,15 @@
       <strong>Update the project</strong>
     </div>
     <div class="card-body">
-      <div class="mb-3" *ngIf="logoReference != null">
-        <div class="logo rounded-3 d-flex" [ngStyle]="logoStyle" (click)="logoReference = null">
-          <div class="rounded-3">
-            <fa-icon [icon]="['fas', 'trash']"></fa-icon>
+      <div>
+        <label class="mb-1">Logo</label>
+        <div class="d-flex flex-row gap-3">
+          <div *ngIf="logoReference != null && project.logo != null">
+            <div class="logo rounded-2 d-flex" [ngStyle]="logoStyle"></div>
+          </div>
+          <div class="d-flex flex-column gap-2 align-items-start">
+            <cc-file-input #input (selectFile)="handleFileSelect($event)"></cc-file-input>
+            <button class="btn btn-danger" *ngIf="logoReference != null" (click)="removeLogo($event)">Remove Logo</button>
           </div>
         </div>
         <hr>
@@ -20,10 +25,6 @@
         <label>Description</label>
         <textarea class="form-control" formControlName="description" placeholder="Enter a description for the project"
                   rows="3"></textarea>
-      </div>
-      <div>
-        <label class="mb-1">Logo</label>
-        <cc-file-input #input (selectFile)="handleFileSelect($event)" (clear)="handleClear()"></cc-file-input>
       </div>
     </div>
     <div class="card-footer text-end">

@@ -13,20 +13,26 @@ export class FileInputComponent {
   @Output()
   selectFile = new EventEmitter<File[]>();
 
-  @Output()
-  clear = new EventEmitter<never>();
-
   files: File[] = [];
 
   handleChange(event: any): void {
-    const files = event.target.files;
-    if (files.length > 0) {
-      this.files = files;
-      this.selectFile.emit(this.files);
+    if (event.target && event.target.files) {
+      const files = event.target.files;
+      if (files.length > 0) {
+        this.files = files;
+        this.selectFile.emit(this.files);
+      }
+    } else {
+      this.reset();
     }
   }
 
-  reset(): void {
+  reset(e = null): void {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     this.files = [];
+    this.selectFile.emit([]);
   }
 }
