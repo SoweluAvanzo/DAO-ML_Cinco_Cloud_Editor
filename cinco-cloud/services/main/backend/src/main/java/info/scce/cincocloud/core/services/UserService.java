@@ -6,13 +6,13 @@ import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import io.quarkus.qute.Template;
 import io.quarkus.security.UnauthorizedException;
 
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,17 +51,26 @@ public class UserService {
         .orElseThrow(() -> new EntityNotFoundException("Cannot find user."));
   }
 
-  public List<UserDB> getUsers() {
-    return UserDB.listAll();
+  public PanacheQuery<UserDB> getUsers(int page, int size, Optional<UserSystemRole> systemRole) {
+    if (systemRole.isPresent()) {
+      final var queryString = "select u from UserDB u where ?1 member of u.systemRoles";
+      return UserDB.find(queryString, systemRole.get()).page(page, size);
+    } else {
+      return UserDB.findAll().page(page, size);
+    }
   }
 
-  public List<UserDB> getUserByUsernameOrEmail(String usernameOrEmail) {
-    final List<UserDB> result = new ArrayList<>(UserDB.list("username", usernameOrEmail));
-    if (result.size() == 0) {
-      result.addAll(UserDB.list("email", usernameOrEmail));
+  public PanacheQuery<UserDB> searchUsers(int page, int size, String usernameOrEmail, Optional<UserSystemRole> systemRole) {
+    final var baseQuery = "select u from UserDB u where LOWER(username) LIKE ?1 or LOWER(email) LIKE ?1";
+    final var searchString = "%" + usernameOrEmail.toLowerCase() + "%";
+    if (systemRole.isPresent()) {
+      final var queryString = baseQuery + " and ?2 member of u.systemRoles";
+      final PanacheQuery<UserDB> query = UserDB.find(queryString, searchString, systemRole.get());
+      return query.page(page, size);
+    } else {
+      final PanacheQuery<UserDB> query = UserDB.find(baseQuery, searchString);
+      return query.page(page, size);
     }
-
-    return result;
   }
 
   public UserDB create(String email, String name, String username, String password) {

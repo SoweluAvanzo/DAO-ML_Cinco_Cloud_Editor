@@ -12,18 +12,22 @@
     Could not find any user matching "{{form.controls['searchTerm'].value}}".
   </div>
 
-  <div *ngIf="foundUser != null" class="mt-3 rounded-3 p-2 border d-flex">
-    <div class="rounded-3 overflow-hidden" style="height: 46px">
-      <cc-user-profile-image [user]="foundUser"></cc-user-profile-image>
-    </div>
-    <div class="ms-2">
-      <div class="mb-1">
-        <fa-icon [fixedWidth]="true" [icon]="['fas', 'user']"></fa-icon>
-        {{foundUser.name}} <span class="text-muted">(@{{foundUser.username}})</span>
+  <div *ngIf="matches.length > 0" class="list-group mt-3">
+    <div class="list-group-item list-group-item-action d-flex"
+         [class.active]="selectedUser?.id === user.id"
+         *ngFor="let user of matches" (click)="select(user)">
+      <div class="rounded-3 overflow-hidden" style="height: 46px">
+        <cc-user-profile-image [user]="user"></cc-user-profile-image>
       </div>
-      <div>
-        <fa-icon [fixedWidth]="true" [icon]="['fas', 'envelope']"></fa-icon>
-        {{foundUser.email}}
+      <div class="ms-2">
+        <div class="mb-1">
+          <fa-icon [fixedWidth]="true" [icon]="faUser"></fa-icon>
+          {{user.name}} <span class="text-muted">(@{{user.username}})</span>
+        </div>
+        <div>
+          <fa-icon [fixedWidth]="true" [icon]="faEnvelope"></fa-icon>
+          {{user.email}}
+        </div>
       </div>
     </div>
   </div>

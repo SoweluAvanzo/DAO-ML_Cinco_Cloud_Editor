@@ -7,12 +7,16 @@ import info.scce.cincocloud.core.rest.inputs.UpdateCurrentUserPasswordInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateUserRolesInput;
 import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
 import info.scce.cincocloud.core.rest.tos.AuthResponseTO;
+import info.scce.cincocloud.core.rest.tos.PageTO;
 import info.scce.cincocloud.core.rest.tos.UserTO;
 import info.scce.cincocloud.core.services.AuthService;
 import info.scce.cincocloud.core.services.UserService;
 import info.scce.cincocloud.db.UserDB;
+import info.scce.cincocloud.db.UserSystemRole;
 import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
+
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.security.PermitAll;
@@ -22,6 +26,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -60,23 +65,23 @@ public class UserController {
    */
   @GET
   @RolesAllowed("user")
-  public Response getUsers(@Context SecurityContext securityContext, @QueryParam("search") final String search) {
+  public Response getUsers(@Context SecurityContext securityContext,
+                           @QueryParam("search") final Optional<String> search,
+                           @QueryParam("page") @DefaultValue("0") final int index,
+                           @QueryParam("size") @DefaultValue("25") final int size,
+                           @QueryParam("role") final Optional<UserSystemRole> systemRole) {
     UserService.getCurrentUser(securityContext);
 
-    if (search != null) {
-      final var foundUsers = userService.getUserByUsernameOrEmail(search);
-      foundUsers.forEach(userDB -> System.out.println(userDB.name));
-      if (foundUsers.size() != 1) {
-        throw new RestException(Status.NOT_FOUND, "User not found.");
-      }
+    final PanacheQuery<UserDB> page = search.isPresent()
+      ? userService.searchUsers(index, size, search.get(), systemRole)
+      : userService.getUsers(index, size, systemRole);
 
-      return Response.ok(UserTO.fromEntity(foundUsers.get(0), objectCache)).build();
-    }
+    final var users = page.stream()
+            .map(user -> UserTO.fromEntity(user, objectCache))
+            .collect(Collectors.toList());
 
-    return Response.ok(userService.getUsers().stream()
-        .map(u -> UserTO.fromEntity(u, objectCache))
-        .collect(Collectors.toList()))
-        .build();
+    final var pageTO = new PageTO<>(users, index, size, page.pageCount(), page.hasPreviousPage(), page.hasNextPage());
+    return Response.ok(pageTO).build();
   }
 
   /**

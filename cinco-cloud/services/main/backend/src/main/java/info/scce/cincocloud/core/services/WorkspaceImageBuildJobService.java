@@ -8,8 +8,6 @@ import info.scce.cincocloud.mq.WorkspaceImageAbortBuildJobMessage;
 import info.scce.cincocloud.mq.WorkspaceMQProducer;
 import info.scce.cincocloud.rest.ObjectCache;
 import io.quarkus.panache.common.Page;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
