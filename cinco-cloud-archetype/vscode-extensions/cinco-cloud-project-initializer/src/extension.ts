@@ -48,10 +48,11 @@ function openProjectInitializationWebview(context: vscode.ExtensionContext) {
 					const workspaceRoot = workspaceFolder[0].uri.fsPath;
 					const mglFilePath = path.join(workspaceRoot, `${projectName.toLowerCase()}.mgl`);
 					const mglFileUri = vscode.Uri.file(mglFilePath);
-					const mslFilePath = path.join(workspaceRoot, `${projectName.toLowerCase()}.style`);
+					const mslFileName = `${projectName.toLowerCase()}.style`
+					const mslFilePath = path.join(workspaceRoot, mslFileName);
 					const mslFileUri = vscode.Uri.file(mslFilePath);
 					const utf8Encoder = new TextEncoder();
-					vscode.workspace.fs.writeFile(mglFileUri, utf8Encoder.encode(generateMGL(projectName)));
+					vscode.workspace.fs.writeFile(mglFileUri, utf8Encoder.encode(generateMGL(projectName, mslFileName)));
 					vscode.workspace.fs.writeFile(mslFileUri, utf8Encoder.encode(generateMSL()));
 					vscode.window.showInformationMessage('Project successfully initialized!');
 					panel.dispose();

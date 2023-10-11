@@ -1,5 +1,5 @@
-export function generateMGL(name: string): string {
-    return `stylePath "${name}.style"
+export function generateMGL(name: string, mslFileName: string): string {
+    return `stylePath "${mslFileName}"
 
 graphModel ${name}GraphModel {
     diagramExtension "${name.toLowerCase()}"
