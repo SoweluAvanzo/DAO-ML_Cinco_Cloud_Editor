@@ -23,7 +23,6 @@ export class EditProjectCardComponent implements OnInit {
 
   logo: File;
   logoReference: FileReference;
-  updateLogo = false;
 
   form = new UntypedFormGroup({
     name: new UntypedFormControl('', [Validators.required]),
@@ -43,7 +42,8 @@ export class EditProjectCardComponent implements OnInit {
 
   update(): void {
     const input: UpdateProjectInput = this.form.value;
-    if (this.updateLogo && this.logo != null) {
+
+    if (this.logo != null) {
       this.fileApi.create(this.logo).subscribe({
         next: (file: FileReference) => {
           input.logo = file;
@@ -53,27 +53,27 @@ export class EditProjectCardComponent implements OnInit {
         },
         error: err => {
           this.toastService.show({type: ToastType.DANGER, message: `The logo could not be uploaded.\n ${err.message}`});
-          console.log(err);
         }
       });
     } else {
+      input.logo = null;
       this.projectStore.updateProject(input);
     }
   }
 
   handleFileSelect(files: File[]): void {
-    this.logo = files[0];
-    this.updateLogo = true;
+    this.logo = files.length === 0 ? null : files[0];
   }
 
-  handleClear(): void {
+  removeLogo(e): void {
+    if (e) e.preventDefault();
     this.logo = null;
-    this.updateLogo = false;
+    this.logoReference = null;
   }
 
   get logoStyle(): any {
     return {
-      backgroundImage: `url(${this.logoReference.downloadPath})`,
+      backgroundImage: `url(${this.project.logo?.downloadPath})`,
       backgroundSize: 'cover',
       width: '100px',
       height: '100px'
