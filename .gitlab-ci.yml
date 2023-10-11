@@ -85,7 +85,7 @@ cache:
     name: gcr.io/k8s-skaffold/skaffold:v1.27.0
   script:
     - kubectl config use-context scce/cinco-cloud:k8s-ls-5-de
-    - skaffold deploy -p $PROFILE -n $NAMESPACE -t $TAG --status-check=true
+    - skaffold deploy -p $PROFILE -n $NAMESPACE -t $IMAGE_TAG --status-check=true
 
 .cinco-cloud-node-job-main:
   image: node:18
@@ -193,7 +193,7 @@ cinco-cloud-deploy-testing:
   variables:
     PROFILE: demo-k8s-ls5
     NAMESPACE: cinco-cloud-demo
-    TAG: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+    IMAGE_TAG: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
 
 deploy-testing-manual:
   rules:
