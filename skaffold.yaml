@@ -26,7 +26,7 @@ build:
         dockerfile: ./main/Dockerfile
       sync:
         infer:
-          - '**/*.{ts,html,scss,css,png,jpg,jpeg}'
+          - '**/*.{ts,html,scss,css,png,jpg,jpeg,java}'
     - image: registry.gitlab.com/scce/cinco-cloud/archetype
       context: .
       docker:
