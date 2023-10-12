@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core.services;
 
+import info.scce.cincocloud.core.rest.inputs.UpdateProjectInput;
 import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.OrganizationAccessRight;
 import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
@@ -9,6 +10,7 @@ import info.scce.cincocloud.db.ProjectType;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.db.WorkspaceImageDB;
+import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.sync.ProjectRegistry;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.panache.common.Page;
@@ -22,6 +24,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.Response;
 
 @ApplicationScoped
 @Transactional
@@ -29,6 +32,9 @@ public class ProjectService {
 
   @Inject
   ProjectRegistry projectRegistry;
+
+  @Inject
+  FileService fileService;
 
   @Inject
   OrganizationAccessRightVectorService orgAccessRightVectorService;
@@ -105,20 +111,31 @@ public class ProjectService {
     project.persist();
   }
 
-  public ProjectDB updateDescription(ProjectDB project, String description) {
-    project.description = description;
+  public ProjectDB updateProject(UserDB user, Long projectId, UpdateProjectInput input) {
+    final var project = getOrThrow(projectId);
 
-    return project;
-  }
+    if (!userCanEditProject(user, project)) {
+      throw new RestException(Response.Status.FORBIDDEN, "Insufficient access rights.");
+    }
 
-  public ProjectDB updateName(ProjectDB project, String name) {
-    project.name = name;
+    project.name = input.name;
+    project.description = input.description;
 
-    return project;
-  }
+    boolean logoAdded = project.logo == null && input.logoId != null;
+    boolean logoChanged = project.logo != null && input.logoId != null && !project.logo.id.equals(input.logoId);
+    boolean logoRemoved = project.logo != null && input.logoId == null;
 
-  public ProjectDB updateLogo(ProjectDB project, Optional<Long> logoIdOptional) {
-    project.logo = logoIdOptional.isPresent() ? BaseFileDB.findById(logoIdOptional.get()) : null;
+    if (logoChanged || logoAdded) {
+      if (project.logo != null) {
+        fileService.deleteFile(project.logo);
+      }
+
+      project.logo = (BaseFileDB) BaseFileDB.findByIdOptional(input.logoId)
+              .orElseThrow(() -> new RestException(Response.Status.NOT_FOUND, "Logo file not found."));
+    } else if (logoRemoved) {
+      fileService.deleteFile(project.logo);
+      project.logo = null;
+    }
 
     return project;
   }
@@ -210,6 +227,7 @@ public class ProjectService {
   }
 
   public boolean userCanEditProject(UserDB user, ProjectDB project) {
+    if (user.isAdmin()) return true;
     if (project.organization == null) {
       return project.owner.equals(user);
     } else {
@@ -219,6 +237,7 @@ public class ProjectService {
   }
 
   public boolean userCanDeleteProject(UserDB user, ProjectDB project) {
+    if (user.isAdmin()) return true;
     if (project.organization == null) {
       return project.owner.equals(user);
     } else {

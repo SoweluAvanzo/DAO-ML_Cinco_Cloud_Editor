@@ -9,6 +9,7 @@ import { User } from '../../models/user';
 import { Organization } from '../../models/organization';
 import { BooleanResponse } from "../../models/boolean-response";
 import { Page } from '../../models/page';
+import { UpdateProjectInput } from '../../tos/update-project-input';
 
 @Injectable({
   providedIn: 'root'
@@ -61,8 +62,8 @@ export class ProjectApiService extends BaseApiService {
     );
   }
 
-  public update(project: Project): Observable<Project> {
-    return this.http.put(`${this.apiUrl}/projects`, toJsog(project), this.defaultHttpOptions).pipe(
+  public update(project: Project, input: UpdateProjectInput): Observable<Project> {
+    return this.http.put(`${this.apiUrl}/projects/${project.id}`, input, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }

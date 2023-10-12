@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core.services;
 
+import info.scce.cincocloud.core.rest.inputs.UpdateOrganizationInput;
 import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.OrganizationDB;
@@ -11,17 +12,21 @@ import io.quarkus.panache.common.Page;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.Response;
 
 @ApplicationScoped
 @Transactional
 public class OrganizationService {
+
   @Inject
   ProjectService projectService;
+
+  @Inject
+  FileService fileService;
 
   @Inject
   OrganizationAccessRightVectorService organizationAccessRightVectorService;
@@ -61,20 +66,31 @@ public class OrganizationService {
     return org;
   }
 
-  public OrganizationDB updateName(OrganizationDB organization, String name) {
-    organization.name = name;
+  public OrganizationDB updateOrganization(UserDB user, Long organizationId, UpdateOrganizationInput input) {
+    final var organization = getOrThrow(organizationId);
 
-    return organization;
-  }
+    if (!userCanEditOrganization(user, organization)) {
+      throw new RestException(Response.Status.FORBIDDEN, "Insufficient access rights.");
+    }
 
-  public OrganizationDB updateDescription(OrganizationDB organization, String description) {
-    organization.description = description;
+    organization.name = input.name;
+    organization.description = input.description;
 
-    return organization;
-  }
+    boolean logoAdded = organization.logo == null && input.logoId != null;
+    boolean logoChanged = organization.logo != null && input.logoId != null && !organization.logo.id.equals(input.logoId);
+    boolean logoRemoved = organization.logo != null && input.logoId == null;
 
-  public OrganizationDB updateLogo(OrganizationDB organization, Optional<Long> logoIdOptional) {
-    organization.logo = logoIdOptional.isPresent() ? BaseFileDB.findById(logoIdOptional.get()) : null;
+    if (logoChanged || logoAdded) {
+      if (organization.logo != null) {
+        fileService.deleteFile(organization.logo);
+      }
+
+      organization.logo = (BaseFileDB) BaseFileDB.findByIdOptional(input.logoId)
+              .orElseThrow(() -> new RestException(Response.Status.NOT_FOUND, "Logo file not found."));
+    } else if (logoRemoved) {
+      fileService.deleteFile(organization.logo);
+      organization.logo = null;
+    }
 
     return organization;
   }
@@ -163,7 +179,7 @@ public class OrganizationService {
   }
 
   public boolean userCanEditOrganization(UserDB subject, OrganizationDB organization) {
-    return organization.owners.contains(subject);
+    return subject.isAdmin() || organization.owners.contains(subject);
   }
 
   private void deleteAllProjects(OrganizationDB org) {

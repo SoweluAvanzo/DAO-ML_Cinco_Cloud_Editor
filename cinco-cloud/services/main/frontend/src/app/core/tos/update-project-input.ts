@@ -1,4 +1,4 @@
-export interface UpdateOrganizationInput {
+export interface UpdateProjectInput {
   name: string;
   description?: string;
   logoId?: number;

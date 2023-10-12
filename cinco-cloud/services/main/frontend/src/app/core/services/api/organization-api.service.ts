@@ -8,6 +8,7 @@ import { fromJsog, fromJsogList, toJsog } from '../../utils/jsog-utils';
 import { BooleanResponse } from "../../models/boolean-response";
 import { Project } from "../../models/project";
 import { Page } from '../../models/page';
+import { UpdateOrganizationInput } from '../../models/forms/update-organization-input';
 
 @Injectable({
   providedIn: 'root'
@@ -47,8 +48,8 @@ export class OrganizationApiService extends BaseApiService {
     );
   }
 
-  public update(organization: Organization): Observable<Organization> {
-    return this.http.put(`${this.apiUrl}/organizations/${organization.id}`, toJsog(organization), this.defaultHttpOptions).pipe(
+  public update(organization: Organization, input: UpdateOrganizationInput): Observable<Organization> {
+    return this.http.put(`${this.apiUrl}/organizations/${organization.id}`, input, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }

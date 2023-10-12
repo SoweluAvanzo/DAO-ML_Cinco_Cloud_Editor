@@ -8,14 +8,13 @@ import {
   OrganizationAccessRightVectorApiService
 } from '../../../core/services/api/organization-access-right-vector-api.service';
 import { OrganizationAccessRightVector } from '../../../core/models/organization-access-right-vector';
-import { UpdateProjectInput } from '../../../core/models/forms/update-project-input';
-import { fromJsog, toJsog } from '../../../core/utils/jsog-utils';
 import { Router } from '@angular/router';
 import { AppStoreService } from '../../../core/services/stores/app-store.service';
 import { OrganizationAccessRight } from '../../../core/enums/organization-access-right';
 import { ModalUtilsService } from '../../../core/services/utils/modal-utils.service';
 import { ToastService, ToastType } from '../../../core/services/toast.service';
 import { Organization } from '../../../core/models/organization';
+import { UpdateProjectInput } from '../../../core/tos/update-project-input';
 
 @Injectable()
 export class ProjectStoreService {
@@ -55,11 +54,7 @@ export class ProjectStoreService {
   }
 
   updateProject(input: UpdateProjectInput): void {
-    const copy: Project = fromJsog(toJsog(this.project.value), Project);
-    copy.name = input.name;
-    copy.description = input.description;
-    copy.logo = input.logo;
-    this.projectApi.update(copy).subscribe({
+    this.projectApi.update(this.project.value, input).subscribe({
       next: updatedProject => {
         this.toastService.show({
           type: ToastType.SUCCESS,

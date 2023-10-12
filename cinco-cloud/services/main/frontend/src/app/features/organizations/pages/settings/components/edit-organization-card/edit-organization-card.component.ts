@@ -2,7 +2,6 @@ import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Organization } from '../../../../../../core/models/organization';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { OrganizationStoreService } from '../../../../services/organization-store.service';
-import { UpdateOrganizationInput } from '../../../../../../core/models/forms/update-organization-input';
 import { FileApiService } from '../../../../../../core/services/api/file-api.service';
 import { ToastService, ToastType } from '../../../../../../core/services/toast.service';
 import { FileReference } from '../../../../../../core/models/file-reference';
@@ -10,8 +9,7 @@ import { FileInputComponent } from '../../../../../../core/components/file-input
 
 @Component({
   selector: 'cc-edit-organization-card',
-  templateUrl: './edit-organization-card.component.html',
-  styleUrls: ['./edit-organization-card.component.scss']
+  templateUrl: './edit-organization-card.component.html'
 })
 export class EditOrganizationCardComponent implements OnInit {
 
@@ -23,9 +21,10 @@ export class EditOrganizationCardComponent implements OnInit {
 
   logo: File;
   logoReference: FileReference;
+  logoChanged = false;
 
   form = new UntypedFormGroup({
-    name: new UntypedFormControl('', [Validators.required]),
+    name: new UntypedFormControl('', [Validators.required, Validators.minLength(1)]),
     description: new UntypedFormControl('')
   });
 
@@ -41,13 +40,16 @@ export class EditOrganizationCardComponent implements OnInit {
   }
 
   update(): void {
-    const input: UpdateOrganizationInput = this.form.value;
+    const formValue = this.form.value;
 
     if (this.logo != null) {
       this.fileApi.create(this.logo).subscribe({
         next: (file: FileReference) => {
-          input.logo = file;
-          this.organizationStore.updateOrganization(input);
+          this.organizationStore.updateOrganization({
+            logoId: file.id,
+            name: formValue.name,
+            description: formValue.description
+          });
           this.logoReference = file;
           this.input.reset();
         },
@@ -56,19 +58,24 @@ export class EditOrganizationCardComponent implements OnInit {
         }
       });
     } else {
-      input.logo = null;
-      this.organizationStore.updateOrganization(input);
+      this.organizationStore.updateOrganization({
+        logoId: this.logoChanged ? this.logoReference?.id : this.organization.logo?.id,
+        name: formValue.name,
+        description: formValue.description
+      });
     }
   }
 
   handleFileSelect(files: File[]): void {
     this.logo = files.length === 0 ? null : files[0];
+    this.logoChanged = true;
   }
 
   removeLogo(e): void {
     if (e) e.preventDefault();
     this.logo = null;
     this.logoReference = null;
+    this.logoChanged = true;
   }
 
   get logoStyle(): any {
