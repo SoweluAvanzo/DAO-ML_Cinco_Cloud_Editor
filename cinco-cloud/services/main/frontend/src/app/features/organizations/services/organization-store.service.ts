@@ -158,11 +158,8 @@ export class OrganizationStoreService {
   }
 
   updateOrganization(input: UpdateOrganizationInput): void {
-    const copy: Organization = fromJsog(toJsog(this.organization.value), Organization)
-    copy.name = input.name.trim();
-    copy.description = input.description.trim();
-    copy.logo = input.logo;
-    this.organizationApi.update(copy).subscribe({
+    const organization = this.organization.value;
+    this.organizationApi.update(organization, input).subscribe({
       next: updatedOrganization => {
         this.toastService.show({ type: ToastType.SUCCESS, message: `Organization ${updatedOrganization.name} has been updated.` });
         this.organization.next(updatedOrganization)
@@ -170,7 +167,7 @@ export class OrganizationStoreService {
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
-          message: `Organization ${copy.name} could not be updated. ${res.error.message}`
+          message: `Organization ${organization.name} could not be updated. ${res.error.message}`
         });
       }
     });

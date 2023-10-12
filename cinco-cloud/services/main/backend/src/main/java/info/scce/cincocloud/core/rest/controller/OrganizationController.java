@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core.rest.controller;
 
+import info.scce.cincocloud.core.rest.inputs.UpdateOrganizationInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateOrganizationUsersInput;
 import info.scce.cincocloud.core.rest.tos.BooleanTO;
 import info.scce.cincocloud.core.rest.tos.OrganizationTO;
@@ -228,24 +229,11 @@ public class OrganizationController {
   @Path("/{orgId}")
   @RolesAllowed("user")
   public Response update(@Context SecurityContext securityContext,
-      @PathParam("orgId") final long orgId, OrganizationTO organizationTO) {
+                         @PathParam("orgId") final long orgId,
+                         @Valid UpdateOrganizationInput input) {
     final var subject = UserService.getCurrentUser(securityContext);
-    final OrganizationDB organization = organizationService.getOrThrow(orgId);
-
-    if (!organizationService.userCanEditOrganization(subject, organization)) {
-      throw new RestException(Status.FORBIDDEN, "Insufficient access rights.");
-    }
-
-    if ((organization.id != organizationTO.getId()) || organizationTO.getname().trim().equals("")) {
-      throw new RestException(Response.Status.BAD_REQUEST, "Could not update organization.\n"
-              + "ID or name does not match the database");
-    }
-
-    organizationService.updateName(organization, organizationTO.getname());
-    organizationService.updateDescription(organization, organizationTO.getdescription());
-    organizationService.updateLogo(organization, Optional.ofNullable(organizationTO.getlogo() != null ? organizationTO.getlogo().getId() : null));
-
-    return Response.ok(OrganizationTO.fromEntity(organization, objectCache)).build();
+    final var updatedOrganization = organizationService.updateOrganization(subject, orgId, input);
+    return Response.ok(OrganizationTO.fromEntity(updatedOrganization, objectCache)).build();
   }
 
   @DELETE

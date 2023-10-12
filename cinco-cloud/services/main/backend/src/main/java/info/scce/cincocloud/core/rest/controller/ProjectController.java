@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core.rest.controller;
 
+import info.scce.cincocloud.core.rest.inputs.UpdateProjectInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateProjectTransferToOrganizationInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateProjectTransferToUserInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateProjectUsersInput;
@@ -150,21 +151,16 @@ public class ProjectController {
   }
 
   @PUT
+  @Path("/{projectId}")
   @RolesAllowed("user")
   public Response updateProject(
-      @Context SecurityContext securityContext, ProjectTO updatedProjectTO) {
+          @Context SecurityContext securityContext,
+          @PathParam("projectId") final long projectId,
+          @Valid UpdateProjectInput input
+  ) {
     final var subject = UserService.getCurrentUser(securityContext);
-    final ProjectDB project = projectService.getOrThrow(updatedProjectTO.getId());
-
-    if (!projectService.userCanEditProject(subject, project)) {
-      throw new RestException(Status.FORBIDDEN, "Insufficient access rights.");
-    }
-
-    projectService.updateDescription(project, updatedProjectTO.getdescription());
-    projectService.updateName(project, updatedProjectTO.getname());
-    projectService.updateLogo(project, Optional.ofNullable(updatedProjectTO.getLogo() != null ? updatedProjectTO.getLogo().getId() : null));
-
-    return Response.ok(ProjectTO.fromEntity(project, objectCache)).build();
+    final var updatedProject = projectService.updateProject(subject, projectId, input);
+    return Response.ok(ProjectTO.fromEntity(updatedProject, objectCache)).build();
   }
 
   @GET

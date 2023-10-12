@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import { ProjectStoreService } from '../../services/project-store.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ProjectApiService } from '../../../../core/services/api/project-api.service';
@@ -23,7 +23,7 @@ import { Router } from '@angular/router';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent implements OnInit {
+export class EditorComponent implements OnInit, OnDestroy {
 
   @ViewChild('editorFrame')
   editorFrame: ElementRef;
@@ -35,6 +35,7 @@ export class EditorComponent implements OnInit {
 
   redeploy: boolean = false;
   showEditor: boolean = false;
+  interval: number = -1;
 
   constructor(private projectStore: ProjectStoreService,
               private authApi: AuthApiService,
@@ -98,6 +99,10 @@ export class EditorComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    window.clearInterval(this.interval);
+  }
+
   deploy(): void {
     this.projectApi.deploy(this.project, this.redeploy).subscribe({
       next: deployment => {
@@ -118,7 +123,6 @@ export class EditorComponent implements OnInit {
 
   private waitForTheiaToBeReady() {
     if (this.deployment.status === 'READY') {
-      let interval = -1;
 
       const f = () => {
         if (!this.showEditor && this.editorFrame != null) {
@@ -129,12 +133,12 @@ export class EditorComponent implements OnInit {
             this.editorFrame.nativeElement.contentWindow.location.reload();
           }
         } else {
-          window.clearInterval(interval);
+          window.clearInterval(this.interval);
         }
       }
 
       f();
-      interval = setInterval(f, 1000);
+      this.interval = setInterval(f, 1000);
     }
   }
 }
