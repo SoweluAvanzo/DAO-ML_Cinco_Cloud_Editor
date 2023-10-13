@@ -25,3 +25,5 @@ echo ---------------------------------------------------------------------------
 git config --local core.sshCommand "ssh -i '$workspace/.git/ssh/id_rsa'"
 git remote add origin "$remote"
 echo Done!
+echo After you configured the deploy key, run \`git push -u origin main\` and confirm the SSH fingerprint. From then on, you can use the Theia Git UI.
+echo Note: When the workspace pod gets destroyed, the list of well-known SSH hosts get lost, which will result in an authentication failure during synchronization. In that case, run \`git push\` on the terminal and confirm the SSH fingerprint.
