@@ -89,7 +89,7 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
     }
 
     get fileExtensions(): string[] {
-        this._fileExtensions = getDiagramConfiguration().fileExtensions;
+        this._fileExtensions = getDiagramConfiguration().fileExtensions.map(e => e.startsWith('.') ? e : '.' + e);
         return this._fileExtensions;
     }
 
