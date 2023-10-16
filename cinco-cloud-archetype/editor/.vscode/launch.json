@@ -16,6 +16,7 @@
       "env": {
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
       "args": [
@@ -57,6 +58,7 @@
       "env": {
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
       "args": [
@@ -100,7 +102,7 @@
       "env": {
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "MODEL_EDITOR",
+        "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
       "args": [
@@ -145,6 +147,7 @@
       "env": {
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
       "args": [
@@ -187,7 +190,7 @@
       "env": {
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "MODEL_EDITOR",
+        "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
       "args": [
@@ -227,6 +230,7 @@
       "env": {
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
       "args": [
@@ -255,6 +259,7 @@
       "env": {
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+        "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
       "args": [
@@ -284,7 +289,7 @@
       "env": {
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "MODEL_EDITOR",
+        "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
       "args": [

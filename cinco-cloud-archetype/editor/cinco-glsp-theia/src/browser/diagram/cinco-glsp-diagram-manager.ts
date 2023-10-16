@@ -13,22 +13,50 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { META_FILE_TYPES } from '@cinco-glsp/cinco-glsp-common/lib/meta-resource';
-import { CompositionSpecification, MetaSpecification } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
-import { DiagramWidget, DiagramWidgetOptions, GLSPDiagramManager } from '@eclipse-glsp/theia-integration';
+import { DiagramWidget, DiagramWidgetOptions, GLSPDiagramContextKeyService, GLSPDiagramManager } from '@eclipse-glsp/theia-integration';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
 import { CommandService } from '@theia/core';
 import { inject, injectable } from 'inversify';
 
 import { getDiagramConfiguration } from '../../common/cinco-language';
-import { FileProviderResponse } from '../theia-registration/file-provider';
-import { ARGS_PROVIDER_ID } from '@cinco-glsp/cinco-glsp-common';
-import * as path from 'path';
 import { CincoGLSPDiagramWidget } from './cinco-glsp-diagram-widget';
 import { configureServerActions } from '@eclipse-glsp/client';
+import { WidgetOpenerOptions } from '@theia/core/lib/browser';
+import { ContextKey } from '@theia/core/lib/browser/context-key-service';
+export class CincoGLSPDiagramContextKeyService extends GLSPDiagramContextKeyService {
+    protected _cincoDiagramExtension: ContextKey<string>;
+    get cincoDiagramExtension(): ContextKey<string> {
+        return this._cincoDiagramExtension;
+    }
+
+    protected _cincoGraphModelType: ContextKey<string>;
+    get cincoGraphModelType(): ContextKey<string> {
+        return this._cincoGraphModelType;
+    }
+
+    protected override registerContextKeys(): void {
+        super.registerContextKeys();
+        this._cincoDiagramExtension = this.contextKeyService.createKey<string>('cincoDiagramExtension', undefined);
+        this._cincoGraphModelType = this.contextKeyService.createKey<string>('cincoGraphModelType', undefined);
+    }
+
+    override doUpdateStaticContextKeys(glspDiagramWidget: CincoGLSPDiagramWidget): void {
+        super.doUpdateStaticContextKeys(glspDiagramWidget);
+        this.cincoDiagramExtension.set(glspDiagramWidget.cincoDiagramExtension);
+        this.cincoGraphModelType.set(glspDiagramWidget.cincoGraphModelType);
+    }
+
+    protected override doResetStaticContextKeys(): void {
+        super.doResetStaticContextKeys();
+        this.cincoDiagramExtension.reset();
+        this.cincoGraphModelType.reset();
+    }
+}
 
 @injectable()
 export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
+    @inject(GLSPDiagramContextKeyService)
+    protected override readonly contextKeyService: CincoGLSPDiagramContextKeyService;
     @inject(CommandService) protected commandService: CommandService;
     private _diagramType?: string;
     private _label: string;
@@ -50,30 +78,10 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
         this.initialize();
     }
 
-    public loadUpdates(): void {
-        this.commandService.executeCommand(ARGS_PROVIDER_ID).then((server_args: any) => {
-            const rootFolder = path.resolve(server_args.rootFolder);
-            const languageFolder = path.join(rootFolder, server_args.languagePath);
-            (
-                this.commandService.executeCommand('fileProviderHandler', {
-                    directories: [`${languageFolder}`],
-                    readFiles: true,
-                    filter: META_FILE_TYPES // only read supported files
-                }) as Promise<FileProviderResponse>
-            ).then((response: FileProviderResponse) => {
-                // merge all meta-specification files
-                response.items.forEach(item => {
-                    try {
-                        const metaSpecification = JSON.parse(item.content ?? '{}');
-                        if (metaSpecification && CompositionSpecification.is(metaSpecification)) {
-                            MetaSpecification.merge(metaSpecification);
-                        }
-                    } catch (err) {
-                        console.error(err);
-                    }
-                });
-            });
-        });
+    override async doOpen(widget: CincoGLSPDiagramWidget, options?: WidgetOpenerOptions): Promise<void> {
+        const fileUriString = widget.uri.toString(true);
+        widget.cincoDiagramExtension = fileUriString.substring(fileUriString.lastIndexOf('.') + 1);
+        super.doOpen(widget, options);
     }
 
     get contributionId(): string {
@@ -118,7 +126,9 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
                 this.editorPreferences,
                 this.storage,
                 this.theiaSelectionService,
-                this.diagramConnector
+                this.diagramConnector,
+                this.shell,
+                this.contextKeyService
             );
             widget.listenToFocusState(this.shell);
             return widget;

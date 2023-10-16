@@ -13,32 +13,30 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { IActionDispatcher, SModelElementRegistration, SModelRegistry, TYPES, Tool, ViewRegistry } from '@eclipse-glsp/client';
+import { IActionDispatcher, SModelRegistry, TYPES, Tool, ViewRegistry } from '@eclipse-glsp/client';
 import { GLSPToolManager } from '@eclipse-glsp/client/lib/base/tool-manager/glsp-tool-manager';
 import { CommandService } from '@theia/core';
-import { inject, injectable, multiInject, optional } from 'inversify';
-import { GraphModelProvider } from '../model/graph-model-provider';
+import { inject, injectable, optional } from 'inversify';
 
 @injectable()
 export class CustomToolManager extends GLSPToolManager {
     @inject(CommandService) @optional() commandService: CommandService;
-    @inject(TYPES.SModelRegistry) registry: SModelRegistry;
-    @inject(TYPES.ViewRegistry) viewRegistry: ViewRegistry;
     @inject(TYPES.IActionDispatcherProvider) protected actionDispatcherProvider: () => Promise<IActionDispatcher>;
-    @inject(GraphModelProvider) protected graphModelProvider: GraphModelProvider;
-    @multiInject(TYPES.SModelElementRegistration) @optional() registrations: SModelElementRegistration[];
+
+    // only those that are start
+    @inject(TYPES.SModelRegistry)
+    private readonly registry: SModelRegistry;
+    @inject(TYPES.ViewRegistry)
+    private readonly viewRegistry: ViewRegistry;
 
     protected deactivatedTools: string[] = ['glsp.change-bounds-tool', 'glsp.edge-edit-tool']; // put deactivated tool-ids here
 
-    static callbacks: ((
-        registry: SModelRegistry,
-        viewRegistry: ViewRegistry,
-        commandService: CommandService,
-        actionDispatcher: IActionDispatcher,
-        graphModelProvider?: GraphModelProvider
-    ) => void)[] = [];
+    callbacks: ((actionDispatcher: IActionDispatcher, registry: SModelRegistry, viewRegistry: ViewRegistry) => void)[] = [];
+
+    static oldRegistry: SModelRegistry;
 
     override initialize(): void {
+        CustomToolManager.oldRegistry = this.registry;
         this.registerTools(...this.tools);
         this.tools = this.filterDeactivated(this.tools);
         this.defaultTools = this.filterDeactivated(this.defaultTools);
@@ -48,12 +46,13 @@ export class CustomToolManager extends GLSPToolManager {
             editorContext.register(this);
             this.editorContext = editorContext;
         });
-        // register callbacks
+
+        // callbacks
         this.actionDispatcherProvider().then(actionDispatcher => {
-            for (const callback of CustomToolManager.callbacks) {
-                callback(this.registry, this.viewRegistry, this.commandService, actionDispatcher, this.graphModelProvider);
+            for (const callback of this.callbacks) {
+                callback(actionDispatcher, this.registry, this.viewRegistry);
             }
-            CustomToolManager.callbacks = [];
+            this.callbacks = [];
         });
     }
 
@@ -65,15 +64,7 @@ export class CustomToolManager extends GLSPToolManager {
      * register a callback that is called, after the meta-specification is loaded.
      * @param callback
      */
-    static registerCallBack(
-        callback: (
-            registry: SModelRegistry,
-            viewRegistry: ViewRegistry,
-            commandService: CommandService,
-            actionDispatcher: IActionDispatcher,
-            graphModelProvider?: GraphModelProvider
-        ) => void
-    ): void {
-        CustomToolManager.callbacks.push(callback);
+    registerCallBack(callback: (actionDispatcher: IActionDispatcher, registry: SModelRegistry, viewRegistry: ViewRegistry) => void): void {
+        this.callbacks.push(callback);
     }
 }

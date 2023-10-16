@@ -13,11 +13,14 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+
+import '../../css/cinco.css';
 import { TYPES } from '@eclipse-glsp/client';
 import {
     ContainerContext,
     DiagramConfiguration,
     GLSPClientContribution,
+    GLSPDiagramContextKeyService,
     GLSPDiagramManager,
     GLSPTheiaFrontendModule,
     registerDiagramManager
@@ -27,6 +30,7 @@ import { CommandContribution, MenuContribution, SelectionService } from '@theia/
 import {
     bindViewContribution,
     FrontendApplicationContribution,
+    KeybindingContribution,
     WebSocketConnectionProvider,
     WidgetFactory
 } from '@theia/core/lib/browser';
@@ -34,13 +38,13 @@ import {
 import { getDiagramConfiguration, LanguageUpdateCommand } from '../common/cinco-language';
 import { FILESYSTEM_UTIL_ENDPOINT, FilesystemUtilClient, FilesystemUtilServer } from '../common/file-system-util-protocol';
 import { CincoDiagramConfiguration } from './diagram/cinco-diagram-configuration';
-import { CincoDiagramInitiator } from './diagram/cinco-diagram-initiator';
-import { CincoGLSPDiagramMananger } from './diagram/cinco-glsp-diagram-manager';
+import { CincoGLSPDiagramContextKeyService, CincoGLSPDiagramMananger } from './diagram/cinco-glsp-diagram-manager';
 import { FileSystemUtilService } from './file-system-util-contribution';
 import {
     CreateGenerateGraphDiagramCommandContribution,
     CreateGeneratorTemplateCommandContribution,
     GenerateGraphDiagramCommandContribution,
+    GenerateGraphDiagramKeybindingContribution,
     GenerateGraphDiagramMenuContribution
 } from './generator/generator-contribution';
 import { GitConfigurationContribution } from './git/git-configuration-contribution';
@@ -64,6 +68,7 @@ import { ValidationModelWrapperCommandContribution } from './validation-widget/v
 import { CincoGLSPClientContribution } from './cinco-glsp-client-contribution';
 import { GLSPServerUtilsProvider } from './glsp-server-utils-provider';
 import { GLSP_SERVER_UTIL_ENDPOINT, GLSPServerUtilClient, GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
+import { CincoEditorButtonConfigurator } from './menu/cinco-editor-button-configurator';
 
 export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
     protected override get diagramLanguage(): GLSPDiagramLanguage {
@@ -90,6 +95,7 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         context.bind(CommandContribution).to(GenerateGraphDiagramCommandContribution);
         context.bind(CommandContribution).to(CreateGenerateGraphDiagramCommandContribution);
         context.bind(CommandContribution).to(CreateGeneratorTemplateCommandContribution);
+        context.bind(KeybindingContribution).to(GenerateGraphDiagramKeybindingContribution);
         context.bind(MenuContribution).to(GenerateGraphDiagramMenuContribution);
 
         // provision of fileSystemUtils from backend to frontend
@@ -128,11 +134,13 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         context.bind(CommandContribution).to(ValidationModelWrapperCommandContribution);
         context.bind(ValidationModelDataHandler).toSelf().inSingletonScope();
         context.bind(CommandContribution).to(ValidationModelUpdateCommandContribution);
+        context.bind(FrontendApplicationContribution).to(CincoEditorButtonConfigurator);
 
         // bind new DiagramMananger (e.g. for file/diagramExtensions)
         context.bind(CincoGLSPDiagramMananger).toSelf().inSingletonScope();
         context.bind(GLSPDiagramManager).to(CincoGLSPDiagramMananger);
-        context.bind(FrontendApplicationContribution).to(CincoDiagramInitiator).inSingletonScope();
+        context.unbind(GLSPDiagramContextKeyService);
+        context.bind(GLSPDiagramContextKeyService).to(CincoGLSPDiagramContextKeyService);
 
         // bind update mechanism for meta-specification changes
         context.bind(CommandContribution).to(LanguageUpdateCommand);

@@ -18,6 +18,7 @@ import {
     GeneratorResponseAction,
     MetaSpecificationResponseAction,
     PropertyViewResponseAction,
+    RESOURCE_TYPES,
     TypedServerMessageAction,
     ValidationModelResponseAction
 } from '@cinco-glsp/cinco-glsp-common';
@@ -27,12 +28,15 @@ import {
     ConsoleLogger,
     DeleteElementContextMenuItemProvider,
     EdgeEditTool,
+    IActionDispatcher,
     LogLevel,
+    SModelRegistry,
     SetDirtyStateAction,
     SetTypeHintsAction,
     TYPES,
     ToolPalette,
     TypeHintProvider,
+    ViewRegistry,
     configureActionHandler,
     configureCommand,
     configureDefaultModelElements,
@@ -57,11 +61,12 @@ import { RoutingPointAwareEdgeEditTool } from './features/routingpoint-aware-edg
 import { ServerMessageHandler } from './features/server-message-handler';
 import { ValidationModelResponseActionHandler, ValidationTool } from './features/validation-tool';
 import { DynamicImportLoader } from './meta/dynamic-import-tool';
-import { MetaModelSideLoader } from './meta/meta-model-sideloader';
+import { reregisterBindings } from './meta/meta-model-glsp-registration-handler';
 import { MetaSpecificationResponseHandler } from './meta/meta-specification-response-handler';
 import { WorkspaceFileService } from './utils/workspace-file-service';
 import { GraphModelProvider } from './model/graph-model-provider';
 import { MetaSpecificationTheiaCommand } from './meta/meta-specification-theia-command';
+import { MetaSpecificationLoader } from './meta/meta-specification-loader';
 
 export function createCincoDiagramContainer(widgetId: string): Container {
     const container = createClientContainer(cincoDiagramModule);
@@ -150,9 +155,21 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     rebind(GLSPToolManager)
         .to(CustomToolManager)
         .inSingletonScope()
-        .onActivation((ctx: any, injectable: any) => {
+        .onActivation((ctx: any, injectable: GLSPToolManager) => {
             // register modelelements (after the meta-specification is loaded)
-            CustomToolManager.registerCallBack(MetaModelSideLoader.createPostRegistrationCallback(context, ctx));
+            (injectable as CustomToolManager).registerCallBack(
+                // build callback to register modelelements dynamically.
+                (actionDispatcher: IActionDispatcher, registry: SModelRegistry, viewRegistry: ViewRegistry): void => {
+                    // load frontend language-files
+                    DynamicImportLoader.load(RESOURCE_TYPES, actionDispatcher);
+                    // set registration callback, that is called whenever a new meta-specification is received
+                    MetaSpecificationResponseHandler.addRegistrationCallback(() => {
+                        reregisterBindings(context, ctx, registry, viewRegistry);
+                    });
+                    // load meta-specification
+                    MetaSpecificationLoader.load(actionDispatcher);
+                }
+            );
             return injectable;
         });
 });
