@@ -47,6 +47,7 @@ export class DynamicImportLoader implements IActionHandler {
             return file !== undefined && isSupported;
         });
         toImport.forEach(file => {
+            // TODO: set languageFolder
             import(`../../../languages/${'' + file.path}`);
         });
     }

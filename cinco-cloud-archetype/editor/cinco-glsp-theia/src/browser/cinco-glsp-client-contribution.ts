@@ -16,11 +16,19 @@
 import { BaseGLSPClientContribution } from '@eclipse-glsp/theia-integration/lib/browser';
 import { EnvVariablesServer } from '@theia/core/lib/common/env-variables';
 import { inject, injectable } from '@theia/core/shared/inversify';
-import { getDiagramConfiguration } from '../common/cinco-language';
+import { getDiagramConfiguration, updateMetaSpecification } from '../common/cinco-language';
 import {
-    DIAGRAM_TYPE, MetaSpecification, MetaSpecificationReloadAction, MetaSpecificationReloadCommand, MetaSpecificationResponseAction
+    DIAGRAM_TYPE,
+    EDITOR_BUTTON_REGISTRATION_COMMAND,
+    EDITOR_BUTTON_UNREGISTRATION_COMMAND,
+    GenerateGraphDiagramCommand,
+    MetaSpecificationReloadAction,
+    MetaSpecificationReloadCommand,
+    MetaSpecificationResponseAction,
+    getGraphTypes,
+    hasGeneratorAction
 } from '@cinco-glsp/cinco-glsp-common';
-import { CommandHandler, CommandRegistry } from '@theia/core';
+import { CommandHandler, CommandRegistry, CommandService } from '@theia/core';
 import { Action, GLSPClient, ActionMessage } from '@eclipse-glsp/protocol';
 
 @injectable()
@@ -41,73 +49,95 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     initializeSystemSession(id: string): void {
         this.ready.then(client => {
             this.initialize(client).then(_v => {
-                client.initializeClientSession({
-                    clientSessionId: id,
-                    diagramType: DIAGRAM_TYPE
-                }).then(_v2 => {
-                    this.commandRegistry.registerCommand(
-                        { id: MetaSpecificationReloadCommand.ID, label: 'Reload Meta-Specification', category: 'Cinco Cloud' },
-                        new MetaSpecificationReloadCommandHandler(client, (m: ActionMessage) => new Promise<void>(resolve => {
-                                let counter = 0;
-                                this.diagramManagerProviders.forEach(diagramManagerProvider => {
-                                    diagramManagerProvider().then(diagramManager => {
-                                        diagramManager.diagramConnector?.onMessageReceived(m);
-                                        counter += 1;
-                                        if(this.diagramManagerProviders.length <= counter) {
-                                            resolve();
-                                        }
-                                    });
-                                });
-                            }))
-                    );
-                });
+                client
+                    .initializeClientSession({
+                        clientSessionId: id,
+                        diagramType: DIAGRAM_TYPE
+                    })
+                    .then(_v2 => {
+                        this.commandRegistry.registerCommand(
+                            { id: MetaSpecificationReloadCommand.ID, label: 'Reload Meta-Specification', category: 'Cinco Cloud' },
+                            new MetaSpecificationReloadCommandHandler(
+                                client,
+                                this.commandRegistry,
+                                // this callback will overwrite the glsp-clients onActionMessage...
+                                (m: ActionMessage) =>
+                                    new Promise<void>(resolve => {
+                                        let counter = 0;
+                                        this.diagramManagerProviders.forEach(diagramManagerProvider => {
+                                            diagramManagerProvider().then(diagramManager => {
+                                                // ...that is why we need to manually direct the received messages to
+                                                // the other diagramManager, that prior handled the message
+                                                diagramManager.diagramConnector?.onMessageReceived(m);
+                                                counter += 1;
+                                                if (this.diagramManagerProviders.length <= counter) {
+                                                    resolve();
+                                                }
+                                            });
+                                        });
+                                    })
+                            )
+                        );
+                        this.commandRegistry.executeCommand(MetaSpecificationReloadCommand.ID);
+                    });
             });
         });
     }
 }
 
 class MetaSpecificationReloadCommandHandler implements CommandHandler {
-    protected readonly client: GLSPClient;
+    // This handling process overwrites the glsp-clients actionMessage callback
+    // This callback should be used is used to propagate the actionMessage again to the glsp package
     protected readonly callback: (m: ActionMessage) => Promise<void>;
+    protected readonly client: GLSPClient;
+    protected readonly commandService: CommandService;
 
-    constructor(client: GLSPClient, callback: (m: ActionMessage) => Promise<void>) {
+    constructor(client: GLSPClient, commandService: CommandService, callback: (m: ActionMessage) => Promise<void>) {
         this.client = client;
         this.callback = callback;
+        this.commandService = commandService;
     }
 
-    execute(...args: any[]): void {
-        // request & reload metas pecification
-        this.sendGLSPSystemAction(
-            this.client,
-            MetaSpecificationReloadAction.create([], true),
-            response => {
-                this.callback(response).then(_ => {
-                    // update metaSpecification
-                    if(response.action && response.action.kind === MetaSpecificationResponseAction.KIND) {
-                        const metaSpecificationResponseAction = response.action as MetaSpecificationResponseAction;
-                        const metaSpecification = metaSpecificationResponseAction.metaSpecification;
-                        // MetaSpecification.clear();
-                        MetaSpecification.clear();
-                        MetaSpecification.merge(metaSpecification);
-                        // update palette after meta-specification is updated
-                        this.sendGLSPSystemAction(this.client, { kind: 'enableToolPalette'});
-                    }
-                });
-            }
-        );
+    execute(): void {
+        // request & reload metaspecification
+        this.sendGLSPSystemAction(this.client, MetaSpecificationReloadAction.create([], true), (response: ActionMessage) => {
+            this.callback(response).then(_ => {
+                // handle only MetaSpecificationResponseAction
+                if (response.action && response.action.kind === MetaSpecificationResponseAction.KIND) {
+                    const metaSpecificationResponseAction = response.action as MetaSpecificationResponseAction;
+                    const metaSpecification = metaSpecificationResponseAction.metaSpecification;
+                    updateMetaSpecification(metaSpecification);
+                    // update editor buttons
+                    this.updateEditorButtons();
+                }
+            });
+        });
     }
 
-    sendGLSPSystemAction(
-        client: GLSPClient, action: Action, callback?: (e: any) => void
-    ): void {
+    sendGLSPSystemAction(client: GLSPClient, action: Action, callback?: (e: any) => void): void {
         client.sendActionMessage({
             clientId: CincoGLSPClientContribution.SYSTEM_ID,
             action: action
         });
-        if(callback) {
+        if (callback) {
             client.onActionMessage(response => {
                 callback(response);
             });
         }
+    }
+
+    updateEditorButtons(): void {
+        /** Graph Generate button */
+        const generateButtonId = GenerateGraphDiagramCommand.id;
+        const generatableTypes = getGraphTypes(e => hasGeneratorAction(e.elementTypeId));
+        const buttonCondition = generatableTypes.map(t => `cincoGraphModelType == '${t.elementTypeId}'`).join(' && ');
+        this.commandService.executeCommand(EDITOR_BUTTON_UNREGISTRATION_COMMAND.id, [generateButtonId]);
+        this.commandService.executeCommand(EDITOR_BUTTON_REGISTRATION_COMMAND.id, [
+            {
+                id: generateButtonId,
+                command: GenerateGraphDiagramCommand.id,
+                when: buttonCondition
+            }
+        ]);
     }
 }

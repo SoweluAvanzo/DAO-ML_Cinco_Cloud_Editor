@@ -14,20 +14,5 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { MaybePromise } from '@theia/core';
-import { FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
-import { inject, injectable } from 'inversify';
-import { CincoGLSPDiagramMananger } from './cinco-glsp-diagram-manager';
-
-/**
- * This class is needed for the initial connection of the fsUtils
- */
-
-@injectable()
-export class CincoDiagramInitiator implements FrontendApplicationContribution {
-    @inject(CincoGLSPDiagramMananger) diagramManager: CincoGLSPDiagramMananger;
-
-    onStart?(app: FrontendApplication): MaybePromise<void> {
-        this.diagramManager.loadUpdates();
-    }
-}
+export const EDITOR_BUTTON_REGISTRATION_COMMAND = {id: 'cinco-cloud.register-editor-buttons'};
+export const EDITOR_BUTTON_UNREGISTRATION_COMMAND = {id: 'cinco-cloud.unregister-editor-buttons'};

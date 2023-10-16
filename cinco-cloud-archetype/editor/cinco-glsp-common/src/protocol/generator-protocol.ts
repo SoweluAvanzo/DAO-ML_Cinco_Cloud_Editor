@@ -42,7 +42,9 @@ export namespace GeneratorAction {
 export const GenerateGraphDiagramCommand = {
     id: 'GenerateGraphDiagram.command',
     label: 'Generate Graph',
-    category: 'Cinco Cloud'
+    category: 'Cinco Cloud',
+    iconClass: 'generate_graph_diagram_command',
+    keybinding: 'alt+g'
 };
 
 export const CreateGenerateGraphDiagramCommand = {

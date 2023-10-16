@@ -13,14 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import '../../css/cinco.css';
-
-import {
-    CompositionSpecification,
-    DIAGRAM_TYPE,
-    getGraphTypes,
-    MetaSpecification
-} from '@cinco-glsp/cinco-glsp-common';
+import { CompositionSpecification, DIAGRAM_TYPE, getGraphTypes, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration';
 import { CommandContribution, CommandRegistry } from '@theia/core';
 import { injectable } from 'inversify';
@@ -40,6 +33,9 @@ export interface LanguageUpdateMessage {
     metaSpecification: CompositionSpecification;
 }
 
+/**
+ * This command is fired e.g. from GLSP package to this theia package
+ */
 @injectable()
 export class LanguageUpdateCommand implements CommandContribution {
     LANGUAGE_UPDATE_COMMAND = { id: 'cinco.language_update' };
@@ -51,7 +47,11 @@ export class LanguageUpdateCommand implements CommandContribution {
     }
 
     updateLanguage(message: LanguageUpdateMessage): void {
-        // update MetaSpecification
-        MetaSpecification.merge(message.metaSpecification);
+        updateMetaSpecification(message.metaSpecification);
     }
+}
+
+export function updateMetaSpecification(metaSpecification: CompositionSpecification): void {
+    MetaSpecification.clear();
+    MetaSpecification.merge(metaSpecification);
 }

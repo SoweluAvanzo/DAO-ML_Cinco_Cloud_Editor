@@ -15,23 +15,51 @@
  ********************************************************************************/
 import { MetaSpecification, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action, IActionHandler, ICommand } from '@eclipse-glsp/client';
-import { injectable } from 'inversify';
+import { CommandService } from '@theia/core';
+import { injectable, inject } from 'inversify';
 
 @injectable()
 export class MetaSpecificationResponseHandler implements IActionHandler {
+    @inject(CommandService)
+    private readonly commandService: CommandService;
+
     static _unlock: () => void;
     static _meta_spec_loaded = new Promise<void>((resolve, reject) => {
         MetaSpecificationResponseHandler._unlock = resolve;
     });
+    static _registration_callbacks: (() => void)[] = [];
+
+    static addRegistrationCallback(registrationCallback: () => void): void {
+        this._registration_callbacks.push(registrationCallback);
+    }
 
     handle(action: MetaSpecificationResponseAction): void | Action | ICommand {
         const metaSpec = action.metaSpecification;
         MetaSpecification.clear();
         MetaSpecification.merge(metaSpec);
         MetaSpecificationResponseHandler._unlock();
+        if (MetaSpecificationResponseHandler._registration_callbacks) {
+            for (const cb of MetaSpecificationResponseHandler._registration_callbacks) {
+                try {
+                    cb();
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        }
+        // propagate to theia
+        this.propagateToTheia();
         // update palette after meta-specification is updated
         return {
             kind: 'enableToolPalette'
         };
+    }
+
+    propagateToTheia(): void {
+        if (this.commandService) {
+            this.commandService.executeCommand('cinco.language_update', {
+                metaSpecification: MetaSpecification.get()
+            });
+        }
     }
 }

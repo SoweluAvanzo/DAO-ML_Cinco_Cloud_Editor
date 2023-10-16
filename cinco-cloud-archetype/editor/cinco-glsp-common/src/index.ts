@@ -31,3 +31,4 @@ export * from './protocol/type-utils';
 export * from './protocol/validation-protocol';
 export * from './protocol/args-protocol';
 export * from './protocol/arg-utils';
+export * from './protocol/editor-button-protocol';
