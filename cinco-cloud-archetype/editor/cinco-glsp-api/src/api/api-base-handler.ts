@@ -16,11 +16,10 @@
 
 import { ElementType, getSpecOf, ServerDialogAction, ServerDialogResponse, ServerOutputAction } from '@cinco-glsp/cinco-glsp-common';
 import { ActionDispatcher, Logger, LogLevel, ServerMessageAction, ServerSeverity } from '@eclipse-glsp/server-node';
+import { RootPath } from './root-path';
 import { ModelElement } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
-import { getWorkspaceRootUri } from '../utils/file-helper';
-import * as path from 'path';
 import * as fileHelper from '../utils/file-helper';
 
 export abstract class APIBaseHandler {
@@ -47,7 +46,7 @@ export abstract class APIBaseHandler {
     /**
      * The ChannelName where the logging will be provided, will be named in the following precedence:
      *
-     *      options.channelName ?? this.CHANNEL_NAME ?? this.logger.caller?.toString() ?? 'unnamed'
+     * options.channelName ?? this.CHANNEL_NAME ?? this.logger.caller?.toString() ?? 'unnamed'
      * @param message
      * @param options
      */
@@ -102,13 +101,81 @@ export abstract class APIBaseHandler {
         });
     }
 
-    readFile(relativePath: string, encoding?: string): string | undefined {
-        const targetPath = path.join(getWorkspaceRootUri(), relativePath);
+    getParentDirectory(fileOrDirPath: string): string {
+        return fileHelper.getParentDirectory(fileOrDirPath);
+    }
+
+    getDirectoryName(dirPath: string): string {
+        return fileHelper.getDirectoryName(dirPath);
+    }
+
+    getFileName(filePath: string): string {
+        return fileHelper.getFileName(filePath);
+    }
+
+    getFileExtension(filePath: string): string {
+        return fileHelper.getFileExtension(filePath);
+    }
+
+    exists(relativePath: string, root = RootPath.WORKSPACE): boolean {
+        const targetPath = root.join(relativePath);
+        return fileHelper.exists(targetPath);
+    }
+
+    existsFile(relativePath: string, root = RootPath.WORKSPACE): boolean {
+        const targetPath = root.join(relativePath);
+        return fileHelper.existsFile(targetPath);
+    }
+
+    existsDirectory(relativePath: string, root = RootPath.WORKSPACE): boolean {
+        const targetPath = root.join(relativePath);
+        return fileHelper.existsDirectory(targetPath);
+    }
+
+    readFile(relativePath: string, root = RootPath.WORKSPACE, encoding = 'utf-8'): string | undefined {
+        const targetPath = root.join(relativePath);
         return fileHelper.readFile(targetPath, encoding);
     }
 
-    createFile(relativePath: string, content: string, encoding?: string): void {
-        const targetPath = path.join(getWorkspaceRootUri(), relativePath);
-        fileHelper.writeFile(targetPath, content, encoding);
+    readDirectory(relativePath: string, root = RootPath.WORKSPACE): string[] {
+        const targetPath = root.join(relativePath);
+        return fileHelper.readDirectory(targetPath);
     }
+
+    deleteFile(relativePath: string, force = false): void {
+        const targetPath = RootPath.WORKSPACE.join(relativePath);
+        fileHelper.deleteFile(targetPath, force);
+    }
+
+    deleteDirectory(relativePath: string, recursive = true, force = false): void {
+        const targetPath = RootPath.WORKSPACE.join(relativePath);
+        fileHelper.deleteDirectory(targetPath, recursive, force);
+    }
+
+    createFile(relativePath: string, content: string, overwriteExistingFile = true, encoding = 'utf-8'): void {
+        const targetPath = RootPath.WORKSPACE.join(relativePath);
+        fileHelper.writeFile(targetPath, content, overwriteExistingFile, encoding);
+    }
+
+    createDirectory(relativePath: string, deleteExistingDirectory = false): void {
+        const targetPath = RootPath.WORKSPACE.join(relativePath);
+        fileHelper.createDirectory(targetPath, deleteExistingDirectory);
+    }
+
+    copyFile(relativeSourcePath: string, relativeTargetPath: string, overwriteExistingFile = true, sourceRoot = RootPath.WORKSPACE): void {
+        const sourcePath = sourceRoot.join(relativeSourcePath);
+        const targetPath = RootPath.WORKSPACE.join(relativeTargetPath);
+        fileHelper.copyFile(sourcePath, targetPath, overwriteExistingFile);
+    }
+
+    copyDirectory(relativeSourcePath: string,
+                  relativeTargetPath: string,
+                  deleteExistingDirectories = false,
+                  overwriteExistingFiles = true,
+                  sourceRoot = RootPath.WORKSPACE): void {
+        const sourcePath = sourceRoot.join(relativeSourcePath);
+        const targetPath = RootPath.WORKSPACE.join(relativeTargetPath);
+        fileHelper.copyDirectory(sourcePath, targetPath, deleteExistingDirectories, overwriteExistingFiles);
+    }
+
 }

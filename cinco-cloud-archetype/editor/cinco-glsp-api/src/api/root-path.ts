@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Cinco Cloud.
+ * Copyright (c) 2023 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,21 +13,29 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import 'reflect-metadata';
 
-// export api
-export * from './api/api-base-handler';
-export * from './api/appearance-provider';
-export * from './api/custom-action-handler';
-export * from './api/double-click-handler';
-export * from './api/generator-handler';
-export * from './api/root-path';
-export * from './api/validation-handler';
-export * from './language-files-registry';
-export * from './model/graph-gmodel-factory';
-export * from './model/graph-model';
-export * from './model/graph-model-index';
-export * from './model/graph-model-state';
-export * from './model/graph-storage';
-export * from './tools/server-dialog-response-handler';
-export * from './utils/file-helper';
+import { getWorkspaceRootUri, getLanguageFolder } from '../utils/file-helper';
+import * as path from 'path';
+
+export class RootPath {
+
+    static readonly WORKSPACE = new RootPath('WORKSPACE', getWorkspaceRootUri);
+    static readonly LANGUGAES = new RootPath('LANGUGAES', getLanguageFolder);
+
+    readonly name: string;
+    private readonly pathFunction: () => string;
+
+    private constructor(name: string, pathFunction: () => string) {
+        this.name = name;
+        this.pathFunction = pathFunction;
+    }
+
+    get path(): string {
+        return path.normalize(this.pathFunction());
+    }
+
+    join(relativePath: string): string {
+        return path.join(this.path, relativePath);
+    }
+
+}
