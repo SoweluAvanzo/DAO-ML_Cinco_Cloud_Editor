@@ -69,6 +69,7 @@ import { CincoGLSPClientContribution } from './cinco-glsp-client-contribution';
 import { GLSPServerUtilsProvider } from './glsp-server-utils-provider';
 import { GLSP_SERVER_UTIL_ENDPOINT, GLSPServerUtilClient, GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 import { CincoEditorButtonConfigurator } from './menu/cinco-editor-button-configurator';
+import { CincoContextMenuButtonConfigurator } from './menu/cinco-context-menu-button-configurator';
 
 export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
     protected override get diagramLanguage(): GLSPDiagramLanguage {
@@ -135,6 +136,7 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         context.bind(ValidationModelDataHandler).toSelf().inSingletonScope();
         context.bind(CommandContribution).to(ValidationModelUpdateCommandContribution);
         context.bind(FrontendApplicationContribution).to(CincoEditorButtonConfigurator);
+        context.bind(FrontendApplicationContribution).to(CincoContextMenuButtonConfigurator);
 
         // bind new DiagramMananger (e.g. for file/diagramExtensions)
         context.bind(CincoGLSPDiagramMananger).toSelf().inSingletonScope();

@@ -31,6 +31,8 @@ export class CincoEditorButtonConfigurator implements FrontendApplicationContrib
     }
 }
 
+let REGISTERED_BUTTONS: string[] = [];
+
 class CincoEditorButtonRegistrator implements CommandHandler {
     private readonly tabBarToolbar: TabBarToolbarRegistry;
     constructor(tabBarToolbar: TabBarToolbarRegistry) {
@@ -50,9 +52,19 @@ class CincoEditorButtonUnRegistrator implements CommandHandler {
         this.tabBarToolbar = tabBarToolbar;
     }
 
-    execute(buttonIds: string[]): void {
-        for (const buttonId of buttonIds) {
-            unregisterEditorButtons(this.tabBarToolbar, buttonId);
+    /**
+     *
+     * @param buttonIds
+     */
+    execute(buttonIds?: string[], all = false): void {
+        if ((!buttonIds || buttonIds.length <= 0) && all) {
+            for (const registeredButtonId of REGISTERED_BUTTONS) {
+                unregisterEditorButtons(this.tabBarToolbar, registeredButtonId);
+            }
+        } else {
+            for (const buttonId of buttonIds ?? []) {
+                unregisterEditorButtons(this.tabBarToolbar, buttonId);
+            }
         }
     }
 }
@@ -61,8 +73,13 @@ function registerEditorButton(tabBarToolbar: TabBarToolbarRegistry, button: TabB
     button.group = button.group ?? 'navigation';
     button.when = button.when ?? 'true';
     tabBarToolbar.registerItem(button);
+    // keep track of registered buttons
+    REGISTERED_BUTTONS.push(button.id);
 }
 
 function unregisterEditorButtons(tabBarToolbar: TabBarToolbarRegistry, buttonId: string): void {
     tabBarToolbar.unregisterItem(buttonId);
+
+    // keep track of registered buttons
+    REGISTERED_BUTTONS = REGISTERED_BUTTONS.filter(b => b !== buttonId);
 }

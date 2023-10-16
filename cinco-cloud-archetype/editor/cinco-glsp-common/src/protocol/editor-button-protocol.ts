@@ -14,5 +14,22 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-export const EDITOR_BUTTON_REGISTRATION_COMMAND = {id: 'cinco-cloud.register-editor-buttons'};
-export const EDITOR_BUTTON_UNREGISTRATION_COMMAND = {id: 'cinco-cloud.unregister-editor-buttons'};
+import { GraphType } from '../meta-specification';
+
+export const EDITOR_BUTTON_REGISTRATION_COMMAND = { id: 'cinco-cloud.register-editor-buttons' };
+export const EDITOR_BUTTON_UNREGISTRATION_COMMAND = { id: 'cinco-cloud.unregister-editor-buttons' };
+export const CONTEXT_MENU_BUTTON_REGISTRATION_COMMAND = { id: 'cinco-cloud.register-context-menu-buttons' };
+export const CONTEXT_MENU_BUTTON_UNREGISTRATION_COMMAND = { id: 'cinco-cloud.unregister-context-menu-buttons' };
+
+// command to create a new model file
+export const CREATE_NEW_MODEL_FILE_ID = 'cinco-cloud.create-file';
+
+/* dynamic gui values */
+
+export function getFileCreationLabel(g: GraphType): string {
+    return 'Create' + ' ' + g.label + ' (*.' + g.diagramExtension + ')';
+}
+
+export function getFileCreationCommandId(g: GraphType): string {
+    return CREATE_NEW_MODEL_FILE_ID + '.' + g.elementTypeId;
+}
