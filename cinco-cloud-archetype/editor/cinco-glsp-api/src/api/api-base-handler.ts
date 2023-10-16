@@ -47,6 +47,7 @@ export abstract class APIBaseHandler {
      * The ChannelName where the logging will be provided, will be named in the following precedence:
      *
      * options.channelName ?? this.CHANNEL_NAME ?? this.logger.caller?.toString() ?? 'unnamed'
+     *
      * @param message
      * @param options
      */
@@ -75,6 +76,35 @@ export abstract class APIBaseHandler {
         };
         const serverOutputAction = ServerOutputAction.create(channelName, message, o);
         this.actionDispatcher.dispatch(serverOutputAction);
+    }
+
+    debug(message: Error | string | undefined): void {
+        this.log(this.parseMessage(message), { show: true, logLevel: LogLevel.debug });
+    }
+
+    info(message: Error | string | undefined): void {
+        this.log(this.parseMessage(message), { show: true, logLevel: LogLevel.info });
+    }
+
+    warn(message: Error | string | undefined): void {
+        this.log(this.parseMessage(message), { show: true, logLevel: LogLevel.warn });
+    }
+
+    error(message: Error | string | undefined): void {
+        this.log(this.parseMessage(message), { show: true, logLevel: LogLevel.error });
+    }
+
+    private parseMessage(message: Error | string | undefined): string {
+        if (message === undefined) {
+            return '<undefined>';
+        }
+        if (typeof(message) == 'string') {
+            return message === '' ? '<empty string>' : message;
+        }
+        if (typeof(message) == 'object' && message instanceof Error) {
+            return message.stack ?? `${message.name}: ${message.message}`;
+        }
+        return message;
     }
 
     /**
