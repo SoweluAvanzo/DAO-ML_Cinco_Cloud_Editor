@@ -46,9 +46,6 @@ export function reregisterBindings(
     registerBindingAndConstruction(context, ctx, registry, viewRegistry, edgeTypes, CincoEdge, CincoEdgeView);
 }
 
-/**
- * Registers dependency injection bindings for the construction and the views of the elements in 'types'.
- */
 function registerBindingAndConstruction(
     context: { bind: any; isBound: any },
     ctx: any,

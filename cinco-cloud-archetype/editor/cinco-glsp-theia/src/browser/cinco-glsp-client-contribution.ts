@@ -16,20 +16,13 @@
 import { BaseGLSPClientContribution } from '@eclipse-glsp/theia-integration/lib/browser';
 import { EnvVariablesServer } from '@theia/core/lib/common/env-variables';
 import { inject, injectable } from '@theia/core/shared/inversify';
-import { getDiagramConfiguration, updateMetaSpecification } from '../common/cinco-language';
-import {
-    DIAGRAM_TYPE,
-    EDITOR_BUTTON_REGISTRATION_COMMAND,
-    EDITOR_BUTTON_UNREGISTRATION_COMMAND,
-    GenerateGraphDiagramCommand,
-    MetaSpecificationReloadAction,
-    MetaSpecificationReloadCommand,
-    MetaSpecificationResponseAction,
-    getGraphTypes,
-    hasGeneratorAction
-} from '@cinco-glsp/cinco-glsp-common';
-import { CommandHandler, CommandRegistry, CommandService } from '@theia/core';
-import { Action, GLSPClient, ActionMessage } from '@eclipse-glsp/protocol';
+import { getDiagramConfiguration } from '../common/cinco-language';
+import { DIAGRAM_TYPE, MetaSpecificationReloadCommand } from '@cinco-glsp/cinco-glsp-common';
+import { CommandRegistry, SelectionService } from '@theia/core';
+import { ActionMessage } from '@eclipse-glsp/protocol';
+import { FileService } from '@theia/filesystem/lib/browser/file-service';
+import { LabelProvider, OpenerService } from '@theia/core/lib/browser';
+import { MetaSpecificationReloadCommandHandler } from './meta/meta-specification-reload-command-handler';
 
 @injectable()
 export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
@@ -37,6 +30,11 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     protected readonly envVariablesServer: EnvVariablesServer; // this could be used for env vars for connection
     @inject(CommandRegistry)
     protected readonly commandRegistry: CommandRegistry;
+
+    @inject(LabelProvider) protected readonly labelProvider: LabelProvider;
+    @inject(FileService) protected readonly fileService: FileService;
+    @inject(OpenerService) protected readonly openerService: OpenerService;
+    @inject(SelectionService) protected readonly selectionService: SelectionService;
 
     readonly id = getDiagramConfiguration().contributionId;
     static readonly SYSTEM_ID = 'SYSTEM';
@@ -60,6 +58,11 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
                             new MetaSpecificationReloadCommandHandler(
                                 client,
                                 this.commandRegistry,
+                                this.labelProvider,
+                                this.workspaceService,
+                                this.selectionService,
+                                this.fileService,
+                                this.openerService,
                                 // this callback will overwrite the glsp-clients onActionMessage...
                                 (m: ActionMessage) =>
                                     new Promise<void>(resolve => {
@@ -82,62 +85,5 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
                     });
             });
         });
-    }
-}
-
-class MetaSpecificationReloadCommandHandler implements CommandHandler {
-    // This handling process overwrites the glsp-clients actionMessage callback
-    // This callback should be used is used to propagate the actionMessage again to the glsp package
-    protected readonly callback: (m: ActionMessage) => Promise<void>;
-    protected readonly client: GLSPClient;
-    protected readonly commandService: CommandService;
-
-    constructor(client: GLSPClient, commandService: CommandService, callback: (m: ActionMessage) => Promise<void>) {
-        this.client = client;
-        this.callback = callback;
-        this.commandService = commandService;
-    }
-
-    execute(): void {
-        // request & reload metaspecification
-        this.sendGLSPSystemAction(this.client, MetaSpecificationReloadAction.create([], true), (response: ActionMessage) => {
-            this.callback(response).then(_ => {
-                // handle only MetaSpecificationResponseAction
-                if (response.action && response.action.kind === MetaSpecificationResponseAction.KIND) {
-                    const metaSpecificationResponseAction = response.action as MetaSpecificationResponseAction;
-                    const metaSpecification = metaSpecificationResponseAction.metaSpecification;
-                    updateMetaSpecification(metaSpecification);
-                    // update editor buttons
-                    this.updateEditorButtons();
-                }
-            });
-        });
-    }
-
-    sendGLSPSystemAction(client: GLSPClient, action: Action, callback?: (e: any) => void): void {
-        client.sendActionMessage({
-            clientId: CincoGLSPClientContribution.SYSTEM_ID,
-            action: action
-        });
-        if (callback) {
-            client.onActionMessage(response => {
-                callback(response);
-            });
-        }
-    }
-
-    updateEditorButtons(): void {
-        /** Graph Generate button */
-        const generateButtonId = GenerateGraphDiagramCommand.id;
-        const generatableTypes = getGraphTypes(e => hasGeneratorAction(e.elementTypeId));
-        const buttonCondition = generatableTypes.map(t => `cincoGraphModelType == '${t.elementTypeId}'`).join(' && ');
-        this.commandService.executeCommand(EDITOR_BUTTON_UNREGISTRATION_COMMAND.id, [generateButtonId]);
-        this.commandService.executeCommand(EDITOR_BUTTON_REGISTRATION_COMMAND.id, [
-            {
-                id: generateButtonId,
-                command: GenerateGraphDiagramCommand.id,
-                when: buttonCondition
-            }
-        ]);
     }
 }

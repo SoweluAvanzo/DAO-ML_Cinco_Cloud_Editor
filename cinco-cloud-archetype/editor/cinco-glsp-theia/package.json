@@ -29,9 +29,11 @@
     "vscode-icons": "microsoft/vscode-icons",
     "@theia/output": "~1.38.0",
     "@theia/core": "~1.38.0",
+    "@theia/filesystem": "~1.38.0",
     "@theia/workspace": "~1.38.0",
     "@eclipse-glsp/theia-integration": "1.0.0-theia1.34.0",
-    "@cinco-glsp/cinco-glsp-client": "1.0.0"
+    "@cinco-glsp/cinco-glsp-client": "1.0.0",
+    "valid-filename": "4.0.0"
   },
   "devDependencies": {
     "rimraf": "^2.6.1"
