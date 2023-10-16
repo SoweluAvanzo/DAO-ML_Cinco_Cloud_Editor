@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# This script sets up a Git repository with an SSH-authenticated remote with all
-# config files fully containted within the .git directory in the workspace, to
-# persist the config across pods in the current cluster setup.
-# Be aware that this is a workaround until Git setup is properly supported in
-# Cinco Cloud, and workspaces set up with this script will need to be migrated
-# manually at that point.
+echo This script sets up a Git repository with an SSH-authenticated remote with all config files fully containted within the .git directory in the workspace, to persist the config across pods in the current cluster setup.
+echo Be aware that this is a workaround until Git setup is properly supported in Cinco Cloud, and workspaces set up with this script will need to be migrated manually at that point.
 echo -n "Enter your email for Git commits: "; read email
 echo -n "Enter your name for Git commits: "; read name
 echo -n "Enter the SSH URL of your remote repository: "; read remote
