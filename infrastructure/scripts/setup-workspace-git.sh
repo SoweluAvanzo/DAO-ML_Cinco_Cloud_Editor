@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# How to use this script:
+# 1. Open a terminal in the Theia workspace (Menu → Terminal → New Terminal)
+# 2. Download the script: "curl -O https://gitlab.com/scce/cinco-cloud/-/raw/main/infrastructure/scripts/setup-workspace-git.sh"
+# 3. Make the script executable: "chmod +x setup-workspace-git.sh"
+# 4. Run the script: "./setup-workspace-git.sh"
+# 5. You can then delete the script from the workspace: "rm setup-workspace-git.sh"
 echo This script sets up a Git repository with an SSH-authenticated remote with all config files fully containted within the .git directory in the workspace, to persist the config across pods in the current cluster setup.
 echo Be aware that this is a workaround until Git setup is properly supported in Cinco Cloud, and workspaces set up with this script will need to be migrated manually at that point.
 echo -n "Enter your email for Git commits: "; read email
