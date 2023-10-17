@@ -14,23 +14,19 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 // TODO: duplicate in api
-import { META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, getFileExtension } from '@cinco-glsp/cinco-glsp-common';
+import { META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER } from '@cinco-glsp/cinco-glsp-common';
 import * as path from 'path';
 import * as fs from 'fs';
 
 /**
- *
- * @param fs
  * @param targetPath
  * @param content
  * @param encoding | 'ascii', 'utf8', 'utf-8', 'utf16le', 'ucs2', 'ucs-2', 'base64', 'base64url', 'latin1', 'binary', 'hex'
  */
-export function writeFile(
-    targetPath: string,
-    content: string,
-    encoding = 'utf-8'
-): void {
-    fs.writeFileSync(targetPath, content, { encoding: encoding as BufferEncoding });
+export function writeFile(targetPath: string, content: string, overwriteExistingFile = true, encoding = 'utf-8'): void {
+    if (overwriteExistingFile || !exists(targetPath)) {
+        fs.writeFileSync(targetPath, content, { encoding: encoding as BufferEncoding });
+    }
 }
 
 export function getFilesFromDirectories(
@@ -166,7 +162,72 @@ export function getFilesByExtension(files: string[], fileExtension: string): str
 }
 
 export function getFilesByExtensions(files: string[], fileExtensions: string[]): string[] {
-    return files.filter(f => fileExtensions.indexOf('.' + getFileExtension(f)) >= 0);
+    return files.filter(f => fileExtensions.indexOf(getFileExtension(f)) >= 0);
+}
+
+export function getParentDirectory(fileOrDirPath: string): string {
+    return path.dirname(fileOrDirPath);
+}
+
+export function getDirectoryName(dirPath: string): string {
+    return path.basename(dirPath);
+}
+
+export function getFileName(filePath: string): string {
+    return path.basename(filePath);
+}
+
+export function getFileExtension(filePath: string): string {
+    return path.extname(filePath);
+}
+
+export function exists(fileOrDirPath: string): boolean {
+    return fs.existsSync(fileOrDirPath);
+}
+
+export function existsFile(filePath: string): boolean {
+    return exists(filePath) && fs.lstatSync(filePath).isFile();
+}
+
+export function existsDirectory(dirPath: string): boolean {
+    return exists(dirPath) && fs.lstatSync(dirPath).isDirectory();
+}
+
+export function readDirectory(dirPath: string): string[] {
+    return fs.readdirSync(dirPath);
+}
+
+export function deleteFile(dirPath: string, force = false): void {
+    fs.rmSync(dirPath, {recursive: false, force: force});
+}
+
+export function deleteDirectory(dirPath: string, recursive = false, force = false): void {
+    fs.rmSync(dirPath, {recursive: recursive, force: force});
+}
+
+export function createDirectory(dirPath: string, deleteExistingDirectory = false): void {
+    if (deleteExistingDirectory && exists(dirPath)) {
+        deleteDirectory(dirPath, true);
+    }
+    fs.mkdirSync(dirPath, { recursive: true });
+}
+
+export function copyFile(sourceFilePath: string, targetFilePath: string, overwriteExistingFile = true): void {
+    const mode = overwriteExistingFile ? 0 : fs.constants.COPYFILE_EXCL;
+    fs.copyFileSync(sourceFilePath, targetFilePath, mode);
+}
+
+export function copyDirectory(sourceDirPath: string, targetDirPath: string, deleteExistingDirectories = false, overwriteExistingFiles = true): void {
+    createDirectory(targetDirPath, deleteExistingDirectories);
+    for (const entry of readDirectory(sourceDirPath)) {
+        const targetPath = path.join(targetDirPath, getFileName(entry));
+        if (existsDirectory(entry)) {
+            copyDirectory(entry, targetPath, deleteExistingDirectories, overwriteExistingFiles);
+        }
+        else {
+            copyFile(entry, targetPath, overwriteExistingFiles);
+        }
+    }
 }
 
 /**
