@@ -36,7 +36,7 @@ export function getWebviewContent(context: vscode.ExtensionContext, panel: vscod
                         flex-direction: column;
                         justify-content: center;
                         align-items: center;
-                        height: 100vh;
+                        height: 100%;
                     }
         
                     body > div {
