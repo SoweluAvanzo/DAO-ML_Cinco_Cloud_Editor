@@ -54,7 +54,7 @@ export function getFallbackDefaultValue(type: string): any {
         case 'string':
             return '';
         case 'number':
-            return '0';
+            return 0;
         case 'boolean': {
             return false;
         }
