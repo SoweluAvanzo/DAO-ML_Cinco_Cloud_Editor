@@ -7,22 +7,102 @@ import { extractAstNode } from './cli-util';
 import { MGLGenerator } from './generator';
 import { NodeFileSystem } from 'langium/node';
 import { saveToLanguagesFolder, uploadToMinio } from './persistence_handler';
+import * as vscode from 'vscode';
 
 export const generateAction = async (filePath: string, opts: GenerateOptions, uploadMetaSpecification?: boolean): Promise<void> => {
+    let generatedMetaSpecification: string;
+    const prefix = "Generation"+(uploadMetaSpecification ? "and Upload" : "");
     console.log(chalk.green(`Starting generation for currently opened MGL...`));
-    const services = createMglServices(NodeFileSystem).Mgl;
-    const model = await extractAstNode<MglModel>(filePath, services);
-    const mglGenerator = new MGLGenerator();
-    const generatedMetaSpecification = await mglGenerator.generateMetaSpecification(model, filePath, opts.destination);
+    generationProgress(
+        "Generating",
+        [
+            {
+                message: "Reading currently opened MGL...",
+                callable: async(errorDisplay) => {
+                    const services = createMglServices(NodeFileSystem).Mgl;
+                    const model = await extractAstNode<MglModel>(filePath, services);
+                    const result = await new MGLGenerator().generateMetaSpecification(model, filePath, opts.destination).catch(e => {
+                        errorDisplay("Generation failed with error:\n"+e)
+                    });
+                    if(result) {
+                        generatedMetaSpecification = result;
+                    }
+                }
+            },
+            {
+                message: "Uploading generated...",
+                callable: async (errorDisplay) => {
+                    const fileName = getFileName(filePath)
+                    const specificationName = `${fileName}_spec.json`;
+                    const languagesFolder = await saveToLanguagesFolder(generatedMetaSpecification, specificationName).catch(e => {
+                        errorDisplay("Generation failed with error:\n"+e)
+                        throw Error("failed save generated files!")
+                    })
+                    if(uploadMetaSpecification) {
+                        return uploadToMinio(languagesFolder, (e) => {
+                            errorDisplay("Generation failed with error:\n"+e)
+                        });
+                    }
+                }
+            }
+        ],
+        prefix+" successful!",
+        prefix+" ended with errors!",
+        prefix + " canceled!"
+    )
+};
 
-    const fileName = getFileName(filePath)
-    const specificationName = `${fileName}_spec.json`;
-    saveToLanguagesFolder(generatedMetaSpecification, specificationName).then((languagesFolder) => {
-        if(uploadMetaSpecification) {
-            uploadToMinio(languagesFolder);
+export async function generationProgress(title: string, jobs: { message: string, callable: (errorDisplay: (message: string) => void ) => Promise<void> | void}[],
+    finishedMessage?: string, errorMessage?: string, cancelMessage?: string
+): Promise<void> {
+    vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: title,
+        cancellable: true
+    }, async (progress, token) => {
+        token.onCancellationRequested(() => {
+            if(cancelMessage) {
+                vscode.window.showInformationMessage(cancelMessage)
+            }
+            console.log("canceled progress");
+        });
+
+        let hadErrors = false;
+        const errorDisplay = (errorMessage: string) => {
+            if(errorMessage) {
+                vscode.window.showErrorMessage(errorMessage)
+            }
+            console.log("error in progress");
+            hadErrors = true;
+        }
+        
+        let leftJobs = jobs.length;
+        for(const job of jobs) {
+            let message = job.message;
+            progress.report({ increment: ((100 / leftJobs) -1), message: message });
+            try {
+                await job.callable(errorDisplay)
+            } catch(e) {
+                console.log("error in progress: "+ e);
+            }
+            if(hadErrors) {
+                break;
+            }
+            leftJobs -= 1;
+        }
+        if(hadErrors) {
+            console.log("error in progress");
+            if(errorMessage) {
+                vscode.window.showErrorMessage(errorMessage);
+            }
+        } else {
+            if(finishedMessage) {
+                vscode.window.showInformationMessage(finishedMessage);
+            }
+            console.log("finished progress");
         }
     })
-};
+}
 
 /**
  * @param filePath path to a file or folder.
