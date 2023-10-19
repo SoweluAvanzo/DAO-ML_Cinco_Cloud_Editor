@@ -44,6 +44,15 @@ export class ProjectStoreService {
     return this.accessRights.asObservable();
   }
 
+  reloadProject(): void {
+    const project = this.project.value;
+    if (project != null) {
+      this.projectApi.get(project.id).subscribe({
+        next: p => this.project.next(p)
+      });
+    }
+  }
+
   setProject(project: Project): void {
     this.project.next(project);
     if (project != null && project.organization != null) {

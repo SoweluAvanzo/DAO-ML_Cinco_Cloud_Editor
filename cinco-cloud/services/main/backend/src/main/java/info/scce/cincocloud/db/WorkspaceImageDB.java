@@ -27,6 +27,9 @@ public class WorkspaceImageDB extends PanacheEntity {
   public Instant updatedAt = Instant.now();
 
   @NotNull
+  public boolean featured = false;
+
+  @NotNull
   @OneToOne
   public ProjectDB project;
 
@@ -38,11 +41,11 @@ public class WorkspaceImageDB extends PanacheEntity {
   }
 
   public static List<WorkspaceImageDB> findAllWhereProjectIsNotDeleted() {
-    return find("project.deletedAt = null").list();
+    return find("project.deletedAt = null and published = true order by id asc").list();
   }
 
-  public static Optional<WorkspaceImageDB> findByProjectId(Long projectId) {
-    return find("project.id = ?1", projectId).firstResultOptional();
+  public static List<WorkspaceImageDB> findAllFeatured() {
+    return find("published = true and featured = true").list();
   }
 
   @Override
@@ -54,11 +57,8 @@ public class WorkspaceImageDB extends PanacheEntity {
         ", createdAt=" + createdAt +
         ", updatedAt=" + updatedAt +
         ", project=" + project +
+        ", featured=" + featured +
         ", uuid=" + uuid +
         '}';
-  }
-
-  public String getImageName() {
-    return uuid.toString() + ":" + imageVersion;
   }
 }

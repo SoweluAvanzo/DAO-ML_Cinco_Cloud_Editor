@@ -21,8 +21,13 @@ export class WorkspaceImageApiService extends BaseApiService {
     );
   }
 
-  public getAll(): Observable<WorkspaceImage[]> {
-    return this.http.get(`${this.apiUrl}/images`, this.defaultHttpOptions).pipe(
+  public getAll(featured = false): Observable<WorkspaceImage[]> {
+    const options = {
+      params: featured ? { featured } : null,
+      ...this.defaultHttpOptions
+    }
+
+    return this.http.get(`${this.apiUrl}/images`, options).pipe(
       map((body: any) => this.transformList(body))
     );
   }

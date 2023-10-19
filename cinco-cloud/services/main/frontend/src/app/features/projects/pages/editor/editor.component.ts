@@ -100,6 +100,7 @@ export class EditorComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.projectStore.reloadProject();
     window.clearInterval(this.interval);
   }
 

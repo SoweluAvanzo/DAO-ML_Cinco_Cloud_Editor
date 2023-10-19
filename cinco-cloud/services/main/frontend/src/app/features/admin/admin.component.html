@@ -3,21 +3,22 @@
     <cc-sidebar>
       <ng-container items>
         <cc-sidebar-item
-          [icon]="icons.users"
+          [icon]="faUsers"
           [route]="['/app', 'admin', 'users']"
-          text="Users"
-        >
-        </cc-sidebar-item>
+          [routerLinkActiveExact]="false"
+          text="Users" />
         <cc-sidebar-item
-          [icon]="icons.cogs"
+          [icon]="faCogs"
           [route]="['/app', 'admin', 'settings']"
-          text="Settings"
-        >
-        </cc-sidebar-item>
+          text="Settings" />
+        <cc-sidebar-item
+          [icon]="faTableColumns"
+          [route]="['/app', 'admin', 'projects']"
+          text="Projects" />
       </ng-container>
     </cc-sidebar>
   </div>
   <div class="page flex-grow-1 overflow-auto">
-    <router-outlet></router-outlet>
+    <router-outlet />
   </div>
 </div>

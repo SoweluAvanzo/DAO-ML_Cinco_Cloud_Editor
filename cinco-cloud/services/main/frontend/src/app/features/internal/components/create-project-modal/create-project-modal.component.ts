@@ -7,8 +7,8 @@ import { Project } from '../../../../core/models/project';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 import { Organization } from '../../../../core/models/organization';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
-import { OrganizationApiService } from "../../../../core/services/api/organization-api.service";
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { OrganizationApiService } from '../../../../core/services/api/organization-api.service';
+import { faTimes, faProjectDiagram, faFile } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'cc-create-project-modal',
@@ -17,6 +17,8 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
 })
 export class CreateProjectModalComponent {
   faTimes = faTimes;
+  faProjectDiagram = faProjectDiagram;
+  faFile = faFile;
 
   @Input()
   organization: Organization;
@@ -71,5 +73,13 @@ export class CreateProjectModalComponent {
         this.errorMessage = `The project could not be created: ${res.error.message}`;
       }
     });
+  }
+
+  selectFeaturedImage(image: WorkspaceImage): void {
+    console.log(image)
+
+    this.form.get('name').setValue(image.project.name);
+    this.form.get('description').setValue(image.project.description);
+    this.selectedProjectImage = image;
   }
 }

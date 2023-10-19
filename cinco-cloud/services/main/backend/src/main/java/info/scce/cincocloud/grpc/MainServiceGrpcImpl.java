@@ -28,6 +28,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -148,23 +150,25 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
       .map(bjob -> {
           final var minioClient = minioService.getClient();
           try {
-            // read spec.json from generated files
+            // read spec.json files from generated files
             final var buildObject = GetObjectArgs.builder().bucket("projects").object(projectId + ".zip").build();
             final var inputStream = minioClient.getObject(buildObject);
             final var zip = Files.createTempFile("project", "zip");
             FileUtils.copyInputStreamToFile(inputStream, zip.toFile());
-            final var spec = readToolSpecJsonFromArchive(zip);
-            mergeGraphModelTypesInProject(project, spec);
+            final var specs = readToolSpecJsonFromArchive(zip);
+            for (var spec: specs) {
+              mergeGraphModelTypesInProject(project, spec);
+            }
             Files.deleteIfExists(zip);
           } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.INFO, "Failed to read spec.json file", e);
           }
 
           try {
             // create or update workspace image
             createOrUpdateWorkspaceImage(project);
           } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.INFO, "Failed merge graph model types with existing ones", e);
           }
 
           return bjob;
@@ -237,29 +241,36 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
     }
   }
 
-  private GraphModelTypeSpec readToolSpecJsonFromArchive(Path file) {
+  private List<GraphModelTypeSpec> readToolSpecJsonFromArchive(Path file) {
     try {
       final var zip = new ZipFile(file.toFile());
       final var entries = zip.entries();
+
+      final var foundSpecs = new ArrayList<GraphModelTypeSpec>();
 
       // find the spec.json file in the archive
       // and parse its contents
       while (entries.hasMoreElements()) {
         final var entry = entries.nextElement();
-        if (entry.getName().equals("spec.json")) {
+        if (entry.getName().endsWith(".json")) {
           try (final var is = zip.getInputStream(entry)) {
             final var json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-            return objectMapper.readValue(json, GraphModelTypeSpec.class);
+            final var spec = objectMapper.readValue(json, GraphModelTypeSpec.class);
+            foundSpecs.add(spec);
           }
         }
       }
 
-      throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
-          .withDescription("spec.json file not found in archive."));
+      if (foundSpecs.isEmpty()) {
+        throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
+            .withDescription("No spec.json file not found in archive."));
+      }
+
+      return foundSpecs;
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.log(Level.INFO, "Failed to read spec.json file from archive.", e);
       throw new StatusRuntimeException(Status.fromCode(Status.Code.INTERNAL)
-          .withDescription("failed to read spec.json file from archive."));
+          .withDescription("Failed to read spec.json file from archive."));
     }
   }
 
@@ -267,8 +278,8 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
     // Remove GraphModelTypes that do not exist anymore. Here, we remove all
     // those entries from graphModelTypes list, where the typeName does not
     // exist in the parsed spec.json file anymore.
-    final var gmtSpecSet = spec.graphModelTypes.stream()
-        .map(t -> t.typeName)
+    final var gmtSpecSet = spec.graphTypes.stream()
+        .map(t -> t.type)
         .collect(Collectors.toSet());
 
     final var graphModelTypesToDelete = project.graphModelTypes.stream()
@@ -287,12 +298,12 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
         .map(g -> g.typeName)
         .collect(Collectors.toSet());
 
-    spec.graphModelTypes.stream()
-        .filter(g -> !projectGmtSet.contains(g.typeName))
+    spec.graphTypes.stream()
+        .filter(g -> !projectGmtSet.contains(g.type))
         .forEach(g -> {
           final var db = new GraphModelTypeDB();
-          db.typeName = g.typeName;
-          db.fileExtension = g.fileExtension;
+          db.typeName = g.type;
+          db.fileExtension = g.diagramExtension;
           db.project = project;
           db.persist();
           project.graphModelTypes.add(db);

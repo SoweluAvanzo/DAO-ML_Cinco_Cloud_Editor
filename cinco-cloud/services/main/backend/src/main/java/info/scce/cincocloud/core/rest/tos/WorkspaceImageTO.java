@@ -11,6 +11,7 @@ public class WorkspaceImageTO extends RESTBaseImpl {
   public boolean published;
   public ProjectTO project;
   public Instant createdAt;
+  public boolean featured;
 
   public static WorkspaceImageTO fromEntity(
       final WorkspaceImageDB entity,
@@ -26,6 +27,7 @@ public class WorkspaceImageTO extends RESTBaseImpl {
     result.published = entity.published;
     result.project = ProjectTO.fromEntity(entity.project, objectCache);
     result.createdAt = entity.createdAt;
+    result.featured = entity.featured;
 
     objectCache.putRestTo(entity, result);
 

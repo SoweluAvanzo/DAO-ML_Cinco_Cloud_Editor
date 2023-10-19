@@ -4,8 +4,11 @@ import info.scce.cincocloud.core.rest.inputs.UpdateWorkspaceImageInput;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageTO;
 import info.scce.cincocloud.core.services.UserService;
 import info.scce.cincocloud.core.services.WorkspaceImageService;
-import info.scce.cincocloud.exeptions.RestException;
+import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.rest.ObjectCache;
+
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
@@ -21,7 +24,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
 @Transactional
@@ -39,15 +41,25 @@ public class WorkspaceImageController {
 
   @GET
   @RolesAllowed("user")
-  public Response getAll(@Context SecurityContext securityContext, @QueryParam("search") String search) {
+  public Response getAll(@Context SecurityContext securityContext,
+                         @QueryParam("search") Optional<String> search,
+                         @QueryParam("featured") Optional<Boolean> featured) {
     final var subject = UserService.getCurrentUser(securityContext);
 
-    final var result = search == null ?
-        workspaceImageService.getAllAccessibleImages(subject) :
-        workspaceImageService.searchAllAccessibleImages(subject, search);
+    final List<WorkspaceImageDB> images;
+    if (search.isPresent()) {
+      images = workspaceImageService.searchAllAccessibleImages(subject, search.get());
+    } else if (featured.isPresent()) {
+      images = WorkspaceImageDB.findAllFeatured();
+    } else {
+      images = workspaceImageService.getAllAccessibleImages(subject);
+    }
 
-    return Response.ok(result.stream().map(i -> WorkspaceImageTO.fromEntity(i, objectCache))
-        .collect(Collectors.toList())).build();
+    final var tos = images.stream()
+            .map(i -> WorkspaceImageTO.fromEntity(i, objectCache))
+            .collect(Collectors.toList());
+
+    return Response.ok(tos).build();
   }
 
   @PUT
@@ -57,13 +69,7 @@ public class WorkspaceImageController {
                          @PathParam("imageId") long imageId,
                          UpdateWorkspaceImageInput input) {
     final var subject = UserService.getCurrentUser(securityContext);
-
-    if (!workspaceImageService.userCanModifyImage(subject, imageId)) {
-      throw new RestException(Status.FORBIDDEN, "You are not allowed to modify this image.");
-    }
-
-    final var updatedImage = workspaceImageService.setPublished(imageId, input.published);
-
+    final var updatedImage = workspaceImageService.updateImage(subject, imageId, input);
     return Response.ok(WorkspaceImageTO.fromEntity(updatedImage, objectCache)).build();
   }
 }
