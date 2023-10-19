@@ -71,7 +71,7 @@ class CincoEditorButtonUnRegistrator implements CommandHandler {
 
 function registerEditorButton(tabBarToolbar: TabBarToolbarRegistry, button: TabBarToolbarItem | ReactTabBarToolbarItem): void {
     button.group = button.group ?? 'navigation';
-    button.when = button.when ?? 'true';
+    button.when = button.when ?? 'false';
     tabBarToolbar.registerItem(button);
     // keep track of registered buttons
     REGISTERED_BUTTONS.push(button.id);

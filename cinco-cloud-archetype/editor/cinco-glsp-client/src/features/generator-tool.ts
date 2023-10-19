@@ -44,9 +44,11 @@ export class GeneratorTool extends BaseGLSPTool {
         window.addEventListener('message', ({ data: message }: { data: GeneratorEditAction }) => {
             if (message.kind === 'cincoGenerate') {
                 const currentModel = this.selectionService.getModelRoot();
-                const modelElementId = currentModel.id;
-                const action = GeneratorAction.create(modelElementId, message.targetFolder);
-                this.actionDispatcher.dispatch(action);
+                if (currentModel.id === message.modelElementId) {
+                    const modelElementId = currentModel.id;
+                    const action = GeneratorAction.create(modelElementId, message.targetFolder);
+                    this.actionDispatcher.dispatch(action);
+                }
             }
         });
     }

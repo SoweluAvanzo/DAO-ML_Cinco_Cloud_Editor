@@ -78,7 +78,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                                 resolve(results);
                             }
                         }
-                    } catch(e) {
+                    } catch (e) {
                         console.log(`Error executing handler: ${(handler as any).name}`);
                         console.log(`${e}`);
                         leftToHandle = leftToHandle - 1;
@@ -103,16 +103,17 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                 if (!this.hasHandlerProperty(element)) {
                     return resolve([]);
                 }
-            } catch(e) {
-                console.log(`Error checking handlerProperties: (${element.type + '|' + element.id})`);
+            } catch (e) {
+                console.log(`Error checking handlerProperties: (${element?.type + '|' + element?.id})`);
                 console.log(`${e}`);
                 return resolve([]);
             }
-            const applicableHandlerClasses = BaseHandlerManager.getHandlerClasses(this.baseHandlerName,
+            const applicableHandlerClasses = BaseHandlerManager.getHandlerClasses(
+                this.baseHandlerName,
                 (handlerClassName: string): boolean => {
                     try {
                         return this.isApplicableHandler(element, handlerClassName);
-                    } catch(e) {
+                    } catch (e) {
                         console.log(`Error checking applicability of: ${handlerClassName}`);
                         console.log(`${e}`);
                         return false;
@@ -152,7 +153,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                             resolve(actionHandlers);
                         }
                     }
-                } catch(e) {
+                } catch (e) {
                     console.log(`Error checking executability of: ${handlerClass.name}`);
                     console.log(`${e}`);
                     leftToHandle = leftToHandle - 1;
