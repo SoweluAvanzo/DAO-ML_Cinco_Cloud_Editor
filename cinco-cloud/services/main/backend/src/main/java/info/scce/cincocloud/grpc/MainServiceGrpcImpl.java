@@ -257,6 +257,7 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
             final var json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             final var spec = objectMapper.readValue(json, GraphModelTypeSpec.class);
             foundSpecs.add(spec);
+          } catch (Exception ignored) {
           }
         }
       }
