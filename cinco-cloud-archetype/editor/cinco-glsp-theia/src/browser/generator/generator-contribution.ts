@@ -19,14 +19,11 @@ import {
     CreateGeneratorTemplateCommand,
     CreateJavascriptGeneratorTemplateCommand
 } from '@cinco-glsp/cinco-glsp-common/lib/protocol/generator-protocol';
-import { TYPES } from '@eclipse-glsp/client';
-import { SelectionService } from '@eclipse-glsp/client/lib/features/select/selection-service';
 import { DiagramMenus } from '@eclipse-glsp/theia-integration';
 import { KeybindingContribution, KeybindingRegistry, LabelProvider, OpenerService } from '@theia/core/lib/browser';
 import {
     CommandContribution,
     CommandRegistry,
-    CommandService,
     Emitter,
     MenuContribution,
     MenuModelRegistry,
@@ -37,10 +34,10 @@ import { URI } from '@theia/core/lib/common/uri';
 import { UriAwareCommandHandler, UriCommandHandler } from '@theia/core/lib/common/uri-command-handler';
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
-import { FilesystemSaveResourceService } from '@theia/filesystem/lib/browser/filesystem-save-resource-service';
 import { FileStat } from '@theia/filesystem/lib/common/files';
 import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
 import { GeneratorTemplate } from './generator-template';
+import { FilesystemUtilServer } from '../../common/file-system-util-protocol';
 
 interface DidCreateNewResourceEvent {
     uri: URI;
@@ -153,9 +150,7 @@ export class GenerateGraphDiagramCommandContribution implements CommandContribut
     @inject(OpenerService) protected readonly openerService: OpenerService;
     @inject(WorkspaceService) protected readonly workspaceService: WorkspaceService;
     @inject(SelectionServiceT) protected readonly selectionService: SelectionServiceT;
-    @inject(TYPES.SelectionService) protected selectionServiceType: SelectionService;
-    @inject(CommandService) protected readonly commandService: CommandService;
-    @inject(FilesystemSaveResourceService) protected readonly filesystemSaveResourceService: FilesystemSaveResourceService;
+    @inject(FilesystemUtilServer) fsUtils: FilesystemUtilServer;
 
     private readonly onDidCreateNewFileEmitter = new Emitter<DidCreateNewResourceEvent>();
     registerCommands(registry: CommandRegistry): void {
@@ -167,19 +162,31 @@ export class GenerateGraphDiagramCommandContribution implements CommandContribut
                         if (parent) {
                             const parentUri = parent.resource;
                             const workspacePath: string = parentUri['codeUri']['path'];
-                            this.submitGeneration(workspacePath);
-                            // eslint-disable-next-line no-empty
-                        } else {
+                            const fileUri = this.selectionService.selection as any;
+                            if (!fileUri || !fileUri['sourceUri'] || !workspacePath) {
+                                throw new Error('Diagram gives insufficient information!');
+                            }
+                            const sourceUri = fileUri.sourceUri;
+                            this.fsUtils.readFiles([sourceUri]).then(value => {
+                                if (value.length <= 0) {
+                                    throw new Error('Could not identify diagram id!');
+                                }
+                                const obj = JSON.parse(value[0]);
+                                const modelId = obj['id'];
+                                this.submitGeneration(workspacePath, sourceUri, modelId);
+                            });
                         }
                     })
             })
         );
     }
 
-    submitGeneration(targetFolder: string): void {
+    submitGeneration(targetFolder: string, fileUri: string, modelId: string): void {
         window.postMessage({
             kind: 'cincoGenerate',
-            targetFolder: targetFolder
+            targetFolder: targetFolder,
+            fileUri: fileUri,
+            modelElementId: modelId
         });
     }
     protected async getDirectory(candidate: URI): Promise<FileStat | undefined> {

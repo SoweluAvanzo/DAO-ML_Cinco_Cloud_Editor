@@ -45,14 +45,19 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     }
 
     initializeSystemSession(id: string): void {
+        console.log('preparing system-glsp-client (1/4)...');
         this.ready.then(client => {
+            console.log('system-glsp-client ready! (2/4)');
             this.initialize(client).then(_v => {
+                console.log('system-glsp-client connecting... (3/4)');
                 client
                     .initializeClientSession({
                         clientSessionId: id,
                         diagramType: DIAGRAM_TYPE
                     })
                     .then(_v2 => {
+                        console.log('system-glsp-client connected! (4/4)');
+                        console.log('registering: ' + MetaSpecificationReloadCommand.ID);
                         this.commandRegistry.registerCommand(
                             { id: MetaSpecificationReloadCommand.ID, label: 'Reload Meta-Specification', category: 'Cinco Cloud' },
                             new MetaSpecificationReloadCommandHandler(
@@ -81,6 +86,7 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
                                     })
                             )
                         );
+                        console.log('registered: ' + MetaSpecificationReloadCommand.ID);
                         this.commandRegistry.executeCommand(MetaSpecificationReloadCommand.ID);
                     });
             });
