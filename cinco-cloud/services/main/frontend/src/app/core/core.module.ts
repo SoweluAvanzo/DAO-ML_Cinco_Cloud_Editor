@@ -31,6 +31,7 @@ import { SearchOrganizationInputComponent } from './components/search-organizati
 import { ToggleButtonComponent } from './components/toggle-button/toggle-button.component';
 import { PaginationComponent } from './components/pagination/pagination.component';
 import { LogoComponent } from './components/logo/logo.component';
+import { LoadingIndicatorComponent } from './components/loading-indicator/loading-indicator.component';
 
 @NgModule({
   declarations: [
@@ -52,29 +53,31 @@ import { LogoComponent } from './components/logo/logo.component';
     SearchOrganizationInputComponent,
     ToggleButtonComponent,
     PaginationComponent,
-    LogoComponent
+    LogoComponent,
+    LoadingIndicatorComponent
   ],
   providers: [],
-  exports: [
-    OrganizationRoleBadgeComponent,
-    UserProfileImageComponent,
-    WorkspaceImageSearchInputComponent,
-    WorkspaceImageBadgeComponent,
-    SidebarComponent,
-    SidebarItemComponent,
-    SearchUserInputComponent,
-    NormalizeEnumValuePipe,
-    ProjectRoleBadgeComponent,
-    ToastsComponent,
-    FileInputComponent,
-    SidebarHeaderComponent,
-    ValidateFormInputPipe,
-    ValidationErrorMessageComponent,
-    SearchOrganizationInputComponent,
-    ToggleButtonComponent,
-    PaginationComponent,
-    LogoComponent
-  ],
+    exports: [
+        OrganizationRoleBadgeComponent,
+        UserProfileImageComponent,
+        WorkspaceImageSearchInputComponent,
+        WorkspaceImageBadgeComponent,
+        SidebarComponent,
+        SidebarItemComponent,
+        SearchUserInputComponent,
+        NormalizeEnumValuePipe,
+        ProjectRoleBadgeComponent,
+        ToastsComponent,
+        FileInputComponent,
+        SidebarHeaderComponent,
+        ValidateFormInputPipe,
+        ValidationErrorMessageComponent,
+        SearchOrganizationInputComponent,
+        ToggleButtonComponent,
+        PaginationComponent,
+        LogoComponent,
+        LoadingIndicatorComponent
+    ],
   imports: [
     CommonModule,
     RouterModule,

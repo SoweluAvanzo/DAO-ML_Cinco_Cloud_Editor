@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
+import { LayoutModule } from '@angular/cdk/layout';
 import { InternalComponent } from './internal.component';
 import { NavigationComponent } from './components/navigation/navigation.component';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -25,6 +26,7 @@ import {
 import { ReactiveFormsModule } from '@angular/forms';
 import { OrganizationListComponent } from './components/organization-list/organization-list.component';
 import { ProjectListComponent } from './components/project-list/project-list.component';
+import { FeaturedProjectsComponent } from './components/create-project-modal/featured-projects/featured-projects.component';
 
 const routes: Routes = [
   {
@@ -71,7 +73,8 @@ const routes: Routes = [
     CreateProjectModalComponent,
     CreateOrganizationModalComponent,
     OrganizationListComponent,
-    ProjectListComponent
+    ProjectListComponent,
+    FeaturedProjectsComponent
   ],
   exports: [
     ProjectListComponent,
@@ -80,6 +83,7 @@ const routes: Routes = [
   imports: [
     CommonModule,
     FontAwesomeModule,
+    LayoutModule,
     NgbDropdownModule,
     NgbNavModule,
     NgbModalModule,

@@ -1,7 +1,10 @@
 package info.scce.cincocloud.core.services;
 
+import info.scce.cincocloud.core.rest.inputs.UpdateWorkspaceImageInput;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.WorkspaceImageDB;
+import info.scce.cincocloud.exeptions.RestException;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.Response;
 
 @ApplicationScoped
 @Transactional
@@ -23,10 +27,12 @@ public class WorkspaceImageService {
   }
 
   public List<WorkspaceImageDB> getAllAccessibleImages(UserDB subject) {
-    return WorkspaceImageDB.findAllWhereProjectIsNotDeleted()
-        .stream()
-        .filter(image -> userCanAccessImage(subject, image))
-        .collect(Collectors.toList());
+    return subject.isAdmin()
+            ? WorkspaceImageDB.findAllWhereProjectIsNotDeleted()
+            : WorkspaceImageDB.findAllWhereProjectIsNotDeleted()
+                .stream()
+                .filter(image -> userCanAccessImage(subject, image))
+                .collect(Collectors.toList());
   }
 
   public List<WorkspaceImageDB> searchAllAccessibleImages(UserDB subject, String searchQuery) {
@@ -47,13 +53,21 @@ public class WorkspaceImageService {
         .collect(Collectors.toList());
   }
 
-  public WorkspaceImageDB setPublished(long imageId, boolean published) {
-    final var updatedImage = getOrThrow(imageId);
+  public WorkspaceImageDB updateImage(UserDB user, Long imageId, UpdateWorkspaceImageInput input) {
+    final var image = getOrThrow(imageId);
 
-    updatedImage.published = published;
-    updatedImage.updatedAt = Instant.now();
+    if (!userCanModifyImage(user, image)) {
+      throw new RestException(Response.Status.FORBIDDEN, "You are not allowed to modify this image.");
+    }
 
-    return updatedImage;
+    image.published = input.published;
+    image.updatedAt = Instant.now();
+
+    if (user.isAdmin() && input.featured != null) {
+      image.featured = input.featured;
+    }
+
+    return image;
   }
 
   public boolean userCanAccessImage(UserDB subject, WorkspaceImageDB image) {
@@ -62,7 +76,7 @@ public class WorkspaceImageService {
         org -> org.members.contains(subject) || org.owners.contains(subject));
   }
 
-  public boolean userCanModifyImage(UserDB subject, long imageId) {
-    return projectService.userHasOwnerStatus(subject, getOrThrow(imageId).project);
+  public boolean userCanModifyImage(UserDB subject, WorkspaceImageDB image) {
+    return subject.isAdmin() || projectService.userHasOwnerStatus(subject, image.project);
   }
 }

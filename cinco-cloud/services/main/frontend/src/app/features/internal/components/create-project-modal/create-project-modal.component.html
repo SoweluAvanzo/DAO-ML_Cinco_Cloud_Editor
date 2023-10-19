@@ -10,21 +10,30 @@
 
   <div class="d-flex gap-3">
     <div (click)="withProjectImage = false" [class.active]="!withProjectImage"
-         class="option rounded-3 p-3 cursor-pointer shadow-sm w-50">
-      <h6>Empty project</h6>
-      <p class="text-muted m-0">
-        Create graphical DSLs for modeling environments.
-      </p>
+         class="option rounded-3 p-3 cursor-pointer shadow-sm w-50 d-flex gap-3">
+      <fa-icon [icon]="faFile" [size]="'2x'" [fixedWidth]="true" style="color: rgba(0,0,0,0.1)"/>
+      <div class="flex-grow-1">
+        <h6>Empty Project</h6>
+        <p class="text-muted m-0">
+          Create graphical DSLs for modeling environments.
+        </p>
+      </div>
     </div>
     <div (click)="withProjectImage = true" [class.active]="withProjectImage"
-         class="option rounded-3 p-3 cursor-pointer shadow-sm w-50">
-      <h6>From template</h6>
-      <p class="text-muted m-0">
-        Use an existing modeling environment.
-      </p>
+         class="option rounded-3 p-3 cursor-pointer shadow-sm w-50 d-flex gap-3">
+      <fa-icon [icon]="faProjectDiagram" [size]="'2x'" [fixedWidth]="true" style="color: rgba(0,0,0,0.1)"/>
+      <div class="flex-grow-1">
+        <h6>From Image</h6>
+        <p class="text-muted m-0">
+          Select an existing DSL for your modeling environment.
+        </p>
+      </div>
     </div>
   </div>
   <hr>
+
+  <cc-featured-projects *ngIf="withProjectImage" (selected)="selectFeaturedImage($event)" />
+
   <form (ngSubmit)="createProject()" [formGroup]="form" class="d-flex flex-column gap-3 mb-3">
     <div>
       <label class="form-label" for="name">Name</label>
@@ -37,8 +46,7 @@
         type="text">
       <cc-validation-error-message
         [form]="form.get('name')"
-        [name]="'Name'">
-      </cc-validation-error-message>
+        [name]="'Name'"/>
     </div>
     <div>
       <label class="form-label" for="description">Description</label>
@@ -52,12 +60,12 @@
     </div>
   </form>
   <div *ngIf="withProjectImage" class="mt-3">
-    <label class="form-label">Template</label>
+    <label class="form-label">Image</label>
 
     <div *ngIf="selectedProjectImage != null" class="list-group">
       <div class="list-group-item p-2 d-flex align-items-center">
         <div class="w-100">
-          <cc-workspace-image-badge [image]="selectedProjectImage"></cc-workspace-image-badge>
+          <cc-workspace-image-badge [image]="selectedProjectImage" />
         </div>
         <div>
           <fa-icon
@@ -70,9 +78,7 @@
 
     <cc-workspace-image-search-input
       (selectImage)="selectedProjectImage = $event"
-      *ngIf="selectedProjectImage == null"
-    >
-    </cc-workspace-image-search-input>
+      *ngIf="selectedProjectImage == null"/>
   </div>
 </div>
 <div class="modal-footer">

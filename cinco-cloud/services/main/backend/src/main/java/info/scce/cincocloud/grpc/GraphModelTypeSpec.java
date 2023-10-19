@@ -5,5 +5,5 @@ import java.util.List;
 
 public class GraphModelTypeSpec {
 
-  public List<GraphModelType> graphModelTypes = new ArrayList<>();
+  public List<GraphModelType> graphTypes = new ArrayList<>();
 }

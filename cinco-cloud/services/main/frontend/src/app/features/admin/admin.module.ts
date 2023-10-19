@@ -12,6 +12,7 @@ import { AdminListComponent } from './components/admin-list/admin-list.component
 import { CreateUserModalComponent } from './components/create-user-modal/create-user-modal.component';
 import { AddAdminModalComponent } from './components/add-admin-modal/add-admin-modal.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { ProjectsComponent } from './pages/projects/projects.component';
 
 const routes: Routes = [
   {
@@ -31,6 +32,10 @@ const routes: Routes = [
       {
         path: 'settings',
         component: SettingsComponent
+      },
+      {
+        path: 'projects',
+        component: ProjectsComponent
       }
     ]
   }
@@ -44,7 +49,8 @@ const routes: Routes = [
     UserListComponent,
     AdminListComponent,
     CreateUserModalComponent,
-    AddAdminModalComponent
+    AddAdminModalComponent,
+    ProjectsComponent
   ],
   imports: [
     CommonModule,

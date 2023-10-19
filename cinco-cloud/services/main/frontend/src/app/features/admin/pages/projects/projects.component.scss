@@ -1,0 +1,19 @@
+.image-list {
+  .row {
+    padding: .75rem .5rem;
+
+    &:not(.image-list-header) {
+      border-bottom: 1px solid rgba(255,255,255,.2);
+    }
+
+    &:last-of-type {
+      border-bottom: none;
+    }
+  }
+
+  .image-list-header {
+    background: rgba(0,0,0,0.2);
+    border-radius: .5rem;
+    font-weight: bold;
+  }
+}

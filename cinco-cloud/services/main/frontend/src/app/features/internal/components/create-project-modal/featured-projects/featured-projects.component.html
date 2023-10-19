@@ -1,0 +1,44 @@
+<div *ngIf="imagesGrid.length > 0; else noFeaturedImages">
+  <h6 class="mb-3">Featured images</h6>
+  <div *ngFor="let gridRow of imagesGrid">
+    <div class="d-flex flex-row gap-3 align-items-stretch">
+      <div
+        *ngFor="let image of gridRow"
+        class="d-flex flex-row border border-secondary-subtle rounded-3 shadow-sm flex-grow-1 w-100"
+      >
+        <div class="d-flex" style="border-top-left-radius: .5rem; border-bottom-left-radius: .5rem">
+          <div *ngIf="image.project.logo != null; else logoPlaceholder" [ngStyle]="style(image)"></div>
+          <ng-template #logoPlaceholder>
+            <div class="bg-secondary-subtle" style="height: 100%; width: 140px"></div>
+          </ng-template>
+        </div>
+        <div class="d-flex flex-column gap-2 flex-row p-3 flex-grow-1">
+          <cc-workspace-image-badge [image]="image" class="align-self-start" />
+          <div class="d-flex flex-column gap-2 flex-grow-1">
+            <h5 class="m-0 mt-2 align-self-start">{{image.project.name}}</h5>
+            <p
+              class="text-muted m-0 align-self-start"
+              *ngIf="image.project.description != null && image.project.description.trim() !== ''; else noDescription"
+            >
+              {{image.project.description}}
+            </p>
+            <ng-template #noDescription>
+              <p class="text-muted m-0 align-self-start">
+                <em>No description available</em>
+              </p>
+            </ng-template>
+            <button
+              class="btn btn-outline-secondary btn-sm w-100 mt-auto"
+              (click)="selected.emit(image)"
+            >
+              Select
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>
+</div>
+
+<ng-template #noFeaturedImages />

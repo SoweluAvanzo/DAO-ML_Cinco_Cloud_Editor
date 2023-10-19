@@ -70,7 +70,9 @@ export class OverviewComponent implements OnInit {
   }
 
   openCreateProjectModal(): void {
-    const ref = this.modalService.open(CreateProjectModalComponent);
+    const ref = this.modalService.open(CreateProjectModalComponent, {
+      size: 'lg'
+    });
     ref.result.then(() => {
       this.loadProjectPage();
     }).catch(() => {
