@@ -102,15 +102,17 @@ export class MetaSpecificationReloadCommandHandler implements CommandHandler {
         /** Graph Generate button */
         const generateButtonId = GenerateGraphDiagramCommand.id; // only one button exists, that is modified on each update
         const generatableTypes = getGraphTypes(e => hasGeneratorAction(e.elementTypeId));
-        const buttonCondition = '(' + generatableTypes.map(t => `cincoGraphModelType == '${t.elementTypeId}'`).join(' || ') + ')';
-        this.commandRegistry.executeCommand(EDITOR_BUTTON_UNREGISTRATION_COMMAND.id, [generateButtonId]);
-        this.commandRegistry.executeCommand(EDITOR_BUTTON_REGISTRATION_COMMAND.id, [
-            {
-                id: generateButtonId,
-                command: GenerateGraphDiagramCommand.id,
-                when: buttonCondition
-            }
-        ]);
+        const buttonCondition = generatableTypes.map(t => `cincoGraphModelType == '${t.elementTypeId}'`).join(' || ');
+        this.commandRegistry.executeCommand(EDITOR_BUTTON_UNREGISTRATION_COMMAND.id, [generateButtonId]).then(() => {
+            console.log('Updating generate button condition: ' + buttonCondition);
+            this.commandRegistry.executeCommand(EDITOR_BUTTON_REGISTRATION_COMMAND.id, [
+                {
+                    id: generateButtonId,
+                    command: GenerateGraphDiagramCommand.id,
+                    when: buttonCondition
+                }
+            ]);
+        });
 
         /** Create File Creation Commands */
         const creatableGraphModels = getGraphTypes(); // TODO: transient graphmodels not yet implemented

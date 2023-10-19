@@ -94,7 +94,7 @@ export class CincoGLSPDiagramWidget extends GLSPDiagramWidget {
      * Updating the tabBar. Theia and GLSP result in some race conditions. These need to be tackled by delay.
      * @param delay
      */
-    updateTabBarButtons(delay = 20): void {
+    updateTabBarButtons(delay = 50): void {
         wait(delay).then(_ => {
             // 20ms wait to tackle a race-condition
             const fileUriString = this.uri.toString(true);
