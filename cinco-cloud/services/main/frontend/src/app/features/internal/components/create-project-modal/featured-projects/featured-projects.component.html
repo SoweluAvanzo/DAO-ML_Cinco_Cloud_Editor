@@ -1,4 +1,4 @@
-<div *ngIf="imagesGrid.length > 0; else noFeaturedImages">
+<div class="d-flex flex-column row-gap-3" *ngIf="imagesGrid.length > 0; else noFeaturedImages">
   <h6 class="mb-3">Featured images</h6>
   <div *ngFor="let gridRow of imagesGrid">
     <div class="d-flex flex-row gap-3 align-items-stretch">
