@@ -98,17 +98,17 @@ export class MGLGenerator {
             modelElementSpec.attributes = mergeArrays(modelElementSpec.attributes,
                 modelElement.attributes.map((attribute) => {
                     const result = {
-                        'annotations': attribute.annotations.map(annotation => handleAnnotation(annotation)),
-                        'final': attribute.notChangeable,
-                        'unique': attribute.unique,
-                        'name': attribute.name,
-                        'defaultValue': attribute.defaultValue ?? "",
-                        'bounds': {
-                            'lowerBound': attribute.lowerBound ?? 0,
-                            'upperBound': attribute.upperBound ?? 1
+                        annotations: attribute.annotations.map(annotation => handleAnnotation(annotation)),
+                        final: attribute.notChangeable,
+                        unique: attribute.unique,
+                        name: attribute.name,
+                        defaultValue: attribute.defaultValue ?? "",
+                        bounds: {
+                            lowerBound: attribute.lowerBound ?? 0,
+                            upperBound: handleUpperBound(attribute.upperBound)
                         },
                         // Type is filled in below
-                        'type': ''
+                        type: ''
                     };
 
                     if(isPrimitiveAttribute(attribute)) {
@@ -128,8 +128,8 @@ export class MGLGenerator {
             modelElementSpec.containments = mergeElementConstraints(modelElementSpec.containments,
                 containerElement.containableElements.map(containableElement => {
                 return {
-                    lowerBound: containableElement.lowerBound ?? -1,
-                    upperBound: containableElement.upperBound ?? -1,
+                    lowerBound: containableElement.lowerBound ?? 0,
+                    upperBound: handleUpperBound(containableElement.upperBound),
                     // TODO Add handling of externalContainments
                     elements: containableElement.localContainments.map(localContainment => {
                         return 'node:' + localContainment.ref?.name.toLowerCase();
@@ -602,11 +602,21 @@ function handleFont(font: Font) {
 
 function getEdgeElementConnectionObject(edgeElementConnection: EdgeElementConnection) {
     return {
-        lowerBound: edgeElementConnection.lowerBound ?? -1,
-        upperBound: edgeElementConnection.upperBound ?? -1,
+        lowerBound: edgeElementConnection.lowerBound ?? 0,
+        upperBound: handleUpperBound(edgeElementConnection.upperBound),
         // TODO Add handling of externalConnections
         elements: edgeElementConnection.localConnection.map(localContainment => {
             return 'edge:' + localContainment.ref?.name.toLowerCase();
         }) ?? []
     }
+}
+
+function handleUpperBound(specification: number | '*' | undefined): number {
+    if (specification === undefined) {
+        return 1;
+    }
+    if (specification === '*') {
+        return -1;
+    }
+    return specification;
 }

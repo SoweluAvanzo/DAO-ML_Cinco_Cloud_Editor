@@ -54,7 +54,7 @@ export function getFallbackDefaultValue(type: string): any {
         case 'string':
             return '';
         case 'number':
-            return '0';
+            return 0;
         case 'boolean': {
             return false;
         }
@@ -71,13 +71,12 @@ export function getFallbackDefaultValue(type: string): any {
     }
 }
 
-export function isListAttribute(upperBound?: number): boolean {
-    return (upperBound === undefined || upperBound < 0 ? Infinity : upperBound) > 1;
+export function isListAttribute(upperBound: number): boolean {
+    return upperBound === -1 || upperBound > 1;
 }
 
 export function isList(attribute: Attribute): boolean {
-    const bounds = attribute.bounds ?? { lowerBound: 1.0, upperBound: 1.0 };
-    return isListAttribute(bounds.upperBound);
+    return isListAttribute(attribute.bounds?.upperBound ?? 1.0);
 }
 
 export type PropertyViewMessage = EditProperty;
