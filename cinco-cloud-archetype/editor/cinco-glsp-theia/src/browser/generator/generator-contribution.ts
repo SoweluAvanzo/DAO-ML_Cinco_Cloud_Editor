@@ -20,7 +20,7 @@ import {
     CreateJavascriptGeneratorTemplateCommand
 } from '@cinco-glsp/cinco-glsp-common/lib/protocol/generator-protocol';
 import { DiagramMenus } from '@eclipse-glsp/theia-integration';
-import { KeybindingContribution, KeybindingRegistry, LabelProvider, OpenerService } from '@theia/core/lib/browser';
+import { KeybindingContribution, KeybindingRegistry, LabelProvider } from '@theia/core/lib/browser';
 import {
     CommandContribution,
     CommandRegistry,
@@ -38,6 +38,7 @@ import { FileStat } from '@theia/filesystem/lib/common/files';
 import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
 import { GeneratorTemplate } from './generator-template';
 import { FilesystemUtilServer } from '../../common/file-system-util-protocol';
+import { ThemeService } from '@theia/core/lib/browser/theming';
 
 interface DidCreateNewResourceEvent {
     uri: URI;
@@ -147,15 +148,33 @@ export class CreateGenerateGraphDiagramCommandContribution implements CommandCon
 export class GenerateGraphDiagramCommandContribution implements CommandContribution {
     @inject(FileService) protected readonly fileService: FileService;
     @inject(LabelProvider) protected readonly labelProvider: LabelProvider;
-    @inject(OpenerService) protected readonly openerService: OpenerService;
+    @inject(ThemeService) protected readonly themeService: ThemeService;
     @inject(WorkspaceService) protected readonly workspaceService: WorkspaceService;
     @inject(SelectionServiceT) protected readonly selectionService: SelectionServiceT;
     @inject(FilesystemUtilServer) fsUtils: FilesystemUtilServer;
 
     private readonly onDidCreateNewFileEmitter = new Emitter<DidCreateNewResourceEvent>();
     registerCommands(registry: CommandRegistry): void {
+        this.reregisterCommand(registry);
+        this.themeService.onDidColorThemeChange(e => {
+            this.reregisterCommand(registry);
+        });
+    }
+
+    reregisterCommand(registry: CommandRegistry): void {
+        const theme = this.themeService.getCurrentTheme();
+        const iconClass = theme.type === 'light' ? GenerateGraphDiagramCommand.lightIconClass : GenerateGraphDiagramCommand.darkIconClass;
+        const commandIds = registry.commands.map(c => c.id);
+        if (commandIds.indexOf(GenerateGraphDiagramCommand.id) >= 0) {
+            registry.unregisterCommand(GenerateGraphDiagramCommand);
+        }
         registry.registerCommand(
-            GenerateGraphDiagramCommand,
+            {
+                id: GenerateGraphDiagramCommand.id,
+                category: GenerateGraphDiagramCommand.category,
+                label: GenerateGraphDiagramCommand.label,
+                iconClass: iconClass ?? GenerateGraphDiagramCommand.id
+            },
             this.newWorkspaceRootUriAwareCommandHandler({
                 execute: uri =>
                     this.getDirectory(uri).then(parent => {
