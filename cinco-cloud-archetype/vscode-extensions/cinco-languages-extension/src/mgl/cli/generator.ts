@@ -105,7 +105,7 @@ export class MGLGenerator {
                         defaultValue: attribute.defaultValue ?? "",
                         bounds: {
                             lowerBound: attribute.lowerBound ?? 0,
-                            upperBound: handleUpperBound(attribute.upperBound)
+                            upperBound: handleUpperBound(attribute.upperBound, 1)
                         },
                         // Type is filled in below
                         type: ''
@@ -129,7 +129,7 @@ export class MGLGenerator {
                 containerElement.containableElements.map(containableElement => {
                 return {
                     lowerBound: containableElement.lowerBound ?? 0,
-                    upperBound: handleUpperBound(containableElement.upperBound),
+                    upperBound: handleUpperBound(containableElement.upperBound, -1),
                     // TODO Add handling of externalContainments
                     elements: containableElement.localContainments.map(localContainment => {
                         return 'node:' + localContainment.ref?.name.toLowerCase();
@@ -603,7 +603,7 @@ function handleFont(font: Font) {
 function getEdgeElementConnectionObject(edgeElementConnection: EdgeElementConnection) {
     return {
         lowerBound: edgeElementConnection.lowerBound ?? 0,
-        upperBound: handleUpperBound(edgeElementConnection.upperBound),
+        upperBound: handleUpperBound(edgeElementConnection.upperBound, -1),
         // TODO Add handling of externalConnections
         elements: edgeElementConnection.localConnection.map(localContainment => {
             return 'edge:' + localContainment.ref?.name.toLowerCase();
@@ -611,9 +611,9 @@ function getEdgeElementConnectionObject(edgeElementConnection: EdgeElementConnec
     }
 }
 
-function handleUpperBound(specification: number | '*' | undefined): number {
+function handleUpperBound(specification: number | '*' | undefined, defaultValue: number): number {
     if (specification === undefined) {
-        return 1;
+        return defaultValue;
     }
     if (specification === '*') {
         return -1;
