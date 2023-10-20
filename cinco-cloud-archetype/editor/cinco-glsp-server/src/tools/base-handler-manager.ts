@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { APIBaseHandler, GraphModelState, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import { ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionDispatcher, ActionHandler, Logger } from '@eclipse-glsp/server-node';
+import { Action, ActionDispatcher, ActionHandler, Logger, ServerMessageAction, ServerSeverity } from '@eclipse-glsp/server-node';
 import { inject, injectable } from 'inversify';
 
 /**
@@ -80,6 +80,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                         }
                     } catch (e) {
                         console.log(`Error executing handler: ${(handler as any).name}`);
+                        this.notify(`${(handler as any).name} ran into errors!`, 'ERROR');
                         console.log(`${e}`);
                         leftToHandle = leftToHandle - 1;
                         if (leftToHandle <= 0) {
@@ -101,10 +102,12 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
         return new Promise<H[]>((resolve, reject) => {
             try {
                 if (!this.hasHandlerProperty(element)) {
+                    this.notify('This element has no assigned ' + this.baseHandlerName + '!', 'ERROR');
                     return resolve([]);
                 }
             } catch (e) {
                 console.log(`Error checking handlerProperties: (${element?.type + '|' + element?.id})`);
+                this.notify(`Error checking handlerProperties: (${element?.type + '|' + element?.id})`, 'ERROR');
                 console.log(`${e}`);
                 return resolve([]);
             }
@@ -115,11 +118,19 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                         return this.isApplicableHandler(element, handlerClassName);
                     } catch (e) {
                         console.log(`Error checking applicability of: ${handlerClassName}`);
+                        this.notify(`Error checking applicability of: ${handlerClassName}`, 'ERROR');
                         console.log(`${e}`);
                         return false;
                     }
                 }
             );
+            if (applicableHandlerClasses.length <= 0) {
+                this.notify(
+                    'No ' + this.baseHandlerName + ' was found! Please make sure that the annotated ' + this.baseHandlerName + ' exists!',
+                    'ERROR'
+                );
+                return resolve([]);
+            }
             let leftToHandle: number = applicableHandlerClasses.length;
             const actionHandlers: H[] = [];
             console.log('[' + leftToHandle + '] handlers will be tested for execution as a ' + this.baseHandlerName + '!');
@@ -155,6 +166,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                     }
                 } catch (e) {
                     console.log(`Error checking executability of: ${handlerClass.name}`);
+                    this.notify(`Error checking executability of: ${handlerClass.name}`, 'ERROR');
                     console.log(`${e}`);
                     leftToHandle = leftToHandle - 1;
                     if (leftToHandle <= 0) {
@@ -176,5 +188,20 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
             }
         }
         return result;
+    }
+
+    /**
+     *
+     * @param message
+     * @param severity "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
+     * @returns
+     */
+    notify(message: string, severity?: ServerSeverity, details?: string, timeout?: number): void {
+        const serverMessageAction = ServerMessageAction.create(message, {
+            severity: severity ?? 'INFO',
+            details: details ?? '',
+            timeout: timeout ?? 5000
+        });
+        this.actionDispatcher.dispatch(serverMessageAction);
     }
 }
