@@ -43,7 +43,8 @@ export const GenerateGraphDiagramCommand = {
     id: 'GenerateGraphDiagram.command',
     label: 'Generate Graph',
     category: 'Cinco Cloud',
-    iconClass: 'generate_graph_diagram_command',
+    darkIconClass: 'generate_graph_diagram_command_dark',
+    lightIconClass: 'generate_graph_diagram_command_light',
     keybinding: 'alt+g'
 };
 
