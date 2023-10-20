@@ -167,12 +167,16 @@ export class GenerateGraphDiagramCommandContribution implements CommandContribut
                                 throw new Error('Diagram gives insufficient information!');
                             }
                             const sourceUri = fileUri.sourceUri;
+                            console.log('Triggered generation on: ' + sourceUri);
                             this.fsUtils.readFiles([sourceUri]).then(value => {
                                 if (value.length <= 0) {
                                     throw new Error('Could not identify diagram id!');
                                 }
+                                console.log('parsing file: ' + sourceUri);
+                                console.log('object file: ' + JSON.stringify(value));
                                 const obj = JSON.parse(value[0]);
                                 const modelId = obj['id'];
+                                console.log('received modelId: ' + modelId);
                                 this.submitGeneration(workspacePath, sourceUri, modelId);
                             });
                         }

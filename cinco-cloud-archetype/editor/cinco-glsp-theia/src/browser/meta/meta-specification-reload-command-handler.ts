@@ -102,7 +102,9 @@ export class MetaSpecificationReloadCommandHandler implements CommandHandler {
         /** Graph Generate button */
         const generateButtonId = GenerateGraphDiagramCommand.id; // only one button exists, that is modified on each update
         const generatableTypes = getGraphTypes(e => hasGeneratorAction(e.elementTypeId));
-        const buttonCondition = generatableTypes.map(t => `cincoGraphModelType == '${t.elementTypeId}'`).join(' || ');
+        const buttonCondition = generatableTypes.length > 0 ?
+            generatableTypes.map(t => `cincoGraphModelType == '${t.elementTypeId}'`).join(' || ')
+            : 'false';
         this.commandRegistry.executeCommand(EDITOR_BUTTON_UNREGISTRATION_COMMAND.id, [generateButtonId]).then(() => {
             console.log('Updating generate button condition: ' + buttonCondition);
             this.commandRegistry.executeCommand(EDITOR_BUTTON_REGISTRATION_COMMAND.id, [
