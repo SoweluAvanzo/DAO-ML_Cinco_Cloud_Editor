@@ -102,7 +102,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
         return new Promise<H[]>((resolve, reject) => {
             try {
                 if (!this.hasHandlerProperty(element)) {
-                    this.notify('This element has no assigned ' + this.baseHandlerName + '!', 'ERROR');
+                    console.log('This element has no assigned ' + this.baseHandlerName + '!', 'ERROR');
                     return resolve([]);
                 }
             } catch (e) {
