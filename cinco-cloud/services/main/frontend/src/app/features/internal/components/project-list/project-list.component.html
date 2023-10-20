@@ -2,7 +2,7 @@
   <a
     *ngFor="let project of projects"
     class="list-group-item list-group-item-action d-flex flex-column-reverse flex-md-row"
-    [routerLink]="['/app', 'projects', project.id]"
+    [routerLink]="['/app', 'projects', project.id, 'editor']"
   >
     <div class="flex-grow-1 d-flex">
       <div class="me-3">
