@@ -18,6 +18,8 @@ import io.quarkus.panache.common.Page;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.enterprise.context.ApplicationScoped;
@@ -30,11 +32,16 @@ import javax.ws.rs.core.Response;
 @Transactional
 public class ProjectService {
 
+  private static final Logger LOGGER = Logger.getLogger(ProjectService.class.getName());
+
   @Inject
   ProjectRegistry projectRegistry;
 
   @Inject
   FileService fileService;
+
+  @Inject
+  SettingsService settingsService;
 
   @Inject
   OrganizationAccessRightVectorService orgAccessRightVectorService;
@@ -69,6 +76,7 @@ public class ProjectService {
     imageOptional.ifPresent(image -> {
       project.template = image;
       project.type = ProjectType.MODEL_EDITOR;
+      copyLogoFromTemplate(project, image);
     });
 
     project.persist();
@@ -76,6 +84,33 @@ public class ProjectService {
     organizationOptional.ifPresent(organization -> organization.persist());
 
     return project;
+  }
+
+  public void createDefaultProjects(UserDB user) {
+    final var settings = settingsService.getSettings();
+    if (settings.createDefaultProjects) {
+      for (final var image: WorkspaceImageDB.findAllFeatured()) {
+        createProject(
+          image.project.name,
+          image.project.description,
+          user,
+          Optional.empty(),
+          Optional.of(image)
+        );
+      }
+    }
+  }
+
+  private void copyLogoFromTemplate(ProjectDB project, WorkspaceImageDB image) {
+    if (image.project.logo != null) {
+      try {
+        final var filename = image.project.logo.filename;
+        final var is = this.fileService.loadFile(image.project.logo);
+        project.logo = this.fileService.storeFile(filename, is);
+      } catch (Exception e) {
+        LOGGER.log(Level.INFO, "Could not copy project logo.", e);
+      }
+    }
   }
 
   public void deleteProject(ProjectDB project) {

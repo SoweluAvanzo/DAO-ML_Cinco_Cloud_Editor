@@ -19,6 +19,7 @@ public class SettingsService {
     settings.autoActivateUsers = settingsTO.getautoActivateUsers();
     settings.sendMails = settingsTO.getsendMails();
     settings.archetypeImage = settingsTO.getArchetypeImage();
+    settings.createDefaultProjects = settingsTO.isCreateDefaultProjects();
     return settings;
   }
 }

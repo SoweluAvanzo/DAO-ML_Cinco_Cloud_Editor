@@ -12,12 +12,13 @@
       <cc-loading-indicator *ngIf="loader.get.inProgress$ | async; else loaded" />
 
       <ng-template #loaded>
-        <div class="alert alert-info mb-0" *ngIf="images.length === 0">
+        <div class="alert alert-info mb-0" *ngIf="images.length === 0; else imagesFound">
           There are no published project images.
         </div>
 
-        <table class="table table-responsive">
-          <thead>
+        <ng-template #imagesFound>
+          <table class="table table-responsive">
+            <thead>
             <tr>
               <th style="width: 1px">#</th>
               <th>Project</th>
@@ -25,8 +26,8 @@
               <th>Image</th>
               <th class="text-end">Featured</th>
             </tr>
-          </thead>
-          <tbody class="table-group-divider">
+            </thead>
+            <tbody class="table-group-divider">
             <tr *ngFor="let image of images">
               <td>{{image.project.id}}</td>
               <td>
@@ -46,8 +47,9 @@
                 <cc-toggle-button [enabled]="image.featured" (toggle)="updateFeatured(image, $event)" />
               </td>
             </tr>
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </ng-template>
       </ng-template>
 
     </div>

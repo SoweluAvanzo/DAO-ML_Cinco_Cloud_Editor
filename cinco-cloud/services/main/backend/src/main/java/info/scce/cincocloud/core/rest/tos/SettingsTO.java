@@ -10,6 +10,7 @@ public class SettingsTO extends RESTBaseImpl {
   private boolean allowPublicUserRegistration;
   private boolean autoActivateUsers;
   private boolean sendMails;
+  private boolean createDefaultProjects;
   private String archetypeImage;
 
   public static SettingsTO fromEntity(
@@ -20,16 +21,15 @@ public class SettingsTO extends RESTBaseImpl {
       return objectCache.getRestTo(entity);
     }
 
-    final var result = new SettingsTO();
-    result.setId(entity.id);
-    result.setallowPublicUserRegistration(entity.allowPublicUserRegistration);
-    result.setautoActivateUsers(entity.autoActivateUsers);
-    result.setsendMails(entity.sendMails);
-    result.setArchetypeImage(entity.archetypeImage);
-
-    objectCache.putRestTo(entity, result);
-
-    return result;
+    final var to = new SettingsTO();
+    to.setId(entity.id);
+    to.setallowPublicUserRegistration(entity.allowPublicUserRegistration);
+    to.setautoActivateUsers(entity.autoActivateUsers);
+    to.setsendMails(entity.sendMails);
+    to.setArchetypeImage(entity.archetypeImage);
+    to.setCreateDefaultProjects(entity.createDefaultProjects);
+    objectCache.putRestTo(entity, to);
+    return to;
   }
 
   @JsonProperty("allowPublicUserRegistration")
@@ -70,5 +70,15 @@ public class SettingsTO extends RESTBaseImpl {
   @JsonProperty("archetypeImage")
   public void setArchetypeImage(String archetypeImage) {
     this.archetypeImage = archetypeImage;
+  }
+
+  @JsonProperty("createDefaultProjects")
+  public boolean isCreateDefaultProjects() {
+    return createDefaultProjects;
+  }
+
+  @JsonProperty("createDefaultProjects")
+  public void setCreateDefaultProjects(boolean createDefaultProjects) {
+    this.createDefaultProjects = createDefaultProjects;
   }
 }

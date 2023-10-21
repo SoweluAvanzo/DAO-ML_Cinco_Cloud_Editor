@@ -35,6 +35,9 @@ public class UserService {
   PBKDF2Encoder passwordEncoder;
 
   @Inject
+  ProjectService projectService;
+
+  @Inject
   SettingsService settingsService;
 
   @Inject
@@ -96,6 +99,10 @@ public class UserService {
     user.systemRoles = roles;
     user.isActivated = false;
     user.persist();
+
+    // create default projects for created user
+    projectService.createDefaultProjects(user);
+
     return user;
   }
 
