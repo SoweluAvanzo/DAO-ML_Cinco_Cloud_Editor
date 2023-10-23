@@ -325,7 +325,7 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{appearance
                     // Shape
                     const shapeType = predefinedDecorator.shape.shapeType;
                     if(shapeType) {
-                        predefinedDecoratorConfiguration.shape = `'${shapeType.toUpperCase()}'`;
+                        predefinedDecoratorConfiguration.shape = `${shapeType.toUpperCase()}`;
                     }
 
                     // Appereance
