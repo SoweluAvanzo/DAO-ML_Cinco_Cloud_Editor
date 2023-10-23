@@ -142,6 +142,12 @@ public class ProjectService {
 
     WorkspaceImageBuildJobDB.deleteByIdIn(buildJobIds);
 
+    // remove featured image
+    if (project.image != null) {
+      project.image.featured = false;
+      project.image.persist();
+    }
+
     project.buildJobs.clear();
     project.persist();
   }
