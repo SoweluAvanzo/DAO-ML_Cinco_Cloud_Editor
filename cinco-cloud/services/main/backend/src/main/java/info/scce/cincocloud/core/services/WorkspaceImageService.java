@@ -28,8 +28,8 @@ public class WorkspaceImageService {
 
   public List<WorkspaceImageDB> getAllAccessibleImages(UserDB subject) {
     return subject.isAdmin()
-            ? WorkspaceImageDB.findAllWhereProjectIsNotDeleted()
-            : WorkspaceImageDB.findAllWhereProjectIsNotDeleted()
+            ? WorkspaceImageDB.findAllWhereProjectIsNotDeleted(subject)
+            : WorkspaceImageDB.findAllWhereProjectIsNotDeleted(subject)
                 .stream()
                 .filter(image -> userCanAccessImage(subject, image))
                 .collect(Collectors.toList());

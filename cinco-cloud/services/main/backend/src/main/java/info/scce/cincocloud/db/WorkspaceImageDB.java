@@ -1,6 +1,8 @@
 package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import io.quarkus.panache.common.Parameters;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -40,8 +42,13 @@ public class WorkspaceImageDB extends PanacheEntity {
     return find("uuid", uuid).firstResultOptional();
   }
 
-  public static List<WorkspaceImageDB> findAllWhereProjectIsNotDeleted() {
-    return find("project.deletedAt = null and published = true order by id asc").list();
+  public static List<WorkspaceImageDB> findAllWhereProjectIsNotDeleted(UserDB subject) {
+    return find("select distinct w from WorkspaceImageDB w where "
+            + "(w.project.deletedAt = null and w.published = true) or "
+            + "(w.project.deletedAt = null and w.project.owner.id = :ownerId) "
+            + "order by w.id asc",
+            Parameters.with("ownerId", subject.id))
+            .list();
   }
 
   public static List<WorkspaceImageDB> findAllFeatured() {
