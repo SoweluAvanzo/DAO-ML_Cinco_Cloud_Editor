@@ -42,9 +42,9 @@ export class WorkspaceImageSearchInputComponent implements OnInit {
 
   private searchImage(term: string): void {
     this.workspaceImageApi.search(term).subscribe({
-      next: results => {
+      next: page => {
         this.searched = true;
-        this.results = results;
+        this.results = page.items;
       }
     });
   }

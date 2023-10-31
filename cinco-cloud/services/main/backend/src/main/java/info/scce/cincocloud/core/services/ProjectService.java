@@ -13,10 +13,8 @@ import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.sync.ProjectRegistry;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.panache.common.Page;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,12 +49,8 @@ public class ProjectService {
         .orElseThrow(() -> new EntityNotFoundException("Cannot find project."));
   }
 
-  public List<ProjectDB> getAllAccessibleProjects(UserDB subject) {
-    return ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id).list();
-  }
-
-  public PanacheQuery<ProjectDB> getAllAccessibleProjectsPaged(UserDB subject, int index, int size) {
-    return ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id).page(Page.of(index, size));
+  public PanacheQuery<ProjectDB> getAllAccessibleProjects(UserDB subject) {
+    return ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id);
   }
 
   public ProjectDB createProject(
@@ -89,7 +83,7 @@ public class ProjectService {
   public void createDefaultProjects(UserDB user) {
     final var settings = settingsService.getSettings();
     if (settings.createDefaultProjects) {
-      for (final var image: WorkspaceImageDB.findAllFeatured()) {
+      for (final var image: WorkspaceImageDB.findAllFeaturedImages().list()) {
         createProject(
           image.project.name,
           image.project.description,
@@ -194,9 +188,7 @@ public class ProjectService {
       }
       removePrivateOwnerFromProject(project);
       // remove new owner from the project member list, if he was a member
-      if (project.members.contains(targetUser)){
-        project.members.remove(targetUser);
-      }
+      project.members.remove(targetUser);
       addPrivateOwnerToProject(project, targetUser);
     }
     return project;

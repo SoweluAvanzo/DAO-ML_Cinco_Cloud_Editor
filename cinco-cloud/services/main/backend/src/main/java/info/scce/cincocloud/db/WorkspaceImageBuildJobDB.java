@@ -15,13 +15,8 @@ import javax.validation.constraints.NotNull;
 
 @Entity
 @NamedQuery(
-    name = "WorkspaceImageBuildJobDB.findByProjectId",
-    query = "select job from WorkspaceImageBuildJobDB job inner join job.project p where p.id = ?1"
-)
-@NamedQuery(
     name = "WorkspaceImageBuildJobDB.findByProjectIdOrderByStartedAtDesc",
-    query = ""
-        + "select job "
+    query = "select job "
         + "from WorkspaceImageBuildJobDB job "
         + "inner join job.project p "
         + "where p.id = ?1 "
@@ -51,10 +46,6 @@ public class WorkspaceImageBuildJobDB extends PanacheEntity {
 
   public static Long deleteByIdIn(List<Long> ids) {
     return delete("id in ?1", ids);
-  }
-
-  public static PanacheQuery<WorkspaceImageBuildJobDB> findByProjectId(Long projectId) {
-    return find("#WorkspaceImageBuildJobDB.findByProjectId", projectId);
   }
 
   public static PanacheQuery<WorkspaceImageBuildJobDB> findByProjectIdOrderByStartedAtDesc(Long projectId) {

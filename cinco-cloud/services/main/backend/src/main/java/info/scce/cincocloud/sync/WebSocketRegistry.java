@@ -26,17 +26,16 @@ public abstract class WebSocketRegistry {
         }
       });
     } catch (IOException e) {
-      e.printStackTrace();
+      LOGGER.log(Level.INFO, "Failed to serialize message.", e);
       try {
-        session.close();
+        close(session, CloseReason.CloseCodes.CLOSED_ABNORMALLY, "Internal error.");
       } catch (IOException e1) {
-        e1.printStackTrace();
+        LOGGER.log(Level.INFO, "Failed to close session.", e1);
       }
     }
   }
 
-  public void close(Session session, int code) throws IOException {
-    session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(code), ""));
+  public void close(Session session, CloseReason.CloseCodes code, String message) throws IOException {
+    session.close(new CloseReason(code, message));
   }
-
 }

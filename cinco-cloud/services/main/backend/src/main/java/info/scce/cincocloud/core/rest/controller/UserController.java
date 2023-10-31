@@ -18,7 +18,6 @@ import info.scce.cincocloud.rest.ObjectCache;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
@@ -72,15 +71,11 @@ public class UserController {
                            @QueryParam("role") final Optional<UserSystemRole> systemRole) {
     UserService.getCurrentUser(securityContext);
 
-    final PanacheQuery<UserDB> page = search.isPresent()
-      ? userService.searchUsers(index, size, search.get(), systemRole)
-      : userService.getUsers(index, size, systemRole);
+    final PanacheQuery<UserDB> query = search.isPresent()
+      ? userService.searchUsers(search.get(), systemRole)
+      : userService.getUsers(systemRole);
 
-    final var users = page.stream()
-            .map(user -> UserTO.fromEntity(user, objectCache))
-            .collect(Collectors.toList());
-
-    final var pageTO = new PageTO<>(users, index, size, page.pageCount(), page.hasPreviousPage(), page.hasNextPage());
+    final var pageTO = PageTO.ofQuery(query, index, size, user -> UserTO.fromEntity(user, objectCache));
     return Response.ok(pageTO).build();
   }
 

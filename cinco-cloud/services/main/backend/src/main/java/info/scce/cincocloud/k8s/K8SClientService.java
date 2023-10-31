@@ -1,9 +1,10 @@
 package info.scce.cincocloud.k8s;
 
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import javax.enterprise.context.ApplicationScoped;
+
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
@@ -13,8 +14,10 @@ public class K8SClientService {
   String namespace;
 
   public KubernetesClient createClient() {
-    return new DefaultKubernetesClient(
-        new ConfigBuilder().withNamespace(namespace).build()
-    );
+    return new KubernetesClientBuilder()
+            .withConfig(new ConfigBuilder()
+                    .withNamespace(namespace)
+                    .build())
+            .build();
   }
 }

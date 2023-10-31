@@ -3,6 +3,7 @@ import { WorkspaceImageApiService } from '../../../../core/services/api/workspac
 import { WorkspaceImage } from '../../../../core/models/workspace-image';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
 import { loadingFor } from '@ngneat/loadoff';
+import { Page } from '../../../../core/models/page';
 
 @Component({
   selector: 'cc-projects',
@@ -12,19 +13,22 @@ import { loadingFor } from '@ngneat/loadoff';
 export class ProjectsComponent implements OnInit {
   loader = loadingFor('get');
 
-  images: WorkspaceImage[] = [];
+  imagesPage: Page<WorkspaceImage>;
 
   constructor(private workspaceImageApiService: WorkspaceImageApiService,
               private toastService: ToastService) {
   }
 
   ngOnInit(): void {
-    this.workspaceImageApiService.getAll()
+    this.loadPage();
+  }
+
+  loadPage(index = 0, size = 25) {
+    this.workspaceImageApiService.getAll(false, index, size)
       .pipe(this.loader.get.track())
       .subscribe({
-        next: images => {
-          this.images = images
-          console.log(this.images)
+        next: page => {
+          this.imagesPage = page;
         },
         error: err => {
           this.toastService.show({

@@ -16,9 +16,9 @@ export class FeaturedProjectsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.workspaceImageApi.getAll(true).subscribe({
-      next: images => {
-        this.imagesGrid = this.splitIntoSubLists(images, 2);
+    this.workspaceImageApi.getAll(true, 0, 10).subscribe({
+      next: page => {
+        this.imagesGrid = this.splitIntoSubLists(page.items, 2);
       }
     });
   }
