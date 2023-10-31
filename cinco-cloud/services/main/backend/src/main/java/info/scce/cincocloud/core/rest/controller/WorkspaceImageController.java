@@ -1,20 +1,21 @@
 package info.scce.cincocloud.core.rest.controller;
 
 import info.scce.cincocloud.core.rest.inputs.UpdateWorkspaceImageInput;
+import info.scce.cincocloud.core.rest.tos.PageTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageTO;
 import info.scce.cincocloud.core.services.UserService;
 import info.scce.cincocloud.core.services.WorkspaceImageService;
 import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.rest.ObjectCache;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -43,23 +44,21 @@ public class WorkspaceImageController {
   @RolesAllowed("user")
   public Response getAll(@Context SecurityContext securityContext,
                          @QueryParam("search") Optional<String> search,
-                         @QueryParam("featured") Optional<Boolean> featured) {
+                         @QueryParam("featured") Optional<Boolean> featured,
+                         @QueryParam("page") @DefaultValue("0") Integer pageIndex,
+                         @QueryParam("size") @DefaultValue("25") Integer pageSize) {
     final var subject = UserService.getCurrentUser(securityContext);
 
-    final List<WorkspaceImageDB> images;
-    if (search.isPresent()) {
-      images = workspaceImageService.searchAllAccessibleImages(subject, search.get());
-    } else if (featured.isPresent()) {
-      images = WorkspaceImageDB.findAllFeatured();
+    final PanacheQuery<WorkspaceImageDB> images;
+    if (featured.isPresent()) {
+      images = WorkspaceImageDB.findAllFeaturedImages();
     } else {
-      images = workspaceImageService.getAllAccessibleImages(subject);
+      images = WorkspaceImageDB.findAllAccessibleImages(subject, search);
     }
 
-    final var tos = images.stream()
-            .map(i -> WorkspaceImageTO.fromEntity(i, objectCache))
-            .collect(Collectors.toList());
-
-    return Response.ok(tos).build();
+    final var items = images.list();
+    final var pageTO = PageTO.ofList(items, pageIndex, pageSize, i -> WorkspaceImageTO.fromEntity(i, objectCache));
+    return Response.ok(pageTO).build();
   }
 
   @PUT

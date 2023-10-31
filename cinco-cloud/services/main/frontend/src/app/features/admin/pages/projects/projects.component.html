@@ -12,12 +12,12 @@
       <cc-loading-indicator *ngIf="loader.get.inProgress$ | async; else loaded" />
 
       <ng-template #loaded>
-        <div class="alert alert-info mb-0" *ngIf="images.length === 0; else imagesFound">
+        <div class="alert alert-info mb-0" *ngIf="imagesPage.items.length === 0; else imagesFound">
           There are no published project images.
         </div>
 
         <ng-template #imagesFound>
-          <table class="table table-responsive">
+          <table class="table table-responsive mb-3">
             <thead>
             <tr>
               <th style="width: 1px">#</th>
@@ -28,7 +28,7 @@
             </tr>
             </thead>
             <tbody class="table-group-divider">
-            <tr *ngFor="let image of images">
+            <tr *ngFor="let image of imagesPage.items">
               <td>{{image.project.id}}</td>
               <td>
                 <div><strong>{{image.project.name}}</strong></div>
@@ -49,6 +49,11 @@
             </tr>
             </tbody>
           </table>
+
+          <cc-pagination
+            [page]="imagesPage"
+            (nextPage)="loadPage(imagesPage.number + 1)"
+            (previousPage)="loadPage(imagesPage.number - 1)"/>
         </ng-template>
       </ng-template>
 

@@ -8,7 +8,6 @@ import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.exeptions.RestException;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.panache.common.Page;
 
 import java.util.Iterator;
 import java.util.List;
@@ -36,12 +35,8 @@ public class OrganizationService {
           .orElseThrow(() -> new EntityNotFoundException("Cannot find organization."));
   }
 
-  public List<OrganizationDB> getAllAccessibleOrganizations(UserDB subject) {
-    return OrganizationDB.findOrganizationsWhereUserIsOwnerOrMember(subject.id).list();
-  }
-
-  public PanacheQuery<OrganizationDB> getAllAccessibleOrganizationsPaged(UserDB subject, int index, int size) {
-    return OrganizationDB.findOrganizationsWhereUserIsOwnerOrMember(subject.id).page(Page.of(index, size));
+  public PanacheQuery<OrganizationDB> getAllAccessibleOrganizations(UserDB subject) {
+    return OrganizationDB.findOrganizationsWhereUserIsOwnerOrMember(subject.id);
   }
 
   public OrganizationDB create(String name, String description, UserDB subject) {

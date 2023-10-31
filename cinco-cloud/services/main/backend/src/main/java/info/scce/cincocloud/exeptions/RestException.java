@@ -4,7 +4,7 @@ import javax.ws.rs.core.Response.Status;
 
 public class RestException extends RuntimeException {
 
-  private Status status;
+  private final Status status;
 
   public RestException() {
     this(Status.BAD_REQUEST);

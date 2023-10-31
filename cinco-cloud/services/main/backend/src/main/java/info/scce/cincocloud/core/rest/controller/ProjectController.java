@@ -21,8 +21,8 @@ import info.scce.cincocloud.db.WorkspaceImageDB;
 import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.proto.CincoCloudProtos;
 import info.scce.cincocloud.rest.ObjectCache;
+
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -182,30 +182,13 @@ public class ProjectController {
   @RolesAllowed("user")
   public Response getProjects(
           @Context SecurityContext securityContext,
-          @QueryParam("page") Integer page,
-          @QueryParam("size") Integer size
+          @QueryParam("page") @DefaultValue("0") Integer index,
+          @QueryParam("size") @DefaultValue("25") Integer size
   ) {
     final var subject = UserService.getCurrentUser(securityContext);
-
-    if (page != null && size != null) {
-      final var paged = projectService.getAllAccessibleProjectsPaged(subject, page, size);
-
-      final var items = paged.stream()
-              .map(p -> ProjectTO.fromEntity(p, objectCache))
-              .collect(Collectors.toList());
-
-      final var pageTO = new PageTO<>(items, page, size, paged.pageCount(), paged.hasPreviousPage(), paged.hasNextPage());
-
-      return Response.ok(pageTO).build();
-    } else {
-      final var items = projectService.getAllAccessibleProjects(subject).stream()
-              .map(p -> ProjectTO.fromEntity(p, objectCache))
-              .collect(Collectors.toList());
-
-      final var pageTO = new PageTO<>(items, 0, items.size(), 1, false, false);
-
-      return Response.ok(pageTO).build();
-    }
+    final var query = projectService.getAllAccessibleProjects(subject);
+    final var pageTO = PageTO.ofQuery(query, index, size, p -> ProjectTO.fromEntity(p, objectCache));
+    return Response.ok(pageTO).build();
   }
 
   @PUT

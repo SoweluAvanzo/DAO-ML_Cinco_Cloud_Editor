@@ -26,33 +26,6 @@ public class WorkspaceImageService {
         .orElseThrow(() -> new EntityNotFoundException("Image could not be found."));
   }
 
-  public List<WorkspaceImageDB> getAllAccessibleImages(UserDB subject) {
-    return subject.isAdmin()
-            ? WorkspaceImageDB.findAllWhereProjectIsNotDeleted(subject)
-            : WorkspaceImageDB.findAllWhereProjectIsNotDeleted(subject)
-                .stream()
-                .filter(image -> userCanAccessImage(subject, image))
-                .collect(Collectors.toList());
-  }
-
-  public List<WorkspaceImageDB> searchAllAccessibleImages(UserDB subject, String searchQuery) {
-    List<WorkspaceImageDB> foundImages = getAllAccessibleImages(subject);
-    if (searchQuery == null || searchQuery.trim().isEmpty()) {
-      return foundImages;
-    }
-
-    final String q = searchQuery.toLowerCase();
-    return foundImages.stream()
-        .filter(image ->
-                image.project.name.toLowerCase().contains(q) ||
-                    image.project.matchOnOwnership(
-                        owner -> owner.name.toLowerCase().contains(q),
-                        organization -> organization.name.toLowerCase().contains(q)
-                    )
-        )
-        .collect(Collectors.toList());
-  }
-
   public WorkspaceImageDB updateImage(UserDB user, Long imageId, UpdateWorkspaceImageInput input) {
     final var image = getOrThrow(imageId);
 
