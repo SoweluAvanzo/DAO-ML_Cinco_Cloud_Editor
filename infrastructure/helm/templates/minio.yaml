@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: minio
-          image: quay.io/minio/minio:latest
+          image: quay.io/minio/minio:RELEASE.2023-11-01T18-37-25Z
           env:
             - name: MINIO_ROOT_USER
               valueFrom:
@@ -40,7 +40,7 @@ spec:
             - mountPath: /data
               name: pv-data
           command: ["/bin/sh","-c"]
-          args: ["/opt/bin/minio server /data --console-address ':9001'"]
+          args: ["minio server /data --console-address ':9001'"]
       volumes:
         - name: pv-data
           persistentVolumeClaim:
