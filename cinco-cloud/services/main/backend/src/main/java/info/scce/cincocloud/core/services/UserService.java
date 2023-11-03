@@ -82,10 +82,10 @@ public class UserService {
       Collection<UserSystemRole> roles) {
 
     if (!UserDB.list("username", username).isEmpty() || !OrganizationDB.list("name", username).isEmpty()) {
-      throw new IllegalArgumentException("The username already exists.");
+      throw new IllegalArgumentException("An account with the username already exists.");
     }
     if (!UserDB.list("email", email).isEmpty()) {
-      throw new IllegalArgumentException("The email already exists.");
+      throw new IllegalArgumentException("An account with the email already exists.");
     }
 
     final var user = new UserDB();
