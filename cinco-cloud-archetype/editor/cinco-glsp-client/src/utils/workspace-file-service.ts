@@ -19,6 +19,7 @@ import { CommandService } from '@theia/core';
 import URI from '@theia/core/lib/common/uri';
 import { inject, injectable, optional } from 'inversify';
 import * as path from 'path';
+import { ServerArgsProvider } from '../meta/server-args-response-handler';
 
 /**
  * THEIA-related
@@ -26,31 +27,58 @@ import * as path from 'path';
 @injectable()
 export class WorkspaceFileService {
     @inject(CommandService) @optional() commandService: CommandService;
+    @inject(ServerArgsProvider) @optional() ServerArgsProvider: ServerArgsProvider;
     protected static BLACKLIST = ['http://', 'https://'];
 
-    async serveFile(filePath: string, relativeFolder?: string): Promise<string | undefined> {
+    async serveFile(filePath: string): Promise<string | undefined> {
         if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
+            // if http => return undefined
             return undefined;
         }
-        const relativePath = (relativeFolder ?? '') + filePath;
+        const serverArgs = await ServerArgsProvider.getServerArgs();
+        const relativeLanguagePath = (serverArgs?.languagePath ?? '') + '/' + filePath;
+        const relativeWorkspacePath = (serverArgs?.workspacePath ?? '') + '/' + filePath;
+        const result = await this.serveFileInRoot(serverArgs.rootFolder, relativeLanguagePath);
+        if (result) {
+            return result;
+        } else {
+            if (this.commandService) {
+                // workspace when in theia
+                return this.serveFileIn(relativeWorkspacePath);
+            } else {
+                // workspace in standalone
+                return this.serveFileInRoot(serverArgs.rootFolder, relativeWorkspacePath);
+            }
+        }
+    }
+
+    protected async serveFileIn(relativePath: string): Promise<string | undefined> {
         const roots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
         for (const root of roots) {
-            // eslint-disable-next-line no-async-promise-executor
-            const result = await new Promise<{ response: Response; jsonResponse: any }>(async resolve => {
-                const absolutePath = path.join(root.path.fsPath(), relativePath);
-                try {
-                    const request = this.request([new URI(absolutePath)]);
-                    const resp = await fetch(request);
-                    const jsonResp = await resp.json();
-                    resolve({ response: resp, jsonResponse: jsonResp });
-                } catch (e) {
-                    resolve({ response: { status: 404 } as Response, jsonResponse: {} as any });
-                }
-            });
-            const { response, jsonResponse } = result;
-            if (response.status === 200) {
-                return `${this.endpoint()}/download/?id=${jsonResponse.id}`;
-            } // console.log('root `' + root + '` did not contain `' + relativeURI + '`. Trying next root...');
+            const result = this.serveFileInRoot(root.path.fsPath(), relativePath);
+            if (result) {
+                return result;
+            }
+        }
+        return undefined;
+    }
+
+    async serveFileInRoot(root: string, relativePath: string): Promise<string | undefined> {
+        // eslint-disable-next-line no-async-promise-executor
+        const result = await new Promise<{ response: Response; jsonResponse: any }>(async resolve => {
+            const absolutePath = path.join(root, relativePath);
+            try {
+                const request = this.request([new URI(absolutePath)]);
+                const resp = await fetch(request);
+                const jsonResp = await resp.json();
+                resolve({ response: resp, jsonResponse: jsonResp });
+            } catch (e) {
+                resolve({ response: { status: 404 } as Response, jsonResponse: {} as any });
+            }
+        });
+        const { response, jsonResponse } = result;
+        if (response.status === 200) {
+            return `${this.endpoint()}/download/?id=${jsonResponse.id}`;
         }
         return undefined;
     }

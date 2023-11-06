@@ -94,7 +94,7 @@ export function resolveChildrenRecursivly(currentNode: VNode): VNode[] {
 export function fromPathToURL(path: string, workspaceFileService: WorkspaceFileService): string {
     new Promise<string | undefined>((resolve, reject) => {
         // search inside internal resource folder
-        workspaceFileService.serveFile(path, '../languages/').then(servedLink => {
+        workspaceFileService.serveFile(path).then(servedLink => {
             if (servedLink === undefined) {
                 // search inside workspace
                 workspaceFileService.serveFile(path).then(servedLink2 => {
