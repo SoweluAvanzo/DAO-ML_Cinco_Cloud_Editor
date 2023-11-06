@@ -52,20 +52,17 @@ export namespace FileProviderResponseItem {
 
 export interface FileProviderRequest extends Action {
     kind: typeof FileProviderRequest.KIND;
-    directories: string[];
-    requestId: string
+    directories: string[]; // keyword META_LANGUAGES_FOLDER can be used for the respective folders
+    requestId: string;
     readFiles?: boolean;
     supportedTypes: string[];
 }
 
 export namespace FileProviderRequest {
     export const KIND = 'fileprovider.request';
+    export const META_LANGUAGES_FOLDER_KEYWORD = 'META_LANGUAGES_FOLDER';
 
-    export function create(
-        directories: string[],
-        readFiles?: boolean,
-        supportedTypes: string[] = []
-    ): FileProviderRequest {
+    export function create(directories: string[], readFiles?: boolean, supportedTypes: string[] = []): FileProviderRequest {
         return {
             kind: KIND,
             directories,
