@@ -279,6 +279,9 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             if (elementTypeId !== undefined) {
                 const spec = getSpecOf(elementTypeId);
                 icon = spec?.icon;
+                if (!icon && spec) {
+                    icon = `${spec.elementTypeId.replace(':', '_')}`;
+                }
             } else {
                 icon = handler.specification?.icon;
             }
@@ -288,7 +291,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             label,
             sortString: label.charAt(0),
             actions: [action],
-            icon: icon ?? 'codicon-circle-filled'
+            icon: icon ?? 'circle-filled'
         };
     }
 
