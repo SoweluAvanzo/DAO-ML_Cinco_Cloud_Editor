@@ -1,5 +1,5 @@
 .flowgraph-activity-toggled > .sprotty-node {
-    fill: #ff0000;
+    fill: #ff9900;
     animation: rotation 2s infinite linear;
 }
 
@@ -13,7 +13,7 @@
 }
 
 .cssnodestyle {
-    fill: #ff0000;
+    fill: rgb(255, 111, 120);
 }
 
 .flowgraph {
