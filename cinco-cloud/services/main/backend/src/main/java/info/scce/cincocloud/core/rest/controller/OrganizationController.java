@@ -18,13 +18,13 @@ import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -75,27 +75,13 @@ public class OrganizationController {
   @RolesAllowed("user")
   public Response getAll(
           @Context SecurityContext securityContext,
-          @QueryParam("page") Integer page,
-          @QueryParam("size") Integer size
+          @QueryParam("page") @DefaultValue("0") Integer index,
+          @QueryParam("size") @DefaultValue("25") Integer size
   ) {
     final var subject = UserService.getCurrentUser(securityContext);
-
-    if (page != null && size != null) {
-      final var paged = organizationService.getAllAccessibleOrganizationsPaged(subject, page, size);
-
-      final var items = paged.stream()
-              .map(p -> OrganizationTO.fromEntity(p, objectCache))
-              .collect(Collectors.toList());
-
-      final var pageTO = new PageTO<>(items, page, size, paged.pageCount(), paged.hasPreviousPage(), paged.hasNextPage());
-      return Response.ok(pageTO).build();
-    } else  {
-      final var items = organizationService.getAllAccessibleOrganizations(subject).stream()
-              .map(o -> OrganizationTO.fromEntity(o, objectCache))
-              .collect(Collectors.toList());
-      final var pageTO = new PageTO<>(items, 0, items.size(), 1, false, false);
-      return Response.ok(pageTO).build();
-    }
+    final var query = organizationService.getAllAccessibleOrganizations(subject);
+    final var pageTO = PageTO.ofQuery(query, index, size, p -> OrganizationTO.fromEntity(p, objectCache));
+    return Response.ok(pageTO).build();
   }
 
   @GET

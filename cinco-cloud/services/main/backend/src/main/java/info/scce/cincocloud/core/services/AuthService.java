@@ -3,22 +3,23 @@ package info.scce.cincocloud.core.services;
 import info.scce.cincocloud.auth.PBKDF2Encoder;
 import info.scce.cincocloud.auth.TokenUtils;
 import info.scce.cincocloud.config.Properties;
-import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
 import info.scce.cincocloud.sync.ticket.TicketRegistrationHandler;
 import io.quarkus.security.UnauthorizedException;
 import java.util.HashSet;
-import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import javax.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 @Transactional
 public class AuthService {
+
+  private final static Logger LOGGER = Logger.getLogger(AuthService.class.getName());
 
   @ConfigProperty(name = "cincocloud.jwt.duration")
   Long duration;
@@ -66,8 +67,9 @@ public class AuthService {
 
       return TokenUtils.generateToken(user.email, roles, duration, issuer, properties.getAuthPrivateKey());
     } catch (Exception e) {
-      e.printStackTrace();
-      throw new RuntimeException("Failed to generate token.");
+      final var message = "Failed to generate token.";
+      LOGGER.log(Level.INFO, message, e);
+      throw new RuntimeException(message);
     }
   }
 }

@@ -4,5 +4,5 @@ public enum EditorType {
     MODEL_EDITOR,
     LANGUAGE_EDITOR;
 
-    public static String KEY = "EDITOR_TYPE";
+    public static final String KEY = "EDITOR_TYPE";
 }

@@ -17,8 +17,7 @@ import javax.persistence.OneToOne;
 @Entity
 @NamedQuery(
     name = "OrganizationDB.findWhereUserIsOwnerOrMember",
-    query = ""
-        + "select distinct organization "
+    query = "select distinct organization "
         + "from OrganizationDB organization, UserDB user "
         + "where (user.id = ?1 and user in elements(organization.owners)) "
         + "or (user.id = ?1 and user in elements(organization.members))"

@@ -54,25 +54,23 @@ public class UserService {
         .orElseThrow(() -> new EntityNotFoundException("Cannot find user."));
   }
 
-  public PanacheQuery<UserDB> getUsers(int page, int size, Optional<UserSystemRole> systemRole) {
+  public PanacheQuery<UserDB> getUsers(Optional<UserSystemRole> systemRole) {
     if (systemRole.isPresent()) {
       final var queryString = "select u from UserDB u where ?1 member of u.systemRoles";
-      return UserDB.find(queryString, systemRole.get()).page(page, size);
+      return UserDB.find(queryString, systemRole.get());
     } else {
-      return UserDB.findAll().page(page, size);
+      return UserDB.findAll();
     }
   }
 
-  public PanacheQuery<UserDB> searchUsers(int page, int size, String usernameOrEmail, Optional<UserSystemRole> systemRole) {
+  public PanacheQuery<UserDB> searchUsers( String usernameOrEmail, Optional<UserSystemRole> systemRole) {
     final var baseQuery = "select u from UserDB u where LOWER(username) LIKE ?1 or LOWER(email) LIKE ?1";
     final var searchString = "%" + usernameOrEmail.toLowerCase() + "%";
     if (systemRole.isPresent()) {
       final var queryString = baseQuery + " and ?2 member of u.systemRoles";
-      final PanacheQuery<UserDB> query = UserDB.find(queryString, searchString, systemRole.get());
-      return query.page(page, size);
+      return UserDB.find(queryString, searchString, systemRole.get());
     } else {
-      final PanacheQuery<UserDB> query = UserDB.find(baseQuery, searchString);
-      return query.page(page, size);
+      return UserDB.find(baseQuery, searchString);
     }
   }
 
@@ -84,10 +82,10 @@ public class UserService {
       Collection<UserSystemRole> roles) {
 
     if (!UserDB.list("username", username).isEmpty() || !OrganizationDB.list("name", username).isEmpty()) {
-      throw new IllegalArgumentException("The username already exists.");
+      throw new IllegalArgumentException("An account with the username already exists.");
     }
     if (!UserDB.list("email", email).isEmpty()) {
-      throw new IllegalArgumentException("The email already exists.");
+      throw new IllegalArgumentException("An account with the email already exists.");
     }
 
     final var user = new UserDB();

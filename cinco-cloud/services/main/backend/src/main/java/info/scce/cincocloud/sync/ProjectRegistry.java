@@ -8,12 +8,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
 @Singleton
 public class ProjectRegistry extends WebSocketRegistry {
+
+  private final static Logger LOGGER = Logger.getLogger(ProjectRegistry.class.getName());
 
   /**
    * Map: ProjectId -> Session[]
@@ -45,9 +50,9 @@ public class ProjectRegistry extends WebSocketRegistry {
     ImmutableList.copyOf(currentOpenSockets.getOrDefault(projectId, new ArrayList<>()))
         .forEach(session -> {
           try {
-            session.close();
+            close(session, CloseReason.CloseCodes.NORMAL_CLOSURE, "Project has been deleted.");
           } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.INFO, "Failed to close session.", e);
           } finally {
             removeSession(projectId, session);
           }

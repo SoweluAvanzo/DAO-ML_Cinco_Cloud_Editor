@@ -7,8 +7,6 @@ import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.mq.WorkspaceImageAbortBuildJobMessage;
 import info.scce.cincocloud.mq.WorkspaceMQProducer;
 import info.scce.cincocloud.rest.ObjectCache;
-import io.quarkus.panache.common.Page;
-import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
@@ -33,16 +31,8 @@ public class WorkspaceImageBuildJobService {
   }
 
   public PageTO<WorkspaceImageBuildJobTO> getAllPaged(ProjectDB project, int index, int size) {
-    final var query = WorkspaceImageBuildJobDB
-        .findByProjectIdOrderByStartedAtDesc(project.id);
-
-    final var page = query.page(Page.of(index, size));
-
-    final var items = page.stream()
-        .map(j -> WorkspaceImageBuildJobTO.fromEntity(j, objectCache))
-        .collect(Collectors.toList());
-
-    return new PageTO<>(items, index, size, page.pageCount(), page.hasPreviousPage(), page.hasNextPage());
+    final var query = WorkspaceImageBuildJobDB.findByProjectIdOrderByStartedAtDesc(project.id);
+    return PageTO.ofQuery(query, index, size, j -> WorkspaceImageBuildJobTO.fromEntity(j, objectCache));
   }
 
   public void delete(long jobId) {

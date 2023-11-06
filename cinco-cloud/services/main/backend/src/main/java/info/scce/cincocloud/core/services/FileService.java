@@ -12,12 +12,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
 import org.apache.commons.io.FilenameUtils;
 
 @ApplicationScoped
 public class FileService {
+
+  private static final Logger LOGGER = Logger.getLogger(FileService.class.getName());
 
   @Inject
   Properties properties;
@@ -34,7 +39,7 @@ public class FileService {
       long id = Long.parseLong(idStr);
       return BaseFileDB.findById(id);
     } catch (URISyntaxException e) {
-      e.printStackTrace();
+      LOGGER.log(Level.INFO, "Failed to get file from path.", e);
       return null;
     }
   }
@@ -51,7 +56,7 @@ public class FileService {
       final var file = Paths.get(getUploadDir().toString(), String.valueOf(identifier.id), fileName);
       return new FileInputStream(file.toFile());
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      LOGGER.log(Level.INFO, "Failed to load file.", e);
       return null;
     }
   }
@@ -97,14 +102,13 @@ public class FileService {
     return result;
   }
 
-  public void deleteFile(String baseFilePath) {
-    deleteFile(getBaseFile(baseFilePath));
-  }
-
   public void deleteFile(BaseFileDB identifier) {
     final var filename = identifier.filename + "." + identifier.fileExtension;
     final var file = Paths.get(getUploadDir().toString(), String.valueOf(identifier.id), filename).toFile();
-    file.delete();
+    final var fileDeleted = file.delete();
+    if (!fileDeleted) {
+      LOGGER.log(Level.INFO, "Failed to delete file " + identifier.id);
+    }
     identifier.delete();
   }
 

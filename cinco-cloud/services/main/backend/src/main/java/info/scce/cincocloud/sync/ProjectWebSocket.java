@@ -76,8 +76,7 @@ public class ProjectWebSocket {
 
   @OnError
   public void onError(Throwable exception, Session session) {
-    exception.printStackTrace();
-    LOGGER.log(Level.INFO, "Error for project client: {0}", session.getId());
+    LOGGER.log(Level.INFO, "Error for project client: " + session.getId(), exception);
   }
 
   private void createStopProjectPodsTask(long projectId) {
@@ -93,7 +92,7 @@ public class ProjectWebSocket {
         StopProjectPodsTaskDB.persist(task);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.log(Level.INFO, "Failed to create task to stop project.", e);
     }
   }
 
