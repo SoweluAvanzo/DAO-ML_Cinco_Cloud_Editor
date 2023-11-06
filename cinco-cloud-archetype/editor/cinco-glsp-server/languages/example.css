@@ -13,9 +13,9 @@
 }
 
 .cssnodestyle {
-    fill: rgb(255, 111, 120);
+    fill: rgba(255, 100, 250, 0.7);
 }
 
-.flowgraph {
-    background: rgba(77, 77, 77, 0);
+.sprotty-graph {
+    background: #424242;
 }
