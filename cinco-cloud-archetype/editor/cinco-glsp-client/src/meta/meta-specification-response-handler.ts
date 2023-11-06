@@ -14,14 +14,18 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { MetaSpecification, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, IActionHandler, ICommand } from '@eclipse-glsp/client';
+import { Action, IActionDispatcher, IActionHandler, ICommand, TYPES } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
-import { injectable, inject } from 'inversify';
+import { injectable, inject, optional } from 'inversify';
+import { DynamicImportLoader } from './dynamic-import-tool';
 
 @injectable()
 export class MetaSpecificationResponseHandler implements IActionHandler {
     @inject(CommandService)
+    @optional()
     private readonly commandService: CommandService;
+    @inject(TYPES.IActionDispatcher)
+    private readonly actionDispatcher: IActionDispatcher;
 
     static _unlock: () => void;
     static _meta_spec_loaded = new Promise<void>((resolve, reject) => {
@@ -49,6 +53,8 @@ export class MetaSpecificationResponseHandler implements IActionHandler {
         }
         // propagate to theia
         this.propagateToTheia();
+        // update css
+        DynamicImportLoader.load(this.actionDispatcher);
         // update palette after meta-specification is updated
         return {
             kind: 'enableToolPalette'
