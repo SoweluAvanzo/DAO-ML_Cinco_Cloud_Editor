@@ -29,10 +29,7 @@ export function writeFile(targetPath: string, content: string, overwriteExisting
     }
 }
 
-export function getFilesFromDirectories(
-    directories: string[],
-    filterTypes: string[]
-): string[] {
+export function getFilesFromDirectories(directories: string[], filterTypes: string[]): string[] {
     let result: string[] = [];
     for (const dir of directories) {
         const fileUris = getFiles(dir, filterTypes);
@@ -121,11 +118,7 @@ export function readFiles(filePaths: string[], encoding?: string): string[] {
     return contents;
 }
 
-export function readFilesFromDirectories(
-    directories: string[],
-    filterTypes: string[] = [],
-    encoding?: string
-): Map<string, string> {
+export function readFilesFromDirectories(directories: string[], filterTypes: string[] = [], encoding?: string): Map<string, string> {
     const result = new Map<string, string>();
     for (const dir of directories) {
         const absDir = isAbsolute(dir) ? dir : `${getRootUri()}/${dir}`;
@@ -198,11 +191,11 @@ export function readDirectory(dirPath: string): string[] {
 }
 
 export function deleteFile(dirPath: string, force = false): void {
-    fs.rmSync(dirPath, {recursive: false, force: force});
+    fs.rmSync(dirPath, { recursive: false, force: force });
 }
 
 export function deleteDirectory(dirPath: string, recursive = false, force = false): void {
-    fs.rmSync(dirPath, {recursive: recursive, force: force});
+    fs.rmSync(dirPath, { recursive: recursive, force: force });
 }
 
 export function createDirectory(dirPath: string, deleteExistingDirectory = false): void {
@@ -217,14 +210,18 @@ export function copyFile(sourceFilePath: string, targetFilePath: string, overwri
     fs.copyFileSync(sourceFilePath, targetFilePath, mode);
 }
 
-export function copyDirectory(sourceDirPath: string, targetDirPath: string, deleteExistingDirectories = false, overwriteExistingFiles = true): void {
+export function copyDirectory(
+    sourceDirPath: string,
+    targetDirPath: string,
+    deleteExistingDirectories = false,
+    overwriteExistingFiles = true
+): void {
     createDirectory(targetDirPath, deleteExistingDirectories);
     for (const entry of readDirectory(sourceDirPath)) {
         const targetPath = path.join(targetDirPath, getFileName(entry));
         if (existsDirectory(entry)) {
             copyDirectory(entry, targetPath, deleteExistingDirectories, overwriteExistingFiles);
-        }
-        else {
+        } else {
             copyFile(entry, targetPath, overwriteExistingFiles);
         }
     }
@@ -243,7 +240,7 @@ export function getRoot(): string {
 
 export function getRootUri(): string {
     let root = getRootFolderArg();
-    if(root) {
+    if (root) {
         return root;
     } else {
         const ROOT_BASE = isBundle() ? '../..' : '../../..'; // pivot the rootBasePath to the folder above glsp-server
@@ -294,11 +291,16 @@ export function isDevModeArg(): boolean {
     return false;
 }
 
+export function getPortArg(): string | undefined {
+    const argsKey = '--port';
+    return getArgs(argsKey);
+}
+
 export function getArgs(argsKey: string): string | undefined {
     const args = process.argv.filter(a => a.startsWith(argsKey));
     if (args.length > 0) {
         const result = args[0].substring(argsKey.length + 1, undefined);
-        if(result) {
+        if (result) {
             return result.replace(/"|'/g, ''); // replace quotes
         }
     }
