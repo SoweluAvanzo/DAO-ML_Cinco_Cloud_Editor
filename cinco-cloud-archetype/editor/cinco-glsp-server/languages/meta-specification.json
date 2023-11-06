@@ -690,7 +690,6 @@
       "width": 36,
       "height": 36,
       "palettes": ["Mandatory", "Nodes"],
-      "icon": "icon_flowgraph_start",
       "view": {
         "style": "greenCircle"
       },
