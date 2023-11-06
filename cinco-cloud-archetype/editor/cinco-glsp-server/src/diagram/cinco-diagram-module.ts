@@ -22,6 +22,7 @@ import {
     GeneratorResponseAction,
     MetaSpecificationResponseAction,
     PropertyViewResponseAction,
+    ServerArgsResponse,
     ValidationModelAnswerAction
 } from '@cinco-glsp/cinco-glsp-common';
 import {
@@ -61,6 +62,7 @@ import { GeneratorManager } from '../tools/generator-manager';
 import { ValidationManager } from '../tools/validation-manager';
 import { CincoDiagramConfiguration } from './cinco-diagram-configuration';
 import { ReconnectEdgeHandler } from '../handler/reconnect-edge-handler';
+import { ServerArgsRequestHandler } from '../handler/server-args-handler';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -94,6 +96,7 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(GeneratorManager);
         binding.add(MetaSpecificationReloadHandler);
         binding.add(MetaSpecificationRequestHandler);
+        binding.add(ServerArgsRequestHandler);
         binding.add(FileProviderHandler);
     }
 
@@ -107,6 +110,7 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add('enableToolPalette');
         binding.add(MetaSpecificationResponseAction.KIND);
         binding.add(FileProviderResponse.KIND);
+        binding.add(ServerArgsResponse.KIND);
     }
 
     protected override configureOperationHandlers(binding: InstanceMultiBinding<OperationHandlerConstructor>): void {
