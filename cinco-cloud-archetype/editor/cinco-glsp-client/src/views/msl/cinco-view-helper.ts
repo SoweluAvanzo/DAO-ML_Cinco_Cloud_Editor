@@ -92,29 +92,31 @@ export function resolveChildrenRecursivly(currentNode: VNode): VNode[] {
  * @returns returns http-link to the resource
  */
 export function fromPathToURL(path: string, workspaceFileService: WorkspaceFileService): string {
-    new Promise<string | undefined>((resolve, reject) => {
-        // search inside internal resource folder
-        workspaceFileService.serveFile(path).then(servedLink => {
-            if (servedLink === undefined) {
-                // search inside workspace
-                workspaceFileService.serveFile(path).then(servedLink2 => {
-                    if (servedLink2 === undefined) {
-                        // use as direkt resource, e.g. path is already a html-link
-                        RESOURCE_MAP.set(path, `${path}`);
-                        resolve(path);
-                    } else {
-                        // found resource inside workspace folder
-                        RESOURCE_MAP.set(path, `${servedLink2}`);
-                        resolve(servedLink2);
-                    }
-                });
-            } else {
-                RESOURCE_MAP.set(path, `${servedLink}`);
-                resolve(servedLink);
+    workspaceFileService.servedExists(path).then(exists => {
+        if (!exists) {
+            // resource does not exist
+            RESOURCE_MAP.delete(path);
+        } else {
+            if (!RESOURCE_MAP.has(path)) {
+                // resource is not yet served, serving it
+                updateResourceServing(path, workspaceFileService);
             }
-        });
+        }
     });
+    // return current cached resource
     return `${RESOURCE_MAP.get(path)}`;
+}
+
+function updateResourceServing(path: string, workspaceFileService: WorkspaceFileService): void {
+    // search inside internal resource folder
+    workspaceFileService.serveFile(path).then(servedLink => {
+        if (servedLink === undefined) {
+            // resource does not exist
+            RESOURCE_MAP.delete(path);
+        } else {
+            RESOURCE_MAP.set(path, `${servedLink}`);
+        }
+    });
 }
 
 export function mergeAppearance(

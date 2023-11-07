@@ -32,8 +32,7 @@ export class WorkspaceFileService {
 
     async serveFile(filePath: string): Promise<string | undefined> {
         if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
-            // if http => return undefined
-            return undefined;
+            return filePath;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
         const relativeLanguagePath = (serverArgs?.languagePath ?? '') + '/' + filePath;
@@ -83,8 +82,44 @@ export class WorkspaceFileService {
         return undefined;
     }
 
+    async servedExists(filePath: string): Promise<boolean> {
+        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
+            return true;
+        }
+        const serverArgs = await ServerArgsProvider.getServerArgs();
+        const languagesPath = path.join(serverArgs.rootFolder, `/${serverArgs?.languagePath ?? ''}/${filePath}`);
+
+        if (!(await this.servedExistsIn(languagesPath))) {
+            if (this.commandService) {
+                const theiaRoots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
+                for (const theiaRoot of theiaRoots) {
+                    const workspacePath = path.join(theiaRoot.path.fsPath(), `/${serverArgs?.workspacePath ?? ''}/${filePath}`);
+                    if (!(await this.servedExistsIn(workspacePath))) {
+                        return false;
+                    }
+                }
+            } else {
+                const workspacePath = path.join(serverArgs.rootFolder, `/${serverArgs?.workspacePath ?? ''}/${filePath}`);
+                if (!(await this.servedExistsIn(workspacePath))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    async servedExistsIn(absolutePath: string): Promise<boolean> {
+        try {
+            const request = this.request([new URI(absolutePath)]);
+            const resp = await fetch(request);
+            return resp.ok;
+        } catch (e) {
+            return false;
+        }
+    }
+
     protected request(uris: URI[]): Request {
-        const url = this.url(uris);
+        const url = this.toTheiaURL(uris);
         const init = this.requestInit(uris);
         return new Request(url, init);
     }
@@ -109,7 +144,7 @@ export class WorkspaceFileService {
         };
     }
 
-    protected url(uris: URI[]): string {
+    protected toTheiaURL(uris: URI[]): string {
         const endpoint = this.endpoint();
         if (uris.length === 1) {
             // tslint:disable-next-line:whitespace
