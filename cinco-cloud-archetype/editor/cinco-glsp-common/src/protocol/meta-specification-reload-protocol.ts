@@ -18,6 +18,8 @@ import { CompositionSpecification } from '../meta-specification';
 import { Action } from './shared-protocol';
 import * as uuid from 'uuid';
 
+export const ALLOWED_IMAGE_FILE_TYPES = ['.png', '.svg', '.jpg', '.bmp', '.PNG', '.SVG', '.JPG', '.BMP'];
+
 export interface FileProviderResponse extends Action {
     kind: typeof FileProviderResponse.KIND;
     items: FileProviderResponseItem[];

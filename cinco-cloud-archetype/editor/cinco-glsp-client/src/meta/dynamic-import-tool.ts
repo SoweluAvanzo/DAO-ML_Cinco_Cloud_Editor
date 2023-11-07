@@ -14,6 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
+    ALLOWED_IMAGE_FILE_TYPES,
     ElementType,
     FileProviderRequest,
     FileProviderResponse,
@@ -30,7 +31,6 @@ import { ServerArgsProvider } from './server-args-response-handler';
 export class DynamicImportLoader implements IActionHandler {
     @inject(WorkspaceFileService) workspaceFileService: WorkspaceFileService;
 
-    protected allowedIconFileTypes = ['.png', '.svg', '.jpg', '.bmp', '.PNG', '.SVG', '.JPG', '.BMP'];
     static REQUESTED_IDs: string[] = [];
     static instance: DynamicImportLoader;
 
@@ -114,7 +114,7 @@ export class DynamicImportLoader implements IActionHandler {
         const css = [];
         for (const iconType of iconTypes) {
             let url = undefined;
-            for (const ext of this.allowedIconFileTypes) {
+            for (const ext of ALLOWED_IMAGE_FILE_TYPES) {
                 url = await this.workspaceFileService.serveFileInRoot(iconFolder, `${iconType}${ext}`);
                 if (url) {
                     break;
