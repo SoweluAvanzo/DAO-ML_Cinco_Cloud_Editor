@@ -14,49 +14,33 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    ALLOWED_IMAGE_FILE_TYPES,
     ElementType,
     FileProviderRequest,
-    FileProviderResponse,
     FileProviderResponseItem,
     MetaSpecification,
     RESOURCE_TYPES
 } from '@cinco-glsp/cinco-glsp-common';
-import { Action, IActionDispatcher, IActionHandler, ICommand } from '@eclipse-glsp/client';
-import { injectable, inject } from 'inversify';
+import { IActionDispatcher } from '@eclipse-glsp/client';
 import { WorkspaceFileService } from '../utils/workspace-file-service';
 import { ServerArgsProvider } from './server-args-response-handler';
+import { FileProviderHandler } from '../features/file-provider-handler';
 
-@injectable()
-export class DynamicImportLoader implements IActionHandler {
-    @inject(WorkspaceFileService) workspaceFileService: WorkspaceFileService;
-
-    static REQUESTED_IDs: string[] = [];
-    static instance: DynamicImportLoader;
-
+export class DynamicImportLoader {
     static _locks: (() => void)[] = [];
     static _locked = false;
 
-    handle(action: FileProviderResponse): ICommand | Action | void {
-        if (!DynamicImportLoader.instance) {
-            DynamicImportLoader.instance = this;
-        }
-        if (DynamicImportLoader.REQUESTED_IDs.indexOf(action.requestId) >= 0) {
-            DynamicImportLoader.instance.importResources(action.items);
-        }
-    }
-
-    static load(actionDispatcher: IActionDispatcher, supportedDynamicImportFileTypes: string[] = RESOURCE_TYPES): Promise<void> {
-        const request = FileProviderRequest.create(
-            [FileProviderRequest.META_LANGUAGES_FOLDER_KEYWORD],
+    static async load(actionDispatcher: IActionDispatcher, supportedDynamicImportFileTypes: string[] = RESOURCE_TYPES): Promise<void> {
+        const items = await FileProviderHandler.getFiles(
+            FileProviderRequest.META_LANGUAGES_FOLDER_KEYWORD,
             false,
-            supportedDynamicImportFileTypes
+            supportedDynamicImportFileTypes,
+            actionDispatcher
         );
-        DynamicImportLoader.REQUESTED_IDs.push(request.requestId);
-        return actionDispatcher.dispatch(request);
+        const workspaceFileService = await FileProviderHandler.getWorkspaceFileService();
+        return DynamicImportLoader.importResources(items, workspaceFileService);
     }
 
-    private async importResources(resources: FileProviderResponseItem[]): Promise<void> {
+    static async importResources(resources: FileProviderResponseItem[], workspaceFileService: WorkspaceFileService): Promise<void> {
         // lock
         if (DynamicImportLoader._locked) {
             await new Promise<void>(resolve => {
@@ -67,9 +51,14 @@ export class DynamicImportLoader implements IActionHandler {
 
         const serverArgs = await ServerArgsProvider.getServerArgs();
         for (const file of resources) {
-            await this.loadCSSFile(`${serverArgs.rootFolder}/${serverArgs.languagePath}/`, `${file.path}`, serverArgs.metaDevMode);
+            await this.loadCSSFile(
+                `${serverArgs.rootFolder}/${serverArgs.languagePath}/`,
+                `${file.path}`,
+                serverArgs.metaDevMode,
+                workspaceFileService
+            );
         }
-        await this.addIconStyle(`${serverArgs.rootFolder}/${serverArgs.languagePath}/icons/`);
+        await this.addIconStyle(`${serverArgs.rootFolder}/${serverArgs.languagePath}/icons/`, workspaceFileService);
 
         // unlock
         const toUnlock = DynamicImportLoader._locks.pop();
@@ -79,7 +68,7 @@ export class DynamicImportLoader implements IActionHandler {
         DynamicImportLoader._locked = false;
     }
 
-    private async loadCSSFile(root: string, filePath: string, overwrite = false): Promise<void> {
+    static async loadCSSFile(root: string, filePath: string, overwrite = false, workspaceFileService: WorkspaceFileService): Promise<void> {
         if (this.hasChild(filePath)) {
             if (!overwrite) {
                 // only provide if not already loaded
@@ -88,7 +77,7 @@ export class DynamicImportLoader implements IActionHandler {
                 this.bustChild(filePath);
             }
         }
-        const url = await this.workspaceFileService.serveFileInRoot('', root + filePath);
+        const url = await workspaceFileService.serveFileInRoot('', root + filePath);
         if (url) {
             const fileref = document.createElement('link');
             fileref.setAttribute('id', filePath);
@@ -99,7 +88,7 @@ export class DynamicImportLoader implements IActionHandler {
         }
     }
 
-    private async addIconStyle(iconFolder: string): Promise<void> {
+    static async addIconStyle(iconFolder: string, workspaceFileService: WorkspaceFileService): Promise<void> {
         const icon_id = 'cinco.icon.style';
         this.bustChild(icon_id, 'style');
 
@@ -109,17 +98,15 @@ export class DynamicImportLoader implements IActionHandler {
         // collect distinct types
         let types: ElementType[] = Array.from(MetaSpecification.get().nodeTypes ?? []);
         types = types.concat(Array.from(MetaSpecification.get().edgeTypes ?? []));
-        const iconTypes = new Set(types.map(t => t.icon ?? t.elementTypeId.replace(':', '_').toLowerCase()));
+        const iconTypes = Array.from(new Set(types.map(t => t.icon ?? t.elementTypeId.replace(':', '_')))) as string[];
+
+        const icon_files = (await FileProviderHandler.getFiles(iconFolder)).map(v => v.path) as string[];
+        const existingIconTypes = icon_files.filter(t => iconTypes.includes(t.slice(0, t.lastIndexOf('.'))));
 
         const css = [];
-        for (const iconType of iconTypes) {
-            let url = undefined;
-            for (const ext of ALLOWED_IMAGE_FILE_TYPES) {
-                url = await this.workspaceFileService.serveFileInRoot(iconFolder, `${iconType}${ext}`);
-                if (url) {
-                    break;
-                }
-            }
+        for (const iconFile of existingIconTypes) {
+            const url = await workspaceFileService.serveFileInRoot(iconFolder, iconFile);
+            const iconType = iconFile.slice(0, iconFile.lastIndexOf('.')).replace('.', '_');
             if (url) {
                 css.push(`
                     .codicon-${iconType} {
@@ -136,7 +123,7 @@ export class DynamicImportLoader implements IActionHandler {
         document.getElementsByTagName('head')[0].appendChild(icon_style);
     }
 
-    private bustChild(id: string, tagType = 'LINK'): void {
+    static bustChild(id: string, tagType = 'LINK'): void {
         const children = Array.from(document.head.getElementsByTagName(tagType));
         for (const current of children) {
             if (current && current.id === id) {
@@ -145,7 +132,7 @@ export class DynamicImportLoader implements IActionHandler {
         }
     }
 
-    private hasChild(id: string): boolean {
+    static hasChild(id: string): boolean {
         const children = document.head.getElementsByTagName('LINK');
         const length = children.length;
         for (let i = 0; i < length; i++) {

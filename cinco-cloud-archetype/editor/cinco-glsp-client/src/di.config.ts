@@ -146,7 +146,6 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     // bind dirty state handler
     configureActionHandler(context, SetDirtyStateAction.KIND, DirtyStateHandler);
     configureActionHandler(context, MetaSpecificationResponseAction.KIND, MetaSpecificationResponseHandler);
-    configureActionHandler(context, FileProviderResponse.KIND, DynamicImportLoader);
     configureActionHandler(context, FileProviderResponse.KIND, FileProviderHandler);
     configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
 

@@ -16,17 +16,18 @@
 import { FileProviderRequest, FileProviderResponse, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
 import { Action, IActionDispatcher, IActionHandler, ICommand, TYPES } from '@eclipse-glsp/client';
 import { injectable, inject } from 'inversify';
+import { WorkspaceFileService } from '../utils/workspace-file-service';
 
 @injectable()
 export class FileProviderHandler implements IActionHandler {
+    @inject(WorkspaceFileService) protected workspaceFileService: WorkspaceFileService;
     @inject(TYPES.IActionDispatcher) protected actionDispatcher: IActionDispatcher;
-    static REQUEST_ROUTING: Map<string, (items: FileProviderResponseItem[]) => void> = new Map();
-    static instance: FileProviderHandler;
+    protected static REQUEST_ROUTING: Map<string, (items: FileProviderResponseItem[]) => void> = new Map();
+    protected static _INSTANCE_QUEUE: ((fileProviderHandler: FileProviderHandler) => void)[] = [];
+    protected static _instance: FileProviderHandler;
 
     handle(action: FileProviderResponse): ICommand | Action | void {
-        if (!FileProviderHandler.instance) {
-            FileProviderHandler.instance = this;
-        }
+        this.updateInstance();
         if (FileProviderHandler.REQUEST_ROUTING.has(action.requestId)) {
             const result = FileProviderHandler.REQUEST_ROUTING.get(action.requestId);
             if (result) {
@@ -35,12 +36,49 @@ export class FileProviderHandler implements IActionHandler {
         }
     }
 
-    static getFiles(folder: string, readFiles: boolean, supportedDynamicImportFileTypes: string[]): Promise<FileProviderResponseItem[]> {
+    updateInstance(): void {
+        if (!FileProviderHandler._instance) {
+            if (FileProviderHandler._INSTANCE_QUEUE.length > 0) {
+                for (const waiting of FileProviderHandler._INSTANCE_QUEUE) {
+                    waiting(this);
+                }
+            }
+            FileProviderHandler._instance = this;
+            FileProviderHandler._INSTANCE_QUEUE = [];
+        }
+    }
+
+    static async getFiles(
+        folder: string,
+        readFiles = false,
+        supportedDynamicImportFileTypes: string[] = [],
+        actionDispatcher?: IActionDispatcher
+    ): Promise<FileProviderResponseItem[]> {
         const result = new Promise<FileProviderResponseItem[]>(resolve => {
             const request = FileProviderRequest.create([folder], readFiles, supportedDynamicImportFileTypes);
             FileProviderHandler.REQUEST_ROUTING.set(request.requestId, resolve);
-            this.instance.actionDispatcher.dispatch(request);
+            if (actionDispatcher) {
+                actionDispatcher.dispatch(request);
+            } else {
+                this.instance.then(i => {
+                    i.actionDispatcher.dispatch(request);
+                });
+            }
         });
         return result;
+    }
+
+    static async getWorkspaceFileService(): Promise<WorkspaceFileService> {
+        return (await this.instance).workspaceFileService;
+    }
+
+    static get instance(): Promise<FileProviderHandler> {
+        if (this._instance) {
+            return new Promise<FileProviderHandler>(resolve => resolve(this._instance));
+        } else {
+            return new Promise<FileProviderHandler>(resolve => {
+                this._INSTANCE_QUEUE.push(resolve);
+            });
+        }
     }
 }
