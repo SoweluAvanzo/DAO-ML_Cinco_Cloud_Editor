@@ -68,6 +68,7 @@ import { GraphModelProvider } from './model/graph-model-provider';
 import { MetaSpecificationTheiaCommand } from './meta/meta-specification-theia-command';
 import { MetaSpecificationLoader } from './meta/meta-specification-loader';
 import { ServerArgsProvider } from './meta/server-args-response-handler';
+import { FileProviderHandler } from './features/file-provider-handler';
 
 export function createCincoDiagramContainer(widgetId: string): Container {
     const container = createClientContainer(cincoDiagramModule);
@@ -146,6 +147,7 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureActionHandler(context, SetDirtyStateAction.KIND, DirtyStateHandler);
     configureActionHandler(context, MetaSpecificationResponseAction.KIND, MetaSpecificationResponseHandler);
     configureActionHandler(context, FileProviderResponse.KIND, DynamicImportLoader);
+    configureActionHandler(context, FileProviderResponse.KIND, FileProviderHandler);
     configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
 
     configureDefaultModelElements(context);
