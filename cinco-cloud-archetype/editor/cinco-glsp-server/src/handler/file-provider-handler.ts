@@ -30,8 +30,13 @@ export class FileProviderHandler implements ActionHandler {
         const directories: string[] = action.directories;
         const readFiles: boolean = action.readFiles ?? false;
 
-        const dirs = directories.map(dir =>
-            dir === FileProviderRequest.META_LANGUAGES_FOLDER_KEYWORD ? getLanguageFolder() : `${getRootUri()}/${dir}`
+        const dirs = directories.map(
+            dir =>
+                dir === FileProviderRequest.META_LANGUAGES_FOLDER_KEYWORD
+                    ? getLanguageFolder()
+                    : this.isAbsolutePath(dir)
+                    ? dir // absolute
+                    : `${getRootUri()}/${dir}` // relative to root
         );
         let items: FileProviderResponseItem[];
         if (readFiles) {
@@ -43,5 +48,9 @@ export class FileProviderHandler implements ActionHandler {
         }
         const response = FileProviderResponse.create(items, action.requestId);
         return [response];
+    }
+
+    isAbsolutePath(path: string): boolean {
+        return path.startsWith('/') || path.startsWith('file://');
     }
 }
