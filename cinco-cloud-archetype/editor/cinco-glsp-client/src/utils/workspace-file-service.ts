@@ -14,12 +14,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { DEFAULT_THEIA_PORT } from '@cinco-glsp/cinco-glsp-common';
+import { ALLOWED_IMAGE_FILE_TYPES, DEFAULT_THEIA_PORT, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
 import { CommandService } from '@theia/core';
 import URI from '@theia/core/lib/common/uri';
 import { inject, injectable, optional } from 'inversify';
 import * as path from 'path';
 import { ServerArgsProvider } from '../meta/server-args-response-handler';
+import { IActionDispatcher, TYPES } from '@eclipse-glsp/client';
+import { FileProviderHandler } from '../features/file-provider-handler';
 
 /**
  * THEIA-related
@@ -27,6 +29,7 @@ import { ServerArgsProvider } from '../meta/server-args-response-handler';
 @injectable()
 export class WorkspaceFileService {
     @inject(CommandService) @optional() commandService: CommandService;
+    @inject(TYPES.IActionDispatcher) @optional() actionDispatcher: IActionDispatcher;
     @inject(ServerArgsProvider) @optional() ServerArgsProvider: ServerArgsProvider;
     protected static BLACKLIST = ['http://', 'https://'];
 
@@ -87,25 +90,23 @@ export class WorkspaceFileService {
             return true;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
-        const languagesPath = path.join(serverArgs.rootFolder, `/${serverArgs?.languagePath ?? ''}/${filePath}`);
-
-        if (!(await this.servedExistsIn(languagesPath))) {
+        const exists = await this.fileExists(serverArgs?.languagePath, filePath);
+        if (!exists) {
             if (this.commandService) {
                 const theiaRoots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
                 for (const theiaRoot of theiaRoots) {
-                    const workspacePath = path.join(theiaRoot.path.fsPath(), `/${serverArgs?.workspacePath ?? ''}/${filePath}`);
-                    if (!(await this.servedExistsIn(workspacePath))) {
-                        return false;
-                    }
+                    return this.fileExists(theiaRoot.path.fsPath(), filePath);
                 }
             } else {
-                const workspacePath = path.join(serverArgs.rootFolder, `/${serverArgs?.workspacePath ?? ''}/${filePath}`);
-                if (!(await this.servedExistsIn(workspacePath))) {
-                    return false;
-                }
+                return this.fileExists(serverArgs?.workspacePath, filePath);
             }
         }
         return true;
+    }
+
+    async fileExists(dir: string, filePath: string): Promise<boolean> {
+        const response: FileProviderResponseItem[] = await FileProviderHandler.getFiles(dir, false, ALLOWED_IMAGE_FILE_TYPES);
+        return response.filter(f => f.path === filePath).length > 0;
     }
 
     async servedExistsIn(absolutePath: string): Promise<boolean> {
