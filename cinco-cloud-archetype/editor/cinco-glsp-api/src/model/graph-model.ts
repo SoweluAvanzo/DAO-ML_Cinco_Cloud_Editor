@@ -170,28 +170,25 @@ export class ModelElement implements IdentifiableElement {
         return violatedConstraint;
     }
 
-    get view(): View | undefined {
+    get view(): View {
         const _view = this._view ?? getSpecOf(this.type)?.view;
-        return _view;
+        return _view ?? ({} as View);
     }
 
-    set view(view: View | undefined) {
+    set view(view: View) {
         this._view = view;
     }
 
     get cssClasses(): string[] {
-        return this.view?.cssClass ?? [];
+        return this.view.cssClass ?? getSpecOf(this.type)?.view?.cssClass ?? [];
     }
 
     set cssClasses(cssClasses: string[]) {
-        if (!this.view) {
-            throw new Error('ModelElement [' + this.id + ', ' + this.type + "] has no view. Couldn't set cssClasses!");
-        }
         this.view.cssClass = cssClasses;
     }
 
     get style(): Style | undefined {
-        let style: string | Style | undefined = this.view?.style ?? getSpecOf(this.type)?.view?.style;
+        let style: string | Style | undefined = this.view.style ?? getSpecOf(this.type)?.view?.style;
         if (typeof style === 'string') {
             style = getStyleByNameOf(style);
         }
@@ -203,12 +200,7 @@ export class ModelElement implements IdentifiableElement {
         if (oldStyle === style) {
             return;
         }
-        if (!this._view) {
-            this._view = {
-                style: {}
-            } as View;
-        }
-        this._view.style = style;
+        this.view.style = style;
     }
 
     get shape(): Shape | undefined {
@@ -298,7 +290,7 @@ export class ModelElement implements IdentifiableElement {
     }
 
     get properties(): Record<string, any> {
-        if(this._attributes) {
+        if (this._attributes) {
             return this._attributes;
         }
         this.initializeProperties();
@@ -366,7 +358,6 @@ export namespace ModelElement {
 }
 
 export class Node extends ModelElement {
-
     get parent(): ModelElementContainer | undefined {
         return this.index!.findContainment(this);
     }
@@ -414,7 +405,7 @@ export class Node extends ModelElement {
             return false;
         }
         let elements = this.incomingEdges;
-        if(filter) {
+        if (filter) {
             elements = elements.filter(e => filter(e));
         }
         return this.checkViolations(edgeType, elements, constraints).length <= 0;
@@ -431,7 +422,7 @@ export class Node extends ModelElement {
             return false;
         }
         let elements = this.outgoingEdges;
-        if(filter) {
+        if (filter) {
             elements = elements.filter(e => filter(e));
         }
         return this.checkViolations(edgeType, elements, constraints).length <= 0;
