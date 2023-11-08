@@ -20,6 +20,7 @@ import {
     MultiText,
     NodeStyle,
     Polyline,
+    Shape,
     Text
 } from '@cinco-glsp/cinco-glsp-common';
 import { CommandExecutionContext, CommandReturn, ILogger, SModelElement, SModelRoot, SystemCommand, TYPES } from '@eclipse-glsp/client';
@@ -47,14 +48,15 @@ export class ApplyAppearanceUpdateCommand extends SystemCommand {
                 const newAppearance = this.action.appearance;
                 if (modelElement instanceof CincoNode) {
                     const style: NodeStyle = { ...modelElement.style } as NodeStyle;
-                    const shape = style.shape;
+                    const shape = { ...style.shape } as Shape;
                     if (shape && (ContainerShape.is(shape) || Text.is(shape) || MultiText.is(shape) || Polyline.is(shape))) {
-                        (style.shape as ContainerShape | Text | MultiText | Polyline).appearance = newAppearance;
+                        (shape as ContainerShape | Text | MultiText | Polyline).appearance = { ...newAppearance };
+                        style.shape = shape;
                         modelElement.style = style;
                     }
                 } else if (modelElement instanceof CincoEdge) {
                     const style: EdgeStyle = { ...modelElement.style } as EdgeStyle;
-                    style.appearance = newAppearance;
+                    style.appearance = { ...newAppearance };
                     modelElement.style = style;
                 } else {
                     throw new Error('Cannot apply AppearanceUpdate. ModelElement is neither CincoNode nor CincoEdge!');
