@@ -59,8 +59,8 @@
             "height": 36
           },
           "_position": {
-            "x": 35.16694527728155,
-            "y": 63.847535362117284
+            "x": 37.60207489631086,
+            "y": 62.847535362117284
           },
           "_view": {
             "style": "greenCircle"
@@ -114,7 +114,7 @@
         "height": 199.71117803046258
       },
       "_position": {
-        "x": 867.5043384455829,
+        "x": 856.5043384455829,
         "y": -135.73680823406858
       },
       "_view": {
@@ -209,76 +209,6 @@
         ]
       },
       "name": "leftsd"
-    },
-    {
-      "id": "0f485fc5-1ab8-483f-912b-f7edafb9fa53",
-      "type": "node:activity",
-      "_attributes": {
-        "name": "Newnode:activity",
-        "description": "...",
-        "number": "0",
-        "boolean": false,
-        "optional": "",
-        "limit": [],
-        "list": [],
-        "nonemptyList": [],
-        "byte": [],
-        "fiveOrMore": [],
-        "enum": "Green",
-        "tree": {},
-        "activities": []
-      },
-      "_size": {
-        "width": 156.45495661216654,
-        "height": 77.62429034895948
-      },
-      "_position": {
-        "x": 871.6448068174778,
-        "y": -220.51041630470442
-      },
-      "name": "Push",
-      "description": "",
-      "_view": {
-        "style": "blueTextRectangle",
-        "styleParameter": [
-          "${name}"
-        ]
-      }
-    },
-    {
-      "id": "2d38cd30-0dd2-4863-9ff9-128abfb30dd9",
-      "type": "node:activity",
-      "_attributes": {
-        "name": "Newnode:activity",
-        "description": "...",
-        "number": "0",
-        "boolean": false,
-        "optional": "",
-        "limit": [],
-        "list": [],
-        "nonemptyList": [],
-        "byte": [],
-        "fiveOrMore": [],
-        "enum": "Green",
-        "tree": {},
-        "activities": []
-      },
-      "_size": {
-        "width": 135.93702774264904,
-        "height": 68.19531875000092
-      },
-      "_position": {
-        "x": 1065.782025002525,
-        "y": -216.39819585720113
-      },
-      "name": "Pick up",
-      "description": "",
-      "_view": {
-        "style": "blueTextRectangle",
-        "styleParameter": [
-          "${name}"
-        ]
-      }
     },
     {
       "id": "d98690f3-0729-4921-a1d7-9dd49694365a",
@@ -384,13 +314,157 @@
         "height": 36
       },
       "_position": {
-        "x": 634.1521607681456,
-        "y": 135.91855265449252
+        "x": 607.3657348825354,
+        "y": 107.8836091843812
       },
       "_view": {
         "style": "blueTextRectangle",
         "styleParameter": [
           "inject name here ->${name}<-"
+        ]
+      }
+    },
+    {
+      "id": "0184fc71-e1e1-4adf-9c37-aa8976458de7",
+      "type": "node:activity",
+      "_attributes": {
+        "name": "Pull",
+        "description": "...",
+        "number": 0,
+        "boolean": false,
+        "optional": "",
+        "limit": [],
+        "list": [],
+        "nonemptyList": [],
+        "byte": [],
+        "fiveOrMore": [],
+        "enum": "Green",
+        "tree": {},
+        "activities": []
+      },
+      "_size": {
+        "width": 92,
+        "height": 36
+      },
+      "_position": {
+        "x": 909.226955926851,
+        "y": -220.7264112264291
+      },
+      "_view": {
+        "style": {
+          "name": "blueTextRectangle",
+          "styleType": "NodeStyle",
+          "appearanceProvider": "ExampleAppearanceProvider",
+          "parameterCount": 1,
+          "shape": {
+            "type": "ROUNDEDRECTANGLE",
+            "appearance": {
+              "name": "default",
+              "lineWidth": 5,
+              "background": {
+                "r": 144,
+                "g": 207,
+                "b": 238
+              },
+              "transparency": 1
+            },
+            "position": {
+              "xPos": 0,
+              "yPos": 0
+            },
+            "size": {
+              "width": 96,
+              "height": 32
+            },
+            "cornerWidth": 8,
+            "cornerHeight": 8,
+            "children": [
+              {
+                "type": "TEXT",
+                "position": {
+                  "horizontal": "CENTER",
+                  "vertical": "MIDDLE"
+                },
+                "editable": false,
+                "value": "%s"
+              }
+            ]
+          }
+        },
+        "styleParameter": [
+          "${name}"
+        ]
+      }
+    },
+    {
+      "id": "1b958395-404f-424a-ad2f-b6776c038293",
+      "type": "node:activity",
+      "_attributes": {
+        "name": "Read",
+        "description": "...",
+        "number": 0,
+        "boolean": false,
+        "optional": "",
+        "limit": [],
+        "list": [],
+        "nonemptyList": [],
+        "byte": [],
+        "fiveOrMore": [],
+        "enum": "Green",
+        "tree": {},
+        "activities": []
+      },
+      "_size": {
+        "width": 92,
+        "height": 36
+      },
+      "_position": {
+        "x": 1057.0059518484434,
+        "y": -223.03171740560578
+      },
+      "_view": {
+        "style": {
+          "name": "blueTextRectangle",
+          "styleType": "NodeStyle",
+          "appearanceProvider": "ExampleAppearanceProvider",
+          "parameterCount": 1,
+          "shape": {
+            "type": "ROUNDEDRECTANGLE",
+            "appearance": {
+              "name": "default",
+              "lineWidth": 5,
+              "background": {
+                "r": 144,
+                "g": 207,
+                "b": 238
+              },
+              "transparency": 1
+            },
+            "position": {
+              "xPos": 0,
+              "yPos": 0
+            },
+            "size": {
+              "width": 96,
+              "height": 32
+            },
+            "cornerWidth": 8,
+            "cornerHeight": 8,
+            "children": [
+              {
+                "type": "TEXT",
+                "position": {
+                  "horizontal": "CENTER",
+                  "vertical": "MIDDLE"
+                },
+                "editable": false,
+                "value": "%s"
+              }
+            ]
+          }
+        },
+        "styleParameter": [
+          "${name}"
         ]
       }
     }
