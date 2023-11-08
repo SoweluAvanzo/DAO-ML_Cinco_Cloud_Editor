@@ -28,12 +28,12 @@ export abstract class LanguageFilesRegistry {
      * - set default DEVELOPMENT_MODE runtime variable to true
      */
     static get isMetaDevMode(): boolean {
-        if(isDevModeArg()) {
+        if (isDevModeArg()) {
             return true;
         }
         console.log('--metaDevMode - not set');
         const metaDevModeString = process.env[META_DEV_MODE];
-        if(!metaDevModeString) {
+        if (!metaDevModeString) {
             console.log('ENV VAR META_DEV_MODE - not set');
         }
         const metaDevMode = metaDevModeString === 'true' || metaDevModeString === 'True' || DEVELOPMENT_MODE;
@@ -47,12 +47,17 @@ export abstract class LanguageFilesRegistry {
                 // remove old containedClass
                 this._registered = this._registered.filter(r => r !== containedClass);
                 this._registered.push({ name: cls.name, cls: cls });
-                console.log('Reregistered: ', cls);
+                console.log('Reregistered: ' + cls.name);
             } else {
                 this._registered.push({ name: cls.name, cls: cls });
-                console.log('Registered: ', cls);
+                console.log('Registered: ' + cls.name);
             }
         }
+    }
+
+    static unregister(name: string): void {
+        console.log('Uregistered: ' + name);
+        this._registered = this._registered.filter(r => r.name !== name);
     }
 
     static getRegistered(): any[] {
@@ -60,18 +65,31 @@ export abstract class LanguageFilesRegistry {
         return this._registered.map(r => r.cls);
     }
 
-    static fetch(): {name: string, cls: any }[] {
+    static fetch(): { name: string; cls: any }[] {
         if (!this.isMetaDevMode) {
             // only reload files in development mode
             // in production this would be a security issue
             return this._registered;
         }
         console.log('*************** META_DEV_MODE - active ***********');
+
+        const handlerToImport = this.collectHandlersToImport();
+
+        // register all found
+        this.registerFound(handlerToImport);
+
+        // unregister all outdated files
+        this.unregisterOutdated(handlerToImport.map(h => h.name));
+
+        return this._registered;
+    }
+
+    static collectHandlersToImport(): { name: string; path: string; content: string }[] {
         const handlerNames = getAllHandlerNames();
         const fileMap = readFilesFromDirectories([getLanguageFolder()], ['.js']);
         const files = Array.from(fileMap.entries());
         const handlerToImport: { name: string; path: string; content: string }[] = [];
-        if(files.length <= 0) {
+        if (files.length <= 0) {
             console.log(`no files found in: ${getLanguageFolder()}`);
         } else {
             console.log(`${files.length} file(s) will be prepared for evaluation.`);
@@ -97,19 +115,14 @@ export abstract class LanguageFilesRegistry {
                 }
             }
         }
-        // load handler code
-        for (const handler of handlerToImport) {
-            try {
-                // eslint-disable-next-line no-eval
-                eval(`
-                    ${handler.content}
-                `);
-            } catch(e) {
-                console.log(e);
-            }
-        }
+        return handlerToImport;
+    }
+
+    static registerFound(handlerToImport: { name: string; path: string; content: string }[]): void {
         /**
-         * Javascript can have two static classes of the same time.
+         * Javascript can have two of the same static classes at the same time,
+         * from different packages (Package A and B both use Package C, containing the class).
+         *
          * In this case the handler registers the LanguageFile in a
          * dublicate found at require('@cinco-glsp/cinco-glsp-api') instead of
          * this very static instance. Thats why it needs to self reflect to
@@ -117,11 +130,49 @@ export abstract class LanguageFilesRegistry {
          * to update it's own.
          */
         // eslint-disable-next-line no-eval
-        const cinco_glsp_api = eval('( require(\'@cinco-glsp/cinco-glsp-api\') )');
-        const registered = cinco_glsp_api.LanguageFilesRegistry._registered;
-        for(const newInstance of registered) {
+        const cinco_glsp_api = eval("( require('@cinco-glsp/cinco-glsp-api') )");
+        const registered = cinco_glsp_api.LanguageFilesRegistry._registered as { name: string; cls: any }[];
+
+        // load handler code
+        for (const handler of handlerToImport) {
+            try {
+                // eslint-disable-next-line no-eval
+                eval(`
+                    ${handler.content}
+                `);
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        for (const newInstance of registered) {
+            // the registered from the other package are synchronized to here
             this.register(newInstance.cls);
         }
-        return this._registered;
+    }
+
+    static unregisterOutdated(currentHandler: string[]): void {
+        /**
+         * Javascript can have two of the same static classes at the same time,
+         * from different packages (Package A and B both use Package C, containing the class).
+         *
+         * In this case the handler registers the LanguageFile in a
+         * dublicate found at require('@cinco-glsp/cinco-glsp-api') instead of
+         * this very static instance. Thats why it needs to self reflect to
+         * access the other static instance used by the evaluated language-file
+         * to update it's own.
+         */
+        // eslint-disable-next-line no-eval
+        const cinco_glsp_api = eval("( require('@cinco-glsp/cinco-glsp-api') )");
+        const registered = cinco_glsp_api.LanguageFilesRegistry._registered as { name: string; cls: any }[];
+
+        // all registered that are not found in the files, that were ready to be registered
+        const outdated1 = this._registered.filter(r => !currentHandler.includes(r.name));
+        const outdated2 = registered.filter(r => !currentHandler.includes(r.name));
+
+        const outdated = new Set(outdated1.concat(outdated2).map(o => o.name));
+        outdated.forEach(o => {
+            this.unregister(o);
+            cinco_glsp_api.LanguageFilesRegistry.unregister(o);
+        });
     }
 }
