@@ -102,6 +102,7 @@ export class CincoNode extends SNode {
 
     set style(style: Style | undefined) {
         if (this._view) {
+            this._view = { ...this._view } as View;
             this._view.style = { ...style } as Style;
         }
     }
