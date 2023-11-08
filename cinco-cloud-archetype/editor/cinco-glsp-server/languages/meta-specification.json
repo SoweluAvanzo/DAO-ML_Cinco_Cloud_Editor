@@ -905,6 +905,10 @@
         {
           "name": "CustomAction",
           "values": ["LongestPathAction", "Calculate Longest Path"]
+        },
+        {
+          "name": "AppearanceProvider",
+          "values": ["ExampleAppearanceProvider"]
         }
       ]
     },
