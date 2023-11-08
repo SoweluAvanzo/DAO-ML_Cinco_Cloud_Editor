@@ -89,7 +89,6 @@ export class GraphModelState extends DefaultModelState {
         target = Object.assign(target, source);
         target.index = index;
         target.id = source.id;
-        target.view = source.view;
         return target;
     }
 }
