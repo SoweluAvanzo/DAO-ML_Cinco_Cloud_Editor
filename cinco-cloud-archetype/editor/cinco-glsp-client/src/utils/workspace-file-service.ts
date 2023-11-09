@@ -39,16 +39,16 @@ export class WorkspaceFileService {
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
         const relativeLanguagePath = (serverArgs?.languagePath ?? '') + '/' + filePath;
-        const relativeWorkspacePath = (serverArgs?.workspacePath ?? '') + '/' + filePath;
         const result = await this.serveFileInRoot(serverArgs.rootFolder, relativeLanguagePath);
         if (result) {
             return result;
         } else {
             if (this.commandService) {
                 // workspace when in theia
-                return this.serveFileIn(relativeWorkspacePath);
+                return this.serveFileIn(filePath);
             } else {
                 // workspace in standalone
+                const relativeWorkspacePath = (serverArgs?.workspacePath ?? '') + '/' + filePath;
                 return this.serveFileInRoot(serverArgs.rootFolder, relativeWorkspacePath);
             }
         }
@@ -90,33 +90,59 @@ export class WorkspaceFileService {
             return true;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
-        const exists = await this.fileExists(serverArgs?.languagePath, filePath);
-        if (!exists) {
-            if (this.commandService) {
-                const theiaRoots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
-                for (const theiaRoot of theiaRoots) {
-                    return this.fileExists(theiaRoot.path.fsPath(), filePath);
+        let exists;
+        if (filePath.startsWith('/')) {
+            exists = await this.fileExists('', filePath);
+        } else {
+            exists = await this.fileExists(serverArgs?.languagePath, filePath);
+            if (!exists) {
+                if (this.commandService) {
+                    const theiaRoots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
+                    for (const theiaRoot of theiaRoots) {
+                        return this.fileExists(theiaRoot.path.fsPath(), filePath);
+                    }
+                } else {
+                    return this.fileExists(serverArgs?.workspacePath, filePath);
                 }
+            }
+            return true;
+        }
+        return exists;
+    }
+
+    async servedExistsIn(filePath: string): Promise<string | undefined> {
+        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
+            return undefined;
+        }
+        const serverArgs = await ServerArgsProvider.getServerArgs();
+        let exists;
+        if (filePath.startsWith('/')) {
+            return (await this.fileExists('', filePath)) ? filePath : undefined;
+        } else {
+            exists = await this.fileExists(serverArgs?.languagePath, filePath);
+            if (exists) {
+                return exists ? path.join(serverArgs?.languagePath, filePath) : undefined;
             } else {
-                return this.fileExists(serverArgs?.workspacePath, filePath);
+                if (this.commandService) {
+                    const theiaRoots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
+                    for (const theiaRoot of theiaRoots) {
+                        if (await this.fileExists(theiaRoot.path.fsPath(), filePath)) {
+                            return path.join(theiaRoot.path.fsPath(), filePath);
+                        }
+                    }
+                    return undefined;
+                } else {
+                    return (await this.fileExists(serverArgs?.workspacePath, filePath))
+                        ? path.join(serverArgs.workspacePath, filePath)
+                        : undefined;
+                }
             }
         }
-        return true;
     }
 
     async fileExists(dir: string, filePath: string): Promise<boolean> {
         const response: FileProviderResponseItem[] = await FileProviderHandler.getFiles(dir, false, ALLOWED_IMAGE_FILE_TYPES);
         return response.filter(f => f.path === filePath).length > 0;
-    }
-
-    async servedExistsIn(absolutePath: string): Promise<boolean> {
-        try {
-            const request = this.request([new URI(absolutePath)]);
-            const resp = await fetch(request);
-            return resp.ok;
-        } catch (e) {
-            return false;
-        }
     }
 
     protected request(uris: URI[]): Request {

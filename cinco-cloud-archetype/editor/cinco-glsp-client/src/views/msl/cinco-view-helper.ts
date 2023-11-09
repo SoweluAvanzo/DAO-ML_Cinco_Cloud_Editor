@@ -66,7 +66,7 @@ export const CSS_DECORATOR_PREFIX = 'cc-decorator-';
 export const CSS_STYLE_PREFIX = 'cc-style-';
 export const USE_MARGIN_FIX = true;
 
-export const RESOURCE_MAP: Map<string, string | undefined> = new Map<string, string | undefined>();
+export const RESOURCE_MAP: Map<string, { location: string; url: string } | undefined> = new Map();
 
 export function resolveChildrenRecursivly(currentNode: VNode): VNode[] {
     let children: VNode[] = [];
@@ -92,29 +92,35 @@ export function resolveChildrenRecursivly(currentNode: VNode): VNode[] {
  * @returns returns http-link to the resource
  */
 export function fromPathToURL(path: string, workspaceFileService: WorkspaceFileService): string {
-    workspaceFileService.servedExists(path).then(exists => {
-        if (!exists) {
+    const existsIn = workspaceFileService.servedExistsIn(path);
+    existsIn.then(fileURIString => {
+        if (!fileURIString) {
             // resource does not exist
             RESOURCE_MAP.delete(path);
         } else {
             if (!RESOURCE_MAP.has(path)) {
                 // resource is not yet served, serving it
-                updateResourceServing(path, workspaceFileService);
+                updateResourceServing(path, fileURIString, workspaceFileService);
+            } else {
+                if (RESOURCE_MAP.get(path)?.location !== fileURIString) {
+                    // resource does not exist in same location anymore
+                    RESOURCE_MAP.delete(path);
+                }
             }
         }
     });
     // return current cached resource
-    return `${RESOURCE_MAP.get(path)}`;
+    return `${RESOURCE_MAP.get(path)?.url}`;
 }
 
-function updateResourceServing(path: string, workspaceFileService: WorkspaceFileService): void {
+function updateResourceServing(path: string, location: string, workspaceFileService: WorkspaceFileService): void {
     // search inside internal resource folder
     workspaceFileService.serveFile(path).then(servedLink => {
         if (servedLink === undefined) {
             // resource does not exist
             RESOURCE_MAP.delete(path);
         } else {
-            RESOURCE_MAP.set(path, `${servedLink}`);
+            RESOURCE_MAP.set(path, { location: location, url: `${servedLink}` });
         }
     });
 }
