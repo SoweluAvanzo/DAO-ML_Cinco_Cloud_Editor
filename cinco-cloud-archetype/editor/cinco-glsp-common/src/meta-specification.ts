@@ -541,7 +541,8 @@ export interface GraphType extends ElementType {
 
 export namespace GraphType {
     export function is(object: any): object is GraphType {
-        return ElementType.is(object) && hasArrayProp(object, 'containments');
+        const isSpecified = (MetaSpecification.get().graphTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
+        return ElementType.is(object) && (isSpecified || hasArrayProp(object, 'containments'));
     }
 }
 
@@ -578,14 +579,16 @@ export namespace ModelElementContainer {
 
 export namespace NodeType {
     export function is(object: any): object is NodeType {
+        const isSpecified = (MetaSpecification.get().nodeTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
         return (
             object !== undefined &&
-            hasBooleanProp(object, 'deletable') &&
-            hasBooleanProp(object, 'reparentable') &&
-            hasBooleanProp(object, 'repositionable') &&
-            hasBooleanProp(object, 'resizable') &&
-            hasNumberProp(object, 'width') &&
-            hasNumberProp(object, 'height')
+            (isSpecified ||
+                (hasBooleanProp(object, 'deletable') &&
+                    hasBooleanProp(object, 'reparentable') &&
+                    hasBooleanProp(object, 'repositionable') &&
+                    hasBooleanProp(object, 'resizable') &&
+                    hasNumberProp(object, 'width') &&
+                    hasNumberProp(object, 'height')))
         );
     }
 }
@@ -601,11 +604,11 @@ export interface EdgeType extends ElementType {
 
 export namespace EdgeType {
     export function is(object: any): object is EdgeType {
+        const isSpecified = (MetaSpecification.get().edgeTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
         return (
             ElementType.is(object) &&
-            hasBooleanProp(object, 'deletable') &&
-            hasBooleanProp(object, 'repositionable') &&
-            hasBooleanProp(object, 'routable')
+            (isSpecified ||
+                (hasBooleanProp(object, 'deletable') && hasBooleanProp(object, 'repositionable') && hasBooleanProp(object, 'routable')))
         );
     }
 }
@@ -644,7 +647,8 @@ export interface UserDefinedType extends Type {
 
 export namespace UserDefinedType {
     export function is(object: any): object is UserDefinedType {
-        return Type.is(object) && hasArrayProp(object, 'attributes');
+        const isSpecified = (MetaSpecification.get().customTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
+        return Type.is(object) && (isSpecified || hasArrayProp(object, 'attributes'));
     }
 }
 
