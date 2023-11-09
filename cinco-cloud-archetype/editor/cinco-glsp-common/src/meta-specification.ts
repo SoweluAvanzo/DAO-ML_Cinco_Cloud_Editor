@@ -547,10 +547,7 @@ export namespace GraphType {
 }
 
 export interface NodeType extends ElementType {
-    deletable: boolean;
     reparentable: boolean;
-    repositionable: boolean;
-    resizable: boolean;
     width: number;
     height: number;
     containments?: Constraint[];
@@ -582,20 +579,12 @@ export namespace NodeType {
         const isSpecified = (MetaSpecification.get().nodeTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
         return (
             object !== undefined &&
-            (isSpecified ||
-                (hasBooleanProp(object, 'deletable') &&
-                    hasBooleanProp(object, 'reparentable') &&
-                    hasBooleanProp(object, 'repositionable') &&
-                    hasBooleanProp(object, 'resizable') &&
-                    hasNumberProp(object, 'width') &&
-                    hasNumberProp(object, 'height')))
+            (isSpecified || (hasBooleanProp(object, 'reparentable') && hasNumberProp(object, 'width') && hasNumberProp(object, 'height')))
         );
     }
 }
 
 export interface EdgeType extends ElementType {
-    deletable: boolean;
-    repositionable: boolean;
     routable: boolean;
     palettes?: string[];
     view?: EdgeView;
@@ -605,11 +594,7 @@ export interface EdgeType extends ElementType {
 export namespace EdgeType {
     export function is(object: any): object is EdgeType {
         const isSpecified = (MetaSpecification.get().edgeTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
-        return (
-            ElementType.is(object) &&
-            (isSpecified ||
-                (hasBooleanProp(object, 'deletable') && hasBooleanProp(object, 'repositionable') && hasBooleanProp(object, 'routable')))
-        );
+        return ElementType.is(object) && (isSpecified || hasBooleanProp(object, 'routable'));
     }
 }
 
@@ -873,6 +858,26 @@ export function getAllHandlerNames(): string[] {
         }
     }
     return handlerNames;
+}
+
+export function isResizeable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('resize')).length <= 0;
+}
+
+export function isMovable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('move')).length <= 0;
+}
+
+export function isDeletable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('delete')).length <= 0;
+}
+
+export function isCreateable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('create')).length <= 0;
+}
+
+export function isSelectable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('select')).length <= 0;
 }
 
 /**

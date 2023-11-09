@@ -96,11 +96,18 @@ function registerPostInjectionLifecycle(
             let obj = registration.constr;
             let defaultFeatures;
             do {
-                if (obj.DEFAULT_FEATURES) {
-                    defaultFeatures = obj.DEFAULT_FEATURES;
+                if (obj.name === 'CincoEdge' || obj.name === 'CincoNode') {
+                    // TODO: check unsafe
+                    if ((obj as any).getDefaultFeatures(registration.type)) {
+                        defaultFeatures = (obj as any).getDefaultFeatures(registration.type);
+                    }
+                } else {
+                    if (obj.DEFAULT_FEATURES) {
+                        defaultFeatures = obj.DEFAULT_FEATURES;
+                    }
                 }
                 obj = Object.getPrototypeOf(obj);
-            } while (obj);
+            } while (defaultFeatures === undefined && obj);
             if (!defaultFeatures && registration.features && registration.features.enable) {
                 defaultFeatures = [];
             }
