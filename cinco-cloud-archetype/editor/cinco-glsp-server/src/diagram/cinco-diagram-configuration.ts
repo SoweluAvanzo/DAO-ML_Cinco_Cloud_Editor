@@ -49,10 +49,10 @@ export class CincoDiagramConfiguration implements DiagramConfiguration {
         nodeTypes.forEach((e: NodeType) => {
             shapeTypeHints.push({
                 elementTypeId: e.elementTypeId,
-                deletable: e.deletable,
-                reparentable: e.reparentable,
-                repositionable: e.repositionable,
-                resizable: e.resizable,
+                deletable: e.deletable ?? true,
+                reparentable: e.reparentable ?? false,
+                repositionable: e.repositionable ?? true,
+                resizable: e.resizable ?? true,
                 containableElementTypeIds: getContainmentsOf(e).map(n => n.elementTypeId)
             });
         });
@@ -67,9 +67,9 @@ export class CincoDiagramConfiguration implements DiagramConfiguration {
             const incomingEdgeFor = getEdgeTargets(e).map(n => n.elementTypeId);
             edgeTypeHints.push({
                 elementTypeId: e.elementTypeId,
-                deletable: e.deletable,
-                repositionable: e.repositionable,
-                routable: e.routable,
+                deletable: e.deletable ?? true,
+                repositionable: e.repositionable ?? true,
+                routable: e.routable ?? true,
                 sourceElementTypeIds: outgoingEdgeFor,
                 targetElementTypeIds: incomingEdgeFor
             });
