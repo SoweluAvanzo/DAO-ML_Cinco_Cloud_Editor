@@ -164,8 +164,16 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
     }
 
     // foreground, background, filled
-    const foreground = getProperty(appearance, a => a.foreground) ?? options?.foreground;
-    const background = getProperty(appearance, a => a.background) ?? options?.background;
+    let background;
+    let foreground;
+    if (options.isText) {
+        background = getProperty(appearance, a => a.foreground) ?? options?.background;
+        foreground = getProperty(appearance, a => a.background) ?? options?.foreground;
+    } else {
+        foreground = getProperty(appearance, a => a.foreground) ?? options?.foreground;
+        background = getProperty(appearance, a => a.background) ?? options?.background;
+    }
+
     const filled = getProperty(appearance, a => a.filled) ?? options?.filled;
     const borderColor = foreground ?? background;
     const fillColor = filled ? foreground ?? background : background;
@@ -748,7 +756,12 @@ export function buildTextShape(
     if (typeof appearance == 'string') {
         appearance = getAppearanceByNameOf(appearance);
     }
-    const style = appearanceToStyle(appearance, { lineWidth: 0.0, background: { r: 255, g: 255, b: 255 } });
+    const style = appearanceToStyle(appearance, {
+        lineWidth: 0.0,
+        background: { r: 255, g: 255, b: 255 },
+        foreground: { r: 0, g: 0, b: 0 },
+        isText: true
+    });
     const value = resolveText(element, shapeStyle.value, parameterCount);
     const measuredWidth = getTextWidth(value, style);
     const fontSize = appearance?.font?.size ?? 10;
@@ -813,7 +826,9 @@ export function buildMultiTextShape(
     // appearance to style
     const style = appearanceToStyle(shapeStyle.appearance, {
         lineWidth: 0.0,
-        background: { r: 255, g: 255, b: 255 }
+        background: { r: 255, g: 255, b: 255 },
+        foreground: { r: 0, g: 0, b: 0 },
+        isText: true
     });
 
     // position
