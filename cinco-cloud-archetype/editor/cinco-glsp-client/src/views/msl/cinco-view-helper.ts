@@ -34,6 +34,7 @@ import {
     Size,
     Text,
     VAlignment,
+    WebView,
     getAppearanceByNameOf
 } from '@cinco-glsp/cinco-glsp-common';
 import {
@@ -51,11 +52,12 @@ import {
     layoutableChildFeature
 } from '@eclipse-glsp/client';
 import * as React from 'react';
-import { JsxVNodeChild, VNode, VNodeStyle } from 'snabbdom';
+import { JsxVNodeChild, VNode, VNodeStyle, h } from 'snabbdom';
 import * as jsx from 'sprotty/lib/lib/jsx';
 import * as uuid from 'uuid';
 import { CincoEdge, CincoNode } from '../../model/model';
 import { WorkspaceFileService } from '../../utils/workspace-file-service';
+
 /**
  * HELPER-FUNCTIONS
  */
@@ -66,7 +68,7 @@ export const CSS_DECORATOR_PREFIX = 'cc-decorator-';
 export const CSS_STYLE_PREFIX = 'cc-style-';
 export const USE_MARGIN_FIX = true;
 
-export const RESOURCE_MAP: Map<string, { location: string; url: string } | undefined> = new Map();
+export const RESOURCE_MAP: Map<string, { location: string; url: string; content: string | undefined } | undefined> = new Map();
 
 export function resolveChildrenRecursivly(currentNode: VNode): VNode[] {
     let children: VNode[] = [];
@@ -91,7 +93,13 @@ export function resolveChildrenRecursivly(currentNode: VNode): VNode[] {
  * @param path relative path of the resource
  * @returns returns http-link to the resource
  */
-export function fromPathToURL(path: string, workspaceFileService: WorkspaceFileService): string {
+export function fromPathToURL(
+    path: string,
+    workspaceFileService: WorkspaceFileService,
+    options = {
+        cacheContent: false
+    }
+): string {
     const existsIn = workspaceFileService.servedExistsIn(path);
     existsIn.then(fileURIString => {
         if (!fileURIString) {
@@ -100,7 +108,7 @@ export function fromPathToURL(path: string, workspaceFileService: WorkspaceFileS
         } else {
             if (!RESOURCE_MAP.has(path)) {
                 // resource is not yet served, serving it
-                updateResourceServing(path, fileURIString, workspaceFileService);
+                updateResourceServing(path, fileURIString, workspaceFileService, options);
             } else {
                 if (RESOURCE_MAP.get(path)?.location !== fileURIString) {
                     // resource does not exist in same location anymore
@@ -109,18 +117,35 @@ export function fromPathToURL(path: string, workspaceFileService: WorkspaceFileS
             }
         }
     });
+    if (options.cacheContent) {
+        // return current cached resource
+        return `${RESOURCE_MAP.get(path)?.content}`;
+    }
     // return current cached resource
     return `${RESOURCE_MAP.get(path)?.url}`;
 }
 
-function updateResourceServing(path: string, location: string, workspaceFileService: WorkspaceFileService): void {
+function updateResourceServing(
+    path: string,
+    location: string,
+    workspaceFileService: WorkspaceFileService,
+    options = {
+        cacheContent: false
+    }
+): void {
     // search inside internal resource folder
     workspaceFileService.serveFile(path).then(servedLink => {
         if (servedLink === undefined) {
             // resource does not exist
             RESOURCE_MAP.delete(path);
         } else {
-            RESOURCE_MAP.set(path, { location: location, url: `${servedLink}` });
+            if (options.cacheContent) {
+                workspaceFileService.download(servedLink).then(content => {
+                    RESOURCE_MAP.set(path, { location: location, url: `${servedLink}`, content: content ?? '' });
+                });
+            } else {
+                RESOURCE_MAP.set(path, { location: location, url: `${servedLink}`, content: undefined });
+            }
         }
     });
 }
@@ -669,6 +694,17 @@ export function buildShape(
             parameterCount,
             workspaceFileService
         );
+    } else if (WebView.is(shapeStyle)) {
+        return buildWebviewShape(
+            element,
+            shapeStyle,
+            parentSize,
+            parentScale,
+            parentPosition ?? { x: 0, y: 0 },
+            parentCentered,
+            parameterCount,
+            workspaceFileService
+        );
     } else if (Polyline.is(shapeStyle)) {
         return buildPolylineShape(shapeStyle, parentSize, parentScale, parentPosition);
     } else if (Rectangle.is(shapeStyle)) {
@@ -922,6 +958,64 @@ export function buildImageShape(
     // setup shape
     const imagePath = resolveText(element, shapeStyle.path ?? '', parameterCount);
     const shape = createImageShape(imagePath, cssShapeName, localSize, localPosition, workspaceFileService);
+
+    return shape;
+}
+
+/**
+ * @param element the element object.
+ * @param shapeStyle the shape that styles the element (containing an appearance object).
+ * @param parentSize Width and height of the parent shape
+ * @param parentScale scale of width and height of the parent shape affected by the modifiable bounds of the element
+ * @param parentPosition absolute position of parent shape inside the element
+ * @param parentCentered is the base of the parent in the center of the shape
+ *                      (e.g. ellipse it is centered, rectangle it is the upper left corner)
+ * @param parameterCount the number of parameters that are rendered from the element onto the shape.
+ * @returns a react compatible and msl styled VNode, that corresponds to an image shape.
+ */
+export function buildWebviewShape(
+    element: CincoNode | CincoEdge,
+    shapeStyle: WebView,
+    parentSize: Size,
+    parentScale: Point,
+    parentPosition: Point,
+    parentCentered: boolean,
+    parameterCount: number,
+    workspaceFileService: WorkspaceFileService
+): VNode | undefined {
+    // css reference by shapeName
+    const cssShapeName = toCSSShapeName(shapeStyle);
+
+    // size
+    const localSize = translateSize(parentSize, parentScale);
+
+    // position
+    const localCentered = false;
+    const relativeBasePosition = translatePosition(shapeStyle.position, localSize, localCentered, parentSize, parentCentered, {
+        x: localCentered ? parentSize.width / 2 : 0,
+        y: localCentered ? parentSize.height / 2 : 0
+    });
+    // apply margin
+    const position = shapeStyle.position;
+    const margin = getMargin(position);
+    // currently fix margin by position
+    if (USE_MARGIN_FIX) {
+        const marginedPosition = fixByApplyMargin(position, relativeBasePosition.x, relativeBasePosition.y, margin);
+        relativeBasePosition.x = marginedPosition.x;
+        relativeBasePosition.y = marginedPosition.y;
+    }
+    const localPosition = { x: parentPosition.x + relativeBasePosition.x, y: parentPosition.y + relativeBasePosition.y };
+
+    // setup shape
+    const webviewContent = resolveText(element, shapeStyle.content ?? '', parameterCount);
+    const shape = createWebviewShape(
+        webviewContent,
+        shapeStyle.scrollable ?? false,
+        cssShapeName,
+        localSize,
+        localPosition,
+        workspaceFileService
+    );
 
     return shape;
 }
@@ -1186,9 +1280,61 @@ export function createImageShape(
     child.data = child.data ?? {};
     child.data.attrs = child.data.attrs ?? {};
     child.data.style = child.data.style ?? {};
-    child.data.style['width'] = `${childWidth}px`;
-    child.data.style['height'] = `${childHeight}px`;
+    child.data.attrs['width'] = `${childWidth}px`;
+    child.data.attrs['height'] = `${childHeight}px`;
     return child;
+}
+
+export function createWebviewShape(
+    webviewContent: string,
+    scrollable: boolean,
+    cssShapeName: string,
+    localSize: Size,
+    localPosition: Point,
+    workspaceFileService: WorkspaceFileService
+): VNode {
+    const content = webviewContent.startsWith('<') ? webviewContent : undefined;
+    const foreignObject = createForeignObject(cssShapeName, localSize, localPosition);
+    let child;
+    if (content) {
+        child = convertHTMLToVNode(content ?? '');
+    } else {
+        if (webviewContent.startsWith('http') || webviewContent.startsWith('https')) {
+            // url reference
+            const url = fromPathToURL(webviewContent, workspaceFileService);
+            child = convertHTMLToVNode(
+                url && url !== 'undefined'
+                    ? `<iframe src="${url}" title="embedded link to: ${url}" style="min-width: 100%;min-height: 100%;"></iframe>`
+                    : 'undefined'
+            );
+        } else {
+            // workspace reference
+            const referencedContent = fromPathToURL(webviewContent, workspaceFileService, { cacheContent: true });
+            child = convertHTMLToVNode(referencedContent && referencedContent !== 'undefined' ? `${referencedContent}` : 'undefined');
+        }
+    }
+    if (child) {
+        if (typeof child !== 'string') {
+            child.data = child.data ?? {};
+            child.data.attrs = child.data.attrs ?? {};
+            child.data.style = child.data.style ?? {};
+            child.data.attrs.id = cssShapeName;
+            child.data.style['overflow-y'] = scrollable === true ? 'scroll' : 'hidden';
+            child.data.style['overflow-x'] = scrollable === true ? 'scroll' : 'hidden';
+
+            const childWidth = Math.max(localSize.width, 0);
+            const childHeight = Math.max(localSize.height, 0);
+            child.data.attrs['width'] = childWidth;
+            child.data.attrs['height'] = childHeight;
+            child.data!.ns = 'http://www.w3.org/1999/xhtml';
+        }
+        foreignObject.children?.push(child);
+    }
+    return foreignObject;
+}
+
+function convertHTMLToVNode(htmlString: string): VNode | string | undefined {
+    return h('div', { props: { innerHTML: htmlString }, style: { width: '100%', height: '100%' } });
 }
 
 export function createTextShape(
@@ -1251,14 +1397,18 @@ export function createMultiTextShape(
     return foreignObject;
 }
 
-export function createForeignObject(cssShapeName: string, localSize: Size, localPosition: Point): VNode {
-    const foreignObject = createJSXElement('foreignObject', {
-        className: cssShapeName,
-        x: localPosition.x,
-        y: localPosition.y,
-        width: Math.max(localSize.width, 0),
-        height: Math.max(localSize.height, 0)
-    }) as unknown as VNode;
+export function createForeignObject(cssShapeName: string, localSize: Size, localPosition: Point, content?: string): VNode {
+    const foreignObject = createJSXElement(
+        'foreignObject',
+        {
+            className: cssShapeName,
+            x: localPosition.x,
+            y: localPosition.y,
+            width: Math.max(localSize.width, 0),
+            height: Math.max(localSize.height, 0)
+        },
+        content
+    ) as unknown as VNode;
     return foreignObject;
 }
 
