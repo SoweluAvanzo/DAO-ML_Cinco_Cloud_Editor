@@ -1340,8 +1340,6 @@ export function createImageShape(
     return child;
 }
 
-const CACHED_WEBVIEWS: Map<string, { content: string | undefined; element: VNode | undefined }> = new Map();
-
 export function createWebviewShape(
     webviewContent: string,
     padding: number,
@@ -1372,25 +1370,9 @@ export function createWebviewShape(
         } else {
             // workspace reference
             const referencedContent = fromPathToURL(webviewContent, workspaceFileService, { contentMode: true });
-            const cachedId = cssShapeName + '_' + e.id + '_';
             if (referencedContent && referencedContent !== 'undefined') {
                 // resolve referenced properties
                 const resolvedContent = resolveTextByProperties(e, referencedContent);
-                if (CACHED_WEBVIEWS.has(cachedId)) {
-                    const cachedWebview = CACHED_WEBVIEWS.get(cachedId);
-                    if (cachedWebview!.content && cachedWebview!.content !== resolvedContent) {
-                        // content changed
-                        cachedWebview!.content = resolvedContent;
-                        CACHED_WEBVIEWS.set(cachedId, cachedWebview!);
-                    } else {
-                        if (cachedWebview!.element) {
-                            // content has not changed and element is loaded
-                            return cachedWebview!.element;
-                        }
-                    }
-                } else {
-                    CACHED_WEBVIEWS.set(cachedId, { content: content, element: undefined });
-                }
                 // execute script tags afterwards
                 child = convertHTMLToVNode('', 'iframe', {
                     border: 'hidden',
@@ -1401,14 +1383,6 @@ export function createWebviewShape(
                 }) as VNode;
                 child.data!.attrs!['style'] = 'border: hidden; width: 100%; height: 100%; min-height: 100%; min-width: 100%;';
                 child.data!.attrs!['srcDoc'] = resolvedContent;
-                child.data!.on = {
-                    load: ev => {
-                        CACHED_WEBVIEWS.set(cachedId, {
-                            content: resolvedContent,
-                            element: foreignObject
-                        });
-                    }
-                };
             } else {
                 child = convertHTMLToVNode('undefined');
             }
