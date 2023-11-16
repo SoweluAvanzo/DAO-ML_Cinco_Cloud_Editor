@@ -250,6 +250,7 @@ export interface WebView extends Shape, GraphicsAlgorithm {
     size?: Size;
     content: string; // filePath or content
     scrollable?: boolean;
+    padding?: number;
 }
 
 export namespace WebView {
