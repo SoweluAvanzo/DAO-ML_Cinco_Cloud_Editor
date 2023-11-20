@@ -37,7 +37,7 @@
     "src"
   ],
   "dependencies": {
-    "@eclipse-glsp/server-node": "1.0.0",
+    "@eclipse-glsp/server": "2.0.0",
     "@cinco-glsp/cinco-glsp-common": "1.0.0",
     "inversify": "5.1.1"
   },
