@@ -15,7 +15,8 @@
  ********************************************************************************/
 
 import { getFileExtension, getGraphModelOfFileType } from '@cinco-glsp/cinco-glsp-common';
-import { AbstractJsonModelStorage, MaybePromise, RequestModelAction, SaveModelAction } from '@eclipse-glsp/server-node';
+import { MaybePromise, RequestModelAction, SaveModelAction } from '@eclipse-glsp/server';
+import {AbstractJsonModelStorage} from '@eclipse-glsp/server/lib/node/abstract-json-model-storage';
 import { inject, injectable } from 'inversify';
 import { GraphModel } from './graph-model';
 import { GraphModelState } from './graph-model-state';

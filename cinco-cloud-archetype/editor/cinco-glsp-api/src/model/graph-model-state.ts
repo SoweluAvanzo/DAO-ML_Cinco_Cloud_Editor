@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { EdgeType, NodeType, getSpecOf, isContainer } from '@cinco-glsp/cinco-glsp-common';
-import { DefaultModelState } from '@eclipse-glsp/server-node';
+import { DefaultModelState } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, ModelElement, ModelElementContainer, Node } from './graph-model';
 import { GraphModelIndex } from './graph-model-index';

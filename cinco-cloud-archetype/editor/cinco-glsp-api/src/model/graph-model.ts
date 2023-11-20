@@ -51,7 +51,7 @@ import {
     Text,
     View
 } from '@cinco-glsp/cinco-glsp-common';
-import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server-node';
+import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import * as uuid from 'uuid';
 import { GraphModelIndex } from './graph-model-index';
 

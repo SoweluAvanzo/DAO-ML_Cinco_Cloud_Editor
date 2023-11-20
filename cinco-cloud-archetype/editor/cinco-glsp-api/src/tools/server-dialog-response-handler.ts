@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { ServerDialogResponse, TypedServerResponseAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionHandler, Logger } from '@eclipse-glsp/server-node';
+import { Action, ActionHandler, Logger } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import * as uuid from 'uuid';
 
