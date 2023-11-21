@@ -35,7 +35,7 @@
     "inversify": "5.1.1",
     "balloon-css": "^0.5.0",
     "sprotty": "0.12.0",
-    "@theia/output": "~1.38.0",
+    "@theia/output": "~1.40.0",
     "@eclipse-glsp/client": "2.0.0",
     "@cinco-glsp/cinco-glsp-common": "1.0.0"
   },

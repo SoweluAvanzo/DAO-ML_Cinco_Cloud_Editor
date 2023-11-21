@@ -9,8 +9,8 @@
     "src"
   ],
   "dependencies": {
-    "@theia/core": "~1.38.0",
-    "@theia/process": "~1.38.0",
+    "@theia/core": "~1.40.0",
+    "@theia/process": "~1.40.0",
     "glob": "7.1.4",
     "querystring": "0.2.1"
   },
