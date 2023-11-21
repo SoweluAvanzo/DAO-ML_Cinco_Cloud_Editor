@@ -24,13 +24,13 @@ import {
     HideChangeBoundsToolResizeFeedbackAction,
     MoveAction,
     Operation,
-    SChildElement,
-    SGraph,
-    SModelElement,
-    SModelRoot,
-    SParentElement,
+    GChildElement,
+    GGraph,
+    GModelElement,
+    GModelRoot,
+    GParentElement,
     SResizeHandle,
-    SShapeElement,
+    GShapeElement,
     createMovementRestrictionFeedback,
     findParentByFeature,
     isMoveable,
@@ -38,10 +38,10 @@ import {
     isSelectable,
     isViewport,
     removeMovementRestrictionFeedback,
-    toAbsolutePosition
+    toAbsolutePosition,
+    ISelectionListener
 } from '@eclipse-glsp/client';
-import { SelectionListener } from '@eclipse-glsp/client/lib/features/select/selection-service';
-import { CursorCSS, applyCssClasses, cursorFeedbackAction } from '@eclipse-glsp/client/lib/features/tool-feedback/css-feedback';
+import { CursorCSS, applyCssClasses, cursorFeedbackAction } from '@eclipse-glsp/client/lib/base/feedback/css-feedback';
 import { Action, Bounds, ChangeContainerOperation, Point } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
 import { getCurrentMousePosition, getHierachyAwareRelativePosition, getHoveredContainer, getSelectedElements } from '../utils/canvas-utils';
@@ -61,13 +61,15 @@ export class ChangeContainerTool extends ChangeBoundsTool {
         // install change container listener for client-side container changing of containments
         this.changeContainerListener = this.createChangeContainerListener();
         this.mouseTool.register(this.changeContainerListener);
-        this.selectionService.register(this.changeContainerListener);
+        this.selectionService.onSelectionChanged(change =>
+            this.changeContainerListener.selectionChanged(change.root, change.selectedElements)
+        );
     }
 
     override disable(): void {
         this.mouseTool.deregister(this.changeContainerListener);
-        this.selectionService.deregister(this.changeContainerListener);
-        this.deregisterFeedback([HideChangeBoundsToolResizeFeedbackAction.create()], this.changeContainerListener);
+        this.selectionService.onSelectionChanged(change => {});
+        this.deregisterFeedback(this.changeContainerListener, [HideChangeBoundsToolResizeFeedbackAction.create()]);
     }
 
     protected createChangeContainerListener(): ChangeContainerAndBoundsListener {
@@ -75,7 +77,7 @@ export class ChangeContainerTool extends ChangeBoundsTool {
     }
 }
 @injectable()
-export class ChangeContainerAndBoundsListener extends ChangeBoundsListener implements SelectionListener {
+export class ChangeContainerAndBoundsListener extends ChangeBoundsListener implements ISelectionListener {
     private __isMouseDown = false;
     private __isMouseDrag = false;
     protected hasDragged = false;
@@ -87,7 +89,7 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         super(tool);
     }
 
-    override mouseDown(target: SModelElement, event: MouseEvent): Action[] {
+    override mouseDown(target: GModelElement, event: MouseEvent): Action[] {
         const result: Action[] = [];
         this.__isMouseDown = true;
 
@@ -103,7 +105,7 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
                 this.hasDragged = false;
             }
 
-            if (!(target instanceof SModelRoot)) {
+            if (!(target instanceof GModelRoot)) {
                 // check if we have a resize handle (only single-selection)
                 if (this.activeResizeElement && target instanceof SResizeHandle) {
                     this.activeResizeHandle = target;
@@ -128,17 +130,17 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         return result;
     }
 
-    clearOutChildrenOfSelectedContainer(elements: SShapeElement[]): SShapeElement[] {
-        const parents = elements.filter(e => e instanceof SParentElement) as SParentElement[];
+    clearOutChildrenOfSelectedContainer(elements: GShapeElement[]): GShapeElement[] {
+        const parents = elements.filter(e => e instanceof GParentElement) as GParentElement[];
         return elements.filter(
             e =>
-                !(e instanceof SChildElement)
+                !(e instanceof GChildElement)
                     ? true // if element is either no child...
                     : parents.filter(p => p.children.indexOf(e) >= 0).length <= 0 // (all elements that are a parent of e)
         ); // ...or have no parents inside the collection
     }
 
-    override mouseMove(target: SModelElement, event: MouseEvent): Action[] {
+    override mouseMove(target: GModelElement, event: MouseEvent): Action[] {
         let result: Action[] = [];
 
         if (this.__isMouseDown) {
@@ -182,7 +184,7 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         return result;
     }
 
-    override mouseUp(element: SModelElement, event: MouseEvent): Action[] {
+    override mouseUp(element: GModelElement, event: MouseEvent): Action[] {
         const result: Action[] = [];
         this.__isMouseDown = false;
         if (this.__isMouseDrag) {
@@ -248,7 +250,7 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
 
             // Reset feedback
             if (this.tool.movementRestrictor) {
-                this.tool.deregisterFeedback([removeMovementRestrictionFeedback(element, this.tool.movementRestrictor)], this);
+                this.tool.deregisterFeedback(this, [removeMovementRestrictionFeedback(element, this.tool.movementRestrictor)]);
             }
             result.push(cursorFeedbackAction(CursorCSS.DEFAULT));
             // reset data
@@ -261,14 +263,14 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         return result;
     }
 
-    override mouseEnter(target: SModelElement, event: MouseEvent): Action[] {
-        if (target instanceof SModelRoot && event.buttons === 0 && !this.startDragPosition) {
+    override mouseEnter(target: GModelElement, event: MouseEvent): Action[] {
+        if (target instanceof GModelRoot && event.buttons === 0 && !this.startDragPosition) {
             this.mouseUp(target, event);
         }
         return [];
     }
 
-    override handleMoveOnServer(target: SModelElement): Action[] {
+    override handleMoveOnServer(target: GModelElement): Action[] {
         const operations: Operation[] = [];
         operations.push(...this.handleMoveElementsOnServer(target));
         if (operations.length > 0) {
@@ -277,13 +279,13 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         return operations;
     }
 
-    override handleMoveElementsOnServer(target: SModelElement): Operation[] {
+    override handleMoveElementsOnServer(target: GModelElement): Operation[] {
         const result: Operation[] = [];
         const newBounds: ElementAndBounds[] = [];
-        const selectedElements: (SModelElement & BoundsAware)[] = getSelectedElements(target.root).filter(e =>
+        const selectedElements: (GModelElement & BoundsAware)[] = getSelectedElements(target.root).filter(e =>
             isNonRoutableSelectedMovableBoundsAware(e)
         );
-        const selectionSet: Set<SModelElement & BoundsAware> = new Set(selectedElements);
+        const selectionSet: Set<GModelElement & BoundsAware> = new Set(selectedElements);
         selectedElements
             .filter(element => !this.isChildOfSelected(selectionSet, element))
             .map(element => this.createElementAndBounds(element))
@@ -295,12 +297,12 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         return result;
     }
 
-    bringToFront(elements: SModelElement[]): void {
-        const childElements = elements.filter(e => e instanceof SChildElement) as SChildElement[];
+    bringToFront(elements: GModelElement[]): void {
+        const childElements = elements.filter(e => e instanceof GChildElement) as GChildElement[];
         if (childElements.length > 0) {
             for (const element of childElements) {
                 const parent = element.parent;
-                if (!(parent instanceof SGraph)) {
+                if (!(parent instanceof GGraph)) {
                     this.bringToFront([parent]);
                 }
                 parent.move(element, parent.children.length - 1);
@@ -308,13 +310,13 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         }
     }
 
-    handleDragFeedback(currentContainer: SModelElement | undefined): Action {
+    handleDragFeedback(currentContainer: GModelElement | undefined): Action {
         if (currentContainer !== undefined) {
             // if at least one selected element potencially changes it's container...
             const anyDifferentContainer =
                 Array.from(
                     getSelectedElements(currentContainer.root).filter(
-                        selectedElement => selectedElement instanceof SChildElement && selectedElement.parent !== currentContainer
+                        selectedElement => selectedElement instanceof GChildElement && selectedElement.parent !== currentContainer
                     )
                 ).length > 0;
             if (anyDifferentContainer) {
@@ -333,7 +335,7 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         return cursorFeedbackAction(CursorCSS.MOVE);
     }
 
-    protected collectStartPositions(root: SModelRoot): void {
+    protected collectStartPositions(root: GModelRoot): void {
         const selectedElements = root.index.all().filter(element => isSelectable(element) && element.selected);
         const elementsSet = new Set(selectedElements);
         selectedElements
@@ -345,7 +347,7 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
             });
     }
 
-    protected getElementMoves(target: SModelElement, event: MouseEvent, finished: boolean): MoveAction | undefined {
+    protected getElementMoves(target: GModelElement, event: MouseEvent, finished: boolean): MoveAction | undefined {
         if (!this.startDragPosition) {
             return undefined;
         }
@@ -388,7 +390,7 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         }
     }
 
-    validateMove(startPostion: Point, toPosition: Point, element: SModelElement, isFinished: boolean): Point {
+    validateMove(startPostion: Point, toPosition: Point, element: GModelElement, isFinished: boolean): Point {
         let newPosition = toPosition;
         if (this.tool.movementRestrictor) {
             const valid = this.tool.movementRestrictor.validate(element, toPosition);
@@ -403,7 +405,7 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
                 action = removeMovementRestrictionFeedback(element, this.tool.movementRestrictor);
             }
 
-            this.tool.dispatchFeedback([action], this);
+            this.tool.registerFeedback([action], this);
         }
         return newPosition;
     }

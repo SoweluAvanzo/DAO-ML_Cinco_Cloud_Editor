@@ -41,7 +41,7 @@ import {
     RenderingContext,
     RoutableView,
     RoutedPoint,
-    SRoutableElement,
+    GRoutableElement,
     angleOfPoint,
     isIntersectingRoutedPoint,
     svg,
@@ -266,7 +266,7 @@ abstract class GLSPEdgeRenderingView extends RoutableView {
         return path;
     }
 
-    protected getLineSegment(edge: SRoutableElement, intersection: Intersection, args?: IViewArgs, segments?: Point[]): PointToPointLine {
+    protected getLineSegment(edge: GRoutableElement, intersection: Intersection, args?: IViewArgs, segments?: Point[]): PointToPointLine {
         const route = segments ? segments : this.edgeRouterRegistry.route(edge, args);
         const index = intersection.routable1 === edge.id ? intersection.segmentIndex1 : intersection.segmentIndex2;
         return new PointToPointLine(route[index], route[index + 1]);
@@ -308,7 +308,7 @@ abstract class GLSPEdgeRenderingView extends RoutableView {
     protected getOtherLineSegment(currentEdge: CincoEdge, intersection: Intersection, args?: IViewArgs): PointToPointLine | undefined {
         const otherEdgeId = intersection.routable1 === currentEdge.id ? intersection.routable2 : intersection.routable1;
         const otherEdge = currentEdge.index.getById(otherEdgeId);
-        if (!(otherEdge instanceof SRoutableElement)) {
+        if (!(otherEdge instanceof GRoutableElement)) {
             return undefined;
         }
         return this.getLineSegment(otherEdge, intersection, args);

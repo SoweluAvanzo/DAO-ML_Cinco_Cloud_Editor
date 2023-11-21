@@ -40,9 +40,8 @@ import {
 import {
     Bounds,
     IActionDispatcher,
-    SLabel,
-    SModelElement,
-    alignFeature,
+    GLabel,
+    GModelElement,
     boundsFeature,
     createFeatureSet,
     edgeLayoutFeature,
@@ -51,6 +50,7 @@ import {
     getSubType,
     layoutableChildFeature
 } from '@eclipse-glsp/client';
+import { alignFeature } from '@eclipse-glsp/sprotty/node_modules/sprotty';
 import * as React from 'react';
 import { JsxVNodeChild, VNode, VNodeStyle, h } from 'snabbdom';
 import * as jsx from 'sprotty/lib/lib/jsx';
@@ -1197,8 +1197,8 @@ export function buildContainerShape(
  * HELPER-SHAPES
  */
 
-export function createLabel(element: SModelElement, text: string, bounds: Bounds): SLabel {
-    const label = new SLabel();
+export function createLabel(element: GModelElement, text: string, bounds: Bounds): GLabel {
+    const label = new GLabel();
     label.text = text;
     label.bounds = bounds;
     label.type = 'label';

@@ -22,13 +22,15 @@ import {
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     Action,
-    BaseGLSPTool,
+    Tool,
     IActionHandler,
     ICommand,
     MouseListener,
-    RankingMouseTool,
-    SChildElement,
-    SModelElement
+    GChildElement,
+    GModelElement,
+    GLSPActionDispatcher,
+    TYPES,
+    MouseTool
 } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { inject, injectable, optional, postConstruct } from 'inversify';
@@ -38,7 +40,7 @@ export class PropertyViewResponseActionHandler implements IActionHandler {
     @inject(CommandService) @optional() commandService: CommandService;
 
     handle(action: PropertyViewResponseAction): void | Action | ICommand {
-        if (this.commandService)
+        if (this.commandService) {
             this.commandService.executeCommand(
                 PropertyViewUpdateCommand.id,
                 action.modelElementIndex,
@@ -48,15 +50,18 @@ export class PropertyViewResponseActionHandler implements IActionHandler {
                 action.customTypeDefinitions,
                 action.values
             );
+        }
     }
 }
 
 @injectable()
-export class PropertyViewTool extends BaseGLSPTool {
+export class PropertyViewTool implements Tool {
     static readonly ID = 'property-view-tool';
 
-    @inject(RankingMouseTool)
-    protected editLabelMouseListener: MouseListener;
+    @inject(TYPES.MouseListener)
+    protected mouseListenenr: MouseListener;
+    @inject(TYPES.IActionDispatcher) protected actionDispatcher: GLSPActionDispatcher;
+    @inject(MouseTool) protected mouseTool: MouseTool;
 
     @postConstruct()
     initEditAction(): void {
@@ -78,12 +83,12 @@ export class PropertyViewTool extends BaseGLSPTool {
     }
 
     enable(): void {
-        this.editLabelMouseListener = this.createPropertyViewMouseListener();
-        this.mouseTool.register(this.editLabelMouseListener);
+        this.mouseListenenr = this.createPropertyViewMouseListener();
+        this.mouseTool.register(this.mouseListenenr);
     }
 
     disable(): void {
-        this.mouseTool.deregister(this.editLabelMouseListener);
+        this.mouseTool.deregister(this.mouseListenenr);
     }
 }
 
@@ -98,8 +103,8 @@ export class PropertyViewTool extends BaseGLSPTool {
 export class PropertyViewMouseListener extends MouseListener {
     lastTarget: string;
 
-    override mouseUp(target: SModelElement, event: MouseEvent): (Action | Promise<Action>)[] {
-        if (target.type === 'label' && target instanceof SChildElement) {
+    override mouseUp(target: GModelElement, event: MouseEvent): (Action | Promise<Action>)[] {
+        if (target.type === 'label' && target instanceof GChildElement) {
             target = target.parent;
         }
         if (target.id !== this.lastTarget) {

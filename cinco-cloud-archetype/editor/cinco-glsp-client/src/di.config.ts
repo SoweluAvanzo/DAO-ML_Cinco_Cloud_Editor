@@ -40,10 +40,11 @@ import {
     configureActionHandler,
     configureCommand,
     configureDefaultModelElements,
-    createClientContainer,
-    overrideViewerOptions
+    overrideViewerOptions,
+    initializeDiagramContainer,
+    ContainerConfiguration,
+    ToolManager
 } from '@eclipse-glsp/client';
-import { GLSPToolManager } from '@eclipse-glsp/client/lib/base/tool-manager/glsp-tool-manager';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
 import { ApplyConstrainedTypeHintsCommand } from './constraints/ApplyConstrainedTypeHintsCommand';
@@ -70,16 +71,14 @@ import { MetaSpecificationLoader } from './meta/meta-specification-loader';
 import { ServerArgsProvider } from './meta/server-args-response-handler';
 import { FileProviderHandler } from './features/file-provider-handler';
 
-export function createCincoDiagramContainer(widgetId: string): Container {
-    const container = createClientContainer(cincoDiagramModule);
-
+export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
+    const widgetId = 'cinco_diagram';
     overrideViewerOptions(container, {
         baseDiv: widgetId,
         hiddenDiv: widgetId + '_hidden',
         needsClientLayout: true
     });
-
-    return container;
+    return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
 }
 
 export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, rebind) => {
@@ -155,10 +154,10 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     bind(TYPES.IDefaultTool).to(MetaSpecificationTheiaCommand);
 
     // swap GLSPToolManager
-    rebind(GLSPToolManager)
+    rebind(ToolManager)
         .to(CustomToolManager)
         .inSingletonScope()
-        .onActivation((ctx: any, injectable: GLSPToolManager) => {
+        .onActivation((ctx: any, injectable: ToolManager) => {
             // register modelelements (after the meta-specification is loaded)
             (injectable as CustomToolManager).registerCallBack(
                 // build callback to register modelelements dynamically.

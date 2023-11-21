@@ -15,9 +15,9 @@
  ********************************************************************************/
 
 import { Constraint, getSpecOf, isContainer, NodeType } from '@cinco-glsp/cinco-glsp-common';
-import { SChildElement, SEdge, SGraph, SModelElement, SNode } from '@eclipse-glsp/client';
+import { GChildElement, GEdge, GGraph, GModelElement, GNode } from '@eclipse-glsp/client';
 
-export function canBeEdgeTarget(target: SNode, edgeType: string, filter?: (e: SEdge) => boolean): boolean {
+export function canBeEdgeTarget(target: GNode, edgeType: string, filter?: (e: GEdge) => boolean): boolean {
     const spec = getSpecOf(target.type) as NodeType;
     if (spec.incomingEdges === undefined) {
         return false;
@@ -29,13 +29,13 @@ export function canBeEdgeTarget(target: SNode, edgeType: string, filter?: (e: SE
     }
     const incomingEdges = target.incomingEdges;
     let elements = Array.from(incomingEdges ?? []);
-    if(filter) {
+    if (filter) {
         elements = elements.filter(e => filter(e));
     }
     return checkViolations(edgeType, elements, constraints).length <= 0;
 }
 
-export function canBeEdgeSource(source: SNode, edgeType: string, filter?: (e: SEdge) => boolean): boolean {
+export function canBeEdgeSource(source: GNode, edgeType: string, filter?: (e: GEdge) => boolean): boolean {
     const spec = getSpecOf(source.type) as NodeType;
     if (spec.outgoingEdges === undefined) {
         return false;
@@ -47,13 +47,13 @@ export function canBeEdgeSource(source: SNode, edgeType: string, filter?: (e: SE
     }
     const outgoingEdges = source.outgoingEdges;
     let elements = Array.from(outgoingEdges ?? []);
-    if(filter) {
+    if (filter) {
         elements = elements.filter(e => filter(e));
     }
     return checkViolations(edgeType, elements, constraints).length <= 0;
 }
 
-export function canContain(container: SNode | SGraph, containmentType: string, filter?: (e: SChildElement) => boolean): boolean {
+export function canContain(container: GNode | GGraph, containmentType: string, filter?: (e: GChildElement) => boolean): boolean {
     const containerSpec = getSpecOf(container.type) as NodeType;
     if (!isContainer(container.type)) {
         return false;
@@ -63,8 +63,8 @@ export function canContain(container: SNode | SGraph, containmentType: string, f
         // cannot contain elements, if no relating constraints are defined
         return false;
     }
-    let elements = container.children.filter(e => e instanceof SNode);
-    if(filter) {
+    let elements = container.children.filter(e => e instanceof GNode);
+    if (filter) {
         elements = elements.filter(e => filter(e));
     }
     return checkViolations(containmentType, elements, constraints).length <= 0;
@@ -78,7 +78,7 @@ export function canContain(container: SNode | SGraph, containmentType: string, f
  * @param constraints all constraints associated with the target element
  * @returns All constraints that are violated. If there is no violated constraint, the target element can be related with this element.
  */
-export function checkViolations(targetType: string, elements: SModelElement[], constraints: Constraint[]): Constraint[] {
+export function checkViolations(targetType: string, elements: GModelElement[], constraints: Constraint[]): Constraint[] {
     // all constraints that include the target type
     const capturedConstraints = constraints.filter(
         (c: Constraint) =>
@@ -113,9 +113,9 @@ export function checkViolations(targetType: string, elements: SModelElement[], c
     return violatedConstraint;
 }
 
-export function isContainableByConstraints(container: SModelElement, element: string | SModelElement): boolean {
-    if (container instanceof SNode || container instanceof SGraph) {
-        if (element instanceof SChildElement) {
+export function isContainableByConstraints(container: GModelElement, element: string | GModelElement): boolean {
+    if (container instanceof GNode || container instanceof GGraph) {
+        if (element instanceof GChildElement) {
             // already contained or check type
             return container.children.indexOf(element) >= 0 || isContainableByConstraints(container, element.type);
         } else if (typeof element === 'string') {

@@ -13,13 +13,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { IActionDispatcher, SModelRegistry, TYPES, Tool, ViewRegistry } from '@eclipse-glsp/client';
-import { GLSPToolManager } from '@eclipse-glsp/client/lib/base/tool-manager/glsp-tool-manager';
+import { IActionDispatcher, SModelRegistry, TYPES, Tool, ViewRegistry, EditorContextServiceProvider } from '@eclipse-glsp/client';
+import { ToolManager } from '@eclipse-glsp/client/lib/base/tool-manager/tool-manager';
 import { CommandService } from '@theia/core';
-import { inject, injectable, optional } from 'inversify';
+import { inject, injectable, multiInject, optional } from 'inversify';
 
 @injectable()
-export class CustomToolManager extends GLSPToolManager {
+export class CustomToolManager extends ToolManager {
     @inject(CommandService) @optional() commandService: CommandService;
     @inject(TYPES.IActionDispatcherProvider) protected actionDispatcherProvider: () => Promise<IActionDispatcher>;
 
@@ -29,24 +29,36 @@ export class CustomToolManager extends GLSPToolManager {
     @inject(TYPES.ViewRegistry)
     private readonly viewRegistry: ViewRegistry;
 
+    @multiInject(TYPES.ITool)
+    @optional()
+    override readonly tools: Tool[] = [];
+    @multiInject(TYPES.IDefaultTool)
+    @optional()
+    override readonly defaultTools: Tool[];
+    @inject(TYPES.IEditorContextServiceProvider) protected override contextServiceProvider: EditorContextServiceProvider;
+
     protected deactivatedTools: string[] = ['glsp.change-bounds-tool', 'glsp.edge-edit-tool']; // put deactivated tool-ids here
 
     callbacks: ((actionDispatcher: IActionDispatcher, registry: SModelRegistry, viewRegistry: ViewRegistry) => void)[] = [];
 
     static oldRegistry: SModelRegistry;
 
-    override initialize(): void {
+    constructor(tools: Tool[], defaultTools: Tool[], contextServiceProvider: EditorContextServiceProvider) {
+        super([], [], contextServiceProvider);
+        this.tools = tools;
+        this.defaultTools = defaultTools;
+        this.contextServiceProvider = contextServiceProvider;
+
         CustomToolManager.oldRegistry = this.registry;
-        this.registerTools(...this.tools);
         this.tools = this.filterDeactivated(this.tools);
         this.defaultTools = this.filterDeactivated(this.defaultTools);
+        this.registerTools(...this.tools);
         this.registerDefaultTools(...this.defaultTools);
         this.enableDefaultTools();
-        this.contextServiceProvider().then(editorContext => {
-            editorContext.register(this);
-            this.editorContext = editorContext;
-        });
+        this.initialize();
+    }
 
+    initialize(): void {
         // callbacks
         this.actionDispatcherProvider().then(actionDispatcher => {
             for (const callback of this.callbacks) {

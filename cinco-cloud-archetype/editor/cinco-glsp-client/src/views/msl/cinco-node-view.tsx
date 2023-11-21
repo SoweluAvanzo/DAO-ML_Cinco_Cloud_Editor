@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { ContainerShape, Image, NodeStyle, Polyline } from '@cinco-glsp/cinco-glsp-common';
-import { Hoverable, IViewArgs, RenderingContext, SNode, SPort, SShapeElement, Selectable, ShapeView, svg } from '@eclipse-glsp/client';
+import { Hoverable, IViewArgs, RenderingContext, GNode, GPort, GShapeElement, Selectable, ShapeView, svg } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { inject, injectable, optional } from 'inversify';
 import { VNode } from 'snabbdom';
@@ -38,7 +38,7 @@ export class CincoNodeView extends ShapeView {
      * @param args
      * @returns
      */
-    render(node: Readonly<SShapeElement & Hoverable & Selectable>, context: RenderingContext, args?: IViewArgs): VNode | undefined {
+    render(node: Readonly<GShapeElement & Hoverable & Selectable>, context: RenderingContext, args?: IViewArgs): VNode | undefined {
         if (!(node instanceof CincoNode) || !this.isVisible(node, context)) {
             return undefined;
         }
@@ -121,8 +121,8 @@ export class CincoNodeView extends ShapeView {
     protected createSelector(node: CincoNode, borderSize: number): VNode {
         const result = (
             <rect
-                class-sprotty-node={node instanceof SNode}
-                class-sprotty-port={node instanceof SPort}
+                class-sprotty-node={node instanceof GNode}
+                class-sprotty-port={node instanceof GPort}
                 class-mouseover={node?.hoverFeedback}
                 class-selected={node?.selected}
                 width={Math.max(node.size.width + 2 * borderSize, 0)}

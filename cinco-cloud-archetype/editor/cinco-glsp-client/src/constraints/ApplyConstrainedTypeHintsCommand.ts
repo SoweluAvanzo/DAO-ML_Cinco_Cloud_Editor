@@ -19,21 +19,25 @@ import {
     containerFeature,
     reparentFeature,
     resizeFeature,
-    SModelElementSchema,
-    SModelElement,
     Connectable,
     connectableFeature,
     deletableFeature,
     FeatureSet,
-    moveFeature
+    moveFeature,
+    GModelElement,
+    isGModelElementSchema
 } from '@eclipse-glsp/client';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { CincoGraphModel } from '../model/model';
 import { isContainableByConstraints } from '../utils/constraint-utils';
+import { FrontendValidatingTypeHintProvider } from './FrontendValidatingTypeHintProvider';
 
 @injectable()
 export class ApplyConstrainedTypeHintsCommand extends ApplyTypeHintsCommand {
-    override applyShapeTypeHint(element: SModelElement): void {
+    @inject(FrontendValidatingTypeHintProvider)
+    protected override typeHintProvider: FrontendValidatingTypeHintProvider;
+
+    override applyShapeTypeHint(element: GModelElement): void {
         const hint = this.typeHintProvider.getShapeTypeHint(element);
         if (isModifiableFeatureSet(element.features)) {
             if (hint) {
@@ -67,11 +71,11 @@ function createConnectable(validSourceEdges: string[], validTargetEdges: string[
     };
 }
 
-function createContainable(container: SModelElement): Containable {
+function createContainable(container: GModelElement): Containable {
     return {
         isContainableElement: element => {
             const targetType: string =
-                element instanceof SModelElement ? element.type : SModelElementSchema.is(element) ? element.toString() : element;
+                element instanceof GModelElement ? element.type : isGModelElementSchema(element) ? element.toString() : element;
             return isContainableByConstraints(container, targetType);
         }
     };

@@ -14,7 +14,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    EnableToolPaletteAction, ToolPalette, ICommand, EnableDefaultToolsAction, SetUIExtensionVisibilityAction
+    EnableToolPaletteAction,
+    ToolPalette,
+    ICommand,
+    EnableDefaultToolsAction,
+    SetUIExtensionVisibilityAction
 } from '@eclipse-glsp/client';
 import { Action, PaletteItem, RequestContextActions, SetContextActions } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
@@ -48,7 +52,7 @@ export class DynamicToolPalette extends ToolPalette {
                 }
             });
         } else if (action.kind === EnableDefaultToolsAction.KIND) {
-            if(this.lastActivebutton || this.defaultToolsButton) {
+            if (this.lastActiveButton || this.defaultToolsButton) {
                 this.changeActiveButton();
                 this.restoreFocus();
             }

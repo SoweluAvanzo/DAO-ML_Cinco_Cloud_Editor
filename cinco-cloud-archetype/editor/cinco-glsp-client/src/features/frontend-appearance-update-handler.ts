@@ -23,7 +23,7 @@ import {
     Shape,
     Text
 } from '@cinco-glsp/cinco-glsp-common';
-import { CommandExecutionContext, CommandReturn, ILogger, SModelElement, SModelRoot, SystemCommand, TYPES } from '@eclipse-glsp/client';
+import { CommandExecutionContext, CommandReturn, ILogger, GModelElement, GModelRoot, SystemCommand, TYPES } from '@eclipse-glsp/client';
 import { inject, injectable } from 'inversify';
 import { CincoEdge, CincoNode } from '../model/model';
 
@@ -40,8 +40,8 @@ export class ApplyAppearanceUpdateCommand extends SystemCommand {
     }
 
     override execute(context: CommandExecutionContext): CommandReturn {
-        const model: SModelRoot = context.root;
-        const modelElement: SModelElement | undefined = model.index.getById(this.action.modelElementId);
+        const model: GModelRoot = context.root;
+        const modelElement: GModelElement | undefined = model.index.getById(this.action.modelElementId);
 
         if (modelElement && (modelElement instanceof CincoNode || modelElement instanceof CincoEdge)) {
             if (this.action.appearance) {

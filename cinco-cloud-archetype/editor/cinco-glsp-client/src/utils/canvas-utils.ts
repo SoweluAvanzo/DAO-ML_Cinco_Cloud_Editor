@@ -22,14 +22,14 @@ import {
     isSelectable,
     isViewport,
     Point,
-    SChildElement,
-    SEdge,
-    SGraph,
-    SModelElement,
-    SModelRoot,
-    SNode,
-    SParentElement,
-    SShapeElement,
+    GChildElement,
+    GEdge,
+    GGraph,
+    GModelElement,
+    GModelRoot,
+    GNode,
+    GParentElement,
+    GShapeElement,
     toAbsoluteBounds
 } from '@eclipse-glsp/client';
 
@@ -37,11 +37,11 @@ import {
  * Calculates absolute position in respect to arbitrary many
  * nested containers.
  */
-export function calcAbsolutePosition(element: SModelElement): Point {
-    if (!(element instanceof SNode)) {
+export function calcAbsolutePosition(element: GModelElement): Point {
+    if (!(element instanceof GNode)) {
         return Point.ORIGIN;
     }
-    if (element.parent instanceof SGraph) {
+    if (element.parent instanceof GGraph) {
         // is absolute position
         return element.position;
     } else {
@@ -51,65 +51,62 @@ export function calcAbsolutePosition(element: SModelElement): Point {
 
 export function getHoveredContainer(
     mousePosition: Point,
-    mouseTarget: SModelElement,
-    selectedElements: Array<SModelElement>
-): SParentElement {
-    if (mouseTarget instanceof SGraph) {
+    mouseTarget: GModelElement,
+    selectedElements: Array<GModelElement>
+): GParentElement {
+    if (mouseTarget instanceof GGraph) {
         // graphModel
         return mouseTarget;
-    } else if (!(mouseTarget instanceof SNode) && mouseTarget instanceof SChildElement) {
+    } else if (!(mouseTarget instanceof GNode) && mouseTarget instanceof GChildElement) {
         // something else like a container
         return getHoveredContainer(mousePosition, mouseTarget.parent, selectedElements);
-    } else if (mouseTarget instanceof SNode && selectedElements.indexOf(mouseTarget) < 0) {
+    } else if (mouseTarget instanceof GNode && selectedElements.indexOf(mouseTarget) < 0) {
         // a selected node
         return mouseTarget;
     }
     // mouse is potencially ontop of a selectedElement and
     // hovers over potencial container
-    else if (mouseTarget instanceof SNode) {
-        const potencialTargets = getNodeAtPosition(mouseTarget.root, mousePosition, n => n !== mouseTarget)
-            .filter(n => isContainer(n.type) && n instanceof SParentElement) as SParentElement[];
+    else if (mouseTarget instanceof GNode) {
+        const potencialTargets = getNodeAtPosition(mouseTarget.root, mousePosition, n => n !== mouseTarget).filter(
+            n => isContainer(n.type) && n instanceof GParentElement
+        ) as GParentElement[];
         if (potencialTargets.length > 0) {
             return potencialTargets[0];
         }
     }
-    if (mouseTarget.root instanceof SGraph || mouseTarget.root instanceof SModelRoot) {
+    if (mouseTarget.root instanceof GGraph || mouseTarget.root instanceof GModelRoot) {
         // no container was found, fallback to root-model
         return mouseTarget.root;
     }
     throw Error('Type is out of scope');
 }
 
-export function getNodeBehindEdge(
-    mousePosition: Point,
-    mouseTarget: SModelElement
-): SModelElement {
-    if (mouseTarget instanceof SNode) {
+export function getNodeBehindEdge(mousePosition: Point, mouseTarget: GModelElement): GModelElement {
+    if (mouseTarget instanceof GNode) {
         // a selected node
         return mouseTarget;
     }
     // mouse is potencially hovering ontop of a targeted node
-    else if (mouseTarget instanceof SEdge) {
+    else if (mouseTarget instanceof GEdge) {
         const potencialTargets = getNodeAtPosition(mouseTarget.root, mousePosition);
         if (potencialTargets.length > 0) {
             return potencialTargets[0];
         }
-    }
-    else if (!(mouseTarget instanceof SNode || mouseTarget instanceof SModelRoot) && mouseTarget instanceof SChildElement) {
+    } else if (!(mouseTarget instanceof GNode || mouseTarget instanceof GModelRoot) && mouseTarget instanceof GChildElement) {
         // something else like a container
         return getNodeBehindEdge(mousePosition, mouseTarget.parent);
     }
-    // graphModel (there cannot be something behind a SGraph)
+    // graphModel (there cannot be something behind a GGraph)
     return mouseTarget;
 }
 
-export function getNodeAtPosition(root: SParentElement, position: Point, filter?: (n: SNode) => boolean): SModelElement[]  {
+export function getNodeAtPosition(root: GParentElement, position: Point, filter?: (n: GNode) => boolean): GModelElement[] {
     const children = Array.from(root.index.all());
-    const potencialTarget: SModelElement[] = children
+    const potencialTarget: GModelElement[] = children
         .filter(n => {
             // all container that lie under the dragged element
-            if (n instanceof SNode) {
-                if(filter !== undefined && !filter(n)) {
+            if (n instanceof GNode) {
+                if (filter !== undefined && !filter(n)) {
                     return false;
                 }
                 const absoluteBounds = toAbsoluteBounds(n);
@@ -121,14 +118,14 @@ export function getNodeAtPosition(root: SParentElement, position: Point, filter?
             }
             return false;
         })
-        // sprotty seems to draw all SModelElements in order.
+        // sprotty seems to draw all GModelElements in order.
         // That means the last container should be the one the mouse hovers over
-        .reverse() as SParentElement[];
+        .reverse() as GParentElement[];
     return potencialTarget;
 }
 
 export function createFromToPosition(
-    element: SModelElement,
+    element: GModelElement,
     startDragPosition: Point,
     startPosition: Point,
     event: MouseEvent,
@@ -159,31 +156,31 @@ export function createFromToPosition(
  * @param container the container that serves the new base for the position
  * @returns the relative position inside the container
  */
-export function getHierachyAwareRelativePosition(position: Point, container: SParentElement): Bounds {
-    if (container instanceof SChildElement) {
+export function getHierachyAwareRelativePosition(position: Point, container: GParentElement): Bounds {
+    if (container instanceof GChildElement) {
         const positionInParent = getHierachyAwareRelativePosition(position, container.parent);
         return container.parentToLocal(positionInParent);
-    } else if (container instanceof SGraph) {
+    } else if (container instanceof GGraph) {
         return Bounds.translate(Bounds.EMPTY, position);
     } else {
         return container.parentToLocal(position);
     }
 }
 
-export function getCurrentMousePosition(root: SModelRoot, event: MouseEvent): Bounds {
+export function getCurrentMousePosition(root: GModelRoot, event: MouseEvent): Bounds {
     return root.parentToLocal({ x: event.offsetX, y: event.offsetY });
 }
 
-export function getSelectedElements(root: SModelRoot): Array<SShapeElement> {
+export function getSelectedElements(root: GModelRoot): Array<GShapeElement> {
     return Array.from(
         root.index
             .all()
             .filter(element => isSelectable(element) && element.selected)
-            .filter(e => e instanceof SShapeElement)
-    ) as Array<SShapeElement>;
+            .filter(e => e instanceof GShapeElement)
+    ) as Array<GShapeElement>;
 }
 
-function snap(snapper: ISnapper | undefined, pos: Point, element: SModelElement, event: MouseEvent): Point {
+function snap(snapper: ISnapper | undefined, pos: Point, element: GModelElement, event: MouseEvent): Point {
     if (!event.shiftKey && snapper) {
         return snapper.snap(pos, element);
     } else {

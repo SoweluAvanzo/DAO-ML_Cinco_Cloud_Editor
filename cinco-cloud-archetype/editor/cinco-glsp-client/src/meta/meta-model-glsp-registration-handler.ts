@@ -16,8 +16,8 @@
 
 import { getEdgeTypes, getGraphTypes, getNodeTypes } from '@cinco-glsp/cinco-glsp-common';
 import {
-    SModelElement,
-    SModelElementRegistration,
+    GModelElement,
+    GModelElementRegistration,
     SModelRegistry,
     ViewRegistration,
     ViewRegistry,
@@ -52,10 +52,10 @@ function registerBindingAndConstruction(
     registry: SModelRegistry,
     viewRegistry: ViewRegistry,
     types: any[],
-    constr: new () => SModelElement,
+    constr: new () => GModelElement,
     viewConstr: any
 ): void {
-    const registrations: SModelElementRegistration[] = [];
+    const registrations: GModelElementRegistration[] = [];
     const viewRegistrations: ViewRegistration[] = [];
     types.forEach(type => {
         // needs to be registered manually, since it is outside of the injection lifecycle:
@@ -68,7 +68,7 @@ function registerBindingAndConstruction(
             type: type,
             constr: constr,
             features
-        } as SModelElementRegistration);
+        } as GModelElementRegistration);
 
         // manual register and bind view
         configureView(context, type, viewConstr);
@@ -85,7 +85,7 @@ function registerBindingAndConstruction(
 function registerPostInjectionLifecycle(
     registry: SModelRegistry,
     viewRegistry: ViewRegistry,
-    registrations: SModelElementRegistration[],
+    registrations: GModelElementRegistration[],
     viewRegistrations: ViewRegistration[]
 ): void {
     // register view and constructors of modelelements

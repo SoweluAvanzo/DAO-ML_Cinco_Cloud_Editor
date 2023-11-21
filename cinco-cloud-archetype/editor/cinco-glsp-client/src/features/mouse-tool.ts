@@ -13,15 +13,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, MousePositionTracker, Point, SModelElement } from '@eclipse-glsp/client';
+import { Action, MousePositionTracker, Point, GModelElement } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
 
 @injectable()
 export class MouseContextTracker extends MousePositionTracker {
     protected _lastMousePosition: Point | undefined;
-    protected _lastMouseTarget: SModelElement | undefined;
+    protected _lastMouseTarget: GModelElement | undefined;
 
-    override mouseMove(target: SModelElement, event: MouseEvent): (Action | Promise<Action>)[] {
+    override mouseMove(target: GModelElement, event: MouseEvent): (Action | Promise<Action>)[] {
         this._lastMousePosition = { x: event.offsetX, y: event.offsetY };
         this._lastMouseTarget = target;
         this.lastPosition = target.root.parentToLocal({ x: event.offsetX, y: event.offsetY });
@@ -32,7 +32,7 @@ export class MouseContextTracker extends MousePositionTracker {
         return this._lastMousePosition;
     }
 
-    get lastMouseTarget(): SModelElement | undefined {
+    get lastMouseTarget(): GModelElement | undefined {
         return this._lastMouseTarget;
     }
 }
