@@ -14,24 +14,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Container, GraphModel, GraphModelIndex, Node } from '@cinco-glsp/cinco-glsp-api';
-import { ModelElementContainer, getNodeSpecOf, getNodeTypes , NodeType } from '@cinco-glsp/cinco-glsp-common';
-import {
-    CreateNodeOperation,
-    Point
-} from '@eclipse-glsp/server-node';
+import { ModelElementContainer, getNodeSpecOf, getNodeTypes, NodeType } from '@cinco-glsp/cinco-glsp-common';
+import { CreateNodeOperation, Point } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
-import { SpecifiedElementHandler } from './specified_element_handler';
+import { AbstractSpecifiedNodeElementHandler } from './specified_element_handler';
 
 @injectable()
-export class SpecifiedNodeHandler extends SpecifiedElementHandler {
-
+export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
     override BLACK_LIST: string[] = [];
 
-    override get operationType(): string {
-        return 'createNode';
-    }
-
-    override execute(operation: CreateNodeOperation): void {
+    override executeOperation(operation: CreateNodeOperation): void {
         // find container
         const container: Container | GraphModel | undefined = this.getValidConstrainedContainer(operation);
         if (container === undefined) {
@@ -86,7 +78,7 @@ export class SpecifiedNodeHandler extends SpecifiedElementHandler {
     }
 
     findContainer(operation: CreateNodeOperation): Container | GraphModel | undefined {
-        const index = this.index as GraphModelIndex;
+        const index = this.modelState.index as GraphModelIndex;
         return index.findElement(operation.containerId) as Container | GraphModel | undefined;
     }
 

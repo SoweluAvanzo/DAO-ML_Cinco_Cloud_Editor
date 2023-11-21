@@ -14,17 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { GraphGModelFactory, GraphModelIndex, GraphModelState, GraphModelStorage, ServerResponseHandler } from '@cinco-glsp/cinco-glsp-api';
-import {
-    ApplyAppearanceUpdateAction,
-    CustomAction,
-    DIAGRAM_TYPE,
-    FileProviderResponse,
-    GeneratorResponseAction,
-    MetaSpecificationResponseAction,
-    PropertyViewResponseAction,
-    ServerArgsResponse,
-    ValidationModelAnswerAction
-} from '@cinco-glsp/cinco-glsp-common';
+import { DIAGRAM_TYPE } from '@cinco-glsp/cinco-glsp-common';
 import {
     ActionHandlerConstructor,
     BindingTarget,
@@ -39,10 +29,9 @@ import {
     OperationHandlerConstructor,
     SourceModelStorage,
     ToolPaletteItemProvider
-} from '@eclipse-glsp/server-node';
+} from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CustomContextMenuItemProvider } from '../context-menu/custom-context-menu-item-provider';
-import { GeneratorCreateFileHandler, GeneratorEditHandler } from '../generator/generator-tool';
 import { ApplyLabelEditHandler } from '../handler/apply-label-edit-handler';
 import { ChangeBoundsHandler } from '../handler/change-bounds-handler';
 import { ChangeContainerHandler } from '../handler/change-container-handler';
@@ -54,7 +43,6 @@ import { RoutingPointHandler } from '../handler/routingpoint-handler';
 import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
 import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
 import { CustomToolPaletteItemProvider } from '../palette/custom-tool-palette-item-provider';
-import { PropertyEditHandler, PropertyViewHandler } from '../property-view/property-view-tool';
 import { AppearanceProviderManager } from '../tools/appearance-provider-manager';
 import { CustomActionManager } from '../tools/custom-action-manager';
 import { DoubleClickManager } from '../tools/double-click-manager';
@@ -63,6 +51,9 @@ import { ValidationManager } from '../tools/validation-manager';
 import { CincoDiagramConfiguration } from './cinco-diagram-configuration';
 import { ReconnectEdgeHandler } from '../handler/reconnect-edge-handler';
 import { ServerArgsRequestHandler } from '../handler/server-args-handler';
+import { PropertyEditHandler } from '../handler/property-edit-handler';
+import { GeneratorCreateFileHandler } from '../handler/generator-create-file-handler';
+import { PropertyViewHandler } from '../handler/property-view-handler';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -100,6 +91,7 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(FileProviderHandler);
     }
 
+    /* TODO: Sami - Remove
     protected override configureClientActions(binding: InstanceMultiBinding<string>): void {
         super.configureClientActions(binding);
         binding.add(PropertyViewResponseAction.KIND);
@@ -112,6 +104,7 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(FileProviderResponse.KIND);
         binding.add(ServerArgsResponse.KIND);
     }
+    */
 
     protected override configureOperationHandlers(binding: InstanceMultiBinding<OperationHandlerConstructor>): void {
         super.configureOperationHandlers(binding);
@@ -123,7 +116,6 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(ChangeContainerHandler);
         binding.add(PropertyEditHandler);
         binding.add(RoutingPointHandler);
-        binding.add(GeneratorEditHandler);
         binding.add(GeneratorCreateFileHandler);
         binding.add(ReconnectEdgeHandler);
     }

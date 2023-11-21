@@ -13,8 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
-import { ElementType, NodeType, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
+import { ElementType, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
 import {
     CreateEdgeOperation,
     CreateNodeOperation,
@@ -23,23 +22,27 @@ import {
     Point,
     TriggerEdgeCreationAction,
     TriggerNodeCreationAction,
+    SaveModelAction,
     CreateNodeOperationHandler,
-    ActionDispatcher,
-    SaveModelAction
-} from '@eclipse-glsp/server-node';
-import { injectable, inject } from 'inversify';
+    CreateEdgeOperationHandler,
+    getRelativeLocation
+} from '@eclipse-glsp/server';
+import { injectable } from 'inversify';
+import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
+
+export type CreateOperationHandler = SpecifiedElementHandler | CreateNodeOperationHandler | CreateEdgeOperationHandler;
 
 @injectable()
-export class SpecifiedElementHandler extends CreateNodeOperationHandler {
-    @inject(GraphModelIndex)
-    protected index: GraphModelIndex;
-    @inject(ActionDispatcher)
-    readonly actionDispatcher: ActionDispatcher;
-
-    override label: string = this.specification?.label ?? 'undefined';
+export class SpecifiedElementHandler extends CincoJsonOperationHandler {
     _specification: ElementType | undefined;
+    override readonly operationType: any;
+    override label: string = this.specification?.label ?? 'undefined';
 
     BLACK_LIST: string[] = [];
+
+    executeOperation(operation: Operation): void {
+        throw new Error('Method not implemented.');
+    }
 
     get elementTypeId(): string | undefined {
         return this.elementTypeIds.length > 0 ? this.elementTypeIds[0] : undefined;
@@ -57,37 +60,33 @@ export class SpecifiedElementHandler extends CreateNodeOperationHandler {
         this._specification = spec;
     }
 
-    execute(operation: Operation): void {
-        throw new Error('Method not implemented.');
-    }
-
-    override get operationType(): string {
-        if (NodeType.is(this._specification)) {
-            return CreateNodeOperation.KIND;
-        } else {
-            return CreateEdgeOperation.KIND;
-        }
-    }
-
-    override getTriggerActions(): (TriggerEdgeCreationAction | TriggerNodeCreationAction)[] {
-        if (NodeType.is(this._specification)) {
-            return this.elementTypeIds.map(e => TriggerNodeCreationAction.create(e));
-        } else {
-            return this.elementTypeIds.map(e => TriggerEdgeCreationAction.create(e));
-        }
-    }
-
     getLabelFor(elementTypeId: string): string {
         return getSpecOf(elementTypeId)?.label ?? elementTypeId;
     }
 
-    override getContainer(operation: CreateNodeOperation): GModelElement | undefined {
+    getContainer(operation: CreateNodeOperation): GModelElement | undefined {
         const index = this.modelState.index;
         return operation.containerId ? index.get(operation.containerId) : undefined;
     }
 
-    override getLocation(operation: CreateNodeOperation): Point | undefined {
+    getLocation(operation: CreateNodeOperation): Point | undefined {
         return operation.location;
+    }
+
+    /**
+     * Retrieves the diagram absolute location and the target container from the given {@link CreateNodeOperation}
+     * and converts the absolute location to coordinates relative to the given container.
+     *  Relative coordinates can only be retrieved if the given container element is part of
+     * a hierarchy of {@link GBoundsAware} elements. This means each (recursive) parent element need to
+     * implement {@link GBoundsAware}. If that is not the case this method returns `undefined`.
+     * @param absoluteLocation The diagram absolute position.
+     * @param container The container element.
+     * @returns The relative position or `undefined`.
+     */
+    getRelativeLocation(operation: CreateNodeOperation): Point | undefined {
+        const container = this.getContainer(operation) ?? this.modelState.root;
+        const absoluteLocation = this.getLocation(operation) ?? Point.ORIGIN;
+        return getRelativeLocation(absoluteLocation, container);
     }
 
     saveAndUpdate(): void {
@@ -96,8 +95,25 @@ export class SpecifiedElementHandler extends CreateNodeOperationHandler {
         };
         this.actionDispatcher.dispatch(paletteUpdateAction);
         // save model
-        const graphmodel = this.index.getRoot();
+        const graphmodel = this.modelState.index.getRoot();
         const fileUri = graphmodel._sourceUri;
         this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
+    }
+}
+
+@injectable()
+export class AbstractSpecifiedNodeElementHandler extends SpecifiedElementHandler implements CreateNodeOperationHandler {
+    override readonly operationType = CreateNodeOperation.KIND;
+
+    getTriggerActions(): TriggerNodeCreationAction[] {
+        return this.elementTypeIds.map(e => TriggerNodeCreationAction.create(e));
+    }
+}
+@injectable()
+export class AbstractSpecifiedEdgeElementHandler extends SpecifiedElementHandler implements CreateEdgeOperationHandler {
+    override readonly operationType = CreateEdgeOperation.KIND;
+
+    getTriggerActions(): TriggerEdgeCreationAction[] {
+        return this.elementTypeIds.map(e => TriggerEdgeCreationAction.create(e));
     }
 }

@@ -13,21 +13,17 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Edge, GraphModelState } from '@cinco-glsp/cinco-glsp-api';
+import { Edge } from '@cinco-glsp/cinco-glsp-api';
 import { ChangeAwareRoutingPointsOperation, RoutingPoint } from '@cinco-glsp/cinco-glsp-common';
-import { ChangeRoutingPointsOperation, Logger, OperationHandler } from '@eclipse-glsp/server-node';
-import { inject, injectable } from 'inversify';
+import { ChangeRoutingPointsOperation } from '@eclipse-glsp/server';
+import { injectable } from 'inversify';
+import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 
 @injectable()
-export class RoutingPointHandler implements OperationHandler {
+export class RoutingPointHandler extends CincoJsonOperationHandler {
     operationType = ChangeRoutingPointsOperation.KIND;
 
-    @inject(Logger)
-    protected readonly logger: Logger;
-    @inject(GraphModelState)
-    protected readonly modelState: GraphModelState;
-
-    execute(operation: ChangeRoutingPointsOperation): void {
+    executeOperation(operation: ChangeRoutingPointsOperation): void {
         if (ChangeRoutingPointsOperation.is(operation)) {
             if (ChangeAwareRoutingPointsOperation.is(operation)) {
                 for (const routingPointChanges of operation.routingPointChanges) {
@@ -70,7 +66,7 @@ export class RoutingPointHandler implements OperationHandler {
                     if (Edge.is(element)) {
                         const routingPoints = (newRoutingPoints.newRoutingPoints ?? []).map(
                             // convert routingPoint of GLSP to routingPoints of meta-specification (explicitly)
-                            routingPoint => ({ x: routingPoint.x, y: routingPoint.y } as RoutingPoint)
+                            routingPoint => ({ x: routingPoint.x, y: routingPoint.y }) as RoutingPoint
                         );
 
                         // update all routingPoints

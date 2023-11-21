@@ -30,15 +30,14 @@ import {
     isCreateable
 } from '@cinco-glsp/cinco-glsp-common';
 import {
-    CreateOperationHandler,
     OperationHandlerRegistry,
     ToolPaletteItemProvider,
     TriggerEdgeCreationAction,
     TriggerNodeCreationAction
-} from '@eclipse-glsp/server-node';
+} from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
-import { SpecifiedElementHandler } from '../handler/specified_element_handler';
+import { CreateOperationHandler, SpecifiedElementHandler } from '../handler/specified_element_handler';
 import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
 
 @injectable()

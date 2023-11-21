@@ -15,8 +15,7 @@
  ********************************************************************************/
 
 import { CustomActionHandler, LanguageFilesRegistry, Node } from '@cinco-glsp/cinco-glsp-api';
-import { CustomAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action } from '@eclipse-glsp/server-node';
+import { Action, CustomAction } from '@cinco-glsp/cinco-glsp-common';
 
 export class LongestPathAction extends CustomActionHandler {
     getLongest(node: Node, maxSearchDepth: number): number {

@@ -33,7 +33,7 @@ import {
     GModelElementConstructor,
     ServerLayoutKind,
     ShapeTypeHint
-} from '@eclipse-glsp/server-node';
+} from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 
 @injectable()

@@ -15,8 +15,7 @@
  ********************************************************************************/
 
 import { GeneratorHandler, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import { GeneratorAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action } from '@eclipse-glsp/server-node';
+import { Action, GeneratorAction } from '@cinco-glsp/cinco-glsp-common';
 
 /**
  * Language Designer defined example of a Generator

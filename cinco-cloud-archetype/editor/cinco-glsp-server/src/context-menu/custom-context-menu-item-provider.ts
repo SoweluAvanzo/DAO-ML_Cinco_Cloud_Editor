@@ -16,7 +16,7 @@
 
 import { GraphModelState, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import { CustomAction, getCustomActions, hasCustomAction } from '@cinco-glsp/cinco-glsp-common';
-import { Args, ContextMenuItemProvider, MenuItem, Point } from '@eclipse-glsp/server-node';
+import { Args, ContextMenuItemProvider, MenuItem, Point } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 
 @injectable()

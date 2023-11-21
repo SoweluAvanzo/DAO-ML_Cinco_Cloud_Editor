@@ -16,7 +16,7 @@
 import {
     MetaSpecification, MetaSpecificationReloadAction, MetaSpecificationRequestAction, MetaSpecificationResponseAction
 } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server-node';
+import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 
 @injectable()

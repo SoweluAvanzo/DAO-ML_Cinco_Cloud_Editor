@@ -14,10 +14,24 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { DefaultGLSPServer } from '@eclipse-glsp/server';
-import { injectable } from 'inversify';
+import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
+import { ActionDispatcher, Command, JsonOperationHandler, Logger, MaybePromise, Operation } from '@eclipse-glsp/server';
+import { injectable, inject } from 'inversify';
 
 @injectable()
-export class CincoGLSPServer extends DefaultGLSPServer {
+export abstract class CincoJsonOperationHandler extends JsonOperationHandler {
+    @inject(ActionDispatcher)
+    protected readonly actionDispatcher: ActionDispatcher;
+    @inject(GraphModelState)
+    override readonly modelState: GraphModelState;
+    @inject(Logger)
+    protected readonly logger: Logger;
 
+    createCommand(operation: Operation): MaybePromise<Command | undefined> {
+        return this.commandOf(() => {
+            this.executeOperation(operation);
+        });
+    }
+
+    abstract executeOperation(operation: Operation): void;
 }

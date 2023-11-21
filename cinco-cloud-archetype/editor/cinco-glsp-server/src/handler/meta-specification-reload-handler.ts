@@ -20,7 +20,7 @@ import {
     MetaSpecificationReloadAction,
     MetaSpecificationResponseAction
 } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionHandler, ClientSessionManager, MaybePromise } from '@eclipse-glsp/server-node';
+import { Action, ActionHandler, ClientSessionManager, MaybePromise } from '@eclipse-glsp/server';
 import { injectable, inject } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { getLanguageFolder } from '@cinco-glsp/cinco-glsp-api';

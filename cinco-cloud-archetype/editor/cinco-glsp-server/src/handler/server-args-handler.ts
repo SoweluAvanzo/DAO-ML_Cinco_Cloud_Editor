@@ -22,7 +22,8 @@ import {
     ServerArgsResponse,
     WORKSPACE_FOLDER
 } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionHandler, MaybePromise, processPort } from '@eclipse-glsp/server-node';
+import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server';
+import { processPort } from '@eclipse-glsp/server/lib/node/launch/socket-cli-parser';
 import { injectable } from 'inversify';
 import { LanguageFilesRegistry, getPortArg, getLanguageFolderArg, getRoot, getWorkspaceFolderArg } from '@cinco-glsp/cinco-glsp-api';
 

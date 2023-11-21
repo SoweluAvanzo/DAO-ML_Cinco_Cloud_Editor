@@ -13,18 +13,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {
-    createAppModule,
-    createSocketCliParser,
-    LoggerFactory,
-    resolveAndCatch,
-    ServerModule,
-    SocketServerLauncher
-} from '@eclipse-glsp/server-node';
+
+import { createAppModule, createSocketCliParser, ServerModule, SocketServerLauncher } from '@eclipse-glsp/server/node';
 import { Container } from 'inversify';
 import { CincoDiagramModule } from './diagram/cinco-diagram-module';
 
-export function launch(argv?: string[]): void {
+export async function launch(argv?: string[]): Promise<void> {
     const argParser = createSocketCliParser();
 
     // add additional args
@@ -36,12 +30,9 @@ export function launch(argv?: string[]): void {
     const options = argParser.parse(argv);
     const appContainer = new Container();
     appContainer.load(createAppModule(options));
-
-    const logger = appContainer.get<LoggerFactory>(LoggerFactory)('CincoGLSPServer');
     const launcher = appContainer.resolve(SocketServerLauncher);
     const serverModule = new ServerModule().configureDiagramModule(new CincoDiagramModule());
 
-    const errorHandler = (error: any): void => logger.error('Error in cinco server launcher:', error);
     launcher.configure(serverModule);
-    resolveAndCatch(() => launcher.start({ port: options.port, host: options.host }), errorHandler);
+    launcher.start({ port: options.port, host: options.host });
 }

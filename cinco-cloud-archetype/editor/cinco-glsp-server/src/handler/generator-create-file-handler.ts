@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Cinco Cloud and others.
+ * Copyright (c) 2023 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,35 +13,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
-import { GeneratorCreateFileOperation, GeneratorEditOperation } from '@cinco-glsp/cinco-glsp-common';
-import { Logger, OperationHandler } from '@eclipse-glsp/server-node';
+import { GeneratorCreateFileOperation } from '@cinco-glsp/cinco-glsp-common';
+import { injectable } from 'inversify';
+import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 import * as fs from 'fs-extra';
-import { inject, injectable } from 'inversify';
 
 @injectable()
-export class GeneratorEditHandler implements OperationHandler {
-    operationType = GeneratorEditOperation.KIND;
-
-    @inject(Logger)
-    protected readonly logger: Logger;
-    @inject(GraphModelState)
-    protected readonly modelState: GraphModelState;
-
-    execute(operation: GeneratorEditOperation): void {
-        const modelElementId: string = operation.modelElementId;
-        console.log(modelElementId);
-    }
-}
-
-@injectable()
-export class GeneratorCreateFileHandler implements OperationHandler {
+export class GeneratorCreateFileHandler extends CincoJsonOperationHandler {
     operationType = GeneratorCreateFileOperation.KIND;
 
-    @inject(Logger)
-    protected readonly logger: Logger;
-
-    execute(operation: GeneratorCreateFileOperation): void {
+    executeOperation(operation: GeneratorCreateFileOperation): void {
         const contents = Array.from(operation.filesContentsMap.entries());
         for (const el of contents) {
             fs.writeFileSync(el[0]['codeUri']['path'], el[1]);

@@ -21,9 +21,9 @@ import {
     ActionHandler,
     Logger,
     SaveModelAction,
-    ServerMessageAction,
-    ServerSeverity
-} from '@eclipse-glsp/server-node';
+    MessageAction,
+    SeverityLevel
+} from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 
 /**
@@ -210,12 +210,11 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
      * @param severity "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
      * @returns
      */
-    notify(message: string, severity?: ServerSeverity, details?: string, timeout?: number): void {
-        const serverMessageAction = ServerMessageAction.create(message, {
+    notify(message: string, severity?: SeverityLevel, details?: string, timeout?: number): void {
+        const messageAction = MessageAction.create(message, {
             severity: severity ?? 'INFO',
-            details: details ?? '',
-            timeout: timeout ?? 5000
+            details: details ?? ''
         });
-        this.actionDispatcher.dispatch(serverMessageAction);
+        this.actionDispatcher.dispatch(messageAction);
     }
 }

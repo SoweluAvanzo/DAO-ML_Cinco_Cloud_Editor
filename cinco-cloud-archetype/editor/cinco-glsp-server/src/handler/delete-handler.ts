@@ -13,27 +13,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Container, Edge, GraphModelState, IdentifiableElement, Node } from '@cinco-glsp/cinco-glsp-api';
-import {
-    ActionDispatcher,
-    DeleteElementOperation,
-    MaybePromise,
-    OperationHandler,
-    SaveModelAction,
-    remove
-} from '@eclipse-glsp/server-node';
-import { inject, injectable } from 'inversify';
+import { Container, Edge, IdentifiableElement, Node } from '@cinco-glsp/cinco-glsp-api';
+import { DeleteElementOperation, SaveModelAction, remove } from '@eclipse-glsp/server';
+import { injectable } from 'inversify';
+import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 
 @injectable()
-export class DeleteHandler implements OperationHandler {
+export class DeleteHandler extends CincoJsonOperationHandler {
     readonly operationType = DeleteElementOperation.KIND;
 
-    @inject(GraphModelState)
-    protected readonly modelState: GraphModelState;
-    @inject(ActionDispatcher)
-    readonly actionDispatcher: ActionDispatcher;
-
-    execute(operation: DeleteElementOperation): MaybePromise<void> {
+    executeOperation(operation: DeleteElementOperation): void {
         operation.elementIds.forEach(elementId => this.deleteElementById(elementId));
         this.saveAndUpdate();
     }
