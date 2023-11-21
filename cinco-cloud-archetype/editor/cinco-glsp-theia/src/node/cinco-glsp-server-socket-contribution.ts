@@ -13,10 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {
-    GLSPSocketServerContribution,
-    GLSPSocketServerContributionOptions
-} from '@eclipse-glsp/theia-integration/lib/node';
+import { GLSPSocketServerContribution, GLSPSocketServerContributionOptions } from '@eclipse-glsp/theia-integration/lib/node';
 import { injectable, inject } from 'inversify';
 import * as path from 'path';
 import { getDiagramConfiguration } from '../common/cinco-language';
@@ -32,21 +29,29 @@ export class CincoGLSPSocketServerContribution extends GLSPSocketServerContribut
 
     readonly id = getDiagramConfiguration().contributionId;
 
-    createContributionOptions(): Partial<GLSPSocketServerContributionOptions> { // env
-        // process.env(PORT_KEY);
+    createContributionOptions(): Partial<GLSPSocketServerContributionOptions> {
+        // env
         const args = this.glspServerArgsProvider.getArg();
         return {
             executable: MODULE_PATH,
             additionalArgs: [
-                '-p', `${args.port}`, '--no-consoleLog', '--fileLog', 'true', '--logDir', LOG_DIR,
+                '-p',
+                `${args.port}`,
+                '--no-consoleLog',
+                '--fileLog',
+                'true',
+                '--logDir',
+                LOG_DIR,
                 // cinco specific arguments
                 `--rootFolder='${args.rootFolder}'`,
                 args.metaDevMode ? '--metaDevMode' : DEFAULT_META_DEV_MODE,
                 `--metaLanguagesFolder='${args.languagePath}'`,
-                `--workspaceFolder='${args.workspacePath}'`
+                `--workspaceFolder='${args.workspacePath}'`,
+                `--websocketPath='${args.websocketPath}'`
             ],
             socketConnectionOptions: {
-                port: args.port
+                port: args.port,
+                path: args.websocketPath
             }
         };
     }

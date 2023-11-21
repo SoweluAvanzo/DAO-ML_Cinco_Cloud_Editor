@@ -19,7 +19,6 @@ import {
     CreateGeneratorTemplateCommand,
     CreateJavascriptGeneratorTemplateCommand
 } from '@cinco-glsp/cinco-glsp-common/lib/protocol/generator-protocol';
-import { DiagramMenus } from '@eclipse-glsp/theia-integration';
 import { KeybindingContribution, KeybindingRegistry, LabelProvider } from '@theia/core/lib/browser';
 import {
     CommandContribution,
@@ -39,6 +38,7 @@ import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service
 import { GeneratorTemplate } from './generator-template';
 import { FilesystemUtilServer } from '../../common/file-system-util-protocol';
 import { ThemeService } from '@theia/core/lib/browser/theming';
+import { GLSPDiagramMenus } from '@eclipse-glsp/theia-integration';
 
 interface DidCreateNewResourceEvent {
     uri: URI;
@@ -243,7 +243,7 @@ export class GenerateGraphDiagramCommandContribution implements CommandContribut
 @injectable()
 export class GenerateGraphDiagramMenuContribution implements MenuContribution {
     registerMenus(menus: MenuModelRegistry): void {
-        menus.registerMenuAction(DiagramMenus.DIAGRAM, {
+        menus.registerMenuAction(GLSPDiagramMenus.DIAGRAM, {
             commandId: GenerateGraphDiagramCommand.id,
             label: GenerateGraphDiagramCommand.label
         });

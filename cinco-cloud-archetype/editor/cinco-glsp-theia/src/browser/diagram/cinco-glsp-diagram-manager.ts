@@ -13,14 +13,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { DiagramWidget, DiagramWidgetOptions, GLSPDiagramContextKeyService, GLSPDiagramManager } from '@eclipse-glsp/theia-integration';
+import { GLSPDiagramContextKeyService, GLSPDiagramManager } from '@eclipse-glsp/theia-integration';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
 import { CommandService } from '@theia/core';
 import { inject, injectable } from 'inversify';
 
 import { getDiagramConfiguration } from '../../common/cinco-language';
 import { CincoGLSPDiagramWidget } from './cinco-glsp-diagram-widget';
-import { configureServerActions } from '@eclipse-glsp/client';
 import { WidgetOpenerOptions } from '@theia/core/lib/browser';
 import { ContextKey } from '@theia/core/lib/browser/context-key-service';
 export class CincoGLSPDiagramContextKeyService extends GLSPDiagramContextKeyService {
@@ -63,19 +62,12 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
     private _fileExtensions: string[] = [];
     private _iconClass = 'codicon codicon-type-hierarchy-sub';
 
-    protected override async initialize(): Promise<void> {
-        if (this._diagramType) {
-            return super.initialize();
-        }
-    }
-
     public doConfigure(diagramLanguage: GLSPDiagramLanguage): void {
         // intial update of meta-modell
         this._fileExtensions = diagramLanguage.fileExtensions;
         this._diagramType = diagramLanguage.diagramType;
         this._label = diagramLanguage.label;
         this._iconClass = diagramLanguage.iconClass || this._iconClass;
-        this.initialize();
     }
 
     override async doOpen(widget: CincoGLSPDiagramWidget, options?: WidgetOpenerOptions): Promise<void> {
@@ -89,7 +81,7 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
     }
 
     get fileExtensions(): string[] {
-        this._fileExtensions = getDiagramConfiguration().fileExtensions.map(e => e.startsWith('.') ? e : '.' + e);
+        this._fileExtensions = getDiagramConfiguration().fileExtensions.map(e => (e.startsWith('.') ? e : '.' + e));
         return this._fileExtensions;
     }
 
@@ -109,30 +101,5 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
     override get iconClass(): string {
         this._iconClass = getDiagramConfiguration().iconClass ?? this._iconClass;
         return this._iconClass;
-    }
-
-    override async createWidget(options?: any): Promise<DiagramWidget> {
-        if (DiagramWidgetOptions.is(options)) {
-            const clientId = this.createClientId();
-            const widgetId = this.createWidgetId(options);
-            const config = this.getDiagramConfiguration(options);
-            const diContainer = config.createContainer(clientId);
-            const initializeResult = await this.diagramConnector.initializeResult;
-            await configureServerActions(initializeResult, this.diagramType, diContainer);
-            const widget = new CincoGLSPDiagramWidget(
-                options,
-                widgetId,
-                diContainer,
-                this.editorPreferences,
-                this.storage,
-                this.theiaSelectionService,
-                this.diagramConnector,
-                this.shell,
-                this.contextKeyService
-            );
-            widget.listenToFocusState(this.shell);
-            return widget;
-        }
-        throw Error('DiagramWidgetFactory needs DiagramWidgetOptions but got ' + JSON.stringify(options));
     }
 }

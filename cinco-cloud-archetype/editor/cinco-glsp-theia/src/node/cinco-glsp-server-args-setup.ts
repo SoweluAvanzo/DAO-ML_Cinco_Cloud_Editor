@@ -13,11 +13,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {
-    getPort
-} from '@eclipse-glsp/theia-integration/lib/node';
+import { getPort, getWebSocketPath } from '@eclipse-glsp/theia-integration/lib/node';
 import {
     DEFAULT_SERVER_PORT,
+    DEFAULT_WEBSOCKET_PATH,
     META_DEV_MODE,
     META_LANGUAGES_FOLDER,
     WORKSPACE_FOLDER,
@@ -25,6 +24,7 @@ import {
     PORT_KEY,
     LANGUAGES_FOLDER_KEY,
     WORKSPACE_FOLDER_KEY,
+    WEBSOCKET_PATH_KEY,
     hasArg,
     getArgs,
     ServerArgs
@@ -55,7 +55,8 @@ export class CincoGLSPServerArgsSetup {
 
     setupGLSPServerArgs(glspServerArgsProvider: GLSPServerUtilServerNode): any {
         // create default - precedence: arg -> envVar -> static default value
-        const defaultPort = process.env[PORT_KEY] ? +(process.env[PORT_KEY]!) : DEFAULT_SERVER_PORT;
+        const defaultPort = process.env[PORT_KEY] ? +process.env[PORT_KEY]! : DEFAULT_SERVER_PORT;
+        const defaultWebSocketPath = process.env[WEBSOCKET_PATH_KEY] ?? DEFAULT_WEBSOCKET_PATH;
         const defaultMetaDevMode = process.env[META_DEV_MODE] ? true : false;
         const defaultMetaLanguagesFolder = process.env[LANGUAGES_FOLDER_KEY] ?? DEFAULT_META_LANGUAGES_FOLDER;
         const defaultWorkspaceFolder = process.env[WORKSPACE_FOLDER_KEY] ?? DEFAULT_WORKSPACE_FOLDER;
@@ -63,20 +64,15 @@ export class CincoGLSPServerArgsSetup {
 
         // set values by precedence
         const port = getPort(PORT_KEY, defaultPort);
+        const websocketPath = getWebSocketPath(WEBSOCKET_PATH_KEY) ?? defaultWebSocketPath;
         const languagesFolder = getArgs(LANGUAGES_FOLDER_KEY) ?? defaultMetaLanguagesFolder;
         const workspaceFolder = getArgs(WORKSPACE_FOLDER_KEY) ?? defaultWorkspaceFolder;
         const rootFolder = getArgs(ROOT_FOLDER_KEY) ?? defaultRootFolder;
         const metaDevMode = hasArg(META_DEV_MODE) ?? defaultMetaDevMode;
 
         // make accesible to frontend
-        glspServerArgsProvider.setServerArgs(metaDevMode, rootFolder, languagesFolder, workspaceFolder, port);
+        glspServerArgsProvider.setServerArgs(metaDevMode, rootFolder, languagesFolder, workspaceFolder, port, websocketPath);
 
-        return ServerArgs.create(
-            metaDevMode,
-            rootFolder,
-            languagesFolder,
-            workspaceFolder,
-            port
-        );
+        return ServerArgs.create(metaDevMode, rootFolder, languagesFolder, workspaceFolder, port, websocketPath);
     }
 }
