@@ -40,6 +40,7 @@
   "dependencies": {
   },
   "devDependencies": {
+    "circular-dependency-plugin": "^5.2.2"
   },
   "scripts": {
     "prepare": "yarn clean && yarn build && yarn lint",

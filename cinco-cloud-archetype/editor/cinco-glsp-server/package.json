@@ -41,7 +41,7 @@
     "@cinco-glsp/cinco-glsp-api": "1.0.0",
     "@cinco-glsp/cinco-glsp-common": "1.0.0",
     "@eclipse-glsp/server": "2.0.0",
-    "inversify": "5.1.1"
+    "inversify": "6.0.1"
   },
   "devDependencies": {
     "@eclipse-glsp/config": "2.0.0",
