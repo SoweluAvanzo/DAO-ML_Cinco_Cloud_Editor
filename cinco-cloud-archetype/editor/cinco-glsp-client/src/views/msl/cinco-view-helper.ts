@@ -50,7 +50,6 @@ import {
     getSubType,
     layoutableChildFeature
 } from '@eclipse-glsp/client';
-import { alignFeature } from '@eclipse-glsp/sprotty/node_modules/sprotty';
 import * as React from 'react';
 import { JsxVNodeChild, VNode, VNodeStyle, h } from 'snabbdom';
 import * as jsx from 'sprotty/lib/lib/jsx';
@@ -1204,7 +1203,6 @@ export function createLabel(element: GModelElement, text: string, bounds: Bounds
     label.type = 'label';
     label.features = createFeatureSet([
         boundsFeature,
-        alignFeature,
         layoutableChildFeature,
         edgeLayoutFeature,
         fadeFeature,
