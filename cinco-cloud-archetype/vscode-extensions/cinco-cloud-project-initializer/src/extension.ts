@@ -3,7 +3,7 @@ import { getWebviewContent } from './webview';
 import * as simplegit from 'simple-git';
 import * as rimraf from 'rimraf';
 import path = require('path');
-import { generateMGL, generateMSL } from './initialize-project';
+import { generateMGL, generateMSL,PROJECT_NAME_REGEXP } from './initialize-project';
 
 export function activate(context: vscode.ExtensionContext) {
 	isWorkspaceEmpty().then(isEmpty => {
@@ -45,6 +45,12 @@ function openProjectInitializationWebview(context: vscode.ExtensionContext) {
 						vscode.window.showErrorMessage('Workspace could not be found!');
 						return;
 					}
+					const regexp = new RegExp(PROJECT_NAME_REGEXP);
+					if(!projectName.match(regexp)){
+						vscode.window.showErrorMessage(`Illegal name project name "${projectName}"`);
+						return;
+					}
+
 					const workspaceRoot = workspaceFolder[0].uri.fsPath;
 					const mglFilePath = path.join(workspaceRoot, `${projectName.toLowerCase()}.mgl`);
 					const mglFileUri = vscode.Uri.file(mglFilePath);
