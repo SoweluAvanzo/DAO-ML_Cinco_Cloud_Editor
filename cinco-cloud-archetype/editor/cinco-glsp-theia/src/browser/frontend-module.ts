@@ -26,7 +26,7 @@ import {
 } from '@eclipse-glsp/theia-integration';
 import { lazyBind, BindingContext } from '@eclipse-glsp/protocol';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
-import { CommandContribution, MenuContribution, SelectionService } from '@theia/core';
+import { CommandContribution, MenuContribution } from '@theia/core';
 import {
     bindViewContribution,
     FrontendApplicationContribution,
@@ -94,7 +94,6 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         bindViewContribution(context.bind, CincoCloudPropertyWidgetContribution);
         context.bind(FrontendApplicationContribution).toService(CincoCloudPropertyWidgetContribution);
         context.bind(PropertyDataHandler).toSelf().inSingletonScope();
-        context.bind(SelectionService).to(SelectionService).inSingletonScope();
         context.bind(CommandContribution).to(PropertyUpdateCommandContribution);
         context.bind(CommandContribution).to(GLSP2TheiaCommandRegistrationContribution);
         context.bind(CommandContribution).to(FileProviderContribution);
