@@ -47,7 +47,10 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
     protected counter: number;
     protected WHITE_LIST = ['Nodes', 'Edges'];
 
-    getItems(args?: Args): PaletteItem[] {
+    getItems(args?: Args): Promise<PaletteItem[]> | PaletteItem[] {
+        if (!this.state.graphModel) {
+            return [];
+        }
         const handlers = this.operationHandlerRegistry
             .getAll()
             .filter(handler => handler instanceof SpecifiedElementHandler) as CreateOperationHandler[];
