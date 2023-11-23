@@ -19,6 +19,9 @@ import {
     getSpecOf,
     getStyleByNameOf,
     isContainer,
+    isDeletable,
+    isMovable,
+    isSelectable,
     NodeStyle,
     RoutingPoint,
     Style,
@@ -27,12 +30,22 @@ import {
 import {
     AbstractEdgeRouter,
     Bounds,
+    boundsFeature,
+    connectableFeature,
+    deletableFeature,
     DIAMOND_ANCHOR_KIND,
+    editFeature,
     ELLIPTIC_ANCHOR_KIND,
+    fadeFeature,
     GLSPGraph,
+    hoverFeedbackFeature,
+    layoutContainerFeature,
+    moveFeature,
     Point,
+    popupFeature,
     RECTANGULAR_ANCHOR_KIND,
     SEdge,
+    selectFeature,
     SGraphIndex,
     SModelElement,
     SModelElementSchema,
@@ -50,6 +63,28 @@ export class CincoNode extends SNode {
 
     get elementType(): string | undefined {
         return this.type;
+    }
+
+    static getDefaultFeatures(elementTypeId: string): symbol[] {
+        const features = [
+            connectableFeature,
+            boundsFeature,
+            moveFeature,
+            layoutContainerFeature,
+            fadeFeature,
+            hoverFeedbackFeature,
+            popupFeature
+        ];
+        if (isDeletable(elementTypeId)) {
+            features.push(deletableFeature);
+        }
+        if (isSelectable(elementTypeId)) {
+            features.push(selectFeature);
+        }
+        if (isMovable(elementTypeId)) {
+            features.push(moveFeature);
+        }
+        return features;
     }
 
     get properties(): Record<string, any> | undefined {
@@ -102,6 +137,7 @@ export class CincoNode extends SNode {
 
     set style(style: Style | undefined) {
         if (this._view) {
+            this._view = { ...this._view } as View;
             this._view.style = { ...style } as Style;
         }
     }
@@ -162,6 +198,17 @@ export class CincoEdge extends SEdge {
 
     get elementType(): string | undefined {
         return this.type;
+    }
+
+    static getDefaultFeatures(elementTypeId: string): symbol[] {
+        const features = [editFeature, fadeFeature, hoverFeedbackFeature];
+        if (isDeletable(elementTypeId)) {
+            features.push(deletableFeature);
+        }
+        if (isSelectable(elementTypeId)) {
+            features.push(selectFeature);
+        }
+        return features;
     }
 
     get movingBendPoint(): Point | undefined {

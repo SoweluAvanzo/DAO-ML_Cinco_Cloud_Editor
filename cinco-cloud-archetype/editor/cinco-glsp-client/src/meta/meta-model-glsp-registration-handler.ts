@@ -90,29 +90,36 @@ function registerPostInjectionLifecycle(
 ): void {
     // register view and constructors of modelelements
     registrations.forEach(registration => {
-        // create default feature set
-        let obj = registration.constr;
-        let defaultFeatures;
-        do {
-            if (obj.DEFAULT_FEATURES) {
-                defaultFeatures = obj.DEFAULT_FEATURES;
-            }
-            obj = Object.getPrototypeOf(obj);
-        } while (obj);
-        if (!defaultFeatures && registration.features && registration.features.enable) {
-            defaultFeatures = [];
-        }
         // register with features
-        if (defaultFeatures) {
-            const featureSet = createFeatureSet(defaultFeatures, registration.features);
-            registry.register(registration.type, () => {
+        registry.register(registration.type, () => {
+            // create default feature set
+            let obj = registration.constr;
+            let defaultFeatures;
+            do {
+                if (obj.name === 'CincoEdge' || obj.name === 'CincoNode') {
+                    // TODO: check unsafe
+                    if ((obj as any).getDefaultFeatures(registration.type)) {
+                        defaultFeatures = (obj as any).getDefaultFeatures(registration.type);
+                    }
+                } else {
+                    if (obj.DEFAULT_FEATURES) {
+                        defaultFeatures = obj.DEFAULT_FEATURES;
+                    }
+                }
+                obj = Object.getPrototypeOf(obj);
+            } while (defaultFeatures === undefined && obj);
+            if (!defaultFeatures && registration.features && registration.features.enable) {
+                defaultFeatures = [];
+            }
+            if (defaultFeatures) {
+                const featureSet = createFeatureSet(defaultFeatures, registration.features);
                 const element = new registration.constr();
                 element.features = featureSet;
                 return element;
-            });
-        } else {
-            registry.register(registration.type, () => new registration.constr());
-        }
+            } else {
+                return new registration.constr();
+            }
+        });
     });
     viewRegistrations.forEach(vr => viewRegistry.register(vr.type, vr.factory()));
 }

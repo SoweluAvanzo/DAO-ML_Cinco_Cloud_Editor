@@ -18,7 +18,7 @@ import {
     GeneratorResponseAction,
     MetaSpecificationResponseAction,
     PropertyViewResponseAction,
-    RESOURCE_TYPES,
+    ServerArgsResponse,
     TypedServerMessageAction,
     ValidationModelResponseAction
 } from '@cinco-glsp/cinco-glsp-common';
@@ -67,6 +67,8 @@ import { WorkspaceFileService } from './utils/workspace-file-service';
 import { GraphModelProvider } from './model/graph-model-provider';
 import { MetaSpecificationTheiaCommand } from './meta/meta-specification-theia-command';
 import { MetaSpecificationLoader } from './meta/meta-specification-loader';
+import { ServerArgsProvider } from './meta/server-args-response-handler';
+import { FileProviderHandler } from './features/file-provider-handler';
 
 export function createCincoDiagramContainer(widgetId: string): Container {
     const container = createClientContainer(cincoDiagramModule);
@@ -144,7 +146,8 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     // bind dirty state handler
     configureActionHandler(context, SetDirtyStateAction.KIND, DirtyStateHandler);
     configureActionHandler(context, MetaSpecificationResponseAction.KIND, MetaSpecificationResponseHandler);
-    configureActionHandler(context, FileProviderResponse.KIND, DynamicImportLoader);
+    configureActionHandler(context, FileProviderResponse.KIND, FileProviderHandler);
+    configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
 
     configureDefaultModelElements(context);
 
@@ -160,8 +163,10 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
             (injectable as CustomToolManager).registerCallBack(
                 // build callback to register modelelements dynamically.
                 (actionDispatcher: IActionDispatcher, registry: SModelRegistry, viewRegistry: ViewRegistry): void => {
-                    // load frontend language-files
-                    DynamicImportLoader.load(RESOURCE_TYPES, actionDispatcher);
+                    // load server args
+                    ServerArgsProvider.load(actionDispatcher);
+                    // load css language-files
+                    DynamicImportLoader.load(actionDispatcher);
                     // set registration callback, that is called whenever a new meta-specification is received
                     MetaSpecificationResponseHandler.addRegistrationCallback(() => {
                         reregisterBindings(context, ctx, registry, viewRegistry);

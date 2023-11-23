@@ -14,16 +14,20 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    META_FILE_TYPES, MetaSpecification, MetaSpecificationReloadAction, MetaSpecificationResponseAction
+    DIAGRAM_TYPE,
+    META_FILE_TYPES,
+    MetaSpecification,
+    MetaSpecificationReloadAction,
+    MetaSpecificationResponseAction
 } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server-node';
-import { injectable } from 'inversify';
+import { Action, ActionHandler, ClientSessionManager, MaybePromise } from '@eclipse-glsp/server-node';
+import { injectable, inject } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { getLanguageFolder } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class MetaSpecificationReloadHandler implements ActionHandler {
-
+    @inject(ClientSessionManager) protected sessions: ClientSessionManager;
     actionKinds: string[] = [MetaSpecificationReloadAction.KIND];
 
     execute(action: MetaSpecificationReloadAction, ...args: unknown[]): MaybePromise<Action[]> {
@@ -32,7 +36,8 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
         if (clear) {
             MetaSpecificationLoader.clear();
         }
-        if(items === undefined || items.length <= 0) { // default behaviour
+        if (items === undefined || items.length <= 0) {
+            // default behaviour
             const folderPath = getLanguageFolder();
             const supportedFileTypes = META_FILE_TYPES;
             MetaSpecificationLoader.load(supportedFileTypes, folderPath);
@@ -46,6 +51,11 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
             }
         }
         // forward the update to the clients, after reload
-        return [MetaSpecificationResponseAction.create(MetaSpecification.get())];
+        const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
+        this.sessions.getSessionsByType(DIAGRAM_TYPE).forEach(session => {
+            session.actionDispatcher.dispatch(response);
+        });
+
+        return [];
     }
 }

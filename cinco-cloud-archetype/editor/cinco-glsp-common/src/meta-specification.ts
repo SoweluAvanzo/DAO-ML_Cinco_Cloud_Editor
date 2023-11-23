@@ -541,15 +541,13 @@ export interface GraphType extends ElementType {
 
 export namespace GraphType {
     export function is(object: any): object is GraphType {
-        return ElementType.is(object) && hasArrayProp(object, 'containments');
+        const isSpecified = (MetaSpecification.get().graphTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
+        return ElementType.is(object) && (isSpecified || hasArrayProp(object, 'containments'));
     }
 }
 
 export interface NodeType extends ElementType {
-    deletable: boolean;
     reparentable: boolean;
-    repositionable: boolean;
-    resizable: boolean;
     width: number;
     height: number;
     containments?: Constraint[];
@@ -578,21 +576,15 @@ export namespace ModelElementContainer {
 
 export namespace NodeType {
     export function is(object: any): object is NodeType {
+        const isSpecified = (MetaSpecification.get().nodeTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
         return (
             object !== undefined &&
-            hasBooleanProp(object, 'deletable') &&
-            hasBooleanProp(object, 'reparentable') &&
-            hasBooleanProp(object, 'repositionable') &&
-            hasBooleanProp(object, 'resizable') &&
-            hasNumberProp(object, 'width') &&
-            hasNumberProp(object, 'height')
+            (isSpecified || (hasBooleanProp(object, 'reparentable') && hasNumberProp(object, 'width') && hasNumberProp(object, 'height')))
         );
     }
 }
 
 export interface EdgeType extends ElementType {
-    deletable: boolean;
-    repositionable: boolean;
     routable: boolean;
     palettes?: string[];
     view?: EdgeView;
@@ -601,12 +593,8 @@ export interface EdgeType extends ElementType {
 
 export namespace EdgeType {
     export function is(object: any): object is EdgeType {
-        return (
-            ElementType.is(object) &&
-            hasBooleanProp(object, 'deletable') &&
-            hasBooleanProp(object, 'repositionable') &&
-            hasBooleanProp(object, 'routable')
-        );
+        const isSpecified = (MetaSpecification.get().edgeTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
+        return ElementType.is(object) && (isSpecified || hasBooleanProp(object, 'routable'));
     }
 }
 
@@ -644,7 +632,8 @@ export interface UserDefinedType extends Type {
 
 export namespace UserDefinedType {
     export function is(object: any): object is UserDefinedType {
-        return Type.is(object) && hasArrayProp(object, 'attributes');
+        const isSpecified = (MetaSpecification.get().customTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
+        return Type.is(object) && (isSpecified || hasArrayProp(object, 'attributes'));
     }
 }
 
@@ -869,6 +858,26 @@ export function getAllHandlerNames(): string[] {
         }
     }
     return handlerNames;
+}
+
+export function isResizeable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('resize')).length <= 0;
+}
+
+export function isMovable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('move')).length <= 0;
+}
+
+export function isDeletable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('delete')).length <= 0;
+}
+
+export function isCreateable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('create')).length <= 0;
+}
+
+export function isSelectable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('select')).length <= 0;
 }
 
 /**

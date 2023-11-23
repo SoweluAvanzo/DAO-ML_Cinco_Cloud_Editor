@@ -26,7 +26,8 @@ import {
     getPrimeNodePalettes,
     getSpecOf,
     hasPalette,
-    hasPrimeReference
+    hasPrimeReference,
+    isCreateable
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     CreateOperationHandler,
@@ -234,27 +235,29 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         handlers.forEach(handler => {
             if (handler instanceof SpecifiedElementHandler) {
                 const graphModel = this.state.graphModel;
-                handler.elementTypeIds.forEach(elementTypeId => {
-                    const isPartOfPalette = graphModel.couldContain(elementTypeId);
-                    const action = getNodeSpecOf(elementTypeId)
-                        ? TriggerNodeCreationAction.create(elementTypeId)
-                        : TriggerEdgeCreationAction.create(elementTypeId);
-                    if (
-                        isPartOfPalette && // filter out only creatable elements
-                        (hasPalette(elementTypeId, categoryId) ||
-                            (getPalettes(elementTypeId).length <= 0 && this.WHITE_LIST.includes(categoryId)))
-                    ) {
-                        if (hasPrimeReference(elementTypeId)) {
-                            if (fileList && fileList.length > 0) {
-                                fileList.forEach(file => {
-                                    paletteItems.push(this.createPaletteItem(action, handler, elementTypeId, file));
-                                });
+                handler.elementTypeIds
+                    .filter(e => isCreateable(e))
+                    .forEach(elementTypeId => {
+                        const isPartOfPalette = graphModel.couldContain(elementTypeId);
+                        const action = getNodeSpecOf(elementTypeId)
+                            ? TriggerNodeCreationAction.create(elementTypeId)
+                            : TriggerEdgeCreationAction.create(elementTypeId);
+                        if (
+                            isPartOfPalette && // filter out only creatable elements
+                            (hasPalette(elementTypeId, categoryId) ||
+                                (getPalettes(elementTypeId).length <= 0 && this.WHITE_LIST.includes(categoryId)))
+                        ) {
+                            if (hasPrimeReference(elementTypeId)) {
+                                if (fileList && fileList.length > 0) {
+                                    fileList.forEach(file => {
+                                        paletteItems.push(this.createPaletteItem(action, handler, elementTypeId, file));
+                                    });
+                                }
+                            } else {
+                                paletteItems.push(this.createPaletteItem(action, handler, elementTypeId));
                             }
-                        } else {
-                            paletteItems.push(this.createPaletteItem(action, handler, elementTypeId));
                         }
-                    }
-                });
+                    });
             } else {
                 handler.getTriggerActions().forEach(action => {
                     paletteItems.push(this.createPaletteItem(action, handler));
@@ -279,6 +282,9 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             if (elementTypeId !== undefined) {
                 const spec = getSpecOf(elementTypeId);
                 icon = spec?.icon;
+                if (!icon && spec) {
+                    icon = `${spec.elementTypeId.replace(':', '_')}`;
+                }
             } else {
                 icon = handler.specification?.icon;
             }
@@ -288,7 +294,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             label,
             sortString: label.charAt(0),
             actions: [action],
-            icon: icon ?? 'codicon-circle-filled'
+            icon: icon ?? 'circle-filled'
         };
     }
 

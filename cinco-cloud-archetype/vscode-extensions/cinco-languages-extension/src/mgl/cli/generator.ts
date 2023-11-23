@@ -271,7 +271,12 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{appearance
         appearanceConfiguration.lineWidth = appearance.lineWidth;
         appearanceConfiguration.lineStyle = appearance.lineStyle?.lineType;
         appearanceConfiguration.filled = appearance.filled;
-        appearanceConfiguration.font = appearance.font?.fontName;
+        appearanceConfiguration.font = appearance.font ? {
+            fontName: appearance.font.fontName,
+            isBold: appearance.font.isBold,
+            isItalic: appearance.font.isItalic,
+            size: appearance.font.size
+        } : undefined;
         appearanceConfiguration.imagePath = appearance.imagePath;
         appearanceConfiguration.transparency = appearance.transparency;
         

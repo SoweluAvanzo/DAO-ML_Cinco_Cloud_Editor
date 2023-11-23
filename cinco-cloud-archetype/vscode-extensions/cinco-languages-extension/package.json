@@ -66,6 +66,16 @@
                 "path": "./syntaxes/msl.tmLanguage.json"
             }
         ],
+        "keybindings":[
+            {
+                "command": "cincoCloud.generateCincoProduct",
+                "key": "alt+g"
+            },
+            {
+                "command": "cincoCloud.generateAndUploadCincoProduct",
+                "key": "alt+Shift+g"
+            }
+        ],
         "commands": [
             {
                 "command": "cincoCloud.generateCincoProduct",

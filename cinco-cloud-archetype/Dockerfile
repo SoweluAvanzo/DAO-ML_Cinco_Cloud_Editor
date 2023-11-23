@@ -69,6 +69,9 @@ COPY --from=cinco-cloud-project-initializer-builder /cinco-cloud-project-initial
 # build minio-client
 RUN cd minio-client && yarn && cd ../
 
+# clean languages folder
+RUN cd /editor/cinco-glsp-server && rm -r languages && node clean-languages.js
+
 # build theia-editor
 RUN yarn
 

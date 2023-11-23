@@ -15,7 +15,15 @@
  ********************************************************************************/
 import { APIBaseHandler, GraphModelState, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import { ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionDispatcher, ActionHandler, Logger, ServerMessageAction, ServerSeverity } from '@eclipse-glsp/server-node';
+import {
+    Action,
+    ActionDispatcher,
+    ActionHandler,
+    Logger,
+    SaveModelAction,
+    ServerMessageAction,
+    ServerSeverity
+} from '@eclipse-glsp/server-node';
 import { inject, injectable } from 'inversify';
 
 /**
@@ -68,6 +76,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                                 results.push(...v);
                                 leftToHandle = leftToHandle - 1;
                                 if (leftToHandle <= 0) {
+                                    // save model action
+                                    results.push(SaveModelAction.create());
                                     resolve(results);
                                 }
                             });
@@ -75,6 +85,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                             results.push(...result);
                             leftToHandle = leftToHandle - 1;
                             if (leftToHandle <= 0) {
+                                // save model action
+                                results.push(SaveModelAction.create());
                                 resolve(results);
                             }
                         }
@@ -84,6 +96,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                         console.log(`${e}`);
                         leftToHandle = leftToHandle - 1;
                         if (leftToHandle <= 0) {
+                            // save model action
+                            results.push(SaveModelAction.create());
                             resolve(results);
                         }
                     }

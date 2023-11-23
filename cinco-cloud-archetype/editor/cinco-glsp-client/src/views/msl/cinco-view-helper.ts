@@ -66,7 +66,7 @@ export const CSS_DECORATOR_PREFIX = 'cc-decorator-';
 export const CSS_STYLE_PREFIX = 'cc-style-';
 export const USE_MARGIN_FIX = true;
 
-export const RESOURCE_MAP: Map<string, string | undefined> = new Map<string, string | undefined>();
+export const RESOURCE_MAP: Map<string, { location: string; url: string } | undefined> = new Map();
 
 export function resolveChildrenRecursivly(currentNode: VNode): VNode[] {
     let children: VNode[] = [];
@@ -92,29 +92,37 @@ export function resolveChildrenRecursivly(currentNode: VNode): VNode[] {
  * @returns returns http-link to the resource
  */
 export function fromPathToURL(path: string, workspaceFileService: WorkspaceFileService): string {
-    new Promise<string | undefined>((resolve, reject) => {
-        // search inside internal resource folder
-        workspaceFileService.serveFile(path, '../languages/').then(servedLink => {
-            if (servedLink === undefined) {
-                // search inside workspace
-                workspaceFileService.serveFile(path).then(servedLink2 => {
-                    if (servedLink2 === undefined) {
-                        // use as direkt resource, e.g. path is already a html-link
-                        RESOURCE_MAP.set(path, `${path}`);
-                        resolve(path);
-                    } else {
-                        // found resource inside workspace folder
-                        RESOURCE_MAP.set(path, `${servedLink2}`);
-                        resolve(servedLink2);
-                    }
-                });
+    const existsIn = workspaceFileService.servedExistsIn(path);
+    existsIn.then(fileURIString => {
+        if (!fileURIString) {
+            // resource does not exist
+            RESOURCE_MAP.delete(path);
+        } else {
+            if (!RESOURCE_MAP.has(path)) {
+                // resource is not yet served, serving it
+                updateResourceServing(path, fileURIString, workspaceFileService);
             } else {
-                RESOURCE_MAP.set(path, `${servedLink}`);
-                resolve(servedLink);
+                if (RESOURCE_MAP.get(path)?.location !== fileURIString) {
+                    // resource does not exist in same location anymore
+                    RESOURCE_MAP.delete(path);
+                }
             }
-        });
+        }
     });
-    return `${RESOURCE_MAP.get(path)}`;
+    // return current cached resource
+    return `${RESOURCE_MAP.get(path)?.url}`;
+}
+
+function updateResourceServing(path: string, location: string, workspaceFileService: WorkspaceFileService): void {
+    // search inside internal resource folder
+    workspaceFileService.serveFile(path).then(servedLink => {
+        if (servedLink === undefined) {
+            // resource does not exist
+            RESOURCE_MAP.delete(path);
+        } else {
+            RESOURCE_MAP.set(path, { location: location, url: `${servedLink}` });
+        }
+    });
 }
 
 export function mergeAppearance(
@@ -156,8 +164,16 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
     }
 
     // foreground, background, filled
-    const foreground = getProperty(appearance, a => a.foreground) ?? options?.foreground;
-    const background = getProperty(appearance, a => a.background) ?? options?.background;
+    let background;
+    let foreground;
+    if (options.isText) {
+        background = getProperty(appearance, a => a.foreground) ?? options?.background;
+        foreground = getProperty(appearance, a => a.background) ?? options?.foreground;
+    } else {
+        foreground = getProperty(appearance, a => a.foreground) ?? options?.foreground;
+        background = getProperty(appearance, a => a.background) ?? options?.background;
+    }
+
     const filled = getProperty(appearance, a => a.filled) ?? options?.filled;
     const borderColor = foreground ?? background;
     const fillColor = filled ? foreground ?? background : background;
@@ -740,7 +756,12 @@ export function buildTextShape(
     if (typeof appearance == 'string') {
         appearance = getAppearanceByNameOf(appearance);
     }
-    const style = appearanceToStyle(appearance, { lineWidth: 0.0, background: { r: 255, g: 255, b: 255 } });
+    const style = appearanceToStyle(appearance, {
+        lineWidth: 0.0,
+        background: { r: 255, g: 255, b: 255 },
+        foreground: { r: 0, g: 0, b: 0 },
+        isText: true
+    });
     const value = resolveText(element, shapeStyle.value, parameterCount);
     const measuredWidth = getTextWidth(value, style);
     const fontSize = appearance?.font?.size ?? 10;
@@ -805,7 +826,9 @@ export function buildMultiTextShape(
     // appearance to style
     const style = appearanceToStyle(shapeStyle.appearance, {
         lineWidth: 0.0,
-        background: { r: 255, g: 255, b: 255 }
+        background: { r: 255, g: 255, b: 255 },
+        foreground: { r: 0, g: 0, b: 0 },
+        isText: true
     });
 
     // position

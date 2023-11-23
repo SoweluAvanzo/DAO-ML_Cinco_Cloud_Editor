@@ -17,7 +17,6 @@ import { IActionDispatcher, RenderingContext, SGraph, SGraphView, TYPES, svg } f
 import { inject, injectable } from 'inversify';
 import { VNode } from 'snabbdom';
 import { CincoEdge, CincoGraphModel, CincoNode } from '../../model/model';
-import { updatePalette } from './cinco-view-helper';
 import { GraphModelProvider } from '../../model/graph-model-provider';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
@@ -29,10 +28,6 @@ export class CincoGraphView<IRenderingArgs> extends SGraphView<IRenderingArgs> {
     @inject(TYPES.IActionDispatcherProvider) protected actionDispatcherProvider: () => Promise<IActionDispatcher>;
     @inject(GraphModelProvider) protected graphModelProvider: GraphModelProvider;
     override render(model: Readonly<SGraph>, context: RenderingContext, args?: IRenderingArgs): VNode {
-        // update palette
-        this.actionDispatcherProvider().then(actionDispatcher => {
-            updatePalette(actionDispatcher);
-        });
         // provide model (TODO: currently no other place where the graphmodel is loaded was found)
         if(!this.graphModelProvider.isLoaded) {
             this.graphModelProvider.unlockAll(model as CincoGraphModel);

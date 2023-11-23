@@ -20,7 +20,10 @@ import {
     getEdgeTargets,
     getEdgeTypes,
     getNodeTypes,
-    NodeType
+    NodeType,
+    isResizeable,
+    isMovable,
+    isDeletable
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     DiagramConfiguration,
@@ -47,12 +50,13 @@ export class CincoDiagramConfiguration implements DiagramConfiguration {
         const nodeTypes = getNodeTypes();
         const shapeTypeHints: ShapeTypeHint[] = [];
         nodeTypes.forEach((e: NodeType) => {
+            const elementTypeId = e.elementTypeId;
             shapeTypeHints.push({
-                elementTypeId: e.elementTypeId,
-                deletable: e.deletable,
-                reparentable: e.reparentable,
-                repositionable: e.repositionable,
-                resizable: e.resizable,
+                elementTypeId: elementTypeId,
+                deletable: isDeletable(elementTypeId),
+                reparentable: e.reparentable ?? true,
+                repositionable: isMovable(elementTypeId),
+                resizable: isResizeable(elementTypeId),
                 containableElementTypeIds: getContainmentsOf(e).map(n => n.elementTypeId)
             });
         });
@@ -65,11 +69,12 @@ export class CincoDiagramConfiguration implements DiagramConfiguration {
         edgeTypes.forEach((e: EdgeType) => {
             const outgoingEdgeFor = getEdgeSources(e).map(n => n.elementTypeId);
             const incomingEdgeFor = getEdgeTargets(e).map(n => n.elementTypeId);
+            const elementTypeId = e.elementTypeId;
             edgeTypeHints.push({
-                elementTypeId: e.elementTypeId,
-                deletable: e.deletable,
-                repositionable: e.repositionable,
-                routable: e.routable,
+                elementTypeId: elementTypeId,
+                deletable: isDeletable(elementTypeId),
+                repositionable: isMovable(elementTypeId),
+                routable: e.routable ?? true,
                 sourceElementTypeIds: outgoingEdgeFor,
                 targetElementTypeIds: incomingEdgeFor
             });
