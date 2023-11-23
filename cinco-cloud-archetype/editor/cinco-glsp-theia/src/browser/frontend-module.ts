@@ -21,10 +21,10 @@ import {
     GLSPClientContribution,
     GLSPDiagramContextKeyService,
     GLSPDiagramManager,
+    GLSPDiagramWidget,
     GLSPTheiaFrontendModule,
     registerDiagramManager
 } from '@eclipse-glsp/theia-integration';
-import { lazyBind, BindingContext } from '@eclipse-glsp/protocol';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
 import { CommandContribution, MenuContribution } from '@theia/core';
 import {
@@ -35,7 +35,7 @@ import {
     WidgetFactory
 } from '@theia/core/lib/browser';
 
-import { getDiagramConfiguration, LanguageUpdateCommand } from '../common/cinco-language';
+import { getDiagramConfiguration } from '../common/cinco-language';
 import { FILESYSTEM_UTIL_ENDPOINT, FilesystemUtilClient, FilesystemUtilServer } from '../common/file-system-util-protocol';
 import { CincoDiagramConfiguration } from './diagram/cinco-diagram-configuration';
 import { CincoGLSPDiagramContextKeyService, CincoGLSPDiagramMananger } from './diagram/cinco-glsp-diagram-manager';
@@ -75,6 +75,7 @@ import {
     createDiagramWidgetFactory,
     DiagramWidgetFactory
 } from '@eclipse-glsp/theia-integration/lib/browser/diagram/diagram-widget-factory';
+import { LanguageUpdater } from './meta/language-updater';
 
 export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
     protected override get diagramLanguage(): GLSPDiagramLanguage {
@@ -147,9 +148,12 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         context.bind(GLSPDiagramManager).to(CincoGLSPDiagramMananger);
         context.unbind(GLSPDiagramContextKeyService);
         context.bind(GLSPDiagramContextKeyService).to(CincoGLSPDiagramContextKeyService);
+        context.bind(CincoGLSPDiagramContextKeyService).toSelf().inSingletonScope();
+        context.bind(GLSPDiagramWidget).to(CincoGLSPDiagramWidget);
+        context.bind(CincoGLSPDiagramWidget).toSelf();
 
         // bind update mechanism for meta-specification changes
-        context.bind(CommandContribution).to(LanguageUpdateCommand);
+        context.bind(CommandContribution).to(LanguageUpdater);
 
         // server args from backend to frontend
         context.bind(GLSPServerUtilsProvider).to(GLSPServerUtilsProvider);
@@ -183,7 +187,6 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
 
     // TODO: SAMI - is this needed?
     override bindDiagramWidgetFactory(context: ContainerContext): void {
-        lazyBind(context as unknown as Pick<BindingContext, 'bind' | 'isBound'>, CincoGLSPDiagramWidget)?.toSelf();
         context
             .bind(DiagramWidgetFactory)
             .toDynamicValue(ctx => createDiagramWidgetFactory(ctx, this.diagramLanguage.diagramType))

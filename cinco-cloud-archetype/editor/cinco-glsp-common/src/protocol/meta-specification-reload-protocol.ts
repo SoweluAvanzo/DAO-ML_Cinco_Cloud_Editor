@@ -23,17 +23,17 @@ export const ALLOWED_IMAGE_FILE_TYPES = ['.png', '.svg', '.jpg', '.bmp', '.PNG',
 export interface FileProviderResponse extends Action {
     kind: typeof FileProviderResponse.KIND;
     items: FileProviderResponseItem[];
-    requestId: string;
+    responseId: string;
 }
 
 export namespace FileProviderResponse {
     export const KIND = 'fileprovider.response';
 
-    export function create(items: FileProviderResponseItem[], requestId: string): FileProviderResponse {
+    export function create(items: FileProviderResponseItem[], responseId: string): FileProviderResponse {
         return {
             kind: KIND,
             items,
-            requestId
+            responseId: responseId
         };
     }
 }

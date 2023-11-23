@@ -18,14 +18,30 @@ import {
     ToolPalette,
     ICommand,
     EnableDefaultToolsAction,
-    SetUIExtensionVisibilityAction
+    SetUIExtensionVisibilityAction,
+    SetContextActions,
+    RequestContextActions
 } from '@eclipse-glsp/client';
-import { Action, PaletteItem, RequestContextActions, SetContextActions } from '@eclipse-glsp/protocol';
+import { Action, PaletteItem } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
 
 @injectable()
 export class DynamicToolPalette extends ToolPalette {
     protected lastFilter = '';
+
+    async requestPalette(): Promise<void> {
+        const requestAction = RequestContextActions.create({
+            contextId: ToolPalette.ID,
+            editorContext: {
+                selectedElementIds: []
+            }
+        });
+        const response = await this.actionDispatcher.request<SetContextActions>(requestAction);
+        this.paletteItems = response.actions.map(e => e as PaletteItem);
+        if (!this.editorContext.isReadonly) {
+            this.show(this.editorContext.modelRoot);
+        }
+    }
 
     override handle(action: Action): ICommand | Action | void {
         if (action.kind === EnableToolPaletteAction.KIND) {

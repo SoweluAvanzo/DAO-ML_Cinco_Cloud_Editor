@@ -29,14 +29,17 @@ export class DynamicImportLoader {
     static _locks: (() => void)[] = [];
     static _locked = false;
 
-    static async load(actionDispatcher: IActionDispatcher, supportedDynamicImportFileTypes: string[] = RESOURCE_TYPES): Promise<void> {
+    static async load(
+        actionDispatcher: IActionDispatcher,
+        workspaceFileService: WorkspaceFileService,
+        supportedDynamicImportFileTypes: string[] = RESOURCE_TYPES
+    ): Promise<void> {
         const items = await FileProviderHandler.getFiles(
             FileProviderRequest.META_LANGUAGES_FOLDER_KEYWORD,
             false,
             supportedDynamicImportFileTypes,
             actionDispatcher
         );
-        const workspaceFileService = await FileProviderHandler.getWorkspaceFileService();
         return DynamicImportLoader.importResources(items, workspaceFileService);
     }
 

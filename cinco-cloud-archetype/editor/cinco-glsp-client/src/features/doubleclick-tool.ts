@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { DoubleClickAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, Tool, KeyListener, MouseListener, GModelElement, isSelectable, TYPES, MouseTool, KeyTool } from '@eclipse-glsp/client';
+import { Action, Tool, KeyListener, MouseListener, GModelElement, isSelectable, MouseTool, KeyTool } from '@eclipse-glsp/client';
 import { inject, injectable } from 'inversify';
 import { toArray } from 'sprotty/lib/utils/iterable';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
@@ -23,13 +23,12 @@ import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 export class DoubleClickTool implements Tool {
     static readonly ID = 'doubleclick-tool';
 
-    @inject(TYPES.MouseListener)
-    protected mouseListener: MouseListener;
     @inject(MouseTool)
     protected mouseTool: MouseTool;
     @inject(KeyTool)
     protected keyTool: KeyTool;
     protected editLabelKeyListener: KeyListener;
+    protected mouseListener: MouseListener;
 
     get id(): string {
         return DoubleClickTool.ID;

@@ -23,9 +23,6 @@ export const RESOURCE_TYPES = ['.css'];
 export const SUPPORTED_DYNAMIC_FILE_TYPES = ['.js'];
 export const DIAGRAM_TYPE = 'cinco-diagram';
 export const DEVELOPMENT_MODE = false;
-export const DEFAULT_SERVER_PORT = 5007;
-export const DEFAULT_WEBSOCKET_PORT = 3000;
-export const DEFAULT_WEBSOCKET_PATH = 'ws/cinco-diagram';
 
 // environment and args keys
 export const META_DEV_MODE = 'META_DEV_MODE';
@@ -34,5 +31,7 @@ export const WEBSOCKET_PATH_KEY = 'CINCO_GLSP_WS_PATH';
 export const LANGUAGES_FOLDER_KEY = 'META_LANGUAGES_FOLDER';
 export const WORKSPACE_FOLDER_KEY = 'WORKSPACE_FOLDER';
 export const ROOT_FOLDER_KEY = 'ROOT_FOLDER';
+export const WEBSOCKET_PORT_KEY = 'WEBSOCKET_PORT';
+export const DEFAULT_WEBSOCKET_PATH = DIAGRAM_TYPE;
 export const DEFAULT_THEIA_PORT = 3000;
-export const DEFAULT_WEBSOCKET_PORT_KEY = 'WEBSOCKET_PORT';
+export const DEFAULT_SERVER_PORT = 5007;

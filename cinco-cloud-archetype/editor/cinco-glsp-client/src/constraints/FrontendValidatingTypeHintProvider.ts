@@ -13,18 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {
-    EdgeTypeHint,
-    getElementTypeId,
-    ShapeTypeHint,
-    TypeHint,
-    TypeHintProvider,
-    GModelElement,
-    GNode,
-    IActionDispatcher,
-    TYPES
-} from '@eclipse-glsp/client';
-import { inject, injectable } from 'inversify';
+import { EdgeTypeHint, getElementTypeId, ShapeTypeHint, TypeHint, TypeHintProvider, GModelElement, GNode } from '@eclipse-glsp/client';
+import { injectable } from 'inversify';
 import { canBeEdgeSource, canBeEdgeTarget } from '../utils/constraint-utils';
 
 /**
@@ -33,8 +23,6 @@ import { canBeEdgeSource, canBeEdgeTarget } from '../utils/constraint-utils';
  */
 @injectable()
 export class FrontendValidatingTypeHintProvider extends TypeHintProvider {
-    @inject(TYPES.IActionDispatcherProvider) protected actionDispatcherProvider: () => Promise<IActionDispatcher>;
-
     getValidEdgeElementTypes(input: GModelElement | GModelElement | string, role: 'source' | 'target'): string[] {
         const elementTypeId = getElementTypeId(input);
         if (role === 'source' || role === 'target') {

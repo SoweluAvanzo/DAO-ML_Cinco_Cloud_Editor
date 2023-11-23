@@ -57,9 +57,8 @@ export class PropertyViewResponseActionHandler implements IActionHandler {
 @injectable()
 export class PropertyViewTool implements Tool {
     static readonly ID = 'property-view-tool';
-
-    @inject(TYPES.MouseListener)
     protected mouseListenenr: MouseListener;
+
     @inject(TYPES.IActionDispatcher) protected actionDispatcher: GLSPActionDispatcher;
     @inject(MouseTool) protected mouseTool: MouseTool;
 

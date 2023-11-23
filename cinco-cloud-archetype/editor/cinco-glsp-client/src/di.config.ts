@@ -28,22 +28,17 @@ import {
     ConsoleLogger,
     DeleteElementContextMenuItemProvider,
     EdgeEditTool,
-    IActionDispatcher,
     LogLevel,
-    SModelRegistry,
     SetDirtyStateAction,
     SetTypeHintsAction,
     TYPES,
     ToolPalette,
     TypeHintProvider,
-    ViewRegistry,
     configureActionHandler,
     configureCommand,
     configureDefaultModelElements,
-    overrideViewerOptions,
     initializeDiagramContainer,
-    ContainerConfiguration,
-    ToolManager
+    ContainerConfiguration
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -61,23 +56,15 @@ import { PropertyViewResponseActionHandler, PropertyViewTool } from './features/
 import { RoutingPointAwareEdgeEditTool } from './features/routingpoint-aware-edge-edit-tool';
 import { ServerMessageHandler } from './features/server-message-handler';
 import { ValidationModelResponseActionHandler, ValidationTool } from './features/validation-tool';
-import { DynamicImportLoader } from './meta/dynamic-import-tool';
-import { reregisterBindings } from './meta/meta-model-glsp-registration-handler';
 import { MetaSpecificationResponseHandler } from './meta/meta-specification-response-handler';
 import { WorkspaceFileService } from './utils/workspace-file-service';
 import { GraphModelProvider } from './model/graph-model-provider';
 import { MetaSpecificationTheiaCommand } from './meta/meta-specification-theia-command';
-import { MetaSpecificationLoader } from './meta/meta-specification-loader';
 import { ServerArgsProvider } from './meta/server-args-response-handler';
 import { FileProviderHandler } from './features/file-provider-handler';
+import { MetaModelStartUp } from './meta/meta-model-startup';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
-    const widgetId = 'cinco_diagram';
-    overrideViewerOptions(container, {
-        baseDiv: widgetId,
-        hiddenDiv: widgetId + '_hidden',
-        needsClientLayout: true
-    });
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
 }
 
@@ -104,16 +91,16 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     bind(TYPES.IDefaultTool).to(DoubleClickTool);
 
     // change container handling
-    bind(ChangeContainerTool).toSelf().inSingletonScope();
+    unbind(ChangeBoundsTool);
     bind(TYPES.IDefaultTool).to(ChangeContainerTool);
     bind(ChangeBoundsTool).to(ChangeContainerTool);
-    unbind(ChangeBoundsTool);
+    bind(ChangeContainerTool).toSelf().inSingletonScope();
 
     // change edge handling
-    bind(RoutingPointAwareEdgeEditTool).toSelf().inSingletonScope();
+    unbind(EdgeEditTool);
     bind(TYPES.IDefaultTool).to(RoutingPointAwareEdgeEditTool);
     bind(EdgeEditTool).to(RoutingPointAwareEdgeEditTool);
-    unbind(EdgeEditTool);
+    bind(RoutingPointAwareEdgeEditTool).toSelf().inSingletonScope();
 
     // bind FrontendValidatingTypeHintProvider
     bind(FrontendValidatingTypeHintProvider).toSelf().inSingletonScope();
@@ -153,27 +140,17 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     bind(GraphModelProvider).toSelf().inSingletonScope();
     bind(TYPES.IDefaultTool).to(MetaSpecificationTheiaCommand);
 
-    // swap GLSPToolManager
-    rebind(ToolManager)
-        .to(CustomToolManager)
+    // GLSPToolManager
+    rebind(TYPES.IToolManager).to(CustomToolManager).inSingletonScope();
+    bind(CustomToolManager).toSelf().inSingletonScope();
+
+    bind(TYPES.IDiagramStartup)
+        .to(MetaModelStartUp)
         .inSingletonScope()
-        .onActivation((ctx: any, injectable: ToolManager) => {
-            // register modelelements (after the meta-specification is loaded)
-            (injectable as CustomToolManager).registerCallBack(
-                // build callback to register modelelements dynamically.
-                (actionDispatcher: IActionDispatcher, registry: SModelRegistry, viewRegistry: ViewRegistry): void => {
-                    // load server args
-                    ServerArgsProvider.load(actionDispatcher);
-                    // load css language-files
-                    DynamicImportLoader.load(actionDispatcher);
-                    // set registration callback, that is called whenever a new meta-specification is received
-                    MetaSpecificationResponseHandler.addRegistrationCallback(() => {
-                        reregisterBindings(context, ctx, registry, viewRegistry);
-                    });
-                    // load meta-specification
-                    MetaSpecificationLoader.load(actionDispatcher);
-                }
-            );
+        .onActivation((ctx: any, injectable: unknown) => {
+            if (injectable instanceof MetaModelStartUp) {
+                injectable.setContext(context, ctx);
+            }
             return injectable;
         });
 });

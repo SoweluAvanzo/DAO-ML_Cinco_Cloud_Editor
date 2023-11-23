@@ -14,25 +14,28 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { createAppModule, createSocketCliParser, ServerModule, SocketServerLauncher } from '@eclipse-glsp/server/node';
+import { createAppModule, ServerModule, SocketServerLauncher } from '@eclipse-glsp/server/node';
 import { Container } from 'inversify';
 import { CincoDiagramModule } from './diagram/cinco-diagram-module';
+import { CincoWebSocketServerLauncher } from './cinco-glsp-websocket-server-launcher';
+import { DEFAULT_WEBSOCKET_PATH } from '@cinco-glsp/cinco-glsp-common';
+import { createCincoCliParser } from './cinco-cli-parser';
 
 export async function launch(argv?: string[]): Promise<void> {
-    const argParser = createSocketCliParser();
-
-    // add additional args
-    argParser.command.option('--rootFolder <rootFolder>', 'Set absolute path of root folder.', undefined);
-    argParser.command.option('--metaLanguagesFolder <metaLanguagesFolder>', 'Set path to languages folder, relative to root.', undefined);
-    argParser.command.option('--workspaceFolder <workspaceFolder>', 'Set path to workspace folder, relative to root.', undefined);
-    argParser.command.option('--metaDevMode', 'Activate dev mode for language designing.');
+    const argParser = createCincoCliParser();
 
     const options = argParser.parse(argv);
     const appContainer = new Container();
     appContainer.load(createAppModule(options));
-    const launcher = appContainer.resolve(SocketServerLauncher);
-    const serverModule = new ServerModule().configureDiagramModule(new CincoDiagramModule());
 
-    launcher.configure(serverModule);
-    launcher.start({ port: options.port, host: options.host });
+    const serverModule = new ServerModule().configureDiagramModule(new CincoDiagramModule());
+    if (options.webSocket) {
+        const launcher = appContainer.resolve(CincoWebSocketServerLauncher);
+        launcher.configure(serverModule);
+        launcher.start({ port: options.port, host: options.host, path: DEFAULT_WEBSOCKET_PATH });
+    } else {
+        const launcher = appContainer.resolve(SocketServerLauncher);
+        launcher.configure(serverModule);
+        launcher.start({ port: options.port, host: options.host });
+    }
 }

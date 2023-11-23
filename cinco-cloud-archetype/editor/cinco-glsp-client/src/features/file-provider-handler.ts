@@ -16,11 +16,9 @@
 import { FileProviderRequest, FileProviderResponse, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
 import { Action, IActionDispatcher, IActionHandler, ICommand, TYPES } from '@eclipse-glsp/client';
 import { injectable, inject } from 'inversify';
-import { WorkspaceFileService } from '../utils/workspace-file-service';
 
 @injectable()
 export class FileProviderHandler implements IActionHandler {
-    @inject(WorkspaceFileService) protected workspaceFileService: WorkspaceFileService;
     @inject(TYPES.IActionDispatcher) protected actionDispatcher: IActionDispatcher;
     protected static REQUEST_ROUTING: Map<string, (items: FileProviderResponseItem[]) => void> = new Map();
     protected static _INSTANCE_QUEUE: ((fileProviderHandler: FileProviderHandler) => void)[] = [];
@@ -28,8 +26,8 @@ export class FileProviderHandler implements IActionHandler {
 
     handle(action: FileProviderResponse): ICommand | Action | void {
         this.updateInstance();
-        if (FileProviderHandler.REQUEST_ROUTING.has(action.requestId)) {
-            const result = FileProviderHandler.REQUEST_ROUTING.get(action.requestId);
+        if (FileProviderHandler.REQUEST_ROUTING.has(action.responseId)) {
+            const result = FileProviderHandler.REQUEST_ROUTING.get(action.responseId);
             if (result) {
                 result(action.items);
             }
@@ -66,10 +64,6 @@ export class FileProviderHandler implements IActionHandler {
             }
         });
         return result;
-    }
-
-    static async getWorkspaceFileService(): Promise<WorkspaceFileService> {
-        return (await this.instance).workspaceFileService;
     }
 
     static get instance(): Promise<FileProviderHandler> {
