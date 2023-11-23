@@ -233,7 +233,8 @@
         "5007",
         "--metaLanguagesFolder='cinco-glsp-server/languages'",
         "--rootFolder='${workspaceRoot}'",
-        "--workspaceFolder='workspace"
+        "--workspaceFolder='workspace",
+        "--webSocket"
       ],
       "sourceMaps": true,
       "outFiles": [
@@ -263,7 +264,8 @@
         "--metaDevMode",
         "--metaLanguagesFolder='cinco-glsp-server/languages'",
         "--rootFolder='${workspaceRoot}'",
-        "--workspaceFolder='workspace"
+        "--workspaceFolder='workspace",
+        "--webSocket"
       ],
       "sourceMaps": true,
       "outFiles": [
@@ -293,7 +295,8 @@
         "--metaDevMode",
         "--metaLanguagesFolder='workspace/languages'",
         "--rootFolder='${workspaceRoot}'",
-        "--workspaceFolder='workspace"
+        "--workspaceFolder='workspace",
+        "--webSocket"
       ],
       "sourceMaps": true,
       "outFiles": [
