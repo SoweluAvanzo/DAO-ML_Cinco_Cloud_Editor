@@ -4,6 +4,7 @@ import info.scce.cincocloud.auth.PBKDF2Encoder;
 import info.scce.cincocloud.core.rest.inputs.ActivateUserInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateCurrentUserInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateCurrentUserPasswordInput;
+import info.scce.cincocloud.core.rest.inputs.UpdateCurrentUserProfilePicture;
 import info.scce.cincocloud.core.rest.inputs.UpdateUserRolesInput;
 import info.scce.cincocloud.core.rest.inputs.UserRegistrationInput;
 import info.scce.cincocloud.core.rest.tos.AuthResponseTO;
@@ -172,6 +173,23 @@ public class UserController {
 
     userService.updateEmail(subject, input.email);
     userService.updateName(subject, input.name);
+
+    return Response.ok(UserTO.fromEntity(subject, objectCache)).build();
+  }
+
+  @PUT
+  @Path("/{userId}/picture")
+  @RolesAllowed("user")
+  public Response update(
+      @Context SecurityContext securityContext,
+      @PathParam("userId") final long userId,
+      @Valid final UpdateCurrentUserProfilePicture input) {
+    final var subject = UserService.getCurrentUser(securityContext);
+
+    if (subject.id != userId) {
+      throw new RestException(Response.Status.FORBIDDEN, "Missing permissions to update user.");
+    }
+
     userService.updateProfilePicture(subject, Optional.ofNullable(input.profilePicture != null ? input.profilePicture.getId() : null));
 
     return Response.ok(UserTO.fromEntity(subject, objectCache)).build();

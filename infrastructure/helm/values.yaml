@@ -44,10 +44,6 @@ main:
     port: 1025
     ssl: false
     from: cincocloud@example.com
-  # The amount of available storage.
-  storage: 10Gi
-  # The path on the host machine where files are stored
-  hostPath: /mnt/data/cincocloud/main
 
 # Configuration for the postgres database.
 postgres:

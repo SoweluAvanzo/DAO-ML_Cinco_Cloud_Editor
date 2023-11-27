@@ -9,6 +9,9 @@ import { FileApiService, Upload } from '../../../../core/services/api/file-api.s
 import { FileReference } from '../../../../core/models/file-reference';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FileInputComponent } from '../../../../core/components/file-input/file-input.component';
+import {
+  UpdateCurrentUserProfilePictureInput
+} from "../../../../core/models/forms/update-current-user-profile-picture-input";
 
 @Component({
   selector: 'cc-personal-information',
@@ -49,11 +52,9 @@ export class PersonalInformationComponent implements OnInit {
         this.fileApi.upload(file).subscribe({
           next: (upload: Upload) => {
             if (upload.file != null) {
-              let input = new UpdateCurrentUserProfileInput();
-              input.name = this.currentUser.name;
-              input.email = this.currentUser.email;
+              let input = new UpdateCurrentUserProfilePictureInput();
               input.profilePicture = upload.file;
-              this.updateProfile(input);
+              this.updateProfilePicture(input);
               this.input.reset();
             }
           },
@@ -74,11 +75,9 @@ export class PersonalInformationComponent implements OnInit {
   }
 
   removeAvatar(): void {
-    let input = new UpdateCurrentUserProfileInput();
-    input.name = this.currentUser.name;
-    input.email = this.currentUser.email;
+    let input = new UpdateCurrentUserProfilePictureInput();
     input.profilePicture = null;
-    this.updateProfile(input);
+    this.updateProfilePicture(input);
   }
 
   changeInformation(): void {
@@ -100,13 +99,31 @@ export class PersonalInformationComponent implements OnInit {
         } else {
           this.toastService.show({ type: ToastType.SUCCESS, message: 'Your profile has been updated.' });
           this.appStore.setUser(updatedUser);
-          this.pictureReference = updatedUser.profilePicture;
         }
       },
       error: res => {
         this.toastService.show({
           type: ToastType.DANGER,
           message: `The profile could not be updated. ${res.error.message}`
+        });
+      }
+    });
+  }
+
+  private updateProfilePicture(input: UpdateCurrentUserProfilePictureInput): void {
+    this.userApi.updateProfilePicture(this.currentUser, input).subscribe({
+      next: updatedUser => {
+        this.toastService.show({
+          type: ToastType.SUCCESS,
+          message: 'Your profile picture has been updated.'
+        });
+        this.appStore.setUser(updatedUser);
+        this.pictureReference = updatedUser.profilePicture;
+      },
+      error: res => {
+        this.toastService.show({
+          type: ToastType.DANGER,
+          message: `The profile picture could not be updated. ${res.error.message}`
         });
       }
     });
