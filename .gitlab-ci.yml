@@ -200,7 +200,7 @@ deploy-testing-manual:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
   when: manual
   image:
-    name: gcr.io/k8s-skaffold/skaffold:v1.39.4
+    name: gcr.io/k8s-skaffold/skaffold:v1.39.0
   script:
     - kubectl config use-context scce/cinco-cloud:k8s-ls-5-de
     - skaffold deploy -p demo-k8s-ls5 -n cinco-cloud-demo -t $TAG --status-check=true
