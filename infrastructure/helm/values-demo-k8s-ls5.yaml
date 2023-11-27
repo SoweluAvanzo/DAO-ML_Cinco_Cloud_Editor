@@ -7,14 +7,12 @@ ingress:
   class: public
 certManager:
   email: alexander.bainczyk@tu-dortmund.de
-main:
-  hostPath: /mnt/data/demo/cinco-cloud/main
-postgres:
-  hostPath: /mnt/data/demo/cinco-cloud/postgres
-artemis:
-  hostPath: /mnt/data/demo/cinco-cloud/artemis
+postgresql:
+  global:
+    storageClass: microk8s-hostpath
 minio:
-  hostPath: /mnt/data/demo/cinco-cloud/minio
+  global:
+    storageClass: microk8s-hostpath
 archetype:
   storage: 2Gi
   hostPath: /mnt/data/demo/cinco-cloud/archetype

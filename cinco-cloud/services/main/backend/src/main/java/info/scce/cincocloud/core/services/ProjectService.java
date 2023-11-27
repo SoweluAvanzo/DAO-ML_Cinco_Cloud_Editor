@@ -100,7 +100,7 @@ public class ProjectService {
       try {
         final var filename = image.project.logo.filename;
         final var is = this.fileService.loadFile(image.project.logo);
-        project.logo = this.fileService.storeFile(filename, is);
+        project.logo = this.fileService.storeFile(filename, is, image.project.logo.contentType);
       } catch (Exception e) {
         LOGGER.log(Level.INFO, "Could not copy project logo.", e);
       }
@@ -140,6 +140,10 @@ public class ProjectService {
     if (project.image != null) {
       project.image.featured = false;
       project.image.persist();
+    }
+
+    if (project.logo != null) {
+      this.fileService.deleteFile(project.logo);
     }
 
     project.buildJobs.clear();

@@ -7,3 +7,18 @@ ingress:
   class: public
 certManager:
   email: alexander.bainczyk@tu-dortmund.de
+postgresql:
+  primary:
+    service:
+      type: NodePort
+    persistentVolumeClaimRetentionPolicy:
+      enabled: true
+minio:
+  service:
+    type: NodePort
+  persistence:
+    size: 3Gi
+mailhog:
+  enabled: true
+  service:
+    type: NodePort

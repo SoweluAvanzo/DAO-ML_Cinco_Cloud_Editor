@@ -7,9 +7,6 @@ debug: false
 # Indicates that CincoCloud runs behind a ssl terminating reverse proxy, i.e., is reached by using https.
 ssl: true
 
-# If true, a mailcatcher gets started as part of the deployment stack.
-mailcatcher: true
-
 # The storage class name to use for persistent volumes.
 storageClassName: standard
 
@@ -21,9 +18,6 @@ createPersistentVolumes: false
 
 # The image of the main service.
 mainImage: registry.gitlab.com/scce/cinco-cloud/main:latest
-
-# The image of the ampq service.
-ampqImage: registry.gitlab.com/scce/docker-images/activemq-artemis:2.17.0
 
 # Configuration for the ingress controller.
 ingress:
@@ -40,35 +34,42 @@ certManager:
 # Configuration for the main service.
 main:
   mailer:
-    host: mailcatcher-service
-    port: 1025
     ssl: false
     from: cincocloud@example.com
-  # The amount of available storage.
-  storage: 10Gi
-  # The path on the host machine where files are stored
-  hostPath: /mnt/data/cincocloud/main
 
 # Configuration for the postgres database.
-postgres:
-  # The amount of available storage.
-  storage: 10Gi
-  # The path on the host machine where files are stored
-  hostPath: /mnt/data/cincocloud/postgres
-
-# Configuration for the message queue.
-artemis:
-  # The amount of available storage.
-  storage: 2Gi
-  # The path on the host machine where files are stored
-  hostPath: /mnt/data/cincocloud/artemis
+postgresql:
+  global:
+    storageClass: standard
+    postgresql:
+      auth:
+        database: cc
+        username: cc
+        existingSecret: cinco-cloud-main-secrets
+        secretKeys:
+          adminPasswordKey: postgresAdminPassword
+          userPasswordKey: postgresUserPassword
+  primary:
+    persistence:
+      storageClass: standard
+      size: 10Gi
 
 # Configuration for the minio object storage.
 minio:
-  # The amount of available storage.
-  storage: 20Gi
-  # The path on the host machine where files are stored
-  hostPath: /mnt/data/cincocloud/minio
+  mode: distributed
+  statefulset:
+    replicaCount: 2
+    drivesPerNode: 2
+  global:
+    storageClass: standard
+  auth:
+    existingSecret: cinco-cloud-main-secrets
+  persistence:
+    size: 10Gi
+
+# Configuration for mailhog
+mailhog:
+  enabled: false
 
 # Configuration for the archetype image and Theia editors.
 archetype:
