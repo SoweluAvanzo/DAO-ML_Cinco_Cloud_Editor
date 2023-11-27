@@ -23,9 +23,6 @@ public class Properties {
   @ConfigProperty(name = "auth.private-key")
   String authPrivateKey;
 
-  @ConfigProperty(name = "cincocloud.data.dir")
-  String dataDir;
-
   @ConfigProperty(name = "archetype.image")
   Optional<String> archetypeImage;
 
@@ -47,10 +44,6 @@ public class Properties {
 
   public String getAuthPrivateKey() {
     return authPrivateKey;
-  }
-
-  public String getDataDir() {
-    return dataDir;
   }
 
   public Optional<String> getArchetypeImage() {

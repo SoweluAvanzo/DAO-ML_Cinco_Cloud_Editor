@@ -6,8 +6,6 @@ import javax.validation.constraints.NotEmpty;
 
 public class UpdateCurrentUserInput {
 
-  public FileReferenceTO profilePicture;
-
   @NotEmpty(message = "The name may not be empty.")
   public String name;
 
