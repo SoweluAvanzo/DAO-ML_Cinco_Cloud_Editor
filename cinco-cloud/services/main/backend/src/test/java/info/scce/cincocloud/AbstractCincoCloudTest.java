@@ -17,7 +17,6 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 @QuarkusTestResource(PostgresResource.class)
-@QuarkusTestResource(ArtemisResource.class)
 public abstract class AbstractCincoCloudTest {
 
   @Inject

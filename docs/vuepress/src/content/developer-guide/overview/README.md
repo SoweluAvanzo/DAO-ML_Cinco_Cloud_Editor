@@ -39,9 +39,6 @@ The service can be understood as the orchestrator of the displayed service lands
 State is stored and managed soley in the database of the *Main Service*, other services can request and manipulate data through a [GRPC][grpc] interface that is exposed.
 Further, the service is connected to the Kubernetes API of the cluster which is used for the orchestration of workspaces, i.e. it handles the creation and the garbage collection of inactive workspaces.
 
-**ArtemisMQ** The Artemis service is a message queue that receives jobs from the *Main Service*.
-A job contains information on how to build an image for the modelling environment.
-
 **Theia Editor**
 The *Theia Editor* is a framework for IDEs, based on [Eclipse Theia](https://github.com/eclipse-theia/theia).
 It represents the artifact that can be deployed by the *Kubernetes API*.

@@ -3,16 +3,16 @@ kind: ConfigMap
 metadata:
   name: main-config
 data:
-  DATABASE_URL: "postgres-service/cc"
+  DATABASE_URL: "{{ .Release.Name }}-postgresql/{{ .Values.postgresql.global.postgresql.auth.database }}"
   AMPQ_HOST: "ampq-service"
   AMPQ_PORT: "5672"
-  MINIO_HOST: "minio-service"
-  MINIO_PORT: "9000"
+  MINIO_HOST: "{{ .Release.Name }}-minio"
+  MINIO_PORT: {{ .Values.minio.service.ports.api | quote }}
   KUBERNETES_NAMESPACE: {{ .Release.Namespace }}
   CINCO_CLOUD_HOST: {{ .Values.ingress.host }}
   CINCO_CLOUD_SSL: {{ .Values.ssl | quote }}
-  CINCO_CLOUD_MAILER_HOST: {{ .Values.main.mailer.host }}
-  CINCO_CLOUD_MAILER_PORT: {{ .Values.main.mailer.port | quote }}
+  CINCO_CLOUD_MAILER_HOST: "{{ .Release.Name }}-mailhog"
+  CINCO_CLOUD_MAILER_PORT: {{ .Values.mailhog.containerPort.smtp.port | quote }}
   CINCO_CLOUD_MAILER_SSL: {{ .Values.main.mailer.ssl | quote }}
   CINCO_CLOUD_MAILER_FROM: {{ .Values.main.mailer.from }}
   {{- if eq .Values.serverTier "local" }}
@@ -63,25 +63,12 @@ spec:
                   name: cinco-cloud-main-secrets
                   key: passwordSecret
             - name: DATABASE_USER
-              valueFrom:
-                secretKeyRef:
-                  name: cinco-cloud-main-secrets
-                  key: databaseUser
+              value: cc
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: cinco-cloud-main-secrets
-                  key: databasePassword
-            - name: AMPQ_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: cinco-cloud-main-secrets
-                  key: artemisUser
-            - name: AMPQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: cinco-cloud-main-secrets
-                  key: artemisPassword
+                  key: postgresUserPassword
             - name: MINIO_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
