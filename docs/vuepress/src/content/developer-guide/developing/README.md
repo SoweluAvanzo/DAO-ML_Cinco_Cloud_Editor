@@ -17,10 +17,10 @@ Since we lint our code in the CI/CD pipeline, please ensure that the code is for
 ### Wipe the Database
 
 To wipe the database, just stop Skaffold and then delete the corresponding
-volume:
+volume claim:
 
 ```
-minikube ssh -- sudo rm -rf /mnt/data/postgres
+kubectl delete pvc/data-release-postgresql-0
 ```
 
 The volume will be recreated on the next Skaffold startup.
@@ -30,14 +30,14 @@ The volume will be recreated on the next Skaffold startup.
 It's possible to directly enter the PostgreSQL shell using this command:
 
 ```
-kubectl exec postgres-statefulset-0 -it -- psql -U cc
+kubectl exec release-postgresql-0 -it -- psql -U cc
 ```
 
 To access the PostgreSQL database with a local database client, the port from
 within the cluster must be forwarded to the localhost using kubectl:
 
 ```
-kubectl port-forward postgres-statefulset-0 5432:5432
+kubectl port-forward release-postgresql-0 5432:5432
 ```
 
 The database will be accessible under this address:

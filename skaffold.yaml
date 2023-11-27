@@ -1,9 +1,23 @@
-apiVersion: skaffold/v2beta16
+apiVersion: skaffold/v2beta28
 kind: Config
 metadata:
   name: cinco-cloud
 deploy:
   helm:
+    hooks:
+      before:
+        - host:
+            command: [ "sh", "-c",
+                       "helm repo add postgresql https://charts.bitnami.com/bitnami 
+                       & helm repo add minio https://charts.bitnami.com/bitnami
+                       & helm repo add mailhog https://codecentric.github.io/helm-charts" ]
+            os: [ darwin, linux ]
+        - host:
+            command: [ "cmd.exe", "/C",
+                       "helm repo add postgresql https://charts.bitnami.com/bitnami 
+                       & helm repo add minio https://charts.bitnami.com/bitnami
+                       & helm repo add mailhog https://codecentric.github.io/helm-charts" ]
+            os: [ windows ]
     releases:
       - name: release
         artifactOverrides:
