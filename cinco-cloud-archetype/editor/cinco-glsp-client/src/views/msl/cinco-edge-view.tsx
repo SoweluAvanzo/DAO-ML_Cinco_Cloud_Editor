@@ -75,7 +75,7 @@ enum LINE_TYPE {
     POLYLINE
 }
 
-abstract class GLSPEdgeRenderingView extends RoutableView {
+abstract class MergedGLSPEdgeRenderingView extends RoutableView {
     @inject(EdgeRouterRegistry) edgeRouterRegistry: EdgeRouterRegistry;
     lineType: LINE_TYPE = LINE_TYPE.POLYLINE;
     lineCrossType: LINE_CROSS_TYPE = LINE_CROSS_TYPE.GAP;
@@ -437,7 +437,7 @@ abstract class GLSPEdgeRenderingView extends RoutableView {
 }
 
 @injectable()
-export class CincoEdgeView extends GLSPEdgeRenderingView {
+export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
     @inject(WorkspaceFileService) workspaceFileService: WorkspaceFileService;
     ARROW_PATH = (lengthX: number, lengthY: number, offsetX = 0, offsetY = 0): string =>
         `M ${offsetX},${offsetY}
