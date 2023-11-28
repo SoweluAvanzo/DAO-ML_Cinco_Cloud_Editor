@@ -20,13 +20,15 @@ import {
     MetaSpecificationReloadAction,
     MetaSpecificationResponseAction
 } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionHandler, ClientSessionManager, MaybePromise } from '@eclipse-glsp/server';
-import { injectable, inject } from 'inversify';
+import { Action, ActionHandler, ClientSession, ClientSessionManager, InjectionContainer, MaybePromise } from '@eclipse-glsp/server';
+import { injectable, inject, Container } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { getLanguageFolder } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class MetaSpecificationReloadHandler implements ActionHandler {
+    @inject(InjectionContainer)
+    protected serverContainer: Container;
     @inject(ClientSessionManager) protected sessions: ClientSessionManager;
     actionKinds: string[] = [MetaSpecificationReloadAction.KIND];
 
@@ -50,12 +52,21 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
                 }
             }
         }
+
         // forward the update to the clients, after reload
         const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
-        this.sessions.getSessionsByType(DIAGRAM_TYPE).forEach(session => {
-            session.actionDispatcher.dispatch(response);
-        });
+        this.sendToAllOtherClients(response);
+        return [response];
+    }
 
-        return [];
+    sendToAllOtherClients(message: Action): void {
+        this.sessions
+            .getSessionsByType(DIAGRAM_TYPE)
+            .filter(session => !this.isSameSession(session))
+            .forEach(session => session.actionDispatcher.dispatch(message));
+    }
+
+    isSameSession(session: ClientSession): boolean {
+        return session.container === this.serverContainer;
     }
 }
