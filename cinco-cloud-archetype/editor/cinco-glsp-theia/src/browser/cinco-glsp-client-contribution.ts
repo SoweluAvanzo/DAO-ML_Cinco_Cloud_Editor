@@ -19,34 +19,30 @@ import { inject, injectable } from '@theia/core/shared/inversify';
 import { getDiagramConfiguration } from '../common/cinco-language';
 import { ActionMessage } from '@eclipse-glsp/sprotty';
 import {
-    Action,
     DEFAULT_SERVER_PORT,
     DEFAULT_WEBSOCKET_PATH,
     DIAGRAM_TYPE,
+    LANGUAGE_UPDATE_COMMAND,
+    LanguageUpdateMessage,
     MetaSpecificationReloadCommand,
     MetaSpecificationResponseAction,
     WEBSOCKET_PORT_KEY
 } from '@cinco-glsp/cinco-glsp-common';
-
 import { CommandRegistry } from '@theia/core';
 import { InitializeClientSessionParameters } from '@eclipse-glsp/protocol';
 import { MetaSpecificationReloadCommandHandler } from './meta/meta-specification-reload-command-handler';
 import { WebSocketConnectionInfo, isValidWebSocketAddress } from '@eclipse-glsp/theia-integration/lib/common';
-import { LANGUAGE_UPDATE_COMMAND, LanguageUpdateMessage } from './meta/language-updater';
-import { CincoGLSPDiagramWidget } from './diagram/cinco-glsp-diagram-widget';
+import { CincoGLSPClient } from './cinco-glsp-client';
 
 @injectable()
 export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     @inject(EnvVariablesServer)
-    protected readonly envVariablesServer: EnvVariablesServer; // this could be used for env vars for connection
+    protected readonly envVariablesServer: EnvVariablesServer;
     @inject(CommandRegistry)
     protected readonly commandRegistry: CommandRegistry;
-    @inject(CincoGLSPDiagramWidget)
-    protected readonly widget: CincoGLSPDiagramWidget;
 
     readonly id = getDiagramConfiguration().contributionId;
     readonly fileExtensions = getDiagramConfiguration().fileExtensions;
-
     static readonly SYSTEM_ID = 'SYSTEM';
 
     constructor() {
@@ -99,11 +95,11 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     }
 
     initializeSystemSession(id: string): void {
-        console.log('preparing system-glsp-client (1/4)...');
         this.glspClient.then(client => {
-            console.log('system-glsp-client ready! (2/4)');
+            if (!(client instanceof CincoGLSPClient)) {
+                throw Error('Client is no CincoGLSPClient. Maybe the API has changed, please review.');
+            }
             this.initialize(client).then(_v => {
-                console.log('system-glsp-client connecting... (3/4)');
                 client
                     .initializeClientSession({
                         clientSessionId: id,
@@ -111,27 +107,30 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
                         clientActionKinds: [MetaSpecificationResponseAction.KIND]
                     } as InitializeClientSessionParameters)
                     .then(() => {
-                        client.onActionMessage((m: ActionMessage<Action>) => {
+                        console.log('CincoGLSPClient connected!');
+                        client.onActionMessage((m: ActionMessage) => {
                             const action = m.action;
                             if (MetaSpecificationResponseAction.KIND === action.kind) {
                                 this.commandRegistry.executeCommand(LANGUAGE_UPDATE_COMMAND.id, {
                                     metaSpecification: (m.action as MetaSpecificationResponseAction).metaSpecification
                                 } as LanguageUpdateMessage);
                             }
-                            if (this.widget && this.widget.actionDispatcher) {
-                                this.widget.actionDispatcher.dispatch(action);
-                            }
-                        });
-                        console.log('system-glsp-client connected! (4/4)');
-                        console.log('registering: ' + MetaSpecificationReloadCommand.ID);
+                        }, CincoGLSPClientContribution.SYSTEM_ID);
                         this.commandRegistry.registerCommand(
                             { id: MetaSpecificationReloadCommand.ID, label: 'Reload Meta-Specification', category: 'Cinco Cloud' },
                             new MetaSpecificationReloadCommandHandler(client)
                         );
-                        console.log('registered: ' + MetaSpecificationReloadCommand.ID);
                         this.commandRegistry.executeCommand(MetaSpecificationReloadCommand.ID);
                     });
             });
+        });
+    }
+
+    protected override async createGLSPClient(connectionProvider: any): Promise<CincoGLSPClient> {
+        return new CincoGLSPClient({
+            id: this.id,
+            connectionProvider,
+            messageService: this.messageService
         });
     }
 }

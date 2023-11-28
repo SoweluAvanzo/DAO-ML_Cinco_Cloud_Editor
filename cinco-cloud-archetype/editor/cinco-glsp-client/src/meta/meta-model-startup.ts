@@ -13,28 +13,37 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { IActionDispatcher, IDiagramStartup, MaybePromise, SModelRegistry, TYPES, ToolPalette, ViewRegistry } from '@eclipse-glsp/client';
+import { CommandService } from '@theia/core';
+import { IActionDispatcher, ICommandStack, IDiagramStartup, Ranked, SModelRegistry, TYPES, ViewRegistry } from '@eclipse-glsp/client';
 import { MetaSpecificationLoader } from './meta-specification-loader';
 import { MetaSpecificationResponseHandler } from './meta-specification-response-handler';
-import { inject, injectable } from 'inversify';
+import { inject, injectable, optional } from 'inversify';
 import { ServerArgsProvider } from './server-args-response-handler';
 import { DynamicImportLoader } from './dynamic-import-tool';
 import { reregisterBindings } from './meta-model-glsp-registration-handler';
 import { WorkspaceFileService } from '../utils/workspace-file-service';
+import { GraphModelProvider } from '../model/graph-model-provider';
+import { CincoGLSPCommandStack } from './cinco-command-stack';
 import { DynamicToolPalette } from '../features/dynamic-palette-tool';
 
 @injectable()
-export class MetaModelStartUp implements IDiagramStartup {
-    @inject(TYPES.IActionDispatcher)
-    protected readonly actionDispatcher: IActionDispatcher;
+export class MetaPreparationsStartUp implements IDiagramStartup, Ranked {
+    rank: number = -1;
+    @inject(CommandService) @optional() commandService?: CommandService;
     @inject(WorkspaceFileService)
     protected readonly workspaceFileService: WorkspaceFileService;
     @inject(TYPES.SModelRegistry)
     protected readonly registry: SModelRegistry;
     @inject(TYPES.ViewRegistry)
     protected readonly viewRegistry: ViewRegistry;
-    @inject(ToolPalette)
-    protected readonly palette: ToolPalette;
+    @inject(GraphModelProvider)
+    protected readonly graphModelProvider: GraphModelProvider;
+    @inject(TYPES.IActionDispatcher)
+    protected readonly actionDispatcher: IActionDispatcher;
+    @inject(TYPES.ICommandStack)
+    protected readonly commandStack: ICommandStack;
+    @inject(DynamicToolPalette)
+    protected readonly palette: DynamicToolPalette;
 
     protected context: {
         bind: any;
@@ -53,24 +62,35 @@ export class MetaModelStartUp implements IDiagramStartup {
         this.ctx = ctx;
     }
 
-    preRequestModel?(): MaybePromise<void> {
-        MetaSpecificationResponseHandler.addRegistrationCallback(() => this.reloadMetaModel());
-        MetaSpecificationLoader.load(this.actionDispatcher);
+    constructor() {
+        MetaSpecificationResponseHandler.addRegistrationCallback(() => this.prepareAfterMetaSpecification());
     }
 
-    reloadMetaModel(): void {
+    async preRequestModel?(): Promise<void> {
+        await MetaSpecificationLoader.load(this.actionDispatcher, this.commandService);
+    }
+
+    prepareAfterMetaSpecification(): void {
         // load server args
         ServerArgsProvider.load(this.actionDispatcher);
         // load css language-files
         DynamicImportLoader.load(this.actionDispatcher, this.workspaceFileService);
         // dynamically register bindings
         reregisterBindings(this.context, this.ctx, this.registry, this.viewRegistry);
+        // reload palette
+        this.palette.requestPalette();
     }
 
-    postRequestModel?(): MaybePromise<void> {
-        // update palette
-        if (this.palette instanceof DynamicToolPalette) {
-            this.palette.requestPalette();
-        }
+    async postRequestModel?(): Promise<void> {
+        // after meta-specification and concrete model has been loaded
+        await new Promise<void>(resolve => {
+            if (!(this.commandStack instanceof CincoGLSPCommandStack)) {
+                throw Error('CINCO: Eclipse GLSP API has changed. This might not work anymore. Please review!');
+            }
+            this.commandStack.waitForCincoModel.then(model => {
+                this.graphModelProvider.graphModel = model;
+                resolve();
+            });
+        });
     }
 }

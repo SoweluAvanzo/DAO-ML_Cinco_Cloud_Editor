@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { CincoGraphModel } from './model';
 
 @injectable()
@@ -23,7 +23,7 @@ export class GraphModelProvider {
 
     get graphModel(): Promise<Readonly<CincoGraphModel>> {
         return new Promise<Readonly<CincoGraphModel>>((resolve, reject) => {
-            if(this._model) {
+            if (this._model) {
                 resolve(this._model);
             } else {
                 this._locked.push(resolve);
@@ -35,10 +35,16 @@ export class GraphModelProvider {
         return this._model !== undefined;
     }
 
-    unlockAll(graphModel: Readonly<CincoGraphModel>): void {
-        for(const unlock of this._locked) {
+    set graphModel(model: Readonly<CincoGraphModel>) {
+        this._model = model;
+        this.unlockAll(this._model);
+    }
+
+    protected unlockAll(graphModel: Readonly<CincoGraphModel>): void {
+        this._model = graphModel;
+        for (const unlock of this._locked) {
             unlock(graphModel);
         }
-        this._model = graphModel;
+        this._locked = [];
     }
 }

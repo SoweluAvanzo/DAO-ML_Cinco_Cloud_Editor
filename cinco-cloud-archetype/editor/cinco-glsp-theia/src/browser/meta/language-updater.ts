@@ -14,7 +14,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    CompositionSpecification,
     CONTEXT_MENU_BUTTON_REGISTRATION_COMMAND,
     CONTEXT_MENU_BUTTON_UNREGISTRATION_COMMAND,
     EDITOR_BUTTON_REGISTRATION_COMMAND,
@@ -24,6 +23,8 @@ import {
     getFileCreationLabel,
     getGraphTypes,
     hasGeneratorAction,
+    LANGUAGE_UPDATE_COMMAND,
+    LanguageUpdateMessage,
     MetaSpecification
 } from '@cinco-glsp/cinco-glsp-common';
 import { CommandContribution, CommandRegistry, MenuAction, SelectionService } from '@theia/core';
@@ -33,11 +34,6 @@ import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { injectable } from 'inversify';
 import { CincoFileCreationExecuter } from '../utils/cinco-file-creation-executer';
-
-export interface LanguageUpdateMessage {
-    metaSpecification: CompositionSpecification;
-}
-export const LANGUAGE_UPDATE_COMMAND = { id: 'cinco.language_update' };
 
 /**
  * This command is fired e.g. from GLSP package to this theia package

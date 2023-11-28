@@ -13,32 +13,28 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { MetaSpecification, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
+import { LANGUAGE_UPDATE_COMMAND, MetaSpecification, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action, IActionHandler, ICommand } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { injectable, inject, optional } from 'inversify';
 
 @injectable()
 export class MetaSpecificationResponseHandler implements IActionHandler {
-    @inject(CommandService)
-    @optional()
-    private readonly commandService: CommandService;
-
-    static _unlock: () => void;
-    static _meta_spec_loaded = new Promise<void>((resolve, reject) => {
-        MetaSpecificationResponseHandler._unlock = resolve;
-    });
-    static _registration_callbacks: (() => void)[] = [];
+    @inject(CommandService) @optional() commandService?: CommandService;
+    protected static _registration_callbacks: (() => void)[] = [];
 
     static addRegistrationCallback(registrationCallback: () => void): void {
         this._registration_callbacks.push(registrationCallback);
     }
 
     handle(action: MetaSpecificationResponseAction): void | Action | ICommand {
+        MetaSpecificationResponseHandler.handleResponse(action, this.commandService);
+    }
+
+    static handleResponse(action: MetaSpecificationResponseAction, commandService?: CommandService): void {
         const metaSpec = action.metaSpecification;
         MetaSpecification.clear();
         MetaSpecification.merge(metaSpec);
-        MetaSpecificationResponseHandler._unlock();
         if (MetaSpecificationResponseHandler._registration_callbacks) {
             for (const cb of MetaSpecificationResponseHandler._registration_callbacks) {
                 try {
@@ -48,13 +44,8 @@ export class MetaSpecificationResponseHandler implements IActionHandler {
                 }
             }
         }
-        // propagate to theia
-        this.propagateToTheia();
-    }
-
-    propagateToTheia(): void {
-        if (this.commandService) {
-            this.commandService.executeCommand('cinco.language_update', {
+        if (commandService) {
+            commandService.executeCommand(LANGUAGE_UPDATE_COMMAND.id, {
                 metaSpecification: MetaSpecification.get()
             });
         }

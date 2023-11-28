@@ -38,7 +38,8 @@ import {
     configureCommand,
     configureDefaultModelElements,
     initializeDiagramContainer,
-    ContainerConfiguration
+    ContainerConfiguration,
+    bindOrRebind
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -62,7 +63,8 @@ import { GraphModelProvider } from './model/graph-model-provider';
 import { MetaSpecificationTheiaCommand } from './meta/meta-specification-theia-command';
 import { ServerArgsProvider } from './meta/server-args-response-handler';
 import { FileProviderHandler } from './features/file-provider-handler';
-import { MetaModelStartUp } from './meta/meta-model-startup';
+import { MetaPreparationsStartUp } from './meta/meta-model-startup';
+import { CincoGLSPCommandStack } from './meta/cinco-command-stack';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -75,19 +77,28 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     unbind(TYPES.LogLevel);
     bind(TYPES.ILogger).to(ConsoleLogger).inSingletonScope();
     bind(TYPES.LogLevel).toConstantValue(LogLevel.warn);
+
+    // custom
+    bind(WorkspaceFileService).toSelf().inSingletonScope();
+    bind(MouseContextTracker).toSelf().inSingletonScope();
+    bind(GraphModelProvider).toSelf().inSingletonScope();
+
+    // needs to be bound first because of DiagramLoader (Startup)
+    bindOrRebind(context, TYPES.ICommandStack).to(CincoGLSPCommandStack).inSingletonScope();
+    bind(TYPES.IDiagramStartup)
+        .to(MetaPreparationsStartUp)
+        .inSingletonScope()
+        .onActivation((ctx: any, injectable: unknown) => {
+            if (injectable instanceof MetaPreparationsStartUp) {
+                injectable.setContext(context, ctx);
+            }
+            return injectable;
+        });
+
     bind(DeleteElementContextMenuItemProvider).toSelf();
     bind(TYPES.IContextMenuItemProvider).toService(DeleteElementContextMenuItemProvider);
 
-    // bind TypedServerMessageHandling
-    configureActionHandler(context, TypedServerMessageAction.KIND, ServerMessageHandler);
-
-    // add service to provide files as url from a uri
-    bind(WorkspaceFileService).toSelf().inSingletonScope();
-
-    // bind MouseContextTracker
-    bind(MouseContextTracker).toSelf();
-
-    // bind the doubleClickTool, that will fire the doubleClickActions to the backend
+    // add doubleclick tool
     bind(TYPES.IDefaultTool).to(DoubleClickTool);
 
     // change container handling
@@ -129,28 +140,19 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     bind(TYPES.IDefaultTool).to(ValidationTool);
     configureActionHandler(context, ValidationModelResponseAction.KIND, ValidationModelResponseActionHandler);
 
-    // bind dirty state handler
-    configureActionHandler(context, SetDirtyStateAction.KIND, DirtyStateHandler);
-    configureActionHandler(context, MetaSpecificationResponseAction.KIND, MetaSpecificationResponseHandler);
-    configureActionHandler(context, FileProviderResponse.KIND, FileProviderHandler);
-    configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
-
-    configureDefaultModelElements(context);
-
-    bind(GraphModelProvider).toSelf().inSingletonScope();
+    // bind tool, that registers a theia-command to fetch the meta-specification
     bind(TYPES.IDefaultTool).to(MetaSpecificationTheiaCommand);
 
     // GLSPToolManager
     rebind(TYPES.IToolManager).to(CustomToolManager).inSingletonScope();
     bind(CustomToolManager).toSelf().inSingletonScope();
 
-    bind(TYPES.IDiagramStartup)
-        .to(MetaModelStartUp)
-        .inSingletonScope()
-        .onActivation((ctx: any, injectable: unknown) => {
-            if (injectable instanceof MetaModelStartUp) {
-                injectable.setContext(context, ctx);
-            }
-            return injectable;
-        });
+    // actions
+    configureActionHandler(context, TypedServerMessageAction.KIND, ServerMessageHandler);
+    configureActionHandler(context, SetDirtyStateAction.KIND, DirtyStateHandler);
+    configureActionHandler(context, MetaSpecificationResponseAction.KIND, MetaSpecificationResponseHandler);
+    configureActionHandler(context, FileProviderResponse.KIND, FileProviderHandler);
+    configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
+
+    configureDefaultModelElements(context);
 });
