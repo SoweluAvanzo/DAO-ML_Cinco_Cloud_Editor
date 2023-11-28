@@ -31,42 +31,32 @@ export class DynamicToolPalette extends ToolPalette {
 
     async requestPalette(): Promise<void> {
         const requestAction = RequestContextActions.create({
-            contextId: ToolPalette.ID,
+            contextId: DynamicToolPalette.ID,
             editorContext: {
                 selectedElementIds: []
             }
         });
-        const response = await this.actionDispatcher.request<SetContextActions>(requestAction);
-        this.paletteItems = response.actions.map(e => e as PaletteItem);
-        if (!this.editorContext.isReadonly) {
-            this.show(this.editorContext.modelRoot);
-        }
+        this.actionDispatcher.requestUntil(requestAction).then(response => {
+            if (SetContextActions.is(response)) {
+                // store and backup new palette
+                this.paletteItems = response.actions.map(e => e as PaletteItem);
+                this.backupPaletteCopy();
+                // make
+                this.actionDispatcher.dispatch(
+                    SetUIExtensionVisibilityAction.create({
+                        extensionId: ToolPalette.ID,
+                        visible: !this.editorContext.isReadonly
+                    })
+                );
+                // update palette view
+                this.requestFilterUpdate(this.lastFilter);
+            }
+        });
     }
 
     override handle(action: Action): ICommand | Action | void {
         if (action.kind === EnableToolPaletteAction.KIND) {
-            const requestAction = RequestContextActions.create({
-                contextId: DynamicToolPalette.ID,
-                editorContext: {
-                    selectedElementIds: []
-                }
-            });
-            this.actionDispatcher.requestUntil(requestAction).then(response => {
-                if (SetContextActions.is(response)) {
-                    // store and backup new palette
-                    this.paletteItems = response.actions.map(e => e as PaletteItem);
-                    this.backupPaletteCopy();
-                    // make
-                    this.actionDispatcher.dispatch(
-                        SetUIExtensionVisibilityAction.create({
-                            extensionId: ToolPalette.ID,
-                            visible: !this.editorContext.isReadonly
-                        })
-                    );
-                    // update palette view
-                    this.requestFilterUpdate(this.lastFilter);
-                }
-            });
+            this.requestPalette();
         } else if (action.kind === EnableDefaultToolsAction.KIND) {
             if (this.lastActiveButton || this.defaultToolsButton) {
                 this.changeActiveButton();
