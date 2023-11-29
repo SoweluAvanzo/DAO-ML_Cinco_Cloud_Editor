@@ -23,9 +23,9 @@ import {
 import { IActionDispatcher } from '@eclipse-glsp/client';
 import { WorkspaceFileService } from '../utils/workspace-file-service';
 import { ServerArgsProvider } from './server-args-response-handler';
-import { FileProviderHandler } from '../features/file-provider-handler';
+import { FileProviderHandler } from '../features/action-handler/file-provider-handler';
 
-export class DynamicImportLoader {
+export class FrontendResourceLoader {
     static _locks: (() => void)[] = [];
     static _locked = false;
 
@@ -40,17 +40,17 @@ export class DynamicImportLoader {
             supportedDynamicImportFileTypes,
             actionDispatcher
         );
-        return DynamicImportLoader.importResources(items, workspaceFileService);
+        return FrontendResourceLoader.importResources(items, workspaceFileService);
     }
 
     static async importResources(resources: FileProviderResponseItem[], workspaceFileService: WorkspaceFileService): Promise<void> {
         // lock
-        if (DynamicImportLoader._locked) {
+        if (FrontendResourceLoader._locked) {
             await new Promise<void>(resolve => {
-                DynamicImportLoader._locks.push(resolve);
+                FrontendResourceLoader._locks.push(resolve);
             });
         }
-        DynamicImportLoader._locked = true;
+        FrontendResourceLoader._locked = true;
 
         const serverArgs = await ServerArgsProvider.getServerArgs();
         for (const file of resources) {
@@ -64,11 +64,11 @@ export class DynamicImportLoader {
         await this.addIconStyle(`${serverArgs.rootFolder}/${serverArgs.languagePath}/icons/`, workspaceFileService);
 
         // unlock
-        const toUnlock = DynamicImportLoader._locks.pop();
+        const toUnlock = FrontendResourceLoader._locks.pop();
         if (toUnlock) {
             toUnlock();
         }
-        DynamicImportLoader._locked = false;
+        FrontendResourceLoader._locked = false;
     }
 
     static async loadCSSFile(root: string, filePath: string, overwrite = false, workspaceFileService: WorkspaceFileService): Promise<void> {
