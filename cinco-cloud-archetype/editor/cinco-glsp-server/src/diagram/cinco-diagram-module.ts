@@ -54,6 +54,7 @@ import { ServerArgsRequestHandler } from '../handler/server-args-handler';
 import { PropertyEditHandler } from '../handler/property-edit-handler';
 import { GeneratorCreateFileHandler } from '../handler/generator-create-file-handler';
 import { PropertyViewHandler } from '../handler/property-view-handler';
+import { CompoundHandler } from '../handler/compound-handler';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -89,6 +90,7 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(MetaSpecificationRequestHandler);
         binding.add(ServerArgsRequestHandler);
         binding.add(FileProviderHandler);
+        binding.add(CompoundHandler);
     }
 
     /* TODO: Sami - Remove
