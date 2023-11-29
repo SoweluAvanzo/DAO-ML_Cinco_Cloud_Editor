@@ -5,4 +5,5 @@
 /infrastructure/helm/values-temp.yaml
 /infrastructure/helm/values-temp.yml
 /infrastructure/helm/*.tgz
+/infrastructure/helm/charts/*.tgz
 /cinco-cloud-local-rootCA.pem

@@ -11,7 +11,6 @@ import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import io.quarkus.qute.Template;
 import io.quarkus.security.UnauthorizedException;
-
 import java.security.Principal;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -48,6 +47,9 @@ public class UserService {
 
   @Inject
   RegistrationService registrationService;
+
+  @Inject
+  FileService fileService;
 
   public UserDB getOrThrow(long userId) {
     return (UserDB) UserDB.findByIdOptional(userId)
@@ -136,6 +138,12 @@ public class UserService {
         this.organizationService.removeUserFromOrganization(userToDelete, org);
       }
     });
+
+    if (userToDelete.profilePicture != null) {
+      this.fileService.deleteFile(userToDelete.profilePicture);
+      userToDelete.profilePicture = null;
+    }
+
     UserDB userToDeleteUpdate = UserDB.findById(userToDelete.id);
     if(userToDeleteUpdate != null){
       userToDeleteUpdate.delete();
@@ -162,10 +170,13 @@ public class UserService {
 
   public UserDB updateProfilePicture(UserDB user, Optional<Long> profilePictureIdOptional) {
     if (profilePictureIdOptional.isPresent()) {
+      if (user.profilePicture != null && !user.profilePicture.id.equals(profilePictureIdOptional.get())) {
+        fileService.deleteFile(user.profilePicture);
+      }
       user.profilePicture = BaseFileDB.findById(profilePictureIdOptional.get());
     } else {
       if (user.profilePicture != null) {
-        user.profilePicture.delete();
+        fileService.deleteFile(user.profilePicture);
       }
       user.profilePicture = null;
     }

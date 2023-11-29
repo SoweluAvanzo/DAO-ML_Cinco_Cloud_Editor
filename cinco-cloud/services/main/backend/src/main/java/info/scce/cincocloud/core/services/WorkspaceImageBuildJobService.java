@@ -4,8 +4,6 @@ import info.scce.cincocloud.core.rest.tos.PageTO;
 import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
-import info.scce.cincocloud.mq.WorkspaceImageAbortBuildJobMessage;
-import info.scce.cincocloud.mq.WorkspaceMQProducer;
 import info.scce.cincocloud.rest.ObjectCache;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -18,9 +16,6 @@ public class WorkspaceImageBuildJobService {
 
   @Inject
   ObjectCache objectCache;
-
-  @Inject
-  WorkspaceMQProducer workspaceMQProducer;
 
   @Inject
   WorkspaceImageBuildJobLogFileService workspaceImageBuildJobLogFileService;
@@ -56,7 +51,7 @@ public class WorkspaceImageBuildJobService {
     job.status = WorkspaceImageBuildJobDB.Status.ABORTED;
     job.persist();
 
-    workspaceMQProducer.send(new WorkspaceImageAbortBuildJobMessage(job.id));
+    // TODO: implement with rabbitmq if the time comes
 
     return job;
   }

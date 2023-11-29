@@ -45,7 +45,7 @@ public class MinioService {
   private void initMinioBuckets() throws Exception {
     LOGGER.log(Level.INFO, "Init minio buckets");
 
-    for (String bucketIdentifier : List.of(MinioBuckets.PROJECTS_KEY, MinioBuckets.BUILD_JOB_LOGS_KEY)) {
+    for (String bucketIdentifier : List.of(MinioBuckets.PROJECTS_KEY, MinioBuckets.BUILD_JOB_LOGS_KEY, MinioBuckets.FILE_UPLOADS_KEY)) {
       final var exists = client.bucketExists(BucketExistsArgs.builder()
           .bucket(bucketIdentifier)
           .build());

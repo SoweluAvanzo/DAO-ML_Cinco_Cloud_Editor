@@ -200,7 +200,7 @@ deploy-testing-manual:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
   when: manual
   image:
-    name: gcr.io/k8s-skaffold/skaffold:v1.27.0
+    name: gcr.io/k8s-skaffold/skaffold:v1.39.0
   script:
     - kubectl config use-context scce/cinco-cloud:k8s-ls-5-de
     - skaffold deploy -p demo-k8s-ls5 -n cinco-cloud-demo -t $TAG --status-check=true
@@ -365,6 +365,7 @@ pages:
 helm-lint:
   extends: .helm-job
   script:
+    - helm dependency update .
     - helm lint .
 
 helm-package:
@@ -372,8 +373,10 @@ helm-package:
   needs:
     - helm-lint
   script:
+    # install sub charts
+    - helm dependency update .
     # Extract current chart version
-    - CHART_VERSION=$(grep 'version:' Chart.yaml | awk '{print $2}')
+    - CHART_VERSION=$(grep 'version:' Chart.yaml | head -n 1 | awk '{print $2}')
     # Combine chart version with commit hash
     - PACKAGE_VERSION=${CHART_VERSION}-${CI_COMMIT_SHORT_SHA}
     # Package the helm chart with the appended version
@@ -393,7 +396,7 @@ helm-push:
     - helm-package
   script:
     # Extract current chart version
-    - CHART_VERSION=$(grep 'version:' infrastructure/helm/Chart.yaml | awk '{print $2}')
+    - CHART_VERSION=$(grep 'version:' infrastructure/helm/Chart.yaml | head -n 1 | awk '{print $2}')
     # Combine chart version with commit hash
     - PACKAGE_VERSION=${CHART_VERSION}-${CI_COMMIT_SHORT_SHA}
     # Use the PACKAGE_VERSION for the curl POST request

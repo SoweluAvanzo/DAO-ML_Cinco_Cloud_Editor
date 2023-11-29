@@ -8,6 +8,7 @@ import { UpdateCurrentUserProfileInput } from '../../models/forms/update-current
 import { UpdateCurrentUserPasswordInput } from '../../models/forms/update-current-user-password-input';
 import { fromJsog, fromJsogList } from '../../utils/jsog-utils';
 import { Page } from '../../models/page';
+import { UpdateCurrentUserProfilePictureInput } from "../../models/forms/update-current-user-profile-picture-input";
 
 @Injectable({
   providedIn: 'root'
@@ -93,6 +94,12 @@ export class UserApiService extends BaseApiService {
 
   public updateProfile(user: User, input: UpdateCurrentUserProfileInput): Observable<User> {
     return this.http.put(`${this.apiUrl}/users/${user.id}`, input, this.defaultHttpOptions).pipe(
+      map(body => this.transformSingle(body))
+    );
+  }
+
+  public updateProfilePicture(user: User, input: UpdateCurrentUserProfilePictureInput): Observable<User> {
+    return this.http.put(`${this.apiUrl}/users/${user.id}/picture`, input, this.defaultHttpOptions).pipe(
       map(body => this.transformSingle(body))
     );
   }

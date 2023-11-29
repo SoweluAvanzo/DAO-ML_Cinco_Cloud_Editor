@@ -29,16 +29,7 @@ public class StartupBean {
 
   @Transactional
   public void startup(@Observes StartupEvent event) throws Exception {
-    initDataDirectory();
     initSettings();
-  }
-
-  private void initDataDirectory() throws IOException {
-    final var dir = Path.of(properties.getDataDir());
-    LOGGER.log(Level.INFO, "Init directory: " + dir.toAbsolutePath());
-    if (!Files.exists(dir)) {
-      Files.createDirectories(dir);
-    }
   }
 
   private void initSettings() {

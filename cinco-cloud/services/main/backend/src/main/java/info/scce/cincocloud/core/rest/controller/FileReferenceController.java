@@ -62,7 +62,7 @@ public class FileReferenceController {
     }
 
     final BaseFileDB reference = this.fileService
-        .storeFile(fileName, inputPart.getBody(InputStream.class, null));
+        .storeFile(fileName, inputPart.getBody(InputStream.class, null), inputPart.getMediaType().toString());
     reference.contentType = inputPart.getMediaType().toString();
     reference.persist();
 
