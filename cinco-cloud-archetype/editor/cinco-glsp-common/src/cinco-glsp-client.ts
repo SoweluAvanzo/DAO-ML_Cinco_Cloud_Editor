@@ -24,6 +24,7 @@ import {
     BaseJsonrpcGLSPClient,
     ClientState
 } from '@eclipse-glsp/protocol';
+import { SYSTEM_ID } from './protocol/cinco-glsp-lifecycle';
 
 /**
  * # Why CincoGLSPClient instead of TheiaJsonrpcGLSPClient?
@@ -80,7 +81,7 @@ export class CincoGLSPClient extends BaseJsonrpcGLSPClient {
 
     protected defaultCallback(msg: ActionMessage): void {
         if (msg.clientId) {
-            if (msg.clientId === CincoGLSPClient.SYSTEM_ID) {
+            if (msg.clientId === SYSTEM_ID) {
                 for (const key of this.handlers.keys()) {
                     const handlersOfKey = this.handlers.get(key) ?? [];
                     for (const h of handlersOfKey) {
