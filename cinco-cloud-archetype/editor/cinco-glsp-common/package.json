@@ -38,6 +38,7 @@
     "languages"
   ],
   "dependencies": {
+    "@eclipse-glsp/protocol": "2.0.0"
   },
   "devDependencies": {
     "circular-dependency-plugin": "^5.2.2"

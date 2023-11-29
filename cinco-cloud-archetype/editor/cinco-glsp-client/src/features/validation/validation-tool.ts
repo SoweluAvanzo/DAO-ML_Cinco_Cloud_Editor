@@ -17,7 +17,7 @@ import { ValidationModelResponseAction, ValidationRequestAction } from '@cinco-g
 import { Action, Tool, IActionHandler, ICommand, GLSPActionDispatcher, TYPES, EditorContextService } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { inject, injectable, optional, postConstruct } from 'inversify';
-import { GraphModelProvider } from '../model/graph-model-provider';
+import { GraphModelProvider } from '../../model/graph-model-provider';
 
 @injectable()
 export class ValidationTool implements Tool {

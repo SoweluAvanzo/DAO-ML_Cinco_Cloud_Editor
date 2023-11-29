@@ -43,28 +43,29 @@ import {
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
-import { ApplyConstrainedTypeHintsCommand } from './constraints/ApplyConstrainedTypeHintsCommand';
-import { FrontendValidatingTypeHintProvider } from './constraints/FrontendValidatingTypeHintProvider';
-import { ChangeContainerTool } from './features/change-container-tool';
-import { CustomToolManager } from './features/custom-tool-manager';
-import { DirtyStateHandler } from './features/dirty-state-handler';
-import { DoubleClickTool } from './features/doubleclick-tool';
-import { DynamicToolPalette } from './features/dynamic-palette-tool';
-import { ApplyAppearanceUpdateCommand } from './features/frontend-appearance-update-handler';
-import { GeneratorResponseActionHandler, GeneratorTool } from './features/generator-tool';
-import { MouseContextTracker } from './features/mouse-tool';
-import { PropertyViewResponseActionHandler, PropertyViewTool } from './features/property-view-tool';
-import { RoutingPointAwareEdgeEditTool } from './features/routingpoint-aware-edge-edit-tool';
-import { ServerMessageHandler } from './features/server-message-handler';
-import { ValidationModelResponseActionHandler, ValidationTool } from './features/validation-tool';
+import { ApplyConstrainedTypeHintsCommand } from './features/constraints/ApplyConstrainedTypeHintsCommand';
+import { FrontendValidatingTypeHintProvider } from './features/constraints/FrontendValidatingTypeHintProvider';
+import { ChangeContainerTool } from './features/tool/change-container-tool';
+import { CincoToolManager } from './glsp/cinco-tool-manager';
+import { DirtyStateHandler } from './features/action-handler/dirty-state-handler';
+import { DoubleClickTool } from './features/tool/doubleclick-tool';
+import { CincoToolPalette } from './glsp/cinco-tool-palette';
+import { ApplyAppearanceUpdateCommand } from './features/gui/frontend-appearance-update-handler';
+import { GeneratorResponseActionHandler, GeneratorTool } from './features/generator/generator-tool';
+import { PropertyViewResponseActionHandler, PropertyViewTool } from './features/properties/property-view-tool';
+import { RoutingPointAwareEdgeEditTool } from './features/tool/routingpoint-aware-edge-edit-tool';
+import { ServerMessageHandler } from './features/action-handler/server-message-handler';
+import { ValidationModelResponseActionHandler, ValidationTool } from './features/validation/validation-tool';
 import { MetaSpecificationResponseHandler } from './meta/meta-specification-response-handler';
 import { WorkspaceFileService } from './utils/workspace-file-service';
 import { GraphModelProvider } from './model/graph-model-provider';
 import { MetaSpecificationTheiaCommand } from './meta/meta-specification-theia-command';
 import { ServerArgsProvider } from './meta/server-args-response-handler';
-import { FileProviderHandler } from './features/file-provider-handler';
-import { MetaPreparationsStartUp } from './meta/meta-model-startup';
-import { CincoGLSPCommandStack } from './meta/cinco-command-stack';
+import { FileProviderHandler } from './features/action-handler/file-provider-handler';
+import { CinoPreparationsStartUp } from './glsp/cinco-preparations-startup';
+import { CincoGLSPCommandStack } from './glsp/cinco-command-stack';
+import { RestoreViewportHandler } from '@eclipse-glsp/client/lib/features/viewport/viewport-handler';
+import { CincoRestoreViewportHandler } from './glsp/cinco-viewport-handler';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -80,20 +81,22 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     // custom
     bind(WorkspaceFileService).toSelf().inSingletonScope();
-    bind(MouseContextTracker).toSelf().inSingletonScope();
     bind(GraphModelProvider).toSelf().inSingletonScope();
 
     // needs to be bound first because of DiagramLoader (Startup)
     bindOrRebind(context, TYPES.ICommandStack).to(CincoGLSPCommandStack).inSingletonScope();
-    bind(TYPES.IDiagramStartup)
-        .to(MetaPreparationsStartUp)
+    bind(CinoPreparationsStartUp)
+        .toSelf()
         .inSingletonScope()
-        .onActivation((ctx: any, injectable: unknown) => {
-            if (injectable instanceof MetaPreparationsStartUp) {
-                injectable.setContext(context, ctx);
-            }
+        .onActivation((ctx: any, injectable: CinoPreparationsStartUp) => {
+            injectable.setContext(context, ctx);
             return injectable;
         });
+    bind(TYPES.IDiagramStartup).toService(CinoPreparationsStartUp);
+
+    // rebind CincoRestoreViewportHandler for RestoreViewportHandler
+    unbind(RestoreViewportHandler);
+    bind(RestoreViewportHandler).to(CincoRestoreViewportHandler);
 
     bind(DeleteElementContextMenuItemProvider).toSelf();
     bind(TYPES.IContextMenuItemProvider).toService(DeleteElementContextMenuItemProvider);
@@ -122,8 +125,8 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureCommand(context, ApplyConstrainedTypeHintsCommand);
 
     // bind custom palette
-    bind(DynamicToolPalette).toSelf().inSingletonScope();
-    rebind(ToolPalette).to(DynamicToolPalette).inSingletonScope();
+    bind(CincoToolPalette).toSelf().inSingletonScope();
+    rebind(ToolPalette).to(CincoToolPalette).inSingletonScope();
 
     // bind FrontendAppearanceProviderHandling
     configureCommand(context, ApplyAppearanceUpdateCommand);
@@ -144,8 +147,8 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     bind(TYPES.IDefaultTool).to(MetaSpecificationTheiaCommand);
 
     // GLSPToolManager
-    rebind(TYPES.IToolManager).to(CustomToolManager).inSingletonScope();
-    bind(CustomToolManager).toSelf().inSingletonScope();
+    rebind(TYPES.IToolManager).to(CincoToolManager).inSingletonScope();
+    bind(CincoToolManager).toSelf().inSingletonScope();
 
     // actions
     configureActionHandler(context, TypedServerMessageAction.KIND, ServerMessageHandler);

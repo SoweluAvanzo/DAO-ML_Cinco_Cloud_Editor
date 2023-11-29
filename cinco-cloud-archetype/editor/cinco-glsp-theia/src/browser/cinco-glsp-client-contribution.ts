@@ -26,13 +26,14 @@ import {
     LanguageUpdateMessage,
     MetaSpecificationReloadCommand,
     MetaSpecificationResponseAction,
-    WEBSOCKET_PORT_KEY
+    WEBSOCKET_PORT_KEY,
+    CincoGLSPClient,
+    SYSTEM_ID
 } from '@cinco-glsp/cinco-glsp-common';
 import { CommandRegistry } from '@theia/core';
 import { InitializeClientSessionParameters } from '@eclipse-glsp/protocol';
 import { MetaSpecificationReloadCommandHandler } from './meta/meta-specification-reload-command-handler';
 import { WebSocketConnectionInfo, isValidWebSocketAddress } from '@eclipse-glsp/theia-integration/lib/common';
-import { CincoGLSPClient } from './cinco-glsp-client';
 
 @injectable()
 export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
@@ -43,11 +44,10 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
 
     readonly id = getDiagramConfiguration().contributionId;
     readonly fileExtensions = getDiagramConfiguration().fileExtensions;
-    static readonly SYSTEM_ID = 'SYSTEM';
 
     constructor() {
         super();
-        this.initializeSystemSession(CincoGLSPClientContribution.SYSTEM_ID);
+        this.initializeSystemSession(SYSTEM_ID);
     }
 
     protected override async getWebSocketConnectionOptions(): Promise<WebSocketConnectionOptions | undefined> {
@@ -115,7 +115,7 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
                                     metaSpecification: (m.action as MetaSpecificationResponseAction).metaSpecification
                                 } as LanguageUpdateMessage);
                             }
-                        }, CincoGLSPClientContribution.SYSTEM_ID);
+                        }, SYSTEM_ID);
                         this.commandRegistry.registerCommand(
                             { id: MetaSpecificationReloadCommand.ID, label: 'Reload Meta-Specification', category: 'Cinco Cloud' },
                             new MetaSpecificationReloadCommandHandler(client)

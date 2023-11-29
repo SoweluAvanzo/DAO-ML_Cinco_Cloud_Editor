@@ -67,9 +67,9 @@ import {
 } from '@eclipse-glsp/client/lib/features/tools/edge-creation/dangling-edge-feedback';
 import { Action, ReconnectEdgeOperation } from '@eclipse-glsp/protocol';
 import { inject, injectable, optional } from 'inversify';
-import { CincoEdge, CincoNode } from '../model/model';
-import { getCurrentMousePosition, getNodeBehindEdge } from '../utils/canvas-utils';
-import { canBeEdgeSource, canBeEdgeTarget } from '../utils/constraint-utils';
+import { CincoEdge, CincoNode } from '../../model/model';
+import { getCurrentMousePosition, getNodeBehindEdge } from '../../utils/canvas-utils';
+import { canBeEdgeSource, canBeEdgeTarget } from '../../utils/constraint-utils';
 
 /*
  * TODO: This is a fix for a Sprotty/GLSP Bug. Please review when the glsp is updated! This could very well be omitted!

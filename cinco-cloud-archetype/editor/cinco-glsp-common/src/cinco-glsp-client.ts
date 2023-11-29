@@ -14,10 +14,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { ActionMessageHandler, JsonrpcGLSPClient, ActionMessage, Action } from '@eclipse-glsp/protocol';
-import { TheiaJsonrpcGLSPClient } from '@eclipse-glsp/theia-integration';
-import { Disposable } from 'vscode-jsonrpc';
-import { CincoGLSPClientContribution } from './cinco-glsp-client-contribution';
+import {
+    ActionMessageHandler,
+    JsonrpcGLSPClient,
+    ActionMessage,
+    Action,
+    DisposeClientSessionParameters,
+    InitializeClientSessionParameters,
+    BaseJsonrpcGLSPClient,
+    ClientState
+} from '@eclipse-glsp/protocol';
 
 /**
  * # Why CincoGLSPClient instead of TheiaJsonrpcGLSPClient?
@@ -30,18 +36,43 @@ import { CincoGLSPClientContribution } from './cinco-glsp-client-contribution';
  * Thus this class is preventing the connection from beiing completly diposed, scales the handling of messages for
  * multiple clienst and has build-in SYSTEM-message support, for broadcast propagation.
  */
-export class CincoGLSPClient extends TheiaJsonrpcGLSPClient {
+export class CincoGLSPClient extends BaseJsonrpcGLSPClient {
+    protected localClients: string[] = [];
     protected handlers: Map<string, ((m: ActionMessage<Action>) => void)[]> = new Map();
     protected globalHandler: ((m: ActionMessage<Action>) => void)[] = [];
 
-    override disposeClientSession(params: any): Promise<void> {
+    protected theiaMessageService?: any; // optional theia message service
+
+    constructor(options: any) {
+        super(options);
+        if (options.messageService) {
+            this.theiaMessageService = options.messageService;
+        }
+    }
+
+    protected override handleConnectionError(error: Error, message: any, count: number): void {
+        super.handleConnectionError(error, message, count);
+        if (this.theiaMessageService) {
+            this.theiaMessageService.error(`Connection the ${this.id} glsp server is erroring. Shutting down server.`);
+        }
+    }
+
+    protected override handleConnectionClosed(): void {
+        if (this.theiaMessageService && this.state !== ClientState.Stopping && this.state !== ClientState.Stopped) {
+            this.theiaMessageService.error(`Connection to the ${this.id} glsp server got closed. Server will not be restarted.`);
+        }
+        super.handleConnectionClosed();
+    }
+
+    override disposeClientSession(params: DisposeClientSessionParameters): Promise<void> {
         const result = this.checkedConnection.sendRequest(JsonrpcGLSPClient.DisposeClientSessionRequest, params).then(v => {
+            this.removeLocalClient(params.clientSessionId);
             this.setDefaultCallback();
         });
         return result;
     }
 
-    protected setDefaultCallback(): Disposable {
+    protected setDefaultCallback(): any {
         return this.checkedConnection.onNotification(JsonrpcGLSPClient.ActionMessageNotification, msg => {
             this.defaultCallback(msg);
         });
@@ -49,7 +80,7 @@ export class CincoGLSPClient extends TheiaJsonrpcGLSPClient {
 
     protected defaultCallback(msg: ActionMessage): void {
         if (msg.clientId) {
-            if (msg.clientId === CincoGLSPClientContribution.SYSTEM_ID) {
+            if (msg.clientId === CincoGLSPClient.SYSTEM_ID) {
                 for (const key of this.handlers.keys()) {
                     const handlersOfKey = this.handlers.get(key) ?? [];
                     for (const h of handlersOfKey) {
@@ -68,13 +99,32 @@ export class CincoGLSPClient extends TheiaJsonrpcGLSPClient {
         }
     }
 
-    override onActionMessage(handler: ActionMessageHandler, clientId?: string): Disposable {
+    override onActionMessage(handler: ActionMessageHandler, clientId?: string): any {
         if (clientId) {
             this.addMessageHandler(clientId, handler);
         } else {
             this.globalHandler.push(handler);
         }
         return this.setDefaultCallback();
+    }
+
+    override initializeClientSession(params: InitializeClientSessionParameters): Promise<void> {
+        return this.checkedConnection.sendRequest(JsonrpcGLSPClient.InitializeClientSessionRequest, params).then(result => {
+            this.addLocalClient(params.clientSessionId);
+            return result;
+        });
+    }
+
+    override sendActionMessage(message: ActionMessage): void {
+        if (message.clientId === 'SYSTEM') {
+            for (const client of this.localClients) {
+                const messageForClient = { ...message };
+                messageForClient.clientId = client;
+                this.checkedConnection.sendNotification(JsonrpcGLSPClient.ActionMessageNotification, messageForClient);
+            }
+        } else {
+            this.checkedConnection.sendNotification(JsonrpcGLSPClient.ActionMessageNotification, message);
+        }
     }
 
     addMessageHandler(clientId: string, handler: (m: ActionMessage) => void): void {
@@ -92,5 +142,19 @@ export class CincoGLSPClient extends TheiaJsonrpcGLSPClient {
                 this.handlers.delete(clientId);
             }
         }
+    }
+
+    addLocalClient(clientId: string): void {
+        if (!this.localClients.includes(clientId)) {
+            this.localClients.push(clientId);
+        }
+    }
+
+    removeLocalClient(clientId: string): void {
+        this.localClients = this.localClients.filter(c => c !== clientId);
+    }
+
+    isConnected(clientId: string): boolean {
+        return this.localClients.includes(clientId);
     }
 }

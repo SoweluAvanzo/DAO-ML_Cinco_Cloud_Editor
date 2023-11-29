@@ -28,8 +28,8 @@ import {
     isGModelElementSchema
 } from '@eclipse-glsp/client';
 import { injectable, inject } from 'inversify';
-import { CincoGraphModel } from '../model/model';
-import { isContainableByConstraints } from '../utils/constraint-utils';
+import { CincoGraphModel } from '../../model/model';
+import { isContainableByConstraints } from '../../utils/constraint-utils';
 import { FrontendValidatingTypeHintProvider } from './FrontendValidatingTypeHintProvider';
 
 @injectable()

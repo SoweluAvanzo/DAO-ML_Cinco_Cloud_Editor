@@ -25,7 +25,7 @@ import {
 } from '@cinco-glsp/cinco-glsp-common';
 import { CommandExecutionContext, CommandReturn, ILogger, GModelElement, GModelRoot, SystemCommand, TYPES } from '@eclipse-glsp/client';
 import { inject, injectable } from 'inversify';
-import { CincoEdge, CincoNode } from '../model/model';
+import { CincoEdge, CincoNode } from '../../model/model';
 
 @injectable()
 export class ApplyAppearanceUpdateCommand extends SystemCommand {

@@ -74,7 +74,8 @@ export class CincoGLSPDiagramWidget extends GLSPDiagramWidget {
     }
 
     /**
-     * Updating the tabBar. Theia and GLSP result in some race conditions. These need to be tackled by delay.
+     * Updating the tabBar. Theia and GLSP result in some race conditions (And still in GLSP 2.0).
+     * These need to be tackled by delay.
      * @param delay
      */
     updateTabBarButtons(delay = 50): void {
@@ -89,7 +90,6 @@ export class CincoGLSPDiagramWidget extends GLSPDiagramWidget {
                 tabBar.show();
                 tabBar.update();
                 this.update();
-                this.reloadModel();
             }
         });
     }

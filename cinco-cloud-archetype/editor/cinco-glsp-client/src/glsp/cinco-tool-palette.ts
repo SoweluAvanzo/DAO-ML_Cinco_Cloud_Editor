@@ -20,38 +20,61 @@ import {
     EnableDefaultToolsAction,
     SetUIExtensionVisibilityAction,
     SetContextActions,
-    RequestContextActions
+    RequestContextActions,
+    Ranked
 } from '@eclipse-glsp/client';
 import { Action, PaletteItem } from '@eclipse-glsp/protocol';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
+import { GraphModelProvider } from '../model/graph-model-provider';
+import { CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
-export class DynamicToolPalette extends ToolPalette {
+export class CincoToolPalette extends ToolPalette implements Ranked {
+    static _rank: number = CINCO_STARTUP_RANK - 1; // needs to be before CincoPreparationsStartup
+    rank: number = CincoToolPalette._rank;
+
+    @inject(GraphModelProvider)
+    protected readonly graphModelProvider: GraphModelProvider;
     protected lastFilter = '';
 
-    async requestPalette(): Promise<void> {
+    override async preRequestModel(): Promise<void> {}
+
+    async postRequestModel?(): Promise<void> {
         const requestAction = RequestContextActions.create({
-            contextId: DynamicToolPalette.ID,
+            contextId: ToolPalette.ID,
             editorContext: {
                 selectedElementIds: []
             }
         });
-        this.actionDispatcher.requestUntil(requestAction).then(response => {
-            if (SetContextActions.is(response)) {
-                // store and backup new palette
-                this.paletteItems = response.actions.map(e => e as PaletteItem);
-                this.backupPaletteCopy();
-                // make
-                this.actionDispatcher.dispatch(
-                    SetUIExtensionVisibilityAction.create({
-                        extensionId: ToolPalette.ID,
-                        visible: !this.editorContext.isReadonly
-                    })
-                );
-                // update palette view
-                this.requestFilterUpdate(this.lastFilter);
+        const response = await this.actionDispatcher.request<SetContextActions>(requestAction);
+        this.paletteItems = response.actions.map(e => e as PaletteItem);
+        if (!this.editorContext.isReadonly) {
+            this.show(this.editorContext.modelRoot);
+        }
+    }
+
+    async requestPalette(): Promise<void> {
+        const requestAction = RequestContextActions.create({
+            contextId: CincoToolPalette.ID,
+            editorContext: {
+                selectedElementIds: []
             }
         });
+        const response = await this.actionDispatcher.request(requestAction);
+        if (SetContextActions.is(response)) {
+            // store and backup new palette
+            this.paletteItems = response.actions.map(e => e as PaletteItem);
+            this.backupPaletteCopy();
+            // make
+            this.actionDispatcher.dispatch(
+                SetUIExtensionVisibilityAction.create({
+                    extensionId: ToolPalette.ID,
+                    visible: !this.editorContext.isReadonly
+                })
+            );
+            // update palette view
+            this.requestFilterUpdate(this.lastFilter);
+        }
     }
 
     override handle(action: Action): ICommand | Action | void {

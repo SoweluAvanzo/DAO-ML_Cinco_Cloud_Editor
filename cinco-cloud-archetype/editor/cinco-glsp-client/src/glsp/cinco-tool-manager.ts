@@ -18,7 +18,7 @@ import { ToolManager } from '@eclipse-glsp/client/lib/base/tool-manager/tool-man
 import { inject, injectable, multiInject, optional } from 'inversify';
 
 @injectable()
-export class CustomToolManager extends ToolManager {
+export class CincoToolManager extends ToolManager {
     @multiInject(TYPES.ITool)
     @optional()
     override readonly tools: Tool[] = [];

@@ -25,7 +25,7 @@ import {
     createFeatureSet,
     registerModelElement
 } from '@eclipse-glsp/client';
-import { withDoubleClickFeature } from '../features/doubleclick-tool';
+import { withDoubleClickFeature } from '../features/tool/doubleclick-tool';
 import { CincoEdge, CincoGraphModel, CincoNode } from '../model/model';
 import { CincoEdgeView } from '../views/msl/cinco-edge-view';
 import { CincoGraphView } from '../views/msl/cinco-graph-view';

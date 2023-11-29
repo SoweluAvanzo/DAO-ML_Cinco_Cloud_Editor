@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { EdgeTypeHint, getElementTypeId, ShapeTypeHint, TypeHint, TypeHintProvider, GModelElement, GNode } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
-import { canBeEdgeSource, canBeEdgeTarget } from '../utils/constraint-utils';
+import { canBeEdgeSource, canBeEdgeTarget } from '../../utils/constraint-utils';
 
 /**
  * This class's purpose is to make sure, that the typeHints are dynamically fetched and not statically set.

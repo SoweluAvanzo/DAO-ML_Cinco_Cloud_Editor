@@ -44,8 +44,13 @@ import {
 import { CursorCSS, applyCssClasses, cursorFeedbackAction } from '@eclipse-glsp/client/lib/base/feedback/css-feedback';
 import { Action, Bounds, ChangeContainerOperation, Point } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
-import { getCurrentMousePosition, getHierachyAwareRelativePosition, getHoveredContainer, getSelectedElements } from '../utils/canvas-utils';
-import { isContainableByConstraints } from '../utils/constraint-utils';
+import {
+    getCurrentMousePosition,
+    getHierachyAwareRelativePosition,
+    getHoveredContainer,
+    getSelectedElements
+} from '../../utils/canvas-utils';
+import { isContainableByConstraints } from '../../utils/constraint-utils';
 
 @injectable()
 export class ChangeContainerTool extends ChangeBoundsTool {

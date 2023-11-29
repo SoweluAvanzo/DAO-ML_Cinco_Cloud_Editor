@@ -21,7 +21,7 @@ import { inject, injectable, optional } from 'inversify';
 import * as path from 'path';
 import { ServerArgsProvider } from '../meta/server-args-response-handler';
 import { IActionDispatcher, TYPES } from '@eclipse-glsp/client';
-import { FileProviderHandler } from '../features/file-provider-handler';
+import { FileProviderHandler } from '../features/action-handler/file-provider-handler';
 
 /**
  * THEIA-related

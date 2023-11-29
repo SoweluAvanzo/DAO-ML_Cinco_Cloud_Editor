@@ -14,21 +14,32 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { CommandService } from '@theia/core';
-import { IActionDispatcher, ICommandStack, IDiagramStartup, Ranked, SModelRegistry, TYPES, ViewRegistry } from '@eclipse-glsp/client';
-import { MetaSpecificationLoader } from './meta-specification-loader';
-import { MetaSpecificationResponseHandler } from './meta-specification-response-handler';
+import {
+    IActionDispatcher,
+    ICommandStack,
+    IDiagramOptions,
+    IDiagramStartup,
+    Ranked,
+    SModelRegistry,
+    TYPES,
+    ViewRegistry
+} from '@eclipse-glsp/client';
+import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
+import { MetaSpecificationResponseHandler } from '../meta/meta-specification-response-handler';
 import { inject, injectable, optional } from 'inversify';
-import { ServerArgsProvider } from './server-args-response-handler';
-import { DynamicImportLoader } from './dynamic-import-tool';
-import { reregisterBindings } from './meta-model-glsp-registration-handler';
+import { ServerArgsProvider } from '../meta/server-args-response-handler';
+import { FrontendResourceLoader } from '../meta/frontend-resource.loader';
+import { reregisterBindings } from '../meta/meta-model-glsp-registration-handler';
 import { WorkspaceFileService } from '../utils/workspace-file-service';
 import { GraphModelProvider } from '../model/graph-model-provider';
 import { CincoGLSPCommandStack } from './cinco-command-stack';
-import { DynamicToolPalette } from '../features/dynamic-palette-tool';
+import { CincoToolPalette } from './cinco-tool-palette';
+import { CincoGLSPClient, CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
-export class MetaPreparationsStartUp implements IDiagramStartup, Ranked {
-    rank: number = -1;
+export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
+    static _rank: number = CINCO_STARTUP_RANK;
+    rank: number = CinoPreparationsStartUp._rank;
     @inject(CommandService) @optional() commandService?: CommandService;
     @inject(WorkspaceFileService)
     protected readonly workspaceFileService: WorkspaceFileService;
@@ -42,8 +53,10 @@ export class MetaPreparationsStartUp implements IDiagramStartup, Ranked {
     protected readonly actionDispatcher: IActionDispatcher;
     @inject(TYPES.ICommandStack)
     protected readonly commandStack: ICommandStack;
-    @inject(DynamicToolPalette)
-    protected readonly palette: DynamicToolPalette;
+    @inject(CincoToolPalette)
+    protected readonly palette: CincoToolPalette;
+    @inject(TYPES.IDiagramOptions)
+    protected options: IDiagramOptions;
 
     protected context: {
         bind: any;
@@ -62,11 +75,19 @@ export class MetaPreparationsStartUp implements IDiagramStartup, Ranked {
         this.ctx = ctx;
     }
 
-    constructor() {
-        MetaSpecificationResponseHandler.addRegistrationCallback(() => this.prepareAfterMetaSpecification());
-    }
-
     async preRequestModel?(): Promise<void> {
+        const client = await this.options.glspClientProvider();
+        if (!(client instanceof CincoGLSPClient)) {
+            throw new Error('Client is no CincoGLSPClient. The API must have change. Please review!');
+        }
+        const clientId = this.options.clientId;
+        MetaSpecificationResponseHandler.addRegistrationCallback(clientId, () => {
+            if (!client.isConnected(clientId)) {
+                MetaSpecificationResponseHandler.removeRegistrationCallback(clientId);
+            } else {
+                this.prepareAfterMetaSpecification();
+            }
+        });
         await MetaSpecificationLoader.load(this.actionDispatcher, this.commandService);
     }
 
@@ -74,23 +95,19 @@ export class MetaPreparationsStartUp implements IDiagramStartup, Ranked {
         // load server args
         ServerArgsProvider.load(this.actionDispatcher);
         // load css language-files
-        DynamicImportLoader.load(this.actionDispatcher, this.workspaceFileService);
+        FrontendResourceLoader.load(this.actionDispatcher, this.workspaceFileService);
         // dynamically register bindings
         reregisterBindings(this.context, this.ctx, this.registry, this.viewRegistry);
-        // reload palette
+        // dynamic tool palette update
         this.palette.requestPalette();
     }
 
     async postRequestModel?(): Promise<void> {
         // after meta-specification and concrete model has been loaded
-        await new Promise<void>(resolve => {
-            if (!(this.commandStack instanceof CincoGLSPCommandStack)) {
-                throw Error('CINCO: Eclipse GLSP API has changed. This might not work anymore. Please review!');
-            }
-            this.commandStack.waitForCincoModel.then(model => {
-                this.graphModelProvider.graphModel = model;
-                resolve();
-            });
-        });
+        if (!(this.commandStack instanceof CincoGLSPCommandStack)) {
+            throw Error('CINCO: Eclipse GLSP API has changed. This might not work anymore. Please review!');
+        }
+        const model = await this.commandStack.waitForCincoModel;
+        this.graphModelProvider.graphModel = model;
     }
 }

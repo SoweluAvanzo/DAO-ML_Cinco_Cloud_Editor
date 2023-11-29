@@ -13,26 +13,5 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { MetaSpecificationRequestAction, SYSTEM_ID } from '@cinco-glsp/cinco-glsp-common';
-import { CommandHandler } from '@theia/core';
-import { Action, GLSPClient } from '@eclipse-glsp/protocol';
-
-export class MetaSpecificationReloadCommandHandler implements CommandHandler {
-    protected readonly client: GLSPClient;
-
-    constructor(client: GLSPClient) {
-        this.client = client;
-    }
-
-    execute(): void {
-        // request & reload metaspecification
-        this.sendGLSPSystemAction(this.client, MetaSpecificationRequestAction.create(true));
-    }
-
-    sendGLSPSystemAction(client: GLSPClient, action: Action): void {
-        client.sendActionMessage({
-            clientId: SYSTEM_ID,
-            action: action
-        });
-    }
-}
+export const CINCO_STARTUP_RANK = -10;
+export const SYSTEM_ID = 'SYSTEM';

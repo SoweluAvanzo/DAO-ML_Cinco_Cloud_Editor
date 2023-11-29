@@ -21,10 +21,17 @@ import { injectable, inject, optional } from 'inversify';
 @injectable()
 export class MetaSpecificationResponseHandler implements IActionHandler {
     @inject(CommandService) @optional() commandService?: CommandService;
-    protected static _registration_callbacks: (() => void)[] = [];
+    protected static _registration_callbacks: Map<string, (() => void)[]> = new Map();
 
-    static addRegistrationCallback(registrationCallback: () => void): void {
-        this._registration_callbacks.push(registrationCallback);
+    static addRegistrationCallback(clientId: string, registrationCallback: () => void): void {
+        if (!this._registration_callbacks.has(clientId)) {
+            this._registration_callbacks.set(clientId, []);
+        }
+        this._registration_callbacks.get(clientId)!.push(registrationCallback);
+    }
+
+    static removeRegistrationCallback(clientId: string): boolean {
+        return this._registration_callbacks.delete(clientId);
     }
 
     handle(action: MetaSpecificationResponseAction): void | Action | ICommand {
@@ -36,11 +43,13 @@ export class MetaSpecificationResponseHandler implements IActionHandler {
         MetaSpecification.clear();
         MetaSpecification.merge(metaSpec);
         if (MetaSpecificationResponseHandler._registration_callbacks) {
-            for (const cb of MetaSpecificationResponseHandler._registration_callbacks) {
-                try {
-                    cb();
-                } catch (e) {
-                    console.log(e);
+            for (const client of this._registration_callbacks.keys()) {
+                for (const cb of this._registration_callbacks.get(client)!) {
+                    try {
+                        cb();
+                    } catch (e) {
+                        console.log(e);
+                    }
                 }
             }
         }
