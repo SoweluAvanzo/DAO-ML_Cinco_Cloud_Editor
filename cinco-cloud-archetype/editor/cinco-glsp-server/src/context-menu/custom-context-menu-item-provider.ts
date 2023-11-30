@@ -40,6 +40,9 @@ export class CustomContextMenuItemProvider extends ContextMenuItemProvider {
     }
 
     getCustomMenuItems(selectedElementIds: string[]): MenuItem[] {
+        if (selectedElementIds.length <= 0) {
+            return [];
+        }
         const modelElement = this.modelState.index.findElement(selectedElementIds[0]) as ModelElement;
         const type = modelElement.type;
         const menuItems: MenuItem[] = [];
