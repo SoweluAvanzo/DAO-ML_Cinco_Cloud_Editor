@@ -70,6 +70,9 @@ minio:
 # Configuration for mailhog
 mailhog:
   enabled: false
+  containerPort:
+    smtp:
+      port: 1025
 
 # Configuration for the archetype image and Theia editors.
 archetype:
