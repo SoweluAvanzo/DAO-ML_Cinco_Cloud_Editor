@@ -90,10 +90,6 @@ export class SpecifiedElementHandler extends CincoJsonOperationHandler {
     }
 
     saveAndUpdate(): void {
-        const paletteUpdateAction = {
-            kind: 'enableToolPalette'
-        };
-        this.actionDispatcher.dispatch(paletteUpdateAction);
         // save model
         const graphmodel = this.modelState.index.getRoot();
         const fileUri = graphmodel._sourceUri;
