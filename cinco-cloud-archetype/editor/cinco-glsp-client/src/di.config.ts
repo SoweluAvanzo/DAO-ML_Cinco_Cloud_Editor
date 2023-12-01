@@ -136,7 +136,7 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureActionHandler(context, PropertyViewResponseAction.KIND, PropertyViewResponseActionHandler);
 
     // bind the generatorTool, that will fire the GeneratorActions to the backend and the handler processing the responses
-    bind(TYPES.IDefaultTool).to(GeneratorTool);
+    bind(TYPES.IDefaultTool).to(GeneratorTool).inSingletonScope();
     configureActionHandler(context, GeneratorResponseAction.KIND, GeneratorResponseActionHandler);
 
     // bind the validation tool, that will fire ValidationRequestActions to the backend
