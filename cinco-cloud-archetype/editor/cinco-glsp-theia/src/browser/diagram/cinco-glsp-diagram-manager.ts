@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { GLSPDiagramContextKeyService, GLSPDiagramManager } from '@eclipse-glsp/theia-integration';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
-import { CommandService } from '@theia/core';
+import { CommandService, URI } from '@theia/core';
 import { inject, injectable } from 'inversify';
 
 import { getDiagramConfiguration } from '../../common/cinco-language';
@@ -101,5 +101,16 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
     override get iconClass(): string {
         this._iconClass = getDiagramConfiguration().iconClass ?? this._iconClass;
         return this._iconClass;
+    }
+
+    get currentURI(): URI | undefined {
+        const widgetEntries = this.widgetManager.getWidgets('cinco-diagram-diagram-manager');
+        const widgets = [...widgetEntries.values()] as CincoGLSPDiagramWidget[];
+        for (const widget of widgets) {
+            if (widget.hasFocus) {
+                return widget.uri;
+            }
+        }
+        return undefined;
     }
 }
