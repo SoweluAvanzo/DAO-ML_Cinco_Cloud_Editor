@@ -24,17 +24,13 @@ import {
     Ranked
 } from '@eclipse-glsp/client';
 import { Action, PaletteItem } from '@eclipse-glsp/protocol';
-import { inject, injectable } from 'inversify';
-import { GraphModelProvider } from '../model/graph-model-provider';
+import { injectable } from 'inversify';
 import { CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class CincoToolPalette extends ToolPalette implements Ranked {
     static _rank: number = CINCO_STARTUP_RANK - 1; // needs to be before CincoPreparationsStartup
     rank: number = CincoToolPalette._rank;
-
-    @inject(GraphModelProvider)
-    protected readonly graphModelProvider: GraphModelProvider;
     protected lastFilter = '';
 
     override async preRequestModel(): Promise<void> {}
