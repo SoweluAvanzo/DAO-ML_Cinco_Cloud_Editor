@@ -158,4 +158,8 @@ export class CincoGLSPClient extends BaseJsonrpcGLSPClient {
     isConnected(clientId: string): boolean {
         return this.localClients.includes(clientId);
     }
+
+    isConnectingOrRunning(): boolean {
+        return this.state === ClientState.Initial || this.state === ClientState.Starting || this.state === ClientState.Running;
+    }
 }

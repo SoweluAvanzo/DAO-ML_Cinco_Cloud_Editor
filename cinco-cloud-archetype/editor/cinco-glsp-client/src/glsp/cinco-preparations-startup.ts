@@ -70,7 +70,7 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
         }
         const clientId = this.options.clientId;
         MetaSpecificationResponseHandler.addRegistrationCallback(clientId, () => {
-            if (!client.isConnected(clientId)) {
+            if (!client.isConnected(clientId) && !client.isConnectingOrRunning()) {
                 MetaSpecificationResponseHandler.removeRegistrationCallback(clientId);
             } else {
                 this.prepareAfterMetaSpecification();
