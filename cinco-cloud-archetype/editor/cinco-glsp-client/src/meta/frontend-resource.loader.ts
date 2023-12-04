@@ -103,7 +103,9 @@ export class FrontendResourceLoader {
         types = types.concat(Array.from(MetaSpecification.get().edgeTypes ?? []));
         const iconTypes = Array.from(new Set(types.map(t => t.icon ?? t.elementTypeId.replace(':', '_')))) as string[];
 
-        const icon_files = (await FileProviderHandler.getFiles(iconFolder)).map(v => v.path) as string[];
+        const icon_files = (
+            await FileProviderHandler.getFiles(iconFolder, undefined, undefined, workspaceFileService.actionDispatcher)
+        ).map(v => v.path) as string[];
         const existingIconTypes = icon_files.filter(t => iconTypes.includes(t.slice(0, t.lastIndexOf('.'))));
 
         const css = [];
