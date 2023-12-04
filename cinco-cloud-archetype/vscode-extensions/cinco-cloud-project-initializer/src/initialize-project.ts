@@ -1,3 +1,4 @@
+export const PROJECT_NAME_REGEXP = "^[_a-zA-Z][\\w_]*$";
 export function generateMGL(name: string, mslFileName: string): string {
     return `stylePath "${mslFileName}"
 
