@@ -93,21 +93,6 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(CompoundHandler);
     }
 
-    /* TODO: Sami - Remove
-    protected override configureClientActions(binding: InstanceMultiBinding<string>): void {
-        super.configureClientActions(binding);
-        binding.add(PropertyViewResponseAction.KIND);
-        binding.add(GeneratorResponseAction.KIND);
-        binding.add(ApplyAppearanceUpdateAction.KIND);
-        binding.add(ValidationModelAnswerAction.KIND);
-        binding.add(CustomAction.KIND);
-        binding.add('enableToolPalette');
-        binding.add(MetaSpecificationResponseAction.KIND);
-        binding.add(FileProviderResponse.KIND);
-        binding.add(ServerArgsResponse.KIND);
-    }
-    */
-
     protected override configureOperationHandlers(binding: InstanceMultiBinding<OperationHandlerConstructor>): void {
         super.configureOperationHandlers(binding);
         binding.add(SpecifiedNodeHandler);
