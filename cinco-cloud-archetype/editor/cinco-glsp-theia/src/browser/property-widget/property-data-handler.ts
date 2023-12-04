@@ -13,21 +13,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {
-    Attribute,
-    CustomType,
-    getFileExtension,
-    getGraphModelOfFileType,
-    isDiagramExtension
-} from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
+import { Attribute, CustomType } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
 import { ModelElementIndex } from '@cinco-glsp/cinco-glsp-common/lib/protocol/property-model';
-import { SelectionService } from '@theia/core';
+import { ApplicationShell } from '@theia/core/lib/browser';
 import { inject, injectable, postConstruct } from 'inversify';
+import { CincoGLSPDiagramWidget } from '../diagram/cinco-glsp-diagram-widget';
 
 @injectable()
 export class PropertyDataHandler {
-    @inject(SelectionService) selectionService: SelectionService;
-    selection: any;
+    @inject(ApplicationShell) shell: ApplicationShell;
 
     // state
     currentFileUri = '';
@@ -41,95 +35,30 @@ export class PropertyDataHandler {
 
     @postConstruct()
     postConstruct(): void {
-        const updateSelection = (selection: any): void => {
-            // parse current selection
-            this.selection = selection;
-            let selectedGraphType: string | undefined;
-            if (this.selection) {
-                const sourceUri = this.selection['sourceUri'];
-                if (sourceUri) {
-                    const fileType = getFileExtension(sourceUri);
-                    const graphType = getGraphModelOfFileType(fileType);
-                    selectedGraphType = graphType?.elementTypeId;
-                }
+        this.shell.onDidChangeActiveWidget(change => {
+            if (change.newValue instanceof CincoGLSPDiagramWidget) {
+                this.currentFileUri = change.newValue.getResourceUri()?.path.fsPath() ?? '';
+                this.reset();
+                this.dataSubscriptions.forEach(fn => fn());
             }
-            // update
-            this.updatePropertySelection(
-                this.currentModelElementIndex,
-                selectedGraphType ?? this.currentModelType,
-                this.currentModelElementId,
-                this.currentAttributeDefinitions,
-                this.currentCustomTypeDefinitions,
-                this.currentValues
-            );
-        };
-        this.selectionService.onSelectionChanged(updateSelection);
+        });
     }
 
     updatePropertySelection(
-        modelElementIndex: ModelElementIndex,
-        modelType: string,
         modelElementId: string,
-        attributeDefinitions: Attribute[],
-        customTypeDefinitions: CustomType[],
-        values: any
+        modelType?: string,
+        modelElementIndex?: ModelElementIndex,
+        attributeDefinitions?: Attribute[],
+        customTypeDefinitions?: CustomType[],
+        values?: any
     ): void {
-        // check if canvas is shown
-        const sourceUri = this.selection?.['sourceUri'] ?? '';
-        if (this.selection && isDiagramExtension(sourceUri, modelType)) {
-            if (this.currentFileUri !== sourceUri) {
-                this.reset();
-                this.currentFileUri = sourceUri;
-            } else {
-                this.currentModelElementId = this.getContainedSelection(this.selection, modelType, modelElementIndex, modelElementId) ?? '';
-                this.currentModelElementIndex = modelElementIndex;
-                this.currentModelType = modelType;
-                this.currentAttributeDefinitions = attributeDefinitions;
-                this.currentCustomTypeDefinitions = customTypeDefinitions;
-                this.currentValues = values;
-            }
-        } else {
-            this.reset();
-        }
+        this.currentModelElementId = modelElementId ?? '';
+        this.currentModelType = modelType ?? this.currentModelType;
+        this.currentModelElementIndex = modelElementIndex ?? this.currentModelElementIndex;
+        this.currentAttributeDefinitions = attributeDefinitions ?? this.currentAttributeDefinitions;
+        this.currentCustomTypeDefinitions = customTypeDefinitions ?? this.currentCustomTypeDefinitions;
+        this.currentValues = values ?? this.currentValues;
         this.dataSubscriptions.forEach(fn => fn());
-    }
-
-    getContainedSelection(
-        selection: any | undefined,
-        modelType: string,
-        modelElementIndex: ModelElementIndex,
-        fallback: string | undefined
-    ): string | undefined {
-        const selectedElements = selection['selectedElementsIDs'];
-        if (selectedElements === undefined) {
-            return undefined;
-        }
-        if (selectedElements.length <= 0) {
-            return this.getModelId(modelType, modelElementIndex);
-        }
-        if (selectedElements) {
-            for (const [, modelElements] of Object.entries(modelElementIndex)) {
-                for (const element of modelElements) {
-                    for (const selectedElement of selectedElements) {
-                        if (element.id === selectedElement) {
-                            return selectedElement;
-                        }
-                    }
-                }
-            }
-        }
-        return fallback;
-    }
-
-    getModelId(modelType: string, modelElementIndex: ModelElementIndex): string | undefined {
-        for (const [, modelElements] of Object.entries(modelElementIndex)) {
-            for (const element of modelElements) {
-                if (element.elementTypeId === modelType) {
-                    return element.id;
-                }
-            }
-        }
-        return undefined;
     }
 
     reset(): void {
