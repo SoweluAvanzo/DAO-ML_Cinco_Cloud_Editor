@@ -99,24 +99,24 @@ export class WorkspaceFileService {
         return result;
     }
 
-    async servedExists(filePath: string): Promise<boolean> {
+    async servedExists(filePath: string, actionDispatcher: IActionDispatcher): Promise<boolean> {
         if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
             return true;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
         let exists;
         if (filePath.startsWith('/')) {
-            exists = await this.fileExists('', filePath);
+            exists = await this.fileExists('', filePath, actionDispatcher);
         } else {
-            exists = await this.fileExists(serverArgs?.languagePath, filePath);
+            exists = await this.fileExists(serverArgs?.languagePath, filePath, actionDispatcher);
             if (!exists) {
                 if (this.commandService) {
                     const theiaRoots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
                     for (const theiaRoot of theiaRoots) {
-                        return this.fileExists(theiaRoot.path.fsPath(), filePath);
+                        return this.fileExists(theiaRoot.path.fsPath(), filePath, actionDispatcher);
                     }
                 } else {
-                    return this.fileExists(serverArgs?.workspacePath, filePath);
+                    return this.fileExists(serverArgs?.workspacePath, filePath, actionDispatcher);
                 }
             }
             return true;
@@ -124,29 +124,29 @@ export class WorkspaceFileService {
         return exists;
     }
 
-    async servedExistsIn(filePath: string): Promise<string | undefined> {
+    async servedExistsIn(filePath: string, actionDispatcher: IActionDispatcher): Promise<string | undefined> {
         if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
             return filePath;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
         let exists;
         if (filePath.startsWith('/')) {
-            return (await this.fileExists('', filePath)) ? filePath : undefined;
+            return (await this.fileExists('', filePath, actionDispatcher)) ? filePath : undefined;
         } else {
-            exists = await this.fileExists(serverArgs?.languagePath, filePath);
+            exists = await this.fileExists(serverArgs?.languagePath, filePath, actionDispatcher);
             if (exists) {
                 return exists ? path.join(serverArgs?.languagePath, filePath) : undefined;
             } else {
                 if (this.commandService) {
                     const theiaRoots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
                     for (const theiaRoot of theiaRoots) {
-                        if (await this.fileExists(theiaRoot.path.fsPath(), filePath)) {
+                        if (await this.fileExists(theiaRoot.path.fsPath(), filePath, actionDispatcher)) {
                             return path.join(theiaRoot.path.fsPath(), filePath);
                         }
                     }
                     return undefined;
                 } else {
-                    return (await this.fileExists(serverArgs?.workspacePath, filePath))
+                    return (await this.fileExists(serverArgs?.workspacePath, filePath, actionDispatcher))
                         ? path.join(serverArgs.workspacePath, filePath)
                         : undefined;
                 }
@@ -154,8 +154,13 @@ export class WorkspaceFileService {
         }
     }
 
-    async fileExists(dir: string, filePath: string): Promise<boolean> {
-        const response: FileProviderResponseItem[] = await FileProviderHandler.getFiles(dir, false, ALLOWED_IMAGE_FILE_TYPES);
+    protected async fileExists(dir: string, filePath: string, actionDispatcher: IActionDispatcher): Promise<boolean> {
+        const response: FileProviderResponseItem[] = await FileProviderHandler.getFiles(
+            dir,
+            false,
+            ALLOWED_IMAGE_FILE_TYPES,
+            this.actionDispatcher
+        );
         return response.filter(f => f.path === filePath).length > 0;
     }
 
