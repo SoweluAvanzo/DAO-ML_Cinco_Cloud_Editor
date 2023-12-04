@@ -13,6 +13,7 @@ On this page, you find a guide on how to run CincoCloud locally for development 
 Install the following software:
 
 - [Docker][docker]
+- [buildx][buildx]
 - [Helm][helm]
 - [Skaffold][skaffold] *Use a version >= v1.37.0 & < v2.0.0, e.g. v1.39.4*
 - [Minikube][minikube]
@@ -184,6 +185,7 @@ To access the Mailhog interface, perform the following steps:
 
 [helm]: https://helm.sh/
 [docker]: https://docs.docker.com/get-docker/
+[buildx]: https://github.com/docker/buildx
 [skaffold]: https://skaffold.dev/
 [minikube]: https://minikube.sigs.k8s.io/
 [minio]: https://min.io/
