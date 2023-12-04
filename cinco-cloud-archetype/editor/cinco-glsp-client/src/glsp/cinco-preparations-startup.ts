@@ -14,16 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { CommandService } from '@theia/core';
-import {
-    IActionDispatcher,
-    ICommandStack,
-    IDiagramOptions,
-    IDiagramStartup,
-    Ranked,
-    SModelRegistry,
-    TYPES,
-    ViewRegistry
-} from '@eclipse-glsp/client';
+import { IActionDispatcher, IDiagramOptions, IDiagramStartup, Ranked, SModelRegistry, TYPES, ViewRegistry } from '@eclipse-glsp/client';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { MetaSpecificationResponseHandler } from '../meta/meta-specification-response-handler';
 import { inject, injectable, optional } from 'inversify';
@@ -50,8 +41,6 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
     protected readonly graphModelProvider: GraphModelProvider;
     @inject(TYPES.IActionDispatcher)
     protected readonly actionDispatcher: IActionDispatcher;
-    @inject(TYPES.ICommandStack)
-    protected readonly commandStack: ICommandStack;
     @inject(CincoToolPalette)
     protected readonly palette: CincoToolPalette;
     @inject(TYPES.IDiagramOptions)
