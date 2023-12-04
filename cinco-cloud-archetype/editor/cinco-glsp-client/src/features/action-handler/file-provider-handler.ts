@@ -20,21 +20,14 @@ import { injectable, inject } from 'inversify';
 @injectable()
 export class FileProviderHandler implements IActionHandler {
     @inject(TYPES.IActionDispatcher) protected actionDispatcher: IActionDispatcher;
-    protected static REQUEST_ROUTING: Map<string, (items: FileProviderResponseItem[]) => void> = new Map();
     protected static _INSTANCE_QUEUE: ((fileProviderHandler: FileProviderHandler) => void)[] = [];
     protected static _instance: FileProviderHandler;
 
-    handle(action: FileProviderResponse): ICommand | Action | void {
+    handle(_action: FileProviderResponse): ICommand | Action | void {
         this.updateInstance();
-        if (FileProviderHandler.REQUEST_ROUTING.has(action.responseId)) {
-            const result = FileProviderHandler.REQUEST_ROUTING.get(action.responseId);
-            if (result) {
-                result(action.items);
-            }
-        }
     }
 
-    updateInstance(): void {
+    protected updateInstance(): void {
         if (!FileProviderHandler._instance) {
             if (FileProviderHandler._INSTANCE_QUEUE.length > 0) {
                 for (const waiting of FileProviderHandler._INSTANCE_QUEUE) {
@@ -52,21 +45,13 @@ export class FileProviderHandler implements IActionHandler {
         supportedDynamicImportFileTypes: string[] = [],
         actionDispatcher?: IActionDispatcher
     ): Promise<FileProviderResponseItem[]> {
-        const result = new Promise<FileProviderResponseItem[]>(resolve => {
-            const request = FileProviderRequest.create([folder], readFiles, supportedDynamicImportFileTypes);
-            FileProviderHandler.REQUEST_ROUTING.set(request.requestId, resolve);
-            if (actionDispatcher) {
-                actionDispatcher.dispatch(request);
-            } else {
-                this.instance.then(i => {
-                    i.actionDispatcher.dispatch(request);
-                });
-            }
-        });
-        return result;
+        const request = FileProviderRequest.create([folder], readFiles, supportedDynamicImportFileTypes);
+        const _actionDispatcher = actionDispatcher ?? (await this.instance).actionDispatcher; // TODO this is troublesome
+        const response = await _actionDispatcher.request(request);
+        return response.items ?? [];
     }
 
-    static get instance(): Promise<FileProviderHandler> {
+    protected static get instance(): Promise<FileProviderHandler> {
         if (this._instance) {
             return new Promise<FileProviderHandler>(resolve => resolve(this._instance));
         } else {
