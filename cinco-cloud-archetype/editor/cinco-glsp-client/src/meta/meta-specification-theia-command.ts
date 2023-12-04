@@ -22,7 +22,8 @@ import { GraphModelProvider } from '../model/graph-model-provider';
 @injectable()
 export class MetaSpecificationTheiaCommand implements Tool {
     @inject(CommandService) @optional() commandService: CommandService;
-    @inject(GraphModelProvider) graphModelProvider: GraphModelProvider;
+    @inject(GraphModelProvider)
+    protected readonly graphModelProvider: GraphModelProvider;
     @inject(TYPES.IActionDispatcher) protected actionDispatcher: GLSPActionDispatcher;
 
     static readonly ID = 'meta-specification-theia-command-tool';

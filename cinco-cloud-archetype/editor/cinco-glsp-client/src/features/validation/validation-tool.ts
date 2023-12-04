@@ -22,7 +22,7 @@ import { GraphModelProvider } from '../../model/graph-model-provider';
 @injectable()
 export class ValidationTool implements Tool {
     @inject(CommandService) @optional() commandService: CommandService;
-    @inject(GraphModelProvider) graphModelProvider: GraphModelProvider;
+    @inject(GraphModelProvider) protected readonly graphModelProvider: GraphModelProvider;
     @inject(TYPES.IActionDispatcher) protected actionDispatcher: GLSPActionDispatcher;
     @inject(EditorContextService) protected readonly editorContext: EditorContextService;
 
