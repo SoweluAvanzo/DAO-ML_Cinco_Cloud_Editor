@@ -13,14 +13,17 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { CincoGraphModel } from './model';
-import { GModelRoot, ISModelRootListener } from '@eclipse-glsp/client';
+import { GModelRoot, IDiagramOptions, ISModelRootListener, TYPES } from '@eclipse-glsp/client';
 
 @injectable()
 export class GraphModelProvider implements ISModelRootListener {
-    private _model: Readonly<CincoGraphModel>;
-    private _locked: ((graphModel: Readonly<CincoGraphModel>) => void)[] = [];
+    @inject(TYPES.IDiagramOptions)
+    protected options: IDiagramOptions;
+
+    private static _model: Map<string, Readonly<CincoGraphModel>> = new Map();
+    protected static _locked: Map<string, ((graphModel: Readonly<CincoGraphModel>) => void)[]> = new Map();
 
     modelRootChanged(root: Readonly<GModelRoot>): void {
         if (root instanceof CincoGraphModel) {
@@ -30,28 +33,44 @@ export class GraphModelProvider implements ISModelRootListener {
 
     get graphModel(): Promise<Readonly<CincoGraphModel>> {
         return new Promise<Readonly<CincoGraphModel>>((resolve, reject) => {
-            if (this._model) {
-                resolve(this._model);
+            const currentSourceUri = this.options.sourceUri;
+            if (!currentSourceUri) {
+                return;
+            }
+            const model = GraphModelProvider._model.get(currentSourceUri);
+            if (model) {
+                resolve(model);
             } else {
-                this._locked.push(resolve);
+                if (!GraphModelProvider._locked.has(currentSourceUri)) {
+                    GraphModelProvider._locked.set(currentSourceUri, []);
+                }
+                GraphModelProvider._locked.get(currentSourceUri)?.push(resolve);
             }
         });
     }
 
     get isLoaded(): boolean {
-        return this._model !== undefined;
+        return GraphModelProvider._model.get(this.options.sourceUri ?? '') !== undefined;
     }
 
     set graphModel(model: Readonly<CincoGraphModel>) {
-        this._model = model;
-        this.unlockAll(this._model);
+        const currentSourceUri = this.options.sourceUri;
+        if (!currentSourceUri) {
+            throw new Error('No sourceUri to relate given model!');
+        }
+        GraphModelProvider._model.set(currentSourceUri, model);
+        this.unlockAll(GraphModelProvider._model.get(currentSourceUri)!);
     }
 
     protected unlockAll(graphModel: Readonly<CincoGraphModel>): void {
-        this._model = graphModel;
-        for (const unlock of this._locked) {
+        const currentSourceUri = this.options.sourceUri;
+        if (!currentSourceUri) {
+            return;
+        }
+        const toUnlock = GraphModelProvider._locked.get(currentSourceUri) ?? [];
+        for (const unlock of toUnlock) {
             unlock(graphModel);
         }
-        this._locked = [];
+        GraphModelProvider._locked.set(currentSourceUri, []);
     }
 }
