@@ -59,7 +59,7 @@ export namespace FileProviderResponseItem {
     }
 }
 
-export interface FileProviderRequest extends Action {
+export interface FileProviderRequest extends RequestAction<FileProviderResponse> {
     kind: typeof FileProviderRequest.KIND;
     directories: string[]; // keyword META_LANGUAGES_FOLDER can be used for the respective folders
     requestId: string;
