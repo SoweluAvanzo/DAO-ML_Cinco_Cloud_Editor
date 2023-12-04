@@ -38,8 +38,7 @@ import {
     configureCommand,
     configureDefaultModelElements,
     initializeDiagramContainer,
-    ContainerConfiguration,
-    bindOrRebind
+    ContainerConfiguration
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -63,7 +62,6 @@ import { MetaSpecificationTheiaCommand } from './meta/meta-specification-theia-c
 import { ServerArgsProvider } from './meta/server-args-response-handler';
 import { FileProviderHandler } from './features/action-handler/file-provider-handler';
 import { CinoPreparationsStartUp } from './glsp/cinco-preparations-startup';
-import { CincoGLSPCommandStack } from './glsp/cinco-command-stack';
 import { RestoreViewportHandler } from '@eclipse-glsp/client/lib/features/viewport/viewport-handler';
 import { CincoRestoreViewportHandler } from './glsp/cinco-viewport-handler';
 
@@ -81,10 +79,12 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     // custom
     bind(WorkspaceFileService).toSelf().inSingletonScope();
+
+    // graphModelProvider
+    bind(TYPES.ISModelRootListener).to(GraphModelProvider);
     bind(GraphModelProvider).toSelf().inSingletonScope();
 
     // needs to be bound first because of DiagramLoader (Startup)
-    bindOrRebind(context, TYPES.ICommandStack).to(CincoGLSPCommandStack).inSingletonScope();
     bind(CinoPreparationsStartUp)
         .toSelf()
         .inSingletonScope()
@@ -136,11 +136,13 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureActionHandler(context, PropertyViewResponseAction.KIND, PropertyViewResponseActionHandler);
 
     // bind the generatorTool, that will fire the GeneratorActions to the backend and the handler processing the responses
-    bind(TYPES.IDefaultTool).to(GeneratorTool).inSingletonScope();
+    bind(TYPES.IDefaultTool).to(GeneratorTool);
+    bind(GeneratorTool).toSelf().inSingletonScope();
     configureActionHandler(context, GeneratorResponseAction.KIND, GeneratorResponseActionHandler);
 
     // bind the validation tool, that will fire ValidationRequestActions to the backend
     bind(TYPES.IDefaultTool).to(ValidationTool);
+    bind(ValidationTool).toSelf().inSingletonScope();
     configureActionHandler(context, ValidationModelResponseAction.KIND, ValidationModelResponseActionHandler);
 
     // bind tool, that registers a theia-command to fetch the meta-specification

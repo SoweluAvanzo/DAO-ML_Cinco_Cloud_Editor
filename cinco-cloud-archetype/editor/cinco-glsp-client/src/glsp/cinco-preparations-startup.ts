@@ -32,7 +32,6 @@ import { FrontendResourceLoader } from '../meta/frontend-resource.loader';
 import { reregisterBindings } from '../meta/meta-model-glsp-registration-handler';
 import { WorkspaceFileService } from '../utils/workspace-file-service';
 import { GraphModelProvider } from '../model/graph-model-provider';
-import { CincoGLSPCommandStack } from './cinco-command-stack';
 import { CincoToolPalette } from './cinco-tool-palette';
 import { CincoGLSPClient, CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
 
@@ -103,11 +102,7 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
     }
 
     async postRequestModel?(): Promise<void> {
-        // after meta-specification and concrete model has been loaded
-        if (!(this.commandStack instanceof CincoGLSPCommandStack)) {
-            throw Error('CINCO: Eclipse GLSP API has changed. This might not work anymore. Please review!');
-        }
-        const model = await this.commandStack.waitForCincoModel;
-        this.graphModelProvider.graphModel = model;
+        // wait for graphmodel to be loaded, to prevent race-conditions
+        await this.graphModelProvider.graphModel;
     }
 }

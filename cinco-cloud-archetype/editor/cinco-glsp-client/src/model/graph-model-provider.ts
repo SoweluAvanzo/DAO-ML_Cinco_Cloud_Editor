@@ -15,11 +15,18 @@
  ********************************************************************************/
 import { injectable } from 'inversify';
 import { CincoGraphModel } from './model';
+import { GModelRoot, ISModelRootListener } from '@eclipse-glsp/client';
 
 @injectable()
-export class GraphModelProvider {
+export class GraphModelProvider implements ISModelRootListener {
     private _model: Readonly<CincoGraphModel>;
     private _locked: ((graphModel: Readonly<CincoGraphModel>) => void)[] = [];
+
+    modelRootChanged(root: Readonly<GModelRoot>): void {
+        if (root instanceof CincoGraphModel) {
+            this.graphModel = root;
+        }
+    }
 
     get graphModel(): Promise<Readonly<CincoGraphModel>> {
         return new Promise<Readonly<CincoGraphModel>>((resolve, reject) => {
