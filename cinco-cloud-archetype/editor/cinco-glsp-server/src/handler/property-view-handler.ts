@@ -39,7 +39,6 @@ export class PropertyViewHandler implements ActionHandler {
     actionKinds: string[] = [PropertyViewAction.KIND];
 
     execute(action: PropertyViewAction, ...args: unknown[]): MaybePromise<Action[]> {
-        const modelElementId: string = action.modelElementId;
         const element = this.modelState.index.findModelElement(action.modelElementId) as ModelElement;
         if (!element) {
             // element is not part of this graphmodel (maybe another)
@@ -68,10 +67,11 @@ export class PropertyViewHandler implements ActionHandler {
                 PropertyViewResponseAction.create(
                     modelElementIndex,
                     modelType,
-                    modelElementId,
+                    element.id,
                     element.propertyDefinitions,
                     customTypes,
-                    element.properties
+                    element.properties,
+                    action.requestId
                 )
             );
         }
