@@ -809,6 +809,18 @@
           "final": false
         },
         {
+          "name": "multiLineAnnotation",
+          "type": "string",
+          "defaultValue": "This should be a multiline textfield...\n\n...does it?",
+          "final": false,
+          "annotations": [
+            {
+              "name": "multiline",
+              "values": []
+            }
+          ]
+        },
+        {
           "name": "number",
           "type": "number",
           "bounds": {
