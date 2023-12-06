@@ -932,6 +932,99 @@
           "final": true
         },
         {
+          "name": "color",
+          "type": "string",
+          "defaultValue": "#FFAA99",
+          "final": false,
+          "annotations": [
+            {
+              "name": "color",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "finalColor",
+          "type": "string",
+          "defaultValue": "#FFAA99",
+          "final": true,
+          "annotations": [
+            {
+              "name": "color",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "anyFile",
+          "type": "string",
+          "final": false,
+          "annotations": [
+            {
+              "name": "file",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "textFile",
+          "type": "string",
+          "final": false,
+          "annotations": [
+            {
+              "name": "file",
+              "values": ["txt"]
+            }
+          ]
+        },
+        {
+          "name": "directory",
+          "type": "string",
+          "final": false,
+          "annotations": [
+            {
+              "name": "file",
+              "values": ["%directory"]
+            }
+          ]
+        },
+        {
+          "name": "finalFile",
+          "type": "string",
+          "final": true,
+          "annotations": [
+            {
+              "name": "file",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "defaultValue": "2023-11-27",
+          "final": false,
+          "annotations": [
+            {
+              "name": "date",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "finalDate",
+          "type": "string",
+          "defaultValue": "2023-11-27",
+          "final": true,
+          "annotations": [
+            {
+              "name": "date",
+              "values": []
+            }
+          ]
+        },
+
+        {
           "name": "optional",
           "type": "string",
           "bounds": {
