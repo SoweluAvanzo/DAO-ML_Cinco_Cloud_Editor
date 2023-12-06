@@ -835,7 +835,7 @@
             "lowerBound": 1,
             "upperBound": 1
           },
-          "defaultValue": "true"
+          "defaultValue": "false"
         },
         {
           "name": "optional",
