@@ -838,6 +838,100 @@
           "defaultValue": "false"
         },
         {
+          "name": "hiddenString",
+          "type": "string",
+          "defaultValue": "This should not appear",
+          "final": false,
+          "annotations": [
+            {
+              "name": "hidden",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "readOnlyString",
+          "type": "string",
+          "defaultValue": "This should not be editable",
+          "final": false,
+          "annotations": [
+            {
+              "name": "readOnly",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "readOnlyMultiline",
+          "type": "string",
+          "defaultValue": "This should not be editable",
+          "final": false,
+          "annotations": [
+            {
+              "name": "readOnly",
+              "values": []
+            },
+            {
+              "name": "multiline",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "readOnlyNumber",
+          "type": "number",
+          "defaultValue": 42,
+          "final": false,
+          "annotations": [
+            {
+              "name": "readOnly",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "readOnlyBoolean",
+          "type": "boolean",
+          "defaultValue": "true",
+          "final": false,
+          "annotations": [
+            {
+              "name": "readOnly",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "finalString",
+          "type": "string",
+          "defaultValue": "This should not be editable",
+          "final": true
+        },
+        {
+          "name": "finalMultiline",
+          "type": "string",
+          "defaultValue": "This should not be editable",
+          "final": true,
+          "annotations": [
+            {
+              "name": "multiline",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "finalNumber",
+          "type": "number",
+          "defaultValue": 42,
+          "final": true
+        },
+        {
+          "name": "finalBoolean",
+          "type": "boolean",
+          "defaultValue": "true",
+          "final": true
+        },
+        {
           "name": "optional",
           "type": "string",
           "bounds": {
