@@ -159,15 +159,20 @@ export class CincoPropertiesView extends React.Component<
             </div>
         );
 
+        // filter out all attributes, that are hidden
+        const isHidden: (attributeDefinition: any) => boolean = attributeDefinition =>
+            (attributeDefinition.annotations ?? []).filter((annotation: any) => annotation.name === 'hidden').length <= 0;
+        const attributeDefinitions = this.state.attributeDefinitions.filter(a => isHidden(a));
+
         return (
             <div id='property-widget'>
                 {header}
                 {
                     // properties
-                    this.state.attributeDefinitions.length > 0 ? (
+                    attributeDefinitions.length > 0 ? (
                         <table className='property-table'>
                             <tbody>
-                                {this.state.attributeDefinitions.map(attributeDefinition => (
+                                {attributeDefinitions.map(attributeDefinition => (
                                     <CincoPropertyView
                                         parent={this.props.parent}
                                         parentState={this.props.parentState}
@@ -416,11 +421,21 @@ export class CincoPropertyEntry extends React.Component<
             isList ? objectValue[valueName][index] : objectValue[valueName] ?? getDefaultValue(currentElement.elementTypeId, valueName)
         );
 
+        // check annotations
+        const annotations = attributeDefinition.annotations ?? [];
+        const isReadOnly = attributeDefinition.final || annotations.filter(a => a.name === 'readOnly').length > 0;
+        /*
+            TODO:
+        const isColor = annotations.filter(a => a.name === 'color').length > 0;
+        const isFile = annotations.filter(a => a.name === 'file').length > 0;
+        const isDate = annotations.filter(a => a.name === 'date').length > 0;
+        */
+
         switch (attributeDefinition.type) {
             case 'string':
             case 'number':
             case 'boolean': {
-                const inputType = this.getInputType(attributeDefinition.type, attributeDefinition.annotations ?? []);
+                const inputType = this.getInputType(attributeDefinition.type, annotations ?? []);
                 if (inputType === 'textarea') {
                     return (
                         <textarea
@@ -439,6 +454,7 @@ export class CincoPropertyEntry extends React.Component<
                                 const rows = calculateRowsForString(newValue);
                                 event.target.rows = rows;
                             }}
+                            readOnly={isReadOnly}
                             value={value.value}
                             placeholder=''
                             rows={calculateRowsForString(value.value as string)}
@@ -466,6 +482,8 @@ export class CincoPropertyEntry extends React.Component<
                                 newValue
                             );
                         }}
+                        readOnly={isReadOnly}
+                        disabled={attributeDefinition.type === 'boolean' && isReadOnly}
                         id={inputId}
                         className={`property-input property-input-${inputType}`}
                     />
@@ -489,6 +507,7 @@ export class CincoPropertyEntry extends React.Component<
                                     event.currentTarget.value
                                 );
                             }}
+                            disabled={isReadOnly}
                             id={inputId}
                         >
                             <option value=''></option>
@@ -535,6 +554,7 @@ export class CincoPropertyEntry extends React.Component<
                                     event.currentTarget.value
                                 )
                             }
+                            disabled={isReadOnly}
                             id={inputId}
                         >
                             <option value=''></option>
