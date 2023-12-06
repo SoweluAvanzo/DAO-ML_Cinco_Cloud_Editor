@@ -20,8 +20,10 @@ import {
     getEdgePalettes,
     getEdgeSpecOf,
     getGraphTypes,
+    getIconClass,
     getNodePalettes,
     getNodeSpecOf,
+    getPaletteIconClass,
     getPalettes,
     getPrimeNodePalettes,
     getSpecOf,
@@ -189,12 +191,13 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         if (handlerItemsOfLabel.length <= 0) {
             return undefined;
         }
+        const paletteIconClass = getPaletteIconClass(categoryId) ?? 'symbol-property';
         const p = {
             id: id,
             label: label,
             actions: [],
             children: handlerItemsOfLabel,
-            icon: 'symbol-property',
+            icon: paletteIconClass,
             sortString: 'A'
         };
         return p;
@@ -279,16 +282,16 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             return this.createPrimePaletteIten(action, handler, elementTypeId, fileName);
         }
         const label = elementTypeId && handler instanceof SpecifiedElementHandler ? handler.getLabelFor(elementTypeId) : handler.label;
-        let icon: string | undefined = undefined;
+        let iconClass: string | undefined = undefined;
         if (handler instanceof SpecifiedElementHandler) {
             if (elementTypeId !== undefined) {
                 const spec = getSpecOf(elementTypeId);
-                icon = spec?.icon;
-                if (!icon && spec) {
-                    icon = `${spec.elementTypeId.replace(':', '_')}`;
+                iconClass = getIconClass(spec?.elementTypeId);
+                if (!iconClass && spec) {
+                    iconClass = `${spec.elementTypeId.replace(':', '_')}`;
                 }
             } else {
-                icon = handler.specification?.icon;
+                iconClass = getIconClass(handler.specification?.elementTypeId);
             }
         }
         return {
@@ -296,7 +299,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             label,
             sortString: label.charAt(0),
             actions: [action],
-            icon: icon ?? 'circle-filled'
+            icon: iconClass ?? 'circle-filled'
         };
     }
 
@@ -310,16 +313,16 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         const elementSpecOfPrimedType = getSpecOf(primeType!) as ElementType;
         const label = elementSpecOfPrimedType.label + '(' + fileName + ')';
 
-        let icon: string | undefined = undefined;
+        let iconClass: string | undefined = undefined;
         if (handler instanceof SpecifiedElementHandler) {
-            icon = handler.specification?.icon;
+            iconClass = getIconClass(elementTypeId);
         }
         return {
             id: `palette-item-${this.counter}`,
             label,
             sortString: label.charAt(0),
             actions: [action],
-            icon: icon ?? 'codicon-circle-filled'
+            icon: iconClass ?? 'codicon-circle-filled'
         };
     }
 }
