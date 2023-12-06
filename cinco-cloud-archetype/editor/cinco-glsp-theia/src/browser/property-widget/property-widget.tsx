@@ -578,7 +578,8 @@ export class CincoPropertyEntry extends React.Component<
                 return { value: value as string | number };
             }
             case 'boolean': {
-                return { checked: value as boolean };
+                const parsedValue = typeof value === 'string' ? (value === 'false' ? false : true) : value;
+                return { checked: parsedValue as boolean };
             }
             default: {
                 return { value: value };
