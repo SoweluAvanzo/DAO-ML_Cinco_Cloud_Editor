@@ -834,7 +834,8 @@
           "bounds": {
             "lowerBound": 1,
             "upperBound": 1
-          }
+          },
+          "defaultValue": "true"
         },
         {
           "name": "optional",
