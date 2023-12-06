@@ -587,7 +587,7 @@
       "width": 92,
       "height": 36,
       "palettes": ["Test"],
-      "icon": "icon_flowgraph_activity",
+      "icon": "icons/icon_flowgraph_activity.png",
       "view": {
         "style": "multiTextTest",
         "styleParameter": ["${name}"]
@@ -705,6 +705,10 @@
         {
           "name": "CustomAction",
           "values": ["LongestPathAction", "Calculate Longest Path"]
+        },
+        {
+          "name": "icon",
+          "values": ["icons/node_start.png"]
         }
       ],
       "attributes": [
@@ -790,7 +794,6 @@
       "width": 92,
       "height": 36,
       "palettes": [],
-      "icon": "icon_flowgraph_activity",
       "view": {
         "style": "blueTextRectangle",
         "styleParameter": ["${name}"]
@@ -1112,7 +1115,11 @@
         },
         {
           "name": "palette",
-          "values": ["PaletteAnnotationGroup"]
+          "values": ["PaletteAnnotationGroup", "icons/icon_flowgraph_activity.png"]
+        },
+        {
+          "name": "icon",
+          "values": ["icons/icon_flowgraph_activity.png"]
         }
       ]
     },
@@ -1194,7 +1201,7 @@
       "width": 36,
       "height": 36,
       "palettes": ["Mandatory"],
-      "icon": "icon_flowgraph_end",
+      "icon": "icons/icon_flowgraph_end.png",
       "view": {
         "style": "redCircle"
       },
@@ -1345,7 +1352,7 @@
       ],
       "width": 92,
       "height": 36,
-      "icon": "icon_flowgraph_activity",
+      "icon": "icons/icon_flowgraph_activity.png",
       "view": {
         "style": "blueTextRectangle",
         "styleParameter": ["${name}"]
@@ -1386,7 +1393,7 @@
       "incomingEdges": [],
       "width": 36,
       "height": 36,
-      "icon": "icon_flowgraph_start",
+      "icon": "icons/node_start.png",
       "view": {
         "style": "greenCircle"
       },
@@ -1413,7 +1420,7 @@
       "width": 92,
       "height": 36,
       "palettes": ["Test"],
-      "icon": "icon_flowgraph_activity",
+      "icon": "icons/icon_flowgraph_activity.png",
       "view": {
         "style": "blueTextRectangle",
         "styleParameter": ["constant text"]
@@ -1443,7 +1450,7 @@
       "width": 92,
       "height": 36,
       "palettes": ["Test"],
-      "icon": "icon_flowgraph_activity",
+      "icon": "icons/icon_flowgraph_activity.png",
       "view": {
         "style": "blueTextRectangle",
         "styleParameter": ["inject name here ->${name}<-"]
