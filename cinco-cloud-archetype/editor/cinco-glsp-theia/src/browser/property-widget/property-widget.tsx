@@ -485,6 +485,9 @@ export class CincoPropertyEntry extends React.Component<
                                             }
                                         })
                                         .then(uri => {
+                                            if (!uri) {
+                                                return;
+                                            }
                                             const newValue = uri?.path.fsPath();
                                             // propagate
                                             assignPropertyValue(
