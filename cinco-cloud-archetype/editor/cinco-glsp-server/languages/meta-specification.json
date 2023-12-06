@@ -1109,6 +1109,10 @@
         {
           "name": "AppearanceProvider",
           "values": ["ExampleAppearanceProvider"]
+        },
+        {
+          "name": "palette",
+          "values": ["PaletteAnnotationGroup"]
         }
       ]
     },
