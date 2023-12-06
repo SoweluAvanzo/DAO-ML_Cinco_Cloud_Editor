@@ -901,8 +901,70 @@ export function isSelectable(type: string): boolean {
 }
 
 /**
+ * Icon
+ */
+
+export function getIconClass(elementTypeId: string | undefined): string | undefined {
+    if (!elementTypeId) {
+        return undefined;
+    }
+    const elementSpec = getSpecOf(elementTypeId) as ElementType;
+    if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
+        return elementSpec.elementTypeId.replace(':', '_');
+    }
+    return undefined;
+}
+
+function getIconFromAnnotation(elementTypeId: string): string | undefined {
+    const iconValues = getAnnotations(elementTypeId, 'icon')
+        .map(a => a.values)
+        .flat();
+    if (iconValues.length > 0) {
+        return iconValues[0];
+    }
+    return undefined;
+}
+
+export function getIcon(elementTypeId: string | undefined): string | undefined {
+    if (!elementTypeId) {
+        return undefined;
+    }
+    const elementSpec = getSpecOf(elementTypeId) as ElementType;
+    if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
+        return elementSpec.icon ?? getIconFromAnnotation(elementTypeId) ?? undefined;
+    }
+    return undefined;
+}
+
+/**
  * Palettes
  */
+
+export function getPaletteIconClass(paletteCategory: string | undefined): string | undefined {
+    if (!paletteCategory) {
+        return undefined;
+    }
+    const paletteAnnotations = getAllPaletteAnnotations();
+    // all annotations with categoryName that have two values, e.g.: @palette(paletteCategory, iconPath)
+    const annotations = paletteAnnotations.filter(a => a.values.length >= 2 && a.values[0] === paletteCategory);
+    if (annotations.length > 0) {
+        return 'icon_palette_' + annotations[0].values[0].replace(':', '_').toLowerCase();
+    }
+    return undefined;
+}
+
+export function getPaletteIconPath(paletteCategory: string | undefined): string | undefined {
+    if (!paletteCategory) {
+        return undefined;
+    }
+    const paletteAnnotations = getAllPaletteAnnotations();
+    // all annotations with categoryName that have two values, e.g.: @palette(paletteCategory, iconPath)
+    const annotations = paletteAnnotations.filter(a => a.values.length >= 2 && a.values[0] === paletteCategory);
+    if (annotations.length > 0) {
+        return annotations[0].values[1];
+    }
+    return undefined;
+}
 
 function getPaletteFromAnnotation(elementTypeId: string): string[] {
     return getAnnotations(elementTypeId, 'palette')
@@ -959,6 +1021,15 @@ export function getEdgePalettes(): string[] {
             palettes.indexOf(paletteElement ?? '') < 0 ? palettes.push(paletteElement ?? '') : undefined
         );
     return palettes;
+}
+
+export function getAllPaletteCategories(primePalettes = true): string[] {
+    return getNodePalettes().concat(getEdgePalettes().concat(primePalettes ? getPrimeNodePalettes() : []));
+}
+
+export function getAllPaletteAnnotations(): Annotation[] {
+    const modelElements = getModelElementSpecifications().filter(m => EdgeType.is(m) || NodeType.is(m));
+    return modelElements.map(e => (e.annotations ?? []).filter(a => a.name === 'palette')).flat();
 }
 
 /**
