@@ -904,10 +904,17 @@ export function isSelectable(type: string): boolean {
  * Palettes
  */
 
+function getPaletteFromAnnotation(elementTypeId: string): string[] {
+    return getAnnotations(elementTypeId, 'palette')
+        .map(a => a.values)
+        .flat();
+}
+
 export function hasPalette(elementTypeId: string, palette: string): boolean {
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
     if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
-        if (elementSpec.palettes !== undefined && elementSpec.palettes.indexOf(palette) >= 0) {
+        const palettes = getPalettes(elementSpec.elementTypeId);
+        if (palettes.indexOf(palette) >= 0) {
             return true;
         }
     }
@@ -920,17 +927,15 @@ export function getPalettes(elementTypeId: string | undefined): string[] {
     }
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
     if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
-        if (elementSpec.palettes !== undefined) {
-            return elementSpec.palettes;
-        }
+        return (elementSpec.palettes ?? []).concat(getPaletteFromAnnotation(elementTypeId));
     }
     return [];
 }
 
 export function getNodePalettes(): string[] {
     const palettes: string[] = [];
-    getNodeTypes((e: NodeType) => e.palettes !== undefined && e.palettes.length >= 0)
-        .map((e, i, a) => e.palettes!)
+    getNodeTypes()
+        .map((e, i, a) => getPalettes(e.elementTypeId))
         .flat()
         .forEach((paletteElement: string) => (palettes.indexOf(paletteElement) < 0 ? palettes.push(paletteElement) : undefined));
     return palettes;
@@ -947,8 +952,8 @@ export function getPrimeNodePalettes(): string[] {
 
 export function getEdgePalettes(): string[] {
     const palettes: string[] = [];
-    getEdgeTypes((e: EdgeType) => e.palettes !== undefined && e.palettes.length >= 0)
-        .map((e, i, a) => e.palettes)
+    getEdgeTypes()
+        .map((e, i, a) => getPalettes(e.elementTypeId))
         .flat()
         .forEach((paletteElement: string | undefined) =>
             palettes.indexOf(paletteElement ?? '') < 0 ? palettes.push(paletteElement ?? '') : undefined
