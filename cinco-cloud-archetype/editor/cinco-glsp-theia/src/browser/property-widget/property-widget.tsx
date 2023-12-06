@@ -41,7 +41,7 @@ import { CommandService } from '@theia/core';
 import { codicon, Message, ReactWidget, Widget } from '@theia/core/lib/browser';
 import { inject, injectable, postConstruct } from 'inversify';
 import * as React from 'react';
-
+import { FileDialogService } from '@theia/filesystem/lib/browser';
 import { PropertyDataHandler } from './property-data-handler';
 
 interface PropertyWidgetState {
@@ -52,17 +52,20 @@ interface PropertyWidgetState {
     values: Record<string, any>;
 }
 
+const FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD = '%directory';
+
 @injectable()
 export class CincoCloudPropertyWidget extends ReactWidget {
+    @inject(PropertyDataHandler) propertyDataHandler: PropertyDataHandler;
+    @inject(CommandService) commandService: CommandService;
+    @inject(DiagramConfiguration) diagramConfiguration: DiagramConfiguration;
+    @inject(FileDialogService) fileDialogService: FileDialogService;
+
     static readonly ID = 'cincoCloudPropertyView';
     static readonly LABEL = 'Cinco Cloud Properties';
 
     override readonly id = CincoCloudPropertyWidget.ID;
     readonly label = CincoCloudPropertyWidget.LABEL;
-
-    @inject(PropertyDataHandler) propertyDataHandler: PropertyDataHandler;
-    @inject(CommandService) commandService: CommandService;
-    @inject(DiagramConfiguration) diagramConfiguration: DiagramConfiguration;
 
     state: PropertyWidgetState = {
         modelElementIndex: {},
@@ -424,18 +427,12 @@ export class CincoPropertyEntry extends React.Component<
         // check annotations
         const annotations = attributeDefinition.annotations ?? [];
         const isReadOnly = attributeDefinition.final || annotations.filter(a => a.name === 'readOnly').length > 0;
-        /*
-            TODO:
-        const isColor = annotations.filter(a => a.name === 'color').length > 0;
-        const isFile = annotations.filter(a => a.name === 'file').length > 0;
-        const isDate = annotations.filter(a => a.name === 'date').length > 0;
-        */
-
         switch (attributeDefinition.type) {
             case 'string':
             case 'number':
             case 'boolean': {
                 const inputType = this.getInputType(attributeDefinition.type, annotations ?? []);
+                const isDisabled = isReadOnly && ['checkbox', 'color', 'date', 'file'].includes(inputType);
                 if (inputType === 'textarea') {
                     return (
                         <textarea
@@ -463,31 +460,84 @@ export class CincoPropertyEntry extends React.Component<
                             className={`property-input property-input-${inputType}`}
                         />
                     );
+                } else if (inputType === 'file') {
+                    const fileDialogService = this.props.parent.fileDialogService;
+                    const fileTypes = (attributeDefinition.annotations ?? []).map(a => a.values).flat();
+                    const directorySelectable = fileTypes.filter(t => t === FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD).length > 0;
+                    const nonDirectoryFileTypesDefined = fileTypes.filter(t => t !== FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD).length > 0;
+                    const onlyDirectory = !nonDirectoryFileTypesDefined && directorySelectable;
+                    return (
+                        <span style={{ display: 'flex', width: '100%' }}>
+                            <input
+                                type={'button'}
+                                value={'Select'}
+                                onClick={event => {
+                                    fileDialogService
+                                        .showOpenDialog({
+                                            title: `Select a file for ${attributeDefinition.name}`,
+                                            canSelectFiles: !onlyDirectory,
+                                            canSelectMany: false,
+                                            canSelectFolders: directorySelectable || !nonDirectoryFileTypesDefined,
+                                            openLabel: 'Select',
+                                            modal: true,
+                                            filters: {
+                                                'FileType(s)': fileTypes.flat()
+                                            }
+                                        })
+                                        .then(uri => {
+                                            const newValue = uri?.path.fsPath();
+                                            // propagate
+                                            assignPropertyValue(
+                                                this.props.parent,
+                                                (newState: PropertyWidgetState) => this.setState(newState),
+                                                this.state,
+                                                pointer,
+                                                attributeDefinition,
+                                                isList ? index : undefined,
+                                                newValue
+                                            );
+                                        });
+                                }}
+                                readOnly={isReadOnly}
+                                disabled={isDisabled}
+                                id={inputId}
+                                className={`property-input property-input-${inputType}`}
+                            />
+                            <input
+                                {...value}
+                                readOnly={true}
+                                disabled={isDisabled}
+                                style={{ width: '100%' }}
+                                className={`property-input property-input-${inputType}`}
+                            />
+                        </span>
+                    );
+                } else {
+                    return (
+                        <input
+                            type={inputType}
+                            {...value}
+                            onChange={event => {
+                                const newValue =
+                                    attributeDefinition.type === 'boolean' ? event.currentTarget.checked : event.currentTarget.value;
+                                // propagate
+                                assignPropertyValue(
+                                    this.props.parent,
+                                    (newState: PropertyWidgetState) => this.setState(newState),
+                                    this.state,
+                                    pointer,
+                                    attributeDefinition,
+                                    isList ? index : undefined,
+                                    newValue
+                                );
+                            }}
+                            readOnly={isReadOnly}
+                            disabled={isDisabled}
+                            id={inputId}
+                            className={`property-input property-input-${inputType}`}
+                        />
+                    );
                 }
-                return (
-                    <input
-                        type={inputType}
-                        {...value}
-                        onChange={event => {
-                            const newValue =
-                                attributeDefinition.type === 'boolean' ? event.currentTarget.checked : event.currentTarget.value;
-                            // propagate
-                            assignPropertyValue(
-                                this.props.parent,
-                                (newState: PropertyWidgetState) => this.setState(newState),
-                                this.state,
-                                pointer,
-                                attributeDefinition,
-                                isList ? index : undefined,
-                                newValue
-                            );
-                        }}
-                        readOnly={isReadOnly}
-                        disabled={attributeDefinition.type === 'boolean' && isReadOnly}
-                        id={inputId}
-                        className={`property-input property-input-${inputType}`}
-                    />
-                );
             }
             default: {
                 const typeDefinition = getCustomTypeDefinition(this.state.customTypeDefinitions, attributeDefinition.type);
@@ -575,10 +625,20 @@ export class CincoPropertyEntry extends React.Component<
     }
 
     protected getInputType(type: PrimitivePropertyType, annotations: Annotation[]): React.HTMLInputTypeAttribute {
+        const isColor = annotations.filter(a => a.name === 'color').length > 0;
+        const isFile = annotations.filter(a => a.name === 'file').length > 0;
+        const isDate = annotations.filter(a => a.name === 'date').length > 0;
+        const isMultiLine = annotations.filter(a => a.name === 'multiline').length > 0;
         switch (type) {
             case 'string':
-                if (annotations.filter(a => a.name === 'multiline').length > 0) {
+                if (isMultiLine) {
                     return 'textarea';
+                } else if (isFile) {
+                    return 'file';
+                } else if (isDate) {
+                    return 'date';
+                } else if (isColor) {
+                    return 'color';
                 }
                 return 'text';
             case 'number':
