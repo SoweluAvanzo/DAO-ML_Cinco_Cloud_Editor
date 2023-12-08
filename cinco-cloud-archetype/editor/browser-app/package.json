@@ -48,7 +48,7 @@
     "prepare": "yarn build",
     "theia": "theia",
     "build": "theia build --mode development",
-    "start": "theia start --root-dir=../workspace --plugins=local-dir:./plugin --CINCO_GLSP=5007 --WS_PATH='cinco's",
+    "start": "theia start --root-dir=../workspace --plugins=local-dir:./plugin --CINCO_GLSP=5007 --WS_PATH='cinco'",
     "start:external": "theia startv--root-dir=../workspace --plugins=local-dir:./plugins --debug --CINCO_GLSP=5007 --WS_PATH='cinco'",
     "debug": "theia start --remote-debugging-port=9222 --loglevel=debug --debug --no-cluster --root-dir=../workspace --plugins=local-dir:./plugins --CINCO_GLSP=5007 --WS_PATH='cinco'",
     "watch": "theia build --watch --mode development",
