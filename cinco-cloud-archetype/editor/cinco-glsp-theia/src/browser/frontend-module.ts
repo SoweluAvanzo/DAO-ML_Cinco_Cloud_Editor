@@ -76,6 +76,8 @@ import {
     DiagramWidgetFactory
 } from '@eclipse-glsp/theia-integration/lib/browser/diagram/diagram-widget-factory';
 import { LanguageUpdater } from './meta/language-updater';
+import { CINCO_LOGGING_ENDPOINT, CincoLoggingClient, CincoLoggingServer } from '../common/cinco-logging-protocol';
+import { CincoLoggingClientNode, CincoLoggingContribution } from './cinco-logging-contribution';
 
 export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
     protected override get diagramLanguage(): GLSPDiagramLanguage {
@@ -114,6 +116,17 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
             })
             .inSingletonScope();
         context.bind(FrontendApplicationContribution).to(FileSystemUtilService);
+
+        // provision of logging from backend to frontend
+        context
+            .bind(CincoLoggingServer)
+            .toDynamicValue(ctx => {
+                const client: CincoLoggingClient = new CincoLoggingClientNode();
+                const connection = ctx.container.get(WebSocketConnectionProvider);
+                return connection.createProxy<CincoLoggingServer>(CINCO_LOGGING_ENDPOINT, client);
+            })
+            .inSingletonScope();
+        context.bind(FrontendApplicationContribution).to(CincoLoggingContribution);
 
         // Validation Widgets
         context.bind(CincoCloudModelValidationWidget).toSelf();

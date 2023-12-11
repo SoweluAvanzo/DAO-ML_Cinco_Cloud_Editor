@@ -25,6 +25,8 @@ import { FILESYSTEM_UTIL_ENDPOINT, FilesystemUtilClient, FilesystemUtilServer } 
 import { GLSPServerUtilServerNode } from './glsp-server-util-server-node';
 import { CincoGLSPServerArgsSetup } from './cinco-glsp-server-args-setup';
 import { CincoLogger } from './cinco-theia-logger';
+import { CincoLoggingServerNode } from './cinco-logging-server-node';
+import { CINCO_LOGGING_ENDPOINT, CincoLoggingClient, CincoLoggingServer } from '../common/cinco-logging-protocol';
 
 export default new ContainerModule((bind, unbind) => {
     if (isDirectWebSocketConnection()) {
@@ -65,6 +67,20 @@ export default new ContainerModule((bind, unbind) => {
                     const glspServerUtils = ctx.container.get<GLSPServerUtilServer>(GLSPServerUtilServer);
                     glspServerUtils.setClient(client);
                     return glspServerUtils;
+                })
+        )
+        .inSingletonScope();
+
+    // provision of fileSystemUtils from backend to frontend
+    bind(CincoLoggingServerNode).to(CincoLoggingServerNode).inSingletonScope();
+    bind(CincoLoggingServer).to(CincoLoggingServerNode).inSingletonScope();
+    bind(ConnectionHandler)
+        .toDynamicValue(
+            ctx =>
+                new RpcConnectionHandler<CincoLoggingClient>(CINCO_LOGGING_ENDPOINT, client => {
+                    const cincoLoggingServer = ctx.container.get<CincoLoggingServer>(CincoLoggingServer);
+                    cincoLoggingServer.setClient(client);
+                    return cincoLoggingServer;
                 })
         )
         .inSingletonScope();
