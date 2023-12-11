@@ -57,7 +57,7 @@ import { canContain } from '../utils/constraint-utils';
 export class CincoNode extends SNode {
     [x: string]: any;
     override type: string;
-    protected specification?: ElementType;
+    protected spec?: ElementType;
     protected _view?: View; // runtime view
     protected _properties?: Record<string, any>;
 
@@ -120,8 +120,8 @@ export class CincoNode extends SNode {
         if (!this.elementType) {
             return undefined;
         }
-        this.specification = getSpecOf(this.elementType);
-        return this.specification?.view;
+        this.spec = getSpecOf(this.elementType);
+        return this.spec?.view;
     }
 
     get style(): Style | undefined {
@@ -182,12 +182,16 @@ export class CincoNode extends SNode {
     get isContainer(): boolean {
         return this.elementType !== undefined && isContainer(this.elementType);
     }
+
+    get specification(): ElementType | undefined {
+        return this.spec;
+    }
 }
 
 export class CincoEdge extends SEdge {
     [x: string]: any;
     override type: string;
-    protected specification?: ElementType;
+    protected spec?: ElementType;
     protected _bendPoints?: Point[];
     protected _movingBendPoint?: Point;
     protected _movingBendPointIndex?: number;
@@ -296,8 +300,8 @@ export class CincoEdge extends SEdge {
         if (!this.elementType) {
             return undefined;
         }
-        this.specification = getSpecOf(this.elementType);
-        return this.specification?.view;
+        this.spec = getSpecOf(this.elementType);
+        return this.spec?.view;
     }
 
     get style(): Style | undefined {
@@ -315,6 +319,10 @@ export class CincoEdge extends SEdge {
         if (this._view) {
             this._view.style = { ...style } as Style;
         }
+    }
+
+    get specification(): ElementType | undefined {
+        return this.spec;
     }
 
     addBendPoint(point: Point, index: number): void {

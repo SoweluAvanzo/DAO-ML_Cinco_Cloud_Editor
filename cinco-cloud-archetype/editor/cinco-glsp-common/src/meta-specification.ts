@@ -244,6 +244,21 @@ export namespace Polyline {
     }
 }
 
+export interface WebView extends Shape, GraphicsAlgorithm {
+    type: typeof AbstractShape.WEBVIEW;
+    position?: AbstractPosition | AbsolutePosition | Alignment;
+    size?: Size;
+    content: string; // filePath or content
+    scrollable?: boolean;
+    padding?: number;
+}
+
+export namespace WebView {
+    export function is(object: any): object is WebView {
+        return object !== undefined && object.type === AbstractShape.WEBVIEW;
+    }
+}
+
 export interface Image extends Shape, GraphicsAlgorithm {
     type: typeof AbstractShape.IMAGE;
     position?: AbstractPosition | AbsolutePosition | Alignment;
@@ -318,7 +333,8 @@ export namespace Shape {
             (object.type === AbstractShape.TEXT ||
                 object.type === AbstractShape.MULTITEXT ||
                 object.type === AbstractShape.IMAGE ||
-                object.type === AbstractShape.POLYLINE)
+                object.type === AbstractShape.POLYLINE ||
+                object.type === AbstractShape.WEBVIEW)
         );
     }
 }
@@ -332,6 +348,7 @@ export namespace AbstractShape {
     export const ROUNDEDRECTANGLE = 'ROUNDEDRECTANGLE';
     export const ELLIPSE = 'ELLIPSE';
     export const POLYGON = 'POLYGON';
+    export const WEBVIEW = 'WEBVIEW';
 
     export function is(object: any): object is AbstractShape {
         return object !== undefined && (Shape.is(object) || ContainerShape.is(object));
@@ -756,6 +773,8 @@ export function getAppearanceOfShape(type: Shape): Appearance | undefined {
             return resolveAppearance((type as MultiText).appearance);
         case AbstractShape.IMAGE:
             return undefined;
+        case AbstractShape.WEBVIEW:
+            return undefined;
         case AbstractShape.POLYLINE:
             return resolveAppearance((type as Polyline).appearance);
         case AbstractShape.RECTANGLE:
@@ -766,8 +785,9 @@ export function getAppearanceOfShape(type: Shape): Appearance | undefined {
             return resolveAppearance((type as Ellipse).appearance);
         case AbstractShape.POLYGON:
             return resolveAppearance((type as Polygon).appearance);
+        default:
+            return undefined;
     }
-    return undefined;
 }
 
 function resolveAppearance(app: string | Appearance | undefined): Appearance | undefined {

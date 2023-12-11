@@ -85,6 +85,20 @@ export class WorkspaceFileService {
         return undefined;
     }
 
+    async download(url: string): Promise<string | undefined> {
+        // eslint-disable-next-line no-async-promise-executor
+        const result = await new Promise<string | undefined>(async resolve => {
+            try {
+                const resp = await fetch(url);
+                const responseText = await resp.text();
+                resolve(responseText);
+            } catch (e) {
+                resolve(undefined);
+            }
+        });
+        return result;
+    }
+
     async servedExists(filePath: string): Promise<boolean> {
         if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
             return true;
@@ -112,7 +126,7 @@ export class WorkspaceFileService {
 
     async servedExistsIn(filePath: string): Promise<string | undefined> {
         if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
-            return undefined;
+            return filePath;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
         let exists;
