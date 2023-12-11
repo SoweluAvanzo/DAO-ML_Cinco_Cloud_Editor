@@ -147,7 +147,7 @@ Install the following software:
     2. Navigate to *User > Access Keys* and click on *Create access key*
     3. Create an access key with the details provided in `cinco-cloud-main-secrets` and click on `create`.
        In the default development secrets, the access key and the secret key are both set to `minio-sa`. 
-    4. Restart the pod of the main service: `kubectl delete pod main-statefulset-0`
+    4. Restart the pod of the main service: `kubectl delete pods -l app=main`
 
 ## Skaffold development profiles
 
@@ -167,15 +167,21 @@ During registration, emails with activation links are sent to users.
 In the developement these emails are send to Mailhog.
 To access the Mailhog interface, perform the following steps:
 
-**Windows / Linux**
+**kubectl (Linux)**
 
-  1. Execute `kubectl get pods` to list all pods. 
-     The pod starting with `<RELEASE>-mailhog-<ID>` refers to Mailhog. 
-  1. Execute `kubectl port-forward <RELEASE>-mailhog-<ID> 8025:8025`.
-     Leave the terminal session open until you finished setting up Minio.
+  1. Execute `kubectl port-forward $(kubectl get pods -l app.kubernetes.io/name=mailhog -o name) 8025:8025`.
+     Leave the terminal session open as long as you access Mailhog.
   2. Open `http://127.0.0.1:8025`
 
-**MacOS**
+**kubectl (Windows)**
+
+  1. Execute `kubectl get pods -l app.kubernetes.io/name=mailhog -o name` to
+     get the name of the Mailhog pod.
+  2. Execute `kubectl port-forward <RELEASE>-mailhog-<ID> 8025:8025`.
+     Leave the terminal session open as long as you access Mailhog.
+  3. Open `http://127.0.0.1:8025`
+
+**minikube Linux/MacOS**
 
   1. Execute `kubectl get service` to list all services.
   2. Open a terminal and execute `minikube service <RELEASE>-mailhog --url`.
