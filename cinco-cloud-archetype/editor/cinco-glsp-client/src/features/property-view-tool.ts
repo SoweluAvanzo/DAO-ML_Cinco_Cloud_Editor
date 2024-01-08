@@ -45,7 +45,6 @@ export class PropertyViewResponseActionHandler implements IActionHandler {
                 action.modelType,
                 action.modelElementId,
                 action.attributeDefinitions,
-                action.customTypeDefinitions,
                 action.values
             );
     }

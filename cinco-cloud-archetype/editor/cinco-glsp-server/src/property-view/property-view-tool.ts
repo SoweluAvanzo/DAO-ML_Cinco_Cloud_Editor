@@ -17,12 +17,9 @@ import { GraphModelState, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import {
     Attribute,
     CustomType,
-    EdgeType,
     ElementType,
-    GraphType,
     LabeledModelElementReference,
     ModelElementIndex,
-    NodeType,
     ObjectPointer,
     PropertyChange,
     PropertyEditOperation,
@@ -33,7 +30,6 @@ import {
     canDelete,
     getAttribute,
     getCustomType,
-    getCustomTypes,
     getDefaultValue,
     getModelElementSpecifications,
     getSpecOf,
@@ -77,7 +73,6 @@ export class PropertyViewHandler implements ActionHandler {
                 return this.buildLabeledModelElementReference({ id: id, elementTypeId: elementTypeId, name: name, label: label });
             });
         }
-        const customTypes = getCustomTypes();
         // build message
         const consecutiveActions: Action[] = [];
         if (element !== undefined) {
@@ -87,7 +82,6 @@ export class PropertyViewHandler implements ActionHandler {
                     modelType,
                     modelElementId,
                     element.propertyDefinitions,
-                    customTypes,
                     element.properties
                 )
             );
@@ -248,7 +242,7 @@ export class PropertyEditHandler implements OperationHandler {
     protected locateObject(element: any, pointer: ObjectPointer): { object: any; objectTypeSpecification: CustomType | undefined } {
         let object: any = element;
         let objectDefinition: Attribute | undefined = undefined;
-        let objectTypeSpecification: CustomType | NodeType | EdgeType | GraphType | undefined = getSpecOf(element.type);
+        let objectTypeSpecification = getSpecOf(element.type);
         for (const step of pointer) {
             if (step.index !== undefined) {
                 if (ModelElement.is(object)) {

@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Attribute, CustomType } from '../meta-specification';
+import { Attribute } from '../meta-specification';
 import { ModelElementIndex, ObjectPointer, PropertyChange } from './property-model';
 import { Action, Operation } from './shared-protocol';
 import { hasObjectProp, hasStringProp } from './type-utils';
@@ -59,7 +59,6 @@ export interface PropertyViewResponseAction extends Action {
     modelType: string;
     modelElementId: string;
     attributeDefinitions: Attribute[];
-    customTypeDefinitions: CustomType[];
     values: any;
 }
 export namespace PropertyViewResponseAction {
@@ -70,7 +69,6 @@ export namespace PropertyViewResponseAction {
         modelType: string,
         modelElementId: string,
         attributeDefinitions: Attribute[],
-        customTypeDefinitions: CustomType[],
         values: any
     ): PropertyViewResponseAction {
         return {
@@ -79,7 +77,6 @@ export namespace PropertyViewResponseAction {
             modelType,
             modelElementId,
             attributeDefinitions,
-            customTypeDefinitions,
             values
         };
     }

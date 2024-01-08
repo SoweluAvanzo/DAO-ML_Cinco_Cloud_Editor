@@ -51,7 +51,6 @@ export interface EdgeStyle extends Style {
 
 interface Element {
 	elementTypeId: string;
-	type: string;
 	annotations: Annotation[];
 }
 
@@ -88,9 +87,40 @@ interface RgbColor {
 export interface Specification {
 	appearances: Appearance[];
 	edgeTypes: EdgeType[];
+    customTypes: CustomType[];
 	graphTypes: GraphType[];
 	nodeTypes: NodeType[];
 	styles: Style[];
+}
+
+
+export interface CustomType extends Element {}
+
+export interface Enum extends CustomType {
+    literals: string[];
+}
+
+export interface UserDefinedType extends CustomType {
+    attributes: Attribute[];
+}
+
+export interface Attribute {
+    name: string;
+    type: string;
+    bounds?: Constraint;
+    final?: boolean;
+    unique?: false;
+    defaultValue?: string;
+    annotations?: Annotation[];
+}
+
+export interface Constraint {
+    // intervall
+    lowerBound: number; // n >= 0 || * := n < 0
+    upperBound: number; // n >= 0 || * := n < 0
+
+    // associated elements
+    elements?: string[];
 }
 
 interface Style {

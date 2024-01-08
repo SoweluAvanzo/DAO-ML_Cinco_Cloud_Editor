@@ -15,7 +15,6 @@
  ********************************************************************************/
 import {
     Attribute,
-    CustomType,
     getFileExtension,
     getGraphModelOfFileType,
     isDiagramExtension
@@ -35,7 +34,6 @@ export class PropertyDataHandler {
     currentModelType = '';
     currentModelElementId = '';
     currentAttributeDefinitions: Attribute[] = [];
-    currentCustomTypeDefinitions: CustomType[] = [];
     currentValues: any = {};
     dataSubscriptions: (() => void)[] = [];
 
@@ -59,7 +57,6 @@ export class PropertyDataHandler {
                 selectedGraphType ?? this.currentModelType,
                 this.currentModelElementId,
                 this.currentAttributeDefinitions,
-                this.currentCustomTypeDefinitions,
                 this.currentValues
             );
         };
@@ -71,7 +68,6 @@ export class PropertyDataHandler {
         modelType: string,
         modelElementId: string,
         attributeDefinitions: Attribute[],
-        customTypeDefinitions: CustomType[],
         values: any
     ): void {
         // check if canvas is shown
@@ -85,7 +81,6 @@ export class PropertyDataHandler {
                 this.currentModelElementIndex = modelElementIndex;
                 this.currentModelType = modelType;
                 this.currentAttributeDefinitions = attributeDefinitions;
-                this.currentCustomTypeDefinitions = customTypeDefinitions;
                 this.currentValues = values;
             }
         } else {
@@ -138,7 +133,6 @@ export class PropertyDataHandler {
         this.currentModelType = '';
         this.currentModelElementId = '';
         this.currentAttributeDefinitions = [];
-        this.currentCustomTypeDefinitions = [];
         this.currentValues = {};
     }
 

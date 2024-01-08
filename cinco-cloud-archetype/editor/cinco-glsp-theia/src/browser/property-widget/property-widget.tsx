@@ -20,14 +20,14 @@ import {
     canAdd,
     canAssign,
     canDelete,
-    CustomType,
     Enum,
+    getCustomType,
+    getCustomTypes,
     UserDefinedType
 } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
 import {
-    getDefaultValue,
+    getFallbackDefaultValue,
     isListAttribute,
-    isPrimitivePropertyType,
     LabeledModelElementReference,
     ModelElementIndex,
     ObjectPointer,
@@ -47,7 +47,6 @@ interface PropertyWidgetState {
     modelElementIndex: ModelElementIndex;
     modelElementId: string;
     attributeDefinitions: Attribute[];
-    customTypeDefinitions: CustomType[];
     values: Record<string, any>;
 }
 
@@ -67,7 +66,6 @@ export class CincoCloudPropertyWidget extends ReactWidget {
         modelElementIndex: {},
         modelElementId: '',
         attributeDefinitions: [],
-        customTypeDefinitions: [],
         values: {}
     };
 
@@ -85,7 +83,6 @@ export class CincoCloudPropertyWidget extends ReactWidget {
             this.state.modelElementIndex = this.propertyDataHandler.currentModelElementIndex;
             this.state.modelElementId = this.propertyDataHandler.currentModelElementId;
             this.state.attributeDefinitions = this.propertyDataHandler.currentAttributeDefinitions;
-            this.state.customTypeDefinitions = this.propertyDataHandler.currentCustomTypeDefinitions;
             this.state.values = this.propertyDataHandler.currentValues;
             this.update();
             this.node.scrollTo(0, 0);
@@ -104,7 +101,7 @@ export class CincoCloudPropertyWidget extends ReactWidget {
     protected render(): React.JSX.Element {
         return <CincoPropertiesView
             parent={this}
-            parentState={ () => this.getParentState() }
+            parentState={() => this.getParentState()}
             commandService={this.commandService}
             propertyDataHandler={this.propertyDataHandler}
             diagramConfiguration={this.diagramConfiguration}
@@ -134,7 +131,7 @@ export class CincoPropertiesView extends React.Component<
             commandService: CommandService | Readonly<CommandService>,
             propertyDataHandler: PropertyDataHandler,
             diagramConfiguration: DiagramConfiguration
-    }) {
+        }) {
         super(props);
         this.state = this.props.parentState();
     }
@@ -228,9 +225,9 @@ export class CincoPropertyView extends React.Component<
         const listLength = (objectValue[attributeDefinition.name]?.length ?? 0.0) + 1.0;
         const addCellActivated = isList && canAdd(listLength, bounds);
         const deleteCellActivated = (lengthIndex: number | undefined): boolean =>
-           canDelete(lengthIndex === undefined ? 0.0 : lengthIndex - 1, bounds);
+            canDelete(lengthIndex === undefined ? 0.0 : lengthIndex - 1, bounds);
 
-        const valueList: any = isList ? value ?? [] : [ value ?? attributeDefinition.defaultValue ?? ''];
+        const valueList: any = isList ? value ?? [] : [value ?? attributeDefinition.defaultValue ?? ''];
         const firstInputId = valueList.length > 0 ? `${inputIdPrefix + (isList ? '-0' : '')}` : undefined;
 
         // prepare header
@@ -248,7 +245,7 @@ export class CincoPropertyView extends React.Component<
             <td className='button-cell'>
                 <button type='button' className='action-button' onClick={
                     () => addPropertyValue(
-                        this.props.parent, (newState: PropertyWidgetState) => { this.setState(newState);}, this.state,
+                        this.props.parent, (newState: PropertyWidgetState) => { this.setState(newState); }, this.state,
                         pointer, attributeDefinition.name
                     )
                 }>
@@ -291,7 +288,7 @@ export class CincoPropertyView extends React.Component<
                                                 onClick={
                                                     () => deletePropertyValue(
                                                         this.props.parent,
-                                                        (newState: PropertyWidgetState) => { this.setState(newState);},
+                                                        (newState: PropertyWidgetState) => { this.setState(newState); },
                                                         this.state,
                                                         pointer,
                                                         attributeDefinition,
@@ -393,7 +390,7 @@ export class CincoPropertyEntry extends React.Component<
         const inputId = isList ? `${inputIdPrefix}-${index}` : inputIdPrefix;
 
         const currentElement = getCurrentModelElement(this.state);
-        if(!currentElement) {
+        if (!currentElement) {
             throw new Error('No current element while rendering properties widget.');
         }
 
@@ -402,7 +399,6 @@ export class CincoPropertyEntry extends React.Component<
             this.getValueAttribute(
                 attributeDefinition.type as PrimitivePropertyType,
                 isList ? objectValue[valueName][index] : objectValue[valueName]
-                    ?? getDefaultValue(currentElement.elementTypeId, valueName)
             )
         );
 
@@ -416,7 +412,7 @@ export class CincoPropertyEntry extends React.Component<
                         type={inputType}
                         {...value}
                         onChange={event => {
-                            const newValue =attributeDefinition.type === 'boolean'
+                            const newValue = attributeDefinition.type === 'boolean'
                                 ? event.currentTarget.checked : event.currentTarget.value;
                             // propagate
                             assignPropertyValue(
@@ -430,7 +426,7 @@ export class CincoPropertyEntry extends React.Component<
                 );
             }
             default: {
-                const typeDefinition = getCustomTypeDefinition(this.state.customTypeDefinitions, attributeDefinition.type);
+                const typeDefinition = getCustomType(attributeDefinition.type);
                 if (Enum.is(typeDefinition)) {
                     return (
                         <select
@@ -539,14 +535,6 @@ export class CincoPropertyEntry extends React.Component<
     }
 }
 
-function getCustomTypeDefinition(customTypeDefinitions: CustomType[], attributeType: string): CustomType | undefined {
-    const types = customTypeDefinitions.filter(type => type.elementTypeId === attributeType);
-    if (types.length <= 0) {
-        return undefined;
-    }
-    return types[0];
-}
-
 /**
  * CELL OPERATIONS
  */
@@ -559,11 +547,11 @@ function addPropertyValue(
 ): void {
     const attributeDefinition = locateAttributeDefinition(state, pointer, name);
     const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
-    const defaultValue = buildDefaultValue(state, attributeDefinition);
+    const defaultValue = getFallbackDefaultValue(attributeDefinition.type);
     const isList = isListAttribute(bounds.upperBound);
 
     // update state
-    const newState = {...state};
+    const newState = { ...state };
     const objectValue = locateObjectValue(newState, pointer);
     if (isList) {
         if (!objectValue[name]) {
@@ -595,11 +583,11 @@ function assignPropertyValue(
     const name = attributeDefinition.name;
 
     // validation
-    if (!checkEnum(state.customTypeDefinitions, attributeDefinition.type, value)) {
+    if (!checkEnum(attributeDefinition.type, value)) {
         return;
     }
     const type = attributeDefinition.type;
-    const typeDefinitions = state.customTypeDefinitions.filter(t => t.elementTypeId === type);
+    const typeDefinitions = getCustomTypes().filter(t => t.elementTypeId === type);
     if (typeDefinitions.length > 0) {
         const typeDefinition = typeDefinitions[0] as any;
         if (typeDefinition['literals'] !== undefined) {
@@ -616,7 +604,7 @@ function assignPropertyValue(
     }
 
     // update state
-    const newState = {...state};
+    const newState = { ...state };
     const objectValue = locateObjectValue(newState, pointer);
     if (index !== undefined) {
         objectValue[name][index] = value;
@@ -644,7 +632,7 @@ function deletePropertyValue(
     const bounds = attributeDefinition.bounds ?? { lowerBound: 1.0, upperBound: 1.0 };
 
     // update state
-    const newState = {...state};
+    const newState = { ...state };
     const objectValue = locateObjectValue(newState, pointer);
     if (index !== undefined) {
         if (!canDelete(objectValue[name].length - 1, bounds)) {
@@ -683,8 +671,8 @@ function postMessage(message: PropertyViewMessage): void {
  * VALUE HELPER
  */
 
-function checkEnum(customTypeDefinitions: CustomType[], type: string, value: any): boolean {
-    const typeDefinitions = customTypeDefinitions.filter(t => t.elementTypeId === type);
+function checkEnum(type: string, value: any): boolean {
+    const typeDefinitions = getCustomTypes().filter(t => t.elementTypeId === type);
     if (typeDefinitions.length > 0) {
         const typeDefinition = typeDefinitions[0] as any;
         if (typeDefinition['literals'] !== undefined) {
@@ -717,7 +705,7 @@ function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): 
         if (!nextValue) {
             const attributeDefinition = state.attributeDefinitions.find(a => a.name === step.attribute);
             if (attributeDefinition) {
-                const defaultValue = buildDefaultValue(state, attributeDefinition);
+                const defaultValue = getFallbackDefaultValue(attributeDefinition.type);
                 nextValue = defaultValue;
                 if (step.index !== undefined) {
                     objectValue[step.attribute][step.index] = nextValue;
@@ -731,43 +719,6 @@ function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): 
     return objectValue;
 }
 
-function buildDefaultValue(state: PropertyWidgetState, attribute: Attribute): any {
-    if (isPrimitivePropertyType(attribute.type)) {
-        return attribute.defaultValue ?? '';
-    } else {
-        const typeDefinition = getCustomTypeDefinition(state.customTypeDefinitions, attribute.type);
-        if (!typeDefinition) {
-            // could be modelElementReference: default should be 'not set', i.e. undefined
-            return undefined;
-        } else if (Enum.is(typeDefinition)) {
-            return typeDefinition.literals[0];
-        } else if (UserDefinedType.is(typeDefinition)) {
-            const defaultObject: any = {};
-            for (const child of typeDefinition.attributes) {
-                const bounds = child.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
-                const isList = isListAttribute(bounds.upperBound);
-                if (isPrimitivePropertyType(child.type)) {
-                    // Only do this for primitive attributes to avoid infinite recursion
-                    if (isList) {
-                        const defaultValues = [];
-                        for (let i = 0; i++; i < bounds.lowerBound) {
-                            defaultValues.push(buildDefaultValue(state, child));
-                        }
-                        defaultObject[child.name] = defaultValues;
-                    } else {
-                        if (bounds.lowerBound > 0) {
-                            defaultObject[child.name] = buildDefaultValue(state, child);
-                        }
-                    }
-                } else {
-                    defaultObject[child.name] = isList ? [] : {};
-                }
-            }
-            return defaultObject;
-        }
-    }
-}
-
 function locateAttributeDefinition(state: PropertyWidgetState, pointer: ObjectPointer, name: string): Attribute {
     let definitions: Attribute[] = state.attributeDefinitions;
     for (const step of pointer) {
@@ -775,7 +726,7 @@ function locateAttributeDefinition(state: PropertyWidgetState, pointer: ObjectPo
         if (nextAttribute === undefined) {
             throw new Error(`Object pointer on undefined attribute '${step.attribute}'`);
         }
-        const typeDefinition = getCustomTypeDefinition(state.customTypeDefinitions, nextAttribute.type);
+        const typeDefinition = getCustomType(nextAttribute.type);
         if (Enum.is(typeDefinition)) {
             throw new Error(`Object pointer '${step.attribute}' on enum`);
         } else if (UserDefinedType.is(typeDefinition)) {
@@ -790,7 +741,7 @@ function getCurrentModelElement(state: PropertyWidgetState): LabeledModelElement
 }
 
 function getModelElement(modelElementId: string, modelElementIndex: ModelElementIndex): LabeledModelElementReference | undefined {
-    for (const [  , modelElements] of Object.entries(modelElementIndex)) {
+    for (const [, modelElements] of Object.entries(modelElementIndex)) {
         for (const element of modelElements) {
             if (element.id === modelElementId) {
                 return element;
