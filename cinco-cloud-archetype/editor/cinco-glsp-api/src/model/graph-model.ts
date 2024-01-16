@@ -171,7 +171,7 @@ export class ModelElement implements IdentifiableElement {
     }
 
     get view(): View {
-        const _view = this._view ?? getSpecOf(this.type)?.view;
+        const _view = this._view ?? { ...getSpecOf(this.type)?.view };
         return _view ?? ({} as View);
     }
 
@@ -180,7 +180,7 @@ export class ModelElement implements IdentifiableElement {
     }
 
     get cssClasses(): string[] {
-        return this.view.cssClass ?? getSpecOf(this.type)?.view?.cssClass ?? [];
+        return this.view.cssClass ?? ([] as string[]).concat(getSpecOf(this.type)?.view?.cssClass ?? []);
     }
 
     set cssClasses(cssClasses: string[]) {
@@ -188,7 +188,9 @@ export class ModelElement implements IdentifiableElement {
     }
 
     get style(): Style | undefined {
-        let style: string | Style | undefined = this.view.style ?? getSpecOf(this.type)?.view?.style;
+        const metaSpecStyle = getSpecOf(this.type)?.view?.style;
+        let style: string | Style | undefined =
+            this.view.style ?? (typeof metaSpecStyle == 'string' ? metaSpecStyle : { ...(metaSpecStyle ?? ({} as Style)) });
         if (typeof style === 'string') {
             style = getStyleByNameOf(style);
         }
@@ -199,6 +201,9 @@ export class ModelElement implements IdentifiableElement {
         const oldStyle = this.style;
         if (oldStyle === style) {
             return;
+        }
+        if (!this._view) {
+            this._view = this.view;
         }
         this.view.style = style;
     }
@@ -224,7 +229,7 @@ export class ModelElement implements IdentifiableElement {
         if (!this.style) {
             throw new Error('ModelElement [' + this.id + ', ' + this.type + "] has no style. Couldn't set shape!");
         }
-        if (NodeStyle.is(this.style) && this.style.shape !== shape) {
+        if (NodeStyle.is(this.style)) {
             const style = { ...this.style };
             style.shape = { ...shape } as Shape;
             this.style = style;
@@ -252,7 +257,7 @@ export class ModelElement implements IdentifiableElement {
 
     set appearance(appearance: Appearance | string | undefined) {
         if (this instanceof Node) {
-            const currentShape = { ...this.shape };
+            const currentShape = this.shape;
             if (!currentShape) {
                 throw new Error('ModelElement [' + this.id + ', ' + this.type + "] has no shape. Couldn't set appearance!");
             }

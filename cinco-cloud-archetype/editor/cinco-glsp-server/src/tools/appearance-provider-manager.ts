@@ -33,7 +33,7 @@ export class AppearanceProviderManager extends BaseHandlerManager<RequestAppeara
     }
 
     isApplicableHandler(element: ModelElement, handlerClassName: string): boolean {
-        return getAppearanceProvider(element.type) === handlerClassName;
+        return getAppearanceProvider(element.type).includes(handlerClassName);
     }
 
     handlerCanBeExecuted(
