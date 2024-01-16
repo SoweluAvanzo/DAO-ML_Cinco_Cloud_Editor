@@ -802,11 +802,27 @@ function resolveAppearance(app: string | Appearance | undefined): Appearance | u
  */
 
 export function hasAppearanceProvider(type: string): boolean {
-    return getAppearanceProvider(type) !== undefined;
+    return getAppearanceProvider(type).length > 0;
 }
 
-export function getAppearanceProvider(type: string): string | undefined {
-    return getStyleOfElement(type)?.appearanceProvider;
+export function getAppearanceProvider(type: string): string[] {
+    const result: Set<string> = new Set();
+    const style = getStyleOfElement(type);
+    const appearanceProviderValue = style?.appearanceProvider;
+    if (appearanceProviderValue) {
+        result.add(appearanceProviderValue);
+    }
+    const annotationValues = getAnnotationValues(type, 'AppearanceProvider');
+    for (const ann of annotationValues) {
+        if (ann && ann.length > 0) {
+            ann.forEach(a => {
+                if (!result.has(a)) {
+                    result.add(a);
+                }
+            });
+        }
+    }
+    return Array.from(result);
 }
 
 export function hasGeneratorAction(type: string): boolean {
@@ -863,8 +879,15 @@ export function getAllAnnotations(type: string): Annotation[] {
 
 export function getAllHandlerNames(): string[] {
     const elements = getModelElementSpecifications();
-    const handlerNames: string[] = [];
+    let handlerNames: string[] = [];
     for (const element of elements) {
+        // get style handler
+        const appearanceProvider = getAppearanceProvider(element.elementTypeId);
+        if (appearanceProvider) {
+            handlerNames = handlerNames.concat(appearanceProvider);
+        }
+
+        // get mgl annotations
         const annotations = getAllAnnotations(element.elementTypeId);
         for (const ann of annotations) {
             const values = ann.values;
