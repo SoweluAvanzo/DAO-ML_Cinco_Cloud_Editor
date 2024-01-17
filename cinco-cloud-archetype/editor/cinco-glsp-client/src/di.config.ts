@@ -38,7 +38,8 @@ import {
     configureCommand,
     configureDefaultModelElements,
     initializeDiagramContainer,
-    ContainerConfiguration
+    ContainerConfiguration,
+    bindOrRebind
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -126,7 +127,7 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     // bind custom palette
     bind(CincoToolPalette).toSelf().inSingletonScope();
-    rebind(ToolPalette).to(CincoToolPalette).inSingletonScope();
+    bindOrRebind(context, ToolPalette).to(CincoToolPalette).inSingletonScope();
 
     // bind FrontendAppearanceProviderHandling
     configureCommand(context, ApplyAppearanceUpdateCommand);
