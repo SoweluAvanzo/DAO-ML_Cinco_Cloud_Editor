@@ -319,6 +319,15 @@
       "sourceMaps": true,
       "cleanUp": "wholeBrowser",
       "webRoot": "${workspaceRoot}/browser-app"
+    },
+    {
+      "name": "Launch Standalone Client",
+      "type": "chrome",
+      "request": "launch",
+      "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html",
+      "sourceMaps": true,
+      "cleanUp": "wholeBrowser",
+      "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
     }
   ]
 }

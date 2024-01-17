@@ -42,7 +42,8 @@
     "cinco-glsp-server",
     "cinco-glsp-client",
     "cinco-glsp-theia",
-    "browser-app"
+    "browser-app",
+    "cinco-glsp-standalone"
   ],
   "resolutions": {
     "inversify": "6.0.1",
