@@ -15,7 +15,6 @@
  ********************************************************************************/
 import { initializeCincoDiagramContainer } from '@cinco-glsp/cinco-glsp-client';
 import {
-    accessibilityModule,
     bindOrRebind,
     ConsoleLogger,
     createDiagramOptionsModule,
@@ -25,18 +24,38 @@ import {
     TYPES,
     toolPaletteModule,
     FeatureModule,
-    FocusTrackerTool
+    FocusTrackerTool,
+    configureElementNavigationTool,
+    configureFocusTrackerTool,
+    configureMoveZoom,
+    configureResizeTools,
+    configureSearchPaletteModule,
+    configureToastTool,
+    configureViewKeyTools
 } from '@eclipse-glsp/client';
+import { configureShortcutHelpTool } from '@eclipse-glsp/client/lib/features/accessibility/key-shortcut/di.config';
+import { configureKeyboardControlTools } from '@eclipse-glsp/client/lib/features/accessibility//keyboard-pointer/keyboard-pointer-module';
 import { Container } from 'inversify';
 import '../css/diagram.css';
 import { CincoFocusTrackerTool } from './tools/cinco-focus-tracker-tool';
-
 export default function createContainer(options: IDiagramOptions): Container {
     // Add features
     const cinco_bindings = new FeatureModule((bind, unbind, isBound, rebind) => {
         const context = { bind, unbind, isBound, rebind };
         context.unbind(FocusTrackerTool);
         context.bind(FocusTrackerTool).to(CincoFocusTrackerTool);
+    });
+    const accessibilityModule = new FeatureModule((bind, unbind, isBound, rebind) => {
+        const context = { bind, unbind, isBound, rebind };
+        configureResizeTools(context);
+        configureViewKeyTools(context);
+        configureMoveZoom(context);
+        configureSearchPaletteModule(context);
+        configureShortcutHelpTool(context);
+        configureKeyboardControlTools(context);
+        configureElementNavigationTool(context);
+        configureFocusTrackerTool(context);
+        configureToastTool(context);
     });
     // Build Container
     const container = initializeCincoDiagramContainer(

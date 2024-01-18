@@ -67,3 +67,11 @@ polygon.sprotty-node {
 .sprotty-node.selected {
     stroke: rgb(87, 87, 214);
 }
+
+.accessibility-tool-palette.collapsible-palette + .minimize-palette-button {
+    top: 10px;
+}
+.accessibility-tool-palette.collapsible-palette {
+    top: 10px;
+}
+

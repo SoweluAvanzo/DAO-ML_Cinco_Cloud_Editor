@@ -23,12 +23,13 @@ import {
     RequestContextActions,
     Ranked
 } from '@eclipse-glsp/client';
+import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette';
 import { Action, PaletteItem } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
 import { CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
-export class CincoToolPalette extends ToolPalette implements Ranked {
+export class CincoToolPalette extends KeyboardToolPalette implements Ranked {
     static _rank: number = CINCO_STARTUP_RANK - 1; // needs to be before CincoPreparationsStartup
     rank: number = CincoToolPalette._rank;
     protected lastFilter = '';
@@ -49,7 +50,7 @@ export class CincoToolPalette extends ToolPalette implements Ranked {
         }
     }
 
-    async requestPalette(): Promise<void> {
+    async requestPalette(requestFilterUpdate = true): Promise<void> {
         const requestAction = RequestContextActions.create({
             contextId: CincoToolPalette.ID,
             editorContext: {
@@ -69,7 +70,9 @@ export class CincoToolPalette extends ToolPalette implements Ranked {
                 })
             );
             // update palette view
-            this.requestFilterUpdate(this.lastFilter);
+            if (requestFilterUpdate) {
+                this.requestFilterUpdate(this.lastFilter);
+            }
         }
     }
 
@@ -92,26 +95,28 @@ export class CincoToolPalette extends ToolPalette implements Ranked {
         // cache last filter
         this.lastFilter = filter;
 
-        // Reset the paletteItems before searching
-        this.paletteItems = JSON.parse(JSON.stringify(this.paletteItemsCopy));
-        // Filter the entries
-        const filteredPaletteItems: PaletteItem[] = [];
-        for (const itemGroup of this.paletteItems) {
-            if (itemGroup.children) {
-                // Fetch the labels according to the filter
-                const matchingChildren = itemGroup.children.filter(child => child.label.toLowerCase().includes(filter.toLowerCase()));
-                // Add the itemgroup containing the correct entries
-                if (matchingChildren.length > 0) {
-                    // Clear existing children
-                    itemGroup.children.splice(0, itemGroup.children.length);
-                    // Push the matching children
-                    matchingChildren.forEach(child => itemGroup.children!.push(child));
-                    filteredPaletteItems.push(itemGroup);
+        this.requestPalette(false).then(_ => {
+            // Reset the paletteItems before searching
+            this.paletteItems = JSON.parse(JSON.stringify(this.paletteItemsCopy));
+            // Filter the entries
+            const filteredPaletteItems: PaletteItem[] = [];
+            for (const itemGroup of this.paletteItems) {
+                if (itemGroup.children) {
+                    // Fetch the labels according to the filter
+                    const matchingChildren = itemGroup.children.filter(child => child.label.toLowerCase().includes(filter.toLowerCase()));
+                    // Add the itemgroup containing the correct entries
+                    if (matchingChildren.length > 0) {
+                        // Clear existing children
+                        itemGroup.children.splice(0, itemGroup.children.length);
+                        // Push the matching children
+                        matchingChildren.forEach(child => itemGroup.children!.push(child));
+                        filteredPaletteItems.push(itemGroup);
+                    }
                 }
             }
-        }
-        this.paletteItems = filteredPaletteItems;
-        this.createBody();
+            this.paletteItems = filteredPaletteItems;
+            this.createBody();
+        });
     }
 
     /**

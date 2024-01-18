@@ -65,6 +65,7 @@ import { FileProviderHandler } from './features/action-handler/file-provider-han
 import { CinoPreparationsStartUp } from './glsp/cinco-preparations-startup';
 import { RestoreViewportHandler } from '@eclipse-glsp/client/lib/features/viewport/viewport-handler';
 import { CincoRestoreViewportHandler } from './glsp/cinco-viewport-handler';
+import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -127,7 +128,18 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     // bind custom palette
     bind(CincoToolPalette).toSelf().inSingletonScope();
-    bindOrRebind(context, ToolPalette).to(CincoToolPalette).inSingletonScope();
+    if (context.isBound(ToolPalette)) {
+        // theia (GLSP-2.0)
+        unbind(ToolPalette);
+        bindOrRebind(context, ToolPalette).to(CincoToolPalette).inSingletonScope();
+    } else {
+        // standalone (GLSP-2.0)
+        if (context.isBound(KeyboardToolPalette)) {
+            unbind(KeyboardToolPalette);
+        }
+        bindOrRebind(context, KeyboardToolPalette).to(CincoToolPalette).inSingletonScope();
+        bind(TYPES.IDiagramStartup).toService(CincoToolPalette);
+    }
 
     // bind FrontendAppearanceProviderHandling
     configureCommand(context, ApplyAppearanceUpdateCommand);
