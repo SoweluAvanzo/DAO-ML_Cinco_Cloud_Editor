@@ -34,7 +34,7 @@ export class WorkspaceFileService {
     protected static BLACKLIST = ['http://', 'https://'];
 
     async serveFile(filePath: string): Promise<string | undefined> {
-        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
+        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0) {
             return filePath;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
