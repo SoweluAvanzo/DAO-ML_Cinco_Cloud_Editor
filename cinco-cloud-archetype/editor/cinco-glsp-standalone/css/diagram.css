@@ -31,14 +31,6 @@ body {
     stroke: rgb(0, 0, 0);
 }
 
-.sprotty-edge {
-    stroke: black;
-}
-
-.sprotty-edge.arrow {
-    fill: black;
-}
-
 .sprotty-edge.selected {
     stroke: #844;
 }
