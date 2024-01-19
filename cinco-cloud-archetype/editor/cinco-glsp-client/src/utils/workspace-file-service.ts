@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { ALLOWED_IMAGE_FILE_TYPES, DEFAULT_THEIA_PORT, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
+import { ALLOWED_IMAGE_FILE_TYPES, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
 import { CommandService } from '@theia/core';
 import URI from '@theia/core/lib/common/uri';
 import { inject, injectable, optional } from 'inversify';
@@ -70,7 +70,7 @@ export class WorkspaceFileService {
         const result = await new Promise<{ response: Response; jsonResponse: any }>(async resolve => {
             const absolutePath = path.join(root, relativePath);
             try {
-                const request = this.request([new URI(absolutePath)]);
+                const request = await this.request([new URI(absolutePath)]);
                 const resp = await fetch(request);
                 const jsonResp = await resp.json();
                 resolve({ response: resp, jsonResponse: jsonResp });
@@ -80,7 +80,7 @@ export class WorkspaceFileService {
         });
         const { response, jsonResponse } = result;
         if (response.status === 200) {
-            return `${this.endpoint()}/download/?id=${jsonResponse.id}`;
+            return `${await this.endpoint()}/download/?id=${jsonResponse.id}`;
         }
         return undefined;
     }
@@ -164,8 +164,8 @@ export class WorkspaceFileService {
         return response.filter(f => f.path === filePath).length > 0;
     }
 
-    protected request(uris: URI[]): Request {
-        const url = this.toTheiaURL(uris);
+    protected async request(uris: URI[]): Promise<Request> {
+        const url = await this.toFileUrl(uris);
         const init = this.requestInit(uris);
         return new Request(url, init);
     }
@@ -190,8 +190,8 @@ export class WorkspaceFileService {
         };
     }
 
-    protected toTheiaURL(uris: URI[]): string {
-        const endpoint = this.endpoint();
+    protected async toFileUrl(uris: URI[]): Promise<string> {
+        const endpoint = await this.endpoint();
         if (uris.length === 1) {
             // tslint:disable-next-line:whitespace
             const [uri] = uris;
@@ -200,16 +200,17 @@ export class WorkspaceFileService {
         return endpoint;
     }
 
-    protected endpoint(): string {
-        const url = this.filesUrl();
+    protected async endpoint(): Promise<string> {
+        const url = await this.filesUrl();
         return url.endsWith('/') ? url.slice(0, -1) : url;
     }
 
-    protected filesUrl(): string {
-        return this.getRestUrl({ path: 'files' }).toString();
+    protected async filesUrl(): Promise<string> {
+        return (await this.getRestUrl({ path: 'files' })).toString();
     }
 
-    protected getRestUrl(options: { protocol?: string; location?: string; pathname?: string; path?: string }): URI {
+    protected async getRestUrl(options: { protocol?: string; location?: string; pathname?: string; path?: string }): Promise<URI> {
+        const serverArgs = await ServerArgsProvider.getServerArgs();
         let url_path = '';
         if (options.path) {
             if (options.path.startsWith('/')) {
@@ -228,6 +229,8 @@ export class WorkspaceFileService {
                 pathname = options.pathname;
             }
         }
-        return new URI(`${options.protocol ?? 'http'}://${options.location ?? 'localhost:' + DEFAULT_THEIA_PORT}${pathname}${url_path}`);
+        return new URI(
+            `${options.protocol ?? 'http'}://${options.location ?? 'localhost:' + serverArgs.webServerPort}${pathname}${url_path}`
+        );
     }
 }

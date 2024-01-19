@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 // TODO: duplicate in api
-import { META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER } from '@cinco-glsp/cinco-glsp-common';
+import { META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, hasArg } from '@cinco-glsp/cinco-glsp-common';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -285,6 +285,15 @@ export function getWorkspaceFolderArg(): string | undefined {
 export function getWebsocketPathArg(): string | undefined {
     const argsKey = '--websocketPath';
     return getArgs(argsKey);
+}
+
+export function getWebServerPortArg(): number | undefined {
+    const argsKey = '--webServerPort';
+    if (hasArg(argsKey)) {
+        return Number.parseInt(getArgs(argsKey)!, 10);
+    } else {
+        return undefined;
+    }
 }
 
 export function isDevModeArg(): boolean {

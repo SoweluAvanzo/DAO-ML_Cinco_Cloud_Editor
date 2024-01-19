@@ -15,17 +15,16 @@
  ********************************************************************************/
 import * as express from 'express';
 import { DownloadLinkHandler, SingleFileDownloadHandler } from './file-download-handler';
-import { DEFAULT_THEIA_PORT } from '@cinco-glsp/cinco-glsp-common';
 import { FileDownloadCache } from './file-download-cache';
 
 const fileDownloadCache = new FileDownloadCache();
 const singleFileDownloadHandler = new SingleFileDownloadHandler(fileDownloadCache);
 const downloadLinkHandler = new DownloadLinkHandler(fileDownloadCache);
 
-export function startFileServer(): void {
+export function startWebServer(port: number): void {
     const app = express();
-    app.get('/hello_world', (request, response) => response.send('Cinco GLSP-Server running.'));
+    app.get('/', (request, response) => response.send('Cinco GLSP-Server running.'));
     app.get('/files/download', (request, response) => downloadLinkHandler.handle(request, response));
     app.get('/files/', (request, response) => singleFileDownloadHandler.handle(request, response));
-    app.listen(DEFAULT_THEIA_PORT, () => console.log('Running Standalone FileServer.'));
+    app.listen(port, () => console.log('Running Standalone WebServer on port: ' + port));
 }

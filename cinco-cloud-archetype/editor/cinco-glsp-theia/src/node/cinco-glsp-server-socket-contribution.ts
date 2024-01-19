@@ -55,7 +55,8 @@ export class CincoGLSPSocketServerContribution extends GLSPSocketServerContribut
                 args.metaDevMode ? '--metaDevMode' : DEFAULT_META_DEV_MODE,
                 `--metaLanguagesFolder='${args.languagePath}'`,
                 `--workspaceFolder='${args.workspacePath}'`,
-                '--webSocket'
+                '--webSocket',
+                `--webServerPort=${args.webServerPort}`
             ],
             socketConnectionOptions: {
                 port: args.port,

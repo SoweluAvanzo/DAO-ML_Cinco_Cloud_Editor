@@ -15,6 +15,7 @@
  ********************************************************************************/
 
 import {
+    DEFAULT_WEB_SERVER_PORT,
     DEFAULT_SERVER_PORT,
     DEFAULT_WEBSOCKET_PATH,
     META_LANGUAGES_FOLDER,
@@ -32,7 +33,8 @@ import {
     getLanguageFolderArg,
     getRoot,
     getWorkspaceFolderArg,
-    getWebsocketPathArg
+    getWebsocketPathArg,
+    getWebServerPortArg
 } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
@@ -46,7 +48,8 @@ export class ServerArgsRequestHandler implements ActionHandler {
             getLanguageFolderArg() ?? WORKSPACE_FOLDER,
             getWorkspaceFolderArg() ?? META_LANGUAGES_FOLDER,
             processPort(getPortArg() ?? '' + DEFAULT_SERVER_PORT),
-            getWebsocketPathArg() ?? DEFAULT_WEBSOCKET_PATH
+            getWebsocketPathArg() ?? DEFAULT_WEBSOCKET_PATH,
+            getWebServerPortArg() ?? DEFAULT_WEB_SERVER_PORT
         );
         return [ServerArgsResponse.create(serverArgs)];
     }

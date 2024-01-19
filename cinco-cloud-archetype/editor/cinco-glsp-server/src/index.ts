@@ -17,7 +17,6 @@ import { META_FILE_TYPES, SUPPORTED_DYNAMIC_FILE_TYPES } from '@cinco-glsp/cinco
 import 'reflect-metadata';
 import { launch } from './app';
 import { MetaSpecificationLoader } from './meta/meta-specification-loader';
-import { startFileServer } from './file-server/file-server';
 
 function loadMetaFiles(): void {
     /**
@@ -28,6 +27,5 @@ function loadMetaFiles(): void {
     MetaSpecificationLoader.load(META_FILE_TYPES);
     MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
 }
-startFileServer();
 loadMetaFiles();
 launch(process.argv).catch((error: any): void => console.error('Error in cinco server launcher:', error));

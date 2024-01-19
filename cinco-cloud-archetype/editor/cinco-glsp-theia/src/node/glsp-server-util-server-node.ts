@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { injectable } from 'inversify';
-import { DEFAULT_SERVER_PORT, ServerArgs, DEFAULT_WEBSOCKET_PATH } from '@cinco-glsp/cinco-glsp-common';
+import { DEFAULT_SERVER_PORT, ServerArgs, DEFAULT_WEBSOCKET_PATH, DEFAULT_WEB_SERVER_PORT } from '@cinco-glsp/cinco-glsp-common';
 import {
     DEFAULT_META_DEV_MODE,
     DEFAULT_META_LANGUAGES_FOLDER,
@@ -40,7 +40,8 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
                 DEFAULT_META_LANGUAGES_FOLDER,
                 DEFAULT_WORKSPACE_FOLDER,
                 DEFAULT_SERVER_PORT,
-                DEFAULT_WEBSOCKET_PATH
+                DEFAULT_WEBSOCKET_PATH,
+                DEFAULT_WEB_SERVER_PORT
             );
         }
     }
@@ -74,7 +75,8 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
         languagePath: string,
         workspacePath: string,
         port: number,
-        websocketPath: string
+        websocketPath: string,
+        webServerPort: number
     ): void {
         const absoluteRootPath = path.resolve(rootFolder);
         GLSPServerUtilServerNode.SERVER_ARGS = {
@@ -83,7 +85,8 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
             languagePath: languagePath,
             workspacePath: workspacePath,
             port: port,
-            websocketPath: websocketPath
+            websocketPath: websocketPath,
+            webServerPort: webServerPort
         };
     }
 
