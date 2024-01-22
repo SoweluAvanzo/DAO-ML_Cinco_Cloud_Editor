@@ -19,8 +19,9 @@ import { Container as ContainerInversifyTheia, injectable } from '@theia/core/sh
 import { Container } from 'inversify';
 
 import { getDiagramConfiguration } from '../../common/cinco-language';
-import { ContainerConfiguration } from '@eclipse-glsp/client';
-import { initializeCincoDiagramContainer } from '@cinco-glsp/cinco-glsp-client';
+import { ContainerConfiguration, FeatureModule } from '@eclipse-glsp/client';
+import { initializeCincoDiagramContainer, EnvironmentProvider } from '@cinco-glsp/cinco-glsp-client';
+import { TheiaEnvironmentProvider } from '../cinco-glsp/theia-environment-provider';
 
 @injectable()
 export class CincoDiagramConfiguration extends GLSPDiagramConfiguration {
@@ -30,7 +31,18 @@ export class CincoDiagramConfiguration extends GLSPDiagramConfiguration {
         container: ContainerInversifyTheia,
         ...containerConfiguration: ContainerConfiguration
     ): ContainerInversifyTheia {
-        initializeCincoDiagramContainer(container as unknown as Container, ...containerConfiguration);
+        const cinco_bindings = new FeatureModule((bind, unbind, isBound, rebind) => {
+            const context = { bind, unbind, isBound, rebind };
+            context.bind(EnvironmentProvider).to(TheiaEnvironmentProvider);
+        });
+        initializeCincoDiagramContainer(
+            container as unknown as Container,
+            {
+                add: [cinco_bindings],
+                remove: []
+            },
+            ...containerConfiguration
+        );
         return container;
     }
 }

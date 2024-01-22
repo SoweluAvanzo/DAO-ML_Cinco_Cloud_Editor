@@ -13,24 +13,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GeneratorAction, GeneratorEditAction, GeneratorResponseAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, Tool, IActionHandler, ICommand, TYPES, SelectionService, GLSPActionDispatcher } from '@eclipse-glsp/client';
-import { CommandService } from '@theia/core';
-import { inject, injectable, optional, postConstruct } from 'inversify';
-
-@injectable()
-export class GeneratorResponseActionHandler implements IActionHandler {
-    @inject(CommandService) @optional() commandService: CommandService;
-
-    handle(action: GeneratorResponseAction): void | Action | ICommand {
-        this.commandService.executeCommand(
-            'CreateGenerateGraphDiagramCommand.command',
-            action.modelElementId,
-            action.fileContent,
-            action.targetFolder
-        );
-    }
-}
+import { GeneratorAction, GeneratorEditAction } from '@cinco-glsp/cinco-glsp-common';
+import { Tool, TYPES, SelectionService, GLSPActionDispatcher } from '@eclipse-glsp/client';
+import { inject, injectable, postConstruct } from 'inversify';
 
 @injectable()
 export class GeneratorTool implements Tool {

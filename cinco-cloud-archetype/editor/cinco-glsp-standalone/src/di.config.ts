@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { initializeCincoDiagramContainer } from '@cinco-glsp/cinco-glsp-client';
+import { initializeCincoDiagramContainer, DefaultEnvironmentProvider, EnvironmentProvider } from '@cinco-glsp/cinco-glsp-client';
 import {
     bindOrRebind,
     ConsoleLogger,
@@ -44,6 +44,7 @@ export default function createContainer(options: IDiagramOptions): Container {
         const context = { bind, unbind, isBound, rebind };
         context.unbind(FocusTrackerTool);
         context.bind(FocusTrackerTool).to(CincoFocusTrackerTool);
+        context.bind(EnvironmentProvider).to(DefaultEnvironmentProvider);
     });
     const accessibilityModule = new FeatureModule((bind, unbind, isBound, rebind) => {
         const context = { bind, unbind, isBound, rebind };

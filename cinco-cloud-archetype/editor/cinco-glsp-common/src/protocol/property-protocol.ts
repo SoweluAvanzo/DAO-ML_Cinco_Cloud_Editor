@@ -24,24 +24,17 @@ import * as uuid from 'uuid';
 /**
  * Theia
  */
-
 export const PropertyViewUpdateCommand = { id: 'CincoCloud.updatePropertyView' };
 export const CincoCloudPropertyWidgetCommand = { id: 'cincoCloudProperty:toggle' };
 
-/**
- * Action
- *
- * This action will be dispatched to the backend by the listeners of the ActionTool
- */
-
-export interface PropertyViewAction extends RequestAction<PropertyViewResponseAction> {
-    kind: typeof PropertyViewAction.KIND;
+export interface PropertyViewRequestAction extends RequestAction<PropertyViewResponseAction> {
+    kind: typeof PropertyViewRequestAction.KIND;
     modelElementId: string;
 }
-export namespace PropertyViewAction {
+export namespace PropertyViewRequestAction {
     export const KIND = 'propertyViewRequest';
 
-    export function create(modelElementId: string): PropertyViewAction {
+    export function create(modelElementId: string): PropertyViewRequestAction {
         return {
             kind: KIND,
             modelElementId,
@@ -49,12 +42,6 @@ export namespace PropertyViewAction {
         };
     }
 }
-
-/**
- * Client Action
- *
- * This action will be dispatched to the client as a response to the PropertyViewAction
- */
 
 export interface PropertyViewResponseAction extends ResponseAction {
     kind: typeof PropertyViewResponseAction.KIND;

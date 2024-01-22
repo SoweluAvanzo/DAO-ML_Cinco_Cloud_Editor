@@ -1,5 +1,5 @@
-'use strict';
-Object.defineProperty(exports, '__esModule', { value: true });
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExampleDoubleClickHandler = void 0;
 /********************************************************************************
  * Copyright (c) 2023 Cinco Cloud.
@@ -16,8 +16,8 @@ exports.ExampleDoubleClickHandler = void 0;
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-const cinco_glsp_api_1 = require('@cinco-glsp/cinco-glsp-api');
-const cinco_glsp_common_1 = require('@cinco-glsp/cinco-glsp-common');
+const cinco_glsp_api_1 = require("@cinco-glsp/cinco-glsp-api");
+const cinco_glsp_common_1 = require("@cinco-glsp/cinco-glsp-common");
 /**
  * Language Designer defined example of a DoubleClickHandler
  */
@@ -40,7 +40,7 @@ class ExampleDoubleClickHandler extends cinco_glsp_api_1.DoubleClickHandler {
         // next actions => find all activities and update their appearance
         const consecutiveActions = [];
         const allGAcitivties = this.modelState.index.getModelElements('node:activity');
-        const allAcitivties = allGAcitivties.map(e => this.modelState.index.findElement(e.id));
+        const allAcitivties = allGAcitivties.map((e) => this.modelState.index.findElement(e.id));
         allAcitivties.forEach(a => consecutiveActions.push(cinco_glsp_common_1.RequestAppearanceUpdateAction.create(a.id)));
         return consecutiveActions;
     }
@@ -52,4 +52,3 @@ class ExampleDoubleClickHandler extends cinco_glsp_api_1.DoubleClickHandler {
 exports.ExampleDoubleClickHandler = ExampleDoubleClickHandler;
 // register into app
 cinco_glsp_api_1.LanguageFilesRegistry.register(ExampleDoubleClickHandler);
-//# sourceMappingURL=example-double-click-action.js.map

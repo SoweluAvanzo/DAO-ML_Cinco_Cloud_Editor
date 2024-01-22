@@ -97,35 +97,6 @@ export namespace GeneratorViewAction {
  * This action will be dispatched to the client as a response to the GeneratorAction
  */
 
-export interface GeneratorResponseAction extends Action {
-    kind: typeof GeneratorResponseAction.KIND;
-    modelElementId: string;
-    fileContent: string;
-    targetFolder: string;
-}
-
-export namespace GeneratorResponseAction {
-    export const KIND = 'generatorResponse';
-
-    export function is(object: any): object is GeneratorResponseAction {
-        return (
-            Action.hasKind(object, KIND) &&
-            hasStringProp(object, 'modelElementId') &&
-            hasStringProp(object, 'fileContent') &&
-            hasStringProp(object, 'targetFolder')
-        );
-    }
-
-    export function create(modelElementId: string, fileContent: string, targetFolder: string): GeneratorResponseAction {
-        return {
-            kind: KIND,
-            modelElementId: modelElementId,
-            fileContent: fileContent,
-            targetFolder: targetFolder
-        };
-    }
-}
-
 export interface GeneratorCreateFileOperation extends Operation {
     kind: typeof GeneratorCreateFileOperation.KIND;
     modelElementId: string;

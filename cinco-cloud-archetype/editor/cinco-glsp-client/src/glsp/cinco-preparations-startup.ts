@@ -13,11 +13,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { CommandService } from '@theia/core';
 import { IActionDispatcher, IDiagramOptions, IDiagramStartup, Ranked, SModelRegistry, TYPES, ViewRegistry } from '@eclipse-glsp/client';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { MetaSpecificationResponseHandler } from '../meta/meta-specification-response-handler';
-import { inject, injectable, optional } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { ServerArgsProvider } from '../meta/server-args-response-handler';
 import { FrontendResourceLoader } from '../meta/frontend-resource.loader';
 import { reregisterBindings } from '../meta/meta-model-glsp-registration-handler';
@@ -25,12 +24,13 @@ import { WorkspaceFileService } from '../utils/workspace-file-service';
 import { GraphModelProvider } from '../model/graph-model-provider';
 import { CincoToolPalette } from './cinco-tool-palette';
 import { CincoGLSPClient, CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
+import { EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
 
 @injectable()
 export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
     static _rank: number = CINCO_STARTUP_RANK;
     rank: number = CinoPreparationsStartUp._rank;
-    @inject(CommandService) @optional() commandService?: CommandService;
+    @inject(EnvironmentProvider) environmentProvider: IEnvironmentProvider;
     @inject(WorkspaceFileService)
     protected readonly workspaceFileService: WorkspaceFileService;
     @inject(TYPES.SModelRegistry)
@@ -76,7 +76,7 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
                 this.prepareAfterMetaSpecification();
             }
         });
-        await MetaSpecificationLoader.load(this.actionDispatcher, this.commandService);
+        await MetaSpecificationLoader.load(this.actionDispatcher, this.environmentProvider);
     }
 
     prepareAfterMetaSpecification(): void {
