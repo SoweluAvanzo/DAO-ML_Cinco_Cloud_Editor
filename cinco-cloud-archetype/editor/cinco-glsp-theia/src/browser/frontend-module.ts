@@ -40,13 +40,7 @@ import { FILESYSTEM_UTIL_ENDPOINT, FilesystemUtilClient, FilesystemUtilServer } 
 import { CincoDiagramConfiguration } from './diagram/cinco-diagram-configuration';
 import { CincoGLSPDiagramContextKeyService, CincoGLSPDiagramMananger } from './diagram/cinco-glsp-diagram-manager';
 import { FileSystemUtilService } from './file-system-util-contribution';
-import {
-    CreateGenerateGraphDiagramCommandContribution,
-    CreateGeneratorTemplateCommandContribution,
-    GenerateGraphDiagramCommandContribution,
-    GenerateGraphDiagramKeybindingContribution,
-    GenerateGraphDiagramMenuContribution
-} from './generator/generator-contribution';
+import { GenerateGraphDiagramKeybindingContribution, GenerateGraphDiagramMenuContribution } from './generator/generator-menu-contributions';
 import { GitConfigurationContribution } from './git/git-configuration-contribution';
 import { ChannelAPIContribution } from './output-messages/channel-api-contribution';
 import { PropertyDataHandler } from './property-widget/property-data-handler';
@@ -76,6 +70,7 @@ import {
     DiagramWidgetFactory
 } from '@eclipse-glsp/theia-integration/lib/browser/diagram/diagram-widget-factory';
 import { LanguageUpdater } from './meta/language-updater';
+import { GeneratorTemplateCreationCommandContribution } from './generator/generator-template-command-contribution';
 
 export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
     protected override get diagramLanguage(): GLSPDiagramLanguage {
@@ -98,9 +93,7 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         context.bind(CommandContribution).to(PropertyUpdateCommandContribution);
         context.bind(CommandContribution).to(GLSP2TheiaCommandRegistrationContribution);
         context.bind(CommandContribution).to(FileProviderContribution);
-        context.bind(CommandContribution).to(GenerateGraphDiagramCommandContribution);
-        context.bind(CommandContribution).to(CreateGenerateGraphDiagramCommandContribution);
-        context.bind(CommandContribution).to(CreateGeneratorTemplateCommandContribution);
+        context.bind(CommandContribution).to(GeneratorTemplateCreationCommandContribution);
         context.bind(KeybindingContribution).to(GenerateGraphDiagramKeybindingContribution);
         context.bind(MenuContribution).to(GenerateGraphDiagramMenuContribution);
 

@@ -32,6 +32,7 @@ import URI from '@theia/core/lib/common/uri';
 import { OutputChannel } from '@theia/output/src/browser/output-channel';
 import { DefaultEnvironmentProvider } from '@cinco-glsp/cinco-glsp-client';
 import { GraphModelProvider } from '@cinco-glsp/cinco-glsp-client/lib/model/graph-model-provider';
+import { GLSP2TheiaCommandRegistration } from '../theia-registration/command-registration-interface';
 
 @injectable()
 export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
@@ -59,7 +60,7 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
         // register meta-specification-reload for model
         const model = await this.graphModelProvider.graphModel;
         const filePath = model.id; // TODO: put workspace-file-path here
-        this.commandService.executeCommand('registerFromGLSP2Theia', {
+        this.commandService.executeCommand(GLSP2TheiaCommandRegistration.ID, {
             commandId: MetaSpecificationReloadCommand.ID + '.' + model.id,
             instanceId: model.id,
             visible: true,
@@ -72,7 +73,7 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
         });
 
         // register model-validation-request command
-        this.commandService.executeCommand('registerFromGLSP2Theia', {
+        this.commandService.executeCommand(GLSP2TheiaCommandRegistration.ID, {
             commandId: 'validationRequestModel',
             instanceId: model.id,
             callbacks: [

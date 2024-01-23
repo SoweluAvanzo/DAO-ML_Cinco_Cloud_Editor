@@ -49,7 +49,6 @@ import { DirtyStateHandler } from './features/action-handler/dirty-state-handler
 import { DoubleClickTool } from './features/tool/doubleclick-tool';
 import { CincoToolPalette } from './glsp/cinco-tool-palette';
 import { ApplyAppearanceUpdateCommand } from './features/gui/frontend-appearance-update-handler';
-import { GeneratorTool } from './features/generator/generator-tool';
 import { PropertyViewResponseActionHandler, PropertyViewTool } from './features/properties/property-view-tool';
 import { RoutingPointAwareEdgeEditTool } from './features/tool/routingpoint-aware-edge-edit-tool';
 import { ServerMessageHandler } from './features/action-handler/server-message-handler';
@@ -144,10 +143,6 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     // bind the propertyViewTool, that will fire the PropertyViewActions to the backend and the handler processing the responses
     bind(TYPES.IDefaultTool).to(PropertyViewTool);
     configureActionHandler(context, PropertyViewResponseAction.KIND, PropertyViewResponseActionHandler);
-
-    // bind the generatorTool, that will fire the GeneratorActions to the backend and the handler processing the responses
-    bind(TYPES.IDefaultTool).to(GeneratorTool);
-    bind(GeneratorTool).toSelf().inSingletonScope();
 
     // GLSPToolManager
     rebind(TYPES.IToolManager).to(CincoToolManager).inSingletonScope();
