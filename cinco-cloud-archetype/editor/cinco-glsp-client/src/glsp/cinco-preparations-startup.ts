@@ -77,6 +77,7 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
             }
         });
         await MetaSpecificationLoader.load(this.actionDispatcher, this.environmentProvider);
+        await this.environmentProvider.postRequestMetaSpecification();
     }
 
     prepareAfterMetaSpecification(): void {

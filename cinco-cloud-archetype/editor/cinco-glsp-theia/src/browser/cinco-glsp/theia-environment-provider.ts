@@ -17,6 +17,8 @@
 import { inject, injectable } from 'inversify';
 import {
     CompositionSpecification,
+    GenerateGraphDiagramCommand,
+    GeneratorAction,
     LANGUAGE_UPDATE_COMMAND,
     MetaSpecificationReloadAction,
     MetaSpecificationReloadCommand,
@@ -25,14 +27,21 @@ import {
     ServerDialogAction,
     ServerDialogResponse,
     ServerOutputAction,
-    ValidationRequestAction
+    ValidationRequestAction,
+    hasGeneratorAction,
+    hasValidator
 } from '@cinco-glsp/cinco-glsp-common';
-import { CommandService } from '@theia/core';
+import { CommandRegistry } from '@theia/core';
 import URI from '@theia/core/lib/common/uri';
 import { OutputChannel } from '@theia/output/src/browser/output-channel';
-import { DefaultEnvironmentProvider } from '@cinco-glsp/cinco-glsp-client';
-import { GraphModelProvider } from '@cinco-glsp/cinco-glsp-client/lib/model/graph-model-provider';
+import { DefaultEnvironmentProvider, CincoPaletteTools } from '@cinco-glsp/cinco-glsp-client';
 import { GLSP2TheiaCommandRegistration } from '../theia-registration/command-registration-interface';
+import { ValidationRequestCommandID } from '../validation-widget/validation-widget-contribution';
+import { WorkspaceRootProviderHandler } from '../theia-registration/file-provider';
+import { ConfirmDialog } from '@theia/core/lib/browser';
+import { ThemeService } from '@theia/core/lib/browser/theming';
+import { WorkspaceService } from '@theia/workspace/lib/browser';
+import { CincoGLSPDiagramMananger } from '../diagram/cinco-glsp-diagram-manager';
 
 @injectable()
 export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
@@ -40,11 +49,13 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
     SHOW_CHANNEL = { id: 'output:show' };
     APPEND_LINE = { id: 'output:appendLine' };
 
-    @inject(CommandService) protected readonly commandService: CommandService;
-    @inject(GraphModelProvider) protected readonly graphModelProvider: GraphModelProvider;
+    @inject(CommandRegistry) protected readonly commandRegistry: CommandRegistry;
+    @inject(ThemeService) protected readonly themeService: ThemeService;
+    @inject(WorkspaceService) protected readonly workspaceService: WorkspaceService;
+    @inject(CincoGLSPDiagramMananger) diagramManager: CincoGLSPDiagramMananger;
 
     override async getWorkspaceRoot(): Promise<string> {
-        const theiaRoots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
+        const theiaRoots: URI[] = (await this.commandRegistry.executeCommand(WorkspaceRootProviderHandler.ID)) ?? [];
         for (const theiaRoot of theiaRoots) {
             return theiaRoot.path.fsPath();
         }
@@ -55,14 +66,17 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
      * Used to register commands for a model
      */
     override async postRequestModel(): Promise<void> {
+        await super.postRequestModel();
         this.logger.log(this, 'Environment Provider loading - Theia');
 
+        const resourceUri = this.diagramManager.currentURI?.path.fsPath();
+        const sourceUri = new URI(resourceUri).path.fsPath();
+
         // register meta-specification-reload for model
-        const model = await this.graphModelProvider.graphModel;
-        const filePath = model.id; // TODO: put workspace-file-path here
-        this.commandService.executeCommand(GLSP2TheiaCommandRegistration.ID, {
-            commandId: MetaSpecificationReloadCommand.ID + '.' + model.id,
-            instanceId: model.id,
+        const filePath = sourceUri;
+        this.commandRegistry.executeCommand(GLSP2TheiaCommandRegistration.ID, {
+            commandId: MetaSpecificationReloadCommand.ID + '.' + this.model.id,
+            instanceId: this.model.id,
             visible: true,
             label: 'Reload Meta-Specification current model (' + filePath + ')',
             callbacks: [
@@ -73,22 +87,61 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
         });
 
         // register model-validation-request command
-        this.commandService.executeCommand(GLSP2TheiaCommandRegistration.ID, {
-            commandId: 'validationRequestModel',
-            instanceId: model.id,
+        this.commandRegistry.executeCommand(GLSP2TheiaCommandRegistration.ID, {
+            commandId: ValidationRequestCommandID,
+            instanceId: this.model.id,
             callbacks: [
                 async () => {
                     // send validation request
-                    const action = ValidationRequestAction.create(model.id);
+                    const action = ValidationRequestAction.create(this.model.id);
                     const response = await this.actionDispatcher.request(action);
-                    this.commandService.executeCommand('CincoCloud.updateValidationModel', response.messages);
+                    this.commandRegistry.executeCommand('CincoCloud.updateValidationModel', response.messages);
                 }
             ]
         });
+
+        // register generate command
+        this.registerGeneratorCommand();
+        this.themeService.onDidColorThemeChange(e => {
+            this.registerGeneratorCommand();
+        });
+    }
+
+    protected registerGeneratorCommand(): void {
+        // register generate command
+        const theme = this.themeService.getCurrentTheme();
+        const iconClass = theme.type === 'light' ? GenerateGraphDiagramCommand.lightIconClass : GenerateGraphDiagramCommand.darkIconClass;
+        const commandIds = this.commandRegistry.commands.map(c => c.id);
+        if (commandIds.indexOf(GenerateGraphDiagramCommand.id) >= 0) {
+            this.commandRegistry.unregisterCommand(GenerateGraphDiagramCommand);
+        }
+        const workspaceService = this.workspaceService;
+        const actionDispatcher = this.actionDispatcher;
+        const graphModelProvider = this.graphModelProvider;
+        this.commandRegistry.registerCommand(
+            {
+                id: GenerateGraphDiagramCommand.id,
+                category: GenerateGraphDiagramCommand.category,
+                label: GenerateGraphDiagramCommand.label,
+                iconClass: iconClass ?? GenerateGraphDiagramCommand.id
+            },
+            {
+                async execute(): Promise<void> {
+                    const roots = workspaceService.tryGetRoots();
+                    if (roots.length <= 0) {
+                        throw Error('No workspace root found. Make sure a workspace is opened.');
+                    }
+                    const model = await graphModelProvider.graphModel;
+                    const workspacePath: string = roots[0].resource.path.fsPath();
+                    const action = GeneratorAction.create(model.id, workspacePath);
+                    actionDispatcher.dispatch(action);
+                }
+            }
+        );
     }
 
     override handleLogging(action: ServerOutputAction): void {
-        this.commandService.executeCommand(this.CREATE_CHANNEL.id, { name: action.name }).then((v: any) => {
+        this.commandRegistry.executeCommand(this.CREATE_CHANNEL.id, { name: action.name }).then((v: any) => {
             const outputChannel: OutputChannel = v as OutputChannel;
             outputChannel.appendLine(action.message);
             if (action.show) {
@@ -108,7 +161,6 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
 
     async showDialogInTheia(title: string, msg: string): Promise<boolean | undefined> {
         const wrappedMsg = this.wrapMessage(msg);
-        const { ConfirmDialog } = await import('@theia/core/lib/browser');
         return new ConfirmDialog({ title, msg: wrappedMsg }).open();
     }
 
@@ -122,7 +174,7 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
     }
 
     override provideProperties(action: PropertyViewResponseAction): void | Promise<void> {
-        this.commandService.executeCommand(
+        this.commandRegistry.executeCommand(
             PropertyViewUpdateCommand.id,
             action.modelElementIndex,
             action.modelType,
@@ -134,8 +186,61 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
     }
 
     override propagateMetaspecification(metaSpec: CompositionSpecification): void | Promise<void> {
-        this.commandService.executeCommand(LANGUAGE_UPDATE_COMMAND.id, {
+        this.commandRegistry.executeCommand(LANGUAGE_UPDATE_COMMAND.id, {
             metaSpecification: metaSpec
         });
+    }
+
+    override provideTools(): CincoPaletteTools[] {
+        let tools = [
+            {
+                id: '_default'
+            },
+            {
+                id: '_delete'
+            },
+            /*
+            {
+                id: '_marquee'
+            },
+            {
+                id: '_validate'
+            },*/
+            {
+                id: 'cinco.validate-tool',
+                codicon: 'pass',
+                title: 'Validate model',
+                action: async (_: any) => {
+                    const model = await this.graphModelProvider.graphModel;
+                    const action = ValidationRequestAction.create(model.id);
+                    const validationResponse = await this.actionDispatcher.request(action);
+                    this.commandRegistry.executeCommand('CincoCloud.updateValidationModel', validationResponse.messages);
+                },
+                shortcut: ['AltLeft', 'KeyV']
+            } as CincoPaletteTools,
+            {
+                id: 'cinco.generate-tool',
+                codicon: 'run-all',
+                title: 'Generate',
+                action: async (_: any) => {
+                    const model = await this.graphModelProvider.graphModel;
+                    const workspacePath: string = await this.getWorkspaceRoot();
+                    const action = GeneratorAction.create(model.id, workspacePath);
+                    this.actionDispatcher.dispatch(action);
+                },
+                shortcut: ['AltLeft', 'KeyG']
+            } as CincoPaletteTools,
+            {
+                id: '_search'
+            }
+        ];
+
+        if (!hasGeneratorAction(this.model.type)) {
+            tools = tools.filter(t => t.id !== 'cinco.generate-tool');
+        }
+        if (!hasValidator(this.model.type)) {
+            tools = tools.filter(t => t.id !== 'cinco.validate-tool');
+        }
+        return tools;
     }
 }

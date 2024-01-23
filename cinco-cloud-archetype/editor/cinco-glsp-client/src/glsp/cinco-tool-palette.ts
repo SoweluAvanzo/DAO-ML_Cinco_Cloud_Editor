@@ -21,15 +21,24 @@ import {
     SetUIExtensionVisibilityAction,
     SetContextActions,
     RequestContextActions,
-    Ranked
+    Ranked,
+    createIcon,
+    changeCodiconClass
 } from '@eclipse-glsp/client';
 import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette';
 import { Action, PaletteItem } from '@eclipse-glsp/protocol';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
+import { CincoCustomTool, EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
+
+// imported from: '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette'
+const PALETTE_ICON_ID = 'symbol-color';
+const CHEVRON_DOWN_ICON_ID = 'chevron-right';
+const PALETTE_HEIGHT = '500px';
 
 @injectable()
 export class CincoToolPalette extends KeyboardToolPalette implements Ranked {
+    @inject(EnvironmentProvider) readonly environmentProvider: IEnvironmentProvider;
     static _rank: number = CINCO_STARTUP_RANK - 1; // needs to be before CincoPreparationsStartup
     rank: number = CincoToolPalette._rank;
     protected lastFilter = '';
@@ -125,5 +134,88 @@ export class CincoToolPalette extends KeyboardToolPalette implements Ranked {
     backupPaletteCopy(): void {
         // create a deep copy
         this.paletteItemsCopy = JSON.parse(JSON.stringify(this.paletteItems));
+    }
+
+    protected override addMinimizePaletteButton(): void {
+        const baseDiv = document.getElementById(this.options.baseDiv);
+        const minPaletteDiv = document.createElement('div');
+        minPaletteDiv.classList.add('minimize-palette-button');
+        this.containerElement.classList.add('collapsible-palette');
+        if (baseDiv) {
+            const insertedDiv = baseDiv.insertBefore(minPaletteDiv, baseDiv.firstChild);
+            this.updateMinimizePaletteButtonTooltip(minPaletteDiv);
+            const minimizeIcon = createIcon(CHEVRON_DOWN_ICON_ID);
+            minimizeIcon.onclick = _event => {
+                this.setPalette(minPaletteDiv, minimizeIcon);
+            };
+            insertedDiv.appendChild(minimizeIcon);
+            this.setPalette(minPaletteDiv, minimizeIcon, true); // workaround for missing scrollbar at start
+        }
+    }
+
+    setPalette(minPaletteDiv: HTMLDivElement, minimizeIcon: Element, setOpen = false): void {
+        if (!setOpen && this.isPaletteMaximized()) {
+            this.containerElement.style.overflow = 'hidden';
+            this.containerElement.style.maxHeight = '0px';
+        } else {
+            this.containerElement.style.overflow = 'scroll'; // fix to scroll
+            this.containerElement.style.maxHeight = PALETTE_HEIGHT;
+        }
+        this.updateMinimizePaletteButtonTooltip(minPaletteDiv);
+        changeCodiconClass(minimizeIcon, PALETTE_ICON_ID);
+        changeCodiconClass(minimizeIcon, CHEVRON_DOWN_ICON_ID);
+    }
+
+    protected override createHeaderTools(): HTMLElement {
+        this.headerToolsButtonMapping.clear();
+
+        const headerTools = document.createElement('div');
+        headerTools.classList.add('header-tools');
+
+        // fetch custom tools
+        const tools = this.environmentProvider.provideTools();
+
+        let index = 0;
+        for (const tool of tools) {
+            if (tool.id === '_default') {
+                this.defaultToolsButton = this.createDefaultToolButton();
+                this.headerToolsButtonMapping.set(0, this.defaultToolsButton);
+                headerTools.appendChild(this.defaultToolsButton);
+            } else if (tool.id === '_delete') {
+                this.deleteToolButton = this.createMouseDeleteToolButton();
+                this.headerToolsButtonMapping.set(1, this.deleteToolButton);
+                headerTools.appendChild(this.deleteToolButton);
+            } else if (tool.id === '_marquee') {
+                this.marqueeToolButton = this.createMarqueeToolButton();
+                this.headerToolsButtonMapping.set(2, this.marqueeToolButton);
+                headerTools.appendChild(this.marqueeToolButton);
+            } else if (tool.id === '_validate') {
+                this.validateToolButton = this.createValidateButton();
+                this.headerToolsButtonMapping.set(3, this.validateToolButton);
+                headerTools.appendChild(this.validateToolButton);
+            } else if (tool.id === '_search') {
+                this.searchToolButton = this.createSearchButton();
+                this.headerToolsButtonMapping.set(4, this.searchToolButton);
+                headerTools.appendChild(this.searchToolButton);
+            } else if (CincoCustomTool.is(tool)) {
+                const customToolButton = this.createCustomTool(tool);
+                this.headerToolsButtonMapping.set(index, customToolButton);
+                headerTools.appendChild(customToolButton);
+            }
+            index++;
+        }
+
+        return headerTools;
+    }
+
+    protected createCustomTool(tool: CincoCustomTool): HTMLElement {
+        const toolButton = createIcon(tool.codicon ?? 'beaker');
+        toolButton.id = tool.id;
+        toolButton.title = tool.title;
+        toolButton.onclick = tool.action ?? ((_: any) => console.log('Triggered: ' + tool.id));
+        if (tool.shortcut && tool.shortcut.length > 0) {
+            toolButton.appendChild(this.createKeyboardShotcut(tool.shortcut[0]));
+        }
+        return toolButton;
     }
 }
