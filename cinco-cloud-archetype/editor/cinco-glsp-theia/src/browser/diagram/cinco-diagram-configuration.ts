@@ -33,7 +33,7 @@ export class CincoDiagramConfiguration extends GLSPDiagramConfiguration {
     ): ContainerInversifyTheia {
         const cinco_bindings = new FeatureModule((bind, unbind, isBound, rebind) => {
             const context = { bind, unbind, isBound, rebind };
-            context.bind(EnvironmentProvider).to(TheiaEnvironmentProvider);
+            context.bind(EnvironmentProvider).to(TheiaEnvironmentProvider).inSingletonScope();
         });
         initializeCincoDiagramContainer(
             container as unknown as Container,

@@ -44,7 +44,7 @@ export default function createContainer(options: IDiagramOptions): Container {
         const context = { bind, unbind, isBound, rebind };
         context.unbind(FocusTrackerTool);
         context.bind(FocusTrackerTool).to(CincoFocusTrackerTool);
-        context.bind(EnvironmentProvider).to(DefaultEnvironmentProvider);
+        context.bind(EnvironmentProvider).to(DefaultEnvironmentProvider).inSingletonScope();
     });
     const accessibilityModule = new FeatureModule((bind, unbind, isBound, rebind) => {
         const context = { bind, unbind, isBound, rebind };
@@ -69,7 +69,7 @@ export default function createContainer(options: IDiagramOptions): Container {
         STANDALONE_MODULE_CONFIG
     );
     bindOrRebind(container, TYPES.ILogger).to(ConsoleLogger).inSingletonScope();
-    bindOrRebind(container, TYPES.LogLevel).toConstantValue(LogLevel.warn);
+    bindOrRebind(container, TYPES.LogLevel).toConstantValue(LogLevel.info);
     container.bind(TYPES.IMarqueeBehavior).toConstantValue({ entireEdge: true, entireElement: true });
     return container;
 }
