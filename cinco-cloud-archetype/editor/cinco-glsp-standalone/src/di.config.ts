@@ -31,13 +31,15 @@ import {
     configureResizeTools,
     configureSearchPaletteModule,
     configureToastTool,
-    configureViewKeyTools
+    configureViewKeyTools,
+    contextMenuModule
 } from '@eclipse-glsp/client';
 import { configureShortcutHelpTool } from '@eclipse-glsp/client/lib/features/accessibility/key-shortcut/di.config';
 import { configureKeyboardControlTools } from '@eclipse-glsp/client/lib/features/accessibility//keyboard-pointer/keyboard-pointer-module';
 import { Container } from 'inversify';
 import '../css/diagram.css';
 import { CincoFocusTrackerTool } from './tools/cinco-focus-tracker-tool';
+import { CincoContextMenu, CincoContextMenuService } from './context-menu/cinco-context-menu';
 export default function createContainer(options: IDiagramOptions): Container {
     // Add features
     const cinco_bindings = new FeatureModule((bind, unbind, isBound, rebind) => {
@@ -45,6 +47,8 @@ export default function createContainer(options: IDiagramOptions): Container {
         context.unbind(FocusTrackerTool);
         context.bind(FocusTrackerTool).to(CincoFocusTrackerTool);
         context.bind(EnvironmentProvider).to(DefaultEnvironmentProvider).inSingletonScope();
+        context.bind(TYPES.IContextMenuService).to(CincoContextMenuService);
+        context.bind(CincoContextMenu).to(CincoContextMenu).inSingletonScope();
     });
     const accessibilityModule = new FeatureModule((bind, unbind, isBound, rebind) => {
         const context = { bind, unbind, isBound, rebind };
@@ -63,7 +67,7 @@ export default function createContainer(options: IDiagramOptions): Container {
         new Container(),
         createDiagramOptionsModule(options),
         {
-            add: [accessibilityModule, cinco_bindings],
+            add: [accessibilityModule, cinco_bindings, contextMenuModule],
             remove: [toolPaletteModule]
         },
         STANDALONE_MODULE_CONFIG
