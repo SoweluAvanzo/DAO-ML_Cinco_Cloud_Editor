@@ -64,6 +64,7 @@ export interface IEnvironmentProvider extends IDiagramStartup {
     propagateMetaspecification(metaSpec: CompositionSpecification): void | Promise<void>;
     provideTools(): CincoPaletteTools[];
     postRequestMetaSpecification(): Promise<void> | void;
+    getCurrentModel(): CincoGraphModel;
 }
 
 @injectable()
@@ -76,11 +77,15 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
     protected readonly graphModelProvider: GraphModelProvider;
 
     protected selectedElementId: string;
-    model: CincoGraphModel;
+    protected model: CincoGraphModel;
 
     async getWorkspaceRoot(): Promise<string> {
         const serverArgs = await ServerArgsProvider.getServerArgs();
         return serverArgs?.workspacePath;
+    }
+
+    getCurrentModel(): CincoGraphModel {
+        return this.model;
     }
 
     handleLogging(action: ServerOutputAction): void | Promise<void> {
