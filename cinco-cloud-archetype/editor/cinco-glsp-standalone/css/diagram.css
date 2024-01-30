@@ -95,3 +95,10 @@ polygon.sprotty-node {
 .cinco-context-menu-divider {
     margin: 4px;
 }
+
+.codicon.codicon-symbol-color {
+    color: #cccccc;
+}
+.codicon.codicon-chevron-right {
+    color: #cccccc;
+}
