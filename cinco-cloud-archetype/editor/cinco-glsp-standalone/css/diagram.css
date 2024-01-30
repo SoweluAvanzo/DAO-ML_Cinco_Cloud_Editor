@@ -67,3 +67,28 @@ polygon.sprotty-node {
     top: 10px;
 }
 
+.cinco-context-menu {
+    display: block;
+    position: absolute;
+    z-index: 10;
+}
+
+.cinco-context-menu-container {
+    padding: 0px;
+    background-color: #ededee;
+    border-radius: 5px;
+}
+
+.cinco-context-menu-item:hover {
+    background-color: #dfdfdf;
+}
+
+.cinco-context-menu-item-action {
+    margin-left: 2px;
+    color: black;
+    width: max-content;
+}
+
+.cinco-context-menu-divider {
+    margin: 4px;
+}

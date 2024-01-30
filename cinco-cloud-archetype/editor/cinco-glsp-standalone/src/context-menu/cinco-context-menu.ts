@@ -58,7 +58,7 @@ export class CincoContextMenu extends AbstractUIExtension {
         let bodyDiv;
         if (!this.bodyDiv) {
             bodyDiv = document.createElement('div');
-            bodyDiv.classList.add('context-body');
+            bodyDiv.classList.add('cinco-context-menu');
             this.bodyDiv = bodyDiv;
             this.containerElement.appendChild(bodyDiv);
         } else {
@@ -68,20 +68,66 @@ export class CincoContextMenu extends AbstractUIExtension {
             }
         }
 
-        // render children
-        if (this.contextMenuService.groups.size > 0) {
-            const noResultsDiv = document.createElement('div');
-            noResultsDiv.innerText = 'Has results found.';
-            noResultsDiv.classList.add('context-menu-button');
-            bodyDiv.appendChild(noResultsDiv);
-        } else {
-            const noResultsDiv = document.createElement('div');
-            noResultsDiv.innerText = 'No results found.';
-            noResultsDiv.classList.add('context-menu-button');
-            bodyDiv.appendChild(noResultsDiv);
-        }
+        // set position
+        bodyDiv.style.left = `${this.position.x}px`;
+        bodyDiv.style.top = `${this.position.y}px`;
 
+        // render children
+        const menuContainer = document.createElement('div');
+        menuContainer.className =
+            'cinco-context-menu-container bg-white w-60 border border-gray-300 ' +
+            'rounded-lg flex flex-col text-sm py-4 px-2 text-gray-500 shadow-lg';
+        menuContainer.style.width = 'fit-content';
+        bodyDiv.appendChild(menuContainer);
+        const root = this.contextMenuService.root;
+        this.createMenu(root, menuContainer);
+        bodyDiv.hidden = false;
         this._hidden = false;
+    }
+
+    createMenu(structure: ContextMenu, parent: HTMLElement, createDivider = false): void {
+        const submenues = structure.subMenues;
+        const actions = structure.menuActions;
+
+        if (actions) {
+            for (const action of actions) {
+                this.createMenuAction(action, parent);
+            }
+        }
+        if (submenues) {
+            let i = 0;
+            for (const submenu of submenues) {
+                i++;
+                this.createMenu(submenu, parent, i < submenues.length);
+            }
+        }
+        if (createDivider) {
+            this.createDivider(parent);
+        }
+    }
+
+    createMenuAction(action: MenuAction, parent: HTMLElement): void {
+        const menuNode = document.createElement('div');
+        menuNode.className = 'cinco-context-menu-item flex hover:bg-gray-100 py-1 px-2 rounded cursor-pointer';
+        parent.appendChild(menuNode);
+
+        const menuAction = document.createElement('div');
+        menuAction.className = 'cinco-context-menu-item-action ml-4';
+        menuAction.innerHTML = action.label;
+        menuAction.id = action.commandId;
+        addEventListener('cinco-context-menu-fired', e => {
+            this.contextMenuService.handleContextMenuAction(action);
+        });
+        if (menuNode.onclick) {
+            menuNode.onclick(new MouseEvent('cinco-context-menu-fired'));
+        }
+        menuNode.appendChild(menuAction);
+    }
+
+    createDivider(bodyDiv: HTMLElement): void {
+        const divider = document.createElement('hr');
+        divider.className = 'cinco-context-menu-divider my-3 border-gray-300';
+        bodyDiv.appendChild(divider);
     }
 
     initialized(): boolean {
@@ -112,24 +158,73 @@ export class CincoContextMenu extends AbstractUIExtension {
     }
 }
 
+class ContextMenu {
+    id: string;
+    protected _subMenues: ContextMenu[] = [];
+    protected _menuActions: MenuAction[] = [];
+
+    constructor(id: string) {
+        this.id = id;
+    }
+
+    get subMenues(): ContextMenu[] {
+        return this._subMenues.reverse();
+    }
+
+    get menuActions(): MenuAction[] {
+        return this._menuActions.reverse();
+    }
+
+    addSubMenu(submenu: ContextMenu): boolean {
+        if (this._subMenues.filter(s => s.id === submenu.id).length <= 0) {
+            this._subMenues.push(submenu);
+            return true;
+        }
+        return false;
+    }
+
+    addAction(action: MenuAction): boolean {
+        if (this._menuActions.filter(a => a.label === action.label && a.commandId === action.commandId).length <= 0) {
+            this._menuActions.push(action);
+            return true;
+        }
+        return false;
+    }
+
+    getSubMenu(id: string): ContextMenu | undefined {
+        const result = this._subMenues.filter(e => e.id === id);
+        return result.length > 0 ? result[0] : undefined;
+    }
+
+    getAction(commandId: string): MenuAction | undefined {
+        const result = this._menuActions.filter(e => e.commandId === commandId);
+        return result.length > 0 ? result[0] : undefined;
+    }
+
+    clear(): void {
+        this._menuActions = [];
+        this._subMenues = [];
+    }
+}
+
 @injectable()
 export class CincoContextMenuService implements IContextMenuService {
     @inject(CincoContextMenu) protected readonly contextMenu: CincoContextMenu;
     @inject(EnvironmentProvider) protected readonly environmentProvider: IEnvironmentProvider;
     protected timeout?: number;
-    protected menuGroups: Map<string, Set<MenuAction>> = new Map(); // <(sub-)menu, action[]>
-    protected submenus: Map<string, Set<string>> = new Map(); // <menu, submenues[]>
+    protected contextMenuStructure: ContextMenu = new ContextMenu('root');
     static CONTEXT_MENU = ['glsp-context-menu'];
 
-    get menues(): Map<string, Set<string>> {
-        return this.submenus;
+    get root(): ContextMenu {
+        return this.contextMenuStructure;
     }
-    get groups(): Map<string, Set<MenuAction>> {
-        return this.menuGroups;
+
+    handleContextMenuAction(action: MenuAction): void {
+        console.log('Menuaction triggered: ' + action.commandId);
     }
 
     show(items: MenuItem[], anchor: Anchor, onHide?: (() => void) | undefined): void {
-        this.register(CincoContextMenuService.CONTEXT_MENU, items);
+        this.registerAction(CincoContextMenuService.CONTEXT_MENU, items);
         const renderOptions = {
             menuPath: CincoContextMenuService.CONTEXT_MENU,
             anchor: anchor,
@@ -165,39 +260,30 @@ export class CincoContextMenuService implements IContextMenuService {
         };
     }
 
-    protected register(menuPath: string[], items: MenuItem[]): void {
+    protected registerAction(menuPath: string[], items: MenuItem[]): void {
+        this.contextMenuStructure.clear();
         for (const item of items) {
-            if (item.children && item.children.length > 0) {
-                // is a submenu entry
-                const menuPathOfItem = item.group ? [...menuPath, item.group] : menuPath;
-                this.registerSubmenu(menuPathOfItem, item);
-                this.register([...menuPathOfItem, item.id], item.children);
-            } else {
-                this.registerMenuAction(menuPath, item);
-            }
+            const menuPathOfItem = item.group ? [...menuPath, item.group] : menuPath;
+            this.registerContextMenu(menuPathOfItem, item, this.contextMenuStructure);
         }
     }
 
-    protected registerSubmenu(menuPath: string[], item: MenuItem): void {
-        for (let i = 0; i < menuPath.length - 1; i++) {
-            if (!this.submenus.has(menuPath[i])) {
-                this.submenus.set(menuPath[i], new Set());
-            }
-            const submenues = this.submenus.get(menuPath[i]);
-            this.submenus.set(menuPath[i], submenues!.add(menuPath[i + 1]));
-        }
-    }
+    protected registerContextMenu(menuPath: string[], item: MenuItem, parent: ContextMenu): void {
+        if (menuPath.length > 0) {
+            // exhaust menuPath stepwise -> add submenu
+            const subMenuId = menuPath[0];
+            const menuPathOfItem = menuPath.slice(1);
 
-    protected registerMenuAction(menuPath: string[], item: MenuItem): void {
-        const menuAction: MenuAction = { label: item.label, order: item.sortString, commandId: this.commandId(menuPath, item) };
-        const menuPathOfItem = item.group ? [...menuPath, item.group] : menuPath;
-        const menu = menuPathOfItem.join('_');
-        if (!this.menuGroups.has(menu)) {
-            this.menuGroups.set(menu, new Set());
-        }
-        const group = this.menuGroups.get(menu);
-        if (group) {
-            this.menuGroups.set(menu, group.add(menuAction));
+            let subContextMenu = new ContextMenu(subMenuId);
+            const added = parent.addSubMenu(subContextMenu);
+            subContextMenu = added ? subContextMenu : parent.getSubMenu(subMenuId)!;
+            if (subContextMenu) {
+                this.registerContextMenu(menuPathOfItem, item, subContextMenu);
+            }
+        } else {
+            // menuPath exhausted -> add menuAction
+            const menuAction: MenuAction = { label: item.label, order: item.sortString, commandId: this.commandId(menuPath, item) };
+            parent.addAction(menuAction);
         }
     }
 
