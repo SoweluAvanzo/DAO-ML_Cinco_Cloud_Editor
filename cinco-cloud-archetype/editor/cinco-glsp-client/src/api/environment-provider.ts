@@ -15,7 +15,7 @@
  ********************************************************************************/
 
 import { inject, injectable } from 'inversify';
-import { IActionDispatcher, IDiagramStartup, ILogger, KeyCode, TYPES, hasStringProp } from '@eclipse-glsp/client';
+import { IActionDispatcher, IDiagramStartup, ILogger, KeyCode, SelectionService, TYPES, hasStringProp } from '@eclipse-glsp/client';
 import {
     CompositionSpecification,
     GeneratorAction,
@@ -29,7 +29,7 @@ import {
 } from '@cinco-glsp/cinco-glsp-common';
 import { ServerArgsProvider } from '../meta/server-args-response-handler';
 import { GraphModelProvider } from '../model/graph-model-provider';
-import { CincoGraphModel } from '../model/model';
+import { CincoGraphModel, CincoModelElement } from '../model/model';
 
 export interface CincoPaletteTools {
     id: string;
@@ -59,24 +59,27 @@ export interface IEnvironmentProvider extends IDiagramStartup {
     getWorkspaceRoot(): Promise<string>;
     handleLogging(action: ServerOutputAction): void | Promise<void>;
     showDialog(action: ServerDialogAction): void | Promise<void>;
-    selectedElementChanged(modelElementId: string): void | Promise<void>;
+    selectedElementsChanged(modelElementId: string[]): void | Promise<void>;
     provideProperties(action: PropertyViewResponseAction): void | Promise<void>;
     propagateMetaspecification(metaSpec: CompositionSpecification): void | Promise<void>;
     provideTools(): CincoPaletteTools[];
     postRequestMetaSpecification(): Promise<void> | void;
     getCurrentModel(): CincoGraphModel;
+    get actionDispatcher(): IActionDispatcher;
+    selectedElements(): CincoModelElement[];
 }
 
 @injectable()
 export class DefaultEnvironmentProvider implements IEnvironmentProvider {
     static _rank: number = CINCO_STARTUP_RANK - 2; // needs to be before CincoToolPalette (has: CINCO_STARTUP_RANK - 1)
     rank: number = DefaultEnvironmentProvider._rank;
-    @inject(TYPES.IActionDispatcher) actionDispatcher: IActionDispatcher;
+    @inject(TYPES.IActionDispatcher) protected _actionDispatcher: IActionDispatcher;
     @inject(TYPES.ILogger) protected logger: ILogger;
     @inject(GraphModelProvider)
     protected readonly graphModelProvider: GraphModelProvider;
+    @inject(SelectionService) protected selectionService: SelectionService;
 
-    protected selectedElementId: string;
+    protected selectedElementIds: string[];
     protected model: CincoGraphModel;
 
     async getWorkspaceRoot(): Promise<string> {
@@ -114,8 +117,12 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
         alert('ShowDialog not implemented: ' + action.message);
     }
 
-    selectedElementChanged(modelElementId: string): void | Promise<void> {
-        this.selectedElementId = modelElementId;
+    selectedElementsChanged(modelElementIds: string[]): void | Promise<void> {
+        this.selectedElementIds = modelElementIds;
+    }
+
+    selectedElements(): CincoModelElement[] {
+        return this.selectionService.getSelectedElements().filter(s => CincoModelElement.is(s));
     }
 
     provideProperties(action: PropertyViewResponseAction): void | Promise<void> {
@@ -193,5 +200,9 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
             tools = tools.filter(t => t.id !== 'cinco.validate-tool');
         }
         return tools;
+    }
+
+    get actionDispatcher(): IActionDispatcher {
+        return this._actionDispatcher;
     }
 }

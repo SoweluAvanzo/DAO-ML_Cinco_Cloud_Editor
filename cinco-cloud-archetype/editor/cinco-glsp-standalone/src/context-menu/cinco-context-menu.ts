@@ -15,9 +15,10 @@
  ********************************************************************************/
 
 import { EnvironmentProvider, IEnvironmentProvider } from '@cinco-glsp/cinco-glsp-client';
-import { Point } from '@cinco-glsp/cinco-glsp-common';
+import { CustomAction, Point } from '@cinco-glsp/cinco-glsp-common';
 import { AbstractUIExtension, Anchor, IContextMenuService, MenuItem } from '@eclipse-glsp/client';
 import { inject, injectable } from 'inversify';
+import { DeleteElementOperation } from '@eclipse-glsp/protocol';
 
 @injectable()
 export class CincoContextMenu extends AbstractUIExtension {
@@ -26,6 +27,7 @@ export class CincoContextMenu extends AbstractUIExtension {
     protected bodyDiv: HTMLElement;
     protected _position = { x: 0, y: 0 };
     protected _hidden = true;
+    protected registeredActions: Map<string, (e: any) => void> = new Map();
 
     override id(): string {
         return CincoContextMenu.ID;
@@ -91,6 +93,7 @@ export class CincoContextMenu extends AbstractUIExtension {
 
         if (actions) {
             for (const action of actions) {
+                action.parent = structure;
                 this.createMenuAction(action, parent);
             }
         }
@@ -114,12 +117,12 @@ export class CincoContextMenu extends AbstractUIExtension {
         const menuAction = document.createElement('div');
         menuAction.className = 'cinco-context-menu-item-action ml-4';
         menuAction.innerHTML = action.label;
-        menuAction.id = action.commandId;
-        addEventListener('cinco-context-menu-fired', e => {
-            this.contextMenuService.handleContextMenuAction(action);
-        });
-        if (menuNode.onclick) {
-            menuNode.onclick(new MouseEvent('cinco-context-menu-fired'));
+        menuAction.id = action.parent.id + action.commandId;
+
+        const id = createContextMenuEventId(menuAction.id);
+        if (!this.registeredActions.has(id)) {
+            this.registeredActions.set(id, e => this.contextMenuService.handleContextMenuAction(action, e));
+            window.addEventListener(id, e => this.registeredActions.get(id)!(e));
         }
         menuNode.appendChild(menuAction);
     }
@@ -159,12 +162,32 @@ export class CincoContextMenu extends AbstractUIExtension {
 }
 
 class ContextMenu {
-    id: string;
+    protected _id: string;
+    protected _parent?: ContextMenu;
     protected _subMenues: ContextMenu[] = [];
     protected _menuActions: MenuAction[] = [];
 
     constructor(id: string) {
-        this.id = id;
+        this._id = id.replace('_', '-');
+    }
+
+    get idSegment(): string {
+        return this._id;
+    }
+
+    get id(): string {
+        if (!this.parent) {
+            return this._id;
+        }
+        return this.parent.id + '_' + this._id;
+    }
+
+    set parent(parent: ContextMenu | undefined) {
+        this._parent = parent;
+    }
+
+    get parent(): ContextMenu | undefined {
+        return this._parent;
     }
 
     get subMenues(): ContextMenu[] {
@@ -176,8 +199,9 @@ class ContextMenu {
     }
 
     addSubMenu(submenu: ContextMenu): boolean {
-        if (this._subMenues.filter(s => s.id === submenu.id).length <= 0) {
+        if (this._subMenues.filter(s => s.idSegment === submenu.idSegment).length <= 0) {
             this._subMenues.push(submenu);
+            submenu.parent = this;
             return true;
         }
         return false;
@@ -192,7 +216,7 @@ class ContextMenu {
     }
 
     getSubMenu(id: string): ContextMenu | undefined {
-        const result = this._subMenues.filter(e => e.id === id);
+        const result = this._subMenues.filter(e => e.idSegment === id);
         return result.length > 0 ? result[0] : undefined;
     }
 
@@ -219,8 +243,23 @@ export class CincoContextMenuService implements IContextMenuService {
         return this.contextMenuStructure;
     }
 
-    handleContextMenuAction(action: MenuAction): void {
-        console.log('Menuaction triggered: ' + action.commandId);
+    handleContextMenuAction(action: MenuAction, e: Event): void {
+        const commandId = action.commandId.slice(1);
+        console.log('Menuaction triggered: ' + commandId);
+        const modelElements = this.environmentProvider.selectedElements();
+        const modelElementId = modelElements.length > 0 ? modelElements[0].id : this.environmentProvider.getCurrentModel().id;
+        const selectedModelElementIds = modelElements.map(elem => elem.id);
+        if (commandId.startsWith('action_graph_custom')) {
+            const contextMenuAction = CustomAction.create(
+                modelElementId,
+                selectedModelElementIds,
+                commandId.split('action_graph_custom_')[1]
+            );
+            this.environmentProvider.actionDispatcher.dispatch(contextMenuAction);
+        } else if (commandId === 'delete') {
+            const deleteOperation = DeleteElementOperation.create([modelElementId]);
+            this.environmentProvider.actionDispatcher.dispatch(deleteOperation);
+        }
     }
 
     show(items: MenuItem[], anchor: Anchor, onHide?: (() => void) | undefined): void {
@@ -282,7 +321,12 @@ export class CincoContextMenuService implements IContextMenuService {
             }
         } else {
             // menuPath exhausted -> add menuAction
-            const menuAction: MenuAction = { label: item.label, order: item.sortString, commandId: this.commandId(menuPath, item) };
+            const menuAction: MenuAction = {
+                label: item.label,
+                order: item.sortString,
+                commandId: this.commandId(menuPath, item),
+                parent: parent
+            };
             parent.addAction(menuAction);
         }
     }
@@ -326,6 +370,9 @@ export class CincoContextMenuService implements IContextMenuService {
                     this.contextMenu.show(this.environmentProvider.getCurrentModel());
                     addEventListener('mousedown', e => {
                         if (!this.contextMenu.isHidden()) {
+                            if (e.target instanceof HTMLElement) {
+                                window.dispatchEvent(createContextMenuEvent(e.target.id));
+                            }
                             this.contextMenu.hide();
                         }
                     });
@@ -343,6 +390,15 @@ interface MenuAction {
     label: string;
     order: string | undefined;
     commandId: string;
+    parent: ContextMenu;
+}
+
+function createContextMenuEvent(id: string): Event {
+    return new Event(createContextMenuEventId(id));
+}
+
+function createContextMenuEventId(id: string): string {
+    return 'cinco-context-menu-fired:' + id;
 }
 
 export interface RenderContextMenuOptions {
