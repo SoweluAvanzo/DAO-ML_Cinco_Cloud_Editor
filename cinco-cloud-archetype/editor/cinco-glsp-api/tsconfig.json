@@ -2,8 +2,7 @@
   "extends": "@eclipse-glsp/ts-config/tsconfig.json",
   "compilerOptions": {
     "rootDirs": [
-      "src",
-      "languages"
+      "src"
     ],
     "outDir": "lib",
     "reactNamespace": "JSX",
@@ -19,8 +18,7 @@
     ],
   },
   "include": [
-    "src",
-    "languages"
+    "src"
   ],
   "exclude": [
     "**/*.spec.ts",
