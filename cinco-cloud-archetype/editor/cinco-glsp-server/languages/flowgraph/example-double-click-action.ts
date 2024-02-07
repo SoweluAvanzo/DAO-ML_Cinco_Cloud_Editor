@@ -33,6 +33,11 @@ export class ExampleDoubleClickHandler extends DoubleClickHandler {
         this.dialog('DoubleClickEvent!', message).then(dialogResult => {
             const buttonText = dialogResult === 'true' ? 'OK' : 'Cancel';
             this.notify('You clicked: ' + buttonText);
+
+            this.saveModel();
+            this.notify('saved Model');
+            this.submitModel();
+            this.notify('submitted Model');
         });
 
         // next actions => find all activities and update their appearance
