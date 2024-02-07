@@ -21,7 +21,7 @@ interface ServerArgs {
  * @param fileName 
  * @returns the path to the languagesFolder
  */
-export function saveToLanguagesFolder(content: string, fileName: string): Promise<string> {
+export function saveToLanguagesFolder(content: string, fileName: string, destinationPath?: string): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
         let serverArgs:  ServerArgs;
         try {
@@ -33,7 +33,7 @@ export function saveToLanguagesFolder(content: string, fileName: string): Promis
             } as ServerArgs;
 
         }
-        const languagesFolder = serverArgs.rootFolder + '/' + serverArgs.languagePath;
+        const languagesFolder = destinationPath ?? (serverArgs.rootFolder + '/' + serverArgs.languagePath);
         // create if not existing
         if (!fs.existsSync(languagesFolder)) {
             fs.mkdirSync(languagesFolder, { recursive: true });
