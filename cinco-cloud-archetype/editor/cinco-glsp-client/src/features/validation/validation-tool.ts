@@ -14,15 +14,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { ValidationModelResponseAction, ValidationRequestAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, BaseGLSPTool, IActionHandler, ICommand } from '@eclipse-glsp/client';
+import { Action, Tool, IActionHandler, ICommand, GLSPActionDispatcher, TYPES, EditorContextService } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { inject, injectable, optional, postConstruct } from 'inversify';
-import { GraphModelProvider } from '../model/graph-model-provider';
+import { GraphModelProvider } from '../../model/graph-model-provider';
 
 @injectable()
-export class ValidationTool extends BaseGLSPTool {
+export class ValidationTool implements Tool {
     @inject(CommandService) @optional() commandService: CommandService;
-    @inject(GraphModelProvider) graphModelProvider: GraphModelProvider;
+    @inject(GraphModelProvider) protected readonly graphModelProvider: GraphModelProvider;
+    @inject(TYPES.IActionDispatcher) protected actionDispatcher: GLSPActionDispatcher;
+    @inject(EditorContextService) protected readonly editorContext: EditorContextService;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     enable(): void {}

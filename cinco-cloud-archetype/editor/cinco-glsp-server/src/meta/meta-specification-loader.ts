@@ -14,27 +14,19 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { CompositionSpecification, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
-import {
-    getFilesFromFolder, getLanguageFolder, getLibLanguageFolder, isBundle, readJson
-} from '@cinco-glsp/cinco-glsp-api';
+import { getFilesFromFolder, getLanguageFolder, getLibLanguageFolder, isBundle, readJson } from '@cinco-glsp/cinco-glsp-api';
 
 export class MetaSpecificationLoader {
-
-    static load(
-        metaSpecificationFileTypes: string[],
-        metaLanguagesFolder?: string
-    ): void {
+    static load(metaSpecificationFileTypes: string[], metaLanguagesFolder?: string): void {
         const metaLanguagesPath = metaLanguagesFolder ?? `${getLanguageFolder()}`;
-        console.log(`loading files from:  ${metaLanguagesPath}`);
-        const foundFiles2 = getFilesFromFolder(metaLanguagesPath, './');
-        foundFiles2
+        const foundFiles = getFilesFromFolder(metaLanguagesPath, './');
+        foundFiles
             .filter((file: string) => {
                 const fileExtension = file.slice(file.indexOf('.'));
                 const isSupported = metaSpecificationFileTypes.indexOf(fileExtension) >= 0;
                 return file !== undefined && isSupported;
             })
             .forEach((file: string) => {
-                console.log(`loading meta-specification:  ${file}`);
                 const metaSpec = readJson(`${metaLanguagesPath}/${file}`);
                 if (metaSpec && CompositionSpecification.is(metaSpec)) {
                     MetaSpecification.merge(metaSpec);
@@ -49,7 +41,6 @@ export class MetaSpecificationLoader {
     static loadClassFiles(supportedDynamicImportFileTypes: string[]): void {
         // Import all injected language-files under './languages/*.ts'
         const languagesPath = `${getLibLanguageFolder()}`;
-        console.log(`loading files from:  ${languagesPath}`);
         const foundFiles = getFilesFromFolder(languagesPath, './');
         foundFiles
             .filter((file: string) => {
@@ -58,9 +49,8 @@ export class MetaSpecificationLoader {
                 return file !== undefined && isSupported;
             })
             .forEach((file: string) => {
-                console.log(`loading compiled resource:  ${file}`);
                 // fixed internal (resources that are compiled into this server)
-                if(isBundle()) {
+                if (isBundle()) {
                     require(`../../languages/${file}`);
                 } else {
                     import(`../../../lib/languages/${file}`).catch(e => {

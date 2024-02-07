@@ -13,14 +13,14 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { JsonRpcServer } from '@theia/core/lib/common/messaging/proxy-factory';
+import { RpcServer } from '@theia/core/lib/common/messaging/proxy-factory';
 
 export const FILESYSTEM_UTIL_ENDPOINT = 'services/cc_fs_util';
 export const FilesystemUtilClient = Symbol('FilesystemUtilClient');
 export interface FilesystemUtilClient {}
 export const FilesystemUtilServer = Symbol('FilesystemUtilServer');
 
-export interface FilesystemUtilServer extends JsonRpcServer<FilesystemUtilClient> {
+export interface FilesystemUtilServer extends RpcServer<FilesystemUtilClient> {
     connect(): Promise<boolean>;
     // provides all files of a specified absolute folder path
     getFiles(absFolderPath: string): Promise<string[]> | undefined;

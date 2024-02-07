@@ -14,18 +14,21 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { DoubleClickAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, BaseGLSPTool, KeyListener, MouseListener, RankingMouseTool, SModelElement, isSelectable } from '@eclipse-glsp/client';
+import { Action, Tool, KeyListener, MouseListener, GModelElement, isSelectable, MouseTool, KeyTool } from '@eclipse-glsp/client';
 import { inject, injectable } from 'inversify';
 import { toArray } from 'sprotty/lib/utils/iterable';
 import { matchesKeystroke } from 'sprotty/lib/utils/keyboard';
 
 @injectable()
-export class DoubleClickTool extends BaseGLSPTool {
+export class DoubleClickTool implements Tool {
     static readonly ID = 'doubleclick-tool';
 
-    @inject(RankingMouseTool)
-    protected editLabelMouseListener: MouseListener;
+    @inject(MouseTool)
+    protected mouseTool: MouseTool;
+    @inject(KeyTool)
+    protected keyTool: KeyTool;
     protected editLabelKeyListener: KeyListener;
+    protected mouseListener: MouseListener;
 
     get id(): string {
         return DoubleClickTool.ID;
@@ -41,14 +44,14 @@ export class DoubleClickTool extends BaseGLSPTool {
 
     enable(): void {
         this.editLabelKeyListener = this.createDoubleClickKeyListener();
-        this.editLabelMouseListener = this.createDoubleClickMouseListener();
-        this.mouseTool.register(this.editLabelMouseListener);
+        this.mouseListener = this.createDoubleClickMouseListener();
+        this.mouseTool.register(this.mouseListener);
         this.keyTool.register(this.editLabelKeyListener);
     }
 
     disable(): void {
         this.keyTool.deregister(this.editLabelKeyListener);
-        this.mouseTool.deregister(this.editLabelMouseListener);
+        this.mouseTool.deregister(this.mouseListener);
     }
 }
 
@@ -61,7 +64,7 @@ export class DoubleClickTool extends BaseGLSPTool {
  */
 
 export class DoubleClickMouseListener extends MouseListener {
-    override doubleClick(target: SModelElement, event: MouseEvent): (Action | Promise<Action>)[] {
+    override doubleClick(target: GModelElement, event: MouseEvent): (Action | Promise<Action>)[] {
         if (isWithDoubleClickFeature(target)) {
             return [DoubleClickAction.create(target.id)];
         }
@@ -71,10 +74,10 @@ export class DoubleClickMouseListener extends MouseListener {
 
 // an alternative for doubleClick by pressing F2
 export class DoubleClickKeyListener extends KeyListener {
-    override keyDown(element: SModelElement, event: KeyboardEvent): Action[] {
+    override keyDown(element: GModelElement, event: KeyboardEvent): Action[] {
         if (matchesKeystroke(event, 'F2')) {
             const doubleClickable = toArray(element.index.all().filter(e => isSelectable(e) && e.selected)).filter(
-                (e): e is SModelElement => e !== undefined && isWithDoubleClickFeature(e)
+                (e): e is GModelElement => e !== undefined && isWithDoubleClickFeature(e)
             );
             if (doubleClickable.length === 1) {
                 // only one element can be "doubleClicked"
@@ -91,6 +94,6 @@ export class DoubleClickKeyListener extends KeyListener {
 
 export const withDoubleClickFeature = Symbol('withDoubleClickFeature');
 
-export function isWithDoubleClickFeature<T extends SModelElement>(element: T): element is T {
+export function isWithDoubleClickFeature<T extends GModelElement>(element: T): element is T {
     return element.hasFeature(withDoubleClickFeature);
 }

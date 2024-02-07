@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { injectable } from 'inversify';
-import { DEFAULT_SERVER_PORT, ServerArgs } from '@cinco-glsp/cinco-glsp-common';
+import { DEFAULT_SERVER_PORT, ServerArgs, DEFAULT_WEBSOCKET_PATH } from '@cinco-glsp/cinco-glsp-common';
 import {
     DEFAULT_META_DEV_MODE,
     DEFAULT_META_LANGUAGES_FOLDER,
@@ -31,11 +31,15 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
     client: GLSPServerUtilClient | undefined;
 
     constructor() {
-        if(!GLSPServerUtilServerNode.SERVER_ARGS) {
+        if (!GLSPServerUtilServerNode.SERVER_ARGS) {
             this.setServerArgs(
-                DEFAULT_META_DEV_MODE !== '', DEFAULT_ROOT_FOLDER,
-                DEFAULT_META_LANGUAGES_FOLDER, DEFAULT_WORKSPACE_FOLDER, DEFAULT_SERVER_PORT)
-            ;
+                DEFAULT_META_DEV_MODE !== '',
+                DEFAULT_ROOT_FOLDER,
+                DEFAULT_META_LANGUAGES_FOLDER,
+                DEFAULT_WORKSPACE_FOLDER,
+                DEFAULT_SERVER_PORT,
+                DEFAULT_WEBSOCKET_PATH
+            );
         }
     }
 
@@ -61,15 +65,23 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
     setClient(client: GLSPServerUtilClient | undefined): void {
         this.client = client;
     }
- 
-    setServerArgs(metaDevMode: boolean, rootFolder: string, languagePath: string, workspacePath: string, port: number): void {
+
+    setServerArgs(
+        metaDevMode: boolean,
+        rootFolder: string,
+        languagePath: string,
+        workspacePath: string,
+        port: number,
+        websocketPath: string
+    ): void {
         const absoluteRootPath = path.resolve(rootFolder);
         GLSPServerUtilServerNode.SERVER_ARGS = {
             metaDevMode: metaDevMode,
             rootFolder: absoluteRootPath,
             languagePath: languagePath,
             workspacePath: workspacePath,
-            port: port
+            port: port,
+            websocketPath: websocketPath
         };
     }
 
@@ -91,7 +103,7 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
             } else {
                 console.log(`stdout:\n${stdout}`);
             }
-          });
+        });
         return undefined;
     }
 
@@ -109,7 +121,7 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
             } else {
                 console.log(`stdout:\n${stdout}`);
             }
-          });
+        });
         return undefined;
     }
 }

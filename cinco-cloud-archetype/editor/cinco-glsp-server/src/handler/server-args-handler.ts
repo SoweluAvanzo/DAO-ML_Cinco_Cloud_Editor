@@ -16,15 +16,24 @@
 
 import {
     DEFAULT_SERVER_PORT,
+    DEFAULT_WEBSOCKET_PATH,
     META_LANGUAGES_FOLDER,
     ServerArgs,
     ServerArgsRequest,
     ServerArgsResponse,
     WORKSPACE_FOLDER
 } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionHandler, MaybePromise, processPort } from '@eclipse-glsp/server-node';
+import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server';
+import { processPort } from '@eclipse-glsp/server/lib/node/launch/socket-cli-parser';
 import { injectable } from 'inversify';
-import { LanguageFilesRegistry, getPortArg, getLanguageFolderArg, getRoot, getWorkspaceFolderArg } from '@cinco-glsp/cinco-glsp-api';
+import {
+    LanguageFilesRegistry,
+    getPortArg,
+    getLanguageFolderArg,
+    getRoot,
+    getWorkspaceFolderArg,
+    getWebsocketPathArg
+} from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class ServerArgsRequestHandler implements ActionHandler {
@@ -36,7 +45,8 @@ export class ServerArgsRequestHandler implements ActionHandler {
             getRoot(),
             getLanguageFolderArg() ?? WORKSPACE_FOLDER,
             getWorkspaceFolderArg() ?? META_LANGUAGES_FOLDER,
-            processPort(getPortArg() ?? '' + DEFAULT_SERVER_PORT)
+            processPort(getPortArg() ?? '' + DEFAULT_SERVER_PORT),
+            getWebsocketPathArg() ?? DEFAULT_WEBSOCKET_PATH
         );
         return [ServerArgsResponse.create(serverArgs)];
     }

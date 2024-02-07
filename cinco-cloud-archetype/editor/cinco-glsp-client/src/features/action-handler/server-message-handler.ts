@@ -29,54 +29,49 @@ export class ServerMessageHandler implements IActionHandler {
     protected dispatcher: IActionDispatcher;
     @inject(TYPES.ILogger)
     protected logger: ILogger;
-
-    @inject('TheiaGLSPConnector')
-    @optional()
-    protected theia: any | undefined;
     @inject(CommandService)
     @optional()
     protected commandService: CommandService | undefined;
 
     handle(action: Action): void {
-        // ServerMessageAction is handled in another handler (for popup actions)
-        // This condition writes into a output-log
-        if (ServerOutputAction.is(action) && this.commandService) {
-            this.commandService.executeCommand(CREATE_CHANNEL.id, { name: action.name }).then((v: any) => {
-                const outputChannel: OutputChannel = v as OutputChannel;
-                outputChannel.appendLine(action.message);
-                if (action.show) {
-                    outputChannel.show();
+        // check if the client acts inside a theia
+        if (this.commandService) {
+            if (ServerOutputAction.is(action)) {
+                this.commandService.executeCommand(CREATE_CHANNEL.id, { name: action.name }).then((v: any) => {
+                    const outputChannel: OutputChannel = v as OutputChannel;
+                    outputChannel.appendLine(action.message);
+                    if (action.show) {
+                        outputChannel.show();
+                    }
+                });
+                switch (
+                    action.logLevel // "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
+                ) {
+                    case 'INFO':
+                        this.logger.info(this, action.message);
+                        break;
+                    case 'ERROR':
+                        this.logger.error(this, action.message);
+                        break;
+                    case 'FATAL':
+                        this.logger.error(this, action.message);
+                        break;
+                    case 'WARNING':
+                        this.logger.warn(this, action.message);
+                        break;
+                    default:
+                        this.logger.log(this, action.message);
+                        break;
                 }
-            });
-            switch (
-                action.logLevel // "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
-            ) {
-                case 'INFO':
-                    this.logger.info(this, action.message);
-                    break;
-                case 'ERROR':
-                    this.logger.error(this, action.message);
-                    break;
-                case 'FATAL':
-                    this.logger.error(this, action.message);
-                    break;
-                case 'WARNING':
-                    this.logger.warn(this, action.message);
-                    break;
-                default:
-                    this.logger.log(this, action.message);
-                    break;
-            }
-        } else if (ServerDialogAction.is(action)) {
-            // this condition opens a popup dialog
-            if (this.theia && this.theia.glspClient !== undefined) {
-                this.theia.glspClient.then((c: any) => {
-                    this.showDialog(action.title, action.message).then(v => {
-                        const response = ServerDialogResponse.create(action.messageId, '' + v);
-                        this.dispatcher.dispatch(response);
-                    });
+            } else if (ServerDialogAction.is(action)) {
+                // this condition opens a popup dialog
+                this.showDialog(action.title, action.message).then(v => {
+                    const response = ServerDialogResponse.create(action.messageId, '' + v);
+                    this.dispatcher.dispatch(response);
                 });
             }
+        } else {
+            throw new Error('ServerMessage Output for standalone editors is not yet implemented for the CincoGLSPClient.');
         }
     }
 

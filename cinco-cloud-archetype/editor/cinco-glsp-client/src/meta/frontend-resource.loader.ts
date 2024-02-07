@@ -23,31 +23,34 @@ import {
 import { IActionDispatcher } from '@eclipse-glsp/client';
 import { WorkspaceFileService } from '../utils/workspace-file-service';
 import { ServerArgsProvider } from './server-args-response-handler';
-import { FileProviderHandler } from '../features/file-provider-handler';
+import { FileProviderHandler } from '../features/action-handler/file-provider-handler';
 
-export class DynamicImportLoader {
+export class FrontendResourceLoader {
     static _locks: (() => void)[] = [];
     static _locked = false;
 
-    static async load(actionDispatcher: IActionDispatcher, supportedDynamicImportFileTypes: string[] = RESOURCE_TYPES): Promise<void> {
+    static async load(
+        actionDispatcher: IActionDispatcher,
+        workspaceFileService: WorkspaceFileService,
+        supportedDynamicImportFileTypes: string[] = RESOURCE_TYPES
+    ): Promise<void> {
         const items = await FileProviderHandler.getFiles(
             FileProviderRequest.META_LANGUAGES_FOLDER_KEYWORD,
             false,
             supportedDynamicImportFileTypes,
             actionDispatcher
         );
-        const workspaceFileService = await FileProviderHandler.getWorkspaceFileService();
-        return DynamicImportLoader.importResources(items, workspaceFileService);
+        return FrontendResourceLoader.importResources(items, workspaceFileService);
     }
 
     static async importResources(resources: FileProviderResponseItem[], workspaceFileService: WorkspaceFileService): Promise<void> {
         // lock
-        if (DynamicImportLoader._locked) {
+        if (FrontendResourceLoader._locked) {
             await new Promise<void>(resolve => {
-                DynamicImportLoader._locks.push(resolve);
+                FrontendResourceLoader._locks.push(resolve);
             });
         }
-        DynamicImportLoader._locked = true;
+        FrontendResourceLoader._locked = true;
 
         const serverArgs = await ServerArgsProvider.getServerArgs();
         for (const file of resources) {
@@ -61,11 +64,11 @@ export class DynamicImportLoader {
         await this.addIconStyle(`${serverArgs.rootFolder}/${serverArgs.languagePath}/icons/`, workspaceFileService);
 
         // unlock
-        const toUnlock = DynamicImportLoader._locks.pop();
+        const toUnlock = FrontendResourceLoader._locks.pop();
         if (toUnlock) {
             toUnlock();
         }
-        DynamicImportLoader._locked = false;
+        FrontendResourceLoader._locked = false;
     }
 
     static async loadCSSFile(root: string, filePath: string, overwrite = false, workspaceFileService: WorkspaceFileService): Promise<void> {
@@ -100,7 +103,9 @@ export class DynamicImportLoader {
         types = types.concat(Array.from(MetaSpecification.get().edgeTypes ?? []));
         const iconTypes = Array.from(new Set(types.map(t => t.icon ?? t.elementTypeId.replace(':', '_')))) as string[];
 
-        const icon_files = (await FileProviderHandler.getFiles(iconFolder)).map(v => v.path) as string[];
+        const icon_files = (
+            await FileProviderHandler.getFiles(iconFolder, undefined, undefined, workspaceFileService.actionDispatcher)
+        ).map(v => v.path) as string[];
         const existingIconTypes = icon_files.filter(t => iconTypes.includes(t.slice(0, t.lastIndexOf('.'))));
 
         const css = [];

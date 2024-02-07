@@ -14,41 +14,70 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    EnableToolPaletteAction, ToolPalette, ICommand, EnableDefaultToolsAction, SetUIExtensionVisibilityAction
+    EnableToolPaletteAction,
+    ToolPalette,
+    ICommand,
+    EnableDefaultToolsAction,
+    SetUIExtensionVisibilityAction,
+    SetContextActions,
+    RequestContextActions,
+    Ranked
 } from '@eclipse-glsp/client';
-import { Action, PaletteItem, RequestContextActions, SetContextActions } from '@eclipse-glsp/protocol';
+import { Action, PaletteItem } from '@eclipse-glsp/protocol';
 import { injectable } from 'inversify';
+import { CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
-export class DynamicToolPalette extends ToolPalette {
+export class CincoToolPalette extends ToolPalette implements Ranked {
+    static _rank: number = CINCO_STARTUP_RANK - 1; // needs to be before CincoPreparationsStartup
+    rank: number = CincoToolPalette._rank;
     protected lastFilter = '';
+
+    override async preRequestModel(): Promise<void> {}
+
+    async postRequestModel?(): Promise<void> {
+        const requestAction = RequestContextActions.create({
+            contextId: ToolPalette.ID,
+            editorContext: {
+                selectedElementIds: []
+            }
+        });
+        const response = await this.actionDispatcher.request<SetContextActions>(requestAction);
+        this.paletteItems = response.actions.map(e => e as PaletteItem);
+        if (!this.editorContext.isReadonly) {
+            this.show(this.editorContext.modelRoot);
+        }
+    }
+
+    async requestPalette(): Promise<void> {
+        const requestAction = RequestContextActions.create({
+            contextId: CincoToolPalette.ID,
+            editorContext: {
+                selectedElementIds: []
+            }
+        });
+        const response = await this.actionDispatcher.request(requestAction);
+        if (SetContextActions.is(response)) {
+            // store and backup new palette
+            this.paletteItems = response.actions.map(e => e as PaletteItem);
+            this.backupPaletteCopy();
+            // make
+            this.actionDispatcher.dispatch(
+                SetUIExtensionVisibilityAction.create({
+                    extensionId: ToolPalette.ID,
+                    visible: !this.editorContext.isReadonly
+                })
+            );
+            // update palette view
+            this.requestFilterUpdate(this.lastFilter);
+        }
+    }
 
     override handle(action: Action): ICommand | Action | void {
         if (action.kind === EnableToolPaletteAction.KIND) {
-            const requestAction = RequestContextActions.create({
-                contextId: DynamicToolPalette.ID,
-                editorContext: {
-                    selectedElementIds: []
-                }
-            });
-            this.actionDispatcher.requestUntil(requestAction).then(response => {
-                if (SetContextActions.is(response)) {
-                    // store and backup new palette
-                    this.paletteItems = response.actions.map(e => e as PaletteItem);
-                    this.backupPaletteCopy();
-                    // make
-                    this.actionDispatcher.dispatch(
-                        SetUIExtensionVisibilityAction.create({
-                            extensionId: ToolPalette.ID,
-                            visible: !this.editorContext.isReadonly
-                        })
-                    );
-                    // update palette view
-                    this.requestFilterUpdate(this.lastFilter);
-                }
-            });
+            this.requestPalette();
         } else if (action.kind === EnableDefaultToolsAction.KIND) {
-            if(this.lastActivebutton || this.defaultToolsButton) {
+            if (this.lastActiveButton || this.defaultToolsButton) {
                 this.changeActiveButton();
                 this.restoreFocus();
             }

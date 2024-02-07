@@ -14,8 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { GeneratorAction, GeneratorEditAction, GeneratorResponseAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, BaseGLSPTool, IActionHandler, ICommand, TYPES } from '@eclipse-glsp/client';
-import { SelectionService } from '@eclipse-glsp/client/lib/features/select/selection-service';
+import { Action, Tool, IActionHandler, ICommand, TYPES, SelectionService, GLSPActionDispatcher } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { inject, injectable, optional, postConstruct } from 'inversify';
 
@@ -34,10 +33,11 @@ export class GeneratorResponseActionHandler implements IActionHandler {
 }
 
 @injectable()
-export class GeneratorTool extends BaseGLSPTool {
+export class GeneratorTool implements Tool {
     static readonly ID = 'generator-tool';
 
-    @inject(TYPES.SelectionService) protected selectionService: SelectionService;
+    @inject(TYPES.IActionDispatcher) protected actionDispatcher: GLSPActionDispatcher;
+    @inject(SelectionService) protected selectionService: SelectionService;
 
     @postConstruct()
     initGeneratorAction(): void {

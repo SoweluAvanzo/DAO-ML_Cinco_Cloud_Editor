@@ -13,25 +13,18 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { IActionDispatcher, RenderingContext, SGraph, SGraphView, TYPES, svg } from '@eclipse-glsp/client';
-import { inject, injectable } from 'inversify';
+import { RenderingContext, GGraph, GGraphView, svg } from '@eclipse-glsp/client';
+import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
 import { CincoEdge, CincoGraphModel, CincoNode } from '../../model/model';
-import { GraphModelProvider } from '../../model/graph-model-provider';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
 /**
  * IView component that turns an SGraph element and its children into a tree of virtual DOM elements.
  */
 @injectable()
-export class CincoGraphView<IRenderingArgs> extends SGraphView<IRenderingArgs> {
-    @inject(TYPES.IActionDispatcherProvider) protected actionDispatcherProvider: () => Promise<IActionDispatcher>;
-    @inject(GraphModelProvider) protected graphModelProvider: GraphModelProvider;
-    override render(model: Readonly<SGraph>, context: RenderingContext, args?: IRenderingArgs): VNode {
-        // provide model (TODO: currently no other place where the graphmodel is loaded was found)
-        if(!this.graphModelProvider.isLoaded) {
-            this.graphModelProvider.unlockAll(model as CincoGraphModel);
-        }
+export class CincoGraphView<IRenderingArgs> extends GGraphView {
+    override render(model: Readonly<GGraph>, context: RenderingContext, args?: IRenderingArgs): VNode {
         // render
         const scroll = model.scroll ?? { x: 0, y: 0 };
         const zoom = model.zoom ?? 1.0;

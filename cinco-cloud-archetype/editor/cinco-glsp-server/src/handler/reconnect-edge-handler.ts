@@ -13,23 +13,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
-import { GEdge, GLSPServerError, GNode, OperationHandler, ReconnectEdgeOperation } from '@eclipse-glsp/server-node';
-import { injectable, inject } from 'inversify';
+import { GEdge, GLSPServerError, GNode, ReconnectEdgeOperation } from '@eclipse-glsp/server';
+import { injectable } from 'inversify';
+import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 
 @injectable()
-export class ReconnectEdgeHandler implements OperationHandler {
+export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
     operationType = ReconnectEdgeOperation.KIND;
 
-    @inject(GraphModelIndex)
-    protected index: GraphModelIndex;
-
-    execute(operation: ReconnectEdgeOperation): void {
+    executeOperation(operation: ReconnectEdgeOperation): void {
         if (!operation.edgeElementId || !operation.sourceElementId || !operation.targetElementId) {
             throw new GLSPServerError('Incomplete reconnect connection action');
         }
 
-        const index = this.index;
+        const index = this.modelState.index;
 
         const gEdge = index.findByClass(operation.edgeElementId, GEdge);
         const gSource = index.findByClass(operation.sourceElementId, GNode);
@@ -53,11 +50,7 @@ export class ReconnectEdgeHandler implements OperationHandler {
 
         const source = index.findNode(gSource.id);
         const target = index.findNode(gTarget.id);
-        if(
-            source && target &&
-            edge.canConnectToSource(source, _ => false) &&
-            edge.canConnectToTarget(target, _ => false)
-        ) {
+        if (source && target && edge.canConnectToSource(source, _ => false) && edge.canConnectToTarget(target, _ => false)) {
             edge.sourceID = gSource.id;
             edge.targetID = gTarget.id;
             edge.routingPoints = [];
@@ -66,4 +59,3 @@ export class ReconnectEdgeHandler implements OperationHandler {
         }
     }
 }
-

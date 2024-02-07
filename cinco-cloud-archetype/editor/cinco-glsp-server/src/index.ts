@@ -18,15 +18,15 @@ import 'reflect-metadata';
 import { launch } from './app';
 import { MetaSpecificationLoader } from './meta/meta-specification-loader';
 
-loadMetaFiles();
-launch();
-
 function loadMetaFiles(): void {
     /**
-    * Load meta specification if available
-    * Load all files from language-folder.
-    * These files contain the language-designer defined hooks, actions, generators, etc.
-    */
+     * Load meta specification if available
+     * Load all files from language-folder.
+     * These files contain the language-designer defined hooks, actions, generators, etc.
+     */
     MetaSpecificationLoader.load(META_FILE_TYPES);
     MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
 }
+
+loadMetaFiles();
+launch(process.argv).catch((error: any): void => console.error('Error in cinco server launcher:', error));

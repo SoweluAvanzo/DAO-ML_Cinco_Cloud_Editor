@@ -13,7 +13,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import * as sprotty from 'sprotty-protocol/lib/actions';
 import { AnyObject, hasStringProp } from './type-utils';
 
 /**
@@ -52,7 +51,7 @@ export namespace Operation {
         return Operation.is(object) && object.kind === kind;
     }
 }
-export interface Action extends sprotty.Action {
+export interface Action {
     /**
      * Unique identifier specifying the kind of action to process.
      */

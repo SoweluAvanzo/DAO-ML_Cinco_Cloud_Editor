@@ -15,18 +15,18 @@
  ********************************************************************************/
 
 import '../../css/cinco.css';
-import { TYPES } from '@eclipse-glsp/client';
 import {
     ContainerContext,
     DiagramConfiguration,
     GLSPClientContribution,
     GLSPDiagramContextKeyService,
     GLSPDiagramManager,
+    GLSPDiagramWidget,
     GLSPTheiaFrontendModule,
     registerDiagramManager
 } from '@eclipse-glsp/theia-integration';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
-import { CommandContribution, MenuContribution, SelectionService } from '@theia/core';
+import { CommandContribution, MenuContribution } from '@theia/core';
 import {
     bindViewContribution,
     FrontendApplicationContribution,
@@ -35,7 +35,7 @@ import {
     WidgetFactory
 } from '@theia/core/lib/browser';
 
-import { getDiagramConfiguration, LanguageUpdateCommand } from '../common/cinco-language';
+import { getDiagramConfiguration } from '../common/cinco-language';
 import { FILESYSTEM_UTIL_ENDPOINT, FilesystemUtilClient, FilesystemUtilServer } from '../common/file-system-util-protocol';
 import { CincoDiagramConfiguration } from './diagram/cinco-diagram-configuration';
 import { CincoGLSPDiagramContextKeyService, CincoGLSPDiagramMananger } from './diagram/cinco-glsp-diagram-manager';
@@ -70,6 +70,12 @@ import { GLSPServerUtilsProvider } from './glsp-server-utils-provider';
 import { GLSP_SERVER_UTIL_ENDPOINT, GLSPServerUtilClient, GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 import { CincoEditorButtonConfigurator } from './menu/cinco-editor-button-configurator';
 import { CincoContextMenuButtonConfigurator } from './menu/cinco-context-menu-button-configurator';
+import { CincoGLSPDiagramWidget } from './diagram/cinco-glsp-diagram-widget';
+import {
+    createDiagramWidgetFactory,
+    DiagramWidgetFactory
+} from '@eclipse-glsp/theia-integration/lib/browser/diagram/diagram-widget-factory';
+import { LanguageUpdater } from './meta/language-updater';
 
 export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
     protected override get diagramLanguage(): GLSPDiagramLanguage {
@@ -89,7 +95,6 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         bindViewContribution(context.bind, CincoCloudPropertyWidgetContribution);
         context.bind(FrontendApplicationContribution).toService(CincoCloudPropertyWidgetContribution);
         context.bind(PropertyDataHandler).toSelf().inSingletonScope();
-        context.bind(TYPES.SelectionService).to(SelectionService).inSingletonScope();
         context.bind(CommandContribution).to(PropertyUpdateCommandContribution);
         context.bind(CommandContribution).to(GLSP2TheiaCommandRegistrationContribution);
         context.bind(CommandContribution).to(FileProviderContribution);
@@ -143,9 +148,12 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         context.bind(GLSPDiagramManager).to(CincoGLSPDiagramMananger);
         context.unbind(GLSPDiagramContextKeyService);
         context.bind(GLSPDiagramContextKeyService).to(CincoGLSPDiagramContextKeyService);
+        context.bind(CincoGLSPDiagramContextKeyService).toSelf().inSingletonScope();
+        context.bind(GLSPDiagramWidget).to(CincoGLSPDiagramWidget);
+        context.bind(CincoGLSPDiagramWidget).toSelf();
 
         // bind update mechanism for meta-specification changes
-        context.bind(CommandContribution).to(LanguageUpdateCommand);
+        context.bind(CommandContribution).to(LanguageUpdater);
 
         // server args from backend to frontend
         context.bind(GLSPServerUtilsProvider).to(GLSPServerUtilsProvider);
@@ -175,6 +183,14 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
             })
             .inSingletonScope();
         registerDiagramManager(context.bind, diagramManagerServiceId, false);
+    }
+
+    // TODO: SAMI - is this needed?
+    override bindDiagramWidgetFactory(context: ContainerContext): void {
+        context
+            .bind(DiagramWidgetFactory)
+            .toDynamicValue(ctx => createDiagramWidgetFactory(ctx, this.diagramLanguage.diagramType))
+            .inSingletonScope();
     }
 
     bindDiagramConfiguration(context: ContainerContext): void {

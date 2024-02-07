@@ -13,57 +13,48 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { MetaSpecification, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, IActionDispatcher, IActionHandler, ICommand, TYPES } from '@eclipse-glsp/client';
+import { LANGUAGE_UPDATE_COMMAND, MetaSpecification, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
+import { Action, IActionHandler, ICommand } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { injectable, inject, optional } from 'inversify';
-import { DynamicImportLoader } from './dynamic-import-tool';
 
 @injectable()
 export class MetaSpecificationResponseHandler implements IActionHandler {
-    @inject(CommandService)
-    @optional()
-    private readonly commandService: CommandService;
-    @inject(TYPES.IActionDispatcher)
-    private readonly actionDispatcher: IActionDispatcher;
+    @inject(CommandService) @optional() commandService?: CommandService;
+    protected static _registration_callbacks: Map<string, (() => void)[]> = new Map();
 
-    static _unlock: () => void;
-    static _meta_spec_loaded = new Promise<void>((resolve, reject) => {
-        MetaSpecificationResponseHandler._unlock = resolve;
-    });
-    static _registration_callbacks: (() => void)[] = [];
+    static addRegistrationCallback(clientId: string, registrationCallback: () => void): void {
+        if (!this._registration_callbacks.has(clientId)) {
+            this._registration_callbacks.set(clientId, []);
+        }
+        this._registration_callbacks.get(clientId)!.push(registrationCallback);
+    }
 
-    static addRegistrationCallback(registrationCallback: () => void): void {
-        this._registration_callbacks.push(registrationCallback);
+    static removeRegistrationCallback(clientId: string): boolean {
+        return this._registration_callbacks.delete(clientId);
     }
 
     handle(action: MetaSpecificationResponseAction): void | Action | ICommand {
+        MetaSpecificationResponseHandler.handleResponse(action, this.commandService);
+    }
+
+    static handleResponse(action: MetaSpecificationResponseAction, commandService?: CommandService): void {
         const metaSpec = action.metaSpecification;
         MetaSpecification.clear();
         MetaSpecification.merge(metaSpec);
-        MetaSpecificationResponseHandler._unlock();
         if (MetaSpecificationResponseHandler._registration_callbacks) {
-            for (const cb of MetaSpecificationResponseHandler._registration_callbacks) {
-                try {
-                    cb();
-                } catch (e) {
-                    console.log(e);
+            for (const client of this._registration_callbacks.keys()) {
+                for (const cb of this._registration_callbacks.get(client)!) {
+                    try {
+                        cb();
+                    } catch (e) {
+                        console.log(e);
+                    }
                 }
             }
         }
-        // propagate to theia
-        this.propagateToTheia();
-        // update css
-        DynamicImportLoader.load(this.actionDispatcher);
-        // update palette after meta-specification is updated
-        return {
-            kind: 'enableToolPalette'
-        };
-    }
-
-    propagateToTheia(): void {
-        if (this.commandService) {
-            this.commandService.executeCommand('cinco.language_update', {
+        if (commandService) {
+            commandService.executeCommand(LANGUAGE_UPDATE_COMMAND.id, {
                 metaSpecification: MetaSpecification.get()
             });
         }

@@ -15,24 +15,18 @@
  ********************************************************************************/
 
 import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
-import {
-    ChangeBoundsOperation,
-    Dimension,
-    GNode,
-    MaybePromise,
-    OperationHandler,
-    Point
-} from '@eclipse-glsp/server-node';
+import { ChangeBoundsOperation, Dimension, GNode, Point } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
+import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 
 @injectable()
-export class ChangeBoundsHandler implements OperationHandler {
+export class ChangeBoundsHandler extends CincoJsonOperationHandler {
     readonly operationType = ChangeBoundsOperation.KIND;
 
     @inject(GraphModelState)
-    protected readonly modelState: GraphModelState;
+    override readonly modelState: GraphModelState;
 
-    execute(operation: ChangeBoundsOperation): MaybePromise<void> {
+    override executeOperation(operation: ChangeBoundsOperation): void {
         for (const element of operation.newBounds) {
             this.changeElementBounds(element.elementId, element.newSize, element.newPosition);
         }

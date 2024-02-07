@@ -36,9 +36,9 @@ export class PropertyUpdateCommandContribution implements CommandContribution {
                 values: any
             ) => {
                 this.propertyDataHandler.updatePropertySelection(
-                    modelElementIndex,
-                    modelType,
                     modelElementId,
+                    modelType,
+                    modelElementIndex,
                     attributeDefinitions,
                     customTypeDefinitions,
                     values

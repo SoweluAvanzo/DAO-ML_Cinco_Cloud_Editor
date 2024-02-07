@@ -15,7 +15,7 @@
  ********************************************************************************/
 
 import { ElementType, getSpecOf, ServerDialogAction, ServerDialogResponse, ServerOutputAction } from '@cinco-glsp/cinco-glsp-common';
-import { ActionDispatcher, Logger, LogLevel, ServerMessageAction, ServerSeverity } from '@eclipse-glsp/server-node';
+import { ActionDispatcher, Logger, LogLevel, SeverityLevel, MessageAction} from '@eclipse-glsp/server';
 import { RootPath } from './root-path';
 import { ModelElement } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
@@ -113,13 +113,12 @@ export abstract class APIBaseHandler {
      * @param severity "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
      * @returns
      */
-    notify(message: string, severity?: ServerSeverity, details?: string, timeout?: number): void {
-        const serverMessageAction = ServerMessageAction.create(message, {
+    notify(message: string, severity?: SeverityLevel, details?: string, timeout?: number): void {
+        const messageAction = MessageAction.create(message, {
             severity: severity ?? 'INFO',
-            details: details ?? '',
-            timeout: timeout ?? 5000
+            details: details ?? ''
         });
-        this.actionDispatcher.dispatch(serverMessageAction);
+        this.actionDispatcher.dispatch(messageAction);
     }
 
     dialog(title: string, message: string): Promise<string> {

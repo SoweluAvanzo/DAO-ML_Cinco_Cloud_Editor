@@ -14,14 +14,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { MenuItem } from '@eclipse-glsp/client';
+import { IActionDispatcher, IContextMenuService, MenuItem } from '@eclipse-glsp/client';
 import { CommandRegistry as PhosphorCommandRegistry } from '@phosphor/commands';
 import { Menu as MenuWidget } from '@phosphor/widgets';
-import { Command, CommandRegistry, CompoundMenuNodeRole, Disposable, DisposableCollection, MenuAction, MenuPath } from '@theia/core';
-import { inject, injectable } from 'inversify';
-import { IActionDispatcher, IContextMenuService } from 'sprotty';
-
 import {
+    Command,
+    CommandRegistry,
+    CompoundMenuNodeRole,
+    Disposable,
+    DisposableCollection,
+    MenuAction,
+    MenuPath,
     AlternativeHandlerMenuNode,
     CommandMenuNode,
     CompositeMenuNode,
@@ -32,6 +35,7 @@ import {
     MutableCompoundMenuNode,
     SubMenuOptions
 } from '@theia/core';
+import { inject, injectable } from 'inversify';
 
 export class ActionMenuNode implements MenuNode, CommandMenuNode, Partial<AlternativeHandlerMenuNode> {
     readonly altNode: ActionMenuNode | undefined;
@@ -204,8 +208,8 @@ export class MenuModelRegistry {
         const id = MenuAction.is(itemOrCommandOrId)
             ? itemOrCommandOrId.commandId
             : Command.is(itemOrCommandOrId)
-            ? itemOrCommandOrId.id
-            : itemOrCommandOrId;
+              ? itemOrCommandOrId.id
+              : itemOrCommandOrId;
 
         if (menuPath) {
             const parent = this.findGroup(menuPath);
@@ -222,7 +226,7 @@ export class MenuModelRegistry {
      * @param id technical identifier of the `MenuNode`.
      */
     unregisterMenuNode(id: string): void {
-        const recurse = (root: MutableCompoundMenuNode) => {
+        const recurse = (root: MutableCompoundMenuNode): void => {
             root.children.forEach(node => {
                 if (CompoundMenuNode.isMutable(node)) {
                     node.removeNode(id);
@@ -297,7 +301,8 @@ export class MenuModelRegistry {
 
 export interface ContextMatcher extends Disposable {
     /**
-     * Whether the expression is satisfied. If `context` provided, the service will attempt to retrieve a context object associated with that element.
+     * Whether the expression is satisfied. If `context` provided,
+     * the service will attempt to retrieve a context object associated with that element.
      */
     match(expression: string, context?: HTMLElement): boolean;
 }
@@ -566,7 +571,11 @@ export class DynamicMenuWidget extends MenuWidget {
      */
     protected previousFocusedElement: HTMLElement | undefined;
 
-    constructor(protected menu: CompoundMenuNode, protected options: any, protected services: MenuServices) {
+    constructor(
+        protected menu: CompoundMenuNode,
+        protected options: any,
+        protected services: MenuServices
+    ) {
         super(options);
         if (menu.label) {
             this.title.label = menu.label;
@@ -587,7 +596,7 @@ export class DynamicMenuWidget extends MenuWidget {
     }
 
     public override open(x: number, y: number, options?: MenuWidget.IOpenOptions): void {
-        const cb = () => {
+        const cb = (): void => {
             this.restoreFocusedElement();
             this.aboutToClose.disconnect(cb);
         };
@@ -636,10 +645,7 @@ export class DynamicMenuWidget extends MenuWidget {
             }
         } else if (menu.command) {
             const node = menu.altNode && this.services.context.altPressed ? menu.altNode : (menu as MenuNode & CommandMenuNode);
-            if (
-                commands.isVisible(node.command)
-                // TODO: && this.undefinedOrMatch(this.options.contextKeyService ?? this.services.contextKeyService, node.when, this.options.context)
-            ) {
+            if (commands.isVisible(node.command)) {
                 parentItems.push({
                     command: node.command,
                     type: 'command'
@@ -794,7 +800,7 @@ export class TheiaContextMenuService implements IContextMenuService {
 
     protected actionDispatcher?: IActionDispatcher;
 
-    connect(actionDispatcher: IActionDispatcher) {
+    connect(actionDispatcher: IActionDispatcher): void {
         this.actionDispatcher = actionDispatcher;
     }
 
@@ -805,7 +811,9 @@ export class TheiaContextMenuService implements IContextMenuService {
             menuPath: TheiaSprottyContextMenu.CONTEXT_MENU,
             anchor: anchor,
             onHide: () => {
-                if (onHide) onHide();
+                if (onHide) {
+                    onHide();
+                }
                 this.scheduleCleanup();
             }
         };
@@ -834,10 +842,8 @@ export class TheiaContextMenuService implements IContextMenuService {
     protected registerCommand(menuPath: string[], item: MenuItem): DisposableItem {
         const command: Command = { id: commandId(menuPath, item), label: item.label, iconClass: item.icon };
         const disposable = {
-            dispose: () => {
-                return;
-            }
-        }; // this.commandRegistry.registerCommand(command, new SprottyCommandHandler(item, this.actionDispatcher));
+            dispose: (): void => {}
+        };
         return new DisposableCommand(command, disposable);
     }
 
@@ -848,18 +854,18 @@ export class TheiaContextMenuService implements IContextMenuService {
         return new DisposableMenuAction(menuAction, disposable);
     }
 
-    protected cleanUpNow() {
+    protected cleanUpNow(): void {
         window.clearTimeout(this.timeout);
         this.cleanUp();
     }
 
-    protected scheduleCleanup() {
+    protected scheduleCleanup(): void {
         this.timeout = window.setTimeout(() => {
             this.cleanUp();
         }, 200);
     }
 
-    protected cleanUp() {
+    protected cleanUp(): void {
         if (this.disposables) {
             this.disposables.forEach(disposable => disposable.dispose(this.menuProvider, this.commandRegistry));
             this.disposables = undefined;
@@ -872,7 +878,10 @@ interface DisposableItem {
 }
 
 class DisposableMenuAction implements DisposableItem {
-    constructor(protected readonly menuAction: MenuAction, protected readonly disposable: Disposable) {}
+    constructor(
+        protected readonly menuAction: MenuAction,
+        protected readonly disposable: Disposable
+    ) {}
     dispose(menuProvider: MenuModelRegistry, commandRegistry: CommandRegistry): void {
         menuProvider.unregisterMenuAction(this.menuAction);
         this.disposable.dispose();
@@ -880,7 +889,10 @@ class DisposableMenuAction implements DisposableItem {
 }
 
 class DisposableCommand implements DisposableItem {
-    constructor(protected readonly command: Command, protected readonly disposable: Disposable) {}
+    constructor(
+        protected readonly command: Command,
+        protected readonly disposable: Disposable
+    ) {}
     dispose(menuProvider: MenuModelRegistry, commandRegistry: CommandRegistry): void {
         commandRegistry.unregisterCommand(this.command);
         this.disposable.dispose();

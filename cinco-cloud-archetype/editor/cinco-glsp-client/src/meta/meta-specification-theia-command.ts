@@ -13,18 +13,18 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {
-    MetaSpecificationReloadAction, MetaSpecificationReloadCommand
-} from '@cinco-glsp/cinco-glsp-common';
-import { BaseGLSPTool } from '@eclipse-glsp/client';
+import { MetaSpecificationReloadAction, MetaSpecificationReloadCommand } from '@cinco-glsp/cinco-glsp-common';
+import { GLSPActionDispatcher, Tool, TYPES } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { inject, injectable, optional, postConstruct } from 'inversify';
 import { GraphModelProvider } from '../model/graph-model-provider';
 
 @injectable()
-export class MetaSpecificationTheiaCommand extends BaseGLSPTool {
+export class MetaSpecificationTheiaCommand implements Tool {
     @inject(CommandService) @optional() commandService: CommandService;
-    @inject(GraphModelProvider) graphModelProvider: GraphModelProvider;
+    @inject(GraphModelProvider)
+    protected readonly graphModelProvider: GraphModelProvider;
+    @inject(TYPES.IActionDispatcher) protected actionDispatcher: GLSPActionDispatcher;
 
     static readonly ID = 'meta-specification-theia-command-tool';
 
@@ -38,9 +38,11 @@ export class MetaSpecificationTheiaCommand extends BaseGLSPTool {
                     instanceId: model.id,
                     visible: true,
                     label: 'Reload Meta-Specification current model (' + filePath + ')',
-                    callbacks: [() => {
-                        this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
-                    }]
+                    callbacks: [
+                        () => {
+                            this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
+                        }
+                    ]
                 });
             });
         }

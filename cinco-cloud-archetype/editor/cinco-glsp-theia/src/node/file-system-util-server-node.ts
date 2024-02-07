@@ -25,52 +25,40 @@ export class FilesystemUtilServerNode implements FilesystemUtilServer {
         return true;
     }
 
-    getFiles(absFolderPath: string): Promise<string[]> {
+    async getFiles(absFolderPath: string): Promise<string[]> {
         if (!this.client) {
             throw new Error('No client connected!');
         }
-        return new Promise<string[]>((resolve, reject) => {
-            try {
-                console.log(`loading files from:  ${absFolderPath}`);
-                import('fs')
-                    .then(fs => {
-                        // TODO: resolve files inside folders
-                        const foundFiles = this.getFilesFromFolder(fs, absFolderPath, './');
-                        resolve(foundFiles);
-                    })
-                    .catch(e => reject(e));
-            } catch (e) {
-                console.log('failed to access filesystem.');
-                reject(e);
-            }
-        });
+        try {
+            console.log(`loading files from:  ${absFolderPath}`);
+            const fs = await import('fs');
+            const foundFiles = this.getFilesFromFolder(fs, absFolderPath, './');
+            return foundFiles;
+        } catch (e) {
+            console.log('failed to access filesystem.');
+            return [];
+        }
     }
 
-    readFiles(filePaths: string[], encoding?: string): Promise<string[]> {
+    async readFiles(filePaths: string[], encoding?: string): Promise<string[]> {
         if (!this.client) {
             throw new Error('No client connected!');
         }
-        return new Promise<string[]>((resolve, reject) => {
-            const contents: string[] = [];
-            for (const filePath of filePaths) {
-                try {
-                    console.log(`reading file:  ${filePaths}`);
-                    import('fs')
-                        .then(fs => {
-                            // TODO: resolve files inside folders
-                            encoding = encoding ?? 'utf-8';
-                            const buffer = fs.readFileSync(filePath);
-                            const content = buffer.toString();
-                            contents.push(content);
-                        })
-                        .catch(e => reject(e));
-                } catch (e) {
-                    console.log(`failed to read file: ${filePaths}`);
-                    reject(e);
-                }
+        const contents: string[] = [];
+        for (const filePath of filePaths) {
+            try {
+                console.log(`reading file:  ${filePaths}`);
+                const fs = await import('fs');
+                encoding = encoding ?? 'utf-8';
+                const buffer = fs.readFileSync(filePath);
+                const content = buffer.toString();
+                contents.push(content);
+            } catch (e) {
+                console.log(`failed to read file: ${filePaths}`);
+                return [];
             }
-            resolve(contents);
-        });
+        }
+        return contents;
     }
 
     getFilesFromFolder(fs: typeof import('fs'), absRoot: string, folderPath: string): string[] {

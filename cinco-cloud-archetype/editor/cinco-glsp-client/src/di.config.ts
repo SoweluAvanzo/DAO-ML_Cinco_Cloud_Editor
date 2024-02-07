@@ -28,58 +28,45 @@ import {
     ConsoleLogger,
     DeleteElementContextMenuItemProvider,
     EdgeEditTool,
-    IActionDispatcher,
     LogLevel,
-    SModelRegistry,
     SetDirtyStateAction,
     SetTypeHintsAction,
     TYPES,
     ToolPalette,
     TypeHintProvider,
-    ViewRegistry,
     configureActionHandler,
     configureCommand,
     configureDefaultModelElements,
-    createClientContainer,
-    overrideViewerOptions
+    initializeDiagramContainer,
+    ContainerConfiguration
 } from '@eclipse-glsp/client';
-import { GLSPToolManager } from '@eclipse-glsp/client/lib/base/tool-manager/glsp-tool-manager';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
-import { ApplyConstrainedTypeHintsCommand } from './constraints/ApplyConstrainedTypeHintsCommand';
-import { FrontendValidatingTypeHintProvider } from './constraints/FrontendValidatingTypeHintProvider';
-import { ChangeContainerTool } from './features/change-container-tool';
-import { CustomToolManager } from './features/custom-tool-manager';
-import { DirtyStateHandler } from './features/dirty-state-handler';
-import { DoubleClickTool } from './features/doubleclick-tool';
-import { DynamicToolPalette } from './features/dynamic-palette-tool';
-import { ApplyAppearanceUpdateCommand } from './features/frontend-appearance-update-handler';
-import { GeneratorResponseActionHandler, GeneratorTool } from './features/generator-tool';
-import { MouseContextTracker } from './features/mouse-tool';
-import { PropertyViewResponseActionHandler, PropertyViewTool } from './features/property-view-tool';
-import { RoutingPointAwareEdgeEditTool } from './features/routingpoint-aware-edge-edit-tool';
-import { ServerMessageHandler } from './features/server-message-handler';
-import { ValidationModelResponseActionHandler, ValidationTool } from './features/validation-tool';
-import { DynamicImportLoader } from './meta/dynamic-import-tool';
-import { reregisterBindings } from './meta/meta-model-glsp-registration-handler';
+import { ApplyConstrainedTypeHintsCommand } from './features/constraints/ApplyConstrainedTypeHintsCommand';
+import { FrontendValidatingTypeHintProvider } from './features/constraints/FrontendValidatingTypeHintProvider';
+import { ChangeContainerTool } from './features/tool/change-container-tool';
+import { CincoToolManager } from './glsp/cinco-tool-manager';
+import { DirtyStateHandler } from './features/action-handler/dirty-state-handler';
+import { DoubleClickTool } from './features/tool/doubleclick-tool';
+import { CincoToolPalette } from './glsp/cinco-tool-palette';
+import { ApplyAppearanceUpdateCommand } from './features/gui/frontend-appearance-update-handler';
+import { GeneratorResponseActionHandler, GeneratorTool } from './features/generator/generator-tool';
+import { PropertyViewResponseActionHandler, PropertyViewTool } from './features/properties/property-view-tool';
+import { RoutingPointAwareEdgeEditTool } from './features/tool/routingpoint-aware-edge-edit-tool';
+import { ServerMessageHandler } from './features/action-handler/server-message-handler';
+import { ValidationModelResponseActionHandler, ValidationTool } from './features/validation/validation-tool';
 import { MetaSpecificationResponseHandler } from './meta/meta-specification-response-handler';
 import { WorkspaceFileService } from './utils/workspace-file-service';
 import { GraphModelProvider } from './model/graph-model-provider';
 import { MetaSpecificationTheiaCommand } from './meta/meta-specification-theia-command';
-import { MetaSpecificationLoader } from './meta/meta-specification-loader';
 import { ServerArgsProvider } from './meta/server-args-response-handler';
-import { FileProviderHandler } from './features/file-provider-handler';
+import { FileProviderHandler } from './features/action-handler/file-provider-handler';
+import { CinoPreparationsStartUp } from './glsp/cinco-preparations-startup';
+import { RestoreViewportHandler } from '@eclipse-glsp/client/lib/features/viewport/viewport-handler';
+import { CincoRestoreViewportHandler } from './glsp/cinco-viewport-handler';
 
-export function createCincoDiagramContainer(widgetId: string): Container {
-    const container = createClientContainer(cincoDiagramModule);
-
-    overrideViewerOptions(container, {
-        baseDiv: widgetId,
-        hiddenDiv: widgetId + '_hidden',
-        needsClientLayout: true
-    });
-
-    return container;
+export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
+    return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
 }
 
 export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, rebind) => {
@@ -89,32 +76,45 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     unbind(TYPES.LogLevel);
     bind(TYPES.ILogger).to(ConsoleLogger).inSingletonScope();
     bind(TYPES.LogLevel).toConstantValue(LogLevel.warn);
+
+    // custom
+    bind(WorkspaceFileService).toSelf().inSingletonScope();
+
+    // graphModelProvider
+    bind(TYPES.ISModelRootListener).to(GraphModelProvider);
+    bind(GraphModelProvider).toSelf().inSingletonScope();
+
+    // needs to be bound first because of DiagramLoader (Startup)
+    bind(CinoPreparationsStartUp)
+        .toSelf()
+        .inSingletonScope()
+        .onActivation((ctx: any, injectable: CinoPreparationsStartUp) => {
+            injectable.setContext(context, ctx);
+            return injectable;
+        });
+    bind(TYPES.IDiagramStartup).toService(CinoPreparationsStartUp);
+
+    // rebind CincoRestoreViewportHandler for RestoreViewportHandler
+    unbind(RestoreViewportHandler);
+    bind(RestoreViewportHandler).to(CincoRestoreViewportHandler);
+
     bind(DeleteElementContextMenuItemProvider).toSelf();
     bind(TYPES.IContextMenuItemProvider).toService(DeleteElementContextMenuItemProvider);
 
-    // bind TypedServerMessageHandling
-    configureActionHandler(context, TypedServerMessageAction.KIND, ServerMessageHandler);
-
-    // add service to provide files as url from a uri
-    bind(WorkspaceFileService).toSelf().inSingletonScope();
-
-    // bind MouseContextTracker
-    bind(MouseContextTracker).toSelf();
-
-    // bind the doubleClickTool, that will fire the doubleClickActions to the backend
+    // add doubleclick tool
     bind(TYPES.IDefaultTool).to(DoubleClickTool);
 
     // change container handling
-    bind(ChangeContainerTool).toSelf().inSingletonScope();
+    unbind(ChangeBoundsTool);
     bind(TYPES.IDefaultTool).to(ChangeContainerTool);
     bind(ChangeBoundsTool).to(ChangeContainerTool);
-    unbind(ChangeBoundsTool);
+    bind(ChangeContainerTool).toSelf().inSingletonScope();
 
     // change edge handling
-    bind(RoutingPointAwareEdgeEditTool).toSelf().inSingletonScope();
+    unbind(EdgeEditTool);
     bind(TYPES.IDefaultTool).to(RoutingPointAwareEdgeEditTool);
     bind(EdgeEditTool).to(RoutingPointAwareEdgeEditTool);
-    unbind(EdgeEditTool);
+    bind(RoutingPointAwareEdgeEditTool).toSelf().inSingletonScope();
 
     // bind FrontendValidatingTypeHintProvider
     bind(FrontendValidatingTypeHintProvider).toSelf().inSingletonScope();
@@ -125,8 +125,8 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureCommand(context, ApplyConstrainedTypeHintsCommand);
 
     // bind custom palette
-    bind(DynamicToolPalette).toSelf().inSingletonScope();
-    rebind(ToolPalette).to(DynamicToolPalette).inSingletonScope();
+    bind(CincoToolPalette).toSelf().inSingletonScope();
+    rebind(ToolPalette).to(CincoToolPalette).inSingletonScope();
 
     // bind FrontendAppearanceProviderHandling
     configureCommand(context, ApplyAppearanceUpdateCommand);
@@ -137,44 +137,27 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     // bind the generatorTool, that will fire the GeneratorActions to the backend and the handler processing the responses
     bind(TYPES.IDefaultTool).to(GeneratorTool);
+    bind(GeneratorTool).toSelf().inSingletonScope();
     configureActionHandler(context, GeneratorResponseAction.KIND, GeneratorResponseActionHandler);
 
     // bind the validation tool, that will fire ValidationRequestActions to the backend
     bind(TYPES.IDefaultTool).to(ValidationTool);
+    bind(ValidationTool).toSelf().inSingletonScope();
     configureActionHandler(context, ValidationModelResponseAction.KIND, ValidationModelResponseActionHandler);
 
-    // bind dirty state handler
+    // bind tool, that registers a theia-command to fetch the meta-specification
+    bind(TYPES.IDefaultTool).to(MetaSpecificationTheiaCommand);
+
+    // GLSPToolManager
+    rebind(TYPES.IToolManager).to(CincoToolManager).inSingletonScope();
+    bind(CincoToolManager).toSelf().inSingletonScope();
+
+    // actions
+    configureActionHandler(context, TypedServerMessageAction.KIND, ServerMessageHandler);
     configureActionHandler(context, SetDirtyStateAction.KIND, DirtyStateHandler);
     configureActionHandler(context, MetaSpecificationResponseAction.KIND, MetaSpecificationResponseHandler);
     configureActionHandler(context, FileProviderResponse.KIND, FileProviderHandler);
     configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
 
     configureDefaultModelElements(context);
-
-    bind(GraphModelProvider).toSelf().inSingletonScope();
-    bind(TYPES.IDefaultTool).to(MetaSpecificationTheiaCommand);
-
-    // swap GLSPToolManager
-    rebind(GLSPToolManager)
-        .to(CustomToolManager)
-        .inSingletonScope()
-        .onActivation((ctx: any, injectable: GLSPToolManager) => {
-            // register modelelements (after the meta-specification is loaded)
-            (injectable as CustomToolManager).registerCallBack(
-                // build callback to register modelelements dynamically.
-                (actionDispatcher: IActionDispatcher, registry: SModelRegistry, viewRegistry: ViewRegistry): void => {
-                    // load server args
-                    ServerArgsProvider.load(actionDispatcher);
-                    // load css language-files
-                    DynamicImportLoader.load(actionDispatcher);
-                    // set registration callback, that is called whenever a new meta-specification is received
-                    MetaSpecificationResponseHandler.addRegistrationCallback(() => {
-                        reregisterBindings(context, ctx, registry, viewRegistry);
-                    });
-                    // load meta-specification
-                    MetaSpecificationLoader.load(actionDispatcher);
-                }
-            );
-            return injectable;
-        });
 });
