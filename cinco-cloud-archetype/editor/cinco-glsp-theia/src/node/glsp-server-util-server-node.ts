@@ -30,6 +30,8 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
     protected static SERVER_ARGS: ServerArgs;
     client: GLSPServerUtilClient | undefined;
 
+    static watchModeProcess: childProcess.ChildProcess | undefined;
+
     constructor() {
         if (!GLSPServerUtilServerNode.SERVER_ARGS) {
             this.setServerArgs(
@@ -107,21 +109,33 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
         return undefined;
     }
 
-    transpileWatchLanguagesFolder(): Promise<void> | undefined {
-        const serverArgs = this.getServerArgs();
-        const languagesFolder = path.join(serverArgs.rootFolder, serverArgs.languagePath);
-        const files = getFilesFromFolder(languagesFolder, './', ['.ts']);
-        const filePaths = files.join(' ');
-        const exec = `cd ${languagesFolder} && tsc --module none --target es2015 --strict false --watch ${filePaths}`;
-        childProcess.exec(exec, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`error: ${error.message}`);
-            } else if (stderr) {
-                console.error(`stderr: ${stderr}`);
-            } else {
-                console.log(`stdout:\n${stdout}`);
-            }
-        });
-        return undefined;
+    async transpileWatchLanguagesFolder(): Promise<boolean | undefined> {
+        if (!GLSPServerUtilServerNode.watchModeProcess || GLSPServerUtilServerNode.watchModeProcess.killed) {
+            const serverArgs = this.getServerArgs();
+            const languagesFolder = path.join(serverArgs.rootFolder, serverArgs.languagePath);
+            const files = getFilesFromFolder(languagesFolder, './', ['.ts']);
+            const filePaths = files.join(' ');
+            const exec = `cd ${languagesFolder} && tsc --module none --target es2015 --strict false --watch ${filePaths}`;
+            GLSPServerUtilServerNode.watchModeProcess = childProcess.exec(exec, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`error: ${error.message}`);
+                } else if (stderr) {
+                    console.error(`stderr: ${stderr}`);
+                } else {
+                    console.log(`stdout:\n${stdout}`);
+                }
+            });
+            console.log('Starting watchmode');
+            return true;
+        } else {
+            return new Promise<boolean | undefined>(resolve => {
+                const watchmodeProcess = GLSPServerUtilServerNode.watchModeProcess;
+                if (watchmodeProcess) {
+                    resolve(watchmodeProcess.kill('SIGINT') === true ? false : undefined);
+                } else {
+                    resolve(undefined);
+                }
+            });
+        }
     }
 }
