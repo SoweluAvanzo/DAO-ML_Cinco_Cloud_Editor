@@ -26,5 +26,5 @@ export interface GLSPServerUtilServer extends RpcServer<GLSPServerUtilClient> {
     // provides all files of a specified absolute folder path
     getArgs(): Promise<ServerArgs> | undefined;
     transpileLanguagesFolder(): Promise<void> | undefined;
-    transpileWatchLanguagesFolder(): Promise<void> | undefined;
+    transpileWatchLanguagesFolder(): Promise<boolean | undefined>;
 }

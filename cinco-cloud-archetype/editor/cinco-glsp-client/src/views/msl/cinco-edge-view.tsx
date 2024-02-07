@@ -486,7 +486,7 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
             filled: false,
             isEdge: true,
             // GLSP default values
-            foreground: { r: 212, g: 212, b: 212 },
+            foreground: { r: 178, g: 178, b: 178 },
             lineWidth: 1.5
         } as Appearance);
 
