@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { GLSPServerContribution } from '@eclipse-glsp/theia-integration/lib/node';
-import { ConnectionHandler, RpcConnectionHandler } from '@theia/core';
+import { ConnectionHandler, ILogger, RpcConnectionHandler } from '@theia/core';
 import { ContainerModule } from '@theia/core/shared/inversify';
 import { bindAsService } from '@eclipse-glsp/protocol';
 
@@ -24,11 +24,17 @@ import { GLSP_SERVER_UTIL_ENDPOINT, GLSPServerUtilClient, GLSPServerUtilServer }
 import { FILESYSTEM_UTIL_ENDPOINT, FilesystemUtilClient, FilesystemUtilServer } from '../common/file-system-util-protocol';
 import { GLSPServerUtilServerNode } from './glsp-server-util-server-node';
 import { CincoGLSPServerArgsSetup } from './cinco-glsp-server-args-setup';
+import { CincoLogger } from './cinco-theia-logger';
+import { CincoLoggingServerNode } from './cinco-logging-server-node';
+import { CINCO_LOGGING_ENDPOINT, CincoLoggingClient, CincoLoggingServer } from '../common/cinco-logging-protocol';
 
-export default new ContainerModule(bind => {
+export default new ContainerModule((bind, unbind) => {
     if (isDirectWebSocketConnection()) {
         return;
     }
+    unbind(ILogger);
+    bind(CincoLogger).toSelf().inSingletonScope();
+    bind(ILogger).to(CincoLogger);
     bind(CincoGLSPServerArgsSetup).toSelf().inSingletonScope();
     if (isIntegratedNodeServer()) {
         // executed inside this node package. Not yet implemented
@@ -61,6 +67,20 @@ export default new ContainerModule(bind => {
                     const glspServerUtils = ctx.container.get<GLSPServerUtilServer>(GLSPServerUtilServer);
                     glspServerUtils.setClient(client);
                     return glspServerUtils;
+                })
+        )
+        .inSingletonScope();
+
+    // provision of fileSystemUtils from backend to frontend
+    bind(CincoLoggingServerNode).to(CincoLoggingServerNode).inSingletonScope();
+    bind(CincoLoggingServer).to(CincoLoggingServerNode).inSingletonScope();
+    bind(ConnectionHandler)
+        .toDynamicValue(
+            ctx =>
+                new RpcConnectionHandler<CincoLoggingClient>(CINCO_LOGGING_ENDPOINT, client => {
+                    const cincoLoggingServer = ctx.container.get<CincoLoggingServer>(CincoLoggingServer);
+                    cincoLoggingServer.setClient(client);
+                    return cincoLoggingServer;
                 })
         )
         .inSingletonScope();

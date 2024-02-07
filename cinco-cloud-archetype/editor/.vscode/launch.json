@@ -145,7 +145,8 @@
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
         "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false"
+        "USE_SSL": "false",
+        "SERVER_EXTERNAL": "true"
       },
       "args": [
         "start:external",
@@ -187,7 +188,8 @@
         "NODE_ENV": "development",
         "WORKSPACE_PATH": "${workspaceRoot}/workspace",
         "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false"
+        "USE_SSL": "false",
+        "SERVER_EXTERNAL": "true"
       },
       "args": [
         "start:external",
