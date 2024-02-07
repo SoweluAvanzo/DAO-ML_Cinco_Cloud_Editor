@@ -15,13 +15,15 @@
  ********************************************************************************/
 
 import { ARGS_PROVIDER_ID } from '@cinco-glsp/cinco-glsp-common';
-import { CommandContribution, CommandRegistry } from '@theia/core';
+import { CommandContribution, CommandRegistry, MessageService } from '@theia/core';
 import { injectable, inject } from 'inversify';
 import { GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 
 @injectable()
 export class GLSPServerUtilsProvider implements CommandContribution {
+    @inject(MessageService) messageService: MessageService;
     @inject(GLSPServerUtilServer) glspServerUtilServer: GLSPServerUtilServer;
+    static WATCHMODE_RUNNING = false;
 
     registerCommands(commands: CommandRegistry): void {
         // intialize connection
@@ -29,9 +31,12 @@ export class GLSPServerUtilsProvider implements CommandContribution {
             .connect()
             .then(_ => {
                 console.log('*** glsp server util connected ***');
-                commands.registerCommand({ id: ARGS_PROVIDER_ID }, {
-                    execute: () => this.glspServerUtilServer.getArgs()
-                });
+                commands.registerCommand(
+                    { id: ARGS_PROVIDER_ID },
+                    {
+                        execute: () => this.glspServerUtilServer.getArgs()
+                    }
+                );
                 commands.registerCommand(
                     { id: 'cinco-cloud.glsp.transpile', label: 'transpile languages-folder in workspace', category: 'Cinco Cloud' },
                     {
@@ -43,20 +48,7 @@ export class GLSPServerUtilsProvider implements CommandContribution {
                         isEnabled: () => true
                     }
                 );
-                commands.registerCommand(
-                    {
-                        id: 'cinco-cloud.glsp.transpile-watch',
-                        label: 'transpile languages-folder in workspace in watchmode',
-                        category: 'Cinco Cloud' },
-                    {
-                        execute: () => {
-                            console.log('triggered transpilation in watchmode on languages-folder in workspace...');
-                            return this.glspServerUtilServer.transpileWatchLanguagesFolder();
-                        },
-                        isVisible: () => true,
-                        isEnabled: () => true
-                    }
-                );
+                this.registerWatchMode(commands);
                 /*
                  * Use command like this (result: ServerArgs):
                  *
@@ -70,5 +62,44 @@ export class GLSPServerUtilsProvider implements CommandContribution {
                  */
             })
             .catch(error => console.log('*** Failed to start server utils: "' + error + '" ***'));
+    }
+
+    registerWatchMode(commands: CommandRegistry): void {
+        const id = 'cinco-cloud.glsp.transpile-watch';
+        const getLabel = (): string =>
+            'toggle watchmode transpilation on languages-folder' +
+            (GLSPServerUtilsProvider.WATCHMODE_RUNNING ? ' (Running)' : ' (Stopped)');
+        commands.registerCommand(
+            {
+                id: id,
+                label: getLabel(),
+                category: 'Cinco Cloud'
+            },
+            {
+                execute: () => {
+                    console.log('toggled transpilation in watchmode on languages-folder in workspace...');
+                    const result = this.glspServerUtilServer.transpileWatchLanguagesFolder();
+                    result.then(starting => {
+                        if (starting) {
+                            this.messageService.info('started transpilation');
+                            GLSPServerUtilsProvider.WATCHMODE_RUNNING = true;
+                        } else {
+                            if (starting !== undefined) {
+                                this.messageService.info('stopped transpilation');
+                            } else {
+                                this.messageService.info('something went wrong');
+                            }
+                            GLSPServerUtilsProvider.WATCHMODE_RUNNING = false;
+                        }
+                        // commands.unregisterCommand(commands.getCommand(id)!);
+                        // this.registerCommands(commands);
+                        commands.getCommand(id)!.label = getLabel();
+                    });
+                    return result;
+                },
+                isVisible: () => true,
+                isEnabled: () => true
+            }
+        );
     }
 }
