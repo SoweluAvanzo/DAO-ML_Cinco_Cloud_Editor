@@ -18,7 +18,11 @@ import {
     FileProviderRequest,
     FileProviderResponseItem,
     MetaSpecification,
-    RESOURCE_TYPES
+    RESOURCE_TYPES,
+    getAllPaletteCategories,
+    getIcon,
+    getPaletteIconClass,
+    getPaletteIconPath
 } from '@cinco-glsp/cinco-glsp-common';
 import { IActionDispatcher } from '@eclipse-glsp/client';
 import { WorkspaceFileService } from '../utils/workspace-file-service';
@@ -61,7 +65,7 @@ export class FrontendResourceLoader {
                 workspaceFileService
             );
         }
-        await this.addIconStyle(`${serverArgs.rootFolder}/${serverArgs.languagePath}/icons/`, workspaceFileService);
+        await this.addIconStyle(`${serverArgs.rootFolder}/${serverArgs.languagePath}/`, workspaceFileService);
 
         // unlock
         const toUnlock = FrontendResourceLoader._locks.pop();
@@ -94,38 +98,62 @@ export class FrontendResourceLoader {
     static async addIconStyle(iconFolder: string, workspaceFileService: WorkspaceFileService): Promise<void> {
         const icon_id = 'cinco.icon.style';
         this.bustChild(icon_id, 'style');
-
         const icon_style = document.createElement('style');
         icon_style.setAttribute('id', icon_id);
 
-        // collect distinct types
+        // collect distinct icon types
         let types: ElementType[] = Array.from(MetaSpecification.get().nodeTypes ?? []);
         types = types.concat(Array.from(MetaSpecification.get().edgeTypes ?? []));
-        const iconTypes = Array.from(new Set(types.map(t => t.icon ?? t.elementTypeId.replace(':', '_')))) as string[];
+        const iconMap = new Map<string, string>();
+        for (const t of types) {
+            const typeClass = t.elementTypeId.replace(':', '_');
+            const iconPath = getIcon(t.elementTypeId) ?? '';
+            iconMap.set(typeClass, iconPath);
+        }
 
-        const icon_files = (
-            await FileProviderHandler.getFiles(iconFolder, undefined, undefined, workspaceFileService.actionDispatcher)
-        ).map(v => v.path) as string[];
-        const existingIconTypes = icon_files.filter(t => iconTypes.includes(t.slice(0, t.lastIndexOf('.'))));
+        // collect palette icon types
+        const paletteCategories = getAllPaletteCategories(false);
+        const paletteIconMap = new Map<string, string>();
+        for (const p of paletteCategories) {
+            const paletteIconClass = getPaletteIconClass(p);
+            const paletteIconPath = getPaletteIconPath(p);
+            if (paletteIconClass && paletteIconPath) {
+                paletteIconMap.set(paletteIconClass, paletteIconPath);
+            }
+        }
 
+        let css: string[] = [];
+        css = css.concat(await this.serveIcons(iconMap, iconFolder, workspaceFileService));
+        css = css.concat(await this.serveIcons(paletteIconMap, iconFolder, workspaceFileService));
+        icon_style.innerHTML = `
+            ${css.join('\n')}
+        `;
+        document.getElementsByTagName('head')[0].appendChild(icon_style);
+    }
+
+    static async serveIcons(
+        iconMap: Map<string, string>,
+        iconFolder: string,
+        workspaceFileService: WorkspaceFileService
+    ): Promise<string[]> {
         const css = [];
-        for (const iconFile of existingIconTypes) {
-            const url = await workspaceFileService.serveFileInRoot(iconFolder, iconFile);
-            const iconType = iconFile.slice(0, iconFile.lastIndexOf('.')).replace('.', '_');
+        for (const icon of iconMap.entries()) {
+            const iconType = icon[0];
+            const iconPath = icon[1];
+            const url = await workspaceFileService.serveFileInRoot(iconFolder, iconPath);
             if (url) {
                 css.push(`
                     .codicon-${iconType} {
                         width: 16px;
                         height: 16px;
                         background-image: url('${url}');
+                        background-repeat: no-repeat;
+                        background-position: center;
                     }
                 `);
             }
         }
-        icon_style.innerHTML = `
-            ${css.join('\n')}
-        `;
-        document.getElementsByTagName('head')[0].appendChild(icon_style);
+        return css;
     }
 
     static bustChild(id: string, tagType = 'LINK'): void {
