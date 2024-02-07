@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext): void {
             let filePath = activeEditor?.document.uri.fsPath;
             if (filePath && filePath.endsWith('mgl')) {
                 generateAction(filePath, {
-                    destination: vscode.workspace.workspaceFolders?.at(0)?.uri.fsPath +  '/meta-specification'
+                    destination: vscode.workspace.workspaceFolders?.at(0)?.uri.fsPath
                 })
             } else {
                 error('Please open a MGL to generate a meta-specification!');
