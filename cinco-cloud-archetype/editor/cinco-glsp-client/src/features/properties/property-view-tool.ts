@@ -22,13 +22,16 @@ import {
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     Action,
-    BaseGLSPTool,
+    Tool,
     IActionHandler,
     ICommand,
     MouseListener,
-    RankingMouseTool,
-    SChildElement,
-    SModelElement
+    GChildElement,
+    GModelElement,
+    GLSPActionDispatcher,
+    TYPES,
+    MouseTool,
+    IActionDispatcher
 } from '@eclipse-glsp/client';
 import { CommandService } from '@theia/core';
 import { inject, injectable, optional, postConstruct } from 'inversify';
@@ -38,24 +41,32 @@ export class PropertyViewResponseActionHandler implements IActionHandler {
     @inject(CommandService) @optional() commandService: CommandService;
 
     handle(action: PropertyViewResponseAction): void | Action | ICommand {
-        if (this.commandService)
-            this.commandService.executeCommand(
-                PropertyViewUpdateCommand.id,
-                action.modelElementIndex,
-                action.modelType,
-                action.modelElementId,
-                action.attributeDefinitions,
-                action.values
-            );
+        if (this.commandService) {
+            PropertyViewResponseActionHandler.handleResponse(action, this.commandService);
+        }
+    }
+
+    static handleResponse(action: PropertyViewResponseAction, commandService: CommandService): void {
+        commandService.executeCommand(
+            PropertyViewUpdateCommand.id,
+            action.modelElementIndex,
+            action.modelType,
+            action.modelElementId,
+            action.attributeDefinitions,
+            action.values
+        );
     }
 }
 
 @injectable()
-export class PropertyViewTool extends BaseGLSPTool {
+export class PropertyViewTool implements Tool {
+    @inject(CommandService)
+    @optional()
+    protected readonly commandService: CommandService;
+    @inject(TYPES.IActionDispatcher) protected actionDispatcher: GLSPActionDispatcher;
+    @inject(MouseTool) protected mouseTool: MouseTool;
     static readonly ID = 'property-view-tool';
-
-    @inject(RankingMouseTool)
-    protected editLabelMouseListener: MouseListener;
+    protected mouseListenenr: MouseListener;
 
     @postConstruct()
     initEditAction(): void {
@@ -73,16 +84,16 @@ export class PropertyViewTool extends BaseGLSPTool {
     }
 
     protected createPropertyViewMouseListener(): MouseListener {
-        return new PropertyViewMouseListener();
+        return new PropertyViewMouseListener(this.actionDispatcher, this.commandService);
     }
 
     enable(): void {
-        this.editLabelMouseListener = this.createPropertyViewMouseListener();
-        this.mouseTool.register(this.editLabelMouseListener);
+        this.mouseListenenr = this.createPropertyViewMouseListener();
+        this.mouseTool.register(this.mouseListenenr);
     }
 
     disable(): void {
-        this.mouseTool.deregister(this.editLabelMouseListener);
+        this.mouseTool.deregister(this.mouseListenenr);
     }
 }
 
@@ -94,17 +105,35 @@ export class PropertyViewTool extends BaseGLSPTool {
  * who will dispatch the action further to the backend.
  */
 
+@injectable()
 export class PropertyViewMouseListener extends MouseListener {
+    protected readonly actionDispatcher: IActionDispatcher;
+    protected readonly commandService: CommandService;
     lastTarget: string;
 
-    override mouseUp(target: SModelElement, event: MouseEvent): (Action | Promise<Action>)[] {
-        if (target.type === 'label' && target instanceof SChildElement) {
+    constructor(actionDispatcher: IActionDispatcher, commandService: CommandService) {
+        super();
+        this.actionDispatcher = actionDispatcher;
+        this.commandService = commandService;
+    }
+
+    override mouseUp(target: GModelElement, event: MouseEvent): (Action | Promise<Action>)[] {
+        if (target.type === 'label' && target instanceof GChildElement) {
             target = target.parent;
         }
         if (target.id !== this.lastTarget) {
             this.lastTarget = target.id;
-            return [PropertyViewAction.create(target.id)];
+            this.propagateProperties(this.lastTarget);
+            return [];
         }
         return [];
+    }
+
+    async propagateProperties(selectedElementId: string): Promise<void> {
+        const propertyViewAction = PropertyViewAction.create(selectedElementId);
+        const response = await this.actionDispatcher.request(propertyViewAction);
+        if (this.commandService) {
+            PropertyViewResponseActionHandler.handleResponse(response, this.commandService);
+        }
     }
 }

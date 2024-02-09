@@ -24,6 +24,7 @@ export interface ServerArgs {
     languagePath: string;
     workspacePath: string;
     port: number;
+    websocketPath: string;
 }
 
 export namespace ServerArgs {
@@ -32,14 +33,16 @@ export namespace ServerArgs {
         rootFolder: string,
         languagePath: string,
         workspacePath: string,
-        port: number
+        port: number,
+        websocketPath: string
     ): ServerArgs {
         return {
             metaDevMode: metaDevMode,
             rootFolder: rootFolder,
             languagePath: languagePath,
             workspacePath: workspacePath,
-            port: port
+            port: port,
+            websocketPath: websocketPath
         };
     }
 }

@@ -14,70 +14,20 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Message } from '@phosphor/messaging/lib';
-import { DiagramWidgetOptions, GLSPDiagramWidget, GLSPWidgetOpenerOptions, TheiaGLSPConnector } from '@eclipse-glsp/theia-integration';
-import { SelectionService } from '@theia/core';
-import { ApplicationShell, StorageService, Widget } from '@theia/core/lib/browser';
-import { Container } from '@theia/core/shared/inversify';
+import { GLSPDiagramWidget } from '@eclipse-glsp/theia-integration';
+import { ApplicationShell, Widget } from '@theia/core/lib/browser';
 import { getGraphModelOfFileType } from '@cinco-glsp/cinco-glsp-common';
 import { CincoGLSPDiagramContextKeyService } from './cinco-glsp-diagram-manager';
 import { wait } from '@theia/core/lib/common/promise-util';
+import { inject } from '@theia/core/shared/inversify';
+
 export class CincoGLSPDiagramWidget extends GLSPDiagramWidget {
     static _cincoDiagramExtension?: string;
-    protected shell: ApplicationShell;
-    protected contextKeyService: CincoGLSPDiagramContextKeyService;
-
-    constructor(
-        options: DiagramWidgetOptions & GLSPWidgetOpenerOptions,
-        override readonly widgetId: string,
-        override readonly diContainer: Container,
-        override readonly editorPreferences: any,
-        override readonly storage: StorageService,
-        override readonly theiaSelectionService: SelectionService,
-        override readonly connector: TheiaGLSPConnector,
-        shell: ApplicationShell,
-        contextKeyService: CincoGLSPDiagramContextKeyService
-    ) {
-        super(options, widgetId, diContainer, editorPreferences, storage, theiaSelectionService, connector);
-        this.shell = shell;
-        this.contextKeyService = contextKeyService;
-    }
+    @inject(ApplicationShell) protected shell: ApplicationShell;
+    @inject(CincoGLSPDiagramContextKeyService) protected contextKeyService: CincoGLSPDiagramContextKeyService;
 
     protected override onActivateRequest(msg: Message): void {
-        this.onActivateRequestConditional(msg, false);
-    }
-
-    protected onActivateRequestConditional(msg: Message, focus: boolean): void {
-        const svgElement = this.node.querySelector(`#${this.viewerOptions.baseDiv} svg`) as HTMLElement;
-        if (svgElement !== undefined) {
-            if (focus) {
-                svgElement.focus();
-            }
-            this.updateTabBarButtons();
-        } else {
-            const tabindex = this.node.getAttribute('tabindex');
-            if (tabindex === undefined) {
-                this.node.setAttribute('tabindex', '-1');
-            }
-            if (focus) {
-                this.node.focus();
-            }
-        }
-        this.updateGlobalSelection();
-    }
-
-    override listenToFocusState(shell: ApplicationShell): void {
-        this.toDispose.push(
-            shell.onDidChangeActiveWidget(event => {
-                const focusedWidget = event.newValue;
-                if (this.hasFocus && focusedWidget && !this.isThisWidget(focusedWidget)) {
-                    // this.actionDispatcher.dispatch(FocusStateChangedAction.create(false));
-                    // This line has been commented out to avoid the permanent retrieval of the focus by the editor
-                } else if (!this.hasFocus && this.isThisWidget(focusedWidget)) {
-                    // This line has been commented out to avoid the permanent retrieval of the focus by the editor
-                    // this.actionDispatcher.dispatch(FocusStateChangedAction.create(true));
-                }
-            })
-        );
+        super.onActivateRequest(msg);
     }
 
     protected override onResize(msg: Widget.ResizeMessage): void {
@@ -91,7 +41,8 @@ export class CincoGLSPDiagramWidget extends GLSPDiagramWidget {
     }
 
     /**
-     * Updating the tabBar. Theia and GLSP result in some race conditions. These need to be tackled by delay.
+     * Updating the tabBar. Theia and GLSP result in some race conditions (And still in GLSP 2.0).
+     * These need to be tackled by delay.
      * @param delay
      */
     updateTabBarButtons(delay = 50): void {
@@ -106,7 +57,6 @@ export class CincoGLSPDiagramWidget extends GLSPDiagramWidget {
                 tabBar.show();
                 tabBar.update();
                 this.update();
-                this.reloadModel();
             }
         });
     }

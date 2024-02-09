@@ -15,7 +15,16 @@
  ********************************************************************************/
 
 import { ElementType, getSpecOf, ServerDialogAction, ServerDialogResponse, ServerOutputAction } from '@cinco-glsp/cinco-glsp-common';
-import { ActionDispatcher, Logger, LogLevel, ServerMessageAction, ServerSeverity } from '@eclipse-glsp/server-node';
+import {
+    ActionDispatcher,
+    Logger,
+    LogLevel,
+    SeverityLevel,
+    MessageAction,
+    SourceModelStorage,
+    SaveModelAction,
+    ModelSubmissionHandler
+} from '@eclipse-glsp/server';
 import { RootPath } from './root-path';
 import { ModelElement } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
@@ -26,12 +35,22 @@ export abstract class APIBaseHandler {
     protected readonly logger: Logger;
     readonly modelState: GraphModelState;
     protected readonly actionDispatcher: ActionDispatcher;
+    protected sourceModelStorage: SourceModelStorage;
+    protected submissionHandler: ModelSubmissionHandler;
     CHANNEL_NAME: string | undefined;
 
-    constructor(logger: Logger, modelState: GraphModelState, actionDispatcher: ActionDispatcher) {
+    constructor(
+        logger: Logger,
+        modelState: GraphModelState,
+        actionDispatcher: ActionDispatcher,
+        sourceModelStorage: SourceModelStorage,
+        submissionHandler: ModelSubmissionHandler
+    ) {
         this.logger = logger;
         this.modelState = modelState;
         this.actionDispatcher = actionDispatcher;
+        this.sourceModelStorage = sourceModelStorage;
+        this.submissionHandler = submissionHandler;
     }
 
     getElement(modelElementId: string): ModelElement {
@@ -98,10 +117,10 @@ export abstract class APIBaseHandler {
         if (message === undefined) {
             return '<undefined>';
         }
-        if (typeof(message) == 'string') {
+        if (typeof message == 'string') {
             return message === '' ? '<empty string>' : message;
         }
-        if (typeof(message) == 'object' && message instanceof Error) {
+        if (typeof message == 'object' && message instanceof Error) {
             return message.stack ?? `${message.name}: ${message.message}`;
         }
         return message;
@@ -113,13 +132,12 @@ export abstract class APIBaseHandler {
      * @param severity "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
      * @returns
      */
-    notify(message: string, severity?: ServerSeverity, details?: string, timeout?: number): void {
-        const serverMessageAction = ServerMessageAction.create(message, {
+    notify(message: string, severity?: SeverityLevel, details?: string, timeout?: number): void {
+        const messageAction = MessageAction.create(message, {
             severity: severity ?? 'INFO',
-            details: details ?? '',
-            timeout: timeout ?? 5000
+            details: details ?? ''
         });
-        this.actionDispatcher.dispatch(serverMessageAction);
+        this.actionDispatcher.dispatch(messageAction);
     }
 
     dialog(title: string, message: string): Promise<string> {
@@ -128,6 +146,28 @@ export abstract class APIBaseHandler {
             const messageId = ServerResponseHandler.registerResponseHandling(callback);
             const serverDialog = ServerDialogAction.create(messageId, title, message);
             this.actionDispatcher.dispatch(serverDialog);
+        });
+    }
+
+    saveModel(): Promise<void> {
+        return new Promise<void>(resolve => {
+            const result = this.sourceModelStorage.saveSourceModel(SaveModelAction.create({ fileUri: this.modelState.sourceUri }));
+            if (result instanceof Promise) {
+                result.then(_ => resolve());
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    submitModel(): Promise<void> {
+        return new Promise<void>(resolve => {
+            const result = this.submissionHandler.submitModel();
+            if (result instanceof Promise) {
+                result.then(_ => resolve());
+            } else {
+                resolve();
+            }
         });
     }
 
@@ -198,14 +238,15 @@ export abstract class APIBaseHandler {
         fileHelper.copyFile(sourcePath, targetPath, overwriteExistingFile);
     }
 
-    copyDirectory(relativeSourcePath: string,
-                  relativeTargetPath: string,
-                  deleteExistingDirectories = false,
-                  overwriteExistingFiles = true,
-                  sourceRoot = RootPath.WORKSPACE): void {
+    copyDirectory(
+        relativeSourcePath: string,
+        relativeTargetPath: string,
+        deleteExistingDirectories = false,
+        overwriteExistingFiles = true,
+        sourceRoot = RootPath.WORKSPACE
+    ): void {
         const sourcePath = sourceRoot.join(relativeSourcePath);
         const targetPath = RootPath.WORKSPACE.join(relativeTargetPath);
         fileHelper.copyDirectory(sourcePath, targetPath, deleteExistingDirectories, overwriteExistingFiles);
     }
-
 }

@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { DoubleClickHandler, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import { DoubleClickAction, getDoubleClickActions, hasDoubleClickAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action } from '@eclipse-glsp/server-node';
+import { Action } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { BaseHandlerManager } from './base-handler-manager';
 

@@ -802,11 +802,27 @@ function resolveAppearance(app: string | Appearance | undefined): Appearance | u
  */
 
 export function hasAppearanceProvider(type: string): boolean {
-    return getAppearanceProvider(type) !== undefined;
+    return getAppearanceProvider(type).length > 0;
 }
 
-export function getAppearanceProvider(type: string): string | undefined {
-    return getStyleOfElement(type)?.appearanceProvider;
+export function getAppearanceProvider(type: string): string[] {
+    const result: Set<string> = new Set();
+    const style = getStyleOfElement(type);
+    const appearanceProviderValue = style?.appearanceProvider;
+    if (appearanceProviderValue) {
+        result.add(appearanceProviderValue);
+    }
+    const annotationValues = getAnnotationValues(type, 'AppearanceProvider');
+    for (const ann of annotationValues) {
+        if (ann && ann.length > 0) {
+            ann.forEach(a => {
+                if (!result.has(a)) {
+                    result.add(a);
+                }
+            });
+        }
+    }
+    return Array.from(result);
 }
 
 export function hasGeneratorAction(type: string): boolean {
@@ -863,8 +879,15 @@ export function getAllAnnotations(type: string): Annotation[] {
 
 export function getAllHandlerNames(): string[] {
     const elements = getModelElementSpecifications();
-    const handlerNames: string[] = [];
+    let handlerNames: string[] = [];
     for (const element of elements) {
+        // get style handler
+        const appearanceProvider = getAppearanceProvider(element.elementTypeId);
+        if (appearanceProvider) {
+            handlerNames = handlerNames.concat(appearanceProvider);
+        }
+
+        // get mgl annotations
         const annotations = getAllAnnotations(element.elementTypeId);
         for (const ann of annotations) {
             const values = ann.values;
@@ -901,13 +924,82 @@ export function isSelectable(type: string): boolean {
 }
 
 /**
+ * Icon
+ */
+
+export function getIconClass(elementTypeId: string | undefined): string | undefined {
+    if (!elementTypeId) {
+        return undefined;
+    }
+    const elementSpec = getSpecOf(elementTypeId) as ElementType;
+    if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
+        return elementSpec.elementTypeId.replace(':', '_');
+    }
+    return undefined;
+}
+
+function getIconFromAnnotation(elementTypeId: string): string | undefined {
+    const iconValues = getAnnotations(elementTypeId, 'icon')
+        .map(a => a.values)
+        .flat();
+    if (iconValues.length > 0) {
+        return iconValues[0];
+    }
+    return undefined;
+}
+
+export function getIcon(elementTypeId: string | undefined): string | undefined {
+    if (!elementTypeId) {
+        return undefined;
+    }
+    const elementSpec = getSpecOf(elementTypeId) as ElementType;
+    if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
+        return elementSpec.icon ?? getIconFromAnnotation(elementTypeId) ?? undefined;
+    }
+    return undefined;
+}
+
+/**
  * Palettes
  */
+
+export function getPaletteIconClass(paletteCategory: string | undefined): string | undefined {
+    if (!paletteCategory) {
+        return undefined;
+    }
+    const paletteAnnotations = getAllPaletteAnnotations();
+    // all annotations with categoryName that have two values, e.g.: @palette(paletteCategory, iconPath)
+    const annotations = paletteAnnotations.filter(a => a.values.length >= 2 && a.values[0] === paletteCategory);
+    if (annotations.length > 0) {
+        return 'icon_palette_' + annotations[0].values[0].replace(':', '_').toLowerCase();
+    }
+    return undefined;
+}
+
+export function getPaletteIconPath(paletteCategory: string | undefined): string | undefined {
+    if (!paletteCategory) {
+        return undefined;
+    }
+    const paletteAnnotations = getAllPaletteAnnotations();
+    // all annotations with categoryName that have two values, e.g.: @palette(paletteCategory, iconPath)
+    const annotations = paletteAnnotations.filter(a => a.values.length >= 2 && a.values[0] === paletteCategory);
+    if (annotations.length > 0) {
+        return annotations[0].values[1];
+    }
+    return undefined;
+}
+
+function getPaletteFromAnnotation(elementTypeId: string): string[] {
+    return getAnnotations(elementTypeId, 'palette')
+        .map(a => a.values)
+        .flat();
+}
 
 export function hasPalette(elementTypeId: string, palette: string): boolean {
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
     if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
-        if (elementSpec.palettes !== undefined && elementSpec.palettes.indexOf(palette) >= 0) {
+        const palettes = getPalettes(elementSpec.elementTypeId);
+        if (palettes.indexOf(palette) >= 0) {
             return true;
         }
     }
@@ -920,17 +1012,15 @@ export function getPalettes(elementTypeId: string | undefined): string[] {
     }
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
     if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
-        if (elementSpec.palettes !== undefined) {
-            return elementSpec.palettes;
-        }
+        return (elementSpec.palettes ?? []).concat(getPaletteFromAnnotation(elementTypeId));
     }
     return [];
 }
 
 export function getNodePalettes(): string[] {
     const palettes: string[] = [];
-    getNodeTypes((e: NodeType) => e.palettes !== undefined && e.palettes.length >= 0)
-        .map((e, i, a) => e.palettes!)
+    getNodeTypes()
+        .map((e, i, a) => getPalettes(e.elementTypeId))
         .flat()
         .forEach((paletteElement: string) => (palettes.indexOf(paletteElement) < 0 ? palettes.push(paletteElement) : undefined));
     return palettes;
@@ -947,13 +1037,22 @@ export function getPrimeNodePalettes(): string[] {
 
 export function getEdgePalettes(): string[] {
     const palettes: string[] = [];
-    getEdgeTypes((e: EdgeType) => e.palettes !== undefined && e.palettes.length >= 0)
-        .map((e, i, a) => e.palettes)
+    getEdgeTypes()
+        .map((e, i, a) => getPalettes(e.elementTypeId))
         .flat()
         .forEach((paletteElement: string | undefined) =>
             palettes.indexOf(paletteElement ?? '') < 0 ? palettes.push(paletteElement ?? '') : undefined
         );
     return palettes;
+}
+
+export function getAllPaletteCategories(primePalettes = true): string[] {
+    return getNodePalettes().concat(getEdgePalettes().concat(primePalettes ? getPrimeNodePalettes() : []));
+}
+
+export function getAllPaletteAnnotations(): Annotation[] {
+    const modelElements = getModelElementSpecifications().filter(m => EdgeType.is(m) || NodeType.is(m));
+    return modelElements.map(e => (e.annotations ?? []).filter(a => a.name === 'palette')).flat();
 }
 
 /**

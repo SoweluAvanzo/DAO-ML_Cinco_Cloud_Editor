@@ -40,9 +40,8 @@ import {
 import {
     Bounds,
     IActionDispatcher,
-    SLabel,
-    SModelElement,
-    alignFeature,
+    GLabel,
+    GModelElement,
     boundsFeature,
     createFeatureSet,
     edgeLayoutFeature,
@@ -100,7 +99,7 @@ export function fromPathToURL(
         contentMode: false
     }
 ): string {
-    const existsIn = workspaceFileService.servedExistsIn(path);
+    const existsIn = workspaceFileService.servedExistsIn(path, workspaceFileService.actionDispatcher);
     existsIn.then(fileURIString => {
         if (!fileURIString) {
             // resource does not exist
@@ -1197,19 +1196,12 @@ export function buildContainerShape(
  * HELPER-SHAPES
  */
 
-export function createLabel(element: SModelElement, text: string, bounds: Bounds): SLabel {
-    const label = new SLabel();
+export function createLabel(element: GModelElement, text: string, bounds: Bounds): GLabel {
+    const label = new GLabel();
     label.text = text;
     label.bounds = bounds;
     label.type = 'label';
-    label.features = createFeatureSet([
-        boundsFeature,
-        alignFeature,
-        layoutableChildFeature,
-        edgeLayoutFeature,
-        fadeFeature,
-        editLabelFeature
-    ]);
+    label.features = createFeatureSet([boundsFeature, layoutableChildFeature, edgeLayoutFeature, fadeFeature, editLabelFeature]);
     label.id = element.id + '_label_' + uuid.v4();
     return label;
 }

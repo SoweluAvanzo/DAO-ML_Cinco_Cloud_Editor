@@ -282,6 +282,11 @@ export function getWorkspaceFolderArg(): string | undefined {
     return getArgs(argsKey);
 }
 
+export function getWebsocketPathArg(): string | undefined {
+    const argsKey = '--websocketPath';
+    return getArgs(argsKey);
+}
+
 export function isDevModeArg(): boolean {
     const argsKey = '--metaDevMode';
     const args = process.argv.filter(a => a.startsWith(argsKey));

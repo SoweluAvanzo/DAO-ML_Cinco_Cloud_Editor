@@ -19,8 +19,7 @@ import {
     CreateGeneratorTemplateCommand,
     CreateJavascriptGeneratorTemplateCommand
 } from '@cinco-glsp/cinco-glsp-common/lib/protocol/generator-protocol';
-import { DiagramMenus } from '@eclipse-glsp/theia-integration';
-import { KeybindingContribution, KeybindingRegistry, LabelProvider } from '@theia/core/lib/browser';
+import { KeybindingContribution, KeybindingRegistry } from '@theia/core/lib/browser';
 import {
     CommandContribution,
     CommandRegistry,
@@ -29,7 +28,7 @@ import {
     MenuModelRegistry,
     QuickInputService
 } from '@theia/core/lib/common';
-import { SelectionService as SelectionServiceT } from '@theia/core/lib/common/selection-service';
+import { SelectionService } from '@theia/core/lib/common/selection-service';
 import { URI } from '@theia/core/lib/common/uri';
 import { UriAwareCommandHandler, UriCommandHandler } from '@theia/core/lib/common/uri-command-handler';
 import { inject, injectable } from '@theia/core/shared/inversify';
@@ -39,6 +38,8 @@ import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service
 import { GeneratorTemplate } from './generator-template';
 import { FilesystemUtilServer } from '../../common/file-system-util-protocol';
 import { ThemeService } from '@theia/core/lib/browser/theming';
+import { GLSPDiagramMenus } from '@eclipse-glsp/theia-integration';
+import { CincoGLSPDiagramMananger } from '../diagram/cinco-glsp-diagram-manager';
 
 interface DidCreateNewResourceEvent {
     uri: URI;
@@ -105,9 +106,6 @@ export class CreateGeneratorTemplateCommandContribution implements CommandContri
 @injectable()
 export class CreateGenerateGraphDiagramCommandContribution implements CommandContribution {
     @inject(FileService) protected readonly fileService: FileService;
-    @inject(WorkspaceService) protected readonly workspaceService: WorkspaceService;
-    @inject(SelectionServiceT) protected readonly selectionService: SelectionServiceT;
-    @inject(LabelProvider) protected readonly labelProvider: LabelProvider;
 
     private readonly onDidCreateNewFileEmitter = new Emitter<DidCreateNewResourceEvent>();
 
@@ -147,11 +145,11 @@ export class CreateGenerateGraphDiagramCommandContribution implements CommandCon
 @injectable()
 export class GenerateGraphDiagramCommandContribution implements CommandContribution {
     @inject(FileService) protected readonly fileService: FileService;
-    @inject(LabelProvider) protected readonly labelProvider: LabelProvider;
     @inject(ThemeService) protected readonly themeService: ThemeService;
     @inject(WorkspaceService) protected readonly workspaceService: WorkspaceService;
-    @inject(SelectionServiceT) protected readonly selectionService: SelectionServiceT;
+    @inject(SelectionService) protected readonly selectionService: SelectionService;
     @inject(FilesystemUtilServer) fsUtils: FilesystemUtilServer;
+    @inject(CincoGLSPDiagramMananger) diagramManager: CincoGLSPDiagramMananger;
 
     private readonly onDidCreateNewFileEmitter = new Emitter<DidCreateNewResourceEvent>();
     registerCommands(registry: CommandRegistry): void {
@@ -176,39 +174,32 @@ export class GenerateGraphDiagramCommandContribution implements CommandContribut
                 iconClass: iconClass ?? GenerateGraphDiagramCommand.id
             },
             this.newWorkspaceRootUriAwareCommandHandler({
-                execute: uri =>
-                    this.getDirectory(uri).then(parent => {
-                        if (parent) {
-                            const parentUri = parent.resource;
-                            const workspacePath: string = parentUri['codeUri']['path'];
-                            const fileUri = this.selectionService.selection as any;
-                            if (!fileUri || !fileUri['sourceUri'] || !workspacePath) {
-                                throw new Error('Diagram gives insufficient information!');
-                            }
-                            const sourceUri = fileUri.sourceUri;
-                            console.log('Triggered generation on: ' + sourceUri);
-                            this.fsUtils.readFiles([sourceUri]).then(value => {
-                                if (value.length <= 0) {
-                                    throw new Error('Could not identify diagram id!');
-                                }
-                                console.log('parsing file: ' + sourceUri);
-                                console.log('object file: ' + JSON.stringify(value));
-                                const obj = JSON.parse(value[0]);
-                                const modelId = obj['id'];
-                                console.log('received modelId: ' + modelId);
-                                this.submitGeneration(workspacePath, sourceUri, modelId);
-                            });
+                execute: uri => {
+                    if (parent) {
+                        const workspacePath: string = uri.path.fsPath();
+                        const resourceUri = this.diagramManager.currentURI?.path.fsPath();
+                        if (!resourceUri) {
+                            throw new Error('DiagramWidget has no resource!');
                         }
-                    })
+                        const sourceUri = new URI(resourceUri).path.fsPath();
+                        this.fsUtils.readFiles([sourceUri]).then(value => {
+                            if (value.length <= 0) {
+                                throw new Error('Could not identify diagram id!');
+                            }
+                            const obj = JSON.parse(value[0]);
+                            const modelId = obj['id'];
+                            this.submitGeneration(workspacePath, modelId);
+                        });
+                    }
+                }
             })
         );
     }
 
-    submitGeneration(targetFolder: string, fileUri: string, modelId: string): void {
+    submitGeneration(targetFolder: string, modelId: string): void {
         window.postMessage({
             kind: 'cincoGenerate',
             targetFolder: targetFolder,
-            fileUri: fileUri,
             modelElementId: modelId
         });
     }
@@ -243,7 +234,7 @@ export class GenerateGraphDiagramCommandContribution implements CommandContribut
 @injectable()
 export class GenerateGraphDiagramMenuContribution implements MenuContribution {
     registerMenus(menus: MenuModelRegistry): void {
-        menus.registerMenuAction(DiagramMenus.DIAGRAM, {
+        menus.registerMenuAction(GLSPDiagramMenus.DIAGRAM, {
             commandId: GenerateGraphDiagramCommand.id,
             label: GenerateGraphDiagramCommand.label
         });
@@ -264,7 +255,7 @@ export class GenerateGraphDiagramKeybindingContribution implements KeybindingCon
 export class WorkspaceRootUriAwareCommandHandler extends UriAwareCommandHandler<URI> {
     constructor(
         protected readonly workspaceService: WorkspaceService,
-        selectionService: SelectionServiceT,
+        selectionService: SelectionService,
         handler: UriCommandHandler<URI>
     ) {
         super(selectionService, handler);

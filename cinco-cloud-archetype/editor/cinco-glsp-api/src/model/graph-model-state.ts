@@ -13,18 +13,22 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { EdgeType, NodeType, getSpecOf, isContainer } from '@cinco-glsp/cinco-glsp-common';
-import { DefaultModelState } from '@eclipse-glsp/server-node';
+import { EdgeType, NodeType, getFileExtension, getGraphModelOfFileType, getSpecOf, isContainer } from '@cinco-glsp/cinco-glsp-common';
+import { DefaultModelState, JsonModelState } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, ModelElement, ModelElementContainer, Node } from './graph-model';
 import { GraphModelIndex } from './graph-model-index';
 
 @injectable()
-export class GraphModelState extends DefaultModelState {
+export class GraphModelState extends DefaultModelState implements JsonModelState {
     @inject(GraphModelIndex)
     override readonly index: GraphModelIndex;
 
     protected _graphModel: GraphModel;
+
+    get sourceModel(): object {
+        return this.resolveGraphmodel(this.graphModel, new GraphModel(), undefined);
+    }
 
     get graphModel(): GraphModel {
         return this._graphModel;
@@ -90,5 +94,31 @@ export class GraphModelState extends DefaultModelState {
         target.index = index;
         target.id = source.id;
         return target;
+    }
+
+    updateSourceModel(sourceModel: object): void {
+        if (GraphModel.is(sourceModel)) {
+            if (!this.graphModel._sourceUri) {
+                throw new Error('SourceModel has no sourceUri.');
+            }
+            const graphModel = this.fixMissingProperties(sourceModel, this.graphModel._sourceUri);
+            this.graphModel = graphModel;
+        } else {
+            throw new Error('SourceModel update is no valid GraphModel!');
+        }
+    }
+
+    fixMissingProperties(graphModel: GraphModel, sourceUri: string): GraphModel {
+        if (!graphModel.type) {
+            graphModel.type = getGraphModelOfFileType(getFileExtension(sourceUri))?.elementTypeId ?? 'graphmodel';
+        }
+        if (!graphModel._containments) {
+            graphModel._containments = [];
+        }
+        if (!graphModel._edges) {
+            graphModel._edges = [];
+        }
+        graphModel._sourceUri = sourceUri;
+        return graphModel;
     }
 }

@@ -13,83 +13,124 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { BaseGLSPClientContribution } from '@eclipse-glsp/theia-integration/lib/browser';
+import { BaseGLSPClientContribution, WebSocketConnectionOptions } from '@eclipse-glsp/theia-integration/lib/browser';
 import { EnvVariablesServer } from '@theia/core/lib/common/env-variables';
 import { inject, injectable } from '@theia/core/shared/inversify';
 import { getDiagramConfiguration } from '../common/cinco-language';
-import { DIAGRAM_TYPE, MetaSpecificationReloadCommand } from '@cinco-glsp/cinco-glsp-common';
-import { CommandRegistry, SelectionService } from '@theia/core';
-import { ActionMessage } from '@eclipse-glsp/protocol';
-import { FileService } from '@theia/filesystem/lib/browser/file-service';
-import { LabelProvider, OpenerService } from '@theia/core/lib/browser';
+import { ActionMessage } from '@eclipse-glsp/sprotty';
+import {
+    DEFAULT_SERVER_PORT,
+    DEFAULT_WEBSOCKET_PATH,
+    DIAGRAM_TYPE,
+    LANGUAGE_UPDATE_COMMAND,
+    LanguageUpdateMessage,
+    MetaSpecificationReloadCommand,
+    MetaSpecificationResponseAction,
+    WEBSOCKET_PORT_KEY,
+    CincoGLSPClient,
+    SYSTEM_ID
+} from '@cinco-glsp/cinco-glsp-common';
+import { CommandRegistry } from '@theia/core';
+import { InitializeClientSessionParameters } from '@eclipse-glsp/protocol';
 import { MetaSpecificationReloadCommandHandler } from './meta/meta-specification-reload-command-handler';
+import { WebSocketConnectionInfo, isValidWebSocketAddress } from '@eclipse-glsp/theia-integration/lib/common';
 
 @injectable()
 export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     @inject(EnvVariablesServer)
-    protected readonly envVariablesServer: EnvVariablesServer; // this could be used for env vars for connection
+    protected readonly envVariablesServer: EnvVariablesServer;
     @inject(CommandRegistry)
     protected readonly commandRegistry: CommandRegistry;
 
-    @inject(LabelProvider) protected readonly labelProvider: LabelProvider;
-    @inject(FileService) protected readonly fileService: FileService;
-    @inject(OpenerService) protected readonly openerService: OpenerService;
-    @inject(SelectionService) protected readonly selectionService: SelectionService;
-
     readonly id = getDiagramConfiguration().contributionId;
-    static readonly SYSTEM_ID = 'SYSTEM';
+    readonly fileExtensions = getDiagramConfiguration().fileExtensions;
 
     constructor() {
         super();
-        this.initializeSystemSession(CincoGLSPClientContribution.SYSTEM_ID);
+        this.initializeSystemSession(SYSTEM_ID);
+    }
+
+    protected override async getWebSocketConnectionOptions(): Promise<WebSocketConnectionOptions | undefined> {
+        const webSocketPort = await this.getWebSocketPortFromEnv();
+        if (webSocketPort) {
+            return {
+                path: DEFAULT_WEBSOCKET_PATH,
+                port: webSocketPort
+            };
+        }
+        return undefined;
+    }
+
+    protected async getWebSocketPortFromEnv(): Promise<number | undefined> {
+        const envVar = await this.envVariablesServer.getValue(WEBSOCKET_PORT_KEY);
+        if (envVar && envVar.value) {
+            const webSocketPort = Number.parseInt(envVar.value, 10);
+            if (isNaN(webSocketPort) || webSocketPort < 0 || webSocketPort > 65535) {
+                throw new Error('Value of environment variable ' + WEBSOCKET_PORT_KEY + ' is not a valid port');
+            }
+            return webSocketPort;
+        }
+        return DEFAULT_SERVER_PORT;
+    }
+
+    override getWebsocketAddress(opts: WebSocketConnectionOptions): string {
+        const address = typeof opts === 'string' ? opts : this.getWebSocketAddress(opts);
+        if (!address) {
+            throw new Error(`Could not derive server websocket address from options: ${JSON.stringify(opts, undefined, 2)}`);
+        }
+        if (!isValidWebSocketAddress(address)) {
+            throw new Error(`The given websocket server address is not valid: ${address}`);
+        }
+
+        return address;
+    }
+
+    getWebSocketAddress(info: Partial<WebSocketConnectionInfo>): string | undefined {
+        if ('path' in info && info.path !== undefined && 'port' in info && info.port !== undefined) {
+            const protocol = info.protocol ?? 'ws';
+            const host = info.host ?? 'localhost';
+            return `${protocol}://${host}:${info.port}/${info.path}`;
+        }
+        return undefined;
     }
 
     initializeSystemSession(id: string): void {
-        console.log('preparing system-glsp-client (1/4)...');
-        this.ready.then(client => {
-            console.log('system-glsp-client ready! (2/4)');
+        this.glspClient.then(client => {
+            if (!(client instanceof CincoGLSPClient)) {
+                throw Error('Client is no CincoGLSPClient. Maybe the API has changed, please review.');
+            }
             this.initialize(client).then(_v => {
-                console.log('system-glsp-client connecting... (3/4)');
                 client
                     .initializeClientSession({
                         clientSessionId: id,
-                        diagramType: DIAGRAM_TYPE
-                    })
-                    .then(_v2 => {
-                        console.log('system-glsp-client connected! (4/4)');
-                        console.log('registering: ' + MetaSpecificationReloadCommand.ID);
+                        diagramType: DIAGRAM_TYPE,
+                        clientActionKinds: [MetaSpecificationResponseAction.KIND]
+                    } as InitializeClientSessionParameters)
+                    .then(() => {
+                        console.log('CincoGLSPClient connected!');
+                        client.onActionMessage((m: ActionMessage) => {
+                            const action = m.action;
+                            if (MetaSpecificationResponseAction.KIND === action.kind) {
+                                this.commandRegistry.executeCommand(LANGUAGE_UPDATE_COMMAND.id, {
+                                    metaSpecification: (m.action as MetaSpecificationResponseAction).metaSpecification
+                                } as LanguageUpdateMessage);
+                            }
+                        }, SYSTEM_ID);
                         this.commandRegistry.registerCommand(
                             { id: MetaSpecificationReloadCommand.ID, label: 'Reload Meta-Specification', category: 'Cinco Cloud' },
-                            new MetaSpecificationReloadCommandHandler(
-                                client,
-                                this.commandRegistry,
-                                this.labelProvider,
-                                this.workspaceService,
-                                this.selectionService,
-                                this.fileService,
-                                this.openerService,
-                                // this callback will overwrite the glsp-clients onActionMessage...
-                                (m: ActionMessage) =>
-                                    new Promise<void>(resolve => {
-                                        let counter = 0;
-                                        this.diagramManagerProviders.forEach(diagramManagerProvider => {
-                                            diagramManagerProvider().then(diagramManager => {
-                                                // ...that is why we need to manually direct the received messages to
-                                                // the other diagramManager, that prior handled the message
-                                                diagramManager.diagramConnector?.onMessageReceived(m);
-                                                counter += 1;
-                                                if (this.diagramManagerProviders.length <= counter) {
-                                                    resolve();
-                                                }
-                                            });
-                                        });
-                                    })
-                            )
+                            new MetaSpecificationReloadCommandHandler(client)
                         );
-                        console.log('registered: ' + MetaSpecificationReloadCommand.ID);
                         this.commandRegistry.executeCommand(MetaSpecificationReloadCommand.ID);
                     });
             });
+        });
+    }
+
+    protected override async createGLSPClient(connectionProvider: any): Promise<CincoGLSPClient> {
+        return new CincoGLSPClient({
+            id: this.id,
+            connectionProvider,
+            messageService: this.messageService
         });
     }
 }

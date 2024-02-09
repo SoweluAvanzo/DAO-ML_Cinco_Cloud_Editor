@@ -37,24 +37,25 @@ import {
     editFeature,
     ELLIPTIC_ANCHOR_KIND,
     fadeFeature,
-    GLSPGraph,
+    GEdge,
+    GGraph,
+    GGraphIndex,
+    GModelElement,
+    GModelElementSchema,
+    GNode,
     hoverFeedbackFeature,
+    isGModelElementSchema,
     layoutContainerFeature,
     moveFeature,
     Point,
     popupFeature,
     RECTANGULAR_ANCHOR_KIND,
-    SEdge,
-    selectFeature,
-    SGraphIndex,
-    SModelElement,
-    SModelElementSchema,
-    SNode
+    selectFeature
 } from '@eclipse-glsp/client';
 import { FluentIterable } from 'sprotty/lib/utils/iterable';
 import { canContain } from '../utils/constraint-utils';
 
-export class CincoNode extends SNode {
+export class CincoNode extends GNode {
     [x: string]: any;
     override type: string;
     protected spec?: ElementType;
@@ -159,8 +160,8 @@ export class CincoNode extends SNode {
         return ELLIPTIC_ANCHOR_KIND;
     }
 
-    override get incomingEdges(): FluentIterable<SEdge> {
-        if (this.index instanceof SGraphIndex) {
+    override get incomingEdges(): FluentIterable<GEdge> {
+        if (this.index instanceof GGraphIndex) {
             return this.index.getIncomingEdges(this);
         } else {
             return [];
@@ -171,8 +172,8 @@ export class CincoNode extends SNode {
      * The outgoing edges of this connectable element. They are resolved by the index, which must
      * be an `SGraphIndex`.
      */
-    override get outgoingEdges(): FluentIterable<SEdge> {
-        if (this.index instanceof SGraphIndex) {
+    override get outgoingEdges(): FluentIterable<GEdge> {
+        if (this.index instanceof GGraphIndex) {
             return this.index.getOutgoingEdges(this);
         } else {
             return [];
@@ -188,7 +189,7 @@ export class CincoNode extends SNode {
     }
 }
 
-export class CincoEdge extends SEdge {
+export class CincoEdge extends GEdge {
     [x: string]: any;
     override type: string;
     protected spec?: ElementType;
@@ -442,9 +443,9 @@ export class CincoEdge extends SEdge {
     }
 }
 
-export class CincoGraphModel extends GLSPGraph {
-    override isContainableElement(input: string | SModelElement | SModelElementSchema): boolean {
-        const targetType = input instanceof SModelElement ? input.type : SModelElementSchema.is(input) ? input.type : input;
+export class CincoGraphModel extends GGraph {
+    override isContainableElement(input: string | GModelElement | GModelElementSchema): boolean {
+        const targetType = input instanceof GModelElement ? input.type : isGModelElementSchema(input) ? input.type : input;
         return canContain(this, targetType);
     }
 }

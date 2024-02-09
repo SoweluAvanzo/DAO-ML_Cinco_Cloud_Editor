@@ -16,6 +16,7 @@
 import '../../../css/property-widget.css';
 
 import {
+    Annotation,
     Attribute,
     canAdd,
     canAssign,
@@ -40,7 +41,7 @@ import { CommandService } from '@theia/core';
 import { codicon, Message, ReactWidget, Widget } from '@theia/core/lib/browser';
 import { inject, injectable, postConstruct } from 'inversify';
 import * as React from 'react';
-
+import { FileDialogService } from '@theia/filesystem/lib/browser';
 import { PropertyDataHandler } from './property-data-handler';
 
 interface PropertyWidgetState {
@@ -50,17 +51,20 @@ interface PropertyWidgetState {
     values: Record<string, any>;
 }
 
+const FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD = '%directory';
+
 @injectable()
 export class CincoCloudPropertyWidget extends ReactWidget {
+    @inject(PropertyDataHandler) propertyDataHandler: PropertyDataHandler;
+    @inject(CommandService) commandService: CommandService;
+    @inject(DiagramConfiguration) diagramConfiguration: DiagramConfiguration;
+    @inject(FileDialogService) fileDialogService: FileDialogService;
+
     static readonly ID = 'cincoCloudPropertyView';
     static readonly LABEL = 'Cinco Cloud Properties';
 
     override readonly id = CincoCloudPropertyWidget.ID;
     readonly label = CincoCloudPropertyWidget.LABEL;
-
-    @inject(PropertyDataHandler) propertyDataHandler: PropertyDataHandler;
-    @inject(CommandService) commandService: CommandService;
-    @inject(DiagramConfiguration) diagramConfiguration: DiagramConfiguration;
 
     state: PropertyWidgetState = {
         modelElementIndex: {},
@@ -99,13 +103,15 @@ export class CincoCloudPropertyWidget extends ReactWidget {
     }
 
     protected render(): React.JSX.Element {
-        return <CincoPropertiesView
-            parent={this}
-            parentState={() => this.getParentState()}
-            commandService={this.commandService}
-            propertyDataHandler={this.propertyDataHandler}
-            diagramConfiguration={this.diagramConfiguration}
-        ></CincoPropertiesView>;
+        return (
+            <CincoPropertiesView
+                parent={this}
+                parentState={() => this.getParentState()}
+                commandService={this.commandService}
+                propertyDataHandler={this.propertyDataHandler}
+                diagramConfiguration={this.diagramConfiguration}
+            ></CincoPropertiesView>
+        );
     }
 
     getParentState(): PropertyWidgetState {
@@ -115,22 +121,20 @@ export class CincoCloudPropertyWidget extends ReactWidget {
 
 export class CincoPropertiesView extends React.Component<
     {
-        parent: CincoCloudPropertyWidget,
-        parentState: () => PropertyWidgetState,
-        commandService: CommandService,
-        propertyDataHandler: PropertyDataHandler,
-        diagramConfiguration: DiagramConfiguration
+        parent: CincoCloudPropertyWidget;
+        parentState: () => PropertyWidgetState;
+        commandService: CommandService;
+        propertyDataHandler: PropertyDataHandler;
+        diagramConfiguration: DiagramConfiguration;
     },
     PropertyWidgetState
->{
-
-    constructor(
-        props: {
-            parent: CincoCloudPropertyWidget,
-            parentState: () => PropertyWidgetState,
-            commandService: CommandService | Readonly<CommandService>,
-            propertyDataHandler: PropertyDataHandler,
-            diagramConfiguration: DiagramConfiguration
+> {
+    constructor(props: {
+        parent: CincoCloudPropertyWidget;
+        parentState: () => PropertyWidgetState;
+        commandService: CommandService | Readonly<CommandService>;
+        propertyDataHandler: PropertyDataHandler;
+        diagramConfiguration: DiagramConfiguration;
         }) {
         super(props);
         this.state = this.props.parentState();
@@ -155,24 +159,27 @@ export class CincoPropertiesView extends React.Component<
             </div>
         );
 
+        // filter out all attributes, that are hidden
+        const isHidden: (attributeDefinition: any) => boolean = attributeDefinition =>
+            (attributeDefinition.annotations ?? []).filter((annotation: any) => annotation.name === 'hidden').length <= 0;
+        const attributeDefinitions = this.state.attributeDefinitions.filter(a => isHidden(a));
+
         return (
             <div id='property-widget'>
                 {header}
                 {
                     // properties
-                    this.state.attributeDefinitions.length > 0 ? (
+                    attributeDefinitions.length > 0 ? (
                         <table className='property-table'>
                             <tbody>
-                                {
-                                    this.state.attributeDefinitions.map(attributeDefinition =>
-                                        <CincoPropertyView
-                                            parent={this.props.parent}
-                                            parentState={this.props.parentState}
-                                            pointer={[]}
-                                            attributeDefinition={attributeDefinition}
-                                        ></CincoPropertyView>
-                                    )
-                                }
+                                {attributeDefinitions.map(attributeDefinition => (
+                                    <CincoPropertyView
+                                        parent={this.props.parent}
+                                        parentState={this.props.parentState}
+                                        pointer={[]}
+                                        attributeDefinition={attributeDefinition}
+                                    ></CincoPropertyView>
+                                ))}
                             </tbody>
                         </table>
                     ) : (
@@ -186,12 +193,18 @@ export class CincoPropertiesView extends React.Component<
 
 export class CincoPropertyView extends React.Component<
     {
-        parent: CincoCloudPropertyWidget, parentState: () => PropertyWidgetState, pointer: ObjectPointer, attributeDefinition: Attribute
-    }, PropertyWidgetState
+        parent: CincoCloudPropertyWidget;
+        parentState: () => PropertyWidgetState;
+        pointer: ObjectPointer;
+        attributeDefinition: Attribute;
+    },
+    PropertyWidgetState
 > {
-
     constructor(props: {
-        parent: CincoCloudPropertyWidget, parentState: () => PropertyWidgetState, pointer: ObjectPointer, attributeDefinition: Attribute
+        parent: CincoCloudPropertyWidget;
+        parentState: () => PropertyWidgetState;
+        pointer: ObjectPointer;
+        attributeDefinition: Attribute;
     }) {
         super(props);
         this.state = this.props.parentState();
@@ -243,8 +256,11 @@ export class CincoPropertyView extends React.Component<
         // prepare add button
         const addCell = addCellActivated ? (
             <td className='button-cell'>
-                <button type='button' className='action-button' onClick={
-                    () => addPropertyValue(
+                <button
+                    type='button'
+                    className='action-button'
+                    onClick={() =>
+                        addPropertyValue(
                         this.props.parent, (newState: PropertyWidgetState) => { this.setState(newState); }, this.state,
                         pointer, attributeDefinition.name
                     )
@@ -273,55 +289,53 @@ export class CincoPropertyView extends React.Component<
         } else {
             return (
                 <>
-                    {
-
-                        (valueList as any[]).map((listItemValue, index) => (
-                            <tr key={`${attributeDefinition.name}-${index}`}>
-                                {index === 0 && header}
-                                <td className='button-cell'>
-                                    {
-                                        // delete button
-                                        !(bounds.lowerBound === 1 && bounds.upperBound === 1) && deleteCellActivated(valueList.length) && (
-                                            <button
-                                                type='button'
-                                                className='action-button'
-                                                onClick={
-                                                    () => deletePropertyValue(
+                    {(valueList as any[]).map((listItemValue, index) => (
+                        <tr key={`${attributeDefinition.name}-${index}`}>
+                            {index === 0 && header}
+                            <td className='button-cell'>
+                                {
+                                    // delete button
+                                    !(bounds.lowerBound === 1 && bounds.upperBound === 1) && deleteCellActivated(valueList.length) && (
+                                        <button
+                                            type='button'
+                                            className='action-button'
+                                            onClick={() =>
+                                                 deletePropertyValue(
                                                         this.props.parent,
-                                                        (newState: PropertyWidgetState) => { this.setState(newState); },
-                                                        this.state,
-                                                        pointer,
-                                                        attributeDefinition,
-                                                        isList ? index : undefined
-                                                    )
-                                                }
-                                            >
-                                                <span className='codicon codicon-trash'></span>
-                                            </button>
-                                        )
-                                    }
-                                    {
-                                        // clear button
-                                        !(bounds.lowerBound === 1 && bounds.upperBound === 1) && !deleteCellActivated(valueList.length) && (
-                                            <button type='button' className='action-button' disabled>
-                                                <span className='codicon codicon-trash'></span>
-                                            </button>
-                                        )
-                                    }
-                                </td>
-                                <td>
-                                    <CincoPropertyEntry
-                                        parent={this.props.parent}
-                                        parentState={this.props.parentState}
-                                        pointer={pointer}
-                                        attributeDefinition={attributeDefinition}
-                                        index={index}
-                                        inputIdPrefix={inputIdPrefix}
-                                    ></CincoPropertyEntry>
-                                </td>
-                            </tr>
-                        ))
-                    }
+                                                        (newState: PropertyWidgetState) => { this.setState(newState);
+                                                    },
+                                                    this.state,
+                                                    pointer,
+                                                    attributeDefinition,
+                                                    isList ? index : undefined
+                                                )
+                                            }
+                                        >
+                                            <span className='codicon codicon-trash'></span>
+                                        </button>
+                                    )
+                                }
+                                {
+                                    // clear button
+                                    !(bounds.lowerBound === 1 && bounds.upperBound === 1) && !deleteCellActivated(valueList.length) && (
+                                        <button type='button' className='action-button' disabled>
+                                            <span className='codicon codicon-trash'></span>
+                                        </button>
+                                    )
+                                }
+                            </td>
+                            <td>
+                                <CincoPropertyEntry
+                                    parent={this.props.parent}
+                                    parentState={this.props.parentState}
+                                    pointer={pointer}
+                                    attributeDefinition={attributeDefinition}
+                                    index={index}
+                                    inputIdPrefix={inputIdPrefix}
+                                ></CincoPropertyEntry>
+                            </td>
+                        </tr>
+                    ))}
                     {isList && (
                         <tr key={`${attributeDefinition.name}-add`}>
                             {addCell}
@@ -364,15 +378,15 @@ export class CincoPropertyView extends React.Component<
 
 export class CincoPropertyEntry extends React.Component<
     {
-        parent: CincoCloudPropertyWidget
-        parentState: () => PropertyWidgetState,
-        pointer: ObjectPointer,
-        attributeDefinition: Attribute,
-        index: number,
-        inputIdPrefix: string
-    }, PropertyWidgetState
->  {
-
+        parent: CincoCloudPropertyWidget;
+        parentState: () => PropertyWidgetState;
+        pointer: ObjectPointer;
+        attributeDefinition: Attribute;
+        index: number;
+        inputIdPrefix: string;
+    },
+    PropertyWidgetState
+> {
     constructor(props: any) {
         super(props);
     }
@@ -395,18 +409,103 @@ export class CincoPropertyEntry extends React.Component<
         }
 
         const objectValue = locateObjectValue(this.state, pointer);
-        const value = (
-            this.getValueAttribute(
-                attributeDefinition.type as PrimitivePropertyType,
-                isList ? objectValue[valueName][index] : objectValue[valueName]
-            )
+        const value = this.getValueAttribute(
+            attributeDefinition.type as PrimitivePropertyType,
+            isList ? objectValue[valueName][index] : objectValue[valueName]
         );
 
+        // check annotations
+        const annotations = attributeDefinition.annotations ?? [];
+        const isReadOnly = attributeDefinition.final || annotations.filter(a => a.name === 'readOnly').length > 0;
         switch (attributeDefinition.type) {
             case 'string':
             case 'number':
             case 'boolean': {
-                const inputType = this.getInputType(attributeDefinition.type);
+                const inputType = this.getInputType(attributeDefinition.type, annotations ?? []);
+                const isDisabled = isReadOnly && ['checkbox', 'color', 'date', 'file'].includes(inputType);
+                if (inputType === 'textarea') {
+                    return (
+                        <textarea
+                            onChange={event => {
+                                const newValue = event.currentTarget.value;
+                                // propagate
+                                assignPropertyValue(
+                                    this.props.parent,
+                                    (newState: PropertyWidgetState) => this.setState(newState),
+                                    this.state,
+                                    pointer,
+                                    attributeDefinition,
+                                    isList ? index : undefined,
+                                    newValue
+                                );
+                                const rows = calculateRowsForString(newValue);
+                                event.target.rows = rows;
+                            }}
+                            readOnly={isReadOnly}
+                            value={value.value}
+                            placeholder=''
+                            rows={calculateRowsForString(value.value as string)}
+                            id={inputId}
+                            style={{ width: '100%', height: '100%', boxSizing: 'border-box', resize: 'none', wordWrap: 'normal' }}
+                            className={`property-input property-input-${inputType}`}
+                        />
+                    );
+                } else if (inputType === 'file') {
+                    const fileDialogService = this.props.parent.fileDialogService;
+                    const fileTypes = (attributeDefinition.annotations ?? []).map(a => a.values).flat();
+                    const directorySelectable = fileTypes.filter(t => t === FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD).length > 0;
+                    const nonDirectoryFileTypesDefined = fileTypes.filter(t => t !== FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD).length > 0;
+                    const onlyDirectory = !nonDirectoryFileTypesDefined && directorySelectable;
+                    return (
+                        <span style={{ display: 'flex', width: '100%' }}>
+                            <input
+                                type={'button'}
+                                value={'Select'}
+                                onClick={event => {
+                                    fileDialogService
+                                        .showOpenDialog({
+                                            title: `Select a file for ${attributeDefinition.name}`,
+                                            canSelectFiles: !onlyDirectory,
+                                            canSelectMany: false,
+                                            canSelectFolders: directorySelectable || !nonDirectoryFileTypesDefined,
+                                            openLabel: 'Select',
+                                            modal: true,
+                                            filters: {
+                                                'FileType(s)': fileTypes.flat()
+                                            }
+                                        })
+                                        .then(uri => {
+                                            if (!uri) {
+                                                return;
+                                            }
+                                            const newValue = uri?.path.fsPath();
+                                            // propagate
+                                            assignPropertyValue(
+                                                this.props.parent,
+                                                (newState: PropertyWidgetState) => this.setState(newState),
+                                                this.state,
+                                                pointer,
+                                                attributeDefinition,
+                                                isList ? index : undefined,
+                                                newValue
+                                            );
+                                        });
+                                }}
+                                readOnly={isReadOnly}
+                                disabled={isDisabled}
+                                id={inputId}
+                                className={`property-input property-input-${inputType}`}
+                            />
+                            <input
+                                {...value}
+                                readOnly={true}
+                                disabled={isDisabled}
+                                style={{ width: '100%' }}
+                                className={`property-input property-input-${inputType}`}
+                            />
+                        </span>
+                    );
+                } else {
                 return (
                     <input
                         type={inputType}
@@ -420,10 +519,13 @@ export class CincoPropertyEntry extends React.Component<
                                 pointer, attributeDefinition, isList ? index : undefined, newValue
                             );
                         }}
-                        id={inputId}
-                        className={`property-input property-input-${inputType}`}
-                    />
-                );
+                        readOnly={isReadOnly}
+                            disabled={isDisabled}
+                            id={inputId}
+                            className={`property-input property-input-${inputType}`}
+                        />
+                    );
+                }
             }
             default: {
                 const typeDefinition = getCustomType(attributeDefinition.type);
@@ -431,18 +533,19 @@ export class CincoPropertyEntry extends React.Component<
                     return (
                         <select
                             value={value.value}
-                            onChange={
-                                event => {
-                                    // prepare new State
-                                    assignPropertyValue(
-                                        this.props.parent, (newState: PropertyWidgetState) => this.setState(newState), this.state,
-                                        pointer,
-                                        attributeDefinition,
-                                        isList ? index : undefined,
-                                        event.currentTarget.value
-                                    );
-                                }
-                            }
+                            onChange={event => {
+                                // prepare new State
+                                assignPropertyValue(
+                                    this.props.parent,
+                                    (newState: PropertyWidgetState) => this.setState(newState),
+                                    this.state,
+                                    pointer,
+                                    attributeDefinition,
+                                    isList ? index : undefined,
+                                    event.currentTarget.value
+                                );
+                            }}
+                            disabled={isReadOnly}
                             id={inputId}
                         >
                             <option value=''></option>
@@ -459,16 +562,17 @@ export class CincoPropertyEntry extends React.Component<
                             <tbody>
                                 {
                                     // userdefined type
-                                    typeDefinition.attributes.map(childDefinition =>
+                                    typeDefinition.attributes.map(childDefinition => (
                                         <CincoPropertyView
                                             parent={this.props.parent}
                                             parentState={this.props.parentState}
-                                            pointer={
-                                                pointer.concat({ attribute: attributeDefinition.name, index: isList ? index : undefined })
-                                            }
+                                            pointer={pointer.concat({
+                                                attribute: attributeDefinition.name,
+                                                index: isList ? index : undefined
+                                            })}
                                             attributeDefinition={childDefinition}
                                         ></CincoPropertyView>
-                                    )
+                                    ))
                                 }
                             </tbody>
                         </table>
@@ -479,13 +583,16 @@ export class CincoPropertyEntry extends React.Component<
                             value={value.value}
                             onChange={event =>
                                 assignPropertyValue(
-                                    this.props.parent, (newState: PropertyWidgetState) => this.setState(newState), this.state,
+                                    this.props.parent,
+                                    (newState: PropertyWidgetState) => this.setState(newState),
+                                    this.state,
                                     pointer,
                                     attributeDefinition,
                                     isList ? index : undefined,
                                     event.currentTarget.value
                                 )
                             }
+                            disabled={isReadOnly}
                             id={inputId}
                         >
                             <option value=''></option>
@@ -505,9 +612,22 @@ export class CincoPropertyEntry extends React.Component<
         }
     }
 
-    protected getInputType(type: PrimitivePropertyType): React.HTMLInputTypeAttribute {
+    protected getInputType(type: PrimitivePropertyType, annotations: Annotation[]): React.HTMLInputTypeAttribute {
+        const isColor = annotations.filter(a => a.name === 'color').length > 0;
+        const isFile = annotations.filter(a => a.name === 'file').length > 0;
+        const isDate = annotations.filter(a => a.name === 'date').length > 0;
+        const isMultiLine = annotations.filter(a => a.name === 'multiline').length > 0;
         switch (type) {
             case 'string':
+                if (isMultiLine) {
+                    return 'textarea';
+                } else if (isFile) {
+                    return 'file';
+                } else if (isDate) {
+                    return 'date';
+                } else if (isColor) {
+                    return 'color';
+                }
                 return 'text';
             case 'number':
                 return 'number';
@@ -526,7 +646,8 @@ export class CincoPropertyEntry extends React.Component<
                 return { value: value as string | number };
             }
             case 'boolean': {
-                return { checked: value as boolean };
+                const parsedValue = typeof value === 'string' ? (value === 'false' ? false : true) : value;
+                return { checked: parsedValue as boolean };
             }
             default: {
                 return { value: value };
@@ -543,7 +664,8 @@ function addPropertyValue(
     widget: Widget,
     setState: (newState: PropertyWidgetState) => void,
     state: PropertyWidgetState,
-    pointer: ObjectPointer, name: string
+    pointer: ObjectPointer,
+    name: string
 ): void {
     const attributeDefinition = locateAttributeDefinition(state, pointer, name);
     const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
@@ -749,4 +871,12 @@ function getModelElement(modelElementId: string, modelElementIndex: ModelElement
         }
     }
     return undefined;
+}
+
+function calculateRowsForString(inputString: string): number {
+    if (!inputString) {
+        return 1; // Minimum of 1 row
+    }
+
+    return inputString.split('\n').length;
 }

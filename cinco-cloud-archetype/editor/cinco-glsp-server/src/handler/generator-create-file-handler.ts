@@ -13,26 +13,19 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, MousePositionTracker, Point, SModelElement } from '@eclipse-glsp/client';
+import { GeneratorCreateFileOperation } from '@cinco-glsp/cinco-glsp-common';
 import { injectable } from 'inversify';
+import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
+import * as fs from 'fs-extra';
 
 @injectable()
-export class MouseContextTracker extends MousePositionTracker {
-    protected _lastMousePosition: Point | undefined;
-    protected _lastMouseTarget: SModelElement | undefined;
+export class GeneratorCreateFileHandler extends CincoJsonOperationHandler {
+    operationType = GeneratorCreateFileOperation.KIND;
 
-    override mouseMove(target: SModelElement, event: MouseEvent): (Action | Promise<Action>)[] {
-        this._lastMousePosition = { x: event.offsetX, y: event.offsetY };
-        this._lastMouseTarget = target;
-        this.lastPosition = target.root.parentToLocal({ x: event.offsetX, y: event.offsetY });
-        return [];
-    }
-
-    get lastMousePosition(): Point | undefined {
-        return this._lastMousePosition;
-    }
-
-    get lastMouseTarget(): SModelElement | undefined {
-        return this._lastMouseTarget;
+    executeOperation(operation: GeneratorCreateFileOperation): void {
+        const contents = Array.from(operation.filesContentsMap.entries());
+        for (const el of contents) {
+            fs.writeFileSync(el[0]['codeUri']['path'], el[1]);
+        }
     }
 }

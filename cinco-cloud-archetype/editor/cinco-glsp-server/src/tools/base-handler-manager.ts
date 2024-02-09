@@ -21,9 +21,11 @@ import {
     ActionHandler,
     Logger,
     SaveModelAction,
-    ServerMessageAction,
-    ServerSeverity
-} from '@eclipse-glsp/server-node';
+    MessageAction,
+    SeverityLevel,
+    SourceModelStorage,
+    ModelSubmissionHandler
+} from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 
 /**
@@ -38,6 +40,10 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     protected readonly modelState: GraphModelState;
     @inject(ActionDispatcher)
     protected readonly actionDispatcher: ActionDispatcher;
+    @inject(SourceModelStorage)
+    protected sourceModelStorage: SourceModelStorage;
+    @inject(ModelSubmissionHandler)
+    protected submissionHandler: ModelSubmissionHandler;
 
     // this needs to contain KIND of the ManagedBaseAction A
     abstract actionKinds: string[];
@@ -150,7 +156,13 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
             console.log('[' + leftToHandle + '] handlers will be tested for execution as a ' + this.baseHandlerName + '!');
             for (const handlerClass of applicableHandlerClasses) {
                 // initialize handler
-                const handler = new handlerClass(this.logger, this.modelState, this.actionDispatcher);
+                const handler = new handlerClass(
+                    this.logger,
+                    this.modelState,
+                    this.actionDispatcher,
+                    this.sourceModelStorage,
+                    this.submissionHandler
+                );
                 // test if handler can be executed =>
                 try {
                     // test if handler can be executed
@@ -210,12 +222,11 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
      * @param severity "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
      * @returns
      */
-    notify(message: string, severity?: ServerSeverity, details?: string, timeout?: number): void {
-        const serverMessageAction = ServerMessageAction.create(message, {
+    notify(message: string, severity?: SeverityLevel, details?: string, timeout?: number): void {
+        const messageAction = MessageAction.create(message, {
             severity: severity ?? 'INFO',
-            details: details ?? '',
-            timeout: timeout ?? 5000
+            details: details ?? ''
         });
-        this.actionDispatcher.dispatch(serverMessageAction);
+        this.actionDispatcher.dispatch(messageAction);
     }
 }

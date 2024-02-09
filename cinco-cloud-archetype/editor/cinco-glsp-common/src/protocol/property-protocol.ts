@@ -14,10 +14,12 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { RequestAction, ResponseAction } from '@eclipse-glsp/protocol';
 import { Attribute } from '../meta-specification';
 import { ModelElementIndex, ObjectPointer, PropertyChange } from './property-model';
 import { Action, Operation } from './shared-protocol';
 import { hasObjectProp, hasStringProp } from './type-utils';
+import * as uuid from 'uuid';
 
 /**
  * Theia
@@ -32,7 +34,7 @@ export const CincoCloudPropertyWidgetCommand = { id: 'cincoCloudProperty:toggle'
  * This action will be dispatched to the backend by the listeners of the ActionTool
  */
 
-export interface PropertyViewAction extends Action {
+export interface PropertyViewAction extends RequestAction<PropertyViewResponseAction> {
     kind: typeof PropertyViewAction.KIND;
     modelElementId: string;
 }
@@ -42,7 +44,8 @@ export namespace PropertyViewAction {
     export function create(modelElementId: string): PropertyViewAction {
         return {
             kind: KIND,
-            modelElementId
+            modelElementId,
+            requestId: uuid.v4()
         };
     }
 }
@@ -53,7 +56,7 @@ export namespace PropertyViewAction {
  * This action will be dispatched to the client as a response to the PropertyViewAction
  */
 
-export interface PropertyViewResponseAction extends Action {
+export interface PropertyViewResponseAction extends ResponseAction {
     kind: typeof PropertyViewResponseAction.KIND;
     modelElementIndex: ModelElementIndex;
     modelType: string;
@@ -69,7 +72,8 @@ export namespace PropertyViewResponseAction {
         modelType: string,
         modelElementId: string,
         attributeDefinitions: Attribute[],
-        values: any
+        values: any,
+        responseId: string
     ): PropertyViewResponseAction {
         return {
             kind: KIND,
@@ -77,7 +81,8 @@ export namespace PropertyViewResponseAction {
             modelType,
             modelElementId,
             attributeDefinitions,
-            values
+            values,
+            responseId: responseId
         };
     }
 }

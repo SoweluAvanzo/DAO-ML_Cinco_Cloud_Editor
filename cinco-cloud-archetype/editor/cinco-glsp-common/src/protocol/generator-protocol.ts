@@ -126,26 +126,6 @@ export namespace GeneratorResponseAction {
     }
 }
 
-export interface GeneratorEditOperation extends Operation {
-    kind: typeof GeneratorEditOperation.KIND;
-    modelElementId: string;
-}
-export namespace GeneratorEditOperation {
-    export const KIND = 'cincoGenerate';
-
-    export function is(object: any): object is GeneratorEditOperation {
-        return Operation.hasKind(object, KIND) && hasStringProp(object, 'modelElementId');
-    }
-
-    export function create(modelElementId: string): GeneratorEditOperation {
-        return {
-            kind: KIND,
-            isOperation: true,
-            modelElementId: modelElementId
-        };
-    }
-}
-
 export interface GeneratorCreateFileOperation extends Operation {
     kind: typeof GeneratorCreateFileOperation.KIND;
     modelElementId: string;

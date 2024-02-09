@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Cinco Cloud and others.
+ * Copyright (c) 2023 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,109 +13,31 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GraphModelState, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import {
     Attribute,
     CustomType,
     ElementType,
-    LabeledModelElementReference,
-    ModelElementIndex,
     ObjectPointer,
     PropertyChange,
     PropertyEditOperation,
-    PropertyViewAction,
-    PropertyViewResponseAction,
     canAdd,
     canAssign,
     canDelete,
     getAttribute,
     getCustomType,
     getDefaultValue,
-    getModelElementSpecifications,
     getSpecOf,
     isList
 } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionHandler, Logger, MaybePromise, OperationHandler } from '@eclipse-glsp/server-node';
-import { inject, injectable } from 'inversify';
-
-/**
- * Handler for action
- */
+import { injectable } from 'inversify';
+import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 
 @injectable()
-export class PropertyViewHandler implements ActionHandler {
-    @inject(Logger)
-    protected readonly logger: Logger;
-    @inject(GraphModelState)
-    protected readonly modelState: GraphModelState;
-
-    actionKinds: string[] = [PropertyViewAction.KIND];
-
-    execute(action: PropertyViewAction, ...args: unknown[]): MaybePromise<Action[]> {
-        const modelElementId: string = action.modelElementId;
-        const element = this.modelState.index.findModelElement(action.modelElementId) as ModelElement;
-        if (!element) {
-            // element is not part of this graphmodel (maybe another)
-            return [];
-        }
-        // build index
-        const index = this.modelState.graphModel.index;
-        const modelType = this.modelState.graphModel.type;
-        const modelElementIndex: ModelElementIndex = {};
-        for (const spec of getModelElementSpecifications()) {
-            const allElementsOfType = index.getElements(spec.elementTypeId);
-            modelElementIndex[spec.elementTypeId] = allElementsOfType.map((e: any) => {
-                const id = e.id;
-                const elementTypeId = spec.elementTypeId;
-                const properties = e.args?.properties ?? '{ }';
-                const name = JSON.parse(properties.toString())['name'] ?? '';
-                const label = spec.label;
-                return this.buildLabeledModelElementReference({ id: id, elementTypeId: elementTypeId, name: name, label: label });
-            });
-        }
-        // build message
-        const consecutiveActions: Action[] = [];
-        if (element !== undefined) {
-            consecutiveActions.push(
-                PropertyViewResponseAction.create(
-                    modelElementIndex,
-                    modelType,
-                    modelElementId,
-                    element.propertyDefinitions,
-                    element.properties
-                )
-            );
-        }
-
-        // send responses
-        return consecutiveActions;
-    }
-
-    protected buildLabeledModelElementReference({
-        id,
-        elementTypeId,
-        name,
-        label
-    }: {
-        id: string;
-        elementTypeId?: string;
-        name?: string;
-        label?: string;
-    }): LabeledModelElementReference {
-        return { id, elementTypeId: elementTypeId ?? '', name: name ?? '', label: label ?? '' };
-    }
-}
-
-@injectable()
-export class PropertyEditHandler implements OperationHandler {
+export class PropertyEditHandler extends CincoJsonOperationHandler {
     operationType = PropertyEditOperation.KIND;
 
-    @inject(Logger)
-    protected readonly logger: Logger;
-    @inject(GraphModelState)
-    protected readonly modelState: GraphModelState;
-
-    execute(operation: PropertyEditOperation): void {
+    override executeOperation(operation: PropertyEditOperation): void {
         const { modelElementId, pointer, name, change } = operation;
         const element = this.modelState.index.findElement(modelElementId) as any;
         if (!element) {

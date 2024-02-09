@@ -41,7 +41,7 @@ import {
     RenderingContext,
     RoutableView,
     RoutedPoint,
-    SRoutableElement,
+    GRoutableElement,
     angleOfPoint,
     isIntersectingRoutedPoint,
     svg,
@@ -75,7 +75,7 @@ enum LINE_TYPE {
     POLYLINE
 }
 
-abstract class GLSPEdgeRenderingView extends RoutableView {
+abstract class MergedGLSPEdgeRenderingView extends RoutableView {
     @inject(EdgeRouterRegistry) edgeRouterRegistry: EdgeRouterRegistry;
     lineType: LINE_TYPE = LINE_TYPE.POLYLINE;
     lineCrossType: LINE_CROSS_TYPE = LINE_CROSS_TYPE.GAP;
@@ -266,7 +266,7 @@ abstract class GLSPEdgeRenderingView extends RoutableView {
         return path;
     }
 
-    protected getLineSegment(edge: SRoutableElement, intersection: Intersection, args?: IViewArgs, segments?: Point[]): PointToPointLine {
+    protected getLineSegment(edge: GRoutableElement, intersection: Intersection, args?: IViewArgs, segments?: Point[]): PointToPointLine {
         const route = segments ? segments : this.edgeRouterRegistry.route(edge, args);
         const index = intersection.routable1 === edge.id ? intersection.segmentIndex1 : intersection.segmentIndex2;
         return new PointToPointLine(route[index], route[index + 1]);
@@ -308,7 +308,7 @@ abstract class GLSPEdgeRenderingView extends RoutableView {
     protected getOtherLineSegment(currentEdge: CincoEdge, intersection: Intersection, args?: IViewArgs): PointToPointLine | undefined {
         const otherEdgeId = intersection.routable1 === currentEdge.id ? intersection.routable2 : intersection.routable1;
         const otherEdge = currentEdge.index.getById(otherEdgeId);
-        if (!(otherEdge instanceof SRoutableElement)) {
+        if (!(otherEdge instanceof GRoutableElement)) {
             return undefined;
         }
         return this.getLineSegment(otherEdge, intersection, args);
@@ -437,7 +437,7 @@ abstract class GLSPEdgeRenderingView extends RoutableView {
 }
 
 @injectable()
-export class CincoEdgeView extends GLSPEdgeRenderingView {
+export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
     @inject(WorkspaceFileService) workspaceFileService: WorkspaceFileService;
     ARROW_PATH = (lengthX: number, lengthY: number, offsetX = 0, offsetY = 0): string =>
         `M ${offsetX},${offsetY}
@@ -486,7 +486,7 @@ export class CincoEdgeView extends GLSPEdgeRenderingView {
             filled: false,
             isEdge: true,
             // GLSP default values
-            foreground: { r: 212, g: 212, b: 212 },
+            foreground: { r: 178, g: 178, b: 178 },
             lineWidth: 1.5
         } as Appearance);
 
