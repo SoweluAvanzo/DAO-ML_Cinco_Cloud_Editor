@@ -102,13 +102,11 @@ export namespace MetaSpecificationReloadAction {
 
 export interface MetaSpecificationReloadItem {
     folderPaths: string[];
-    supportedFileTypes: string[];
 }
 export namespace MetaSpecificationReloadItem {
-    export function create(folderPaths: string[], supportedFileTypes: string[]): MetaSpecificationReloadItem {
+    export function create(folderPaths: string[]): MetaSpecificationReloadItem {
         return {
-            folderPaths,
-            supportedFileTypes
+            folderPaths
         };
     }
 }

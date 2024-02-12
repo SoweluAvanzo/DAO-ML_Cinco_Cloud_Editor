@@ -35,6 +35,7 @@
     "typescript": "5.2.2"
   },
   "workspaces": [
+    "cinco-languages",
     "cinco-authenticator",
     "cinco-branding",
     "cinco-glsp-common",
@@ -46,6 +47,7 @@
     "cinco-glsp-standalone"
   ],
   "resolutions": {
+    "**/@babel/core": "7.10.0",
     "inversify": "6.0.1",
     "ts-md5": "1.2.11",
     "**/@theia/core": "1.40.0",

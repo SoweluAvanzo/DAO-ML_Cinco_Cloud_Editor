@@ -18,6 +18,7 @@ import { DIAGRAM_TYPE } from '@cinco-glsp/cinco-glsp-common';
 import {
     ActionHandlerConstructor,
     BindingTarget,
+    ClientSessionInitializer,
     ComputedBoundsActionHandler,
     ContextMenuItemProvider,
     DiagramConfiguration,
@@ -26,6 +27,7 @@ import {
     GModelIndex,
     InstanceMultiBinding,
     ModelState,
+    MultiBinding,
     OperationHandlerConstructor,
     SourceModelStorage,
     ToolPaletteItemProvider
@@ -55,6 +57,7 @@ import { PropertyEditHandler } from '../handler/property-edit-handler';
 import { GeneratorCreateFileHandler } from '../handler/generator-create-file-handler';
 import { PropertyViewHandler } from '../handler/property-view-handler';
 import { CompoundHandler } from '../handler/compound-handler';
+import { CincoClientSessionInitializer } from './cinco-client-session-initializer';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -74,6 +77,11 @@ export class CincoDiagramModule extends DiagramModule {
 
     protected bindGModelFactory(): BindingTarget<GModelFactory> {
         return GraphGModelFactory;
+    }
+
+    override configureClientSessionInitializers(binding: MultiBinding<ClientSessionInitializer>): void {
+        super.configureClientSessionInitializers(binding);
+        binding.add(CincoClientSessionInitializer);
     }
 
     protected override configureActionHandlers(binding: InstanceMultiBinding<ActionHandlerConstructor>): void {

@@ -13,26 +13,22 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {
-    DIAGRAM_TYPE,
-    META_FILE_TYPES,
-    MetaSpecification,
-    MetaSpecificationReloadAction,
-    MetaSpecificationResponseAction
-} from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionHandler, ClientSession, ClientSessionManager, InjectionContainer, MaybePromise } from '@eclipse-glsp/server';
+import { MetaSpecification, MetaSpecificationReloadAction, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
+import { Action, ActionDispatcher, ActionHandler, InjectionContainer } from '@eclipse-glsp/server';
 import { injectable, inject, Container } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { getLanguageFolder } from '@cinco-glsp/cinco-glsp-api';
+import { CincoClientSessionInitializer } from '../diagram/cinco-client-session-initializer';
 
 @injectable()
 export class MetaSpecificationReloadHandler implements ActionHandler {
     @inject(InjectionContainer)
     protected serverContainer: Container;
-    @inject(ClientSessionManager) protected sessions: ClientSessionManager;
+    @inject(ActionDispatcher)
+    protected actionDispatcher: ActionDispatcher;
     actionKinds: string[] = [MetaSpecificationReloadAction.KIND];
 
-    execute(action: MetaSpecificationReloadAction, ...args: unknown[]): MaybePromise<Action[]> {
+    async execute(action: MetaSpecificationReloadAction, ...args: unknown[]): Promise<Action[]> {
         const items = action.items;
         const clear = action.clear ?? false;
         if (clear) {
@@ -41,14 +37,14 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
         if (items === undefined || items.length <= 0) {
             // default behaviour
             const folderPath = getLanguageFolder();
-            const supportedFileTypes = META_FILE_TYPES;
-            MetaSpecificationLoader.load(supportedFileTypes, folderPath);
+            await MetaSpecificationLoader.load(folderPath, async () => {
+                await this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
+            });
         } else {
             for (const item of items) {
                 const folderPaths = item.folderPaths;
-                const supportedFileTypes = item.supportedFileTypes;
                 for (const folderPath of folderPaths) {
-                    MetaSpecificationLoader.load(supportedFileTypes, folderPath);
+                    MetaSpecificationLoader.load(folderPath);
                 }
             }
         }
@@ -60,13 +56,14 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
     }
 
     sendToAllOtherClients(message: Action): void {
-        this.sessions
-            .getSessionsByType(DIAGRAM_TYPE)
-            .filter(session => !this.isSameSession(session))
-            .forEach(session => session.actionDispatcher.dispatch(message));
-    }
-
-    isSameSession(session: ClientSession): boolean {
-        return session.container === this.serverContainer;
+        const actionDispatcherMap = CincoClientSessionInitializer.clientSessionsActionDispatcher;
+        for (const entry of actionDispatcherMap.entries()) {
+            if (entry[0] !== this.serverContainer.id) {
+                entry[1].dispatch(message).catch(e => {
+                    console.log('An error occured, maybe the client is not connected anymore:\n' + e);
+                    CincoClientSessionInitializer.removeClient(entry[0]);
+                });
+            }
+        }
     }
 }
