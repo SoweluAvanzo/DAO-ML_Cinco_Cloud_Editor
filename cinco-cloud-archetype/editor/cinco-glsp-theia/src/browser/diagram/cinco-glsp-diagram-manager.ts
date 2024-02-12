@@ -22,6 +22,9 @@ import { getDiagramConfiguration } from '../../common/cinco-language';
 import { CincoGLSPDiagramWidget } from './cinco-glsp-diagram-widget';
 import { WidgetOpenerOptions } from '@theia/core/lib/browser';
 import { ContextKey } from '@theia/core/lib/browser/context-key-service';
+import * as uuid from 'uuid';
+import { DIAGRAM_TYPE } from '@cinco-glsp/cinco-glsp-common';
+
 export class CincoGLSPDiagramContextKeyService extends GLSPDiagramContextKeyService {
     protected _cincoDiagramExtension: ContextKey<string>;
     get cincoDiagramExtension(): ContextKey<string> {
@@ -112,5 +115,9 @@ export class CincoGLSPDiagramMananger extends GLSPDiagramManager {
             }
         }
         return undefined;
+    }
+
+    protected override createClientId(): string {
+        return DIAGRAM_TYPE + '_' + uuid.v4();
     }
 }

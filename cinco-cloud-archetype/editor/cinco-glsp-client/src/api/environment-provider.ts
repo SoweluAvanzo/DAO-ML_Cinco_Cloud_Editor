@@ -193,10 +193,10 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
                 id: '_search'
             }
         ];
-        if (!hasGeneratorAction(this.model.type)) {
+        if (!this.model || !hasGeneratorAction(this.model.type)) {
             tools = tools.filter(t => t.id !== 'cinco.generate-tool');
         }
-        if (!hasValidator(this.model.type)) {
+        if (!this.model || !hasValidator(this.model.type)) {
             tools = tools.filter(t => t.id !== 'cinco.validate-tool');
         }
         return tools;

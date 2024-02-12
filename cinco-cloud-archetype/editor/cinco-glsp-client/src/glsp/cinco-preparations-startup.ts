@@ -41,8 +41,6 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
     protected readonly graphModelProvider: GraphModelProvider;
     @inject(TYPES.IActionDispatcher)
     protected readonly actionDispatcher: IActionDispatcher;
-    @inject(CincoToolPalette)
-    protected readonly palette: CincoToolPalette;
     @inject(TYPES.IDiagramOptions)
     protected options: IDiagramOptions;
 
@@ -88,11 +86,12 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
         // dynamically register bindings
         reregisterBindings(this.context, this.ctx, this.registry, this.viewRegistry);
         // dynamic tool palette update
-        this.palette.requestPalette();
+        CincoToolPalette.requestPalette(this.actionDispatcher);
     }
 
     async postRequestModel?(): Promise<void> {
         // wait for graphmodel to be loaded, to prevent race-conditions
         await this.graphModelProvider.graphModel;
+        CincoToolPalette.requestPalette(this.actionDispatcher);
     }
 }

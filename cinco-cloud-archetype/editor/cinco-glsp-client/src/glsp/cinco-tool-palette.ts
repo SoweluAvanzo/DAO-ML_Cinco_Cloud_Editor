@@ -23,7 +23,8 @@ import {
     RequestContextActions,
     Ranked,
     createIcon,
-    changeCodiconClass
+    changeCodiconClass,
+    IActionDispatcher
 } from '@eclipse-glsp/client';
 import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette';
 import { Action, PaletteItem } from '@eclipse-glsp/protocol';
@@ -59,17 +60,34 @@ export class CincoToolPalette extends KeyboardToolPalette implements Ranked {
         }
     }
 
-    async requestPalette(requestFilterUpdate = true): Promise<void> {
+    override initialize(): boolean {
+        const result = super.initialize();
+        // fetch initial palette elements
+        CincoToolPalette.requestPalette(this.actionDispatcher);
+        return result;
+    }
+
+    static async requestPalette(actionDispatcher: IActionDispatcher): Promise<void> {
         const requestAction = RequestContextActions.create({
             contextId: CincoToolPalette.ID,
             editorContext: {
                 selectedElementIds: []
             }
         });
-        const response = await this.actionDispatcher.request(requestAction);
-        if (SetContextActions.is(response)) {
+        actionDispatcher.dispatch(requestAction);
+    }
+
+    override handle(action: Action): ICommand | Action | void {
+        if (action.kind === EnableToolPaletteAction.KIND) {
+            CincoToolPalette.requestPalette(this.actionDispatcher);
+        } else if (action.kind === EnableDefaultToolsAction.KIND) {
+            if (this.lastActiveButton || this.defaultToolsButton) {
+                this.changeActiveButton();
+                this.restoreFocus();
+            }
+        } else if (SetContextActions.is(action)) {
             // store and backup new palette
-            this.paletteItems = response.actions.map(e => e as PaletteItem);
+            this.paletteItems = action.actions.map(e => e as PaletteItem);
             this.backupPaletteCopy();
             // make
             this.actionDispatcher.dispatch(
@@ -79,19 +97,11 @@ export class CincoToolPalette extends KeyboardToolPalette implements Ranked {
                 })
             );
             // update palette view
-            if (requestFilterUpdate) {
-                this.requestFilterUpdate(this.lastFilter);
-            }
-        }
-    }
-
-    override handle(action: Action): ICommand | Action | void {
-        if (action.kind === EnableToolPaletteAction.KIND) {
-            this.requestPalette();
-        } else if (action.kind === EnableDefaultToolsAction.KIND) {
-            if (this.lastActiveButton || this.defaultToolsButton) {
-                this.changeActiveButton();
-                this.restoreFocus();
+            this.requestFilterUpdate(this.lastFilter);
+            // update header tools
+            const headerTools = document.getElementById('cinco-tool-palette-header');
+            if (headerTools) {
+                this.updateHeaderTools(headerTools);
             }
         }
     }
@@ -99,33 +109,30 @@ export class CincoToolPalette extends KeyboardToolPalette implements Ranked {
     protected override requestFilterUpdate(filter: string): void {
         if (!this.containerElement) {
             // palette can not yet be updated
-            return;
+            super.initialize();
         }
         // cache last filter
         this.lastFilter = filter;
-
-        this.requestPalette(false).then(_ => {
-            // Reset the paletteItems before searching
-            this.paletteItems = JSON.parse(JSON.stringify(this.paletteItemsCopy));
-            // Filter the entries
-            const filteredPaletteItems: PaletteItem[] = [];
-            for (const itemGroup of this.paletteItems) {
-                if (itemGroup.children) {
-                    // Fetch the labels according to the filter
-                    const matchingChildren = itemGroup.children.filter(child => child.label.toLowerCase().includes(filter.toLowerCase()));
-                    // Add the itemgroup containing the correct entries
-                    if (matchingChildren.length > 0) {
-                        // Clear existing children
-                        itemGroup.children.splice(0, itemGroup.children.length);
-                        // Push the matching children
-                        matchingChildren.forEach(child => itemGroup.children!.push(child));
-                        filteredPaletteItems.push(itemGroup);
-                    }
+        // Reset the paletteItems before searching
+        this.paletteItems = JSON.parse(JSON.stringify(this.paletteItemsCopy));
+        // Filter the entries
+        const filteredPaletteItems: PaletteItem[] = [];
+        for (const itemGroup of this.paletteItems) {
+            if (itemGroup.children) {
+                // Fetch the labels according to the filter
+                const matchingChildren = itemGroup.children.filter(child => child.label.toLowerCase().includes(filter.toLowerCase()));
+                // Add the itemgroup containing the correct entries
+                if (matchingChildren.length > 0) {
+                    // Clear existing children
+                    itemGroup.children.splice(0, itemGroup.children.length);
+                    // Push the matching children
+                    matchingChildren.forEach(child => itemGroup.children!.push(child));
+                    filteredPaletteItems.push(itemGroup);
                 }
             }
-            this.paletteItems = filteredPaletteItems;
-            this.createBody();
-        });
+        }
+        this.paletteItems = filteredPaletteItems;
+        this.createBody();
     }
 
     /**
@@ -168,13 +175,17 @@ export class CincoToolPalette extends KeyboardToolPalette implements Ranked {
 
     protected override createHeaderTools(): HTMLElement {
         this.headerToolsButtonMapping.clear();
-
         const headerTools = document.createElement('div');
+        headerTools.id = 'cinco-tool-palette-header';
         headerTools.classList.add('header-tools');
+        this.updateHeaderTools(headerTools);
+        return headerTools;
+    }
 
+    protected updateHeaderTools(headerTools: HTMLElement): void {
         // fetch custom tools
         const tools = this.environmentProvider.provideTools();
-
+        headerTools.replaceChildren(...([] as (string | Node)[]));
         let index = 0;
         for (const tool of tools) {
             if (tool.id === '_default') {
@@ -204,8 +215,6 @@ export class CincoToolPalette extends KeyboardToolPalette implements Ranked {
             }
             index++;
         }
-
-        return headerTools;
     }
 
     protected createCustomTool(tool: CincoCustomTool): HTMLElement {

@@ -37,7 +37,8 @@ import {
     configureDefaultModelElements,
     initializeDiagramContainer,
     ContainerConfiguration,
-    bindOrRebind
+    bindOrRebind,
+    SetContextActions
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -154,6 +155,7 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureActionHandler(context, MetaSpecificationResponseAction.KIND, MetaSpecificationResponseHandler);
     configureActionHandler(context, FileProviderResponse.KIND, FileProviderHandler);
     configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
+    configureActionHandler(context, SetContextActions.KIND, CincoToolPalette);
 
     configureDefaultModelElements(context);
 

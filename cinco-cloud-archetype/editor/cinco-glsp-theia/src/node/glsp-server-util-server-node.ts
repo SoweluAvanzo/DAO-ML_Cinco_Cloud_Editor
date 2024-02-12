@@ -14,7 +14,13 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { injectable } from 'inversify';
-import { DEFAULT_SERVER_PORT, ServerArgs, DEFAULT_WEBSOCKET_PATH, DEFAULT_WEB_SERVER_PORT } from '@cinco-glsp/cinco-glsp-common';
+import {
+    DEFAULT_SERVER_PORT,
+    ServerArgs,
+    DEFAULT_WEBSOCKET_PATH,
+    DEFAULT_WEB_SERVER_PORT,
+    getFileExtension
+} from '@cinco-glsp/cinco-glsp-common';
 import {
     DEFAULT_META_DEV_MODE,
     DEFAULT_META_LANGUAGES_FOLDER,
@@ -24,7 +30,8 @@ import {
 import { GLSPServerUtilClient, GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 import * as path from 'path';
 import * as childProcess from 'child_process';
-import { getFilesFromFolder } from './utils/file-helper';
+import * as fs from 'fs';
+
 @injectable()
 export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
     protected static SERVER_ARGS: ServerArgs;
@@ -141,4 +148,49 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
             });
         }
     }
+}
+
+function getFilesFromFolder(absRoot: string, folderPath: string, filterTypes?: string[]): string[] {
+    const absoluteFolderPath = path.join(absRoot, folderPath);
+    if (!fs.existsSync(absoluteFolderPath)) {
+        return [];
+    }
+    // file or folder exists
+    const found = fs.readdirSync(absoluteFolderPath) as string[]; // all found files and directories
+    let foundFiles = found.filter(file => {
+        const absPath = path.join(absoluteFolderPath, file);
+        try {
+            return fs.readFileSync(absPath); // if file can be read, it is a file
+        } catch (e) {
+            return false;
+        }
+    });
+    const foundFolders = found.filter(folder => {
+        const absPath = path.join(absoluteFolderPath, folder);
+        try {
+            return fs.readdirSync(absPath); // if directory can be read, it is a folder} catch (e)
+        } catch (e) {
+            return false;
+        }
+    });
+    const containedFiles: string[] = [];
+    foundFolders.forEach((folder: string) => {
+        const relativeFolderPath = path.join(folderPath, folder);
+        const filesFromFolder = getFilesFromFolder(absRoot, relativeFolderPath, filterTypes);
+        filesFromFolder.forEach(file => {
+            const relativeFilePath = path.join(folder, file);
+            containedFiles.push(relativeFilePath);
+        });
+    });
+
+    foundFiles = foundFiles.concat(containedFiles);
+    if (filterTypes && filterTypes.length > 0) {
+        // filter by filterTypes
+        foundFiles = getFilesByExtensions(foundFiles, filterTypes);
+    }
+    return foundFiles;
+}
+
+function getFilesByExtensions(files: string[], fileExtensions: string[]): string[] {
+    return files.filter(f => fileExtensions.indexOf('.' + getFileExtension(f)) >= 0);
 }
