@@ -14,14 +14,12 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    EnableToolPaletteAction,
     ToolPalette,
     ICommand,
     EnableDefaultToolsAction,
     SetUIExtensionVisibilityAction,
     SetContextActions,
     RequestContextActions,
-    Ranked,
     createIcon,
     changeCodiconClass,
     IActionDispatcher
@@ -29,7 +27,6 @@ import {
 import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette';
 import { Action, PaletteItem } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
-import { CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
 import { CincoCustomTool, EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
 
 // imported from: '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette'
@@ -38,27 +35,9 @@ const CHEVRON_DOWN_ICON_ID = 'chevron-right';
 const PALETTE_HEIGHT = '500px';
 
 @injectable()
-export class CincoToolPalette extends KeyboardToolPalette implements Ranked {
+export class CincoToolPalette extends KeyboardToolPalette {
     @inject(EnvironmentProvider) readonly environmentProvider: IEnvironmentProvider;
-    static _rank: number = CINCO_STARTUP_RANK - 1; // needs to be before CincoPreparationsStartup
-    rank: number = CincoToolPalette._rank;
     protected lastFilter = '';
-
-    override async preRequestModel(): Promise<void> {}
-
-    async postRequestModel?(): Promise<void> {
-        const requestAction = RequestContextActions.create({
-            contextId: ToolPalette.ID,
-            editorContext: {
-                selectedElementIds: []
-            }
-        });
-        const response = await this.actionDispatcher.request<SetContextActions>(requestAction);
-        this.paletteItems = response.actions.map(e => e as PaletteItem);
-        if (!this.editorContext.isReadonly) {
-            this.show(this.editorContext.modelRoot);
-        }
-    }
 
     override initialize(): boolean {
         const result = super.initialize();
@@ -77,10 +56,8 @@ export class CincoToolPalette extends KeyboardToolPalette implements Ranked {
         actionDispatcher.dispatch(requestAction);
     }
 
-    override handle(action: Action): ICommand | Action | void {
-        if (action.kind === EnableToolPaletteAction.KIND) {
-            CincoToolPalette.requestPalette(this.actionDispatcher);
-        } else if (action.kind === EnableDefaultToolsAction.KIND) {
+    override handle(action: Action): void | Action | ICommand {
+        if (action.kind === EnableDefaultToolsAction.KIND) {
             if (this.lastActiveButton || this.defaultToolsButton) {
                 this.changeActiveButton();
                 this.restoreFocus();

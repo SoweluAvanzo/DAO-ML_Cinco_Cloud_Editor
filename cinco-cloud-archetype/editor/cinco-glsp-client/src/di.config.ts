@@ -63,6 +63,7 @@ import { RestoreViewportHandler } from '@eclipse-glsp/client/lib/features/viewpo
 import { CincoRestoreViewportHandler } from './glsp/cinco-viewport-handler';
 import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette';
 import { EnvironmentProvider } from './api/environment-provider';
+import { CincoToolPaletteUpdateHandler } from './glsp/cinco-tool-palette-update-handler';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -124,19 +125,14 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureCommand(context, ApplyConstrainedTypeHintsCommand);
 
     // bind custom palette
-    bind(CincoToolPalette).toSelf().inSingletonScope();
     if (context.isBound(ToolPalette)) {
-        // theia (GLSP-2.0)
         unbind(ToolPalette);
-        bindOrRebind(context, ToolPalette).to(CincoToolPalette).inSingletonScope();
-    } else {
-        // standalone (GLSP-2.0)
-        if (context.isBound(KeyboardToolPalette)) {
-            unbind(KeyboardToolPalette);
-        }
-        bindOrRebind(context, KeyboardToolPalette).to(CincoToolPalette).inSingletonScope();
-        bind(TYPES.IDiagramStartup).toService(CincoToolPalette);
     }
+    if (context.isBound(KeyboardToolPalette)) {
+        unbind(KeyboardToolPalette);
+    }
+    bindOrRebind(context, ToolPalette).to(CincoToolPalette).inSingletonScope();
+    configureActionHandler(context, SetContextActions.KIND, CincoToolPaletteUpdateHandler);
 
     // bind FrontendAppearanceProviderHandling
     configureCommand(context, ApplyAppearanceUpdateCommand);
@@ -155,7 +151,6 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureActionHandler(context, MetaSpecificationResponseAction.KIND, MetaSpecificationResponseHandler);
     configureActionHandler(context, FileProviderResponse.KIND, FileProviderHandler);
     configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
-    configureActionHandler(context, SetContextActions.KIND, CincoToolPalette);
 
     configureDefaultModelElements(context);
 
