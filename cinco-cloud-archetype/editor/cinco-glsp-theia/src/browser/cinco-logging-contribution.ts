@@ -59,10 +59,14 @@ export class CincoLoggingClientNode implements CincoLoggingClient {
     forward(msg: string, type: 'BACKEND' | 'SERVER'): void {
         switch (type) {
             case 'BACKEND':
-                this.backendChannel.appendLine(msg);
+                if (this.backendChannel) {
+                    this.backendChannel.appendLine(msg);
+                }
                 break;
             case 'SERVER':
-                this.serverChannel.append(msg);
+                if (this.serverChannel) {
+                    this.serverChannel.append(msg);
+                }
                 break;
             default:
                 return;
