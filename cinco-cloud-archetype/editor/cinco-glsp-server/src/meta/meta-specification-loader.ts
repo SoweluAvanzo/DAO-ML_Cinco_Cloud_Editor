@@ -22,11 +22,13 @@ export class MetaSpecificationLoader {
     private static watchingFolder: string | undefined = undefined;
     private static watcher: FSWatcher | undefined = undefined;
     private static callback: (() => Promise<void>) | undefined;
+    private static eventAggregationMap: Map<string, number[]> = new Map();
+    private static eventDelta = 600;
     /*
      * watches only one folder
      */
     static watch(folderToWatch: string, callback?: () => Promise<void>): void {
-        if ((!folderToWatch && !this.watchingFolder) || (this.watchingFolder === folderToWatch && callback && this.callback === callback)) {
+        if (!folderToWatch || (this.watchingFolder === folderToWatch && this.callback?.toString() === callback?.toString())) {
             // already watching or nothing to watch
             return;
         }
@@ -52,6 +54,17 @@ export class MetaSpecificationLoader {
                     if (filename) {
                         const fileExtension = filename.slice(filename.indexOf('.'));
                         if (META_FILE_TYPES.includes(fileExtension) && eventType === 'change') {
+                            const changeTimes = this.eventAggregationMap.get(filename) ?? [];
+                            const currentTime = Date.now();
+                            if (this.eventAggregationMap.has(filename)) {
+                                const deltaTimes = changeTimes.filter(cT => Math.abs(cT - currentTime) < this.eventDelta);
+                                if (deltaTimes.length > 0) {
+                                    // atleast one event occured in the last eventDelta
+                                    // skip this event
+                                    return;
+                                }
+                            }
+                            this.eventAggregationMap.set(filename, changeTimes.concat(currentTime));
                             console.log('changed:\nEventtype: ' + eventType + '\nfilename: ' + filename);
                             if (this.callback) {
                                 let executed = false;
