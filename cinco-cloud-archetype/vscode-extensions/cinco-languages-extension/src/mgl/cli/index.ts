@@ -21,7 +21,7 @@ export const generateAction = async (filePath: string, opts: GenerateOptions, up
                 callable: async(errorDisplay) => {
                     const services = createMglServices(NodeFileSystem).Mgl;
                     const model = await extractAstNode<MglModel>(filePath, services);
-                    const result = await new MGLGenerator().generateMetaSpecification(model, filePath, opts.destination).catch(e => {
+                    const result = await new MGLGenerator().generateMetaSpecification(model, filePath).catch(e => {
                         errorDisplay("Generation failed with error:\n"+e)
                     });
                     if(result) {
@@ -34,7 +34,7 @@ export const generateAction = async (filePath: string, opts: GenerateOptions, up
                 callable: async (errorDisplay) => {
                     const fileName = getFileName(filePath)
                     const specificationName = `${fileName}_spec.json`;
-                    const languagesFolder = await saveToLanguagesFolder(generatedMetaSpecification, specificationName).catch(e => {
+                    const languagesFolder = await saveToLanguagesFolder(generatedMetaSpecification, specificationName, opts.destination).catch(e => {
                         errorDisplay("Generation failed with error:\n"+e)
                         throw Error("failed save generated files!")
                     })

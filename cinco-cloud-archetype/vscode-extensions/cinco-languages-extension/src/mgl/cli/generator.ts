@@ -82,8 +82,7 @@ export class MGLGenerator {
 
   async generateMetaSpecification(
     model: MglModel,
-    filePath: string,
-    destination: string | undefined
+    filePath: string
   ): Promise<string> {
     // Handle appearances and styles first
     // Trim path to MGL to retrieve the project path

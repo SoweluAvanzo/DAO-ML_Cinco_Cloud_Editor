@@ -19,39 +19,50 @@ import { injectable } from '@theia/core/shared/inversify';
 
 @injectable()
 export class CincoLogger extends Logger {
-    protected static listeners: ((log: string) => void)[] = [];
-    protected static loggedTerminal: { logLevel: number; log: string }[] = [];
+    protected static listeners: ((log: string, type: string) => void)[] = [];
+    protected static loggedTerminal: Map<string, { logLevel: number; log: string }[]> = new Map();
+
     override log(logLevel: number, arg2: any, ...params: any[]): Promise<void> {
-        CincoLogger.loggedTerminal.push({ logLevel: logLevel, log: arg2 });
-        for (const listener of CincoLogger.listeners) {
-            listener(this.toLoggedString(logLevel, arg2));
-        }
-        return super.log(logLevel, arg2, params);
+        const type = 'BACKEND';
+        return this.logProcess(type, logLevel, arg2, ...params);
     }
 
     logGLSPServer(logLevel: number, arg2: any, ...params: any[]): Promise<void> {
-        return this.logChildProcess('GLSPServer', logLevel, arg2, params);
+        return this.logProcess('SERVER', logLevel, arg2, ...params);
     }
 
-    logChildProcess(processName: string, logLevel: number, arg2: any, ...params: any[]): Promise<void> {
-        const message = `${processName}: ` + arg2;
-        CincoLogger.loggedTerminal.push({ logLevel: logLevel, log: message });
-        for (const listener of CincoLogger.listeners) {
-            listener(this.toLoggedString(logLevel, message));
+    logProcess(processName: string, logLevel: number, arg2: any, ...params: any[]): Promise<void> {
+        const msg = arg2;
+        if (!CincoLogger.loggedTerminal.has(processName)) {
+            CincoLogger.loggedTerminal.set(processName, []);
         }
-        return super.log(logLevel, message, params);
+        CincoLogger.loggedTerminal.get(processName)!.push({ logLevel: logLevel, log: msg });
+        for (const listener of CincoLogger.listeners) {
+            listener(this.toLoggedString(logLevel, msg), processName);
+        }
+        return super.log(logLevel, msg, params);
     }
 
-    async getFullLog(loglevel?: number): Promise<string> {
-        const logs = CincoLogger.loggedTerminal.filter(l => (loglevel ? l.logLevel === loglevel : true));
-        return logs.map(l => this.toLoggedString(l.logLevel, l.log)).join('\n');
+    async getFullLog(): Promise<Map<string, string[]>> {
+        const result = new Map<string, string[]>();
+        for (const entry of CincoLogger.loggedTerminal.entries()) {
+            const name = entry[0];
+            const logs = entry[1].map(v => this.toLoggedString(v.logLevel, v.log));
+            result.set(name, logs);
+        }
+        return result;
     }
 
     toLoggedString(logLevel: number, log: string): string {
-        return `${LogLevel.toString(logLevel)} ` + log;
+        return `${LogLevel.toString(logLevel)?.toUpperCase()} ` + this.cleanANSI(log);
     }
 
-    addListener(listener: (log: string) => void): void {
+    addListener(listener: (log: string, type: string) => void): void {
         CincoLogger.listeners.push(listener);
+    }
+
+    private cleanANSI(msg: string): string {
+        // eslint-disable-next-line no-control-regex
+        return msg.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
     }
 }
