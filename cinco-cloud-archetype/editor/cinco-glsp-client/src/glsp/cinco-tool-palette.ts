@@ -39,13 +39,6 @@ export class CincoToolPalette extends KeyboardToolPalette {
     @inject(EnvironmentProvider) readonly environmentProvider: IEnvironmentProvider;
     protected lastFilter = '';
 
-    override initialize(): boolean {
-        const result = super.initialize();
-        // fetch initial palette elements
-        CincoToolPalette.requestPalette(this.actionDispatcher);
-        return result;
-    }
-
     static async requestPalette(actionDispatcher: IActionDispatcher): Promise<void> {
         const requestAction = RequestContextActions.create({
             contextId: CincoToolPalette.ID,
@@ -86,7 +79,7 @@ export class CincoToolPalette extends KeyboardToolPalette {
     protected override requestFilterUpdate(filter: string): void {
         if (!this.containerElement) {
             // palette can not yet be updated
-            super.initialize();
+            this.initialize();
         }
         // cache last filter
         this.lastFilter = filter;
