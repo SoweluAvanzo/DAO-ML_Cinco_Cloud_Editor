@@ -989,10 +989,8 @@ export function getPaletteIconPath(paletteCategory: string | undefined): string 
     return undefined;
 }
 
-function getPaletteFromAnnotation(elementTypeId: string): string[] {
-    return getAnnotations(elementTypeId, 'palette')
-        .map(a => a.values)
-        .flat();
+function getPalettesFromAnnotation(elementTypeId: string): string[][] {
+    return getAnnotations(elementTypeId, 'palette').map(a => a.values);
 }
 
 export function hasPalette(elementTypeId: string, palette: string): boolean {
@@ -1012,7 +1010,8 @@ export function getPalettes(elementTypeId: string | undefined): string[] {
     }
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
     if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
-        return (elementSpec.palettes ?? []).concat(getPaletteFromAnnotation(elementTypeId));
+        const paletteNamesOfAnnotations = getPalettesFromAnnotation(elementTypeId).map(a => a[0]);
+        return (elementSpec.palettes ?? []).concat(paletteNamesOfAnnotations);
     }
     return [];
 }
