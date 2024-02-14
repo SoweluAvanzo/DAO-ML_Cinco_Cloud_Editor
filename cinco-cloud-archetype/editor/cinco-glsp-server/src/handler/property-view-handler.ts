@@ -19,7 +19,6 @@ import {
     ModelElementIndex,
     PropertyViewAction,
     PropertyViewResponseAction,
-    getCustomTypes,
     getModelElementSpecifications
 } from '@cinco-glsp/cinco-glsp-common';
 import { Action, ActionHandler, Logger, MaybePromise } from '@eclipse-glsp/server';
@@ -59,7 +58,6 @@ export class PropertyViewHandler implements ActionHandler {
                 return this.buildLabeledModelElementReference({ id: id, elementTypeId: elementTypeId, name: name, label: label });
             });
         }
-        const customTypes = getCustomTypes();
         // build message
         const consecutiveActions: Action[] = [];
         if (element !== undefined) {
@@ -69,7 +67,6 @@ export class PropertyViewHandler implements ActionHandler {
                     modelType,
                     element.id,
                     element.propertyDefinitions,
-                    customTypes,
                     element.properties,
                     action.requestId
                 )

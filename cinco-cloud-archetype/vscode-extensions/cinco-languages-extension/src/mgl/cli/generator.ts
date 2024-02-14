@@ -30,7 +30,6 @@ import {
   isAlignment,
   isComplexAttribute,
   isContainerShape,
-  isCustomDataType,
   isEdge,
   isEdgeStyle,
   isEllipse,
@@ -48,6 +47,7 @@ import {
   isRoundedRectangle,
   isShape,
   isText,
+  isUserDefinedType,
 } from "../../generated/ast";
 import {
   mergeArrays,
@@ -68,6 +68,7 @@ export class MGLGenerator {
     graphTypes: [],
     nodeTypes: [],
     edgeTypes: [],
+    customTypes: [],
     appearances: [],
     styles: [],
   };
@@ -76,6 +77,7 @@ export class MGLGenerator {
     graphTypes: [],
     nodeTypes: [],
     edgeTypes: [],
+    customTypes: [],
     appearances: [],
     styles: [],
   };
@@ -170,7 +172,7 @@ export class MGLGenerator {
     // This is completed later by prepending the modelElement type (see below)
     modelElementSpec.elementTypeId = modelElement.name.toLowerCase();
 
-    modelElementSpec.type = modelElementSpec.label = modelElement.name;
+    modelElementSpec.label = modelElement.name;
 
     modelElementSpec.annotations = mergeArrays(
       modelElementSpec.annotations,
@@ -180,7 +182,7 @@ export class MGLGenerator {
       "name"
     );
 
-    if (!isCustomDataType(modelElement)) {
+    if (!isEnum(modelElement)) {
       // Attributes
       modelElementSpec.attributes = mergeArrays(
         modelElementSpec.attributes,
@@ -192,9 +194,9 @@ export class MGLGenerator {
             final: attribute.notChangeable,
             unique: attribute.unique,
             name: attribute.name,
-            defaultValue: attribute.defaultValue ?? "",
+            defaultValue: attribute.defaultValue,
             bounds: {
-              lowerBound: attribute.lowerBound ?? 0,
+              lowerBound: attribute.lowerBound ?? 1,
               upperBound: handleUpperBound(attribute.upperBound, 1),
             },
             // Type is filled in below
@@ -204,7 +206,7 @@ export class MGLGenerator {
           if (isPrimitiveAttribute(attribute)) {
             result.type = attribute.dataType;
           } else if (isComplexAttribute(attribute)) {
-            result.type = attribute.type.ref?.name ?? "";
+            result.type = attribute.type.ref?.name.toLowerCase() ?? "";
           }
 
           return result;
@@ -305,6 +307,10 @@ export class MGLGenerator {
       modelElementSpec.elementTypeId = "edge:" + modelElementSpec.elementTypeId;
 
       specification.edgeTypes.push(modelElementSpec);
+    }
+
+    if (isUserDefinedType(modelElement)) {
+        specification.customTypes.push(modelElementSpec);
     }
 
     return modelElementSpec.elementTypeId;

@@ -15,7 +15,7 @@
  ********************************************************************************/
 
 import { RequestAction, ResponseAction } from '@eclipse-glsp/protocol';
-import { Attribute, CustomType } from '../meta-specification';
+import { Attribute } from '../meta-specification';
 import { ModelElementIndex, ObjectPointer, PropertyChange } from './property-model';
 import { Action, Operation } from './shared-protocol';
 import { hasObjectProp, hasStringProp } from './type-utils';
@@ -62,7 +62,6 @@ export interface PropertyViewResponseAction extends ResponseAction {
     modelType: string;
     modelElementId: string;
     attributeDefinitions: Attribute[];
-    customTypeDefinitions: CustomType[];
     values: any;
 }
 export namespace PropertyViewResponseAction {
@@ -73,7 +72,6 @@ export namespace PropertyViewResponseAction {
         modelType: string,
         modelElementId: string,
         attributeDefinitions: Attribute[],
-        customTypeDefinitions: CustomType[],
         values: any,
         responseId: string
     ): PropertyViewResponseAction {
@@ -83,7 +81,6 @@ export namespace PropertyViewResponseAction {
             modelType,
             modelElementId,
             attributeDefinitions,
-            customTypeDefinitions,
             values,
             responseId: responseId
         };
