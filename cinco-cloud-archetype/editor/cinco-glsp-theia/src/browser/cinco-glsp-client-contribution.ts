@@ -95,6 +95,7 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     }
 
     initializeSystemSession(id: string): void {
+        console.log('Initializing GLSP Client Connection: ' + this.id);
         this.glspClient.then(client => {
             if (!(client instanceof CincoGLSPClient)) {
                 throw Error('Client is no CincoGLSPClient. Maybe the API has changed, please review.');
