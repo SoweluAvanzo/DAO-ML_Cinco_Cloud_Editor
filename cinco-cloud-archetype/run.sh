@@ -4,8 +4,9 @@ exec docker run \
     --env-file ./env.list \
     --add-host=host.docker.internal:host-gateway \
     --volume=./editor/workspace:/editor/workspace \
-    -p 0.0.0.0:3000:3000 \
-    -p 0.0.0.0:8000:8000 \
+    -p 3000:3000 \
+    -p 3003:3003 \
+    -p 5007:5007 \
     --rm \
     -it \
     editor

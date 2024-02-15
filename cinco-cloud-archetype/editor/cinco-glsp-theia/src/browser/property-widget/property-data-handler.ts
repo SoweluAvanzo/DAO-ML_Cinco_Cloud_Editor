@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Attribute, CustomType } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
+import { Attribute } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
 import { ModelElementIndex } from '@cinco-glsp/cinco-glsp-common/lib/protocol/property-model';
 import { ApplicationShell } from '@theia/core/lib/browser';
 import { inject, injectable, postConstruct } from 'inversify';
@@ -29,7 +29,6 @@ export class PropertyDataHandler {
     currentModelType = '';
     currentModelElementId = '';
     currentAttributeDefinitions: Attribute[] = [];
-    currentCustomTypeDefinitions: CustomType[] = [];
     currentValues: any = {};
     dataSubscriptions: (() => void)[] = [];
 
@@ -49,14 +48,12 @@ export class PropertyDataHandler {
         modelType?: string,
         modelElementIndex?: ModelElementIndex,
         attributeDefinitions?: Attribute[],
-        customTypeDefinitions?: CustomType[],
         values?: any
     ): void {
         this.currentModelElementId = modelElementId ?? '';
         this.currentModelType = modelType ?? this.currentModelType;
         this.currentModelElementIndex = modelElementIndex ?? this.currentModelElementIndex;
         this.currentAttributeDefinitions = attributeDefinitions ?? this.currentAttributeDefinitions;
-        this.currentCustomTypeDefinitions = customTypeDefinitions ?? this.currentCustomTypeDefinitions;
         this.currentValues = values ?? this.currentValues;
         this.dataSubscriptions.forEach(fn => fn());
     }
@@ -67,7 +64,6 @@ export class PropertyDataHandler {
         this.currentModelType = '';
         this.currentModelElementId = '';
         this.currentAttributeDefinitions = [];
-        this.currentCustomTypeDefinitions = [];
         this.currentValues = {};
     }
 

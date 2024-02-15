@@ -46,7 +46,12 @@ export type PropertyType = PrimitivePropertyType | string;
 
 export function getDefaultValue(elementTypeId: string, attributeName: string): any {
     const definition = getAttribute(elementTypeId, attributeName);
-    return !definition ? undefined : definition.defaultValue ?? getFallbackDefaultValue(definition.type);
+    if (definition === undefined) {
+        throw new Error(
+            `Cannot get definition for attribute ${attributeName} of ${elementTypeId}.`
+        );
+    }
+    return definition.defaultValue ?? getFallbackDefaultValue(definition.type);
 }
 
 export function getFallbackDefaultValue(type: string): any {
@@ -60,12 +65,34 @@ export function getFallbackDefaultValue(type: string): any {
         }
         default: {
             const typeDefinition = getCustomType(type);
-            if (Enum.is(typeDefinition)) {
+            if (!typeDefinition) {
+                // could be modelElementReference: default should be 'not set', i.e. undefined
+                return undefined;
+            } else if (Enum.is(typeDefinition)) {
                 return typeDefinition.literals[0];
             } else if (UserDefinedType.is(typeDefinition)) {
-                return {};
-            } else {
-                return {};
+                const defaultObject: any = {};
+                for (const child of typeDefinition.attributes) {
+                    const bounds = child.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
+                    const childIsList = isListAttribute(bounds.upperBound);
+                    if (isPrimitivePropertyType(child.type)) {
+                        // Only do this for primitive attributes to avoid infinite recursion
+                        if (childIsList) {
+                            const defaultValues = [];
+                            for (let i = 0; i++; i < bounds.lowerBound) {
+                                defaultValues.push(getFallbackDefaultValue(child.type));
+                            }
+                            defaultObject[child.name] = defaultValues;
+                        } else {
+                            if (bounds.lowerBound > 0) {
+                                defaultObject[child.name] = getFallbackDefaultValue(child.type);
+                            }
+                        }
+                    } else {
+                        defaultObject[child.name] = childIsList ? [] : {};
+                    }
+                }
+                return defaultObject;
             }
         }
     }

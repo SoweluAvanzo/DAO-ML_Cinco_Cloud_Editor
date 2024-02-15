@@ -17,10 +17,7 @@ import { ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import {
     Attribute,
     CustomType,
-    EdgeType,
     ElementType,
-    GraphType,
-    NodeType,
     ObjectPointer,
     PropertyChange,
     PropertyEditOperation,
@@ -167,7 +164,7 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
     protected locateObject(element: any, pointer: ObjectPointer): { object: any; objectTypeSpecification: CustomType | undefined } {
         let object: any = element;
         let objectDefinition: Attribute | undefined = undefined;
-        let objectTypeSpecification: CustomType | NodeType | EdgeType | GraphType | undefined = getSpecOf(element.type);
+        let objectTypeSpecification = getSpecOf(element.type);
         for (const step of pointer) {
             if (step.index !== undefined) {
                 if (ModelElement.is(object)) {
