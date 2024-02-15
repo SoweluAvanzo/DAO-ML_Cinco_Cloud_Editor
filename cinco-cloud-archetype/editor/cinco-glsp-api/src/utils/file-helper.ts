@@ -142,6 +142,7 @@ export function readJson(filePath: string, encoding?: string): object | undefine
             return JSON.parse(content);
             // Do something with the parsed data
         } catch (err) {
+            console.error('Error parsing json-file: '+filePath);
             console.error(err);
         }
     }
