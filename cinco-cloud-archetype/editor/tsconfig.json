@@ -5,7 +5,6 @@
   },
   "include": [
     "cinco-languages/src",
-    "cinco-authenticator/src",
     "cinco-branding/src",
     "cinco-glsp-common/src",
     "cinco-glsp-api/src",

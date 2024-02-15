@@ -36,7 +36,6 @@
   },
   "workspaces": [
     "cinco-languages",
-    "cinco-authenticator",
     "cinco-branding",
     "cinco-glsp-common",
     "cinco-glsp-api",
