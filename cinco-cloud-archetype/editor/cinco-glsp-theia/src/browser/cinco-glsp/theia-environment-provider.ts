@@ -180,7 +180,6 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
             action.modelType,
             action.modelElementId,
             action.attributeDefinitions,
-            action.customTypeDefinitions,
             action.values
         );
     }
