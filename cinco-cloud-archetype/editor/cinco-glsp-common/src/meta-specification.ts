@@ -633,7 +633,7 @@ export namespace CustomType {
     }
 }
 
-export interface Enum extends Type {
+export interface Enum extends CustomType {
     literals: string[];
 }
 
@@ -643,7 +643,7 @@ export namespace Enum {
     }
 }
 
-export interface UserDefinedType extends Type {
+export interface UserDefinedType extends CustomType {
     attributes: Attribute[];
 }
 
@@ -667,7 +667,7 @@ export function getCustomTypes(): CustomType[] {
 }
 
 export function getCustomType(elementTypeId: string): CustomType | undefined {
-    return getCustomTypes().filter(t => t.elementTypeId === elementTypeId)[0] ?? undefined;
+    return getCustomTypes().filter(t => t.elementTypeId === elementTypeId)[0];
 }
 
 export function getEnums(): Enum[] {
