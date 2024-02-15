@@ -48,12 +48,15 @@ export class MetaSpecificationLoader {
             this.watcher = fs.watch(
                 folderToWatch,
                 {
-                    recursive: true
+                    // TODO: recursive not possible on Linux until Node 20. But theia currently not Node 20 compatible.
+                    // Probable workaround would be a programatical approach, but we should wait for Theia Node 20.
+                    //
+                    // recursive: true
                 } as WatchOptions,
                 async (eventType, filename) => {
                     if (filename) {
                         const fileExtension = filename.slice(filename.indexOf('.'));
-                        if (META_FILE_TYPES.includes(fileExtension) && eventType === 'change') {
+                        if (META_FILE_TYPES.includes(fileExtension)) {
                             const changeTimes = this.eventAggregationMap.get(filename) ?? [];
                             const currentTime = Date.now();
                             if (this.eventAggregationMap.has(filename)) {
