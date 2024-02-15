@@ -24,6 +24,7 @@ import { DIAGRAM_TYPE, DEFAULT_WEBSOCKET_PATH, DEFAULT_SERVER_PORT, CincoGLSPCli
 import { getParameters } from './url-parameters';
 import * as uuid from 'uuid';
 
+const host = 'localhost';
 const port = DEFAULT_SERVER_PORT;
 const endpoint_id = DEFAULT_WEBSOCKET_PATH;
 const diagramType = DIAGRAM_TYPE;
@@ -36,7 +37,7 @@ const htmlContainerId = 'cinco-diagram';
 let glspClient: GLSPClient;
 let container: Container;
 
-const webSocketUrl = `ws://localhost:${port}/${endpoint_id}`;
+const webSocketUrl = `ws://${host}:${port}/${endpoint_id}`;
 const wsProvider = new GLSPWebSocketProvider(webSocketUrl);
 wsProvider.listen({ onConnection: initialize, onReconnect: reconnect, logger: console });
 
