@@ -14,13 +14,22 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { ServerArgs, ServerArgsRequest, ServerArgsResponse } from '@cinco-glsp/cinco-glsp-common';
-import { IActionDispatcher, IActionHandler } from '@eclipse-glsp/client';
-import { injectable } from 'inversify';
+import { IActionDispatcher, IActionHandler, TYPES } from '@eclipse-glsp/client';
+import { inject, injectable } from 'inversify';
 
 @injectable()
 export class ServerArgsProvider implements IActionHandler {
+    @inject(TYPES.IActionDispatcher)
+    protected actionDispatcher: IActionDispatcher;
     static _locks: ((serverArgs: ServerArgs) => void)[] = [];
     static _serverArgs: ServerArgs;
+    static singleton: ServerArgsProvider;
+
+    constructor() {
+        if(!ServerArgsProvider.singleton) {
+            ServerArgsProvider.singleton = this;
+        }
+    }
 
     handle(action: ServerArgsResponse): void {
         if (ServerArgsProvider._locks.length > 0) {
@@ -39,6 +48,9 @@ export class ServerArgsProvider implements IActionHandler {
         } else {
             return new Promise<ServerArgs>(resolve => {
                 ServerArgsProvider._locks.push(resolve);
+                if(this.singleton && this.singleton.actionDispatcher) {
+                    this.singleton.actionDispatcher.dispatch(ServerArgsRequest.create());
+                }
             });
         }
     }

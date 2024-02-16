@@ -101,6 +101,8 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                         .withImagePullPolicy(imagePullPolicy)
                         .withPorts(new ContainerPortBuilder()
                             .withContainerPort(3000)
+                            .withContainerPort(3003)
+                            .withContainerPort(5007)
                             .build())
                         .withVolumeMounts(new VolumeMountBuilder()
                             .withName("pv-data")
@@ -152,13 +154,30 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                                 .withValue(projectType == EditorType.LANGUAGE_EDITOR.name() ? "workspace/languages" : "cinco-glsp-server/languages")
                                 .build(),
                             new EnvVarBuilder()
-                                .withName("THEIA_WEBVIEW_EXTERNAL_ENDPOINT")
+                                .withName("THEIA_WEBVIEW_ENDPOINT_PATTERN")
                                 .withValue("{{hostname}}")
                                 .build(),
                             new EnvVarBuilder()
                                 .withName("THEIA_MINI_BROWSER_HOST_PATTERN")
                                 .withValue("{{hostname}}")
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("WEB_SERVER_PORT")
+                                .withValue("3003")
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("CINCO_GLSP")
+                                .withValue("5007")
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("WEBSOCKET_HOST_MAPPING")
+                                .withValue("workspaces/"+getProjectName()+"/ws")
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("WEBSERVER_HOST_MAPPING")
+                                .withValue("workspaces/"+getProjectName()+"/web")
                                 .build()
+                                
                         )
                         .build())
                     .withVolumes(new VolumeBuilder()

@@ -19,7 +19,10 @@ import {
     ServerArgs,
     DEFAULT_WEBSOCKET_PATH,
     DEFAULT_WEB_SERVER_PORT,
-    getFileExtension
+    getFileExtension,
+    WEBSERVER_HOST_MAPPING,
+    WEBSOCKET_HOST_MAPPING,
+    USE_SSL
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     DEFAULT_META_DEV_MODE,
@@ -48,7 +51,10 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
                 DEFAULT_WORKSPACE_FOLDER,
                 DEFAULT_SERVER_PORT,
                 DEFAULT_WEBSOCKET_PATH,
-                DEFAULT_WEB_SERVER_PORT
+                DEFAULT_WEB_SERVER_PORT,
+                process.env[USE_SSL] === 'true' ?? false,
+                process.env[WEBSERVER_HOST_MAPPING],
+                process.env[WEBSOCKET_HOST_MAPPING]
             );
         }
     }
@@ -83,7 +89,10 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
         workspacePath: string,
         port: number,
         websocketPath: string,
-        webServerPort: number
+        webServerPort: number,
+        useSSL: boolean,
+        webserverHostMapping?: string,
+        websocketHostMapping?: string
     ): void {
         const absoluteRootPath = path.resolve(rootFolder);
         GLSPServerUtilServerNode.SERVER_ARGS = {
@@ -93,8 +102,11 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
             workspacePath: workspacePath,
             port: port,
             websocketPath: websocketPath,
-            webServerPort: webServerPort
-        };
+            webServerPort: webServerPort,
+            useSSL: useSSL,
+            webserverHostMapping: webserverHostMapping,
+            websocketHostMapping: websocketHostMapping
+        } as ServerArgs;
     }
 
     getServerArgs(): ServerArgs {

@@ -26,6 +26,9 @@ export interface ServerArgs {
     port: number;
     websocketPath: string;
     webServerPort: number;
+    useSSL: boolean,
+    webServerHostMapping?: string;
+    websocketHostMapping?: string;
 }
 
 export namespace ServerArgs {
@@ -36,7 +39,10 @@ export namespace ServerArgs {
         workspacePath: string,
         port: number,
         websocketPath: string,
-        webServerPort: number
+        webServerPort: number,
+        useSSL: boolean,
+        webServerHostMapping?: string,
+        websocketHostMapping?: string
     ): ServerArgs {
         return {
             metaDevMode: metaDevMode,
@@ -45,7 +51,10 @@ export namespace ServerArgs {
             workspacePath: workspacePath,
             port: port,
             websocketPath: websocketPath,
-            webServerPort: webServerPort
+            webServerPort: webServerPort,
+            useSSL: useSSL,
+            webServerHostMapping: webServerHostMapping,
+            websocketHostMapping: websocketHostMapping
         };
     }
 }
