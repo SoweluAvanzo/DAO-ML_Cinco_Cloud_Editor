@@ -41,6 +41,8 @@ public class TheiaK8SIngress extends TheiaK8SResource<Ingress> {
   @Override
   protected Ingress build() {
     final var path = getPath().substring(0, getPath().length() - 1) + "(/|$)(.*)";
+    final var wsPath = getPath().substring(0, getPath().length() - 1) + "/ws" + "(/|$)(.*)";
+    final var resourcePath = getPath().substring(0, getPath().length() - 1) + "/web" + "(/|$)(.*)";
 
     return new IngressBuilder()
         .withNewMetadata()
@@ -55,7 +57,8 @@ public class TheiaK8SIngress extends TheiaK8SResource<Ingress> {
             .withRules(new IngressRuleBuilder()
                 .withHost(host)
                 .withHttp(new HTTPIngressRuleValueBuilder()
-                    .withPaths(new HTTPIngressPathBuilder()
+                    .withPaths(
+                        new HTTPIngressPathBuilder()
                         .withPath(path)
                         .withPathType("Prefix")
                         .withBackend(new IngressBackendBuilder()
@@ -64,6 +67,36 @@ public class TheiaK8SIngress extends TheiaK8SResource<Ingress> {
                                 .withPort(new ServiceBackendPortBuilder()
                                     .withNumber(
                                         service.getResource().getSpec().getPorts().get(0).getPort())
+                                    .build()
+                                )
+                                .build()
+                            )
+                            .build())
+                        .build(),
+                        new HTTPIngressPathBuilder()
+                        .withPath(wsPath)
+                        .withPathType("Prefix")
+                        .withBackend(new IngressBackendBuilder()
+                            .withService(new IngressServiceBackendBuilder()
+                                .withName(service.getResource().getMetadata().getName())
+                                .withPort(new ServiceBackendPortBuilder()
+                                    .withNumber(
+                                        service.getResource().getSpec().getPorts().get(1).getPort())
+                                    .build()
+                                )
+                                .build()
+                            )
+                            .build())
+                        .build(),
+                        new HTTPIngressPathBuilder()
+                        .withPath(resourcePath)
+                        .withPathType("Prefix")
+                        .withBackend(new IngressBackendBuilder()
+                            .withService(new IngressServiceBackendBuilder()
+                                .withName(service.getResource().getMetadata().getName())
+                                .withPort(new ServiceBackendPortBuilder()
+                                    .withNumber(
+                                        service.getResource().getSpec().getPorts().get(2).getPort())
                                     .build()
                                 )
                                 .build()

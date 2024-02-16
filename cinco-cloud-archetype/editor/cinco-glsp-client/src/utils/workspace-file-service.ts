@@ -194,8 +194,16 @@ export class WorkspaceFileService {
                 pathname = options.pathname;
             }
         }
-        return new URI(
-            `${options.protocol ?? 'http'}://${options.location ?? 'localhost:' + serverArgs.webServerPort}${pathname}${url_path}`
-        );
+        const hostname =
+            options.location ?? (window.location.hostname && window.location.hostname.length > 0 ? window.location.hostname : '0.0.0.0');
+        const host =
+            hostname +
+            (serverArgs.webServerHostMapping
+                ? '/' + serverArgs.webServerHostMapping
+                : serverArgs.webServerPort
+                  ? `:${serverArgs.webServerPort}`
+                  : '');
+        const protocol = (options.protocol ?? 'http') + (serverArgs.useSSL ? 's' : '');
+        return new URI(`${protocol}://${host}${pathname}${url_path}`);
     }
 }

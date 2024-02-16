@@ -29,7 +29,10 @@ import {
     getArgs,
     ServerArgs,
     WEB_SERVER_PORT_KEY,
-    DEFAULT_WEB_SERVER_PORT
+    DEFAULT_WEB_SERVER_PORT,
+    WEBSERVER_HOST_MAPPING,
+    WEBSOCKET_HOST_MAPPING,
+    USE_SSL
 } from '@cinco-glsp/cinco-glsp-common';
 import { injectable, inject, postConstruct } from 'inversify';
 import { GLSPServerUtilServerNode } from './glsp-server-util-server-node';
@@ -74,9 +77,26 @@ export class CincoGLSPServerArgsSetup {
         const metaDevMode = hasArg(META_DEV_MODE) ?? defaultMetaDevMode;
         const webServerPort = Number.parseInt(getArgs(WEB_SERVER_PORT_KEY) ?? `${defaultWebServerPort}`, 10);
 
-        // make accesible to frontend
-        glspServerArgsProvider.setServerArgs(metaDevMode, rootFolder, languagesFolder, workspaceFolder, port, websocketPath, webServerPort);
+        // only env
+        const webServerHostMapping = process.env[WEBSERVER_HOST_MAPPING];
+        const websocketHostMapping = process.env[WEBSOCKET_HOST_MAPPING];
+        const useSSL = process.env[USE_SSL] == 'true' ?? false;
 
-        return ServerArgs.create(metaDevMode, rootFolder, languagesFolder, workspaceFolder, port, websocketPath, webServerPort);
+        // make accesible to frontend
+        glspServerArgsProvider.setServerArgs(
+            metaDevMode, rootFolder,
+            languagesFolder, workspaceFolder,
+            port, websocketPath, webServerPort,
+            useSSL,
+            webServerHostMapping, websocketHostMapping
+        );
+
+        return ServerArgs.create(
+            metaDevMode, rootFolder,
+            languagesFolder, workspaceFolder,
+            port, websocketPath, webServerPort,
+            useSSL,
+            webServerHostMapping, websocketHostMapping
+        );
     }
 }
