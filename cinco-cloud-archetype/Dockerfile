@@ -38,7 +38,7 @@ ENV MINIO_HOST='minio-service'
 ENV MINIO_PORT=9000
 ENV MINIO_ACCESS_KEY=''
 ENV MINIO_SECRET_KEY=''
-ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT={{hostname}}
+ENV THEIA_WEBVIEW_ENDPOINT_PATTERN={{hostname}}
 ENV THEIA_MINI_BROWSER_HOST_PATTERN={{hostname}}
 ENV INTERNAL_USE_SSL="false"
 ENV EXTERNAL_USE_SSL="false"
@@ -75,7 +75,7 @@ RUN yarn
 
 # runtime configuration
 VOLUME /editor/workspace
-EXPOSE 3000  3003 5007 9222
+EXPOSE 3000 3003 5007 9222
 CMD cd minio-client && node bundle/cinco-minio-client --metaFolder ../cinco-glsp-server/languages && cd ../ && \
     cd /editor/browser-app && \
     CINCO_CLOUD_HOST="${CINCO_CLOUD_HOST}" \
@@ -84,7 +84,7 @@ CMD cd minio-client && node bundle/cinco-minio-client --metaFolder ../cinco-glsp
     MINIO_PORT="${MINIO_PORT}" \
     MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY}" \
     MINIO_SECRET_KEY="${MINIO_SECRET_KEY}" \
-    THEIA_WEBVIEW_EXTERNAL_ENDPOINT="${THEIA_WEBVIEW_EXTERNAL_ENDPOINT}" \
+    THEIA_WEBVIEW_ENDPOINT_PATTERN="${THEIA_WEBVIEW_ENDPOINT_PATTERN}" \
     THEIA_MINI_BROWSER_HOST_PATTERN="${THEIA_MINI_BROWSER_HOST_PATTERN}" \
     INTERNAL_USE_SSL="${INTERNAL_USE_SSL}" \
     EXTERNAL_USE_SSL="${EXTERNAL_USE_SSL}" \
