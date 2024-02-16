@@ -200,7 +200,7 @@
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
         "--app-project-path=${workspaceRoot}/",
-        "--META_LANGUAGES_FOLDER=workspace/languages",
+        "--META_LANGUAGES_FOLDER=workspace/languages"
       ],
       "skipFiles": [
         "<node_internals>/**"
