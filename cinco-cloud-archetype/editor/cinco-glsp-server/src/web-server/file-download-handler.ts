@@ -30,7 +30,7 @@ import {
 } from 'http-status-codes';
 import URI from '@theia/core/lib/common/uri';
 import { isEmpty } from '@theia/core/lib/common/objects';
-import { FileUri } from '@theia/core/lib/node/file-uri';
+import { FileUri } from '@theia/core/lib/common/file-uri';
 import { FileDownloadCache, DownloadStorageItem } from './file-download-cache';
 
 export interface FileDownloadData {

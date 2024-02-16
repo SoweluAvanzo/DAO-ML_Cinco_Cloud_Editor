@@ -41,7 +41,8 @@
     "@cinco-glsp/cinco-glsp-theia": "1.0.0"
   },
   "devDependencies": {
-    "@theia/cli": "~1.40.0"
+    "@theia/cli": "~1.40.0",
+    "@theia/native-webpack-plugin": "1.40.0"
   },
   "scripts": {
     "prepare": "yarn build",
