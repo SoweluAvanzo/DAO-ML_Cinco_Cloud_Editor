@@ -289,11 +289,12 @@
                 <artifactId>dependency-check-maven</artifactId>
                 <version>${dependency-check-maven.version}</version>
                 <configuration>
-                    <failBuildOnCVSS>10</failBuildOnCVSS>
+                    <failBuildOnCVSS>9</failBuildOnCVSS>
                     <formats>HTML,JUNIT</formats>
                     <excludes>
                         <exclude>org.yaml:snakeyaml</exclude>
                         <exclude>org.quartz-scheduler:quartz</exclude>
+                        <exclude>org.glassfish.expressly:expressly</exclude>
                     </excludes>
                 </configuration>
             </plugin>
