@@ -11,24 +11,24 @@
         <checkstyle.version>9.0</checkstyle.version>
         <commons.io.version>2.11.0</commons.io.version>
         <commons.lang-3.version>3.12.0</commons.lang-3.version>
-        <compiler-plugin.version>3.8.0</compiler-plugin.version>
+        <compiler-plugin.version>3.12.1</compiler-plugin.version>
         <dependency-check-maven.version>8.0.2</dependency-check-maven.version>
         <jackson-databind.version>2.14.2</jackson-databind.version>
         <jackson-jsog.version>1.1.2</jackson-jsog.version>
         <jsonassert.version>1.5.0</jsonassert.version>
         <json.version>20230618</json.version>
         <kubernetes-client.version>6.4.0</kubernetes-client.version>
-        <maven-checkstyle.version>3.1.2</maven-checkstyle.version>
+        <maven-checkstyle.version>3.3.1</maven-checkstyle.version>
         <minio.version>7.1.4</minio.version>
         <os-maven-plugin.version>1.6.1</os-maven-plugin.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus-plugin.version>3.6.9</quarkus-plugin.version>
+        <quarkus-plugin.version>3.7.3</quarkus-plugin.version>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>3.6.9</quarkus.platform.version>
-        <surefire-plugin.version>2.22.1</surefire-plugin.version>
+        <quarkus.platform.version>3.7.3</quarkus.platform.version>
+        <surefire-plugin.version>3.2.3</surefire-plugin.version>
         <smallrye-web-client>2.6.0</smallrye-web-client>
         <testcontainers.version>1.15.3</testcontainers.version>
         <maven.compiler.release>17</maven.compiler.release>
@@ -182,10 +182,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${compiler-plugin.version}</version>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
                     <!-- the parameters=true option is critical so that RESTEasy works fine -->
                     <parameters>true</parameters>
+                    <release>17</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -252,10 +251,10 @@
                 <artifactId>protobuf-maven-plugin</artifactId>
                 <version>${protobuf-maven-plugin.version}</version>
                 <configuration>
-                    <protocArtifact> com.google.protobuf:protoc:3.19.6:exe:${os.detected.classifier} </protocArtifact>
+                    <protocArtifact> com.google.protobuf:protoc:3.25.1:exe:${os.detected.classifier} </protocArtifact>
                     <pluginId>grpc-java</pluginId>
                     <pluginArtifact>
-                        io.grpc:protoc-gen-grpc-java:1.50.2:exe:${os.detected.classifier} </pluginArtifact>
+                        io.grpc:protoc-gen-grpc-java:1.61.1:exe:${os.detected.classifier} </pluginArtifact>
                     <protoSourceRoot>${basedir}/../../resources/proto</protoSourceRoot>
                     <clearOutputDirectory>true</clearOutputDirectory>
                     <protocPlugins>
