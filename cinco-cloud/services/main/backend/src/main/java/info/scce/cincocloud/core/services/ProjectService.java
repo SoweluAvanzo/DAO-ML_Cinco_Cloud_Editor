@@ -20,11 +20,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
-import javax.ws.rs.core.Response;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response;
 
 @ApplicationScoped
 @Transactional

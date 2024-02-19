@@ -2,7 +2,7 @@ package info.scce.cincocloud.k8s;
 
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.eclipse.microprofile.config.inject.ConfigProperty;

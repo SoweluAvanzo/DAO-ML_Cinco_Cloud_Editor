@@ -5,10 +5,10 @@ import info.scce.cincocloud.core.rest.tos.WorkspaceImageBuildJobTO;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.rest.ObjectCache;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 
 @ApplicationScoped
 @Transactional

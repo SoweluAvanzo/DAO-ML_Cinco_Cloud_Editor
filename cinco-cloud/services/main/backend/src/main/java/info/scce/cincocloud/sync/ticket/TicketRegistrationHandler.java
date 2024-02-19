@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * By: https://stackoverflow.com/questions/39692065/websocket-angular-2-and-json-web-token-authentication

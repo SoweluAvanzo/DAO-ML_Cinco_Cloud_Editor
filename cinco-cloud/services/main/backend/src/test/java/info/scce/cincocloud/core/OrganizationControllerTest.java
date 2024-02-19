@@ -6,7 +6,7 @@ import static io.restassured.RestAssured.given;
 import info.scce.cincocloud.AbstractCincoCloudTest;
 import info.scce.cincocloud.core.services.AuthService;
 import io.quarkus.test.junit.QuarkusTest;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

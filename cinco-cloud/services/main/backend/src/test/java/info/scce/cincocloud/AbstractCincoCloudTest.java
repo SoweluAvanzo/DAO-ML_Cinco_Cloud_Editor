@@ -13,8 +13,8 @@ import io.quarkus.test.common.QuarkusTestResource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Inject;
-import javax.transaction.Transactional;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 @QuarkusTestResource(PostgresResource.class)
 public abstract class AbstractCincoCloudTest {

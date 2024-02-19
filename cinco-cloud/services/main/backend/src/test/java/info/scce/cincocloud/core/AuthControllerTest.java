@@ -10,7 +10,7 @@ import info.scce.cincocloud.core.rest.tos.AuthResponseTO;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.exeptions.RestErrorResponse;
 import io.quarkus.test.junit.QuarkusTest;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

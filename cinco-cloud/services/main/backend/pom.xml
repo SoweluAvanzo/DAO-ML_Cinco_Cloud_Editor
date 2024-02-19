@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>info.scce.cincocloud</groupId>
     <artifactId>main-backend</artifactId>
@@ -25,12 +25,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus-plugin.version>2.16.12.Final</quarkus-plugin.version>
+        <quarkus-plugin.version>3.6.9</quarkus-plugin.version>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>2.16.12.Final</quarkus.platform.version>
+        <quarkus.platform.version>3.6.9</quarkus.platform.version>
         <surefire-plugin.version>2.22.1</surefire-plugin.version>
         <smallrye-web-client>2.6.0</smallrye-web-client>
         <testcontainers.version>1.15.3</testcontainers.version>
+        <maven.compiler.release>17</maven.compiler.release>
     </properties>
 
     <dependencyManagement>
@@ -218,8 +219,10 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${maven-checkstyle.version}</version>
                 <configuration>
-                    <configLocation>${basedir}/../../resources/checkstyle/checkstyle-google-checks.xml</configLocation>
-                    <suppressionsLocation>${basedir}/../../resources/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
+                    <configLocation>
+                        ${basedir}/../../resources/checkstyle/checkstyle-google-checks.xml</configLocation>
+                    <suppressionsLocation>
+                        ${basedir}/../../resources/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
@@ -251,7 +254,8 @@
                 <configuration>
                     <protocArtifact> com.google.protobuf:protoc:3.19.6:exe:${os.detected.classifier} </protocArtifact>
                     <pluginId>grpc-java</pluginId>
-                    <pluginArtifact> io.grpc:protoc-gen-grpc-java:1.50.2:exe:${os.detected.classifier} </pluginArtifact>
+                    <pluginArtifact>
+                        io.grpc:protoc-gen-grpc-java:1.50.2:exe:${os.detected.classifier} </pluginArtifact>
                     <protoSourceRoot>${basedir}/../../resources/proto</protoSourceRoot>
                     <clearOutputDirectory>true</clearOutputDirectory>
                     <protocPlugins>
@@ -293,6 +297,30 @@
                         <exclude>org.quartz-scheduler:quartz</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <!-- Workaround: grpc still generates javax, which is renamed to jakarta -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <replace
+                                    dir="${project.build.directory}/generated-sources/protobuf"
+                                    includes="**/*.java"
+                                    token="javax.annotation"
+                                    value="jakarta.annotation" />
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

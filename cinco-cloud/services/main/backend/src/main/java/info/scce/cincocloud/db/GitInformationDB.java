@@ -3,11 +3,11 @@ package info.scce.cincocloud.db;
 import info.scce.cincocloud.proto.CincoCloudProtos;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
 
 @Entity
 @NamedQuery(

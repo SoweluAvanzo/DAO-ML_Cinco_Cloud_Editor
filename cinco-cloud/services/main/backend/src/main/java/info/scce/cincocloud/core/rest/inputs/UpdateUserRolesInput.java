@@ -1,6 +1,6 @@
 package info.scce.cincocloud.core.rest.inputs;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class UpdateUserRolesInput {
 

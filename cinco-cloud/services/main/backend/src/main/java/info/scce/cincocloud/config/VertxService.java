@@ -1,8 +1,8 @@
 package info.scce.cincocloud.config;
 
 import io.vertx.mutiny.core.Vertx;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class VertxService {

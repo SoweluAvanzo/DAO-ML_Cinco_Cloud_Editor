@@ -1,6 +1,6 @@
 package info.scce.cincocloud.util;
 
-import javax.enterprise.inject.spi.CDI;
+import jakarta.enterprise.inject.spi.CDI;
 
 public class CDIUtils {
 

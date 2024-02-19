@@ -5,7 +5,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import javax.enterprise.context.RequestScoped;
+import jakarta.enterprise.context.RequestScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @RequestScoped

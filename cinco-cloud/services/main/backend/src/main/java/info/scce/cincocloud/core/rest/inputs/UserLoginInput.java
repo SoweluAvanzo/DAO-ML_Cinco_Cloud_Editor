@@ -1,6 +1,6 @@
 package info.scce.cincocloud.core.rest.inputs;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 public class UserLoginInput {
 

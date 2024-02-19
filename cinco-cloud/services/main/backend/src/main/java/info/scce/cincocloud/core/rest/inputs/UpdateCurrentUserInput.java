@@ -1,8 +1,8 @@
 package info.scce.cincocloud.core.rest.inputs;
 
 import info.scce.cincocloud.core.rest.tos.FileReferenceTO;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 
 public class UpdateCurrentUserInput {
 

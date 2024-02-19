@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.websocket.CloseReason;
-import javax.websocket.Session;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.Session;
 
 @Singleton
 public class ProjectRegistry extends WebSocketRegistry {

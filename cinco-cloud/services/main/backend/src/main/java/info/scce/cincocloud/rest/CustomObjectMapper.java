@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 public class CustomObjectMapper {
 

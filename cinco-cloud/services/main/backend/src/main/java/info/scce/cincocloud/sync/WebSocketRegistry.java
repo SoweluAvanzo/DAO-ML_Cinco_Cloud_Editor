@@ -3,8 +3,8 @@ package info.scce.cincocloud.sync;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.logging.Logger;
-import javax.websocket.CloseReason;
-import javax.websocket.Session;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.Session;
 import org.jboss.logmanager.Level;
 
 public abstract class WebSocketRegistry {

@@ -17,11 +17,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.SecurityContext;
 
 @ApplicationScoped
 @Transactional

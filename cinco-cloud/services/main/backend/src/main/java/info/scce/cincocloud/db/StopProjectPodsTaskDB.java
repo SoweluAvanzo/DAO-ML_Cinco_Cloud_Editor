@@ -2,8 +2,8 @@ package info.scce.cincocloud.db;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import java.time.Instant;
-import javax.persistence.Entity;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Entity;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class StopProjectPodsTaskDB extends PanacheEntity {

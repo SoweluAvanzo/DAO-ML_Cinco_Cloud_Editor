@@ -1,6 +1,6 @@
 package info.scce.cincocloud.config;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.Optional;

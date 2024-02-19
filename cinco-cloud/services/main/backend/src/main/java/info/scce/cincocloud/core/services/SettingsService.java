@@ -2,8 +2,8 @@ package info.scce.cincocloud.core.services;
 
 import info.scce.cincocloud.core.rest.tos.SettingsTO;
 import info.scce.cincocloud.db.SettingsDB;
-import javax.enterprise.context.ApplicationScoped;
-import javax.transaction.Transactional;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
 
 @ApplicationScoped
 @Transactional
