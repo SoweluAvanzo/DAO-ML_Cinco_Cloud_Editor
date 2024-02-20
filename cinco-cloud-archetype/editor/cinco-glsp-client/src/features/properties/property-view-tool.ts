@@ -15,10 +15,9 @@
  ********************************************************************************/
 import {
     PropertyEditAction,
-    PropertyViewAction,
+    PropertyViewRequestAction,
     PropertyViewMessage,
-    PropertyViewResponseAction,
-    PropertyViewUpdateCommand
+    PropertyViewResponseAction
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     Action,
@@ -33,36 +32,20 @@ import {
     MouseTool,
     IActionDispatcher
 } from '@eclipse-glsp/client';
-import { CommandService } from '@theia/core';
-import { inject, injectable, optional, postConstruct } from 'inversify';
+import { inject, injectable, postConstruct } from 'inversify';
+import { EnvironmentProvider, IEnvironmentProvider } from '../../api/environment-provider';
 
 @injectable()
 export class PropertyViewResponseActionHandler implements IActionHandler {
-    @inject(CommandService) @optional() commandService: CommandService;
+    @inject(EnvironmentProvider) environmentProvider: IEnvironmentProvider;
 
     handle(action: PropertyViewResponseAction): void | Action | ICommand {
-        if (this.commandService) {
-            PropertyViewResponseActionHandler.handleResponse(action, this.commandService);
-        }
-    }
-
-    static handleResponse(action: PropertyViewResponseAction, commandService: CommandService): void {
-        commandService.executeCommand(
-            PropertyViewUpdateCommand.id,
-            action.modelElementIndex,
-            action.modelType,
-            action.modelElementId,
-            action.attributeDefinitions,
-            action.values
-        );
+        this.environmentProvider.provideProperties(action);
     }
 }
 
 @injectable()
 export class PropertyViewTool implements Tool {
-    @inject(CommandService)
-    @optional()
-    protected readonly commandService: CommandService;
     @inject(TYPES.IActionDispatcher) protected actionDispatcher: GLSPActionDispatcher;
     @inject(MouseTool) protected mouseTool: MouseTool;
     static readonly ID = 'property-view-tool';
@@ -84,7 +67,7 @@ export class PropertyViewTool implements Tool {
     }
 
     protected createPropertyViewMouseListener(): MouseListener {
-        return new PropertyViewMouseListener(this.actionDispatcher, this.commandService);
+        return new PropertyViewMouseListener(this.actionDispatcher);
     }
 
     enable(): void {
@@ -108,13 +91,11 @@ export class PropertyViewTool implements Tool {
 @injectable()
 export class PropertyViewMouseListener extends MouseListener {
     protected readonly actionDispatcher: IActionDispatcher;
-    protected readonly commandService: CommandService;
     lastTarget: string;
 
-    constructor(actionDispatcher: IActionDispatcher, commandService: CommandService) {
+    constructor(actionDispatcher: IActionDispatcher) {
         super();
         this.actionDispatcher = actionDispatcher;
-        this.commandService = commandService;
     }
 
     override mouseUp(target: GModelElement, event: MouseEvent): (Action | Promise<Action>)[] {
@@ -123,17 +104,14 @@ export class PropertyViewMouseListener extends MouseListener {
         }
         if (target.id !== this.lastTarget) {
             this.lastTarget = target.id;
-            this.propagateProperties(this.lastTarget);
+            this.requestProperties(this.lastTarget);
             return [];
         }
         return [];
     }
 
-    async propagateProperties(selectedElementId: string): Promise<void> {
-        const propertyViewAction = PropertyViewAction.create(selectedElementId);
-        const response = await this.actionDispatcher.request(propertyViewAction);
-        if (this.commandService) {
-            PropertyViewResponseActionHandler.handleResponse(response, this.commandService);
-        }
+    async requestProperties(selectedElementId: string): Promise<void> {
+        const propertyViewAction = PropertyViewRequestAction.create(selectedElementId);
+        this.actionDispatcher.dispatch(propertyViewAction);
     }
 }

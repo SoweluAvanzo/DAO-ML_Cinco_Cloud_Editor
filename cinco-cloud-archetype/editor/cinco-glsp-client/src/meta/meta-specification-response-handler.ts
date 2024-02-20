@@ -13,14 +13,14 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { LANGUAGE_UPDATE_COMMAND, MetaSpecification, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
+import { MetaSpecification, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action, IActionHandler, ICommand } from '@eclipse-glsp/client';
-import { CommandService } from '@theia/core';
-import { injectable, inject, optional } from 'inversify';
+import { injectable, inject } from 'inversify';
+import { EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
 
 @injectable()
 export class MetaSpecificationResponseHandler implements IActionHandler {
-    @inject(CommandService) @optional() commandService?: CommandService;
+    @inject(EnvironmentProvider) environmentProvider: IEnvironmentProvider;
     protected static _registration_callbacks: Map<string, (() => void)[]> = new Map();
 
     static addRegistrationCallback(clientId: string, registrationCallback: () => void): void {
@@ -35,10 +35,10 @@ export class MetaSpecificationResponseHandler implements IActionHandler {
     }
 
     handle(action: MetaSpecificationResponseAction): void | Action | ICommand {
-        MetaSpecificationResponseHandler.handleResponse(action, this.commandService);
+        MetaSpecificationResponseHandler.handleResponse(action, this.environmentProvider);
     }
 
-    static handleResponse(action: MetaSpecificationResponseAction, commandService?: CommandService): void {
+    static handleResponse(action: MetaSpecificationResponseAction, environmentProvider: IEnvironmentProvider): void {
         const metaSpec = action.metaSpecification;
         MetaSpecification.clear();
         MetaSpecification.merge(metaSpec);
@@ -53,10 +53,6 @@ export class MetaSpecificationResponseHandler implements IActionHandler {
                 }
             }
         }
-        if (commandService) {
-            commandService.executeCommand(LANGUAGE_UPDATE_COMMAND.id, {
-                metaSpecification: MetaSpecification.get()
-            });
-        }
+        environmentProvider.propagateMetaspecification(MetaSpecification.get());
     }
 }

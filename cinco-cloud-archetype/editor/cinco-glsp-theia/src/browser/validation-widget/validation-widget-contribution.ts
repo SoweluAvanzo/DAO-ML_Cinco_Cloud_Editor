@@ -46,6 +46,7 @@ export class CincoCloudModelValidationWidgetContribution extends AbstractViewCon
     }
 }
 
+// TODO: Is this deprecated?
 export class CincoCloudProjectValidationWidgetContribution extends AbstractViewContribution<CincoCloudProjectValidationWidget> {
     override toggleCommand: Command = CincoCloudProjectValidationWidgetCommand;
 
@@ -77,11 +78,13 @@ export class CincoCloudProjectValidationWidgetContribution extends AbstractViewC
     }
 }
 
+export const ValidationRequestCommandID = 'validationRequestModel';
+
 @injectable()
 export class ValidationModelMenuContribution implements MenuContribution {
     registerMenus(menus: MenuModelRegistry): void {
         menus.registerMenuAction(CommonMenus.EDIT_FIND, {
-            commandId: 'validationRequestModel',
+            commandId: ValidationRequestCommandID,
             label: 'Validate Model'
         });
     }

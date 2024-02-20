@@ -55,10 +55,21 @@ import {
 import { FluentIterable } from 'sprotty/lib/utils/iterable';
 import { canContain } from '../utils/constraint-utils';
 
-export class CincoNode extends GNode {
+export interface CincoModelElement {
+    id: string;
+    spec?: ElementType;
+    type: string;
+}
+export namespace CincoModelElement {
+    export function is(object: any): object is CincoModelElement {
+        return object instanceof CincoEdge || object instanceof CincoNode || object instanceof CincoGraphModel;
+    }
+}
+
+export class CincoNode extends GNode implements CincoModelElement {
     [x: string]: any;
     override type: string;
-    protected spec?: ElementType;
+    spec?: ElementType;
     protected _view?: View; // runtime view
     protected _properties?: Record<string, any>;
 
@@ -189,10 +200,10 @@ export class CincoNode extends GNode {
     }
 }
 
-export class CincoEdge extends GEdge {
+export class CincoEdge extends GEdge implements CincoModelElement {
     [x: string]: any;
     override type: string;
-    protected spec?: ElementType;
+    spec?: ElementType;
     protected _bendPoints?: Point[];
     protected _movingBendPoint?: Point;
     protected _movingBendPointIndex?: number;
@@ -443,7 +454,7 @@ export class CincoEdge extends GEdge {
     }
 }
 
-export class CincoGraphModel extends GGraph {
+export class CincoGraphModel extends GGraph implements CincoModelElement {
     override isContainableElement(input: string | GModelElement | GModelElementSchema): boolean {
         const targetType = input instanceof GModelElement ? input.type : isGModelElementSchema(input) ? input.type : input;
         return canContain(this, targetType);

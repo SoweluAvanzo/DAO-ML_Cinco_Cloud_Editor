@@ -18,14 +18,11 @@ Indepth Documentation is under construction and will be found as part of our [we
 
 ## Related projects and Used Technologies
 
-[Theia][theia] - We are using Theia as a foundation for our editor.
-
 [Typescript][typescript] - Programming language.
 
 [GLSP][glsp] - Our graphical editor is based on the GLSP project.
 
 [//]: # "Source definitions"
-[theia]: https://github.com/eclipse-theia/theia "Theia"
 [typescript]: https://www.typescriptlang.org/ "Typescript"
 [glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
 

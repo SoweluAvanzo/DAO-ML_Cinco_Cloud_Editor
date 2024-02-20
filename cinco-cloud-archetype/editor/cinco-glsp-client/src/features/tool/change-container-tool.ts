@@ -43,7 +43,7 @@ import {
 } from '@eclipse-glsp/client';
 import { CursorCSS, applyCssClasses, cursorFeedbackAction } from '@eclipse-glsp/client/lib/base/feedback/css-feedback';
 import { Action, Bounds, ChangeContainerOperation, Point } from '@eclipse-glsp/protocol';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import {
     getCurrentMousePosition,
     getHierachyAwareRelativePosition,
@@ -51,12 +51,15 @@ import {
     getSelectedElements
 } from '../../utils/canvas-utils';
 import { isContainableByConstraints } from '../../utils/constraint-utils';
+import { EnvironmentProvider, IEnvironmentProvider } from '../../api/environment-provider';
 
 @injectable()
 export class ChangeContainerTool extends ChangeBoundsTool {
     static override ID = 'change-container-tool';
 
     private changeContainerListener: ChangeContainerAndBoundsListener;
+
+    @inject(EnvironmentProvider) protected readonly environmentProvider: IEnvironmentProvider;
 
     override get id(): string {
         return ChangeContainerTool.ID;
@@ -73,7 +76,9 @@ export class ChangeContainerTool extends ChangeBoundsTool {
 
     override disable(): void {
         this.mouseTool.deregister(this.changeContainerListener);
-        this.selectionService.onSelectionChanged(change => {});
+        this.selectionService.onSelectionChanged(change => {
+            this.environmentProvider.selectedElementsChanged(change.selectedElements);
+        });
         this.deregisterFeedback(this.changeContainerListener, [HideChangeBoundsToolResizeFeedbackAction.create()]);
     }
 

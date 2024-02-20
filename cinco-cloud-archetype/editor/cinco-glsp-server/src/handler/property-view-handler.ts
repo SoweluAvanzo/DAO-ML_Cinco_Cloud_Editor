@@ -17,7 +17,7 @@ import { GraphModelState, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import {
     LabeledModelElementReference,
     ModelElementIndex,
-    PropertyViewAction,
+    PropertyViewRequestAction,
     PropertyViewResponseAction,
     getModelElementSpecifications
 } from '@cinco-glsp/cinco-glsp-common';
@@ -35,9 +35,9 @@ export class PropertyViewHandler implements ActionHandler {
     @inject(GraphModelState)
     protected readonly modelState: GraphModelState;
 
-    actionKinds: string[] = [PropertyViewAction.KIND];
+    actionKinds: string[] = [PropertyViewRequestAction.KIND];
 
-    execute(action: PropertyViewAction, ...args: unknown[]): MaybePromise<Action[]> {
+    execute(action: PropertyViewRequestAction, ...args: unknown[]): MaybePromise<Action[]> {
         const element = this.modelState.index.findModelElement(action.modelElementId) as ModelElement;
         if (!element) {
             // element is not part of this graphmodel (maybe another)

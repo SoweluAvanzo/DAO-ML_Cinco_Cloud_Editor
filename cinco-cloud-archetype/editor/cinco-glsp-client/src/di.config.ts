@@ -15,12 +15,10 @@
  ********************************************************************************/
 import {
     FileProviderResponse,
-    GeneratorResponseAction,
     MetaSpecificationResponseAction,
     PropertyViewResponseAction,
     ServerArgsResponse,
-    TypedServerMessageAction,
-    ValidationModelResponseAction
+    TypedServerMessageAction
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     ApplyTypeHintsCommand,
@@ -38,7 +36,9 @@ import {
     configureCommand,
     configureDefaultModelElements,
     initializeDiagramContainer,
-    ContainerConfiguration
+    ContainerConfiguration,
+    bindOrRebind,
+    SetContextActions
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -50,20 +50,20 @@ import { DirtyStateHandler } from './features/action-handler/dirty-state-handler
 import { DoubleClickTool } from './features/tool/doubleclick-tool';
 import { CincoToolPalette } from './glsp/cinco-tool-palette';
 import { ApplyAppearanceUpdateCommand } from './features/gui/frontend-appearance-update-handler';
-import { GeneratorResponseActionHandler, GeneratorTool } from './features/generator/generator-tool';
 import { PropertyViewResponseActionHandler, PropertyViewTool } from './features/properties/property-view-tool';
 import { RoutingPointAwareEdgeEditTool } from './features/tool/routingpoint-aware-edge-edit-tool';
 import { ServerMessageHandler } from './features/action-handler/server-message-handler';
-import { ValidationModelResponseActionHandler, ValidationTool } from './features/validation/validation-tool';
 import { MetaSpecificationResponseHandler } from './meta/meta-specification-response-handler';
 import { WorkspaceFileService } from './utils/workspace-file-service';
 import { GraphModelProvider } from './model/graph-model-provider';
-import { MetaSpecificationTheiaCommand } from './meta/meta-specification-theia-command';
 import { ServerArgsProvider } from './meta/server-args-response-handler';
 import { FileProviderHandler } from './features/action-handler/file-provider-handler';
 import { CinoPreparationsStartUp } from './glsp/cinco-preparations-startup';
 import { RestoreViewportHandler } from '@eclipse-glsp/client/lib/features/viewport/viewport-handler';
 import { CincoRestoreViewportHandler } from './glsp/cinco-viewport-handler';
+import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette';
+import { EnvironmentProvider } from './api/environment-provider';
+import { CincoToolPaletteUpdateHandler } from './glsp/cinco-tool-palette-update-handler';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -125,8 +125,14 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureCommand(context, ApplyConstrainedTypeHintsCommand);
 
     // bind custom palette
-    bind(CincoToolPalette).toSelf().inSingletonScope();
-    rebind(ToolPalette).to(CincoToolPalette).inSingletonScope();
+    if (context.isBound(ToolPalette)) {
+        unbind(ToolPalette);
+    }
+    if (context.isBound(KeyboardToolPalette)) {
+        unbind(KeyboardToolPalette);
+    }
+    bindOrRebind(context, ToolPalette).to(CincoToolPalette).inSingletonScope();
+    configureActionHandler(context, SetContextActions.KIND, CincoToolPaletteUpdateHandler);
 
     // bind FrontendAppearanceProviderHandling
     configureCommand(context, ApplyAppearanceUpdateCommand);
@@ -134,19 +140,6 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     // bind the propertyViewTool, that will fire the PropertyViewActions to the backend and the handler processing the responses
     bind(TYPES.IDefaultTool).to(PropertyViewTool);
     configureActionHandler(context, PropertyViewResponseAction.KIND, PropertyViewResponseActionHandler);
-
-    // bind the generatorTool, that will fire the GeneratorActions to the backend and the handler processing the responses
-    bind(TYPES.IDefaultTool).to(GeneratorTool);
-    bind(GeneratorTool).toSelf().inSingletonScope();
-    configureActionHandler(context, GeneratorResponseAction.KIND, GeneratorResponseActionHandler);
-
-    // bind the validation tool, that will fire ValidationRequestActions to the backend
-    bind(TYPES.IDefaultTool).to(ValidationTool);
-    bind(ValidationTool).toSelf().inSingletonScope();
-    configureActionHandler(context, ValidationModelResponseAction.KIND, ValidationModelResponseActionHandler);
-
-    // bind tool, that registers a theia-command to fetch the meta-specification
-    bind(TYPES.IDefaultTool).to(MetaSpecificationTheiaCommand);
 
     // GLSPToolManager
     rebind(TYPES.IToolManager).to(CincoToolManager).inSingletonScope();
@@ -160,4 +153,6 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
 
     configureDefaultModelElements(context);
+
+    bind(TYPES.IDiagramStartup).toService(EnvironmentProvider);
 });

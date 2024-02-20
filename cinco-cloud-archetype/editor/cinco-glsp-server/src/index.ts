@@ -27,6 +27,5 @@ function loadMetaFiles(): void {
     MetaSpecificationLoader.load(META_FILE_TYPES);
     MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
 }
-
 loadMetaFiles();
 launch(process.argv).catch((error: any): void => console.error('Error in cinco server launcher:', error));

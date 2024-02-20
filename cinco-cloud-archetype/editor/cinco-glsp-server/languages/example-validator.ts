@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { LanguageFilesRegistry, ValidationHandler } from '@cinco-glsp/cinco-glsp-api';
-import { Action, ValidationModelAnswerAction, ValidationRequestAction, ValidationStatus } from '@cinco-glsp/cinco-glsp-common';
+import { Action, ValidationResponseAction, ValidationRequestAction, ValidationStatus } from '@cinco-glsp/cinco-glsp-common';
 
 /**
  * Language Designer defined example of a Validator
@@ -25,13 +25,16 @@ export class ExampleValidator extends ValidationHandler {
     override execute(action: ValidationRequestAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // next actions
         return [
-            ValidationModelAnswerAction.create([
-                {
-                    name: 'Test message',
-                    message: 'This is a test message',
-                    status: ValidationStatus.Info
-                }
-            ])
+            ValidationResponseAction.create(
+                [
+                    {
+                        name: 'Test message',
+                        message: 'This is a test message',
+                        status: ValidationStatus.Info
+                    }
+                ],
+                action.requestId
+            )
         ];
     }
 

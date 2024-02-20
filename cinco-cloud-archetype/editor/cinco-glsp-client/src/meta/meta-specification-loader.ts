@@ -14,17 +14,18 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { CommandService } from '@theia/core';
-import { MetaSpecificationRequestAction } from '@cinco-glsp/cinco-glsp-common';
+import { CompositionSpecification, MetaSpecification, MetaSpecificationRequestAction } from '@cinco-glsp/cinco-glsp-common';
 import { GLSPActionDispatcher, IActionDispatcher } from '@eclipse-glsp/client';
 import { MetaSpecificationResponseHandler } from './meta-specification-response-handler';
+import { IEnvironmentProvider } from '../api/environment-provider';
 
 export class MetaSpecificationLoader {
-    static async load(actionDispatcher: IActionDispatcher, commandService?: CommandService): Promise<void> {
+    static async load(actionDispatcher: IActionDispatcher, environmentProvider: IEnvironmentProvider): Promise<CompositionSpecification> {
         if (!(actionDispatcher instanceof GLSPActionDispatcher)) {
             throw Error('ActionDispatcher is not a GLSPActionDispatcher. The API must have been changed, please review!');
         }
         const response = await actionDispatcher.request(MetaSpecificationRequestAction.create());
-        MetaSpecificationResponseHandler.handleResponse(response, commandService);
+        MetaSpecificationResponseHandler.handleResponse(response, environmentProvider);
+        return MetaSpecification.get();
     }
 }

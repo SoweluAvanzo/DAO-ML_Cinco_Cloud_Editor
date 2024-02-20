@@ -15,8 +15,7 @@
  ********************************************************************************/
 import { ContainerShape, Image, NodeStyle, Polyline } from '@cinco-glsp/cinco-glsp-common';
 import { Hoverable, IViewArgs, RenderingContext, GNode, GPort, GShapeElement, Selectable, ShapeView, svg } from '@eclipse-glsp/client';
-import { CommandService } from '@theia/core';
-import { inject, injectable, optional } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { VNode } from 'snabbdom';
 import { CincoEdge, CincoNode } from '../../model/model';
 import { WorkspaceFileService } from '../../utils/workspace-file-service';
@@ -27,7 +26,6 @@ const JSX = { createElement: svg };
 @injectable()
 export class CincoNodeView extends ShapeView {
     @inject(WorkspaceFileService) workspaceFileService: WorkspaceFileService;
-    @inject(CommandService) @optional() commandService: CommandService;
     ITEM_COUNTER = -1;
     USE_MARGIN_FIX = true;
 

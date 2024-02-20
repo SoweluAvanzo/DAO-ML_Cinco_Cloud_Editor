@@ -27,7 +27,12 @@ import {
     WEBSOCKET_PATH_KEY,
     hasArg,
     getArgs,
-    ServerArgs
+    ServerArgs,
+    WEB_SERVER_PORT_KEY,
+    DEFAULT_WEB_SERVER_PORT,
+    WEBSERVER_HOST_MAPPING,
+    WEBSOCKET_HOST_MAPPING,
+    USE_SSL
 } from '@cinco-glsp/cinco-glsp-common';
 import { injectable, inject, postConstruct } from 'inversify';
 import { GLSPServerUtilServerNode } from './glsp-server-util-server-node';
@@ -61,6 +66,7 @@ export class CincoGLSPServerArgsSetup {
         const defaultMetaLanguagesFolder = process.env[LANGUAGES_FOLDER_KEY] ?? DEFAULT_META_LANGUAGES_FOLDER;
         const defaultWorkspaceFolder = process.env[WORKSPACE_FOLDER_KEY] ?? DEFAULT_WORKSPACE_FOLDER;
         const defaultRootFolder = process.env[ROOT_FOLDER_KEY] ?? DEFAULT_ROOT_FOLDER;
+        const defaultWebServerPort = Number.parseInt(process.env[WEB_SERVER_PORT_KEY] ?? `${DEFAULT_WEB_SERVER_PORT}`, 10);
 
         // set values by precedence
         const port = getPort(PORT_KEY, defaultPort);
@@ -69,10 +75,28 @@ export class CincoGLSPServerArgsSetup {
         const workspaceFolder = getArgs(WORKSPACE_FOLDER_KEY) ?? defaultWorkspaceFolder;
         const rootFolder = getArgs(ROOT_FOLDER_KEY) ?? defaultRootFolder;
         const metaDevMode = hasArg(META_DEV_MODE) ?? defaultMetaDevMode;
+        const webServerPort = Number.parseInt(getArgs(WEB_SERVER_PORT_KEY) ?? `${defaultWebServerPort}`, 10);
+
+        // only env
+        const webServerHostMapping = process.env[WEBSERVER_HOST_MAPPING];
+        const websocketHostMapping = process.env[WEBSOCKET_HOST_MAPPING];
+        const useSSL = process.env[USE_SSL] == 'true' ?? false;
 
         // make accesible to frontend
-        glspServerArgsProvider.setServerArgs(metaDevMode, rootFolder, languagesFolder, workspaceFolder, port, websocketPath);
+        glspServerArgsProvider.setServerArgs(
+            metaDevMode, rootFolder,
+            languagesFolder, workspaceFolder,
+            port, websocketPath, webServerPort,
+            useSSL,
+            webServerHostMapping, websocketHostMapping
+        );
 
-        return ServerArgs.create(metaDevMode, rootFolder, languagesFolder, workspaceFolder, port, websocketPath);
+        return ServerArgs.create(
+            metaDevMode, rootFolder,
+            languagesFolder, workspaceFolder,
+            port, websocketPath, webServerPort,
+            useSSL,
+            webServerHostMapping, websocketHostMapping
+        );
     }
 }

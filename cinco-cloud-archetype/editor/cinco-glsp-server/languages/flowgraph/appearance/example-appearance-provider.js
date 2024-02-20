@@ -129,4 +129,3 @@ class ExampleAppearanceProvider extends cinco_glsp_api_1.AppearanceProvider {
 exports.ExampleAppearanceProvider = ExampleAppearanceProvider;
 // register into app
 cinco_glsp_api_1.LanguageFilesRegistry.register(ExampleAppearanceProvider);
-//# sourceMappingURL=example-appearance-provider.js.map
