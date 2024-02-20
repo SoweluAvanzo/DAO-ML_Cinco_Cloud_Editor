@@ -77,7 +77,7 @@ RUN yarn
 
 # runtime configuration
 VOLUME /editor/workspace
-EXPOSE 3000 8000
+EXPOSE 3000 8000 9000
 CMD cd minio-client && node bundle/cinco-minio-client --metaFolder ../cinco-glsp-server/languages && cd ../ && \
     cd /editor/browser-app && \
     DATABASE_URL="${DATABASE_URL}" \
