@@ -14,27 +14,24 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { ALLOWED_IMAGE_FILE_TYPES, DEFAULT_THEIA_PORT, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
-import { CommandService } from '@theia/core';
+import { ALLOWED_IMAGE_FILE_TYPES, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
 import URI from '@theia/core/lib/common/uri';
 import { inject, injectable, optional } from 'inversify';
 import * as path from 'path';
 import { ServerArgsProvider } from '../meta/server-args-response-handler';
 import { IActionDispatcher, TYPES } from '@eclipse-glsp/client';
 import { FileProviderHandler } from '../features/action-handler/file-provider-handler';
+import { EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
 
-/**
- * THEIA-related
- */
 @injectable()
 export class WorkspaceFileService {
-    @inject(CommandService) @optional() commandService: CommandService;
+    @inject(EnvironmentProvider) @optional() environmentProvider: IEnvironmentProvider;
     @inject(TYPES.IActionDispatcher) @optional() actionDispatcher: IActionDispatcher;
     @inject(ServerArgsProvider) @optional() ServerArgsProvider: ServerArgsProvider;
     protected static BLACKLIST = ['http://', 'https://'];
 
     async serveFile(filePath: string): Promise<string | undefined> {
-        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
+        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0) {
             return filePath;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
@@ -43,26 +40,9 @@ export class WorkspaceFileService {
         if (result) {
             return result;
         } else {
-            if (this.commandService) {
-                // workspace when in theia
-                return this.serveFileIn(filePath);
-            } else {
-                // workspace in standalone
-                const relativeWorkspacePath = (serverArgs?.workspacePath ?? '') + '/' + filePath;
-                return this.serveFileInRoot(serverArgs.rootFolder, relativeWorkspacePath);
-            }
+            const relativeWorkspacePath = (serverArgs?.workspacePath ?? '') + '/' + filePath;
+            return this.serveFileInRoot(serverArgs.rootFolder, relativeWorkspacePath);
         }
-    }
-
-    protected async serveFileIn(relativePath: string): Promise<string | undefined> {
-        const roots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
-        for (const root of roots) {
-            const result = this.serveFileInRoot(root.path.fsPath(), relativePath);
-            if (result) {
-                return result;
-            }
-        }
-        return undefined;
     }
 
     async serveFileInRoot(root: string, relativePath: string): Promise<string | undefined> {
@@ -70,7 +50,7 @@ export class WorkspaceFileService {
         const result = await new Promise<{ response: Response; jsonResponse: any }>(async resolve => {
             const absolutePath = path.join(root, relativePath);
             try {
-                const request = this.request([new URI(absolutePath)]);
+                const request = await this.request([new URI(absolutePath)]);
                 const resp = await fetch(request);
                 const jsonResp = await resp.json();
                 resolve({ response: resp, jsonResponse: jsonResp });
@@ -80,7 +60,7 @@ export class WorkspaceFileService {
         });
         const { response, jsonResponse } = result;
         if (response.status === 200) {
-            return `${this.endpoint()}/download/?id=${jsonResponse.id}`;
+            return `${await this.endpoint()}/download/?id=${jsonResponse.id}`;
         }
         return undefined;
     }
@@ -100,7 +80,7 @@ export class WorkspaceFileService {
     }
 
     async servedExists(filePath: string, actionDispatcher: IActionDispatcher): Promise<boolean> {
-        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
+        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0) {
             return true;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
@@ -110,14 +90,8 @@ export class WorkspaceFileService {
         } else {
             exists = await this.fileExists(serverArgs?.languagePath, filePath, actionDispatcher);
             if (!exists) {
-                if (this.commandService) {
-                    const theiaRoots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
-                    for (const theiaRoot of theiaRoots) {
-                        return this.fileExists(theiaRoot.path.fsPath(), filePath, actionDispatcher);
-                    }
-                } else {
-                    return this.fileExists(serverArgs?.workspacePath, filePath, actionDispatcher);
-                }
+                const workspacePath: string = await this.environmentProvider.getWorkspaceRoot();
+                return this.fileExists(serverArgs?.workspacePath ?? workspacePath, filePath, actionDispatcher);
             }
             return true;
         }
@@ -125,7 +99,7 @@ export class WorkspaceFileService {
     }
 
     async servedExistsIn(filePath: string, actionDispatcher: IActionDispatcher): Promise<string | undefined> {
-        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
+        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0) {
             return filePath;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
@@ -137,19 +111,10 @@ export class WorkspaceFileService {
             if (exists) {
                 return exists ? path.join(serverArgs?.languagePath, filePath) : undefined;
             } else {
-                if (this.commandService) {
-                    const theiaRoots: URI[] = (await this.commandService.executeCommand('workspaceRootProviderHandler')) ?? [];
-                    for (const theiaRoot of theiaRoots) {
-                        if (await this.fileExists(theiaRoot.path.fsPath(), filePath, actionDispatcher)) {
-                            return path.join(theiaRoot.path.fsPath(), filePath);
-                        }
-                    }
-                    return undefined;
-                } else {
-                    return (await this.fileExists(serverArgs?.workspacePath, filePath, actionDispatcher))
-                        ? path.join(serverArgs.workspacePath, filePath)
-                        : undefined;
-                }
+                const workspacePath: string = await this.environmentProvider.getWorkspaceRoot();
+                return (await this.fileExists(serverArgs?.workspacePath ?? workspacePath, filePath, actionDispatcher))
+                    ? path.join(serverArgs.workspacePath, filePath)
+                    : undefined;
             }
         }
     }
@@ -164,8 +129,8 @@ export class WorkspaceFileService {
         return response.filter(f => f.path === filePath).length > 0;
     }
 
-    protected request(uris: URI[]): Request {
-        const url = this.toTheiaURL(uris);
+    protected async request(uris: URI[]): Promise<Request> {
+        const url = await this.toFileUrl(uris);
         const init = this.requestInit(uris);
         return new Request(url, init);
     }
@@ -190,8 +155,8 @@ export class WorkspaceFileService {
         };
     }
 
-    protected toTheiaURL(uris: URI[]): string {
-        const endpoint = this.endpoint();
+    protected async toFileUrl(uris: URI[]): Promise<string> {
+        const endpoint = await this.endpoint();
         if (uris.length === 1) {
             // tslint:disable-next-line:whitespace
             const [uri] = uris;
@@ -200,16 +165,17 @@ export class WorkspaceFileService {
         return endpoint;
     }
 
-    protected endpoint(): string {
-        const url = this.filesUrl();
+    protected async endpoint(): Promise<string> {
+        const url = await this.filesUrl();
         return url.endsWith('/') ? url.slice(0, -1) : url;
     }
 
-    protected filesUrl(): string {
-        return this.getRestUrl({ path: 'files' }).toString();
+    protected async filesUrl(): Promise<string> {
+        return (await this.getRestUrl({ path: 'files' })).toString();
     }
 
-    protected getRestUrl(options: { protocol?: string; location?: string; pathname?: string; path?: string }): URI {
+    protected async getRestUrl(options: { protocol?: string; location?: string; pathname?: string; path?: string }): Promise<URI> {
+        const serverArgs = await ServerArgsProvider.getServerArgs();
         let url_path = '';
         if (options.path) {
             if (options.path.startsWith('/')) {
@@ -228,6 +194,16 @@ export class WorkspaceFileService {
                 pathname = options.pathname;
             }
         }
-        return new URI(`${options.protocol ?? 'http'}://${options.location ?? 'localhost:' + DEFAULT_THEIA_PORT}${pathname}${url_path}`);
+        const hostname =
+            options.location ?? (window.location.hostname && window.location.hostname.length > 0 ? window.location.hostname : '0.0.0.0');
+        const host =
+            hostname +
+            (serverArgs.webServerHostMapping
+                ? '/' + serverArgs.webServerHostMapping
+                : serverArgs.webServerPort
+                  ? `:${serverArgs.webServerPort}`
+                  : '');
+        const protocol = (options.protocol ?? 'http') + (serverArgs.useSSL ? 's' : '');
+        return new URI(`${protocol}://${host}${pathname}${url_path}`);
     }
 }

@@ -108,7 +108,7 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.projectApi.deploy(this.project, this.redeploy).subscribe({
       next: deployment => {
         this.deployment = deployment;
-        const url = environment.baseUrl + deployment.url + '?jwt=' + this.authApi.getToken() + '&projectId=' + this.project.id;
+        const url = environment.baseUrl + deployment.url + '?jwt=' + this.authApi.getToken() + '&projectId=' + this.project.id + '#/editor/workspace';
         this.editorUrl = this.domSanitizer.bypassSecurityTrustResourceUrl(url);
         this.waitForTheiaToBeReady();
       },

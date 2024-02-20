@@ -1,72 +1,75 @@
-apiVersion: skaffold/v2beta28
+apiVersion: skaffold/v2beta29
 kind: Config
 metadata:
   name: cinco-cloud
-deploy:
-  helm:
-    hooks:
-      before:
-        - host:
-            command: [ "sh", "-c",
-                       "helm repo add postgresql https://charts.bitnami.com/bitnami 
-                       & helm repo add minio https://charts.bitnami.com/bitnami
-                       & helm repo add mailhog https://codecentric.github.io/helm-charts" ]
-            os: [ darwin, linux ]
-        - host:
-            command: [ "cmd.exe", "/C",
-                       "helm repo add postgresql https://charts.bitnami.com/bitnami 
-                       & helm repo add minio https://charts.bitnami.com/bitnami
-                       & helm repo add mailhog https://codecentric.github.io/helm-charts" ]
-            os: [ windows ]
-    releases:
-      - name: release
-        artifactOverrides:
-          mainImage: registry.gitlab.com/scce/cinco-cloud/main
-          archetypeImage: registry.gitlab.com/scce/cinco-cloud/archetype
-        chartPath: ./infrastructure/helm
-        valuesFiles:
-          - ./infrastructure/helm/values.yaml
-
 build:
+  artifacts:
+  - image: registry.gitlab.com/scce/cinco-cloud/main
+    context: ./cinco-cloud/services
+    sync:
+      infer:
+      - '**/*.{ts,html,scss,css,png,jpg,jpeg,java}'
+    docker:
+      dockerfile: ./main/Dockerfile
+  - image: registry.gitlab.com/scce/cinco-cloud/archetype
+    context: .
+    docker:
+      dockerfile: ./cinco-cloud-archetype/Dockerfile
   tagPolicy:
     customTemplate:
-      template: "local"
+      template: local
   local:
     useBuildkit: true
-  artifacts:
-    - image: registry.gitlab.com/scce/cinco-cloud/main
-      context: ./cinco-cloud/services
-      docker:
-        dockerfile: ./main/Dockerfile
-      sync:
-        infer:
-          - '**/*.{ts,html,scss,css,png,jpg,jpeg,java}'
-    - image: registry.gitlab.com/scce/cinco-cloud/archetype
-      context: .
-      docker:
-        dockerfile: ./cinco-cloud-archetype/Dockerfile
-
+deploy:
+  helm:
+    releases:
+    - name: release
+      chartPath: ./infrastructure/helm
+      valuesFiles:
+      - ./infrastructure/helm/values.yaml
+      artifactOverrides:
+        archetypeImage: registry.gitlab.com/scce/cinco-cloud/archetype
+        mainImage: registry.gitlab.com/scce/cinco-cloud/main
+    hooks:
+      before:
+      - host:
+          command:
+          - sh
+          - -c
+          - helm repo add postgresql https://charts.bitnami.com/bitnami & helm repo
+            add minio https://charts.bitnami.com/bitnami & helm repo add mailhog https://codecentric.github.io/helm-charts
+          os:
+          - darwin
+          - linux
+      - host:
+          command:
+          - cmd.exe
+          - /C
+          - helm repo add postgresql https://charts.bitnami.com/bitnami & helm repo
+            add minio https://charts.bitnami.com/bitnami & helm repo add mailhog https://codecentric.github.io/helm-charts
+          os:
+          - windows
 profiles:
-  - name: local-dev
-    patches:
-      - op: replace
-        path: /build/artifacts/0/docker/dockerfile
-        value: ./main/dev.Dockerfile
-      - op: add
-        path: /deploy/helm/releases/0/valuesFiles/1
-        value: ./infrastructure/helm/values-local-dev.yaml
-  - name: local-prod
-    patches:
-      - op: add
-        path: /deploy/helm/releases/0/valuesFiles/1
-        value: ./infrastructure/helm/values-local-prod.yaml
-  - name: demo-k8s-ls5
-    patches:
-      - op: add
-        path: /deploy/helm/releases/0/valuesFiles/1
-        value: ./infrastructure/helm/values-demo-k8s-ls5.yaml
-  - name: temp
-    patches:
-      - op: add
-        path: /deploy/helm/releases/0/valuesFiles/1
-        value: ./infrastructure/helm/values-temp.yaml
+- name: local-dev
+  patches:
+  - op: replace
+    path: /build/artifacts/0/docker/dockerfile
+    value: ./main/dev.Dockerfile
+  - op: add
+    path: /deploy/helm/releases/0/valuesFiles/1
+    value: ./infrastructure/helm/values-local-dev.yaml
+- name: local-prod
+  patches:
+  - op: add
+    path: /deploy/helm/releases/0/valuesFiles/1
+    value: ./infrastructure/helm/values-local-prod.yaml
+- name: demo-k8s-ls5
+  patches:
+  - op: add
+    path: /deploy/helm/releases/0/valuesFiles/1
+    value: ./infrastructure/helm/values-demo-k8s-ls5.yaml
+- name: temp
+  patches:
+  - op: add
+    path: /deploy/helm/releases/0/valuesFiles/1
+    value: ./infrastructure/helm/values-temp.yaml

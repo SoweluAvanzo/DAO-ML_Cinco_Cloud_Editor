@@ -18,6 +18,4 @@ import { DefaultGLSPServer } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 
 @injectable()
-export class CincoGLSPServer extends DefaultGLSPServer {
-
-}
+export class CincoGLSPServer extends DefaultGLSPServer {}

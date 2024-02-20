@@ -18,8 +18,9 @@ import { createAppModule, ServerModule, SocketServerLauncher } from '@eclipse-gl
 import { Container } from 'inversify';
 import { CincoDiagramModule } from './diagram/cinco-diagram-module';
 import { CincoWebSocketServerLauncher } from './cinco-glsp-websocket-server-launcher';
-import { DEFAULT_WEBSOCKET_PATH } from '@cinco-glsp/cinco-glsp-common';
+import { DEFAULT_WEB_SERVER_PORT, DEFAULT_WEBSOCKET_PATH } from '@cinco-glsp/cinco-glsp-common';
 import { createCincoCliParser } from './cinco-cli-parser';
+import { startWebServer } from './web-server/cinco-web-server';
 
 export async function launch(argv?: string[]): Promise<void> {
     const argParser = createCincoCliParser();
@@ -29,6 +30,12 @@ export async function launch(argv?: string[]): Promise<void> {
     appContainer.load(createAppModule(options));
 
     const serverModule = new ServerModule().configureDiagramModule(new CincoDiagramModule());
+
+    // check if webServer should be started
+    const webServerPort = Number.parseInt(`${options.webServerPort ?? DEFAULT_WEB_SERVER_PORT}`, 10);
+    console.log('Starting WebServer at port: ' + webServerPort);
+    startWebServer(webServerPort);
+
     if (options.webSocket) {
         const launcher = appContainer.resolve(CincoWebSocketServerLauncher);
         launcher.configure(serverModule);

@@ -82,7 +82,7 @@ cache:
 
 .cinco-cloud-deploy-job:
   image:
-    name: gcr.io/k8s-skaffold/skaffold:v1.27.0
+    name: gcr.io/k8s-skaffold/skaffold:v1.39.0
   script:
     - kubectl config use-context scce/cinco-cloud:k8s-ls-5-de
     - skaffold deploy -p $PROFILE -n $NAMESPACE -t $IMAGE_TAG --status-check=true

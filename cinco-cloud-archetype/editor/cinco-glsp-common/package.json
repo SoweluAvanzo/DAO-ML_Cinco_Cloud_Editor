@@ -34,8 +34,7 @@
   ],
   "files": [
     "lib",
-    "src",
-    "languages"
+    "src"
   ],
   "dependencies": {
     "@eclipse-glsp/protocol": "2.0.0"

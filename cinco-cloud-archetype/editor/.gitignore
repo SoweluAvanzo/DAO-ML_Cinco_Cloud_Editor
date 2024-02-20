@@ -10,3 +10,6 @@ lib
 tsconfig.tsbuildinfo
 languages/dummy.ts
 workspace/
+bundle.js
+bundle.js.map
+*.ttf

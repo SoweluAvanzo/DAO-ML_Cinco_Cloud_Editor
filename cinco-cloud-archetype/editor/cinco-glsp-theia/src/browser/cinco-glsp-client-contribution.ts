@@ -28,7 +28,8 @@ import {
     MetaSpecificationResponseAction,
     WEBSOCKET_PORT_KEY,
     CincoGLSPClient,
-    SYSTEM_ID
+    SYSTEM_ID,
+    WEBSOCKET_HOST_MAPPING
 } from '@cinco-glsp/cinco-glsp-common';
 import { CommandRegistry } from '@theia/core';
 import { InitializeClientSessionParameters } from '@eclipse-glsp/protocol';
@@ -52,13 +53,16 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
 
     protected override async getWebSocketConnectionOptions(): Promise<WebSocketConnectionOptions | undefined> {
         const webSocketPort = await this.getWebSocketPortFromEnv();
-        if (webSocketPort) {
-            return {
-                path: DEFAULT_WEBSOCKET_PATH,
-                port: webSocketPort
-            };
-        }
-        return undefined;
+        const ssl = await this.envVariablesServer.getValue('USE_SSL');
+        const websocketHostMapping = await this.envVariablesServer.getValue(WEBSOCKET_HOST_MAPPING);
+        const host = window.location.hostname ?? '0.0.0.0';
+        return {
+            path: DEFAULT_WEBSOCKET_PATH,
+            port: webSocketPort ?? DEFAULT_SERVER_PORT,
+            protocol: ssl && ssl.value === 'true' ? 'wss' : 'ws',
+            host: websocketHostMapping && websocketHostMapping.value && websocketHostMapping.value?.length > 0 ?
+                `${host}/${websocketHostMapping.value}` : undefined
+        };
     }
 
     protected async getWebSocketPortFromEnv(): Promise<number | undefined> {
@@ -86,15 +90,19 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     }
 
     getWebSocketAddress(info: Partial<WebSocketConnectionInfo>): string | undefined {
-        if ('path' in info && info.path !== undefined && 'port' in info && info.port !== undefined) {
+        if ('path' in info && info.path !== undefined) {
             const protocol = info.protocol ?? 'ws';
-            const host = info.host ?? 'localhost';
+            if(info.host) {
+                return `${protocol}://${info.host}/${info.path}`;
+            }
+            const host = window.location.hostname ?? '0.0.0.0';
             return `${protocol}://${host}:${info.port}/${info.path}`;
         }
         return undefined;
     }
 
     initializeSystemSession(id: string): void {
+        console.log('Initializing GLSP Client Connection: ' + this.id);
         this.glspClient.then(client => {
             if (!(client instanceof CincoGLSPClient)) {
                 throw Error('Client is no CincoGLSPClient. Maybe the API has changed, please review.');

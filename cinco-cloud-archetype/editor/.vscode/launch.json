@@ -22,10 +22,11 @@
       "args": [
         "start",
         "--port=3000",
+        "--WEB_SERVER_PORT=3003",
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
-        "--app-project-path=${workspaceRoot}/"
+        "--app-project-path=${workspaceRoot}/",
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -63,11 +64,12 @@
       "args": [
         "start",
         "--port=3000",
+        "--CINCO_GLSP=5007",
+        "--WEB_SERVER_PORT=3003",
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
         "--app-project-path=${workspaceRoot}/",
-        "--CINCO_GLSP=5007",
         "--META_DEV_MODE"
       ],
       "skipFiles": [
@@ -106,11 +108,12 @@
       "args": [
         "start",
         "--port=3000",
+        "--CINCO_GLSP=5007",
+        "--WEB_SERVER_PORT=3003",
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
         "--app-project-path=${workspaceRoot}/",
-        "--CINCO_GLSP=5007",
         "--META_DEV_MODE",
         "--META_LANGUAGES_FOLDER=workspace/languages"
       ],
@@ -152,6 +155,7 @@
         "start:external",
         "--port=3000",
         "--CINCO_GLSP=5007",
+        "--WEB_SERVER_PORT=3003",
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
@@ -195,11 +199,12 @@
         "start:external",
         "--port=3000",
         "--CINCO_GLSP=5007",
+        "--WEB_SERVER_PORT=3003",
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
         "--app-project-path=${workspaceRoot}/",
-        "--META_LANGUAGES_FOLDER=workspace/languages"
+        "--META_LANGUAGES_FOLDER=workspace/languages",
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -233,6 +238,7 @@
       "args": [
         "-p",
         "5007",
+        "--webServerPort=3003",
         "--metaLanguagesFolder='cinco-glsp-server/languages'",
         "--rootFolder='${workspaceRoot}'",
         "--workspaceFolder='workspace",
@@ -263,6 +269,7 @@
       "args": [
         "-p",
         "5007",
+        "--webServerPort=3003",
         "--metaDevMode",
         "--metaLanguagesFolder='cinco-glsp-server/languages'",
         "--rootFolder='${workspaceRoot}'",
@@ -294,6 +301,7 @@
       "args": [
         "-p",
         "5007",
+        "--webServerPort=3003",
         "--metaDevMode",
         "--metaLanguagesFolder='workspace/languages'",
         "--rootFolder='${workspaceRoot}'",
@@ -319,6 +327,15 @@
       "sourceMaps": true,
       "cleanUp": "wholeBrowser",
       "webRoot": "${workspaceRoot}/browser-app"
+    },
+    {
+      "name": "Launch Standalone Client",
+      "type": "chrome",
+      "request": "launch",
+      "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=msl-example.flowgraph",
+      "sourceMaps": true,
+      "cleanUp": "wholeBrowser",
+      "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
     }
   ]
 }

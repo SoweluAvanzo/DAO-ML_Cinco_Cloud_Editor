@@ -14,52 +14,57 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    EnableToolPaletteAction,
     ToolPalette,
     ICommand,
     EnableDefaultToolsAction,
     SetUIExtensionVisibilityAction,
     SetContextActions,
     RequestContextActions,
-    Ranked
+    createIcon,
+    changeCodiconClass,
+    IActionDispatcher
 } from '@eclipse-glsp/client';
+import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette';
 import { Action, PaletteItem } from '@eclipse-glsp/protocol';
-import { injectable } from 'inversify';
-import { CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
+import { inject, injectable } from 'inversify';
+import { CincoCustomTool, EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
+
+// imported from: '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette'
+const PALETTE_ICON_ID = 'symbol-color';
+const CHEVRON_DOWN_ICON_ID = 'chevron-right';
+const PALETTE_HEIGHT = '500px';
 
 @injectable()
-export class CincoToolPalette extends ToolPalette implements Ranked {
-    static _rank: number = CINCO_STARTUP_RANK - 1; // needs to be before CincoPreparationsStartup
-    rank: number = CincoToolPalette._rank;
+export class CincoToolPalette extends KeyboardToolPalette {
+    @inject(EnvironmentProvider) readonly environmentProvider: IEnvironmentProvider;
     protected lastFilter = '';
 
-    override async preRequestModel(): Promise<void> {}
-
-    async postRequestModel?(): Promise<void> {
-        const requestAction = RequestContextActions.create({
-            contextId: ToolPalette.ID,
-            editorContext: {
-                selectedElementIds: []
-            }
-        });
-        const response = await this.actionDispatcher.request<SetContextActions>(requestAction);
-        this.paletteItems = response.actions.map(e => e as PaletteItem);
-        if (!this.editorContext.isReadonly) {
-            this.show(this.editorContext.modelRoot);
-        }
+    override initialize(): boolean {
+        const result = super.initialize();
+        // fetch initial palette elements
+        CincoToolPalette.requestPalette(this.actionDispatcher);
+        return result;
     }
 
-    async requestPalette(): Promise<void> {
+    static async requestPalette(actionDispatcher: IActionDispatcher): Promise<void> {
         const requestAction = RequestContextActions.create({
             contextId: CincoToolPalette.ID,
             editorContext: {
                 selectedElementIds: []
             }
         });
-        const response = await this.actionDispatcher.request(requestAction);
-        if (SetContextActions.is(response)) {
+        actionDispatcher.dispatch(requestAction);
+    }
+
+    override handle(action: Action): void | Action | ICommand {
+        if (action.kind === EnableDefaultToolsAction.KIND) {
+            if (this.lastActiveButton || this.defaultToolsButton) {
+                this.changeActiveButton();
+                this.restoreFocus();
+            }
+        } else if (SetContextActions.is(action)) {
             // store and backup new palette
-            this.paletteItems = response.actions.map(e => e as PaletteItem);
+            this.paletteItems = action.actions.map(e => e as PaletteItem);
             this.backupPaletteCopy();
             // make
             this.actionDispatcher.dispatch(
@@ -70,16 +75,10 @@ export class CincoToolPalette extends ToolPalette implements Ranked {
             );
             // update palette view
             this.requestFilterUpdate(this.lastFilter);
-        }
-    }
-
-    override handle(action: Action): ICommand | Action | void {
-        if (action.kind === EnableToolPaletteAction.KIND) {
-            this.requestPalette();
-        } else if (action.kind === EnableDefaultToolsAction.KIND) {
-            if (this.lastActiveButton || this.defaultToolsButton) {
-                this.changeActiveButton();
-                this.restoreFocus();
+            // update header tools
+            const headerTools = document.getElementById('cinco-tool-palette-header');
+            if (headerTools) {
+                this.updateHeaderTools(headerTools);
             }
         }
     }
@@ -87,11 +86,10 @@ export class CincoToolPalette extends ToolPalette implements Ranked {
     protected override requestFilterUpdate(filter: string): void {
         if (!this.containerElement) {
             // palette can not yet be updated
-            return;
+            super.initialize();
         }
         // cache last filter
         this.lastFilter = filter;
-
         // Reset the paletteItems before searching
         this.paletteItems = JSON.parse(JSON.stringify(this.paletteItemsCopy));
         // Filter the entries
@@ -120,5 +118,90 @@ export class CincoToolPalette extends ToolPalette implements Ranked {
     backupPaletteCopy(): void {
         // create a deep copy
         this.paletteItemsCopy = JSON.parse(JSON.stringify(this.paletteItems));
+    }
+
+    protected override addMinimizePaletteButton(): void {
+        const baseDiv = document.getElementById(this.options.baseDiv);
+        const minPaletteDiv = document.createElement('div');
+        minPaletteDiv.classList.add('minimize-palette-button');
+        this.containerElement.classList.add('collapsible-palette');
+        if (baseDiv) {
+            const insertedDiv = baseDiv.insertBefore(minPaletteDiv, baseDiv.firstChild);
+            this.updateMinimizePaletteButtonTooltip(minPaletteDiv);
+            const minimizeIcon = createIcon(CHEVRON_DOWN_ICON_ID);
+            minimizeIcon.onclick = _event => {
+                this.setPalette(minPaletteDiv, minimizeIcon);
+            };
+            insertedDiv.appendChild(minimizeIcon);
+            this.setPalette(minPaletteDiv, minimizeIcon, true); // workaround for missing scrollbar at start
+        }
+    }
+
+    setPalette(minPaletteDiv: HTMLDivElement, minimizeIcon: Element, setOpen = false): void {
+        if (!setOpen && this.isPaletteMaximized()) {
+            this.containerElement.style.overflow = 'hidden';
+            this.containerElement.style.maxHeight = '0px';
+        } else {
+            this.containerElement.style.overflow = 'scroll'; // fix to scroll
+            this.containerElement.style.maxHeight = PALETTE_HEIGHT;
+        }
+        this.updateMinimizePaletteButtonTooltip(minPaletteDiv);
+        changeCodiconClass(minimizeIcon, PALETTE_ICON_ID);
+        changeCodiconClass(minimizeIcon, CHEVRON_DOWN_ICON_ID);
+    }
+
+    protected override createHeaderTools(): HTMLElement {
+        this.headerToolsButtonMapping.clear();
+        const headerTools = document.createElement('div');
+        headerTools.id = 'cinco-tool-palette-header';
+        headerTools.classList.add('header-tools');
+        this.updateHeaderTools(headerTools);
+        return headerTools;
+    }
+
+    protected updateHeaderTools(headerTools: HTMLElement): void {
+        // fetch custom tools
+        const tools = this.environmentProvider.provideTools();
+        headerTools.replaceChildren(...([] as (string | Node)[]));
+        let index = 0;
+        for (const tool of tools) {
+            if (tool.id === '_default') {
+                this.defaultToolsButton = this.createDefaultToolButton();
+                this.headerToolsButtonMapping.set(0, this.defaultToolsButton);
+                headerTools.appendChild(this.defaultToolsButton);
+            } else if (tool.id === '_delete') {
+                this.deleteToolButton = this.createMouseDeleteToolButton();
+                this.headerToolsButtonMapping.set(1, this.deleteToolButton);
+                headerTools.appendChild(this.deleteToolButton);
+            } else if (tool.id === '_marquee') {
+                this.marqueeToolButton = this.createMarqueeToolButton();
+                this.headerToolsButtonMapping.set(2, this.marqueeToolButton);
+                headerTools.appendChild(this.marqueeToolButton);
+            } else if (tool.id === '_validate') {
+                this.validateToolButton = this.createValidateButton();
+                this.headerToolsButtonMapping.set(3, this.validateToolButton);
+                headerTools.appendChild(this.validateToolButton);
+            } else if (tool.id === '_search') {
+                this.searchToolButton = this.createSearchButton();
+                this.headerToolsButtonMapping.set(4, this.searchToolButton);
+                headerTools.appendChild(this.searchToolButton);
+            } else if (CincoCustomTool.is(tool)) {
+                const customToolButton = this.createCustomTool(tool);
+                this.headerToolsButtonMapping.set(index, customToolButton);
+                headerTools.appendChild(customToolButton);
+            }
+            index++;
+        }
+    }
+
+    protected createCustomTool(tool: CincoCustomTool): HTMLElement {
+        const toolButton = createIcon(tool.codicon ?? 'beaker');
+        toolButton.id = tool.id;
+        toolButton.title = tool.title;
+        toolButton.onclick = tool.action ?? ((_: any) => console.log('Triggered: ' + tool.id));
+        if (tool.shortcut && tool.shortcut.length > 0) {
+            toolButton.appendChild(this.createKeyboardShotcut(tool.shortcut[0]));
+        }
+        return toolButton;
     }
 }

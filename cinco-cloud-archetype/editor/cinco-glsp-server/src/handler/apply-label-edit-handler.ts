@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { PropertyViewAction } from '@cinco-glsp/cinco-glsp-common';
+import { PropertyViewRequestAction } from '@cinco-glsp/cinco-glsp-common';
 import { ApplyLabelEditOperation } from '@eclipse-glsp/protocol';
 import { GLSPServerError, GNode, toTypeGuard } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
@@ -32,7 +32,7 @@ export class ApplyLabelEditHandler extends CincoJsonOperationHandler {
             if (!activity) {
                 throw new GLSPServerError(`Could not retrieve the parent task for the label with id ${operation.labelId}`);
             }
-            this.actionDispatcher.dispatchAfterNextUpdate(PropertyViewAction.create(activityNode.id));
+            this.actionDispatcher.dispatchAfterNextUpdate(PropertyViewRequestAction.create(activityNode.id));
             activity.setProperty('name', operation.text);
         }
     }

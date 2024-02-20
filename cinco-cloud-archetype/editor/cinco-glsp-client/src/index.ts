@@ -16,3 +16,4 @@
 import { initializeCincoDiagramContainer } from './di.config';
 
 export { initializeCincoDiagramContainer as initializeCincoDiagramContainer };
+export * from './api/environment-provider';

@@ -16,13 +16,14 @@
 import { ValidationModelWrapperCommand } from '@cinco-glsp/cinco-glsp-common/lib/protocol/validation-protocol';
 import { CommandContribution, CommandRegistry } from '@theia/core';
 import { injectable } from 'inversify';
+import { ValidationRequestCommandID } from './validation-widget-contribution';
 
 @injectable()
 export class ValidationModelWrapperCommandContribution implements CommandContribution {
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(ValidationModelWrapperCommand, {
             execute: () => {
-                commands.executeCommand('validationRequestModel');
+                commands.executeCommand(ValidationRequestCommandID);
             },
             isVisible: () => true,
             isEnabled: () => true
