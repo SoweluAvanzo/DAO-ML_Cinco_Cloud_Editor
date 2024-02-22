@@ -39,6 +39,7 @@
     "@theia/scm": "1.40.0",
     "cinco-branding": "1.0.0",
     "cinco-authenticator": "1.0.0",
+    "cinco-project-initializer": "1.0.0",
     "@cinco-glsp/cinco-glsp-theia": "1.0.0"
   },
   "devDependencies": {
