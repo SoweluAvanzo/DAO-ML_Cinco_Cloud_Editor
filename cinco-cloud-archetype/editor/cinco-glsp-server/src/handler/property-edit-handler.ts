@@ -16,22 +16,18 @@
 import { ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import {
     Attribute,
-    CustomType,
-    ElementType,
     ObjectPointer,
     PropertyChange,
     PropertyEditOperation,
     canAdd,
     canAssign,
     canDelete,
-    getAttribute,
-    getCustomType,
-    getDefaultValue,
-    getSpecOf,
+    getUserDefinedType,
     isList
 } from '@cinco-glsp/cinco-glsp-common';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
+import { findAttribute } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class PropertyEditHandler extends CincoJsonOperationHandler {
@@ -44,17 +40,10 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             // element is maybe contained inside another graphmodel
             return;
         }
-        const { object, objectTypeSpecification } = this.locateObject(element, pointer);
-        let attributeDefinition: Attribute | undefined;
-        if (ElementType.is(objectTypeSpecification) || CustomType.is(objectTypeSpecification)) {
-            attributeDefinition = getAttribute(objectTypeSpecification.elementTypeId, name);
-        }
-        if (!attributeDefinition) {
-            throw new Error('Property can not be changed. Attribute-Definition not found!');
-        } else {
-            if (!this.checkConstraint(object, attributeDefinition, change)) {
-                throw new Error('Property can not be changed. It violates a constraint!');
-            }
+        const { attributes, object } = this.locateObject(element, pointer);
+        const attributeDefinition: Attribute = findAttribute(attributes, name)
+        if (!this.checkConstraint(object, attributeDefinition, change)) {
+            throw new Error('Property can not be changed. It violates a constraint!');
         }
         if (element !== undefined) {
             switch (change.kind) {
@@ -161,46 +150,26 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
         return false;
     }
 
-    protected locateObject(element: any, pointer: ObjectPointer): { object: any; objectTypeSpecification: CustomType | undefined } {
-        let object: any = element;
-        let objectDefinition: Attribute | undefined = undefined;
-        let objectTypeSpecification = getSpecOf(element.type);
-        for (const step of pointer) {
-            if (step.index !== undefined) {
-                if (ModelElement.is(object)) {
-                    objectDefinition = object.getPropertyDefinition(step.attribute);
-                    if (!objectDefinition) {
-                        throw new Error('Undefined property: ' + step.attribute);
-                    }
-                    const indexedProperty = object.getProperty(step.attribute) ?? [];
-                    let nextValue = indexedProperty[step.index];
-                    if (!nextValue) {
-                        nextValue = getDefaultValue(object.type, step.attribute);
-                        indexedProperty[step.index] = nextValue;
-                    }
-                    object = nextValue;
-                    objectTypeSpecification = getCustomType(objectDefinition.type);
-                } else {
-                    object = object[step.attribute][step.index];
-                }
-            } else {
-                if (ModelElement.is(object)) {
-                    objectDefinition = object.getPropertyDefinition(step.attribute);
-                    if (!objectDefinition) {
-                        throw new Error('Undefined property: ' + step.attribute);
-                    }
-                    let nextValue = object.getProperty(step.attribute);
-                    if (!nextValue) {
-                        nextValue = getDefaultValue(object.type, step.attribute);
-                        object.setProperty(step.attribute, nextValue);
-                    }
-                    object = nextValue;
-                    objectTypeSpecification = getCustomType(objectDefinition.type);
-                } else {
-                    object = object[step.attribute];
-                }
+    protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[], object: any } {
+        let attributes: Attribute[] = element.propertyDefinitions
+        let object: Record<string, any> = element.properties
+
+        for (const segment of pointer) {
+            const type = findAttribute(attributes, segment.attribute).type;
+            const userDefinedType = getUserDefinedType(type)
+
+            if (userDefinedType === undefined) {
+                throw new Error(`Cannot find user-defined type ${type}`)
             }
+
+            attributes = userDefinedType.attributes
+
+            object =
+                segment.index !== undefined ?
+                    object[segment.attribute][segment.index] :
+                    object[segment.attribute]
         }
-        return { object, objectTypeSpecification };
+
+        return { attributes, object }
     }
 }
