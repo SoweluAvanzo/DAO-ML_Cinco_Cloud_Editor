@@ -13,14 +13,26 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { injectable } from '@theia/core/shared/inversify';
-import { ReactWidget, codicon } from '@theia/core/lib/browser';
+import { inject, injectable } from '@theia/core/shared/inversify';
+import { ApplicationShell, ReactWidget, codicon } from '@theia/core/lib/browser';
+import { FileService } from '@theia/filesystem/lib/browser/file-service';
+import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
 import * as React from 'react';
+import { generateMGL, generateMSL } from './initialize-project';
 
 @injectable()
 export class CincoProjectInitializerWidget extends ReactWidget {
     static readonly ID = 'cincoCloudProjectInitializer';
     static readonly LABEL = 'Cinco Cloud Project Initializer';
+
+    @inject(FileService)
+    protected readonly fileService!: FileService;
+
+    @inject(WorkspaceService)
+    protected readonly workspaceService!: WorkspaceService;
+
+    @inject(ApplicationShell)
+    protected readonly shell!: ApplicationShell;
 
     constructor() {
         super();
@@ -32,25 +44,125 @@ export class CincoProjectInitializerWidget extends ReactWidget {
         this.update();
     }
 
+    closeWidget(): void {
+        const widget = this.shell.widgets.find(w => w.id === this.id);
+        if (widget) {
+            this.shell.closeWidget(this.id);
+        }
+    }
+
     protected render(): React.JSX.Element {
         return (
-            <CincoProjectInitializerView></CincoProjectInitializerView>
+            <CincoProjectInitializerView
+                fileService={this.fileService}
+                workspaceService={this.workspaceService}
+                closeWidget={() => this.closeWidget()}
+            >
+            </CincoProjectInitializerView>
         );
     }
 }
 
-export class CincoProjectInitializerView extends React.Component<object, object> {
-    constructor(props: object) {
+export class CincoProjectInitializerView extends React.Component<
+    { fileService: FileService, workspaceService: WorkspaceService, closeWidget: () => void },
+    { view: string }
+> {
+    constructor(props: { fileService: FileService, workspaceService: WorkspaceService, closeWidget: () => void }) {
         super(props);
+        this.state = {
+            view: 'initial'
+        };
+    }
+
+    showInitialView(): void {
+        console.log('showInitialView');
+        this.setState({ view: 'initial' });
+    }
+
+    showInitializeProject(): void {
+        console.log('showInitializeProject');
+        this.setState({ view: 'initialize' });
+    }
+
+    showCreateExampleProject(): void {
+        console.log('showCreateExampleProject');
+        this.setState({ view: 'createExample' });
+    }
+
+    initializeProject(submitEvent: any): void {
+        submitEvent.preventDefault();
+
+        const form = submitEvent.target;
+        const formData = new FormData(form);
+        const formJson = Object.fromEntries((formData as any).entries());
+
+        const projectName = formJson.projectName ?? 'Example';
+        const mglFileName = formJson.projectName ? `${formJson.projectName.toLowerCase()}.mgl` : 'example.mgl';
+        const mslFileName = formJson.projectName ? `${formJson.projectName.toLowerCase()}.style` : 'example.style';
+        this.createNewFile(mglFileName, generateMGL(projectName, mslFileName));
+        this.createNewFile(mslFileName, generateMSL());
+        this.props.closeWidget();
+    }
+
+    createExampleProject(repoUrl: string, branch: string): void {
+        console.log('createExampleProject', repoUrl, branch);
+    }
+
+    async createNewFile(fileName: string, content: string): Promise<void> {
+        const rootUri = this.props.workspaceService.tryGetRoots()[0]?.resource;
+        if (rootUri) {
+            const fileUri = rootUri.resolve(fileName);
+            try {
+                await this.props.fileService.create(fileUri, content, { overwrite: false });
+            } catch (e) {
+                console.error(`Error creating file ${fileName}:`, e);
+            }
+        } else {
+            console.log('No workspace root found.');
+        }
     }
 
     override render(): React.JSX.Element {
-        return (
-            <div className="cinco-project-initializer">
-                <h1>Welcome to Cinco Cloud</h1>
-                <p>Click below to start your project</p>
-                <button id="cinco-project-initializer-button">Start</button>
-            </div>
-        );
+        const exampleProjects = [{
+            name: 'Example 1', repoUrl: 'test', branch: 'test'
+        }];
+
+        switch (this.state.view) {
+            case 'initialize':
+                return (
+                    <div id="nameInputView" >
+                        <form onSubmit={e => this.initializeProject(e)}>
+                            <input type="text" pattern="^[A-Za-z]+$" name="projectName" placeholder="Enter project name" />
+                            <div>
+                                <button type="button" onClick={() => this.showInitialView()}>Back</button>
+                                <button type="submit">Confirm</button>
+                            </div>
+                        </form>
+                    </div >
+                );
+            case 'createExample': {
+                const exampleProjectButtons = exampleProjects.map(exampleProject => (
+                    <button onClick={() => this.createExampleProject(exampleProject.repoUrl, exampleProject.branch)}>
+                        Example: {exampleProject.name}
+                    </button>
+                ));
+                return (
+                    <div id="exampleProjectsView">
+                        {exampleProjectButtons}
+                        <button onClick={() => this.showInitialView()}>Back</button>
+                    </div>
+                );
+            }
+            case 'initial':
+            default:
+                return (
+                    <div id="initial-view">
+                        <img alt="Cinco Cloud Logo" />
+                        <h1>Welcome to Cinco Cloud!</h1>
+                        <button onClick={() => this.showInitializeProject()}>Initialize Project</button>
+                        <button onClick={() => this.showCreateExampleProject()}>Create Example Project</button>
+                    </div>
+                );
+        }
     }
 }
