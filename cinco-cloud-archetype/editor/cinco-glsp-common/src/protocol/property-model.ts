@@ -106,6 +106,19 @@ export function isList(attribute: Attribute): boolean {
     return isListAttribute(attribute.bounds?.upperBound ?? 1.0);
 }
 
+export function findAttribute(attributes: Attribute[], name: string): Attribute {
+    const matchingAttributes =
+        attributes.filter(attribute => attribute.name === name)
+
+    if (matchingAttributes.length !== 1) {
+        throw new Error(
+            `Found ${matchingAttributes.length} attributes matching the name ${name}, expected 1.`
+        )
+    }
+
+    return matchingAttributes[0];
+}
+
 export type PropertyViewMessage = EditProperty;
 
 export interface EditProperty {
