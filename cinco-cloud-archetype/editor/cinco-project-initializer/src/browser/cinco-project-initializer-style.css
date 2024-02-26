@@ -1,6 +1,5 @@
-body {
+main {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 16px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -8,20 +7,11 @@ body {
     height: 100%;
 }
 
-body>div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-}
-
 img {
     max-width: 256px;
 }
 
 button {
-    background-color: #333333;
-    color: #D4D4D4;
     border: none;
     padding: 8px 16px;
     margin: 4px;
@@ -30,15 +20,8 @@ button {
     transition: background-color 0.2s;
 }
 
-button:hover {
-    background-color: #444444;
-}
-
 input[type="text"] {
     padding: 8px;
-    border: 1px solid #333;
-    background-color: #3C3C3C;
-    color: #D4D4D4;
     border-radius: 3px;
     margin-right: 4px;
 }

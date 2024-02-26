@@ -20,6 +20,8 @@ import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service
 import * as React from 'react';
 import { generateMGL, generateMSL } from './initialize-project';
 import { CommandService } from '@theia/core';
+import '../../src/browser/cinco-project-initializer-style.css';
+import * as logo from '../../src/browser/cinco-cloud-logo.png';
 
 @injectable()
 export class CincoProjectInitializerWidget extends ReactWidget {
@@ -62,8 +64,7 @@ export class CincoProjectInitializerWidget extends ReactWidget {
                 workspaceService={this.workspaceService}
                 commandService={this.commandService}
                 closeWidget={() => this.closeWidget()}
-            >
-            </CincoProjectInitializerView>
+            />
         );
     }
 }
@@ -142,7 +143,7 @@ export class CincoProjectInitializerView extends React.Component<
         switch (this.state.view) {
             case 'initialize':
                 return (
-                    <div id="nameInputView" >
+                    <main id="nameInputView" >
                         <form onSubmit={e => this.initializeProject(e)}>
                             <input type="text" pattern="^[A-Za-z]+$" name="projectName" placeholder="Enter project name" />
                             <div>
@@ -150,7 +151,7 @@ export class CincoProjectInitializerView extends React.Component<
                                 <button type="submit">Confirm</button>
                             </div>
                         </form>
-                    </div >
+                    </main >
                 );
             case 'createExample': {
                 const exampleProjectButtons = exampleProjects.map(exampleProject => (
@@ -160,21 +161,21 @@ export class CincoProjectInitializerView extends React.Component<
                     </button>
                 ));
                 return (
-                    <div id="exampleProjectsView">
+                    <main id="exampleProjectsView">
                         {exampleProjectButtons}
                         <button onClick={() => this.showInitialView()}>Back</button>
-                    </div>
+                    </main>
                 );
             }
             case 'initial':
             default:
                 return (
-                    <div id="initial-view">
-                        <img alt="Cinco Cloud Logo" />
+                    <main id="initial-view">
+                        <img src={logo} alt="Cinco Cloud Logo" />
                         <h1>Welcome to Cinco Cloud!</h1>
                         <button onClick={() => this.showInitializeProject()}>Initialize Project</button>
                         <button onClick={() => this.showCreateExampleProject()}>Create Example Project</button>
-                    </div>
+                    </main>
                 );
         }
     }
