@@ -19,6 +19,7 @@ import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
 import * as React from 'react';
 import { generateMGL, generateMSL } from './initialize-project';
+import { CommandService } from '@theia/core';
 
 @injectable()
 export class CincoProjectInitializerWidget extends ReactWidget {
@@ -33,6 +34,9 @@ export class CincoProjectInitializerWidget extends ReactWidget {
 
     @inject(ApplicationShell)
     protected readonly shell!: ApplicationShell;
+
+    @inject(CommandService)
+    protected readonly commandService!: CommandService;
 
     constructor() {
         super();
@@ -56,6 +60,7 @@ export class CincoProjectInitializerWidget extends ReactWidget {
             <CincoProjectInitializerView
                 fileService={this.fileService}
                 workspaceService={this.workspaceService}
+                commandService={this.commandService}
                 closeWidget={() => this.closeWidget()}
             >
             </CincoProjectInitializerView>
@@ -64,10 +69,11 @@ export class CincoProjectInitializerWidget extends ReactWidget {
 }
 
 export class CincoProjectInitializerView extends React.Component<
-    { fileService: FileService, workspaceService: WorkspaceService, closeWidget: () => void },
+    { fileService: FileService, workspaceService: WorkspaceService, commandService: CommandService, closeWidget: () => void },
     { view: string }
 > {
-    constructor(props: { fileService: FileService, workspaceService: WorkspaceService, closeWidget: () => void }) {
+    constructor(
+        props: { fileService: FileService, workspaceService: WorkspaceService, commandService: CommandService, closeWidget: () => void }) {
         super(props);
         this.state = {
             view: 'initial'
@@ -75,17 +81,14 @@ export class CincoProjectInitializerView extends React.Component<
     }
 
     showInitialView(): void {
-        console.log('showInitialView');
         this.setState({ view: 'initial' });
     }
 
     showInitializeProject(): void {
-        console.log('showInitializeProject');
         this.setState({ view: 'initialize' });
     }
 
     showCreateExampleProject(): void {
-        console.log('showCreateExampleProject');
         this.setState({ view: 'createExample' });
     }
 
@@ -105,7 +108,7 @@ export class CincoProjectInitializerView extends React.Component<
     }
 
     createExampleProject(repoUrl: string, branch: string): void {
-        console.log('createExampleProject', repoUrl, branch);
+        this.props.commandService.executeCommand('git.clone', repoUrl, undefined, branch);
     }
 
     async createNewFile(fileName: string, content: string): Promise<void> {
@@ -123,9 +126,18 @@ export class CincoProjectInitializerView extends React.Component<
     }
 
     override render(): React.JSX.Element {
-        const exampleProjects = [{
-            name: 'Example 1', repoUrl: 'test', branch: 'test'
-        }];
+        const exampleProjects = [
+            {
+                name: 'Flowgraph',
+                repoUrl: 'https://ls5gitlab.cs.tu-dortmund.de/cinco-cloud-examples/flowgraph.git',
+                branch: 'main'
+            },
+            {
+                name: 'Webstory',
+                repoUrl: 'https://ls5gitlab.cs.tu-dortmund.de/cinco-cloud-examples/webstory.git',
+                branch: 'main'
+            }
+        ];
 
         switch (this.state.view) {
             case 'initialize':
@@ -142,7 +154,8 @@ export class CincoProjectInitializerView extends React.Component<
                 );
             case 'createExample': {
                 const exampleProjectButtons = exampleProjects.map(exampleProject => (
-                    <button onClick={() => this.createExampleProject(exampleProject.repoUrl, exampleProject.branch)}>
+                    <button key={exampleProject.name}
+                        onClick={() => this.createExampleProject(exampleProject.repoUrl, exampleProject.branch)}>
                         Example: {exampleProject.name}
                     </button>
                 ));
