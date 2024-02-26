@@ -109,7 +109,9 @@ export class CincoProjectInitializerView extends React.Component<
     }
 
     createExampleProject(repoUrl: string, branch: string): void {
-        this.props.commandService.executeCommand('git.clone', repoUrl, undefined, branch);
+        this.props.commandService.executeCommand('git.clone', repoUrl, undefined, branch).then(() => {
+            this.props.closeWidget();
+        });
     }
 
     async createNewFile(fileName: string, content: string): Promise<void> {
