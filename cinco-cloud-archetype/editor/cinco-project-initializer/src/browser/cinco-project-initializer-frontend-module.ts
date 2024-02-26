@@ -15,8 +15,11 @@
  ********************************************************************************/
 import { ContainerModule } from '@theia/core/shared/inversify';
 import { CincoProjectInitializerWidget } from './cinco-project-initializer-widget';
-import { WidgetFactory } from '@theia/core/lib/browser';
-import { CincoProjectInitializerWidgetContribution } from './cinco-project-initializer-contribution';
+import { FrontendApplicationContribution, WidgetFactory } from '@theia/core/lib/browser';
+import {
+    CincoProjectInitializerFrontendApplicationContribution,
+    CincoProjectInitializerWidgetContribution
+} from './cinco-project-initializer-contribution';
 import { CommandContribution, MenuContribution } from '@theia/core';
 
 export default new ContainerModule(bind => {
@@ -28,4 +31,7 @@ export default new ContainerModule(bind => {
     bind(CincoProjectInitializerWidgetContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(CincoProjectInitializerWidgetContribution);
     bind(MenuContribution).toService(CincoProjectInitializerWidgetContribution);
+    bind(FrontendApplicationContribution)
+        .to(CincoProjectInitializerFrontendApplicationContribution)
+        .inSingletonScope();
 });
