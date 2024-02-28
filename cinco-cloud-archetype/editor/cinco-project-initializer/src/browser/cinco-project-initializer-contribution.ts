@@ -13,10 +13,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Command, CommandRegistry } from '@theia/core';
+import { Command, CommandRegistry, CommandService } from '@theia/core';
 import { AbstractViewContribution } from '@theia/core/lib/browser/shell/view-contribution';
-import { injectable } from '@theia/core/shared/inversify';
+import { inject, injectable } from '@theia/core/shared/inversify';
 import { CincoProjectInitializerWidget } from './cinco-project-initializer-widget';
+import { FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
+import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
 
 export const CincoProjectInitializerWidgetCommand: Command = {
     id: 'cincoCloudProjectInitializer:open',
@@ -36,7 +38,29 @@ export class CincoProjectInitializerWidgetContribution extends AbstractViewContr
 
     override registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(CincoProjectInitializerWidgetCommand, {
-            execute: () => super.openView({ activate: false, reveal: true })
+            execute: () => super.openView({ activate: true, reveal: true })
         });
+    }
+}
+
+@injectable()
+export class CincoProjectInitializerFrontendApplicationContribution implements FrontendApplicationContribution {
+
+    constructor(
+        @inject(WorkspaceService) protected readonly workspaceService: WorkspaceService,
+        @inject(CommandService) protected readonly commandService: CommandService
+    ) { }
+
+    async onDidInitializeLayout(app: FrontendApplication): Promise<void> {
+        await this.checkAndOpenWidget();
+    }
+
+    protected async checkAndOpenWidget(): Promise<void> {
+        const workspaceChildren = this.workspaceService.workspace?.children || [];
+        const isEmpty = workspaceChildren.length === 0;
+
+        if (isEmpty) {
+            this.commandService.executeCommand(CincoProjectInitializerWidgetCommand.id);
+        }
     }
 }

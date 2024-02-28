@@ -19,6 +19,9 @@ import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
 import * as React from 'react';
 import { generateMGL, generateMSL } from './initialize-project';
+import { CommandService } from '@theia/core';
+import '../../src/browser/cinco-project-initializer-style.css';
+import * as logo from '../../src/browser/cinco-cloud-logo.png';
 
 @injectable()
 export class CincoProjectInitializerWidget extends ReactWidget {
@@ -33,6 +36,9 @@ export class CincoProjectInitializerWidget extends ReactWidget {
 
     @inject(ApplicationShell)
     protected readonly shell!: ApplicationShell;
+
+    @inject(CommandService)
+    protected readonly commandService!: CommandService;
 
     constructor() {
         super();
@@ -56,18 +62,19 @@ export class CincoProjectInitializerWidget extends ReactWidget {
             <CincoProjectInitializerView
                 fileService={this.fileService}
                 workspaceService={this.workspaceService}
+                commandService={this.commandService}
                 closeWidget={() => this.closeWidget()}
-            >
-            </CincoProjectInitializerView>
+            />
         );
     }
 }
 
 export class CincoProjectInitializerView extends React.Component<
-    { fileService: FileService, workspaceService: WorkspaceService, closeWidget: () => void },
+    { fileService: FileService, workspaceService: WorkspaceService, commandService: CommandService, closeWidget: () => void },
     { view: string }
 > {
-    constructor(props: { fileService: FileService, workspaceService: WorkspaceService, closeWidget: () => void }) {
+    constructor(
+        props: { fileService: FileService, workspaceService: WorkspaceService, commandService: CommandService, closeWidget: () => void }) {
         super(props);
         this.state = {
             view: 'initial'
@@ -75,17 +82,14 @@ export class CincoProjectInitializerView extends React.Component<
     }
 
     showInitialView(): void {
-        console.log('showInitialView');
         this.setState({ view: 'initial' });
     }
 
     showInitializeProject(): void {
-        console.log('showInitializeProject');
         this.setState({ view: 'initialize' });
     }
 
     showCreateExampleProject(): void {
-        console.log('showCreateExampleProject');
         this.setState({ view: 'createExample' });
     }
 
@@ -105,7 +109,9 @@ export class CincoProjectInitializerView extends React.Component<
     }
 
     createExampleProject(repoUrl: string, branch: string): void {
-        console.log('createExampleProject', repoUrl, branch);
+        this.props.commandService.executeCommand('git.clone', repoUrl, undefined, branch).then(() => {
+            this.props.closeWidget();
+        });
     }
 
     async createNewFile(fileName: string, content: string): Promise<void> {
@@ -123,14 +129,23 @@ export class CincoProjectInitializerView extends React.Component<
     }
 
     override render(): React.JSX.Element {
-        const exampleProjects = [{
-            name: 'Example 1', repoUrl: 'test', branch: 'test'
-        }];
+        const exampleProjects = [
+            {
+                name: 'Flowgraph',
+                repoUrl: 'https://ls5gitlab.cs.tu-dortmund.de/cinco-cloud-examples/flowgraph.git',
+                branch: 'main'
+            },
+            {
+                name: 'Webstory',
+                repoUrl: 'https://ls5gitlab.cs.tu-dortmund.de/cinco-cloud-examples/webstory.git',
+                branch: 'main'
+            }
+        ];
 
         switch (this.state.view) {
             case 'initialize':
                 return (
-                    <div id="nameInputView" >
+                    <main id="nameInputView" >
                         <form onSubmit={e => this.initializeProject(e)}>
                             <input type="text" pattern="^[A-Za-z]+$" name="projectName" placeholder="Enter project name" />
                             <div>
@@ -138,30 +153,31 @@ export class CincoProjectInitializerView extends React.Component<
                                 <button type="submit">Confirm</button>
                             </div>
                         </form>
-                    </div >
+                    </main >
                 );
             case 'createExample': {
                 const exampleProjectButtons = exampleProjects.map(exampleProject => (
-                    <button onClick={() => this.createExampleProject(exampleProject.repoUrl, exampleProject.branch)}>
+                    <button key={exampleProject.name}
+                        onClick={() => this.createExampleProject(exampleProject.repoUrl, exampleProject.branch)}>
                         Example: {exampleProject.name}
                     </button>
                 ));
                 return (
-                    <div id="exampleProjectsView">
+                    <main id="exampleProjectsView">
                         {exampleProjectButtons}
                         <button onClick={() => this.showInitialView()}>Back</button>
-                    </div>
+                    </main>
                 );
             }
             case 'initial':
             default:
                 return (
-                    <div id="initial-view">
-                        <img alt="Cinco Cloud Logo" />
+                    <main id="initial-view">
+                        <img src={logo} alt="Cinco Cloud Logo" />
                         <h1>Welcome to Cinco Cloud!</h1>
                         <button onClick={() => this.showInitializeProject()}>Initialize Project</button>
                         <button onClick={() => this.showCreateExampleProject()}>Create Example Project</button>
-                    </div>
+                    </main>
                 );
         }
     }
