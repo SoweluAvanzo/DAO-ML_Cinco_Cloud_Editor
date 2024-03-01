@@ -55,6 +55,13 @@ export function getDefaultValue(elementTypeId: string, attributeName: string): a
 }
 
 export function getFallbackDefaultValue(type: string): any {
+    return getFallbackDefaultValueRecursive(type, []);
+}
+
+function getFallbackDefaultValueRecursive(
+    type: string,
+    ancestorTypes: string[]
+): any {
     switch (type) {
         case 'string':
             return '';
@@ -71,25 +78,33 @@ export function getFallbackDefaultValue(type: string): any {
             } else if (Enum.is(typeDefinition)) {
                 return typeDefinition.literals[0];
             } else if (UserDefinedType.is(typeDefinition)) {
+                const newAncestorTypes =
+                    ancestorTypes.concat([typeDefinition.elementTypeId]);
                 const defaultObject: any = {};
                 for (const child of typeDefinition.attributes) {
                     const bounds = child.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
                     const childIsList = isListAttribute(bounds.upperBound);
-                    if (isPrimitivePropertyType(child.type)) {
-                        // Only do this for primitive attributes to avoid infinite recursion
-                        if (childIsList) {
-                            const defaultValues = [];
-                            for (let i = 0; i++; i < bounds.lowerBound) {
-                                defaultValues.push(getFallbackDefaultValue(child.type));
-                            }
-                            defaultObject[child.name] = defaultValues;
-                        } else {
-                            if (bounds.lowerBound > 0) {
-                                defaultObject[child.name] = getFallbackDefaultValue(child.type);
-                            }
+
+                    // Infinite recursion protection
+                    if (bounds.lowerBound > 0 && newAncestorTypes.includes(child.type)) {
+                        // Recursive user-defined type with non-zero lower
+                        // bound, cannot build default value.
+                        defaultObject[child.name] =
+                            childIsList ? [] : undefined;
+
+                        continue;
+                    }
+
+                    if (childIsList) {
+                        const defaultValues = [];
+                        for (let i = 0; i++; i < bounds.lowerBound) {
+                            defaultValues.push(getFallbackDefaultValue(child.type));
                         }
+                        defaultObject[child.name] = defaultValues;
                     } else {
-                        defaultObject[child.name] = childIsList ? [] : {};
+                        if (bounds.lowerBound > 0) {
+                            defaultObject[child.name] = getFallbackDefaultValue(child.type);
+                        }
                     }
                 }
                 return defaultObject;
@@ -108,12 +123,12 @@ export function isList(attribute: Attribute): boolean {
 
 export function findAttribute(attributes: Attribute[], name: string): Attribute {
     const matchingAttributes =
-        attributes.filter(attribute => attribute.name === name)
+        attributes.filter(attribute => attribute.name === name);
 
     if (matchingAttributes.length !== 1) {
         throw new Error(
             `Found ${matchingAttributes.length} attributes matching the name ${name}, expected 1.`
-        )
+        );
     }
 
     return matchingAttributes[0];
