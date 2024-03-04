@@ -138,7 +138,7 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureCommand(context, ApplyAppearanceUpdateCommand);
 
     // bind the propertyViewTool, that will fire the PropertyViewActions to the backend and the handler processing the responses
-    bind(TYPES.IDefaultTool).to(PropertyViewTool);
+    bind(TYPES.IDefaultTool).to(PropertyViewTool).inSingletonScope();
     configureActionHandler(context, PropertyViewResponseAction.KIND, PropertyViewResponseActionHandler);
 
     // GLSPToolManager
