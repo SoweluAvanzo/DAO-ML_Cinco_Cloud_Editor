@@ -25,6 +25,7 @@
     - mkdir "$IMAGE-$VERSION"
     - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
     - docker save "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" | gzip > "$IMAGE-$VERSION/image.tar.gz"
+    - du -h "$IMAGE-$VERSION/image.tar.gz"
   artifacts:
     expire_in: 1 days
     paths:
