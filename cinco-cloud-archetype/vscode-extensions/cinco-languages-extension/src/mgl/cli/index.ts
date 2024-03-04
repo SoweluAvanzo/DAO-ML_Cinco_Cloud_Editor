@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 
 export const generateAction = async (filePath: string, opts: GenerateOptions, uploadMetaSpecification?: boolean): Promise<void> => {
     let generatedMetaSpecification: string;
-    const prefix = "Generation"+(uploadMetaSpecification ? "and Upload" : "");
+    const prefix = "Generation" + (uploadMetaSpecification ? " and Upload" : "");
     console.log(chalk.green(`Starting generation for currently opened MGL...`));
     generationProgress(
         "Generating",
@@ -37,7 +37,7 @@ export const generateAction = async (filePath: string, opts: GenerateOptions, up
                     const languagesFolder = await saveToLanguagesFolder(generatedMetaSpecification, specificationName, opts.destination).catch(e => {
                         errorDisplay("Generation failed with error:\n"+e)
                         throw Error("failed save generated files!")
-                    })
+                    });
                     if(uploadMetaSpecification) {
                         return uploadToMinio(languagesFolder, (e) => {
                             errorDisplay("Generation failed with error:\n"+e)
@@ -46,8 +46,8 @@ export const generateAction = async (filePath: string, opts: GenerateOptions, up
                 }
             }
         ],
-        prefix+" successful!",
-        prefix+" ended with errors!",
+        prefix + " successful!",
+        prefix + " ended with errors!",
         prefix + " canceled!"
     )
 };

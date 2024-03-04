@@ -280,7 +280,7 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
     // those entries from graphModelTypes list, where the typeName does not
     // exist in the parsed spec.json file anymore.
     final var gmtSpecSet = spec.graphTypes.stream()
-        .map(t -> t.type)
+        .map(t -> t.elementTypeId)
         .collect(Collectors.toSet());
 
     final var graphModelTypesToDelete = project.graphModelTypes.stream()
@@ -300,10 +300,10 @@ public class MainServiceGrpcImpl extends MutinyMainServiceGrpc.MainServiceImplBa
         .collect(Collectors.toSet());
 
     spec.graphTypes.stream()
-        .filter(g -> !projectGmtSet.contains(g.type))
+        .filter(g -> !projectGmtSet.contains(g.elementTypeId))
         .forEach(g -> {
           final var db = new GraphModelTypeDB();
-          db.typeName = g.type;
+          db.typeName = g.elementTypeId;
           db.fileExtension = g.diagramExtension;
           db.project = project;
           db.persist();

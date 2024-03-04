@@ -11,7 +11,8 @@
     "cinco-glsp-client/src",
     "cinco-glsp-server/src",
     "cinco-glsp-theia/src",
-    "cinco-glsp-standalone/src"
+    "cinco-glsp-standalone/src",
+    "cinco-project-initializer/src"
   ],
   "exclude": [
     "**/node_modules",

@@ -37,6 +37,7 @@
   "workspaces": [
     "cinco-languages",
     "cinco-branding",
+    "cinco-project-initializer",
     "cinco-glsp-common",
     "cinco-glsp-api",
     "cinco-glsp-server",

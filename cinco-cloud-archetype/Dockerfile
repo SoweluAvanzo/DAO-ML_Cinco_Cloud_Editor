@@ -75,7 +75,7 @@ RUN yarn
 
 # runtime configuration
 VOLUME /editor/workspace
-EXPOSE 3000 3003 5007 9222
+EXPOSE 3000 3003 5007 9000 9222
 CMD cd minio-client && node bundle/cinco-minio-client --metaFolder ../cinco-glsp-server/languages && cd ../ && \
     cd /editor/browser-app && \
     CINCO_CLOUD_HOST="${CINCO_CLOUD_HOST}" \
