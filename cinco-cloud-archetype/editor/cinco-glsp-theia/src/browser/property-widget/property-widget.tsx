@@ -600,9 +600,8 @@ export class CincoPropertyEntry extends React.Component<
                                 // ModelElementReference identifier specified in the following fallback order:
                                 // name => label => attributeDefinitionType
                                 <option value={id} key={id}>
-                                    {name !== '' ? name : label !== '' ? label : attributeDefinition.type} (
-                                    {name !== '' ? label + ', ' : ''}
-                                    {id})
+                                    {name ? name : label ? label : attributeDefinition.type}
+                                    ({name ? label + ', ' : ''}{id})
                                 </option>
                             ))}
                         </select>

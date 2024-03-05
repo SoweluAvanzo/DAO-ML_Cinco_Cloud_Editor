@@ -25,6 +25,8 @@ ComplexAttribute:
 CustomDataType:
 	Enum
 	| UserDefinedType
+    | NodeType
+    | Edge
 ;
 
 Edge:
