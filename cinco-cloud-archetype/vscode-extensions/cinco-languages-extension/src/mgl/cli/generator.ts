@@ -313,6 +313,11 @@ export class MGLGenerator {
         specification.customTypes.push(modelElementSpec);
     }
 
+    if (isEnum(modelElement)) {
+        modelElementSpec.literals = modelElement.literals;
+        specification.customTypes.push(modelElementSpec);
+    }
+
     return modelElementSpec.elementTypeId;
   }
 
