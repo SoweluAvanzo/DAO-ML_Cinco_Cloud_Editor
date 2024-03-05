@@ -21,28 +21,14 @@
 
 .docker-build-job:
   extends: .docker-job
+  variables:
+    VERSION: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
   script:
     - mkdir "$IMAGE-$VERSION"
-    - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
-    - docker save "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" | gzip > "$IMAGE-$VERSION/image.tar.gz"
-    - du -h "$IMAGE-$VERSION/image.tar.gz"
-  artifacts:
-    expire_in: 1 days
-    paths:
-      - $IMAGE-$VERSION/image.tar.gz
-
-.docker-push-job:
-  extends: .docker-job
-  before_script:
+    - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" -t "$CI_REGISTRY_IMAGE/$IMAGE:$TAG" -f "$DOCKERFILE" "$CONTEXT"
     - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - docker load < $IMAGE-$VERSION/image.tar.gz
-    - |
-      for TAG in $PUSH_TAGS
-        do
-          docker tag $CI_REGISTRY_IMAGE/$IMAGE:$VERSION $CI_REGISTRY_IMAGE/$IMAGE:$TAG
-          docker push $CI_REGISTRY_IMAGE/$IMAGE:$TAG
-        done
+    - docker push "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION"
+    - docker push "$CI_REGISTRY_IMAGE/$IMAGE:$TAG"
 
 cache:
   key:
@@ -167,30 +153,14 @@ cinco-cloud-build-main:
     CONTEXT: ./cinco-cloud/services
     DOCKERFILE: ./cinco-cloud/services/main/Dockerfile
     IMAGE: main
-    VERSION: latest
-
-.cinco-cloud-push-image-job:
-  extends:
-    - .cinco-cloud-default-job-main
-    - .docker-push-job
-  needs:
-    - cinco-cloud-build-main
-
-cinco-cloud-push-image-main:
-  extends:
-    - .cinco-cloud-default-job-main
-    - .cinco-cloud-push-image-job
-  variables:
-    IMAGE: main
-    VERSION: latest
-    PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+    TAG: latest
 
 cinco-cloud-deploy-testing:
   extends:
     - .cinco-cloud-default-job-main
     - .cinco-cloud-deploy-job
   needs:
-    - cinco-cloud-push-image-main
+    - cinco-cloud-build-main
   variables:
     PROFILE: demo-k8s-ls5
     NAMESPACE: cinco-cloud-demo
@@ -264,18 +234,7 @@ archetype-build:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
     IMAGE: archetype
-    VERSION: latest
-
-archetype-push:
-  extends:
-    - .archetype-default-job-main
-    - .docker-push-job
-  needs:
-    - archetype-build
-  variables:
-    IMAGE: archetype
-    VERSION: latest
-    PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+    TAG: latest
 
 # feature-branch pipeline
 archetype-build-dev:
@@ -287,18 +246,7 @@ archetype-build-dev:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
     IMAGE: archetype
-    VERSION: dev
-
-archetype-push-dev:
-  extends:
-    - .archetype-default-job-feature
-    - .docker-push-job
-  needs:
-    - archetype-build-dev
-  variables:
-    IMAGE: archetype
-    VERSION: dev
-    PUSH_TAGS: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+    TAG: dev
 
 # ====================================
 # GitLab Pages

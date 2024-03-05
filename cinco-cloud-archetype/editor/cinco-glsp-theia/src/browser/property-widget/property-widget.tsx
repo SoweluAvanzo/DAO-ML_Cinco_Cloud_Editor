@@ -672,7 +672,8 @@ function addPropertyValue(
     const defaultValue = getFallbackDefaultValue(attributeDefinition.type);
     const isList = isListAttribute(bounds.upperBound);
 
-    // update state
+    // TODO: The follwoing code mutates the state, the shallow copy in the next
+    // line does not prevent that.
     const newState = { ...state };
     const objectValue = locateObjectValue(newState, pointer);
     if (isList) {
