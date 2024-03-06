@@ -206,7 +206,18 @@ export class MGLGenerator {
           if (isPrimitiveAttribute(attribute)) {
             result.type = attribute.dataType;
           } else if (isComplexAttribute(attribute)) {
-            result.type = attribute.type.ref?.name.toLowerCase() ?? "";
+            const { $type, name } = attribute.type.ref!
+            const prefix =
+                (() => {switch ($type) {
+                    case "Node":
+                    case "NodeContainer":
+                        return "node:";
+                    case "Edge":
+                        return "edge:";
+                    default:
+                        return "";
+                }})()
+            result.type = prefix + name.toLowerCase();
           }
 
           return result;
