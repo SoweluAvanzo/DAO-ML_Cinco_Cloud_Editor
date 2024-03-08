@@ -96,7 +96,7 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
 
     protected postCreateHook(node: Node): void {
         // TODO: generalize postCreate
-        if (node.type !== 'node:activity') {
+        if (node.type !== 'flowgraph:activity') {
             return;
         }
         const activityNames = [

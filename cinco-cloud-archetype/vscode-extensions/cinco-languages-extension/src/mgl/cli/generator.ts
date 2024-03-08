@@ -1,3 +1,4 @@
+import * as path from 'path'
 import {
   AbsolutePosition,
   AbstractPosition,
@@ -84,16 +85,20 @@ export class MGLGenerator {
 
   async generateMetaSpecification(
     model: MglModel,
-    filePath: string
+    mglPathString: string
   ): Promise<string> {
     // Handle appearances and styles first
     // Trim path to MGL to retrieve the project path
-    const pathToProject = filePath.substring(0, filePath.lastIndexOf("/") + 1);
-    const appearancesAndStyles = await inferAppearancesAndStyles(
-      pathToProject + model.stylePath
-    );
-    this.specification.appearances = appearancesAndStyles.appearances;
-    this.specification.styles = appearancesAndStyles.styles;
+    const mglPath = path.parse(mglPathString);
+    const mglName = mglPath.name;
+
+    const mslPathString = path.join(mglPath.dir, model.stylePath)
+    const mslPath = path.parse(mslPathString);
+    const mslName = mslPath.name;
+    const { appearances, styles } =
+      await inferAppearancesAndStyles(mslPathString, mslName);
+    this.specification.appearances = appearances;
+    this.specification.styles = styles;
 
     // Handle MGL
     const { sortedModelElements, descendantsMap } =
@@ -105,12 +110,16 @@ export class MGLGenerator {
       let elementTypeId = "";
       if (!isEnum(modelElement) && modelElement.isAbstract) {
         elementTypeId = this.handleModelElement(
+          mglName,
+          mslName,
           modelElement,
           this.abstractModelElements
         );
         abstractElementTypeIds.push(elementTypeId);
       } else {
         elementTypeId = this.handleModelElement(
+          mglName,
+          mslName,
           modelElement,
           this.specification
         );
@@ -130,36 +139,39 @@ export class MGLGenerator {
 
   // Constructs the modelElementSpec and returns the resulting elementTypeId
   handleModelElement(
+    mglName: string,
+    mslName: string,
     modelElement: ModelElement,
     specification: Specification
   ): string {
     var modelElementSpec: any = {};
 
     // If parent exists, first copy its entire specifications and overwrite customizations afterwards
-    if (!isEnum(modelElement)) {
-      const parentName = modelElement.localExtension?.ref?.name.toLowerCase();
+    if (!isEnum(modelElement) && modelElement.localExtension !== undefined && modelElement.localExtension.ref !== undefined) {
+      const parentName = modelElement.localExtension.ref.name;
+      const parentId = buildIdentifier(mglName, parentName);
       if (parentName) {
-        let foundParent = undefined;
+        let foundParent;
         if (isGraphModel(modelElement)) {
           foundParent = [
             ...this.specification.graphTypes,
             ...this.abstractModelElements.graphTypes,
           ].find(
-            (graphType) => graphType.elementTypeId.split(":")[1] === parentName
+            (graphType) => graphType.elementTypeId === parentId
           );
         } else if (isNode(modelElement) || isNodeContainer(modelElement)) {
           foundParent = [
             ...this.specification.nodeTypes,
             ...this.abstractModelElements.nodeTypes,
           ].find(
-            (nodeType) => nodeType.elementTypeId.split(":")[1] === parentName
+            (nodeType) => nodeType.elementTypeId === parentId
           );
         } else if (isEdge(modelElement)) {
           foundParent = [
             ...this.specification.edgeTypes,
             ...this.abstractModelElements.edgeTypes,
           ].find(
-            (edgeType) => edgeType.elementTypeId.split(":")[1] === parentName
+            (edgeType) => edgeType.elementTypeId === parentId
           );
         }
         // Copy the parent deeply
@@ -169,8 +181,8 @@ export class MGLGenerator {
       }
     }
 
-    // This is completed later by prepending the modelElement type (see below)
-    modelElementSpec.elementTypeId = modelElement.name.toLowerCase();
+    modelElementSpec.elementTypeId =
+      buildIdentifier(mglName, modelElement.name);
 
     modelElementSpec.label = modelElement.name;
 
@@ -206,18 +218,8 @@ export class MGLGenerator {
           if (isPrimitiveAttribute(attribute)) {
             result.type = attribute.dataType;
           } else if (isComplexAttribute(attribute)) {
-            const { $type, name } = attribute.type.ref!
-            const prefix =
-                (() => {switch ($type) {
-                    case "Node":
-                    case "NodeContainer":
-                        return "node:";
-                    case "Edge":
-                        return "edge:";
-                    default:
-                        return "";
-                }})()
-            result.type = prefix + name.toLowerCase();
+            const { name } = attribute.type.ref!
+            result.type = buildIdentifier(mglName, name)
           }
 
           return result;
@@ -238,7 +240,8 @@ export class MGLGenerator {
             // TODO Add handling of externalContainments
             elements:
               containableElement.localContainments.map((localContainment) => {
-                return "node:" + localContainment.ref?.name.toLowerCase();
+                const { name } = localContainment.ref!;
+                return buildIdentifier(mglName, name)
               }) ?? [],
           };
         })
@@ -250,23 +253,21 @@ export class MGLGenerator {
       isEdge(modelElement) ||
       isNodeContainer(modelElement)
     ) {
-      const graphicalElement: Node | Edge | NodeContainer = modelElement;
-      const usedStyle = graphicalElement.usedStyle;
+      const { usedStyle, styleParameters } =
+        modelElement as Node | Edge | NodeContainer;
 
-      modelElementSpec.view = {
-        style: usedStyle,
-      };
-      if (graphicalElement.styleParameters) {
-        modelElementSpec.view.styleParameter = graphicalElement.styleParameters;
+      modelElementSpec.view = {};
+
+      if (usedStyle !== undefined) {
+        modelElementSpec.view.style = buildIdentifier(mslName, usedStyle);
       }
+
+      modelElementSpec.view.styleParameter = styleParameters;
     }
 
     if (isGraphModel(modelElement)) {
       const graphModel: GraphModel = modelElement;
 
-      // Prepend modelElement type to complete elementTypeId
-      modelElementSpec.elementTypeId =
-        "graphmodel:" + modelElementSpec.elementTypeId;
       modelElementSpec.diagramExtension = graphModel.fileExtension;
 
       specification.graphTypes.push(modelElementSpec);
@@ -280,9 +281,6 @@ export class MGLGenerator {
         (style) => style.name === usedStyleName
       );
       const mainShape = usedStyle?.shape;
-
-      // Prepend modelElement type to complete elementTypeId
-      modelElementSpec.elementTypeId = "node:" + modelElementSpec.elementTypeId;
 
       // TODO Check for disable annotation for these
       modelElementSpec.deletable =
@@ -300,14 +298,14 @@ export class MGLGenerator {
       modelElementSpec.incomingEdges = mergeElementConstraints(
         modelElementSpec.incomingEdges,
         node.incomingEdgeConnections.map((incomingEdgeConnection) => {
-          return getEdgeElementConnectionObject(incomingEdgeConnection);
+          return getEdgeElementConnectionObject(mglName, incomingEdgeConnection);
         })
       );
 
       modelElementSpec.outgoingEdges = mergeElementConstraints(
         modelElementSpec.outgoingEdges,
         node.outgoingEdgeConnections.map((outgoingEdgeConnection) => {
-          return getEdgeElementConnectionObject(outgoingEdgeConnection);
+          return getEdgeElementConnectionObject(mglName, outgoingEdgeConnection);
         })
       );
 
@@ -315,8 +313,6 @@ export class MGLGenerator {
     }
 
     if (isEdge(modelElement)) {
-      modelElementSpec.elementTypeId = "edge:" + modelElementSpec.elementTypeId;
-
       specification.edgeTypes.push(modelElementSpec);
     }
 
@@ -392,10 +388,11 @@ export class MGLGenerator {
 }
 
 async function inferAppearancesAndStyles(
-  stylePath: string
+  mslPathString: string,
+  mslName: string
 ): Promise<{ appearances: any[]; styles: any[] }> {
   const services = createMslServices(NodeFileSystem).Msl;
-  const model = await extractAstNode<Styles>(stylePath, services);
+  const model = await extractAstNode<Styles>(mslPathString, services);
 
   // TODO Type properly
   const result = {
@@ -407,7 +404,7 @@ async function inferAppearancesAndStyles(
     // TODO Type properly
     let appearanceConfiguration: any = {};
 
-    appearanceConfiguration.name = appearance.name;
+    appearanceConfiguration.name = buildIdentifier(mslName, appearance.name);
     appearanceConfiguration.parent = appearance.parent?.ref?.name;
     appearanceConfiguration.lineWidth = appearance.lineWidth;
     appearanceConfiguration.lineStyle = appearance.lineStyle?.lineType;
@@ -440,7 +437,7 @@ async function inferAppearancesAndStyles(
     // TODO Type properly
     let styleConfiguration: any = {};
 
-    styleConfiguration.name = style.name;
+    styleConfiguration.name = buildIdentifier(mslName, style.name);
     styleConfiguration.appearanceProvider = style.appearanceProvider;
     styleConfiguration.parameterCount = style.parameterCount;
 
@@ -454,9 +451,9 @@ async function inferAppearancesAndStyles(
       if (inlineAppearance) {
         styleConfiguration.appearance =
           handleInlineAppearance(inlineAppearance);
-      } else {
+      } else if (edgeStyle.referencedAppearance !== undefined && edgeStyle.referencedAppearance.ref !== undefined) {
         styleConfiguration.appearance =
-          edgeStyle.referencedAppearance?.ref?.name;
+          buildIdentifier(mslName, edgeStyle.referencedAppearance.ref.name);
       }
 
       // Decorators
@@ -791,6 +788,7 @@ function handleFont(font: Font) {
 }
 
 function getEdgeElementConnectionObject(
+  mglName: string,
   edgeElementConnection: EdgeElementConnection
 ) {
   return {
@@ -799,7 +797,8 @@ function getEdgeElementConnectionObject(
     // TODO Add handling of externalConnections
     elements:
       edgeElementConnection.localConnection.map((localContainment) => {
-        return "edge:" + localContainment.ref?.name.toLowerCase();
+        const { name } = localContainment.ref!;
+        return buildIdentifier(mglName, name);
       }) ?? [],
   };
 }
@@ -815,4 +814,8 @@ function handleUpperBound(
     return -1;
   }
   return specification;
+}
+
+function buildIdentifier(namespace: string, name: string) {
+  return `${namespace.toLowerCase()}:${name.toLowerCase()}`
 }
