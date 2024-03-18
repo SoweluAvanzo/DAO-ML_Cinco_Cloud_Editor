@@ -600,9 +600,8 @@ export class CincoPropertyEntry extends React.Component<
                                 // ModelElementReference identifier specified in the following fallback order:
                                 // name => label => attributeDefinitionType
                                 <option value={id} key={id}>
-                                    {name !== '' ? name : label !== '' ? label : attributeDefinition.type} (
-                                    {name !== '' ? label + ', ' : ''}
-                                    {id})
+                                    {name ? name : label ? label : attributeDefinition.type}
+                                    ({name ? label + ', ' : ''}{id})
                                 </option>
                             ))}
                         </select>
@@ -672,7 +671,8 @@ function addPropertyValue(
     const defaultValue = getFallbackDefaultValue(attributeDefinition.type);
     const isList = isListAttribute(bounds.upperBound);
 
-    // update state
+    // TODO: The follwoing code mutates the state, the shallow copy in the next
+    // line does not prevent that.
     const newState = { ...state };
     const objectValue = locateObjectValue(newState, pointer);
     if (isList) {

@@ -43,6 +43,8 @@ export class CincoProjectInitializerWidgetContribution extends AbstractViewContr
     }
 }
 
+const repositoryDirectories = ['.git'];
+
 @injectable()
 export class CincoProjectInitializerFrontendApplicationContribution implements FrontendApplicationContribution {
 
@@ -57,7 +59,15 @@ export class CincoProjectInitializerFrontendApplicationContribution implements F
 
     protected async checkAndOpenWidget(): Promise<void> {
         const workspaceChildren = this.workspaceService.workspace?.children || [];
-        const isEmpty = workspaceChildren.length === 0;
+        let isEmpty = true;
+        for (const child of workspaceChildren) {
+            if (child.isDirectory && repositoryDirectories.includes(child.name)) {
+                continue;
+            } else {
+                isEmpty = false;
+                break;
+            }
+        }
 
         if (isEmpty) {
             this.commandService.executeCommand(CincoProjectInitializerWidgetCommand.id);
