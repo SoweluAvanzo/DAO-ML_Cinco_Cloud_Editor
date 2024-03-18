@@ -72,7 +72,7 @@
                 "key": "alt+g"
             },
             {
-                "command": "cincoCloud.generateAndUploadCincoProduct",
+                "command": "cincoCloud.uploadCincoProduct",
                 "key": "alt+Shift+g"
             }
         ],
@@ -87,8 +87,8 @@
                 }
             },
             {
-                "command": "cincoCloud.generateAndUploadCincoProduct",
-                "title": "Generate & Upload Meta-Specification",
+                "command": "cincoCloud.uploadCincoProduct",
+                "title": "Upload Meta-Specification",
                 "icon": {
                     "light": "./resources/upload_light.svg",
                     "dark": "./resources/upload_dark.svg"
@@ -104,7 +104,7 @@
                 },
                 {
                     "when": "resourceLangId == mgl",
-                    "command": "cincoCloud.generateAndUploadCincoProduct",
+                    "command": "cincoCloud.uploadCincoProduct",
                     "group": "navigation"
                 }
             ]

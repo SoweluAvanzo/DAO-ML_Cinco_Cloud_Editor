@@ -6,53 +6,70 @@ import { createMglServices } from '../language-server/mgl-module';
 import { extractAstNode } from './cli-util';
 import { MGLGenerator } from './generator';
 import { NodeFileSystem } from 'langium/node';
-import { saveToLanguagesFolder, uploadToMinio } from './persistence_handler';
+import { getLanguageFolder, saveToFolder, uploadToMinio } from './persistence_handler';
 import * as vscode from 'vscode';
 
-export const generateAction = async (filePath: string, opts: GenerateOptions, uploadMetaSpecification?: boolean): Promise<void> => {
+export enum LanguageJobMode {
+    UPLOAD,
+    GENERATE,
+    UPLOAD_AND_GENERATE
+}
+
+export const languageHandlingAction = async (filePath: string, opts: GenerateOptions, mode?: LanguageJobMode): Promise<void> => {
     let generatedMetaSpecification: string;
-    const prefix = "Generation" + (uploadMetaSpecification ? " and Upload" : "");
+    const prefix = mode === LanguageJobMode.GENERATE ? "Generation" : mode === LanguageJobMode.UPLOAD ? "Upload" : mode === LanguageJobMode.UPLOAD_AND_GENERATE ? "Generate and Upload" : undefined;
     console.log(chalk.green(`Starting generation for currently opened MGL...`));
-    generationProgress(
-        "Generating",
-        [
-            {
-                message: "Reading currently opened MGL...",
-                callable: async(errorDisplay) => {
-                    const services = createMglServices(NodeFileSystem).Mgl;
-                    const model = await extractAstNode<MglModel>(filePath, services);
-                    const result = await new MGLGenerator().generateMetaSpecification(model, filePath).catch(e => {
-                        errorDisplay("Generation failed with error:\n"+e)
-                    });
-                    if(result) {
-                        generatedMetaSpecification = result;
-                    }
-                }
-            },
-            {
-                message: "Uploading generated...",
-                callable: async (errorDisplay) => {
+    
+    const languageJobs: LanguageJob[] = [];
+    if(mode === LanguageJobMode.GENERATE || mode === LanguageJobMode.UPLOAD_AND_GENERATE) {
+        languageJobs.push({
+            message: "Reading currently opened MGL...",
+            callable: async(errorDisplay) => {
+                const services = createMglServices(NodeFileSystem).Mgl;
+                const model = await extractAstNode<MglModel>(filePath, services);
+                const result = await new MGLGenerator().generateMetaSpecification(model, filePath).catch(e => {
+                    errorDisplay("Generation failed with error:\n"+e)
+                });
+                if(result) {
+                    generatedMetaSpecification = result;
                     const fileName = getFileName(filePath)
                     const specificationName = `${fileName}_spec.json`;
-                    const languagesFolder = await saveToLanguagesFolder(generatedMetaSpecification, specificationName, opts.destination).catch(e => {
+                    const languagesFolder = await getLanguageFolder(opts.destination);
+                    await saveToFolder(generatedMetaSpecification, specificationName, languagesFolder).catch(e => {
                         errorDisplay("Generation failed with error:\n"+e)
                         throw Error("failed save generated files!")
                     });
-                    if(uploadMetaSpecification) {
-                        return uploadToMinio(languagesFolder, (e) => {
-                            errorDisplay("Generation failed with error:\n"+e)
-                        });
-                    }
+                    //  update meta-specification in glsp-server
+                    vscode.commands.executeCommand('cinco.meta-specification.reload')
                 }
             }
-        ],
+        });
+    }
+    if(mode === LanguageJobMode.UPLOAD || mode === LanguageJobMode.UPLOAD_AND_GENERATE) {
+        languageJobs.push(
+            {
+                message: "Uploading languages...",
+                callable: async (errorDisplay) => {
+                    const languagesFolder = await getLanguageFolder(opts.destination);
+                    return uploadToMinio(languagesFolder, (e) => {
+                        errorDisplay("Uploading failed with error:\n"+e)
+                    });
+                }
+            }
+        )
+    }
+
+    generationProgress(
+        "Generating",
+        languageJobs,
         prefix + " successful!",
         prefix + " ended with errors!",
         prefix + " canceled!"
     )
 };
 
-export async function generationProgress(title: string, jobs: { message: string, callable: (errorDisplay: (message: string) => void ) => Promise<void> | void}[],
+export type LanguageJob = { message: string, callable: (errorDisplay: (message: string) => void ) => Promise<void> | void};
+export async function generationProgress(title: string, jobs: LanguageJob[],
     finishedMessage?: string, errorMessage?: string, cancelMessage?: string
 ): Promise<void> {
     vscode.window.withProgress({
@@ -138,7 +155,7 @@ export default function(): void {
         .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
         .option('-d, --destination <dir>', 'destination directory of generating')
         .description('generates JavaScript code that prints "Hello, {name}!" for each greeting in a source file')
-        .action(generateAction);
+        .action(languageHandlingAction);
 
     program.parse(process.argv);
 }
