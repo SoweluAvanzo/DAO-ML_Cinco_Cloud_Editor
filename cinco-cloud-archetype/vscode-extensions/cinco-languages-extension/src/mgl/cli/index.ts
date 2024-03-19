@@ -27,7 +27,7 @@ export const languageHandlingAction = async (filePath: string, opts: GenerateOpt
             callable: async(errorDisplay) => {
                 const services = createMglServices(NodeFileSystem).Mgl;
                 const model = await extractAstNode<MglModel>(filePath, services);
-                const result = await new MGLGenerator().generateMetaSpecification(model, filePath).catch(e => {
+                const result = await new MGLGenerator().generateMetaSpecification(model, filePath, services).catch(e => {
                     errorDisplay("Generation failed with error:\n"+e)
                 });
                 if(result) {

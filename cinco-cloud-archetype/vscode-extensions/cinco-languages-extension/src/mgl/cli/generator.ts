@@ -4,10 +4,8 @@ import {
   AbstractShape,
   Alignment,
   Annotation,
-  Appearance,
   Color,
   ContainerShape,
-  CustomDataType,
   Edge,
   EdgeElementConnection,
   EdgeStyle,
@@ -27,7 +25,6 @@ import {
   RoundedRectangle,
   Shape,
   Size,
-  Style,
   Text,
   isAbsolutePosition,
   isAlignment,
@@ -53,6 +50,8 @@ import {
   isUserDefinedType,
 } from "../../generated/ast";
 import {
+  constructElementTypeId,
+  getElementTypeId,
   mergeArrays,
   replaceInMapValues,
   replaceKeyInMap,
@@ -65,7 +64,8 @@ import { NodeFileSystem } from "langium/node";
 import { ContainerType, Specification } from "../model/specification-types";
 import { isWebView } from "../../generated/ast";
 import { WebView } from "../../generated/ast";
-import path from 'path';
+import path from "path";
+import { MglServices } from '../language-server/mgl-module';
 
 export class MGLGenerator {
   specification: Specification = {
@@ -86,37 +86,52 @@ export class MGLGenerator {
     styles: [],
   };
 
+  async loadExternalModel(filePath: string, services: MglServices): Promise<MglModel> {
+    const model = await extractAstNode<MglModel>(filePath, services);
+    return model;
+  }
+
   async generateMetaSpecification(
     model: MglModel,
-    mglPathString: string
+    mglPathString: string,
+    services: MglServices
   ): Promise<string> {
-		const mglPath = path.parse(mglPathString);
-    const mslPathString = path.join(mglPath.dir, model.stylePath)
+    const mglPath = path.parse(mglPathString);
+    const mslPathString = path.join(mglPath.dir, model.stylePath);
+    const importPaths = model.imports.map(imprt => path.join(mglPath.dir, imprt.importURI));
+    const importedModels = [];
+    for(const modelPath of importPaths) {
+      importedModels.push(await this.loadExternalModel(modelPath, services));
+    }
 
     // Handle appearances and styles first
-    const { appearances, styles } =
-      await inferAppearancesAndStyles(mslPathString);
+    const { appearances, styles } = await inferAppearancesAndStyles(
+      mslPathString
+    );
     this.specification.appearances = appearances;
     this.specification.styles = styles;
 
     // Handle MGL
     const { sortedModelElements, descendantsMap } =
-      topologicalSortWithDescendants(model.modelElements);
+      topologicalSortWithDescendants(model, importedModels);
     const abstractElementTypeIds = [];
 
     // Handle all model elements; abstract definitions are handled separately
-    for (const modelElement of sortedModelElements) {
+    const localSortedModelElements = sortedModelElements.filter(e => e.$container === model); // only generate for local, not external modelElements
+    for (const modelElement of localSortedModelElements) {
       let elementTypeId = "";
       if (!isEnum(modelElement) && modelElement.isAbstract) {
         elementTypeId = this.handleModelElement(
           modelElement,
-          this.abstractModelElements
+          this.abstractModelElements,
+          importedModels
         );
         abstractElementTypeIds.push(elementTypeId);
       } else {
         elementTypeId = this.handleModelElement(
           modelElement,
-          this.specification
+          this.specification,
+          importedModels
         );
       }
 
@@ -135,43 +150,38 @@ export class MGLGenerator {
   // Constructs the modelElementSpec and returns the resulting elementTypeId
   handleModelElement(
     modelElement: ModelElement,
-    specification: Specification
+    specification: Specification,
+    importedModels: MglModel[]
   ): string {
     var modelElementSpec: any = {};
 
     // If parent exists, first copy its entire specifications and overwrite customizations afterwards
     if (!isEnum(modelElement)) {
-      const parentName = modelElement.localExtension?.ref ? getElementTypeId(modelElement.localExtension?.ref) : undefined;
+      const parentName = modelElement.localExtension?.ref
+        ? getElementTypeId(modelElement.localExtension?.ref)
+        : undefined;
       if (parentName) {
         let foundParent = undefined;
         if (isGraphModel(modelElement)) {
           foundParent = [
             ...this.specification.graphTypes,
             ...this.abstractModelElements.graphTypes,
-          ].find(
-            (type) => type.elementTypeId === parentName
-          );
+          ].find((type) => type.elementTypeId === parentName);
         } else if (isNode(modelElement) || isNodeContainer(modelElement)) {
           foundParent = [
             ...this.specification.nodeTypes,
             ...this.abstractModelElements.nodeTypes,
-          ].find(
-            (type) => type.elementTypeId === parentName
-          );
+          ].find((type) => type.elementTypeId === parentName);
         } else if (isEdge(modelElement)) {
           foundParent = [
             ...this.specification.edgeTypes,
             ...this.abstractModelElements.edgeTypes,
-          ].find(
-            (type) => type.elementTypeId === parentName
-          );
+          ].find((type) => type.elementTypeId === parentName);
         } else if (isUserDefinedType(modelElement)) {
           foundParent = [
             ...this.specification.customTypes,
             ...this.abstractModelElements.customTypes,
-          ].find(
-            (type) => type.elementTypeId === parentName
-          );
+          ].find((type) => type.elementTypeId === parentName);
         }
         // Copy the parent deeply
         if (foundParent) {
@@ -215,11 +225,11 @@ export class MGLGenerator {
           if (isPrimitiveAttribute(attribute)) {
             result.type = attribute.dataType;
           } else if (isComplexAttribute(attribute)) {
-			const type = attribute.type.ref;
-			if(type === undefined) {
-				throw new Error("Attribute type is undefined!");
-			}
-			result.type = getElementTypeId(type);
+            const type = attribute.type.ref;
+            if (type === undefined) {
+              throw new Error("Attribute type is undefined!");
+            }
+            result.type = getElementTypeId(type);
           }
 
           return result;
@@ -228,25 +238,93 @@ export class MGLGenerator {
       );
     }
 
+    // handle containment constraints
     if (isGraphModel(modelElement) || isNodeContainer(modelElement)) {
       const containerElement: GraphModel | NodeContainer = modelElement;
 
-      modelElementSpec.containments = mergeElementConstraints(
-        modelElementSpec.containments,
-        containerElement.containableElements.map((containableElement) => {
+      // local wildcards
+      const selfWildcards = containerElement.containmentWildcards.filter(wildcard => wildcard.selfWildcard);
+      const localWildcards = selfWildcards.map(wildcard => {
+        const allNodes = containerElement.$container.modelElements.filter(modelElement => 
+          isNode(modelElement) || isNodeContainer(modelElement)
+        );
+        return {
+          lowerBound: wildcard.lowerBound ?? 0,
+          upperBound: handleUpperBound(wildcard.upperBound, -1),
+          elements: allNodes.map(modelElement => getElementTypeId(modelElement))
+        }
+      });
+      // local containments
+      const localContainableElements = containerElement.containableElements.filter(
+        (c) => c.localContainments.length >= 0
+      ).map(
+        (containment) => {
           return {
-            lowerBound: containableElement.lowerBound ?? 0,
-            upperBound: handleUpperBound(containableElement.upperBound, -1),
+            lowerBound: containment.lowerBound ?? 0,
+            upperBound: handleUpperBound(containment.upperBound, -1),
             // TODO Add handling of externalContainments
             elements:
-              containableElement.localContainments.map((localContainment) => {
-				if(!localContainment.ref) {
-					throw new Error("Referenced containment is undefined");
-				}
-				return getElementTypeId(localContainment.ref);
+              containment.localContainments.map((localContainment) => {
+                if (!localContainment.ref) {
+                  throw new Error("Referenced containment is undefined");
+                }
+                return getElementTypeId(localContainment.ref);
               }) ?? [],
           };
-        })
+        }
+      );
+
+      // external Wildcards
+      const externalWildcards = containerElement.containmentWildcards.filter(wildcard => !wildcard.selfWildcard).map(wildcard => {
+        if(!wildcard.referencedImport?.ref) {
+          throw new Error("Referenced wildcard could not be resolved!");
+        }
+        if(!containerElement.$container.$document?.uri.fsPath) {
+          throw new Error("Parsing MGL that has no URI! This should not happen");
+        }
+
+        // identify referenced model from imports
+        const mglPath = path.parse(containerElement.$container.$document?.uri.fsPath);
+        const referencedModelPath = path.parse(path.join(mglPath.dir, wildcard.referencedImport.ref.importURI));
+        const referencedModels = importedModels.filter(model => {
+          const modelPath = path.parse(model.$document?.uri.fsPath ?? '')
+          return modelPath.dir === referencedModelPath.dir && modelPath.base === referencedModelPath.base
+        });
+        // identify nodes of referenced model
+        const allNodes = referencedModels.map(
+          model => model.modelElements.filter(modelElement =>
+            isNode(modelElement) || isNodeContainer(modelElement)
+        )).flat();
+
+        return {
+          lowerBound: wildcard.lowerBound ?? 0,
+          upperBound: handleUpperBound(wildcard.upperBound, -1),
+          elements: allNodes.map(modelElement => getElementTypeId(modelElement))
+        }
+      });
+      // external containments
+      const externalContainableElements = containerElement.containableElements.filter(
+        (c) => c.externalContainment !== undefined
+      ).map(
+        (containment) => {
+          const externalContainment = containment.externalContainment;
+          if(!externalContainment || !externalContainment.import || !externalContainment.import.ref) {
+            throw new Error("External reference can not be resolved!");
+          }
+          const externalContainerName = externalContainment.import.ref.importURI;
+          const externalReferencedContainment = externalContainment.elements; // names of the containments
+          const externalContainmentIDs = externalReferencedContainment.map(e => constructElementTypeId(e, externalContainerName));
+          return {
+            lowerBound: containment.lowerBound ?? 0,
+            upperBound: handleUpperBound(containment.upperBound, -1),
+            elements: externalContainmentIDs
+          };
+        }
+      );
+      const allContainments = localWildcards.concat(localContainableElements).concat(externalWildcards).concat(externalContainableElements);
+      modelElementSpec.containments = mergeElementConstraints(
+        modelElementSpec.containments,
+        allContainments
       );
     }
 
@@ -257,8 +335,13 @@ export class MGLGenerator {
     ) {
       const graphicalElement: Node | Edge | NodeContainer = modelElement;
 
-			modelElementSpec.view = { style: undefined };
-      modelElementSpec.view.style = graphicalElement.usedStyle ? constructElementTypeId(graphicalElement.usedStyle, modelElement.$container.stylePath) : undefined;
+      modelElementSpec.view = { style: undefined };
+      modelElementSpec.view.style = graphicalElement.usedStyle
+        ? constructElementTypeId(
+            graphicalElement.usedStyle,
+            modelElement.$container.stylePath
+          )
+        : undefined;
       if (graphicalElement.styleParameters) {
         modelElementSpec.view.styleParameter = graphicalElement.styleParameters;
       }
@@ -336,8 +419,8 @@ export class MGLGenerator {
         let newElements: string[] = [];
 
         const recursivelyReplace = (element: string) => {
-          if (descendantMap[element]) {
-            if (!abstractElementTypeIds.includes(element)) {
+          if (descendantMap[element].size > 0) {
+            if (!abstractElementTypeIds.includes(element) && !newElements.includes(element)) {
               newElements.push(element);
             }
             for (let descendant of descendantMap[element]) {
@@ -345,7 +428,9 @@ export class MGLGenerator {
             }
           } else {
             // If the element doesn't have descendants, add it to the newElements list
-            newElements.push(element);
+            if(!newElements.includes(element)) {
+              newElements.push(element);
+            }
           }
         };
 
@@ -389,10 +474,11 @@ async function inferAppearancesAndStyles(
     styles: [] as any[],
   };
 
-
   for (const appearance of model.appearances) {
     let appearanceConfiguration: any = {};
-		const parentId = appearance.parent?.ref ? getElementTypeId(appearance.parent.ref) : undefined;
+    const parentId = appearance.parent?.ref
+      ? getElementTypeId(appearance.parent.ref)
+      : undefined;
     appearanceConfiguration.name = getElementTypeId(appearance);
     appearanceConfiguration.parent = parentId;
     appearanceConfiguration.lineWidth = appearance.lineWidth;
@@ -441,7 +527,9 @@ async function inferAppearancesAndStyles(
         styleConfiguration.appearance =
           handleInlineAppearance(inlineAppearance);
       } else {
-        styleConfiguration.appearance = edgeStyle.referencedAppearance?.ref ? getElementTypeId(edgeStyle.referencedAppearance?.ref) : undefined;
+        styleConfiguration.appearance = edgeStyle.referencedAppearance?.ref
+          ? getElementTypeId(edgeStyle.referencedAppearance?.ref)
+          : undefined;
       }
 
       // Decorators
@@ -469,7 +557,10 @@ async function inferAppearancesAndStyles(
             predefinedDecoratorConfiguration.appearance =
               handleInlineAppearance(inlineAppearance);
           } else {
-            predefinedDecoratorConfiguration.appearance = predefinedDecorator.referencedAppearance?.ref ? getElementTypeId(predefinedDecorator.referencedAppearance?.ref) : undefined;
+            predefinedDecoratorConfiguration.appearance = predefinedDecorator
+              .referencedAppearance?.ref
+              ? getElementTypeId(predefinedDecorator.referencedAppearance?.ref)
+              : undefined;
           }
 
           decoratorConfiguration.predefinedDecorator =
@@ -573,7 +664,9 @@ function handleAbstractShape(abstractShape: AbstractShape) {
     if (inlineAppearance) {
       result.appearance = handleInlineAppearance(inlineAppearance);
     } else {
-      result.appearance = containerShape.referencedAppearance?.ref ? getElementTypeId(containerShape.referencedAppearance?.ref) : undefined;
+      result.appearance = containerShape.referencedAppearance?.ref
+        ? getElementTypeId(containerShape.referencedAppearance?.ref)
+        : undefined;
     }
 
     // Position
@@ -632,7 +725,9 @@ function handleAbstractShape(abstractShape: AbstractShape) {
       if (inlineAppearance) {
         result.appearance = handleInlineAppearance(inlineAppearance);
       } else {
-        result.appearance = nonImage.referencedAppearance?.ref ? getElementTypeId(nonImage.referencedAppearance?.ref) : undefined;
+        result.appearance = nonImage.referencedAppearance?.ref
+          ? getElementTypeId(nonImage.referencedAppearance?.ref)
+          : undefined;
       }
     }
     if (!isPolyline(shape)) {
@@ -690,7 +785,9 @@ function handleInlineAppearance(inlineAppearance: InlineAppearance) {
     background: inlineAppearance.background
       ? handleColor(inlineAppearance.background)
       : null,
-    parent: inlineAppearance.parent?.ref ? getElementTypeId(inlineAppearance.parent?.ref) : undefined,
+    parent: inlineAppearance.parent?.ref
+      ? getElementTypeId(inlineAppearance.parent?.ref)
+      : undefined,
     foreground: inlineAppearance.foreground
       ? handleColor(inlineAppearance.foreground)
       : null,
@@ -778,10 +875,10 @@ function getEdgeElementConnectionObject(
     // TODO Add handling of externalConnections
     elements:
       edgeElementConnection.localConnection.map((localContainment) => {
-		if(!localContainment.ref) {
-			throw new Error("Referenced edge in containment is undefined.");
-		}
-		return getElementTypeId(localContainment.ref);
+        if (!localContainment.ref) {
+          throw new Error("Referenced edge in containment is undefined.");
+        }
+        return getElementTypeId(localContainment.ref);
       }) ?? [],
   };
 }
@@ -797,21 +894,4 @@ function handleUpperBound(
     return -1;
   }
   return specification;
-}
-
-function getElementTypeId(element: ModelElement | CustomDataType | Appearance | Style): string {
-  const containerPath = element.$container.$document?.uri.fsPath;
-  if (containerPath === undefined) {
-    throw new Error(
-      "Model is not associated with any document. A uri is needed!"
-    );
-  }
-  return constructElementTypeId(element.name, containerPath);
-}
-
-function constructElementTypeId(elementName: string, containerPath: string): string {
-	const containerName = path.parse(containerPath).name;
-  return (
-    containerName.toLocaleLowerCase() + ":" + elementName.toLowerCase()
-  );
 }
