@@ -1,0 +1,22 @@
+import './Hierarchy.mgl' as hierarchy
+id info.scce.cinco.product.hierarchyexternal
+stylePath "./Hierarchy.style"
+
+/*
+ * External Node
+ */
+
+node ExternalNodeHierarchy1 {
+}
+
+node ExternalNodeHierarchy2 {
+}
+
+node ExtendsExternal extends hierarchy::ShouldExtendedByExternal {
+}
+
+edge ExternalEdge1 extends hierarchy::EdgeD {	
+}
+
+edge ExternalEdge2 {
+}

@@ -1,9 +1,21 @@
+
+import "./HierarchyExternal.mgl" as externalHierarchy
+
 id info.scce.cinco.product.hierarchy
 stylePath "./Empty.style"
 
+
+graphModel HierarchyReference {
+	diagramExtension "hierarchy"	
+	containableElements(ContA[0,2], ContB[0,2], ContC[0,2], ContD[0,2])
+	attr string as ofA
+	attr TA as ta
+	attr TA as taList [0, *]
+}
+
 graphModel HierarchyA extends HierarchyB {
 	diagramExtension "hierarchyA"	
-	containableElements(ContA[0,2]) // TODO: these are not correct. merge needed.
+	containableElements(ContA[0,2])
 	attr string as ofA
 	attr TA as ta
 	attr TA as taList [0, *]
@@ -47,15 +59,45 @@ node NodeAbstractEdgeC extends A {
 	outgoingEdges (EdgeC[1,*])
 }
 
-node NodeWildcardEdge extends A {
+node NodeLocalWildcardEdge {
 	style blueTextRectangle("${ofC}")
-	incomingEdges (*[0,*])
+	incomingEdges (*[0,*]) // TODO: This is not resolved, also external
 	outgoingEdges (*[0,*])
 }
 
-container WildcardCont extends Cont {
+node NodeExternalWildcardEdge {
+	style blueTextRectangle("${ofC}")
+	incomingEdges (externalHierarchy::*[0,*]) // TODO: This is not resolved, also external
+	outgoingEdges (externalHierarchy::*[0,*])
+}
+
+node NodeExternalConcreteWildcardEdge {
+	style blueTextRectangle("${ofC}")
+	incomingEdges (externalHierarchy::ExternalEdge1[0,*]) // TODO: This is not resolved, also external
+	outgoingEdges (externalHierarchy::ExternalEdge1[0,*])
+}
+
+container WildcardCont {
 	style swimlane("${ofContA}")
-	containableElements(*[0,*]) // TODO: wildcard not mapped
+	containableElements(*[0,*])
+}
+
+container WildcardExternalCont {
+	style swimlane("${ofContA}")
+	containableElements(externalHierarchy::*[0,*])
+}
+
+container ExternalCont {
+	style swimlane("${ofContA}")
+	containableElements(externalHierarchy::ExternalNodeHierarchy1[0,*])
+}
+
+node ShouldExtendedByExternal {
+}
+
+container Should_Contain__ShouldExtendedByExternal__And__ExtendsExternal {
+	style swimlane("${ofContA}")
+	containableElements(ShouldExtendedByExternal[0,*])
 }
 
 /*
@@ -64,8 +106,8 @@ container WildcardCont extends Cont {
 
 node A extends B {
 	style blueTextRectangle("${ofD}")
-	incomingEdges (EdgeA[1,*]) // TODO: these are not correct. merge needed.
-	outgoingEdges (EdgeA[1,*]) // TODO: these are not correct. merge needed.
+	incomingEdges (EdgeA[1,*])
+	outgoingEdges (EdgeA[1,*])
 	attr string as ofA
 	attr TA as ta
 	attr TA as taList [0, *]
@@ -98,7 +140,7 @@ node D {
 
 container Cont extends ContA {
 	style swimlane("${ofContA}")
-	containableElements(A[0,1], B[0,2], C[0,3], D[0,4]) // TODO: verify
+	containableElements(A[0,1], B[0,2], C[0,3], D[0,4])
 	attr string as ofCont
 }
 
@@ -159,7 +201,7 @@ edge EdgeD {
 }
 
 type TA extends TB {
-	attr string as ofTA // TODO: elementTypeId needed + attributes not polymorphic resolved
+	attr string as ofTA
 }
 
 abstract type TB extends TC {
