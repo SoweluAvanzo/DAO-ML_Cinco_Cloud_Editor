@@ -9,8 +9,10 @@ import {
   Edge,
   EdgeElementConnection,
   EdgeStyle,
+  ExternalReference,
   Font,
   GraphModel,
+  GraphicalElementContainment,
   Image,
   InlineAppearance,
   MglModel,
@@ -26,15 +28,18 @@ import {
   Shape,
   Size,
   Text,
+  Wildcard,
   isAbsolutePosition,
   isAlignment,
   isComplexAttribute,
   isContainerShape,
   isEdge,
+  isEdgeElementConnection,
   isEdgeStyle,
   isEllipse,
   isEnum,
   isGraphModel,
+  isGraphicalElementContainment,
   isImage,
   isMultiText,
   isNode,
@@ -65,7 +70,13 @@ import { ContainerType, Specification } from "../model/specification-types";
 import { isWebView } from "../../generated/ast";
 import { WebView } from "../../generated/ast";
 import path from "path";
-import { MglServices } from '../language-server/mgl-module';
+import { MglServices } from "../language-server/mgl-module";
+
+export interface Constraint {
+  lowerBound: number | "*";
+  upperBound: number | "*";
+  elements: string[];
+}
 
 export class MGLGenerator {
   specification: Specification = {
@@ -86,7 +97,10 @@ export class MGLGenerator {
     styles: [],
   };
 
-  async loadExternalModel(filePath: string, services: MglServices): Promise<MglModel> {
+  async loadExternalModel(
+    filePath: string,
+    services: MglServices
+  ): Promise<MglModel> {
     const model = await extractAstNode<MglModel>(filePath, services);
     return model;
   }
@@ -98,9 +112,11 @@ export class MGLGenerator {
   ): Promise<string> {
     const mglPath = path.parse(mglPathString);
     const mslPathString = path.join(mglPath.dir, model.stylePath);
-    const importPaths = model.imports.map(imprt => path.join(mglPath.dir, imprt.importURI));
+    const importPaths = model.imports.map((imprt) =>
+      path.join(mglPath.dir, imprt.importURI)
+    );
     const importedModels = [];
-    for(const modelPath of importPaths) {
+    for (const modelPath of importPaths) {
       importedModels.push(await this.loadExternalModel(modelPath, services));
     }
 
@@ -117,7 +133,9 @@ export class MGLGenerator {
     const abstractElementTypeIds = [];
 
     // Handle all model elements; abstract definitions are handled separately
-    const localSortedModelElements = sortedModelElements.filter(e => e.$container === model); // only generate for local, not external modelElements
+    const localSortedModelElements = sortedModelElements.filter(
+      (e) => e.$container === model
+    ); // only generate for local, not external modelElements
     for (const modelElement of localSortedModelElements) {
       let elementTypeId = "";
       if (!isEnum(modelElement) && modelElement.isAbstract) {
@@ -240,94 +258,14 @@ export class MGLGenerator {
 
     // handle containment constraints
     if (isGraphModel(modelElement) || isNodeContainer(modelElement)) {
-      const containerElement: GraphModel | NodeContainer = modelElement;
-
-      // local wildcards
-      const selfWildcards = containerElement.containmentWildcards.filter(wildcard => wildcard.selfWildcard);
-      const localWildcards = selfWildcards.map(wildcard => {
-        const allNodes = containerElement.$container.modelElements.filter(modelElement => 
-          isNode(modelElement) || isNodeContainer(modelElement)
-        );
-        return {
-          lowerBound: wildcard.lowerBound ?? 0,
-          upperBound: handleUpperBound(wildcard.upperBound, -1),
-          elements: allNodes.map(modelElement => getElementTypeId(modelElement))
-        }
-      });
-      // local containments
-      const localContainableElements = containerElement.containableElements.filter(
-        (c) => c.localContainments.length >= 0
-      ).map(
-        (containment) => {
-          return {
-            lowerBound: containment.lowerBound ?? 0,
-            upperBound: handleUpperBound(containment.upperBound, -1),
-            // TODO Add handling of externalContainments
-            elements:
-              containment.localContainments.map((localContainment) => {
-                if (!localContainment.ref) {
-                  throw new Error("Referenced containment is undefined");
-                }
-                return getElementTypeId(localContainment.ref);
-              }) ?? [],
-          };
-        }
-      );
-
-      // external Wildcards
-      const externalWildcards = containerElement.containmentWildcards.filter(wildcard => !wildcard.selfWildcard).map(wildcard => {
-        if(!wildcard.referencedImport?.ref) {
-          throw new Error("Referenced wildcard could not be resolved!");
-        }
-        if(!containerElement.$container.$document?.uri.fsPath) {
-          throw new Error("Parsing MGL that has no URI! This should not happen");
-        }
-
-        // identify referenced model from imports
-        const mglPath = path.parse(containerElement.$container.$document?.uri.fsPath);
-        const referencedModelPath = path.parse(path.join(mglPath.dir, wildcard.referencedImport.ref.importURI));
-        const referencedModels = importedModels.filter(model => {
-          const modelPath = path.parse(model.$document?.uri.fsPath ?? '')
-          return modelPath.dir === referencedModelPath.dir && modelPath.base === referencedModelPath.base
-        });
-        // identify nodes of referenced model
-        const allNodes = referencedModels.map(
-          model => model.modelElements.filter(modelElement =>
-            isNode(modelElement) || isNodeContainer(modelElement)
-        )).flat();
-
-        return {
-          lowerBound: wildcard.lowerBound ?? 0,
-          upperBound: handleUpperBound(wildcard.upperBound, -1),
-          elements: allNodes.map(modelElement => getElementTypeId(modelElement))
-        }
-      });
-      // external containments
-      const externalContainableElements = containerElement.containableElements.filter(
-        (c) => c.externalContainment !== undefined
-      ).map(
-        (containment) => {
-          const externalContainment = containment.externalContainment;
-          if(!externalContainment || !externalContainment.import || !externalContainment.import.ref) {
-            throw new Error("External reference can not be resolved!");
-          }
-          const externalContainerName = externalContainment.import.ref.importURI;
-          const externalReferencedContainment = externalContainment.elements; // names of the containments
-          const externalContainmentIDs = externalReferencedContainment.map(e => constructElementTypeId(e, externalContainerName));
-          return {
-            lowerBound: containment.lowerBound ?? 0,
-            upperBound: handleUpperBound(containment.upperBound, -1),
-            elements: externalContainmentIDs
-          };
-        }
-      );
-      const allContainments = localWildcards.concat(localContainableElements).concat(externalWildcards).concat(externalContainableElements);
-      modelElementSpec.containments = mergeElementConstraints(
+      modelElementSpec.containments = handleContainmentConstraints(
+        modelElement,
         modelElementSpec.containments,
-        allContainments
+        importedModels
       );
     }
 
+    // handle GraphicalModelElement specific
     if (
       isNode(modelElement) ||
       isEdge(modelElement) ||
@@ -345,14 +283,20 @@ export class MGLGenerator {
       if (graphicalElement.styleParameters) {
         modelElementSpec.view.styleParameter = graphicalElement.styleParameters;
       }
+
+      // TODO check annotations for this
+      modelElementSpec.palettes = [];
     }
 
+    // handle graphModel
     if (isGraphModel(modelElement)) {
       const graphModel: GraphModel = modelElement;
       modelElementSpec.diagramExtension = graphModel.fileExtension;
 
       specification.graphTypes.push(modelElementSpec);
-    } else if (isNode(modelElement) || isNodeContainer(modelElement)) {
+    }
+    // handle Nodes
+    else if (isNode(modelElement) || isNodeContainer(modelElement)) {
       const node = modelElement as Node | NodeContainer;
       // Retrieve the main (container) shape to display width and height properly
       const usedStyleName = node.usedStyle;
@@ -371,29 +315,24 @@ export class MGLGenerator {
       modelElementSpec.width = mainShape?.size?.width ?? 100;
       modelElementSpec.height = mainShape?.size?.height ?? 100;
 
-      // TODO check annotations for this
-      modelElementSpec.palettes = [];
-
-      modelElementSpec.incomingEdges = mergeElementConstraints(
-        modelElementSpec.incomingEdges,
-        node.incomingEdgeConnections.map((incomingEdgeConnection) => {
-          return getEdgeElementConnectionObject(incomingEdgeConnection);
-        })
-      );
-
-      modelElementSpec.outgoingEdges = mergeElementConstraints(
-        modelElementSpec.outgoingEdges,
-        node.outgoingEdgeConnections.map((outgoingEdgeConnection) => {
-          return getEdgeElementConnectionObject(outgoingEdgeConnection);
-        })
-      );
+      // Handle edges
+      {
+        modelElementSpec.incomingEdges = handleEdgeConstraints(modelElement, modelElementSpec.incomingEdges, importedModels, true);
+        modelElementSpec.outgoingEdges = handleEdgeConstraints(modelElement, modelElementSpec.outgoingEdges, importedModels, false);
+      }
 
       specification.nodeTypes.push(modelElementSpec);
-    } else if (isEdge(modelElement)) {
+    }
+    // handle edges
+    else if (isEdge(modelElement)) {
       specification.edgeTypes.push(modelElementSpec);
-    } else if (isUserDefinedType(modelElement)) {
+    }
+    // handle userDefinedTypes
+    else if (isUserDefinedType(modelElement)) {
       specification.customTypes.push(modelElementSpec);
-    } else if (isEnum(modelElement)) {
+    }
+    // handle Enums
+    else if (isEnum(modelElement)) {
       modelElementSpec.literals = modelElement.literals;
       specification.customTypes.push(modelElementSpec);
     }
@@ -420,7 +359,10 @@ export class MGLGenerator {
 
         const recursivelyReplace = (element: string) => {
           if (descendantMap[element].size > 0) {
-            if (!abstractElementTypeIds.includes(element) && !newElements.includes(element)) {
+            if (
+              !abstractElementTypeIds.includes(element) &&
+              !newElements.includes(element)
+            ) {
               newElements.push(element);
             }
             for (let descendant of descendantMap[element]) {
@@ -428,7 +370,7 @@ export class MGLGenerator {
             }
           } else {
             // If the element doesn't have descendants, add it to the newElements list
-            if(!newElements.includes(element)) {
+            if (!newElements.includes(element)) {
               newElements.push(element);
             }
           }
@@ -460,6 +402,179 @@ export class MGLGenerator {
       }
     }
   }
+}
+
+function getReferencedModelElements(root: string, modelRefUri: string, importedModels: MglModel[], modelElementFilter: (modelElement: ModelElement)=>boolean) {
+  // identify nodes of referenced model
+  const referencedModelPath = path.parse(
+    path.join(root, modelRefUri)
+  );
+  const referencedModels = importedModels.filter((model) => {
+    const modelPath = path.parse(model.$document?.uri.fsPath ?? "");
+    return (
+      modelPath.dir === referencedModelPath.dir &&
+      modelPath.base === referencedModelPath.base
+    );
+  });
+  return referencedModels
+    .map((model) =>
+      model.modelElements.filter(modelElementFilter))
+    .flat();
+}
+
+function mapExternalReferenceId(externalReference: ExternalReference | undefined): string[] {
+  if (
+    !externalReference ||
+    !externalReference.import ||
+    !externalReference.import.ref
+  ) {
+    throw new Error("External reference can not be resolved!");
+  }
+  const externalContainerName = externalReference.import.ref.importURI;
+  const externalReferenceElements = externalReference.elements; // names of the containments
+  return externalReferenceElements.map((e) =>
+    constructElementTypeId(e, externalContainerName)
+  );
+}
+
+function handleContainmentConstraints(modelElement: GraphModel | NodeContainer, parentConstraints: any, importedModels: MglModel[]): Constraint[] {
+  const typeFilter = (modelElement: ModelElement) => isNode(modelElement) || isNodeContainer(modelElement);
+  const wildcards: Wildcard[] = modelElement.containmentWildcards;
+  
+  // build constrain sets
+  const localConstraintSet = modelElement.containableElements
+    .filter((c) => c.localContainments.length >= 0);
+  const externalConstraintSet = modelElement.containableElements.filter((c) => c.externalContainment !== undefined);
+
+  // Id mappings
+  const localConstraintElementIdMapping = (constraint: GraphicalElementContainment | EdgeElementConnection): string[] => {
+    if(isEdgeElementConnection(constraint)) {
+      throw new Error("Wrong type of constraint: EdgeElementConnection");
+    }
+    return constraint.localContainments.map((constraintElement) => {
+      if (!constraintElement.ref) {
+        throw new Error("Referenced containment is undefined");
+      }
+      return getElementTypeId(constraintElement.ref);
+    }) ?? []
+  }
+  const externalConstraintElementIdMapping = (constraint: GraphicalElementContainment | EdgeElementConnection) => {
+    if(isEdgeElementConnection(constraint)) {
+      throw new Error("Wrong type of constraint: EdgeElementConnection");
+    }
+    const externalReference = constraint.externalContainment;
+    return mapExternalReferenceId(externalReference);
+  }
+  const container = modelElement.$container;
+
+  // actual constraints handling
+  return handleConstraints(container, parentConstraints, importedModels, typeFilter, wildcards,
+    localConstraintSet, externalConstraintSet, localConstraintElementIdMapping, externalConstraintElementIdMapping);
+}
+
+function handleEdgeConstraints(modelElement: Node | NodeContainer, parentConstraints: any, importedModels: MglModel[], handleIncoming: boolean): Constraint[] {
+  const typeFilter = (modelElement: ModelElement) => isEdge(modelElement) ;
+  const wildcards: Wildcard[] = handleIncoming ? modelElement.incomingWildcards: modelElement.outgoingWildcards;
+  
+  // build constrain sets
+  const localConstraintSet = handleIncoming ? modelElement.incomingEdgeConnections.filter((c) => c.localConnection.length >= 0)
+    :  modelElement.outgoingEdgeConnections.filter((c) => c.localConnection.length >= 0);
+  const externalConstraintSet = handleIncoming ?  modelElement.incomingEdgeConnections.filter((c) => c.externalConnection !== undefined)
+    : modelElement.outgoingEdgeConnections.filter((c) => c.externalConnection !== undefined) ;
+
+  // Id mappings
+  const localConstraintElementIdMapping = (constraint: GraphicalElementContainment | EdgeElementConnection): string[] => {
+    if(isGraphicalElementContainment(constraint)) {
+      throw new Error("Wrong type of constraint: GraphicalElementContainment");
+    }
+    return constraint.localConnection.map((constraintElement) => {
+      if (!constraintElement.ref) {
+        throw new Error("Referenced containment is undefined");
+      }
+      return getElementTypeId(constraintElement.ref);
+    }) ?? []
+  }
+  const externalConstraintElementIdMapping = (constraint: GraphicalElementContainment | EdgeElementConnection) => {
+    if(isGraphicalElementContainment(constraint)) {
+      throw new Error("Wrong type of constraint: GraphicalElementContainment");
+    }
+    const externalReference = constraint.externalConnection;
+    return mapExternalReferenceId(externalReference);
+  }
+  const container = modelElement.$container;
+
+  // actual constraints handling
+  return handleConstraints(container, parentConstraints, importedModels, typeFilter, wildcards,
+    localConstraintSet, externalConstraintSet, localConstraintElementIdMapping, externalConstraintElementIdMapping);
+}
+
+function handleConstraints(
+  container: MglModel,
+  parentConstraint: any,
+  importedModels: MglModel[],
+  typeFilter: (modelElement: ModelElement) => boolean,
+  wildcards: Wildcard[],
+  localConstraintSet: (GraphicalElementContainment | EdgeElementConnection)[],
+  externalConstraintSet: (GraphicalElementContainment | EdgeElementConnection)[],
+  localConstraintElementIdMapping: (constraint: GraphicalElementContainment | EdgeElementConnection) => string[],
+  externalConstraintElementIdMapping: (constraint: GraphicalElementContainment | EdgeElementConnection) => string[]
+): Constraint[] {
+  if(!container.$document) {
+    throw new Error("Container of modelElement could not be resolved!");
+  }
+
+	// prepare
+	const mglPath = path.parse(
+	 container.$document.uri.fsPath
+	);
+  const allLocalConstrainableElements = container.modelElements.filter(typeFilter);
+  const localWildcards: Wildcard[] = wildcards.filter(
+    (wildcard) => wildcard.selfWildcard
+  );
+  const externalWildcards: Wildcard[] = wildcards
+  .filter((wildcard) => !wildcard.selfWildcard);
+
+  // local wildcards
+  const localWildcardConstraints = localWildcards.map((wildcard) => {
+    return {
+      lowerBound: wildcard.lowerBound ?? 0,
+      upperBound: handleUpperBound(wildcard.upperBound, -1),
+      elements: allLocalConstrainableElements.map((modelElement) => getElementTypeId(modelElement)),
+    };
+  });
+  // external Wildcards
+  const externalWildcardConstraints = externalWildcards.map((wildcard) => {
+      if (!wildcard.referencedImport?.ref) {
+        throw new Error("Referenced wildcard could not be resolved!");
+      }
+      const externalModelElements = getReferencedModelElements(mglPath.dir, wildcard.referencedImport.ref.importURI, importedModels, typeFilter);
+      return {
+        lowerBound: wildcard.lowerBound ?? 0,
+        upperBound: handleUpperBound(wildcard.upperBound, -1),
+        elements: externalModelElements.map((element) => getElementTypeId(element)),
+      };
+    });
+  // local containments
+  const localConstraintElements = localConstraintSet.map((constraint) => {
+      return {
+        lowerBound: constraint.lowerBound ?? 0,
+        upperBound: handleUpperBound(constraint.upperBound, -1),
+        elements: localConstraintElementIdMapping(constraint)
+      };
+    });
+  // external containments
+  const externalConstraintElements = externalConstraintSet.map((constraint) => {
+      return {
+        lowerBound: constraint.lowerBound ?? 0,
+        upperBound: handleUpperBound(constraint.upperBound, -1),
+        elements: externalConstraintElementIdMapping(constraint),
+      };
+    });
+  const allContainments = localWildcardConstraints
+    .concat(localConstraintElements)
+    .concat(externalWildcardConstraints)
+    .concat(externalConstraintElements);
+  return mergeElementConstraints(parentConstraint, allContainments);
 }
 
 async function inferAppearancesAndStyles(
@@ -591,21 +706,9 @@ async function inferAppearancesAndStyles(
 }
 
 function mergeElementConstraints(
-  baseConstraints: {
-    lowerBound: number | "*";
-    upperBound: number | "*";
-    elements: string[];
-  }[],
-  dominantConstraints: {
-    lowerBound: number | "*";
-    upperBound: number | "*";
-    elements: string[];
-  }[]
-): {
-  lowerBound: number | "*";
-  upperBound: number | "*";
-  elements: string[];
-}[] {
+  baseConstraints: Constraint[],
+  dominantConstraints: Constraint[]
+): Constraint[] {
   if (!baseConstraints && !dominantConstraints) return [];
 
   baseConstraints = baseConstraints || [];
@@ -863,23 +966,6 @@ function handleFont(font: Font) {
       g: 255,
       b: 255,
     },
-  };
-}
-
-function getEdgeElementConnectionObject(
-  edgeElementConnection: EdgeElementConnection
-) {
-  return {
-    lowerBound: edgeElementConnection.lowerBound ?? 0,
-    upperBound: handleUpperBound(edgeElementConnection.upperBound, -1),
-    // TODO Add handling of externalConnections
-    elements:
-      edgeElementConnection.localConnection.map((localContainment) => {
-        if (!localContainment.ref) {
-          throw new Error("Referenced edge in containment is undefined.");
-        }
-        return getElementTypeId(localContainment.ref);
-      }) ?? [],
   };
 }
 
