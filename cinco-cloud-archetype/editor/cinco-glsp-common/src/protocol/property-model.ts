@@ -82,6 +82,11 @@ function getFallbackDefaultValueRecursive(
                     ancestorTypes.concat([typeDefinition.elementTypeId]);
                 const defaultObject: any = {};
                 for (const child of typeDefinition.attributes) {
+                    if (child.defaultValue !== undefined) {
+                        defaultObject[child.name] = child.defaultValue;
+                        continue;
+                    }
+
                     const bounds = child.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
                     const childIsList = isListAttribute(bounds.upperBound);
 
