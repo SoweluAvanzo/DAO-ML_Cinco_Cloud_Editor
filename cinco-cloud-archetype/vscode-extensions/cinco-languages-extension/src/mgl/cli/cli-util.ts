@@ -3,33 +3,54 @@ import path from 'path';
 import fs from 'fs';
 import { AstNode, LangiumDocument, LangiumServices } from 'langium';
 import { URI } from 'vscode-uri';
-import { ModelElement, isEnum } from '../../generated/ast';
+import { Appearance, MglModel, ModelElement, Style, isEnum } from '../../generated/ast';
 
-export function topologicalSortWithDescendants(modelElements: ModelElement[]): {
+export function topologicalSortWithDescendants(model: MglModel, importedModels: MglModel[]): {
     sortedModelElements: ModelElement[],
     descendantsMap: Record<string, Set<string>>
 } {
     const graph: Record<string, ModelElement[]> = {};
     const inDegree: Record<string, number> = {};
     const descendantsMap: Record<string, Set<string>> = {};
-
+    const importedModelElements = importedModels.map(model => model.modelElements).flat();
+    const allModelElements = model.modelElements.concat(importedModelElements);
+    const mglPath = path.parse(model.$document?.uri.fsPath ?? '');
+    
     // Initialize the graph, in-degree maps, and descendants map
-    for (const element of modelElements) {
-        graph[element.name] = [];
-        inDegree[element.name] = 0;
-        descendantsMap[element.name] = new Set();
+    for (const element of allModelElements) {
+        const id = getElementTypeId(element);
+        graph[id] = [];
+        inDegree[id] = 0;
+        descendantsMap[id] = new Set();
     }
 
     // Build the graph.
-    for (const element of modelElements) {
-        if (!isEnum(element) && element.localExtension) {
-            const localExtensionName = element.localExtension.ref?.name;
-            if (localExtensionName) {
-                if (!graph[localExtensionName]) {
-                    throw new Error(`Element ${element.localExtension} not found.`);
+    for (const element of allModelElements) {
+        if (!isEnum(element)) {
+            if (element.localExtension) {
+                if (element.localExtension.ref) {
+                    const localExtensionId = getElementTypeId(element.localExtension.ref);
+                    if (!graph[localExtensionId]) {
+                        throw new Error(`Element ${element.localExtension} not found.`);
+                    }
+                    graph[localExtensionId].push(element);
+                    inDegree[element.name]++;
+                } 
+            }  else if(element.externalExtension) {
+                if(!element.externalExtension.import.ref) {
+                    throw new Error("External reference can not be resolved!");
                 }
-                graph[localExtensionName].push(element);
-                inDegree[element.name]++;
+                // find model and modelElements
+                const externalPath = path.join(mglPath.dir, element.externalExtension.import.ref?.importURI);
+                // add all extended modelElements
+                for(const extendedElement of element.externalExtension.elements) {
+                    allModelElements.forEach(externalElement => {
+                        if(getElementTypeId(externalElement) === constructElementTypeId(extendedElement, externalPath)) {
+                            const id = getElementTypeId(externalElement);
+                            graph[id].push(element);
+                        }
+                    });
+                }
             }
         }
     }
@@ -38,29 +59,31 @@ export function topologicalSortWithDescendants(modelElements: ModelElement[]): {
     const sortedElements: ModelElement[] = [];
 
     // Array for elements with in-degree = 0.
-    const queue: ModelElement[] = modelElements.filter(element => inDegree[element.name] === 0);
+    const queue: ModelElement[] = allModelElements.filter(element => inDegree[getElementTypeId(element)] === 0);
 
     while (queue.length) {
         const node = queue.pop()!;
         sortedElements.push(node);
 
-        for (const child of graph[node.name]) {
-            inDegree[child.name]--;
+        const id = getElementTypeId(node);
+        for (const child of graph[id]) {
+            const childId = getElementTypeId(child);
+            inDegree[childId]--;
             
             // Update descendants map
-            descendantsMap[node.name].add(child.name);
-            descendantsMap[child.name].forEach(descendant => {
-                descendantsMap[node.name].add(descendant);
+            descendantsMap[id].add(childId);
+            descendantsMap[childId].forEach(descendant => {
+                descendantsMap[id].add(descendant);
             });
             
-            if (inDegree[child.name] === 0) {
+            if (inDegree[childId] === 0) {
                 queue.push(child);
             }
         }
     }
 
     // If not all elements are in sortedElements, then there's a cycle.
-    if (sortedElements.length !== modelElements.length) {
+    if (sortedElements.length !== allModelElements.length) {
         throw new Error("There's a cycle in the inheritance graph.");
     }
 
@@ -175,4 +198,20 @@ export function copyDirectory(source: string, target: string) {
             fs.copyFileSync(sourcePath, targetPath);
         }
     }
+}
+
+
+export function getElementTypeId(element: ModelElement | Appearance | Style): string {
+    const containerPath = element.$container.$document?.uri.fsPath;
+    if (containerPath === undefined) {
+        throw new Error(
+        "Model is not associated with any document. A uri is needed!"
+        );
+    }
+    return constructElementTypeId(element.name, containerPath);
+}
+
+export function constructElementTypeId(elementName: string, containerPath: string): string {
+    const containerName = path.parse(containerPath).name;
+    return containerName.toLocaleLowerCase() + ":" + elementName.toLowerCase();
 }
