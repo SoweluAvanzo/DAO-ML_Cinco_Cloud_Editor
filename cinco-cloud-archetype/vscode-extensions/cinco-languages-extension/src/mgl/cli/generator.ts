@@ -4,10 +4,8 @@ import {
   AbstractShape,
   Alignment,
   Annotation,
-  Appearance,
   Color,
   ContainerShape,
-  CustomDataType,
   Edge,
   EdgeElementConnection,
   EdgeStyle,
@@ -29,7 +27,6 @@ import {
   RoundedRectangle,
   Shape,
   Size,
-  Style,
   Text,
   Wildcard,
   isAbsolutePosition,
@@ -1068,24 +1065,4 @@ function handleUpperBound(
     return -1;
   }
   return specification;
-}
-
-function getElementTypeId(
-  element: ModelElement | CustomDataType | Appearance | Style
-): string {
-  const containerPath = element.$container.$document?.uri.fsPath;
-  if (containerPath === undefined) {
-    throw new Error(
-      "Model is not associated with any document. A uri is needed!"
-    );
-  }
-  return constructElementTypeId(element.name, containerPath);
-}
-
-function constructElementTypeId(
-  elementName: string,
-  containerPath: string
-): string {
-  const containerName = path.parse(containerPath).name;
-  return containerName.toLocaleLowerCase() + ":" + elementName.toLowerCase();
 }
