@@ -1,0 +1,265 @@
+
+import "./ConstraintExternal.mgl" as externalConstraint
+
+id info.scce.cinco.product.constraint
+stylePath "./Constraint.style"
+
+/*
+ * what is not yet possible:
+ * - relations to elements of not-imported mgls.
+ * 		e.g. if these elements extend elements of this mgl
+ *		to achieve this, the abstract type needs to be kept and
+ * 		evaluated at runtime, instead of rolled of during translation.
+ *		Not the whole types are needed, but only the ids.
+ */
+
+graphModel ConstraintReference {
+	diagramExtension "constraint"	
+	containableElements(ContA[0,2], ContB[0,2], ContC[0,2], ContD[0,2])
+	attr string as ofA
+	attr TypeA as ta
+	attr TypeA as taList [0, *]
+}
+
+graphModel ConstraintA extends ConstraintB {
+	diagramExtension "constraintA"	
+	containableElements(ContA[0,4])
+	attr string as ofA
+	attr TypeA as ta
+	attr TypeA as taList [0, *]
+}
+
+abstract graphModel ConstraintB extends ConstraintC {
+	containableElements(ContB[0,3])
+	attr string as ofB
+	attr TypeB as tb
+	attr TypeB as tbList [0, *]
+}
+
+abstract graphModel ConstraintC extends ConstraintD {
+	containableElements(ContC[0,2])
+	attr string as ofC
+	attr TypeC as tc
+	attr TypeC as tcList [0, *]
+}
+
+graphModel ConstraintD {
+	diagramExtension "constraintD"
+	containableElements(ContD[0,1])
+	attr string as ofD
+	attr TypeD as typeD
+	attr TypeD as typeDList [0, *]
+}
+
+/*
+ * WILDCARD-AND-ABSTRACT-EDGE-CASES
+ */
+
+/**
+ * Can connect to a all edge types that extend the specified edge.
+ * The edge extends an abstract edge.
+ */
+node NodeAbstractEdgeB {
+	incomingEdges (EdgeB[1,2])
+	outgoingEdges (EdgeB[1,2])
+}
+
+/**
+ * Can connect to a all edge types that extend the specified edge
+ * The edge extends a concrete edge.
+ */
+node NodeAbstractEdgeC {
+	incomingEdges (EdgeC[1,3])
+	outgoingEdges (EdgeC[1,3])
+}
+
+/**
+ * Can connect to a all local edge types of a specfic MGL
+ * (and also all (imported) that extend these)
+ */
+node NodeLocalWildcardEdge {
+	incomingEdges (*[0,*])
+	outgoingEdges (*[0,*])
+}
+
+/**
+ * Can connect to a all external edge types of a specfic MGL
+ * (and also all (imported) that extend these)
+ */
+node NodeExternalWildcardEdge {
+	incomingEdges (externalConstraint::*[0,*])
+	outgoingEdges (externalConstraint::*[0,*])
+}
+
+/**
+ * Can connect to a specfic external edge type
+ * (and also all (imported) that extend it)
+ */
+node NodeExternalConcreteWildcardEdge {
+	incomingEdges (externalConstraint::ExternalEdge1[0,*])
+	outgoingEdges (externalConstraint::ExternalEdge1[0,*])
+}
+
+/**
+ * Contains all local nodes
+ * (and also all (imported) that extend these)
+ */
+container WildcardLocalCont {
+	containableElements(*[0,*])
+}
+
+/**
+ * Contains a specific external node
+ * (and also all (imported) that extend it)
+ */
+container ExternalCont {
+	containableElements(externalConstraint::ExternalNode1[0,*])
+}
+
+/**
+ * Contains all external nodes of a specfic mgl
+ * (and also all (imported) that extend these)
+ */
+container WildcardExternalCont {
+	containableElements(externalConstraint::*[0,*])
+}
+
+node ShouldExtendedByExternalNode {
+}
+
+
+edge ShouldExtendedByExternalEdge {
+}
+
+/*
+ * Contains a local node, which in turn is extended by an external node.
+ * Both nodes should be containable.
+ */
+container Should_Contain__ShouldExtendedByExternalNode__And__ExtendsExternalNode {
+	containableElements(ShouldExtendedByExternalNode[0,*])
+}
+
+/*
+ * Connects to local edge, which in turn is extended by an external edge.
+ * Both edges should be connectable.
+ */
+container Should_Connect__ShouldExtendedByExternalEdge__And__ExtendsExternalEdge {
+	incomingEdges(ShouldExtendedByExternalEdge[0,*])
+	outgoingEdges(ShouldExtendedByExternalEdge[0,*])
+}
+
+/*
+ * Node-Chain
+ */
+
+node A extends B {
+	style blueTextRectangle("${ofD}")
+	incomingEdges (EdgeA[1,4])
+	outgoingEdges (EdgeA[1,4])
+	attr string as ofA
+	attr TypeA as ta
+	attr TypeA as taList [0, *]
+}
+
+abstract node B extends C {
+	incomingEdges (EdgeB[1,3])
+	outgoingEdges (EdgeB[1,3])
+	attr string as ofB
+	attr TypeB as tb
+	attr TypeB as tbList [0, *]
+}
+
+abstract node C extends D {
+	incomingEdges (EdgeC[1,2])
+	outgoingEdges (EdgeC[1,2])
+	attr string as ofC
+	attr TypeC as tc
+	attr TypeC as tcList [0, *]
+}
+
+node D {
+	style blueTextRectangle("${ofD}")
+	incomingEdges (EdgeD[1,1])
+	outgoingEdges (EdgeD[1,1])
+	attr string as ofD
+	attr TypeD as typeD
+	attr TypeD as typeDList [0, *]
+}
+
+container Cont extends ContA {
+	style swimlane("${ofContA}")
+	containableElements(A[0,1], B[0,2], C[0,3], D[0,4])
+	attr string as ofCont
+}
+
+container ContA extends ContB {
+	style swimlane("${ofContD}")
+	containableElements(A[0,1])
+	attr string as ofContA
+	attr TypeA as ta
+	attr TypeA as taList [0, *]
+}
+
+abstract container ContB extends ContC {
+	containableElements(B[0,2])
+	attr string as ofContB
+	attr TypeB as tb
+	attr TypeB as tbList [0, *]
+}
+
+abstract container ContC extends ContD {
+	containableElements(C[0,3])
+	attr string as ofContC
+	attr TypeC as tc
+	attr TypeC as tcList [0, *]
+}
+
+container ContD {
+	style swimlane("${ofContD}")
+	containableElements(D[0,4])
+	attr string as ofContD
+	attr TypeD as typeD
+	attr TypeD as typeDList [0, *]
+}
+
+edge EdgeA extends EdgeB {
+	style labeledArrow("${ofD}")
+	attr string as ofA
+	attr TypeA as ta
+	attr TypeA as taList [0, *]
+}
+
+abstract edge EdgeB extends EdgeC {
+	attr string as ofB
+	attr TypeB as tb
+	attr TypeB as tbList [0, *]
+}
+
+abstract edge EdgeC extends EdgeD{
+	attr string as ofC
+	attr TypeC as tc
+	attr TypeC as tcList [0, *]
+}
+
+edge EdgeD {
+	style labeledArrow("${ofD}")
+	attr string as ofD
+	attr TypeD as typeD
+	attr TypeD as typeDList [0, *]
+}
+
+type TypeA extends TypeB {
+	attr string as ofTypeA
+}
+
+abstract type TypeB extends TypeC {
+	attr string as ofTypeB
+}
+
+abstract type TypeC extends TypeD {
+	attr string as ofTypeC
+}
+
+type TypeD {
+	attr string as ofTypeD
+}

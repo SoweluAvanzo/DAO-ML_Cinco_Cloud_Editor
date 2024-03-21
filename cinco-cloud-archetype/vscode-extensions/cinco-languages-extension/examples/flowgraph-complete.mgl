@@ -12,7 +12,7 @@ graphModel FlowGraphDiagram {
 	
 	containableElements(Start, End, Activity, Swimlane, ExternalActivity/*, SubFlowGraph*/)
 	
-	attr String as modelName
+	attr string as modelName
 }
 
 @contextMenuAction("info.scce.cinco.product.flowgraph.action.ShortestPathToEnd")
@@ -52,8 +52,8 @@ node Activity {
 	incomingEdges (*[1,*])
 	outgoingEdges (LabeledTransition[1,*])
 
-    attr String as name
-	attr String as description
+    attr string as name
+	attr string as description
 }
 
 node ExternalActivity {
@@ -78,7 +78,7 @@ container Swimlane {
 	style swimlane("${actor}")
 	
 	containableElements (Start[1,1], Activity, End, ExternalActivity, SubFlowGraph)
-    attr String as actor
+    attr string as actor
 }
 
 edge Transition {
@@ -88,5 +88,5 @@ edge Transition {
 edge LabeledTransition {
 	style labeledArrow("${label}")
 	
-	attr String as label
+	attr string as label
 }

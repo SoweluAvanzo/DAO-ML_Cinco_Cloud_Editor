@@ -110,7 +110,7 @@ Node:
 NodeContainer:
 	(annotations+=Annotation)*
 	(isAbstract?='abstract')?
-	'container' name=ID ('extends' (externalExtension=ExternalReference | localExtension=[Node:ID]))?
+	'container' name=ID ('extends' (externalExtension=ExternalReference | localExtension=[NodeType:ID]))?
 	('{'(
 	    ('style' usedStyle=ID ('(' styleParameters+=STRING (',' styleParameters+=STRING)* ')')? )?
 	    ('incomingEdges' '(' (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard) (',' (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard))* ')')?
