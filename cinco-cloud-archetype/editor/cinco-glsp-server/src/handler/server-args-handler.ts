@@ -22,6 +22,7 @@ import {
     ServerArgs,
     ServerArgsRequest,
     ServerArgsResponse,
+    USE_SSL,
     WORKSPACE_FOLDER,
     WEBSOCKET_HOST_MAPPING,
     WEBSERVER_HOST_MAPPING
@@ -38,7 +39,6 @@ import {
     getWebsocketPathArg,
     getWebServerPortArg
 } from '@cinco-glsp/cinco-glsp-api';
-import { USE_SSL } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class ServerArgsRequestHandler implements ActionHandler {
