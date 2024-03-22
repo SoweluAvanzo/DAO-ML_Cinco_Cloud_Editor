@@ -19,7 +19,7 @@ import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
 import * as React from 'react';
 import { generateMGL, generateMSL } from './initialize-project';
-import { CommandService } from '@theia/core';
+import { CommandService, MessageService } from '@theia/core';
 import '../../src/browser/cinco-project-initializer-style.css';
 import * as logo from '../../src/browser/cinco-cloud-logo.png';
 import { ProjectInitializerServer } from '../common/fetch-project-template-protocol';
@@ -43,6 +43,9 @@ export class CincoProjectInitializerWidget extends ReactWidget {
 
     @inject(ProjectInitializerServer)
     protected readonly projectInitializerServer!: ProjectInitializerServer;
+
+    @inject(MessageService)
+    protected readonly messageService!: MessageService;
 
     constructor() {
         super();
@@ -69,6 +72,7 @@ export class CincoProjectInitializerWidget extends ReactWidget {
                 commandService={this.commandService}
                 projectInitializerServer={this.projectInitializerServer}
                 closeWidget={() => this.closeWidget()}
+                onError={error => this.messageService.error(error)}
             />
         );
     }
@@ -79,6 +83,7 @@ interface CincoProjectInitializerViewProps {
     workspaceService: WorkspaceService;
     commandService: CommandService;
     projectInitializerServer: ProjectInitializerServer;
+    onError(error: any): void;
     closeWidget: () => void;
 }
 
@@ -124,8 +129,12 @@ export class CincoProjectInitializerView extends React.Component<CincoProjectIni
     async createExampleProject(downloadUrl: string, zipRootDirectory?: string): Promise<void> {
         const rootUri = this.props.workspaceService.tryGetRoots()[0]?.resource;
         if (rootUri) {
-            await this.props.projectInitializerServer.fetchProjectTemplate(rootUri.path.fsPath(), downloadUrl, zipRootDirectory);
-            this.props.closeWidget();
+            try {
+                await this.props.projectInitializerServer.fetchProjectTemplate(rootUri.path.fsPath(), downloadUrl, zipRootDirectory);
+                this.props.closeWidget();
+            } catch (error) {
+                this.props.onError((error as Error).message);
+            }
         } else {
             console.log('No workspace root found.');
         }

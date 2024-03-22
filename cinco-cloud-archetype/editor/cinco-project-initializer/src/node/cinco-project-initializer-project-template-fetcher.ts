@@ -44,6 +44,10 @@ export class ProjectInitializerServerNode implements ProjectInitializerServer {
             const file = createWriteStream(destination);
             https
                 .get(url, response => {
+                    if (response.statusCode !== 200) {
+                        reject(new Error(`Download failed with status code ${response.statusCode}: ${response.statusMessage}`));
+                        return;
+                    }
                     response.pipe(file);
                     file.on('finish', () => {
                         file.close();
