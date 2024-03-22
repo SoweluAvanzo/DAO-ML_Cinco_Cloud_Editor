@@ -53,8 +53,8 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
         }
         node.type = elementTypeId;
         node.size = {
-            width: specification?.width ?? 0,
-            height: specification?.height ?? 0
+            width: node.size.width ?? specification?.width ?? 100,
+            height: node.size.height ?? specification?.height ?? 100
         };
         node.position = position;
         node.initializeProperties();
