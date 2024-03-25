@@ -19,9 +19,10 @@ import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
 import * as React from 'react';
 import { generateMGL, generateMSL } from './initialize-project';
-import { CommandService } from '@theia/core';
+import { CommandService, MessageService } from '@theia/core';
 import '../../src/browser/cinco-project-initializer-style.css';
 import * as logo from '../../src/browser/cinco-cloud-logo.png';
+import { ProjectInitializerServer } from '../common/fetch-project-template-protocol';
 
 @injectable()
 export class CincoProjectInitializerWidget extends ReactWidget {
@@ -39,6 +40,12 @@ export class CincoProjectInitializerWidget extends ReactWidget {
 
     @inject(CommandService)
     protected readonly commandService!: CommandService;
+
+    @inject(ProjectInitializerServer)
+    protected readonly projectInitializerServer!: ProjectInitializerServer;
+
+    @inject(MessageService)
+    protected readonly messageService!: MessageService;
 
     constructor() {
         super();
@@ -63,18 +70,29 @@ export class CincoProjectInitializerWidget extends ReactWidget {
                 fileService={this.fileService}
                 workspaceService={this.workspaceService}
                 commandService={this.commandService}
+                projectInitializerServer={this.projectInitializerServer}
                 closeWidget={() => this.closeWidget()}
+                onError={error => this.messageService.error(error)}
             />
         );
     }
 }
 
-export class CincoProjectInitializerView extends React.Component<
-    { fileService: FileService, workspaceService: WorkspaceService, commandService: CommandService, closeWidget: () => void },
-    { view: string }
-> {
-    constructor(
-        props: { fileService: FileService, workspaceService: WorkspaceService, commandService: CommandService, closeWidget: () => void }) {
+interface CincoProjectInitializerViewProps {
+    fileService: FileService;
+    workspaceService: WorkspaceService;
+    commandService: CommandService;
+    projectInitializerServer: ProjectInitializerServer;
+    onError(error: any): void;
+    closeWidget: () => void;
+}
+
+interface CincoProjectInitializerViewState {
+    view: string;
+}
+
+export class CincoProjectInitializerView extends React.Component<CincoProjectInitializerViewProps, CincoProjectInitializerViewState> {
+    constructor(props: CincoProjectInitializerViewProps) {
         super(props);
         this.state = {
             view: 'initial'
@@ -108,10 +126,18 @@ export class CincoProjectInitializerView extends React.Component<
         this.props.closeWidget();
     }
 
-    createExampleProject(repoUrl: string, branch: string): void {
-        this.props.commandService.executeCommand('git.clone', repoUrl, undefined, branch).then(() => {
-            this.props.closeWidget();
-        });
+    async createExampleProject(downloadUrl: string, zipRootDirectory?: string): Promise<void> {
+        const rootUri = this.props.workspaceService.tryGetRoots()[0]?.resource;
+        if (rootUri) {
+            try {
+                await this.props.projectInitializerServer.fetchProjectTemplate(rootUri.path.fsPath(), downloadUrl, zipRootDirectory);
+                this.props.closeWidget();
+            } catch (error) {
+                this.props.onError((error as Error).message);
+            }
+        } else {
+            console.log('No workspace root found.');
+        }
     }
 
     async createNewFile(fileName: string, content: string): Promise<void> {
@@ -132,38 +158,42 @@ export class CincoProjectInitializerView extends React.Component<
         const exampleProjects = [
             {
                 name: 'Flowgraph',
-                repoUrl: 'https://ls5gitlab.cs.tu-dortmund.de/cinco-cloud-examples/flowgraph.git',
-                branch: 'main'
+                downloadUrl: 'https://ls5gitlab.cs.tu-dortmund.de/cinco-cloud-examples/flowgraph/-/archive/main/flowgraph-main.zip',
+                zipRootDirectory: 'flowgraph-main'
             },
             {
                 name: 'Webstory',
-                repoUrl: 'https://ls5gitlab.cs.tu-dortmund.de/cinco-cloud-examples/webstory.git',
-                branch: 'main'
+                downloadUrl: 'https://ls5gitlab.cs.tu-dortmund.de/cinco-cloud-examples/webstory/-/archive/main/webstory-main.zip',
+                zipRootDirectory: 'webstory-main'
             }
         ];
 
         switch (this.state.view) {
             case 'initialize':
                 return (
-                    <main id="nameInputView" >
+                    <main id='nameInputView'>
                         <form onSubmit={e => this.initializeProject(e)}>
-                            <input type="text" pattern="^[A-Za-z]+$" name="projectName" placeholder="Enter project name" />
+                            <input type='text' pattern='^[A-Za-z]+$' name='projectName' placeholder='Enter project name' />
                             <div>
-                                <button type="button" onClick={() => this.showInitialView()}>Back</button>
-                                <button type="submit">Confirm</button>
+                                <button type='button' onClick={() => this.showInitialView()}>
+                                    Back
+                                </button>
+                                <button type='submit'>Confirm</button>
                             </div>
                         </form>
-                    </main >
+                    </main>
                 );
             case 'createExample': {
                 const exampleProjectButtons = exampleProjects.map(exampleProject => (
-                    <button key={exampleProject.name}
-                        onClick={() => this.createExampleProject(exampleProject.repoUrl, exampleProject.branch)}>
+                    <button
+                        key={exampleProject.name}
+                        onClick={() => this.createExampleProject(exampleProject.downloadUrl, exampleProject.zipRootDirectory)}
+                    >
                         Example: {exampleProject.name}
                     </button>
                 ));
                 return (
-                    <main id="exampleProjectsView">
+                    <main id='exampleProjectsView'>
                         {exampleProjectButtons}
                         <button onClick={() => this.showInitialView()}>Back</button>
                     </main>
@@ -172,8 +202,8 @@ export class CincoProjectInitializerView extends React.Component<
             case 'initial':
             default:
                 return (
-                    <main id="initial-view">
-                        <img src={logo} alt="Cinco Cloud Logo" />
+                    <main id='initial-view'>
+                        <img src={logo} alt='Cinco Cloud Logo' />
                         <h1>Welcome to Cinco Cloud!</h1>
                         <button onClick={() => this.showInitializeProject()}>Initialize Project</button>
                         <button onClick={() => this.showCreateExampleProject()}>Create Example Project</button>
