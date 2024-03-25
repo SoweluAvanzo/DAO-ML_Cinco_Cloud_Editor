@@ -17,30 +17,26 @@ import * as crypto from 'crypto';
 
 export type Sortable = string | number | boolean;
 
-export type CellAssignments<T extends Sortable> = Record<string, T[]>;
+export class Cell<T extends Sortable> {
+    assignments: Record<string, T[]>;
 
-export function assignValues<T extends Sortable>(
-    values: T[]
-): CellAssignments<T> {
-    const sortedValues = [...values];
-    sortedValues.sort();
-    return {[crypto.randomUUID()]: sortedValues};
-}
+    assignValues(values: T[]): void {
+        const sortedValues = [...values];
+        sortedValues.sort();
+        this.assignments = { [crypto.randomUUID()]: sortedValues };
+    }
 
-export function assignValue<T extends Sortable>(value: T): CellAssignments<T> {
-    return assignValues([value]);
-}
+    assignValue(value: T): void {
+        this.assignValues([value]);
+    }
 
-export function cellValues<T extends Sortable>(
-    cellAssignments: CellAssignments<T>
-): T[] {
-    const values = Object.values(cellAssignments).flat();
-    values.sort();
-    return removeDuplicatesFromSortedArray(values);
-}
+    values(): T[] {
+        const values = Object.values(this.assignments).flat();
+        values.sort();
+        return Cell.removeDuplicatesFromSortedArray(values);
+    }
 
-function removeDuplicatesFromSortedArray<T>(array: T[]): T[] {
-    return array.filter(
-        (value, index) => index === 0 || array[index - 1] !== value
-    );
+    private static removeDuplicatesFromSortedArray<T>(array: T[]): T[] {
+        return array.filter((value, index) => index === 0 || array[index - 1] !== value);
+    }
 }

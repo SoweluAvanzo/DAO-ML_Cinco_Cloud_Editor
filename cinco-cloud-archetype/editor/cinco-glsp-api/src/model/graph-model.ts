@@ -53,7 +53,7 @@ import {
     View
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
-import { CellAssignments, cellValues } from './cell-assignments';
+import { Cell } from './cell';
 import { GraphModelIndex } from './graph-model-index';
 
 export interface IdentifiableElement {
@@ -536,16 +536,35 @@ export namespace Container {
 }
 
 export class Edge extends ModelElement {
-    sourceIDAssignments: CellAssignments<string>;
+    sourceIDCell: Cell<string>;
     targetID: string;
     _routingPoints: RoutingPoint[];
+    deletedCell: Cell<boolean>;
 
     get sourceIDs(): string[] {
-        return cellValues(this.sourceIDAssignments);
+        return this.sourceIDCell.values();
+    }
+
+    set sourceID(sourceID: string) {
+        this.sourceIDCell.assignValue(sourceID);
+        this.deletedCell.assignValue(false);
+    }
+
+    set sourceIDs(sourceIDs: string[]) {
+        this.sourceIDCell.assignValues(sourceIDs);
+        this.deletedCell.assignValue(false);
+    }
+
+    delete(): void {
+        this.deletedCell.assignValue(true);
+    }
+
+    restore(): void {
+        this.deletedCell.assignValue(false);
     }
 
     get sources(): Node[] {
-        return this.sourceIDs.map(sourceID => {
+        return this.sourceIDCell.values().map(sourceID => {
             const node = this.index!.findNode(sourceID);
             if (!node) {
                 throw new Error("Edge with id '" + this.id + "' has an undefined source!");

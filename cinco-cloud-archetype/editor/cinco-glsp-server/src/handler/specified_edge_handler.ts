@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Edge, GraphModelIndex, assignValue } from '@cinco-glsp/cinco-glsp-api';
+import { Edge, GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
 import { getEdgeSpecOf, getEdgeTypes, EdgeType } from '@cinco-glsp/cinco-glsp-common';
 import { CreateEdgeOperation } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
@@ -43,7 +43,7 @@ export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
         const edge = new Edge();
         edge.type = elementTypeId;
         edge.initializeProperties();
-        edge.sourceIDAssignments = assignValue(sourceID);
+        edge.sourceID = sourceID;
         edge.targetID = targetID;
         return edge;
     }

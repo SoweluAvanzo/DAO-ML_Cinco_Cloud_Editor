@@ -13,8 +13,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-
-import * as crypto from 'crypto';
 import { GEdge, GLSPServerError, GNode, ReconnectEdgeOperation } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
@@ -53,7 +51,7 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
         const source = index.findNode(gSource.id);
         const target = index.findNode(gTarget.id);
         if (source && target && edge.canConnectToSource(source, _ => false) && edge.canConnectToTarget(target, _ => false)) {
-            edge.sourceIDAssignments = { [crypto.randomUUID()]: gSource.id };
+            edge.sourceID = gSource.id;
             edge.targetID = gTarget.id;
             edge.routingPoints = [];
         } else {
