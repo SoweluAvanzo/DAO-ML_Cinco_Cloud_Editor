@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.msl",
-      "match": "\\b(ARROW|BOLD|BOTTOM|CENTER|CIRCLE|DASH|DASHDOT|DASHDOTDOT|DIAMOND|DOT|ITALIC|LEFT|MIDDLE|RIGHT|SOLID|TOP|TRIANGLE|anchor|appearance|appearanceProvider|background|corner|decorator|edgeStyle|ellipse|extends|false|filled|fix|fixed|font|foreground|freeform|image|imagePath|lineStyle|lineWidth|location|movable|multiText|nodeStyle|path|points|polygon|polyline|position|rectangle|roundedRectangle|size|text|transparency|true|type|value)\\b"
+      "match": "\\b(ARROW|BOLD|BOTTOM|CENTER|CIRCLE|DASH|DASHDOT|DASHDOTDOT|DIAMOND|DOT|ITALIC|LEFT|MIDDLE|RIGHT|SOLID|TOP|TRIANGLE|anchor|appearance|appearanceProvider|background|content|corner|decorator|edgeStyle|ellipse|extends|false|filled|fix|fixed|font|foreground|freeform|image|imagePath|lineStyle|lineWidth|location|movable|multiText|nodeStyle|padding|path|points|polygon|polyline|position|rectangle|roundedRectangle|scrollable|size|text|transparency|true|type|value|webView)\\b"
     },
     {
       "name": "string.quoted.double.msl",

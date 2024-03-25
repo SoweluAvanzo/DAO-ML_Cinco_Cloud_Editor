@@ -14,8 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { DoubleClickHandler, LanguageFilesRegistry, ModelElement, Node } from '@cinco-glsp/cinco-glsp-api';
-import { DoubleClickAction, RequestAppearanceUpdateAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action } from '@eclipse-glsp/server-node';
+import { Action, DoubleClickAction, RequestAppearanceUpdateAction } from '@cinco-glsp/cinco-glsp-common';
 
 /**
  * Language Designer defined example of a DoubleClickHandler
@@ -34,6 +33,11 @@ export class ExampleDoubleClickHandler extends DoubleClickHandler {
         this.dialog('DoubleClickEvent!', message).then(dialogResult => {
             const buttonText = dialogResult === 'true' ? 'OK' : 'Cancel';
             this.notify('You clicked: ' + buttonText);
+
+            this.saveModel();
+            this.notify('saved Model');
+            this.submitModel();
+            this.notify('submitted Model');
         });
 
         // next actions => find all activities and update their appearance

@@ -30,6 +30,8 @@ import { ValidateFormInputPipe } from './pipes/validate-form-input.pipe';
 import { SearchOrganizationInputComponent } from './components/search-organization-input/search-organization-input.component';
 import { ToggleButtonComponent } from './components/toggle-button/toggle-button.component';
 import { PaginationComponent } from './components/pagination/pagination.component';
+import { LogoComponent } from './components/logo/logo.component';
+import { LoadingIndicatorComponent } from './components/loading-indicator/loading-indicator.component';
 
 @NgModule({
   declarations: [
@@ -50,28 +52,32 @@ import { PaginationComponent } from './components/pagination/pagination.componen
     ValidateFormInputPipe,
     SearchOrganizationInputComponent,
     ToggleButtonComponent,
-    PaginationComponent
+    PaginationComponent,
+    LogoComponent,
+    LoadingIndicatorComponent
   ],
   providers: [],
-  exports: [
-    OrganizationRoleBadgeComponent,
-    UserProfileImageComponent,
-    WorkspaceImageSearchInputComponent,
-    WorkspaceImageBadgeComponent,
-    SidebarComponent,
-    SidebarItemComponent,
-    SearchUserInputComponent,
-    NormalizeEnumValuePipe,
-    ProjectRoleBadgeComponent,
-    ToastsComponent,
-    FileInputComponent,
-    SidebarHeaderComponent,
-    ValidateFormInputPipe,
-    ValidationErrorMessageComponent,
-    SearchOrganizationInputComponent,
-    ToggleButtonComponent,
-    PaginationComponent
-  ],
+    exports: [
+        OrganizationRoleBadgeComponent,
+        UserProfileImageComponent,
+        WorkspaceImageSearchInputComponent,
+        WorkspaceImageBadgeComponent,
+        SidebarComponent,
+        SidebarItemComponent,
+        SearchUserInputComponent,
+        NormalizeEnumValuePipe,
+        ProjectRoleBadgeComponent,
+        ToastsComponent,
+        FileInputComponent,
+        SidebarHeaderComponent,
+        ValidateFormInputPipe,
+        ValidationErrorMessageComponent,
+        SearchOrganizationInputComponent,
+        ToggleButtonComponent,
+        PaginationComponent,
+        LogoComponent,
+        LoadingIndicatorComponent
+    ],
   imports: [
     CommonModule,
     RouterModule,

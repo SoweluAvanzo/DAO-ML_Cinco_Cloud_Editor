@@ -1,17 +1,20 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Project } from '../../../../../../core/models/project';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators} from '@angular/forms';
 import { ProjectStoreService } from '../../../../services/project-store.service';
-import { UpdateProjectInput } from '../../../../../../core/models/forms/update-project-input';
 import { FileReference } from '../../../../../../core/models/file-reference';
 import { ToastService, ToastType } from '../../../../../../core/services/toast.service';
 import { FileApiService } from '../../../../../../core/services/api/file-api.service';
 import { FileInputComponent } from '../../../../../../core/components/file-input/file-input.component';
 
+interface EditProjectForm {
+  name: FormControl<string>;
+  description?: FormControl<string>;
+}
+
 @Component({
   selector: 'cc-edit-project-card',
-  templateUrl: './edit-project-card.component.html',
-  styleUrls: ['./edit-project-card.component.scss']
+  templateUrl: './edit-project-card.component.html'
 })
 export class EditProjectCardComponent implements OnInit {
 
@@ -23,11 +26,11 @@ export class EditProjectCardComponent implements OnInit {
 
   logo: File;
   logoReference: FileReference;
-  updateLogo = false;
+  logoChanged = false;
 
-  form = new UntypedFormGroup({
-    name: new UntypedFormControl('', [Validators.required]),
-    description: new UntypedFormControl('')
+  form = new FormGroup<EditProjectForm>({
+    name: new FormControl('', [Validators.required, Validators.minLength(1)]),
+    description: new FormControl(null, { })
   });
 
   constructor(private projectStore: ProjectStoreService,
@@ -42,38 +45,46 @@ export class EditProjectCardComponent implements OnInit {
   }
 
   update(): void {
-    const input: UpdateProjectInput = this.form.value;
-    if (this.updateLogo && this.logo != null) {
+    const formValue = this.form.value;
+    if (this.logo != null) {
       this.fileApi.create(this.logo).subscribe({
         next: (file: FileReference) => {
-          input.logo = file;
-          this.projectStore.updateProject(input);
+          this.projectStore.updateProject({
+            logoId: file.id,
+            name: formValue.name,
+            description: formValue.description
+          });
           this.logoReference = file;
           this.input.reset();
         },
         error: err => {
           this.toastService.show({type: ToastType.DANGER, message: `The logo could not be uploaded.\n ${err.message}`});
-          console.log(err);
         }
       });
     } else {
-      this.projectStore.updateProject(input);
+      this.projectStore.updateProject({
+        logoId: this.logoChanged ? this.logoReference?.id : this.project.logo?.id,
+        name: formValue.name,
+        description: formValue.description
+      });
     }
   }
 
   handleFileSelect(files: File[]): void {
-    this.logo = files[0];
-    this.updateLogo = true;
+    this.logo = files.length === 0 ? null : files[0];
+    this.logoChanged = true;
   }
 
-  handleClear(): void {
+  removeLogo(e): void {
+    if (e) e.preventDefault();
     this.logo = null;
-    this.updateLogo = false;
+    this.logoReference = null;
+    this.logoChanged = true;
   }
 
   get logoStyle(): any {
     return {
-      backgroundImage: `url(${this.logoReference.downloadPath})`,
+      backgroundImage: `url(${this.project.logo?.downloadPath})`,
       backgroundSize: 'cover',
       width: '100px',
       height: '100px'

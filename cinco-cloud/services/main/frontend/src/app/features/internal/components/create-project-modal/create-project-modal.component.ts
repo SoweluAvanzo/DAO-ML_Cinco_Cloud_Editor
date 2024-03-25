@@ -7,7 +7,8 @@ import { Project } from '../../../../core/models/project';
 import { AppStoreService } from '../../../../core/services/stores/app-store.service';
 import { Organization } from '../../../../core/models/organization';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
-import { OrganizationApiService } from "../../../../core/services/api/organization-api.service";
+import { OrganizationApiService } from '../../../../core/services/api/organization-api.service';
+import { faTimes, faProjectDiagram, faFile } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'cc-create-project-modal',
@@ -15,6 +16,9 @@ import { OrganizationApiService } from "../../../../core/services/api/organizati
   styleUrls: ['./create-project-modal.component.scss']
 })
 export class CreateProjectModalComponent {
+  faTimes = faTimes;
+  faProjectDiagram = faProjectDiagram;
+  faFile = faFile;
 
   @Input()
   organization: Organization;
@@ -57,16 +61,25 @@ export class CreateProjectModalComponent {
       : this.organizationApi.createProject(newProject);
 
     obs.subscribe({
-        next: createdProject => {
-          this.toastService.show({
-            message: `The project "${createdProject.name}" has been created.`,
-            type: ToastType.SUCCESS
-          });
-          this.modal.close(createdProject);
-        },
-        error: res => {
-          this.errorMessage = `The project could not be created: ${res.error.message}`;
-        }
+      next: createdProject => {
+        this.toastService.show({
+          message: `The project "${createdProject.name}" has been created.`,
+          type: ToastType.SUCCESS
+        });
+        this.modal.close(createdProject);
+      },
+      error: res => {
+        console.log(res)
+        this.errorMessage = `The project could not be created: ${res.error.message}`;
+      }
     });
+  }
+
+  selectFeaturedImage(image: WorkspaceImage): void {
+    console.log(image)
+
+    this.form.get('name').setValue(image.project.name);
+    this.form.get('description').setValue(image.project.description);
+    this.selectedProjectImage = image;
   }
 }

@@ -4,23 +4,20 @@
 #
 FROM docker.io/library/node:18-bullseye
 WORKDIR /app/main
-RUN apt-get update
-RUN apt-get -y install maven
+RUN apt-get update && apt-get -y install maven
 # create directories
-RUN mkdir /app/main/backend
-RUN mkdir /app/main/frontend
-RUN mkdir /app/resources
+RUN mkdir -p /app/main/backend /app/main/frontend /app/resources
 # copy frontend files
 COPY ./main/frontend/*.json /app/main/frontend/
-RUN cd ./frontend && yarn
 COPY ./main/frontend/src /app/main/frontend/src
+RUN cd ./frontend && yarn
 # copy backend files
 COPY ./resources /app/resources
 COPY ./main/backend/.mvn /app/main/backend/.mvn
 COPY ./main/backend/mvnw /app/main/backend/
 COPY ./main/backend/pom.xml /app/main/backend/
-RUN cd ./backend && mvn clean verify -DskipTests
 COPY ./main/backend/src /app/main/backend/src
+RUN cd ./backend && mvn clean verify -DskipTests
 # run the frontend and the backend
 EXPOSE 4200 8000 9000
 CMD cd /app/main/frontend && npm run start -- --host=0.0.0.0 --disable-host-check --configuration=development-k8s --hmr=true & \

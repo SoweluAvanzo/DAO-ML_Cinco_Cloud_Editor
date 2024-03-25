@@ -14,45 +14,123 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { CommandService } from '@theia/core';
+import { ALLOWED_IMAGE_FILE_TYPES, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
 import URI from '@theia/core/lib/common/uri';
 import { inject, injectable, optional } from 'inversify';
 import * as path from 'path';
+import { ServerArgsProvider } from '../meta/server-args-response-handler';
+import { IActionDispatcher, TYPES } from '@eclipse-glsp/client';
+import { FileProviderHandler } from '../features/action-handler/file-provider-handler';
+import { EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
 
 @injectable()
 export class WorkspaceFileService {
-    @inject(CommandService) @optional() commandService: CommandService;
+    @inject(EnvironmentProvider) @optional() environmentProvider: IEnvironmentProvider;
+    @inject(TYPES.IActionDispatcher) @optional() actionDispatcher: IActionDispatcher;
+    @inject(ServerArgsProvider) @optional() ServerArgsProvider: ServerArgsProvider;
     protected static BLACKLIST = ['http://', 'https://'];
 
-    async serveFile(filePath: string, relativeFolder?: string): Promise<string | undefined> {
-        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0 || !this.commandService) {
-            return undefined;
+    async serveFile(filePath: string): Promise<string | undefined> {
+        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0) {
+            return filePath;
         }
-        const relativePath = (relativeFolder ?? '') + filePath;
-        const roots: URI[] = (await this.commandService.executeCommand('rootProviderHandler')) ?? [];
-        for (const root of roots) {
-            // eslint-disable-next-line no-async-promise-executor
-            const result = await new Promise<{ response: Response; jsonResponse: any }>(async resolve => {
-                const absolutePath = path.join(root.path.fsPath(), relativePath);
-                try {
-                    const request = this.request([new URI(absolutePath)]);
-                    const resp = await fetch(request);
-                    const jsonResp = await resp.json();
-                    resolve({ response: resp, jsonResponse: jsonResp });
-                } catch (e) {
-                    resolve({ response: { status: 404 } as Response, jsonResponse: {} as any });
-                }
-            });
-            const { response, jsonResponse } = result;
-            if (response.status === 200) {
-                return `${this.endpoint()}/download/?id=${jsonResponse.id}`;
-            } // console.log('root `' + root + '` did not contain `' + relativeURI + '`. Trying next root...');
+        const serverArgs = await ServerArgsProvider.getServerArgs();
+        const relativeLanguagePath = (serverArgs?.languagePath ?? '') + '/' + filePath;
+        const result = await this.serveFileInRoot(serverArgs.rootFolder, relativeLanguagePath);
+        if (result) {
+            return result;
+        } else {
+            const relativeWorkspacePath = (serverArgs?.workspacePath ?? '') + '/' + filePath;
+            return this.serveFileInRoot(serverArgs.rootFolder, relativeWorkspacePath);
+        }
+    }
+
+    async serveFileInRoot(root: string, relativePath: string): Promise<string | undefined> {
+        // eslint-disable-next-line no-async-promise-executor
+        const result = await new Promise<{ response: Response; jsonResponse: any }>(async resolve => {
+            const absolutePath = path.join(root, relativePath);
+            try {
+                const request = await this.request([new URI(absolutePath)]);
+                const resp = await fetch(request);
+                const jsonResp = await resp.json();
+                resolve({ response: resp, jsonResponse: jsonResp });
+            } catch (e) {
+                resolve({ response: { status: 404 } as Response, jsonResponse: {} as any });
+            }
+        });
+        const { response, jsonResponse } = result;
+        if (response.status === 200) {
+            return `${await this.endpoint()}/download/?id=${jsonResponse.id}`;
         }
         return undefined;
     }
 
-    protected request(uris: URI[]): Request {
-        const url = this.url(uris);
+    async download(url: string): Promise<string | undefined> {
+        // eslint-disable-next-line no-async-promise-executor
+        const result = await new Promise<string | undefined>(async resolve => {
+            try {
+                const resp = await fetch(url);
+                const responseText = await resp.text();
+                resolve(responseText);
+            } catch (e) {
+                resolve(undefined);
+            }
+        });
+        return result;
+    }
+
+    async servedExists(filePath: string, actionDispatcher: IActionDispatcher): Promise<boolean> {
+        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0) {
+            return true;
+        }
+        const serverArgs = await ServerArgsProvider.getServerArgs();
+        let exists;
+        if (filePath.startsWith('/')) {
+            exists = await this.fileExists('', filePath, actionDispatcher);
+        } else {
+            exists = await this.fileExists(serverArgs?.languagePath, filePath, actionDispatcher);
+            if (!exists) {
+                const workspacePath: string = await this.environmentProvider.getWorkspaceRoot();
+                return this.fileExists(serverArgs?.workspacePath ?? workspacePath, filePath, actionDispatcher);
+            }
+            return true;
+        }
+        return exists;
+    }
+
+    async servedExistsIn(filePath: string, actionDispatcher: IActionDispatcher): Promise<string | undefined> {
+        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0) {
+            return filePath;
+        }
+        const serverArgs = await ServerArgsProvider.getServerArgs();
+        let exists;
+        if (filePath.startsWith('/')) {
+            return (await this.fileExists('', filePath, actionDispatcher)) ? filePath : undefined;
+        } else {
+            exists = await this.fileExists(serverArgs?.languagePath, filePath, actionDispatcher);
+            if (exists) {
+                return exists ? path.join(serverArgs?.languagePath, filePath) : undefined;
+            } else {
+                const workspacePath: string = await this.environmentProvider.getWorkspaceRoot();
+                return (await this.fileExists(serverArgs?.workspacePath ?? workspacePath, filePath, actionDispatcher))
+                    ? path.join(serverArgs.workspacePath, filePath)
+                    : undefined;
+            }
+        }
+    }
+
+    protected async fileExists(dir: string, filePath: string, actionDispatcher: IActionDispatcher): Promise<boolean> {
+        const response: FileProviderResponseItem[] = await FileProviderHandler.getFiles(
+            dir,
+            false,
+            ALLOWED_IMAGE_FILE_TYPES,
+            this.actionDispatcher
+        );
+        return response.filter(f => f.path === filePath).length > 0;
+    }
+
+    protected async request(uris: URI[]): Promise<Request> {
+        const url = await this.toFileUrl(uris);
         const init = this.requestInit(uris);
         return new Request(url, init);
     }
@@ -77,8 +155,8 @@ export class WorkspaceFileService {
         };
     }
 
-    protected url(uris: URI[]): string {
-        const endpoint = this.endpoint();
+    protected async toFileUrl(uris: URI[]): Promise<string> {
+        const endpoint = await this.endpoint();
         if (uris.length === 1) {
             // tslint:disable-next-line:whitespace
             const [uri] = uris;
@@ -87,25 +165,26 @@ export class WorkspaceFileService {
         return endpoint;
     }
 
-    protected endpoint(): string {
-        const url = this.filesUrl();
+    protected async endpoint(): Promise<string> {
+        const url = await this.filesUrl();
         return url.endsWith('/') ? url.slice(0, -1) : url;
     }
 
-    protected filesUrl(): string {
-        return this.getRestUrl({ path: 'files' }).toString();
+    protected async filesUrl(): Promise<string> {
+        return (await this.getRestUrl({ path: 'files' })).toString();
     }
 
-    protected getRestUrl(options: { protocol?: string; location?: string; pathname?: string; path?: string }): URI {
-        let path = '';
+    protected async getRestUrl(options: { protocol?: string; location?: string; pathname?: string; path?: string }): Promise<URI> {
+        const serverArgs = await ServerArgsProvider.getServerArgs();
+        let url_path = '';
         if (options.path) {
             if (options.path.startsWith('/')) {
-                path = options.path;
+                url_path = options.path;
             } else {
-                path = '/' + options.path;
+                url_path = '/' + options.path;
             }
         }
-        let pathname = '/';
+        let pathname = '';
         if (options.pathname) {
             if (options.pathname === '/') {
                 pathname = '';
@@ -115,6 +194,16 @@ export class WorkspaceFileService {
                 pathname = options.pathname;
             }
         }
-        return new URI(`${options.protocol ?? 'http'}://${options.location ?? 'localhost'}${pathname}${path}`);
+        const hostname =
+            options.location ?? (window.location.hostname && window.location.hostname.length > 0 ? window.location.hostname : '0.0.0.0');
+        const host =
+            hostname +
+            (serverArgs.webServerHostMapping
+                ? '/' + serverArgs.webServerHostMapping
+                : serverArgs.webServerPort
+                  ? `:${serverArgs.webServerPort}`
+                  : '');
+        const protocol = (options.protocol ?? 'http') + (serverArgs.useSSL ? 's' : '');
+        return new URI(`${protocol}://${host}${pathname}${url_path}`);
     }
 }

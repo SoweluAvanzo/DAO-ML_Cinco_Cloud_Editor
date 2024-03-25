@@ -16,19 +16,31 @@
 
 import { CompositionSpecification } from '../meta-specification';
 import { Action } from './shared-protocol';
+import * as uuid from 'uuid';
+import { RequestAction, ResponseAction } from '@eclipse-glsp/protocol';
+
+export const ALLOWED_IMAGE_FILE_TYPES = ['.png', '.svg', '.jpg', '.bmp', '.PNG', '.SVG', '.JPG', '.BMP', '.html', '.HTML'];
+
+export const LANGUAGE_UPDATE_COMMAND = { id: 'cinco.language_update' };
+
+export interface LanguageUpdateMessage {
+    metaSpecification: CompositionSpecification;
+}
 
 export interface FileProviderResponse extends Action {
     kind: typeof FileProviderResponse.KIND;
     items: FileProviderResponseItem[];
+    responseId: string;
 }
 
 export namespace FileProviderResponse {
     export const KIND = 'fileprovider.response';
 
-    export function create(items: FileProviderResponseItem[]): FileProviderResponse {
+    export function create(items: FileProviderResponseItem[], responseId: string): FileProviderResponse {
         return {
             kind: KIND,
-            items
+            items,
+            responseId: responseId
         };
     }
 }
@@ -47,22 +59,25 @@ export namespace FileProviderResponseItem {
     }
 }
 
-export interface FileProviderRequest extends Action {
+export interface FileProviderRequest extends RequestAction<FileProviderResponse> {
     kind: typeof FileProviderRequest.KIND;
-    directories: string[];
+    directories: string[]; // keyword META_LANGUAGES_FOLDER can be used for the respective folders
+    requestId: string;
     readFiles?: boolean;
     supportedTypes: string[];
 }
 
 export namespace FileProviderRequest {
     export const KIND = 'fileprovider.request';
+    export const META_LANGUAGES_FOLDER_KEYWORD = 'META_LANGUAGES_FOLDER';
 
     export function create(directories: string[], readFiles?: boolean, supportedTypes: string[] = []): FileProviderRequest {
         return {
             kind: KIND,
             directories,
             readFiles,
-            supportedTypes
+            supportedTypes,
+            requestId: uuid.v4()
         };
     }
 }
@@ -98,7 +113,7 @@ export namespace MetaSpecificationReloadItem {
     }
 }
 
-export interface MetaSpecificationRequestAction extends Action {
+export interface MetaSpecificationRequestAction extends RequestAction<MetaSpecificationResponseAction> {
     kind: typeof MetaSpecificationRequestAction.KIND;
     reload?: boolean;
 }
@@ -106,15 +121,16 @@ export interface MetaSpecificationRequestAction extends Action {
 export namespace MetaSpecificationRequestAction {
     export const KIND = 'meta-specification.request';
 
-    export function create(reload?: boolean): MetaSpecificationRequestAction {
+    export function create(reload?: boolean, requestId = ''): MetaSpecificationRequestAction {
         return {
             kind: KIND,
-            reload
+            reload,
+            requestId
         };
     }
 }
 
-export interface MetaSpecificationResponseAction extends Action {
+export interface MetaSpecificationResponseAction extends ResponseAction {
     kind: typeof MetaSpecificationResponseAction.KIND;
     metaSpecification: CompositionSpecification;
 }
@@ -122,10 +138,11 @@ export interface MetaSpecificationResponseAction extends Action {
 export namespace MetaSpecificationResponseAction {
     export const KIND = 'meta-specification.response';
 
-    export function create(metaSpecification: CompositionSpecification): MetaSpecificationResponseAction {
+    export function create(metaSpecification: CompositionSpecification, responseId = ''): MetaSpecificationResponseAction {
         return {
             kind: KIND,
-            metaSpecification
+            metaSpecification,
+            responseId
         };
     }
 }

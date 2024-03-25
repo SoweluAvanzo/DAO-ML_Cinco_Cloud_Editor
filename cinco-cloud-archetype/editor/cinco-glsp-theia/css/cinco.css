@@ -1,0 +1,15 @@
+
+.generate_graph_diagram_command_dark {
+    background: url('../resources/generate_dark.svg') center center / 16px no-repeat;
+}
+
+.generate_graph_diagram_command_light {
+    background: url('../resources/generate_light.svg') center center / 16px no-repeat;
+}
+
+.accessibility-tool-palette.collapsible-palette + .minimize-palette-button {
+    top: 0px;
+}
+.accessibility-tool-palette.collapsible-palette {
+    top: 0px;
+}

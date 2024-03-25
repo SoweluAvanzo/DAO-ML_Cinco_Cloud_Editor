@@ -13,6 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { createCincoDiagramContainer } from './di.config';
+import { initializeCincoDiagramContainer } from './di.config';
 
-export { createCincoDiagramContainer as createDiagramContainer};
+export { initializeCincoDiagramContainer as initializeCincoDiagramContainer };
+export * from './api/environment-provider';

@@ -13,14 +13,20 @@ import { faBars } from '@fortawesome/free-solid-svg-icons';
 import { RouterModule, Routes } from '@angular/router';
 import { LogoutComponent } from './pages/logout/logout.component';
 import { CoreModule } from '../../core/core.module';
+import { HomeComponent } from './pages/home/home.component';
+import { AppFooterComponent } from './components/app-footer/app-footer.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: 'home', component: WelcomeComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'about', component: AboutComponent },
-  { path: 'logout', component: LogoutComponent }
+  {
+    path: '', component: HomeComponent, children: [
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      { path: 'home', component: WelcomeComponent },
+      { path: 'login', component: LoginComponent },
+      { path: 'register', component: RegisterComponent },
+      { path: 'about', component: AboutComponent },
+      { path: 'logout', component: LogoutComponent }
+    ]
+  }
 ];
 
 @NgModule({
@@ -32,6 +38,8 @@ const routes: Routes = [
     AboutComponent,
     NotFoundComponent,
     LogoutComponent,
+    HomeComponent,
+    AppFooterComponent
   ],
     imports: [
         CommonModule,

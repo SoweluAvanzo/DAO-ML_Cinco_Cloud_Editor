@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { AppearanceProvider, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import { RequestAppearanceUpdateAction, getAppearanceProvider, hasAppearanceProvider } from '@cinco-glsp/cinco-glsp-common';
-import { Action, SaveModelAction } from '@eclipse-glsp/server-node';
+import { Action } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { BaseHandlerManager } from './base-handler-manager';
 
@@ -33,7 +33,7 @@ export class AppearanceProviderManager extends BaseHandlerManager<RequestAppeara
     }
 
     isApplicableHandler(element: ModelElement, handlerClassName: string): boolean {
-        return getAppearanceProvider(element.type) === handlerClassName;
+        return getAppearanceProvider(element.type).includes(handlerClassName);
     }
 
     handlerCanBeExecuted(
@@ -51,16 +51,6 @@ export class AppearanceProviderManager extends BaseHandlerManager<RequestAppeara
         action: RequestAppearanceUpdateAction,
         args: any
     ): Action[] | Promise<Action[]> {
-        const result = handler.getAppearance(action, args) as Action[] | Promise<Action[]>;
-        // save appearance
-        if (result instanceof Promise) {
-            return new Promise<Action[]>((resolve, _) => {
-                const re: Promise<Action[]> = result.then((p: Action[]) => p.concat([SaveModelAction.create()]));
-                resolve(re);
-            });
-        } else {
-            result.push(SaveModelAction.create());
-        }
-        return result;
+        return handler.getAppearance(action, args) as Action[] | Promise<Action[]>;
     }
 }

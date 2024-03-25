@@ -6,13 +6,12 @@ import info.scce.cincocloud.db.OrganizationDB;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.UserSystemRole;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import io.quarkus.qute.Template;
 import io.quarkus.security.UnauthorizedException;
-
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,6 +34,9 @@ public class UserService {
   PBKDF2Encoder passwordEncoder;
 
   @Inject
+  ProjectService projectService;
+
+  @Inject
   SettingsService settingsService;
 
   @Inject
@@ -46,22 +48,32 @@ public class UserService {
   @Inject
   RegistrationService registrationService;
 
+  @Inject
+  FileService fileService;
+
   public UserDB getOrThrow(long userId) {
     return (UserDB) UserDB.findByIdOptional(userId)
         .orElseThrow(() -> new EntityNotFoundException("Cannot find user."));
   }
 
-  public List<UserDB> getUsers() {
-    return UserDB.listAll();
+  public PanacheQuery<UserDB> getUsers(Optional<UserSystemRole> systemRole) {
+    if (systemRole.isPresent()) {
+      final var queryString = "select u from UserDB u where ?1 member of u.systemRoles";
+      return UserDB.find(queryString, systemRole.get());
+    } else {
+      return UserDB.findAll();
+    }
   }
 
-  public List<UserDB> getUserByUsernameOrEmail(String usernameOrEmail) {
-    final List<UserDB> result = new ArrayList<>(UserDB.list("username", usernameOrEmail));
-    if (result.size() == 0) {
-      result.addAll(UserDB.list("email", usernameOrEmail));
+  public PanacheQuery<UserDB> searchUsers( String usernameOrEmail, Optional<UserSystemRole> systemRole) {
+    final var baseQuery = "select u from UserDB u where LOWER(username) LIKE ?1 or LOWER(email) LIKE ?1";
+    final var searchString = "%" + usernameOrEmail.toLowerCase() + "%";
+    if (systemRole.isPresent()) {
+      final var queryString = baseQuery + " and ?2 member of u.systemRoles";
+      return UserDB.find(queryString, searchString, systemRole.get());
+    } else {
+      return UserDB.find(baseQuery, searchString);
     }
-
-    return result;
   }
 
   public UserDB create(String email, String name, String username, String password) {
@@ -72,10 +84,10 @@ public class UserService {
       Collection<UserSystemRole> roles) {
 
     if (!UserDB.list("username", username).isEmpty() || !OrganizationDB.list("name", username).isEmpty()) {
-      throw new IllegalArgumentException("The username already exists.");
+      throw new IllegalArgumentException("An account with the username already exists.");
     }
     if (!UserDB.list("email", email).isEmpty()) {
-      throw new IllegalArgumentException("The email already exists.");
+      throw new IllegalArgumentException("An account with the email already exists.");
     }
 
     final var user = new UserDB();
@@ -87,6 +99,10 @@ public class UserService {
     user.systemRoles = roles;
     user.isActivated = false;
     user.persist();
+
+    // create default projects for created user
+    projectService.createDefaultProjects(user);
+
     return user;
   }
 
@@ -122,6 +138,12 @@ public class UserService {
         this.organizationService.removeUserFromOrganization(userToDelete, org);
       }
     });
+
+    if (userToDelete.profilePicture != null) {
+      this.fileService.deleteFile(userToDelete.profilePicture);
+      userToDelete.profilePicture = null;
+    }
+
     UserDB userToDeleteUpdate = UserDB.findById(userToDelete.id);
     if(userToDeleteUpdate != null){
       userToDeleteUpdate.delete();
@@ -148,10 +170,13 @@ public class UserService {
 
   public UserDB updateProfilePicture(UserDB user, Optional<Long> profilePictureIdOptional) {
     if (profilePictureIdOptional.isPresent()) {
+      if (user.profilePicture != null && !user.profilePicture.id.equals(profilePictureIdOptional.get())) {
+        fileService.deleteFile(user.profilePicture);
+      }
       user.profilePicture = BaseFileDB.findById(profilePictureIdOptional.get());
     } else {
       if (user.profilePicture != null) {
-        user.profilePicture.delete();
+        fileService.deleteFile(user.profilePicture);
       }
       user.profilePicture = null;
     }

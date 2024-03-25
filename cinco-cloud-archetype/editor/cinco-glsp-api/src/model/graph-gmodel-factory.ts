@@ -22,7 +22,7 @@ import {
     GModelFactory,
     GNode,
     GNodeBuilder
-} from '@eclipse-glsp/server-node';
+} from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
 import { GraphModelState } from './graph-model-state';

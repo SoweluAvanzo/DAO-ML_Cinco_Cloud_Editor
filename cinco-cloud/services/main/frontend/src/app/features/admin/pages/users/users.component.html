@@ -1,9 +1,9 @@
 <div class="container mt-3">
   <div class="d-flex flex-column flex-md-row align-items-md-center">
-    <ul #nav="ngbNav" class="nav nav-pills d-flex gap-2" ngbNav>
+    <ul #nav="ngbNav" class="nav nav-pills d-flex gap-2" ngbNav [(activeId)]="activeTab" (navChange)="handleTabChange($event)">
       <li class="nav-item" ngbNavItem="users">
         <a class="nav-link" ngbNavLink>
-          Users <span class="badge">{{users.length}}</span>
+          Users
         </a>
         <ng-template ngbNavContent>
           <div *ngIf="users.length === 0; else userList" class="alert alert-info mt-3">
@@ -13,21 +13,32 @@
             <cc-user-list
               (userDeletionRequest)="deleteUser($event)"
               (userToggleStatusRequest)="toggleUserStatus($event)"
-              [users]="users">
-            </cc-user-list>
+              [users]="users" />
+
+            <cc-pagination
+              class="d-block mt-3"
+              [page]="usersPage"
+              (nextPage)="loadUsers(usersPage.number + 1)"
+              (previousPage)="loadUsers(usersPage.number - 1)" />
           </ng-template>
         </ng-template>
       </li>
       <li class="nav-item" ngbNavItem="admins">
         <a class="nav-link" ngbNavLink>
-          Admins <span class="badge">{{admins.length}}</span>
+          Admins
         </a>
         <ng-template ngbNavContent>
           <div *ngIf="admins.length === 0; else adminList" class="alert alert-info mt-3">
             There aren't any admins yet.
           </div>
           <ng-template #adminList>
-            <cc-admin-list (removeAdminRoleRequest)="removeAdmin($event)" [admins]="admins"></cc-admin-list>
+            <cc-admin-list (removeAdminRoleRequest)="removeAdmin($event)" [admins]="admins" />
+
+            <cc-pagination
+              class="d-block mt-3"
+              [page]="usersPage"
+              (nextPage)="loadUsers(usersPage.number + 1)"
+              (previousPage)="loadUsers(usersPage.number - 1)" />
           </ng-template>
         </ng-template>
       </li>

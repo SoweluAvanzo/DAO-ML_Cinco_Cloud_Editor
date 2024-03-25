@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Attribute, CustomType } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
+import { Attribute } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
 import { ModelElementIndex } from '@cinco-glsp/cinco-glsp-common/lib/protocol/property-model';
 import { PropertyViewUpdateCommand } from '@cinco-glsp/cinco-glsp-common/lib/protocol/property-protocol';
 import { CommandContribution, CommandRegistry } from '@theia/core';
@@ -32,15 +32,13 @@ export class PropertyUpdateCommandContribution implements CommandContribution {
                 modelType: string,
                 modelElementId: string,
                 attributeDefinitions: Attribute[],
-                customTypeDefinitions: CustomType[],
                 values: any
             ) => {
                 this.propertyDataHandler.updatePropertySelection(
-                    modelElementIndex,
-                    modelType,
                     modelElementId,
+                    modelType,
+                    modelElementIndex,
                     attributeDefinitions,
-                    customTypeDefinitions,
                     values
                 );
             }

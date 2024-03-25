@@ -14,8 +14,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { getFileExtension, getGraphModelOfFileType } from '@cinco-glsp/cinco-glsp-common';
-import { AbstractJsonModelStorage, MaybePromise, RequestModelAction, SaveModelAction } from '@eclipse-glsp/server-node';
+import { getGraphModelOfFileType } from '@cinco-glsp/cinco-glsp-common';
+import { MaybePromise, RequestModelAction, SaveModelAction } from '@eclipse-glsp/server';
+import { AbstractJsonModelStorage } from '@eclipse-glsp/server/lib/node/abstract-json-model-storage';
 import { inject, injectable } from 'inversify';
 import { GraphModel } from './graph-model';
 import { GraphModelState } from './graph-model-state';
@@ -28,27 +29,13 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
     loadSourceModel(action: RequestModelAction): MaybePromise<void> {
         const sourceUri = this.getSourceUri(action);
         let graphModel = this.loadFromFile(sourceUri, GraphModel.is);
-        graphModel = this.fixMissingProperties(graphModel, sourceUri);
+        graphModel = this.modelState.fixMissingProperties(graphModel, sourceUri);
         this.modelState.graphModel = graphModel;
-    }
-
-    fixMissingProperties(graphModel: GraphModel, sourceUri: string): GraphModel {
-        if (!graphModel.type) {
-            graphModel.type = getGraphModelOfFileType(getFileExtension(sourceUri))?.elementTypeId ?? 'graphmodel';
-        }
-        if (!graphModel._containments) {
-            graphModel._containments = [];
-        }
-        if (!graphModel._edges) {
-            graphModel._edges = [];
-        }
-        graphModel._sourceUri = sourceUri;
-        return graphModel;
     }
 
     saveSourceModel(action: SaveModelAction): MaybePromise<void> {
         const sourceUri = this.getFileUri(action);
-        const serializableModel = this.modelState.resolveGraphmodel(this.modelState.graphModel, new GraphModel(), undefined);
+        const serializableModel = this.modelState.sourceModel;
         this.writeFile(sourceUri, serializableModel);
     }
 

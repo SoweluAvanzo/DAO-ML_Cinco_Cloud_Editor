@@ -24,8 +24,7 @@ import javax.validation.constraints.NotNull;
 @Entity
 @NamedQuery(
     name = "ProjectDB.findWhereUserIsOwnerOrMember",
-    query = ""
-        + "select distinct project "
+    query = "select distinct project "
         + "from ProjectDB project, UserDB user "
         + "where project.deletedAt is null and ("
         + "(project.owner is not null and project.owner.id = ?1) or "

@@ -15,23 +15,44 @@
  ********************************************************************************/
 import { MetaSpecification, MetaSpecificationResponseAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action, IActionHandler, ICommand } from '@eclipse-glsp/client';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
+import { EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
 
 @injectable()
 export class MetaSpecificationResponseHandler implements IActionHandler {
-    static _unlock: () => void;
-    static _meta_spec_loaded = new Promise<void>((resolve, reject) => {
-        MetaSpecificationResponseHandler._unlock = resolve;
-    });
+    @inject(EnvironmentProvider) environmentProvider: IEnvironmentProvider;
+    protected static _registration_callbacks: Map<string, (() => void)[]> = new Map();
+
+    static addRegistrationCallback(clientId: string, registrationCallback: () => void): void {
+        if (!this._registration_callbacks.has(clientId)) {
+            this._registration_callbacks.set(clientId, []);
+        }
+        this._registration_callbacks.get(clientId)!.push(registrationCallback);
+    }
+
+    static removeRegistrationCallback(clientId: string): boolean {
+        return this._registration_callbacks.delete(clientId);
+    }
 
     handle(action: MetaSpecificationResponseAction): void | Action | ICommand {
+        MetaSpecificationResponseHandler.handleResponse(action, this.environmentProvider);
+    }
+
+    static handleResponse(action: MetaSpecificationResponseAction, environmentProvider: IEnvironmentProvider): void {
         const metaSpec = action.metaSpecification;
         MetaSpecification.clear();
         MetaSpecification.merge(metaSpec);
-        MetaSpecificationResponseHandler._unlock();
-        // update palette after meta-specification is updated
-        return {
-            kind: 'enableToolPalette'
-        };
+        if (MetaSpecificationResponseHandler._registration_callbacks) {
+            for (const client of this._registration_callbacks.keys()) {
+                for (const cb of this._registration_callbacks.get(client)!) {
+                    try {
+                        cb();
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
+            }
+        }
+        environmentProvider.propagateMetaspecification(MetaSpecification.get());
     }
 }

@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GModelElement, GModelIndex, GModelRoot } from '@eclipse-glsp/server-node';
+import { GModelElement, GModelIndex, GModelRoot } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { Container, Edge, GraphModel, IdentifiableElement, ModelElement, ModelElementContainer, Node } from './graph-model';
 

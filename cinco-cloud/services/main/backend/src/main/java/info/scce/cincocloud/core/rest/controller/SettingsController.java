@@ -42,11 +42,7 @@ public class SettingsController {
   @RolesAllowed("admin")
   public Response update(@Context SecurityContext securityContext, final SettingsTO settings) {
     UserService.getCurrentUser(securityContext);
-
-    settingsService.setAllowPublicUserRegistration(settings.getallowPublicUserRegistration());
-    settingsService.setAutoActivateUsers(settings.getautoActivateUsers());
-    final var settingsInDb = settingsService.setSendMails(settings.getsendMails());
-
-    return Response.ok(SettingsTO.fromEntity(settingsInDb, objectCache)).build();
+    final var updatedSettings = settingsService.updateSettings(settings);
+    return Response.ok(SettingsTO.fromEntity(updatedSettings, objectCache)).build();
   }
 }

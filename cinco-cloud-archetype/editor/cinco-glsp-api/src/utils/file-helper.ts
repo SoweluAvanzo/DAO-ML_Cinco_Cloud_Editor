@@ -13,36 +13,41 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-// TODO: duplicate in api
-import { META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, getFileExtension } from '@cinco-glsp/cinco-glsp-common';
+import { META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, hasArg } from '@cinco-glsp/cinco-glsp-common';
 import * as path from 'path';
+import * as fs from 'fs';
 
-export function getFilesFromDirectories(
-    fs: typeof import('fs'),
-    directories: string[],
-    filterTypes: string[],
-    encoding?: string
-): string[] {
+/**
+ * @param targetPath
+ * @param content
+ * @param encoding | 'ascii', 'utf8', 'utf-8', 'utf16le', 'ucs2', 'ucs-2', 'base64', 'base64url', 'latin1', 'binary', 'hex'
+ */
+export function writeFile(targetPath: string, content: string, overwriteExistingFile = true, encoding = 'utf-8'): void {
+    if (overwriteExistingFile || !exists(targetPath)) {
+        fs.writeFileSync(targetPath, content, { encoding: encoding as BufferEncoding });
+    }
+}
+
+export function getFilesFromDirectories(directories: string[], filterTypes: string[]): string[] {
     let result: string[] = [];
     for (const dir of directories) {
-        const fileUris = getFiles(fs, dir, filterTypes);
+        const fileUris = getFiles(dir, filterTypes);
         result = result.concat(fileUris);
     }
     return result;
 }
 
-export function getFiles(fs: typeof import('fs'), absFolderPath: string, filterTypes: string[]): string[] {
+export function getFiles(absFolderPath: string, filterTypes: string[]): string[] {
     try {
         console.log(`loading files from:  ${absFolderPath}`);
-        // TODO: resolve files inside folders
-        return getFilesFromFolder(fs, absFolderPath, './', filterTypes);
+        return getFilesFromFolder(absFolderPath, './', filterTypes);
     } catch (e) {
         console.log('failed to access filesystem.');
     }
     return [];
 }
 
-export function getFilesFromFolder(fs: typeof import('fs'), absRoot: string, folderPath: string, filterTypes?: string[]): string[] {
+export function getFilesFromFolder(absRoot: string, folderPath: string, filterTypes?: string[]): string[] {
     const absoluteFolderPath = path.join(absRoot, folderPath);
     if (!fs.existsSync(absoluteFolderPath)) {
         return [];
@@ -68,7 +73,7 @@ export function getFilesFromFolder(fs: typeof import('fs'), absRoot: string, fol
     const containedFiles: string[] = [];
     foundFolders.forEach((folder: string) => {
         const relativeFolderPath = path.join(folderPath, folder);
-        const filesFromFolder = getFilesFromFolder(fs, absRoot, relativeFolderPath, filterTypes);
+        const filesFromFolder = getFilesFromFolder(absRoot, relativeFolderPath, filterTypes);
         filesFromFolder.forEach(file => {
             const relativeFilePath = path.join(folder, file);
             containedFiles.push(relativeFilePath);
@@ -83,9 +88,8 @@ export function getFilesFromFolder(fs: typeof import('fs'), absRoot: string, fol
     return foundFiles;
 }
 
-export function readFile(fs: typeof import('fs'), filePath: string, encoding?: string): string | undefined {
+export function readFile(filePath: string, encoding = 'utf-8'): string | undefined {
     let result: string | undefined;
-    encoding = encoding ?? 'utf-8';
     try {
         const buffer = fs.readFileSync(filePath);
         const content = buffer.toString();
@@ -96,7 +100,7 @@ export function readFile(fs: typeof import('fs'), filePath: string, encoding?: s
     return result;
 }
 
-export function readFiles(fs: typeof import('fs'), filePaths: string[], encoding?: string): string[] {
+export function readFiles(filePaths: string[], encoding?: string): string[] {
     const contents: string[] = [];
     for (const filePath of filePaths) {
         try {
@@ -112,17 +116,12 @@ export function readFiles(fs: typeof import('fs'), filePaths: string[], encoding
     return contents;
 }
 
-export function readFilesFromDirectories(
-    fs: typeof import('fs'),
-    directories: string[],
-    filterTypes: string[] = [],
-    encoding?: string
-): Map<string, string> {
+export function readFilesFromDirectories(directories: string[], filterTypes: string[] = [], encoding?: string): Map<string, string> {
     const result = new Map<string, string>();
     for (const dir of directories) {
-        const absDir = `${getRootUri()}/${dir}`;
-        const fileUris = getFiles(fs, absDir, filterTypes).map(f => `${absDir}/${f}`);
-        const contents = readFiles(fs, fileUris);
+        const absDir = isAbsolute(dir) ? dir : `${getRootUri()}/${dir}`;
+        const fileUris = getFiles(absDir, filterTypes).map(f => `${absDir}/${f}`);
+        const contents = readFiles(fileUris);
         for (let i = 0; i < fileUris.length && contents.length; i++) {
             if (fileUris[i] && contents[i]) {
                 result.set(fileUris[i], contents[i]);
@@ -132,8 +131,12 @@ export function readFilesFromDirectories(
     return result;
 }
 
-export function readJson(fs: typeof import('fs'), filePath: string, encoding?: string): object | undefined {
-    const content = readFile(fs, filePath);
+export function isAbsolute(dir: string): boolean {
+    return dir.startsWith('/');
+}
+
+export function readJson(filePath: string, encoding?: string): object | undefined {
+    const content = readFile(filePath);
     if (content) {
         try {
             return JSON.parse(content);
@@ -150,7 +153,76 @@ export function getFilesByExtension(files: string[], fileExtension: string): str
 }
 
 export function getFilesByExtensions(files: string[], fileExtensions: string[]): string[] {
-    return files.filter(f => fileExtensions.indexOf('.' + getFileExtension(f)) >= 0);
+    return files.filter(f => fileExtensions.indexOf(getFileExtension(f)) >= 0);
+}
+
+export function getParentDirectory(fileOrDirPath: string): string {
+    return path.dirname(fileOrDirPath);
+}
+
+export function getDirectoryName(dirPath: string): string {
+    return path.basename(dirPath);
+}
+
+export function getFileName(filePath: string): string {
+    return path.basename(filePath);
+}
+
+export function getFileExtension(filePath: string): string {
+    return path.extname(filePath);
+}
+
+export function exists(fileOrDirPath: string): boolean {
+    return fs.existsSync(fileOrDirPath);
+}
+
+export function existsFile(filePath: string): boolean {
+    return exists(filePath) && fs.lstatSync(filePath).isFile();
+}
+
+export function existsDirectory(dirPath: string): boolean {
+    return exists(dirPath) && fs.lstatSync(dirPath).isDirectory();
+}
+
+export function readDirectory(dirPath: string): string[] {
+    return fs.readdirSync(dirPath);
+}
+
+export function deleteFile(dirPath: string, force = false): void {
+    fs.rmSync(dirPath, { recursive: false, force: force });
+}
+
+export function deleteDirectory(dirPath: string, recursive = false, force = false): void {
+    fs.rmSync(dirPath, { recursive: recursive, force: force });
+}
+
+export function createDirectory(dirPath: string, deleteExistingDirectory = false): void {
+    if (deleteExistingDirectory && exists(dirPath)) {
+        deleteDirectory(dirPath, true);
+    }
+    fs.mkdirSync(dirPath, { recursive: true });
+}
+
+export function copyFile(sourceFilePath: string, targetFilePath: string, overwriteExistingFile = true): void {
+    const mode = overwriteExistingFile ? 0 : fs.constants.COPYFILE_EXCL;
+    fs.copyFileSync(sourceFilePath, targetFilePath, mode);
+}
+
+export function copyDirectory(
+    sourceDirPath: string,
+    targetDirPath: string,
+    deleteExistingDirectories = false,
+    overwriteExistingFiles = true
+): void {
+    createDirectory(targetDirPath, deleteExistingDirectories);
+    for (const entry of readDirectory(sourceDirPath)) {
+        const targetPath = path.join(targetDirPath, getFileName(entry));
+        if (existsDirectory(entry)) {
+            copyDirectory(entry, targetPath, deleteExistingDirectories, overwriteExistingFiles);
+        } else {
+            copyFile(entry, targetPath, overwriteExistingFiles);
+        }
+    }
 }
 
 /**
@@ -166,7 +238,7 @@ export function getRoot(): string {
 
 export function getRootUri(): string {
     let root = getRootFolderArg();
-    if(root) {
+    if (root) {
         return root;
     } else {
         const ROOT_BASE = isBundle() ? '../..' : '../../..'; // pivot the rootBasePath to the folder above glsp-server
@@ -208,6 +280,20 @@ export function getWorkspaceFolderArg(): string | undefined {
     return getArgs(argsKey);
 }
 
+export function getWebsocketPathArg(): string | undefined {
+    const argsKey = '--websocketPath';
+    return getArgs(argsKey);
+}
+
+export function getWebServerPortArg(): number | undefined {
+    const argsKey = '--webServerPort';
+    if (hasArg(argsKey)) {
+        return Number.parseInt(getArgs(argsKey)!, 10);
+    } else {
+        return undefined;
+    }
+}
+
 export function isDevModeArg(): boolean {
     const argsKey = '--metaDevMode';
     const args = process.argv.filter(a => a.startsWith(argsKey));
@@ -217,11 +303,16 @@ export function isDevModeArg(): boolean {
     return false;
 }
 
+export function getPortArg(): string | undefined {
+    const argsKey = '--port';
+    return getArgs(argsKey);
+}
+
 export function getArgs(argsKey: string): string | undefined {
     const args = process.argv.filter(a => a.startsWith(argsKey));
     if (args.length > 0) {
         const result = args[0].substring(argsKey.length + 1, undefined);
-        if(result) {
+        if (result) {
             return result.replace(/"|'/g, ''); // replace quotes
         }
     }

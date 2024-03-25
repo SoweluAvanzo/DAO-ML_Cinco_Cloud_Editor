@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core.rest.controller;
 
+import info.scce.cincocloud.core.rest.inputs.UpdateOrganizationInput;
 import info.scce.cincocloud.core.rest.inputs.UpdateOrganizationUsersInput;
 import info.scce.cincocloud.core.rest.tos.BooleanTO;
 import info.scce.cincocloud.core.rest.tos.OrganizationTO;
@@ -17,13 +18,13 @@ import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.rest.ObjectCache;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -74,27 +75,13 @@ public class OrganizationController {
   @RolesAllowed("user")
   public Response getAll(
           @Context SecurityContext securityContext,
-          @QueryParam("page") Integer page,
-          @QueryParam("size") Integer size
+          @QueryParam("page") @DefaultValue("0") Integer index,
+          @QueryParam("size") @DefaultValue("25") Integer size
   ) {
     final var subject = UserService.getCurrentUser(securityContext);
-
-    if (page != null && size != null) {
-      final var paged = organizationService.getAllAccessibleOrganizationsPaged(subject, page, size);
-
-      final var items = paged.stream()
-              .map(p -> OrganizationTO.fromEntity(p, objectCache))
-              .collect(Collectors.toList());
-
-      final var pageTO = new PageTO<>(items, page, size, paged.pageCount(), paged.hasPreviousPage(), paged.hasNextPage());
-      return Response.ok(pageTO).build();
-    } else  {
-      final var items = organizationService.getAllAccessibleOrganizations(subject).stream()
-              .map(o -> OrganizationTO.fromEntity(o, objectCache))
-              .collect(Collectors.toList());
-      final var pageTO = new PageTO<>(items, 0, items.size(), 1, false, false);
-      return Response.ok(pageTO).build();
-    }
+    final var query = organizationService.getAllAccessibleOrganizations(subject);
+    final var pageTO = PageTO.ofQuery(query, index, size, p -> OrganizationTO.fromEntity(p, objectCache));
+    return Response.ok(pageTO).build();
   }
 
   @GET
@@ -228,24 +215,11 @@ public class OrganizationController {
   @Path("/{orgId}")
   @RolesAllowed("user")
   public Response update(@Context SecurityContext securityContext,
-      @PathParam("orgId") final long orgId, OrganizationTO organizationTO) {
+                         @PathParam("orgId") final long orgId,
+                         @Valid UpdateOrganizationInput input) {
     final var subject = UserService.getCurrentUser(securityContext);
-    final OrganizationDB organization = organizationService.getOrThrow(orgId);
-
-    if (!organizationService.userCanEditOrganization(subject, organization)) {
-      throw new RestException(Status.FORBIDDEN, "Insufficient access rights.");
-    }
-
-    if ((organization.id != organizationTO.getId()) || organizationTO.getname().trim().equals("")) {
-      throw new RestException(Response.Status.BAD_REQUEST, "Could not update organization.\n"
-              + "ID or name does not match the database");
-    }
-
-    organizationService.updateName(organization, organizationTO.getname());
-    organizationService.updateDescription(organization, organizationTO.getdescription());
-    organizationService.updateLogo(organization, Optional.ofNullable(organizationTO.getlogo() != null ? organizationTO.getlogo().getId() : null));
-
-    return Response.ok(OrganizationTO.fromEntity(organization, objectCache)).build();
+    final var updatedOrganization = organizationService.updateOrganization(subject, orgId, input);
+    return Response.ok(OrganizationTO.fromEntity(updatedOrganization, objectCache)).build();
   }
 
   @DELETE

@@ -13,44 +13,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import '../../css/cinco.css';
-
-import {
-    CompositionSpecification,
-    getGraphTypes,
-    MetaSpecification
-} from '@cinco-glsp/cinco-glsp-common';
-import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration';
-import { CommandContribution, CommandRegistry } from '@theia/core';
-import { injectable } from 'inversify';
+import { DIAGRAM_TYPE, getGraphTypes } from '@cinco-glsp/cinco-glsp-common';
+import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
 
 export function getDiagramConfiguration(): GLSPDiagramLanguage {
     const fileExtensions = getGraphTypes()?.map(g => g.diagramExtension) ?? [];
     return {
         contributionId: 'cinco',
-        diagramType: 'cinco-diagram',
+        diagramType: DIAGRAM_TYPE,
         fileExtensions: fileExtensions,
         label: 'Cinco Diagram',
         iconClass: 'codicon codicon-type-hierarchy-sub'
     };
-}
-
-export interface LanguageUpdateMessage {
-    metaSpecification: CompositionSpecification;
-}
-
-@injectable()
-export class LanguageUpdateCommand implements CommandContribution {
-    LANGUAGE_UPDATE_COMMAND = { id: 'cinco.language_update' };
-
-    registerCommands(commands: CommandRegistry): void {
-        commands.registerCommand(this.LANGUAGE_UPDATE_COMMAND, {
-            execute: (message: LanguageUpdateMessage) => this.updateLanguage(message)
-        });
-    }
-
-    updateLanguage(message: LanguageUpdateMessage): void {
-        // update MetaSpecification
-        MetaSpecification.merge(message.metaSpecification);
-    }
 }

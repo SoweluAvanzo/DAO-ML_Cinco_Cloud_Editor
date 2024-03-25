@@ -15,9 +15,7 @@
  ********************************************************************************/
 
 import { GeneratorHandler, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import { GeneratorAction, GeneratorCreateFileOperation } from '@cinco-glsp/cinco-glsp-common';
-import { Action } from '@eclipse-glsp/server-node';
-import URI from '@theia/core/lib/common/uri';
+import { Action, GeneratorAction } from '@cinco-glsp/cinco-glsp-common';
 
 /**
  * Language Designer defined example of a Generator
@@ -27,27 +25,42 @@ export class ExampleGeneratorHandler extends GeneratorHandler {
 
     override execute(action: GeneratorAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // parse action
-        const modelElementId: string = action.modelElementId;
-        const target: string = action.targetFolder ?? '';
-        const targetFolderUri = new URI(target);
-        const element = this.modelState.index.findElement(modelElementId)! as ModelElement;
-        const filesContentSMap: Map<URI, string> = this.getfileContentsMap(element, targetFolderUri);
-        // const graphContent: string = this.getContent(element);
+        const model = this.getElement(action.modelElementId);
+
+        // generate
+        this.generate(model);
 
         //  logging
-        const message = 'Element [' + element.type + '] generation process  started';
+        const message = 'Element [' + model.type + '] generation process started';
         this.log(message, { show: true });
 
-        return [GeneratorCreateFileOperation.create(action.modelElementId, filesContentSMap)];
+        // const target: string = action.targetFolder ?? '';
+        // const targetFolderUri = new URI(target);
+        // old action based method: const filesContentSMap: Map<URI, string> = this.getfileContentsMap(model, targetFolderUri);
+        // old action based method: return [GeneratorCreateFileOperation.create(action.modelElementId, filesContentSMap)];
+        return [];
     }
 
     override canExecute(action: GeneratorAction, ...args: unknown[]): Promise<boolean> | boolean {
         const element = this.getElement(action.modelElementId);
         return element !== undefined;
     }
+
     /**
-     * Set your generated Map filename-filecontent here !
+     * generate files
      */
+    generate(model: ModelElement): void {
+        this.createFile('generated_flowgraph.txt', this.getContent(model));
+        this.createFile('generated_static_file.txt', 'static content');
+        const writtenFile = this.readFile('generated_static_file.txt');
+        console.log('WrittenFile: ' + writtenFile);
+    }
+
+    /**
+     * old action based method:
+     *
+     * Set your generated Map filename-filecontent here !
+     *
     getfileContentsMap(model: ModelElement, parentUri: URI): Map<URI, string> {
         const fileContentsMap = new Map<URI, string>();
 
@@ -57,6 +70,7 @@ export class ExampleGeneratorHandler extends GeneratorHandler {
 
         return fileContentsMap;
     }
+    */
 
     /**
      * Describe your file content here !

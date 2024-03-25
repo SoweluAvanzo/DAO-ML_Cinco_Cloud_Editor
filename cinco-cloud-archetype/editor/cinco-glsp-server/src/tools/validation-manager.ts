@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { ModelElement, ValidationHandler } from '@cinco-glsp/cinco-glsp-api';
 import { ValidationRequestAction, getValidators, hasValidator } from '@cinco-glsp/cinco-glsp-common';
-import { Action } from '@eclipse-glsp/server-node';
+import { Action } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { BaseHandlerManager } from './base-handler-manager';
 

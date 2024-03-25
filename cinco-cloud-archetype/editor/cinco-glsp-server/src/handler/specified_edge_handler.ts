@@ -13,22 +13,14 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-
 import { Edge, GraphModelIndex, assignValue } from '@cinco-glsp/cinco-glsp-api';
-import { getEdgeSpecOf, getEdgeTypes , EdgeType } from '@cinco-glsp/cinco-glsp-common';
-import {
-    CreateEdgeOperation
-} from '@eclipse-glsp/server-node';
+import { getEdgeSpecOf, getEdgeTypes, EdgeType } from '@cinco-glsp/cinco-glsp-common';
+import { CreateEdgeOperation } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
-import { SpecifiedElementHandler } from './specified_element_handler';
+import { AbstractSpecifiedEdgeElementHandler } from './specified_element_handler';
 
 @injectable()
-export class SpecifiedEdgeHandler extends SpecifiedElementHandler {
-
-    override get operationType(): string {
-        return 'createEdge';
-    }
-
+export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
     override get elementTypeIds(): string[] {
         const result = getEdgeTypes()
             .map((e: EdgeType) => e.elementTypeId)
@@ -36,12 +28,12 @@ export class SpecifiedEdgeHandler extends SpecifiedElementHandler {
         return result;
     }
 
-    override execute(operation: CreateEdgeOperation): void {
+    override executeOperation(operation: CreateEdgeOperation): void {
         // if constraint is met, create element
         if (this.checkConstraints(operation)) {
             const edge = this.createEdge(operation.sourceElementId, operation.targetElementId, operation.elementTypeId);
-            edge.index = this.index;
-            const graphmodel = this.index.getRoot();
+            edge.index = this.modelState.index;
+            const graphmodel = this.modelState.index.getRoot();
             graphmodel.edges.push(edge);
             this.saveAndUpdate();
         }

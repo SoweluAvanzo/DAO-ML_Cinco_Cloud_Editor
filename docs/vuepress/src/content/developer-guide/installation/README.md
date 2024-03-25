@@ -13,8 +13,9 @@ On this page, you find a guide on how to run CincoCloud locally for development 
 Install the following software:
 
 - [Docker][docker]
+- [buildx][buildx]
 - [Helm][helm]
-- [Skaffold][skaffold] *Use a version < v2.0.0, e.g. v1.39.4*
+- [Skaffold][skaffold] *Use a version >= v1.37.0 & < v2.0.0, e.g. v1.39.4*
 - [Minikube][minikube]
 - [Kubectl][kubectl]
 
@@ -74,12 +75,10 @@ Install the following software:
   type: Opaque
   data:
     passwordSecret: <BASE64_ENCODED_SECRET>
-    databaseUser: <BASE64_ENCODED_DB_USER>
-    databasePassword: <BASE64_ENCODED_DB_PASSWORD>
-    artemisUser: <BASE64_ENCODED_ARTEMIS_USER>
-    artemisPassword: <BASE64_ENCODED_ARTEMIS_USER>
-    minioRootUser: <BASE64_ENCODED_MINIO_USER>
-    minioRootAdmin: <BASE64_ENCODED_MINIO_PASSWORD>
+    postgresUserPassword: <BASE64_ENCODED_DB_PASSWORD>
+    postgresAdminPassword: <BASE64_ENCODED_DB_PASSWORD>
+    root-user: <BASE64_ENCODED_MINIO_USER>
+    root-password: <BASE64_ENCODED_MINIO_PASSWORD>
     minioAccessKey: <BASE64_ENCODED_MINIO_ACCESS_KEY>
     minioSecretKey: <BASE64_ENCODED_MINIO_ACCESS_KEY_SECRET>
     authPublicKey: <BASE64_ENCODED_RSA_PUBLIC_KEY>
@@ -131,13 +130,13 @@ Install the following software:
 
     * **Windows / Linux**
 
-      1. Execute `kubectl port-forward minio-statefulset-0 9001:9001`.
+      1. Execute `kubectl port-forward release-minio-0 9001:9001`.
          Leave the terminal session open until you finished setting up Minio.
       2. Open `http://127.0.0.1:9001`
 
     * **MacOS**
 
-      1. Open a terminal and execute `minikube service minio-service --url`.
+      1. Open a terminal and execute `minikube service release-minio --url`.
          Two URLs starting with `http://127.0.0.1:<PORT>` will be displayed.
          One of them (propably the latter one) is the URL to the Minio admin console.
          Open the displayed URL in a web browser. 
@@ -148,7 +147,7 @@ Install the following software:
     2. Navigate to *User > Access Keys* and click on *Create access key*
     3. Create an access key with the details provided in `cinco-cloud-main-secrets` and click on `create`.
        In the default development secrets, the access key and the secret key are both set to `minio-sa`. 
-    4. Restart the pod of the main service: `kubectl delete pod main-statefulset-0`
+    4. Restart the pod of the main service: `kubectl delete pods -l app=main`
 
 ## Skaffold development profiles
 
@@ -162,29 +161,37 @@ Use one of the following profiles in conjunction with `skaffold dev -p <profile>
 1) provides a local development environment with hot reload.
 If you want to simulate a production build on your local machine use 2).
 
-## Access MailCatcher
+## Access Mailhog
 
 During registration, emails with activation links are sent to users.
-In the developement these emails are send to MailCatcher.
-To access the MailCatcher interface, perform the following steps:
+In the developement these emails are send to Mailhog.
+To access the Mailhog interface, perform the following steps:
 
-**Windows / Linux**
+**kubectl (Linux)**
 
-  1. Execute `kubectl get pods` to list all pods. 
-     The pod starting with `mailcatcher-deployment-<ID>` refers to the MailCatcher. 
-  1. Execute `kubectl port-forward mailcatcher-deployment-<ID> 1080:1080`.
-     Leave the terminal session open until you finished setting up Minio.
-  2. Open `http://127.0.0.1:1080`
+  1. Execute `kubectl port-forward $(kubectl get pods -l app.kubernetes.io/name=mailhog -o name) 8025:8025`.
+     Leave the terminal session open as long as you access Mailhog.
+  2. Open `http://127.0.0.1:8025`
 
-**MacOS**
+**kubectl (Windows)**
 
-  1. Open a terminal and execute `minikube service mailcatcher-service --url`.
+  1. Execute `kubectl get pods -l app.kubernetes.io/name=mailhog -o name` to
+     get the name of the Mailhog pod.
+  2. Execute `kubectl port-forward <RELEASE>-mailhog-<ID> 8025:8025`.
+     Leave the terminal session open as long as you access Mailhog.
+  3. Open `http://127.0.0.1:8025`
+
+**minikube Linux/MacOS**
+
+  1. Execute `kubectl get service` to list all services.
+  2. Open a terminal and execute `minikube service <RELEASE>-mailhog --url`.
      Two URLs starting with `http://127.0.0.1:<PORT>` will be displayed.
-     One of them (propably the latter one) is the URL to the MailCatcher interface.
+     One of them (propably the latter one) is the URL to the Mailhog interface.
 
 
 [helm]: https://helm.sh/
 [docker]: https://docs.docker.com/get-docker/
+[buildx]: https://github.com/docker/buildx
 [skaffold]: https://skaffold.dev/
 [minikube]: https://minikube.sigs.k8s.io/
 [minio]: https://min.io/

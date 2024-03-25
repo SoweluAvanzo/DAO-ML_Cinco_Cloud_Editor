@@ -14,32 +14,32 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Args, PaletteItem } from '@eclipse-glsp/protocol';
-import * as fs from 'fs';
-// eslint-disable-next-line max-len
 import { GraphModelState, getFilesFromFolder, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
 import {
     ElementType,
     getEdgePalettes,
     getEdgeSpecOf,
     getGraphTypes,
+    getIconClass,
     getNodePalettes,
     getNodeSpecOf,
+    getPaletteIconClass,
     getPalettes,
     getPrimeNodePalettes,
     getSpecOf,
     hasPalette,
-    hasPrimeReference
+    hasPrimeReference,
+    isCreateable
 } from '@cinco-glsp/cinco-glsp-common';
 import {
-    CreateOperationHandler,
     OperationHandlerRegistry,
     ToolPaletteItemProvider,
     TriggerEdgeCreationAction,
     TriggerNodeCreationAction
-} from '@eclipse-glsp/server-node';
+} from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
-import { SpecifiedElementHandler } from '../handler/specified_element_handler';
+import { CreateOperationHandler, SpecifiedElementHandler } from '../handler/specified_element_handler';
 import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
 
 @injectable()
@@ -49,7 +49,10 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
     protected counter: number;
     protected WHITE_LIST = ['Nodes', 'Edges'];
 
-    getItems(args?: Args): PaletteItem[] {
+    getItems(args?: Args): Promise<PaletteItem[]> | PaletteItem[] {
+        if (!this.state.graphModel) {
+            return [];
+        }
         const handlers = this.operationHandlerRegistry
             .getAll()
             .filter(handler => handler instanceof SpecifiedElementHandler) as CreateOperationHandler[];
@@ -89,7 +92,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         // add prime node label into palettes
         const workspacePath = getWorkspaceRootUri();
         const modelFileExtensions = getGraphTypes().map(gT => '.' + gT.diagramExtension);
-        const modelFiles = getFilesFromFolder(fs, workspacePath, './', modelFileExtensions);
+        const modelFiles = getFilesFromFolder(workspacePath, './', modelFileExtensions);
         const primeNodePaletteItems = getPrimeNodePalettes();
         primeNodePaletteItems
             .filter((e: string) => e !== 'Edges' && e !== 'Nodes')
@@ -188,12 +191,13 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         if (handlerItemsOfLabel.length <= 0) {
             return undefined;
         }
+        const paletteIconClass = getPaletteIconClass(categoryId) ?? 'symbol-property';
         const p = {
             id: id,
             label: label,
             actions: [],
             children: handlerItemsOfLabel,
-            icon: 'symbol-property',
+            icon: paletteIconClass,
             sortString: 'A'
         };
         return p;
@@ -236,27 +240,29 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         handlers.forEach(handler => {
             if (handler instanceof SpecifiedElementHandler) {
                 const graphModel = this.state.graphModel;
-                handler.elementTypeIds.forEach(elementTypeId => {
-                    const isPartOfPalette = graphModel.couldContain(elementTypeId);
-                    const action = getNodeSpecOf(elementTypeId)
-                        ? TriggerNodeCreationAction.create(elementTypeId)
-                        : TriggerEdgeCreationAction.create(elementTypeId);
-                    if (
-                        isPartOfPalette && // filter out only creatable elements
-                        (hasPalette(elementTypeId, categoryId) ||
-                            (getPalettes(elementTypeId).length <= 0 && this.WHITE_LIST.includes(categoryId)))
-                    ) {
-                        if (hasPrimeReference(elementTypeId)) {
-                            if (fileList && fileList.length > 0) {
-                                fileList.forEach(file => {
-                                    paletteItems.push(this.createPaletteItem(action, handler, elementTypeId, file));
-                                });
+                handler.elementTypeIds
+                    .filter(e => isCreateable(e))
+                    .forEach(elementTypeId => {
+                        const isPartOfPalette = graphModel.couldContain(elementTypeId);
+                        const action = getNodeSpecOf(elementTypeId)
+                            ? TriggerNodeCreationAction.create(elementTypeId)
+                            : TriggerEdgeCreationAction.create(elementTypeId);
+                        if (
+                            isPartOfPalette && // filter out only creatable elements
+                            (hasPalette(elementTypeId, categoryId) ||
+                                (getPalettes(elementTypeId).length <= 0 && this.WHITE_LIST.includes(categoryId)))
+                        ) {
+                            if (hasPrimeReference(elementTypeId)) {
+                                if (fileList && fileList.length > 0) {
+                                    fileList.forEach(file => {
+                                        paletteItems.push(this.createPaletteItem(action, handler, elementTypeId, file));
+                                    });
+                                }
+                            } else {
+                                paletteItems.push(this.createPaletteItem(action, handler, elementTypeId));
                             }
-                        } else {
-                            paletteItems.push(this.createPaletteItem(action, handler, elementTypeId));
                         }
-                    }
-                });
+                    });
             } else {
                 handler.getTriggerActions().forEach(action => {
                     paletteItems.push(this.createPaletteItem(action, handler));
@@ -276,13 +282,16 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             return this.createPrimePaletteIten(action, handler, elementTypeId, fileName);
         }
         const label = elementTypeId && handler instanceof SpecifiedElementHandler ? handler.getLabelFor(elementTypeId) : handler.label;
-        let icon: string | undefined = undefined;
+        let iconClass: string | undefined = undefined;
         if (handler instanceof SpecifiedElementHandler) {
             if (elementTypeId !== undefined) {
                 const spec = getSpecOf(elementTypeId);
-                icon = spec?.icon;
+                iconClass = getIconClass(spec?.elementTypeId);
+                if (!iconClass && spec) {
+                    iconClass = `${spec.elementTypeId.replace(':', '_')}`;
+                }
             } else {
-                icon = handler.specification?.icon;
+                iconClass = getIconClass(handler.specification?.elementTypeId);
             }
         }
         return {
@@ -290,7 +299,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             label,
             sortString: label.charAt(0),
             actions: [action],
-            icon: icon ?? 'codicon-circle-filled'
+            icon: iconClass ?? 'circle-filled'
         };
     }
 
@@ -304,16 +313,16 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         const elementSpecOfPrimedType = getSpecOf(primeType!) as ElementType;
         const label = elementSpecOfPrimedType.label + '(' + fileName + ')';
 
-        let icon: string | undefined = undefined;
+        let iconClass: string | undefined = undefined;
         if (handler instanceof SpecifiedElementHandler) {
-            icon = handler.specification?.icon;
+            iconClass = getIconClass(elementTypeId);
         }
         return {
             id: `palette-item-${this.counter}`,
             label,
             sortString: label.charAt(0),
             actions: [action],
-            icon: icon ?? 'codicon-circle-filled'
+            icon: iconClass ?? 'codicon-circle-filled'
         };
     }
 }

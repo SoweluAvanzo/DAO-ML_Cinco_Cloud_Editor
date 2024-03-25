@@ -18,17 +18,14 @@ import 'reflect-metadata';
 import { launch } from './app';
 import { MetaSpecificationLoader } from './meta/meta-specification-loader';
 
-{
+function loadMetaFiles(): void {
     /**
+     * Load meta specification if available
      * Load all files from language-folder.
      * These files contain the language-designer defined hooks, actions, generators, etc.
      */
-    try {
-        MetaSpecificationLoader.load(META_FILE_TYPES);
-        MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
-    } catch (e) {
-        console.log('GLSP server failed to load language-specific scripts');
-    }
+    MetaSpecificationLoader.load(META_FILE_TYPES);
+    MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
 }
-
-launch();
+loadMetaFiles();
+launch(process.argv).catch((error: any): void => console.error('Error in cinco server launcher:', error));

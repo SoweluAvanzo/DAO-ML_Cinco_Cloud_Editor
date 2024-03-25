@@ -3,7 +3,6 @@ package info.scce.cincocloud.k8s;
 import io.fabric8.kubernetes.api.model.PersistentVolume;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -31,12 +30,6 @@ public class K8SUtils {
         .findFirst();
   }
 
-  public static Optional<Deployment> getDeploymentByName(KubernetesClient client, String name) {
-    return client.apps().deployments().list().getItems().stream()
-        .filter(s2 -> s2.getMetadata().getName().equals(name))
-        .findFirst();
-  }
-
   public static Optional<StatefulSet> getStatefulSetByName(KubernetesClient client, String name) {
     return client.apps().statefulSets().list().getItems().stream()
         .filter(s2 -> s2.getMetadata().getName().equals(name))
@@ -49,13 +42,17 @@ public class K8SUtils {
         .findFirst();
   }
 
-  public static boolean isDeploymentRunning(Deployment deployment) {
-    final var status = deployment.getStatus();
-    return status != null && status.getReadyReplicas() != null && status.getReadyReplicas() >= 1;
-  }
-
   public static boolean isStatefulSetRunning(StatefulSet statefulSet) {
-    final var status = statefulSet.getStatus();
-    return status != null && status.getReadyReplicas() != null && status.getReadyReplicas() >= 1;
+    if (statefulSet.getStatus() == null) return  false;
+
+    final var desiredReplicas = statefulSet.getSpec().getReplicas();
+    final var currentReplicas = statefulSet.getStatus().getReplicas();
+    final var updatedReplicas = statefulSet.getStatus().getUpdatedReplicas();
+    final var availableReplicas = statefulSet.getStatus().getAvailableReplicas();
+
+    return desiredReplicas != null
+            && desiredReplicas.equals(currentReplicas)
+            && desiredReplicas.equals(updatedReplicas)
+            && desiredReplicas.equals(availableReplicas);
   }
 }

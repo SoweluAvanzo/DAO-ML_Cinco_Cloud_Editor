@@ -14,19 +14,35 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { GLSPDiagramConfiguration, GLSPTheiaDiagramServer, configureDiagramServer } from '@eclipse-glsp/theia-integration/lib/browser';
-import { Container, injectable } from '@theia/core/shared/inversify';
+import { GLSPDiagramConfiguration } from '@eclipse-glsp/theia-integration/lib/browser';
+import { Container as ContainerInversifyTheia, injectable } from '@theia/core/shared/inversify';
+import { Container } from 'inversify';
 
 import { getDiagramConfiguration } from '../../common/cinco-language';
-import { createDiagramContainer } from '@cinco-glsp/cinco-glsp-client';
+import { ContainerConfiguration, FeatureModule } from '@eclipse-glsp/client';
+import { initializeCincoDiagramContainer, EnvironmentProvider } from '@cinco-glsp/cinco-glsp-client';
+import { TheiaEnvironmentProvider } from '../cinco-glsp/theia-environment-provider';
 
 @injectable()
 export class CincoDiagramConfiguration extends GLSPDiagramConfiguration {
     diagramType: string = getDiagramConfiguration().diagramType;
 
-    override doCreateContainer(widgetId: string): Container {
-        const container = createDiagramContainer(widgetId);
-        configureDiagramServer(container, GLSPTheiaDiagramServer);
+    override configureContainer(
+        container: ContainerInversifyTheia,
+        ...containerConfiguration: ContainerConfiguration
+    ): ContainerInversifyTheia {
+        const cinco_bindings = new FeatureModule((bind, unbind, isBound, rebind) => {
+            const context = { bind, unbind, isBound, rebind };
+            context.bind(EnvironmentProvider).to(TheiaEnvironmentProvider).inSingletonScope();
+        });
+        initializeCincoDiagramContainer(
+            container as unknown as Container,
+            {
+                add: [cinco_bindings],
+                remove: []
+            },
+            ...containerConfiguration
+        );
         return container;
     }
 }

@@ -21,27 +21,14 @@
 
 .docker-build-job:
   extends: .docker-job
+  variables:
+    VERSION: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
   script:
     - mkdir "$IMAGE-$VERSION"
-    - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
-    - docker save "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" | gzip > "$IMAGE-$VERSION/image.tar.gz"
-  artifacts:
-    expire_in: 1 days
-    paths:
-      - $IMAGE-$VERSION/image.tar.gz
-
-.docker-push-job:
-  extends: .docker-job
-  before_script:
+    - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" -t "$CI_REGISTRY_IMAGE/$IMAGE:$TAG" -f "$DOCKERFILE" "$CONTEXT"
     - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - docker load < $IMAGE-$VERSION/image.tar.gz
-    - |
-      for TAG in $PUSH_TAGS
-        do
-          docker tag $CI_REGISTRY_IMAGE/$IMAGE:$VERSION $CI_REGISTRY_IMAGE/$IMAGE:$TAG
-          docker push $CI_REGISTRY_IMAGE/$IMAGE:$TAG
-        done
+    - docker push "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION"
+    - docker push "$CI_REGISTRY_IMAGE/$IMAGE:$TAG"
 
 cache:
   key:
@@ -82,10 +69,10 @@ cache:
 
 .cinco-cloud-deploy-job:
   image:
-    name: gcr.io/k8s-skaffold/skaffold:v1.27.0
+    name: gcr.io/k8s-skaffold/skaffold:v1.39.0
   script:
     - kubectl config use-context scce/cinco-cloud:k8s-ls-5-de
-    - skaffold deploy -p $PROFILE -n $NAMESPACE -t $TAG --status-check=true
+    - skaffold deploy -p $PROFILE -n $NAMESPACE -t $IMAGE_TAG --status-check=true
 
 .cinco-cloud-node-job-main:
   image: node:18
@@ -166,34 +153,28 @@ cinco-cloud-build-main:
     CONTEXT: ./cinco-cloud/services
     DOCKERFILE: ./cinco-cloud/services/main/Dockerfile
     IMAGE: main
-    VERSION: latest
-
-.cinco-cloud-push-image-job:
-  extends:
-    - .cinco-cloud-default-job-main
-    - .docker-push-job
-  needs:
-    - cinco-cloud-build-main
-
-cinco-cloud-push-image-main:
-  extends:
-    - .cinco-cloud-default-job-main
-    - .cinco-cloud-push-image-job
-  variables:
-    IMAGE: main
-    VERSION: latest
-    PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+    TAG: latest
 
 cinco-cloud-deploy-testing:
   extends:
     - .cinco-cloud-default-job-main
     - .cinco-cloud-deploy-job
   needs:
-    - cinco-cloud-push-image-main
+    - cinco-cloud-build-main
   variables:
     PROFILE: demo-k8s-ls5
     NAMESPACE: cinco-cloud-demo
-    TAG: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+    IMAGE_TAG: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+
+deploy-testing-manual:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+  when: manual
+  image:
+    name: gcr.io/k8s-skaffold/skaffold:v1.39.0
+  script:
+    - kubectl config use-context scce/cinco-cloud:k8s-ls-5-de
+    - skaffold deploy -p demo-k8s-ls5 -n cinco-cloud-demo -t $TAG --status-check=true
 
 
 # ====================================
@@ -228,12 +209,12 @@ cinco-cloud-deploy-testing:
     - npm install -g vsce --unsafe-perm
     - yarn
 
-archetype-test-build-cinco-project-initializer-extension:
+archetype-test-build-cinco-cloud-project-initializer-extension:
   extends:
     - .archetype-default-job-main-or-mr
     - .archetype-theia-extension-build-job
   variables:
-    EXTENSION_DIR: cinco-project-initializer
+    EXTENSION_DIR: cinco-cloud-project-initializer
 
 archetype-test-build-cinco-languages-extension:
   extends:
@@ -247,24 +228,13 @@ archetype-build:
     - .archetype-default-job-main
     - .docker-build-job
   needs:
-    - archetype-test-build-cinco-project-initializer-extension
+    - archetype-test-build-cinco-cloud-project-initializer-extension
     - archetype-test-build-cinco-languages-extension
   variables:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
     IMAGE: archetype
-    VERSION: latest
-
-archetype-push:
-  extends:
-    - .archetype-default-job-main
-    - .docker-push-job
-  needs:
-    - archetype-build
-  variables:
-    IMAGE: archetype
-    VERSION: latest
-    PUSH_TAGS: latest $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+    TAG: latest
 
 # feature-branch pipeline
 archetype-build-dev:
@@ -276,18 +246,7 @@ archetype-build-dev:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
     IMAGE: archetype
-    VERSION: dev
-
-archetype-push-dev:
-  extends:
-    - .archetype-default-job-feature
-    - .docker-push-job
-  needs:
-    - archetype-build-dev
-  variables:
-    IMAGE: archetype
-    VERSION: dev
-    PUSH_TAGS: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+    TAG: dev
 
 # ====================================
 # GitLab Pages
@@ -355,6 +314,7 @@ pages:
 helm-lint:
   extends: .helm-job
   script:
+    - helm dependency update .
     - helm lint .
 
 helm-package:
@@ -362,7 +322,14 @@ helm-package:
   needs:
     - helm-lint
   script:
-    - helm package .
+    # install sub charts
+    - helm dependency update .
+    # Extract current chart version
+    - CHART_VERSION=$(grep 'version:' Chart.yaml | head -n 1 | awk '{print $2}')
+    # Combine chart version with commit hash
+    - PACKAGE_VERSION=${CHART_VERSION}-${CI_COMMIT_SHORT_SHA}
+    # Package the helm chart with the appended version
+    - helm package . --version ${PACKAGE_VERSION}
   artifacts:
     paths:
       - infrastructure/helm/*.tgz
@@ -377,5 +344,9 @@ helm-push:
   needs: 
     - helm-package
   script:
-    - CHART_VERSION=$(find . -name cincocloud-*.tgz | grep -Eo "([0-9]+.[0-9]+.[0-9]+)")
-    - curl --request POST --user gitlab-ci-token:$CI_JOB_TOKEN --form "chart=@infrastructure/helm/cincocloud-${CHART_VERSION}.tgz" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/stable/charts"
+    # Extract current chart version
+    - CHART_VERSION=$(grep 'version:' infrastructure/helm/Chart.yaml | head -n 1 | awk '{print $2}')
+    # Combine chart version with commit hash
+    - PACKAGE_VERSION=${CHART_VERSION}-${CI_COMMIT_SHORT_SHA}
+    # Use the PACKAGE_VERSION for the curl POST request
+    - curl --request POST --user gitlab-ci-token:$CI_JOB_TOKEN --form "chart=@infrastructure/helm/cincocloud-${PACKAGE_VERSION}.tgz" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/stable/charts"

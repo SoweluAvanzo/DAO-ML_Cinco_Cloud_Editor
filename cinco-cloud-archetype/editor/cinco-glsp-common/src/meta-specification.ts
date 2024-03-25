@@ -244,6 +244,21 @@ export namespace Polyline {
     }
 }
 
+export interface WebView extends Shape, GraphicsAlgorithm {
+    type: typeof AbstractShape.WEBVIEW;
+    position?: AbstractPosition | AbsolutePosition | Alignment;
+    size?: Size;
+    content: string; // filePath or content
+    scrollable?: boolean;
+    padding?: number;
+}
+
+export namespace WebView {
+    export function is(object: any): object is WebView {
+        return object !== undefined && object.type === AbstractShape.WEBVIEW;
+    }
+}
+
 export interface Image extends Shape, GraphicsAlgorithm {
     type: typeof AbstractShape.IMAGE;
     position?: AbstractPosition | AbsolutePosition | Alignment;
@@ -318,7 +333,8 @@ export namespace Shape {
             (object.type === AbstractShape.TEXT ||
                 object.type === AbstractShape.MULTITEXT ||
                 object.type === AbstractShape.IMAGE ||
-                object.type === AbstractShape.POLYLINE)
+                object.type === AbstractShape.POLYLINE ||
+                object.type === AbstractShape.WEBVIEW)
         );
     }
 }
@@ -332,6 +348,7 @@ export namespace AbstractShape {
     export const ROUNDEDRECTANGLE = 'ROUNDEDRECTANGLE';
     export const ELLIPSE = 'ELLIPSE';
     export const POLYGON = 'POLYGON';
+    export const WEBVIEW = 'WEBVIEW';
 
     export function is(object: any): object is AbstractShape {
         return object !== undefined && (Shape.is(object) || ContainerShape.is(object));
@@ -541,15 +558,13 @@ export interface GraphType extends ElementType {
 
 export namespace GraphType {
     export function is(object: any): object is GraphType {
-        return ElementType.is(object) && hasArrayProp(object, 'containments');
+        const isSpecified = (MetaSpecification.get().graphTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
+        return ElementType.is(object) && (isSpecified || hasArrayProp(object, 'containments'));
     }
 }
 
 export interface NodeType extends ElementType {
-    deletable: boolean;
     reparentable: boolean;
-    repositionable: boolean;
-    resizable: boolean;
     width: number;
     height: number;
     containments?: Constraint[];
@@ -578,21 +593,15 @@ export namespace ModelElementContainer {
 
 export namespace NodeType {
     export function is(object: any): object is NodeType {
+        const isSpecified = (MetaSpecification.get().nodeTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
         return (
             object !== undefined &&
-            hasBooleanProp(object, 'deletable') &&
-            hasBooleanProp(object, 'reparentable') &&
-            hasBooleanProp(object, 'repositionable') &&
-            hasBooleanProp(object, 'resizable') &&
-            hasNumberProp(object, 'width') &&
-            hasNumberProp(object, 'height')
+            (isSpecified || (hasBooleanProp(object, 'reparentable') && hasNumberProp(object, 'width') && hasNumberProp(object, 'height')))
         );
     }
 }
 
 export interface EdgeType extends ElementType {
-    deletable: boolean;
-    repositionable: boolean;
     routable: boolean;
     palettes?: string[];
     view?: EdgeView;
@@ -601,12 +610,8 @@ export interface EdgeType extends ElementType {
 
 export namespace EdgeType {
     export function is(object: any): object is EdgeType {
-        return (
-            ElementType.is(object) &&
-            hasBooleanProp(object, 'deletable') &&
-            hasBooleanProp(object, 'repositionable') &&
-            hasBooleanProp(object, 'routable')
-        );
+        const isSpecified = (MetaSpecification.get().edgeTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
+        return ElementType.is(object) && (isSpecified || hasBooleanProp(object, 'routable'));
     }
 }
 
@@ -628,7 +633,7 @@ export namespace CustomType {
     }
 }
 
-export interface Enum extends Type {
+export interface Enum extends CustomType {
     literals: string[];
 }
 
@@ -638,13 +643,14 @@ export namespace Enum {
     }
 }
 
-export interface UserDefinedType extends Type {
+export interface UserDefinedType extends CustomType {
     attributes: Attribute[];
 }
 
 export namespace UserDefinedType {
     export function is(object: any): object is UserDefinedType {
-        return Type.is(object) && hasArrayProp(object, 'attributes');
+        const isSpecified = (MetaSpecification.get().customTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
+        return Type.is(object) && (isSpecified || hasArrayProp(object, 'attributes'));
     }
 }
 
@@ -661,7 +667,7 @@ export function getCustomTypes(): CustomType[] {
 }
 
 export function getCustomType(elementTypeId: string): CustomType | undefined {
-    return getCustomTypes().filter(t => t.elementTypeId === elementTypeId)[0] ?? undefined;
+    return getCustomTypes().filter(t => t.elementTypeId === elementTypeId)[0];
 }
 
 export function getEnums(): Enum[] {
@@ -767,6 +773,8 @@ export function getAppearanceOfShape(type: Shape): Appearance | undefined {
             return resolveAppearance((type as MultiText).appearance);
         case AbstractShape.IMAGE:
             return undefined;
+        case AbstractShape.WEBVIEW:
+            return undefined;
         case AbstractShape.POLYLINE:
             return resolveAppearance((type as Polyline).appearance);
         case AbstractShape.RECTANGLE:
@@ -777,8 +785,9 @@ export function getAppearanceOfShape(type: Shape): Appearance | undefined {
             return resolveAppearance((type as Ellipse).appearance);
         case AbstractShape.POLYGON:
             return resolveAppearance((type as Polygon).appearance);
+        default:
+            return undefined;
     }
-    return undefined;
 }
 
 function resolveAppearance(app: string | Appearance | undefined): Appearance | undefined {
@@ -793,11 +802,27 @@ function resolveAppearance(app: string | Appearance | undefined): Appearance | u
  */
 
 export function hasAppearanceProvider(type: string): boolean {
-    return getAppearanceProvider(type) !== undefined;
+    return getAppearanceProvider(type).length > 0;
 }
 
-export function getAppearanceProvider(type: string): string | undefined {
-    return getStyleOfElement(type)?.appearanceProvider;
+export function getAppearanceProvider(type: string): string[] {
+    const result: Set<string> = new Set();
+    const style = getStyleOfElement(type);
+    const appearanceProviderValue = style?.appearanceProvider;
+    if (appearanceProviderValue) {
+        result.add(appearanceProviderValue);
+    }
+    const annotationValues = getAnnotationValues(type, 'AppearanceProvider');
+    for (const ann of annotationValues) {
+        if (ann && ann.length > 0) {
+            ann.forEach(a => {
+                if (!result.has(a)) {
+                    result.add(a);
+                }
+            });
+        }
+    }
+    return Array.from(result);
 }
 
 export function hasGeneratorAction(type: string): boolean {
@@ -854,8 +879,15 @@ export function getAllAnnotations(type: string): Annotation[] {
 
 export function getAllHandlerNames(): string[] {
     const elements = getModelElementSpecifications();
-    const handlerNames: string[] = [];
+    let handlerNames: string[] = [];
     for (const element of elements) {
+        // get style handler
+        const appearanceProvider = getAppearanceProvider(element.elementTypeId);
+        if (appearanceProvider) {
+            handlerNames = handlerNames.concat(appearanceProvider);
+        }
+
+        // get mgl annotations
         const annotations = getAllAnnotations(element.elementTypeId);
         for (const ann of annotations) {
             const values = ann.values;
@@ -871,14 +903,103 @@ export function getAllHandlerNames(): string[] {
     return handlerNames;
 }
 
+export function isResizeable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('resize')).length <= 0;
+}
+
+export function isMovable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('move')).length <= 0;
+}
+
+export function isDeletable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('delete')).length <= 0;
+}
+
+export function isCreateable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('create')).length <= 0;
+}
+
+export function isSelectable(type: string): boolean {
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('select')).length <= 0;
+}
+
+/**
+ * Icon
+ */
+
+export function getIconClass(elementTypeId: string | undefined): string | undefined {
+    if (!elementTypeId) {
+        return undefined;
+    }
+    const elementSpec = getSpecOf(elementTypeId) as ElementType;
+    if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
+        return elementSpec.elementTypeId.replace(':', '_');
+    }
+    return undefined;
+}
+
+function getIconFromAnnotation(elementTypeId: string): string | undefined {
+    const iconValues = getAnnotations(elementTypeId, 'icon')
+        .map(a => a.values)
+        .flat();
+    if (iconValues.length > 0) {
+        return iconValues[0];
+    }
+    return undefined;
+}
+
+export function getIcon(elementTypeId: string | undefined): string | undefined {
+    if (!elementTypeId) {
+        return undefined;
+    }
+    const elementSpec = getSpecOf(elementTypeId) as ElementType;
+    if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
+        return elementSpec.icon ?? getIconFromAnnotation(elementTypeId) ?? undefined;
+    }
+    return undefined;
+}
+
 /**
  * Palettes
  */
 
+export function getPaletteIconClass(paletteCategory: string | undefined): string | undefined {
+    if (!paletteCategory) {
+        return undefined;
+    }
+    const paletteAnnotations = getAllPaletteAnnotations();
+    // all annotations with categoryName that have two values, e.g.: @palette(paletteCategory, iconPath)
+    const annotations = paletteAnnotations.filter(a => a.values.length >= 2 && a.values[0] === paletteCategory);
+    if (annotations.length > 0) {
+        return 'icon_palette_' + annotations[0].values[0].replace(':', '_').toLowerCase();
+    }
+    return undefined;
+}
+
+export function getPaletteIconPath(paletteCategory: string | undefined): string | undefined {
+    if (!paletteCategory) {
+        return undefined;
+    }
+    const paletteAnnotations = getAllPaletteAnnotations();
+    // all annotations with categoryName that have two values, e.g.: @palette(paletteCategory, iconPath)
+    const annotations = paletteAnnotations.filter(a => a.values.length >= 2 && a.values[0] === paletteCategory);
+    if (annotations.length > 0) {
+        return annotations[0].values[1];
+    }
+    return undefined;
+}
+
+function getPaletteFromAnnotation(elementTypeId: string): string[] {
+    return getAnnotations(elementTypeId, 'palette')
+        .map(a => a.values)
+        .flat();
+}
+
 export function hasPalette(elementTypeId: string, palette: string): boolean {
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
     if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
-        if (elementSpec.palettes !== undefined && elementSpec.palettes.indexOf(palette) >= 0) {
+        const palettes = getPalettes(elementSpec.elementTypeId);
+        if (palettes.indexOf(palette) >= 0) {
             return true;
         }
     }
@@ -891,17 +1012,15 @@ export function getPalettes(elementTypeId: string | undefined): string[] {
     }
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
     if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
-        if (elementSpec.palettes !== undefined) {
-            return elementSpec.palettes;
-        }
+        return (elementSpec.palettes ?? []).concat(getPaletteFromAnnotation(elementTypeId));
     }
     return [];
 }
 
 export function getNodePalettes(): string[] {
     const palettes: string[] = [];
-    getNodeTypes((e: NodeType) => e.palettes !== undefined && e.palettes.length >= 0)
-        .map((e, i, a) => e.palettes!)
+    getNodeTypes()
+        .map((e, i, a) => getPalettes(e.elementTypeId))
         .flat()
         .forEach((paletteElement: string) => (palettes.indexOf(paletteElement) < 0 ? palettes.push(paletteElement) : undefined));
     return palettes;
@@ -918,13 +1037,22 @@ export function getPrimeNodePalettes(): string[] {
 
 export function getEdgePalettes(): string[] {
     const palettes: string[] = [];
-    getEdgeTypes((e: EdgeType) => e.palettes !== undefined && e.palettes.length >= 0)
-        .map((e, i, a) => e.palettes)
+    getEdgeTypes()
+        .map((e, i, a) => getPalettes(e.elementTypeId))
         .flat()
         .forEach((paletteElement: string | undefined) =>
             palettes.indexOf(paletteElement ?? '') < 0 ? palettes.push(paletteElement ?? '') : undefined
         );
     return palettes;
+}
+
+export function getAllPaletteCategories(primePalettes = true): string[] {
+    return getNodePalettes().concat(getEdgePalettes().concat(primePalettes ? getPrimeNodePalettes() : []));
+}
+
+export function getAllPaletteAnnotations(): Annotation[] {
+    const modelElements = getModelElementSpecifications().filter(m => EdgeType.is(m) || NodeType.is(m));
+    return modelElements.map(e => (e.annotations ?? []).filter(a => a.name === 'palette')).flat();
 }
 
 /**

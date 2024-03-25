@@ -12,6 +12,7 @@ import { UserIsLoggedInGuard } from './core/guards/user-is-logged-in.guard';
 import { UnauthenticatedInterceptor } from './core/interceptors/unauthenticated.interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
+import { ErrorResponseBodyParserInterceptor } from './core/interceptors/error-response-body-parser.interceptor';
 
 const routes: Routes = [
   { path: '', loadChildren: () => import('./features/home/home.module').then(m => m.HomeModule) },
@@ -36,6 +37,11 @@ const routes: Routes = [
     CoreModule
   ],
   providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ErrorResponseBodyParserInterceptor,
+      multi: true
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: UnauthenticatedInterceptor,

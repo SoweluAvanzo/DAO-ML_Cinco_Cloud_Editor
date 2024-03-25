@@ -16,17 +16,20 @@
 import '../../../css/property-widget.css';
 
 import {
+    Annotation,
     Attribute,
     canAdd,
     canAssign,
     canDelete,
-    CustomType,
     Enum,
+    getCustomType,
+    getCustomTypes,
     UserDefinedType
 } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
 import {
+    getFallbackDefaultValue,
     isListAttribute,
-    isPrimitivePropertyType,
+    LabeledModelElementReference,
     ModelElementIndex,
     ObjectPointer,
     PrimitivePropertyType,
@@ -35,37 +38,38 @@ import {
 } from '@cinco-glsp/cinco-glsp-common/lib/protocol/property-model';
 import { DiagramConfiguration } from '@eclipse-glsp/theia-integration';
 import { CommandService } from '@theia/core';
-import { codicon, Message, ReactWidget } from '@theia/core/lib/browser';
+import { codicon, Message, ReactWidget, Widget } from '@theia/core/lib/browser';
 import { inject, injectable, postConstruct } from 'inversify';
 import * as React from 'react';
-
+import { FileDialogService } from '@theia/filesystem/lib/browser';
 import { PropertyDataHandler } from './property-data-handler';
 
 interface PropertyWidgetState {
     modelElementIndex: ModelElementIndex;
     modelElementId: string;
     attributeDefinitions: Attribute[];
-    customTypeDefinitions: CustomType[];
-    values: any;
+    values: Record<string, any>;
 }
+
+const FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD = '%directory';
 
 @injectable()
 export class CincoCloudPropertyWidget extends ReactWidget {
+    @inject(PropertyDataHandler) propertyDataHandler: PropertyDataHandler;
+    @inject(CommandService) commandService: CommandService;
+    @inject(DiagramConfiguration) diagramConfiguration: DiagramConfiguration;
+    @inject(FileDialogService) fileDialogService: FileDialogService;
+
     static readonly ID = 'cincoCloudPropertyView';
     static readonly LABEL = 'Cinco Cloud Properties';
 
     override readonly id = CincoCloudPropertyWidget.ID;
     readonly label = CincoCloudPropertyWidget.LABEL;
 
-    @inject(PropertyDataHandler) propertyDataHandler: PropertyDataHandler;
-    @inject(CommandService) commandService: CommandService;
-    @inject(DiagramConfiguration) diagramConfiguration: DiagramConfiguration;
-
     state: PropertyWidgetState = {
         modelElementIndex: {},
         modelElementId: '',
         attributeDefinitions: [],
-        customTypeDefinitions: [],
         values: {}
     };
 
@@ -83,227 +87,11 @@ export class CincoCloudPropertyWidget extends ReactWidget {
             this.state.modelElementIndex = this.propertyDataHandler.currentModelElementIndex;
             this.state.modelElementId = this.propertyDataHandler.currentModelElementId;
             this.state.attributeDefinitions = this.propertyDataHandler.currentAttributeDefinitions;
-            this.state.customTypeDefinitions = this.propertyDataHandler.currentCustomTypeDefinitions;
             this.state.values = this.propertyDataHandler.currentValues;
             this.update();
+            this.node.scrollTo(0, 0);
         });
         this.update();
-    }
-
-    protected getInputType(type: PrimitivePropertyType): React.HTMLInputTypeAttribute {
-        switch (type) {
-            case 'string':
-                return 'text';
-            case 'number':
-                return 'number';
-            case 'boolean':
-                return 'checkbox';
-            // TODO: Date, Color, etc.
-        }
-    }
-
-    protected getValueAttribute(
-        type: PrimitivePropertyType,
-        value: any
-    ): Partial<React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>> {
-        switch (type) {
-            case 'string':
-            case 'number': {
-                return { value: value as string | number };
-            }
-            case 'boolean': {
-                return { checked: value as boolean };
-            }
-        }
-    }
-
-    protected locateAttributeDefinition(pointer: ObjectPointer, name: string): Attribute {
-        let definitions: Attribute[] = this.state.attributeDefinitions;
-        for (const step of pointer) {
-            const nextAttribute = definitions.find(attribute => attribute.name === step.attribute);
-            if (nextAttribute === undefined) {
-                throw new Error(`Object pointer on undefined attribute '${step.attribute}'`);
-            }
-            const typeDefinition = this.getCustomTypeDefinition(nextAttribute.type);
-            if (Enum.is(typeDefinition)) {
-                throw new Error(`Object pointer '${step.attribute}' on enum`);
-            } else if (UserDefinedType.is(typeDefinition)) {
-                definitions = (typeDefinition as UserDefinedType).attributes;
-            }
-        }
-        return definitions.find(definition => definition.name === name)!;
-    }
-
-    protected locateObjectValue(pointer: ObjectPointer): any {
-        let objectValue: any = this.state.values; // these are the attributes of the modelElement
-        for (const step of pointer) {
-            let nextValue;
-            if (step.index !== undefined) {
-                nextValue = objectValue[step.attribute][step.index];
-            } else {
-                nextValue = objectValue[step.attribute];
-            }
-            // if steppedValue does not exists => repair with defaultValue
-            if (!nextValue) {
-                const attributeDefinition = this.state.attributeDefinitions.find(a => a.name === step.attribute);
-                if (attributeDefinition) {
-                    const defaultValue = this.buildDefaultValue(attributeDefinition);
-                    nextValue = defaultValue;
-                    if (step.index !== undefined) {
-                        objectValue[step.attribute][step.index] = nextValue;
-                    } else {
-                        objectValue[step.attribute] = nextValue;
-                    }
-                }
-            }
-            objectValue = nextValue;
-        }
-        return objectValue;
-    }
-
-    checkEnum(type: string, value: any): boolean {
-        const typeDefinitions = this.state.customTypeDefinitions.filter(t => t.elementTypeId === type);
-        if (typeDefinitions.length > 0) {
-            const typeDefinition = typeDefinitions[0] as any;
-            if (typeDefinition['literals'] !== undefined) {
-                // is enum
-                const literals: string[] = typeDefinition['literals'];
-                const canBeAssigned = literals.indexOf(value) >= 0;
-                if (!canBeAssigned) {
-                    // is not inside enums domain
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    protected getCustomTypeDefinition(attributeType: string): CustomType | undefined {
-        const customTypeDefinitions = this.state.customTypeDefinitions.filter(type => type.elementTypeId === attributeType);
-        if (customTypeDefinitions.length <= 0) {
-            return undefined;
-        }
-        return customTypeDefinitions[0];
-    }
-
-    protected buildDefaultValue(attribute: Attribute): any {
-        if (isPrimitivePropertyType(attribute.type)) {
-            return attribute.defaultValue ?? '';
-        } else {
-            const typeDefinition = this.getCustomTypeDefinition(attribute.type);
-            if (!typeDefinition) {
-                // could be modelElementReference: default should be 'not set', i.e. undefined
-                return undefined;
-            } else if (Enum.is(typeDefinition)) {
-                return typeDefinition.literals[0];
-            } else if (UserDefinedType.is(typeDefinition)) {
-                const defaultObject: any = {};
-                for (const child of typeDefinition.attributes) {
-                    const bounds = child.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
-                    const isList = isListAttribute(bounds.upperBound);
-                    if (isPrimitivePropertyType(child.type)) {
-                        // Only do this for primitive attributes to avoid infinite recursion
-                        if (isList) {
-                            const defaultValues = [];
-                            for (let i = 0; i++; i < bounds.lowerBound) {
-                                defaultValues.push(this.buildDefaultValue(child));
-                            }
-                            defaultObject[child.name] = defaultValues;
-                        } else {
-                            if (bounds.lowerBound > 0) {
-                                defaultObject[child.name] = this.buildDefaultValue(child);
-                            }
-                        }
-                    } else {
-                        defaultObject[child.name] = isList ? [] : {};
-                    }
-                }
-                return defaultObject;
-            }
-        }
-    }
-
-    addPropertyValue(pointer: ObjectPointer, name: string): void {
-        const attributeDefinition = this.locateAttributeDefinition(pointer, name);
-        const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
-        const objectValue = this.locateObjectValue(pointer);
-        const defaultValue = this.buildDefaultValue(attributeDefinition);
-        const isList = isListAttribute(bounds.upperBound);
-        if (isList) {
-            if (!objectValue[name]) {
-                objectValue[name] = [];
-            }
-            if (!canAdd(objectValue[name].length + 1, bounds)) {
-                return; // TODO: check
-            }
-            objectValue[name].push(defaultValue);
-        } else {
-            objectValue[name] = defaultValue;
-        }
-        this.postPropertyChange(pointer, name, { kind: 'addValue', isList, defaultValue });
-        this.update();
-    }
-
-    assignPropertyValue(pointer: ObjectPointer, attributeDefinition: Attribute, index: number | undefined, value: any): void {
-        const name = attributeDefinition.name;
-        if (!this.checkEnum(attributeDefinition.type, value)) {
-            return;
-        }
-        const objectValue = this.locateObjectValue(pointer);
-        const type = attributeDefinition.type;
-        const typeDefinitions = this.state.customTypeDefinitions.filter(t => t.elementTypeId === type);
-        if (typeDefinitions.length > 0) {
-            const typeDefinition = typeDefinitions[0] as any;
-            if (typeDefinition['literals'] !== undefined) {
-                // isEnum
-                const literals: string[] = typeDefinition['literals'];
-                const canBeAssigned = literals.indexOf(value) >= 0;
-                if (!canBeAssigned) {
-                    return;
-                }
-            }
-        }
-
-        if (!canAssign(index ?? 0.0, attributeDefinition.bounds ?? { lowerBound: 1.0, upperBound: 1.0 })) {
-            return; // TODO: check
-        }
-        if (index !== undefined) {
-            objectValue[name][index] = value;
-        } else {
-            objectValue[name] = value;
-        }
-        this.postPropertyChange(pointer, name, { kind: 'assignValue', index, value });
-        this.update();
-    }
-
-    deletePropertyValue(pointer: ObjectPointer, attributeDefinition: Attribute, index?: number): void {
-        const name = attributeDefinition.name;
-        const objectValue = this.locateObjectValue(pointer);
-        const bounds = attributeDefinition.bounds ?? { lowerBound: 1.0, upperBound: 1.0 };
-        if (index !== undefined) {
-            if (!canDelete(objectValue[name].length - 1, bounds)) {
-                return; // TODO: check
-            }
-            objectValue[name].splice(index, 1);
-        } else {
-            objectValue[name] = undefined;
-        }
-        this.postPropertyChange(pointer, name, { kind: 'deleteValue', index });
-        this.update();
-    }
-
-    protected postPropertyChange(pointer: ObjectPointer, name: string, change: PropertyChange): void {
-        this.postMessage({
-            kind: 'editProperty',
-            modelElementId: this.state.modelElementId,
-            pointer,
-            name,
-            change
-        });
-    }
-
-    protected postMessage(message: PropertyViewMessage): void {
-        window.postMessage(message);
     }
 
     protected override onActivateRequest(msg: Message): void {
@@ -314,20 +102,51 @@ export class CincoCloudPropertyWidget extends ReactWidget {
         }
     }
 
-    protected render(): React.ReactNode {
+    protected render(): React.JSX.Element {
+        return (
+            <CincoPropertiesView
+                parent={this}
+                parentState={() => this.getParentState()}
+                commandService={this.commandService}
+                propertyDataHandler={this.propertyDataHandler}
+                diagramConfiguration={this.diagramConfiguration}
+            ></CincoPropertiesView>
+        );
+    }
+
+    getParentState(): PropertyWidgetState {
+        return this.state;
+    }
+}
+
+export class CincoPropertiesView extends React.Component<
+    {
+        parent: CincoCloudPropertyWidget;
+        parentState: () => PropertyWidgetState;
+        commandService: CommandService;
+        propertyDataHandler: PropertyDataHandler;
+        diagramConfiguration: DiagramConfiguration;
+    },
+    PropertyWidgetState
+> {
+    constructor(props: {
+        parent: CincoCloudPropertyWidget;
+        parentState: () => PropertyWidgetState;
+        commandService: CommandService | Readonly<CommandService>;
+        propertyDataHandler: PropertyDataHandler;
+        diagramConfiguration: DiagramConfiguration;
+        }) {
+        super(props);
+        this.state = this.props.parentState();
+    }
+
+    override render(): React.JSX.Element {
+        this.state = this.props.parentState();
         const modelElementIndex = this.state.modelElementIndex;
-        let modelElement;
-        let modelElementType;
-        for (const [key, modelElements] of Object.entries(modelElementIndex)) {
-            for (const element of modelElements) {
-                if (element.id === this.state.modelElementId) {
-                    modelElementType = key;
-                    modelElement = element;
-                    break;
-                }
-            }
-        }
-        if (this.propertyDataHandler.currentModelElementId === undefined || modelElement === undefined) {
+        const modelElement = getModelElement(this.state?.modelElementId, modelElementIndex)!;
+        const modelElementType = modelElement?.elementTypeId;
+
+        if (this.props.propertyDataHandler.currentModelElementId === undefined || modelElement === undefined) {
             return <div id='property-widget'>No model element has been selected.</div>;
         }
         const tooltip = `type: ${modelElementType}\nid: ${this.state.modelElementId}`;
@@ -339,30 +158,69 @@ export class CincoCloudPropertyWidget extends ReactWidget {
                 <b>{name}</b> <i>{info}</i> <br />
             </div>
         );
-        const properties =
-            this.state.attributeDefinitions.length > 0 ? (
-                <table className='property-table'>
-                    <tbody>
-                        {this.state.attributeDefinitions.map(attributeDefinition =>
-                            this.renderProperty([], attributeDefinition, this.state.values[attributeDefinition.name])
-                        )}
-                    </tbody>
-                </table>
-            ) : (
-                <div>This model element has no properties.</div>
-            );
+
+        // filter out all attributes, that are hidden
+        const isHidden: (attributeDefinition: any) => boolean = attributeDefinition =>
+            (attributeDefinition.annotations ?? []).filter((annotation: any) => annotation.name === 'hidden').length <= 0;
+        const attributeDefinitions = this.state.attributeDefinitions.filter(a => isHidden(a));
 
         return (
             <div id='property-widget'>
                 {header}
-                {properties}
+                {
+                    // properties
+                    attributeDefinitions.length > 0 ? (
+                        <table className='property-table'>
+                            <tbody>
+                                {attributeDefinitions.map(attributeDefinition => (
+                                    <CincoPropertyView
+                                        parent={this.props.parent}
+                                        parentState={this.props.parentState}
+                                        pointer={[]}
+                                        attributeDefinition={attributeDefinition}
+                                    ></CincoPropertyView>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <div>This model element has no properties.</div>
+                    )
+                }
             </div>
         );
     }
+}
 
-    protected renderProperty(pointer: ObjectPointer, attributeDefinition: Attribute, value: any): JSX.Element {
+export class CincoPropertyView extends React.Component<
+    {
+        parent: CincoCloudPropertyWidget;
+        parentState: () => PropertyWidgetState;
+        pointer: ObjectPointer;
+        attributeDefinition: Attribute;
+    },
+    PropertyWidgetState
+> {
+    constructor(props: {
+        parent: CincoCloudPropertyWidget;
+        parentState: () => PropertyWidgetState;
+        pointer: ObjectPointer;
+        attributeDefinition: Attribute;
+    }) {
+        super(props);
+        this.state = this.props.parentState();
+    }
+
+    override render(): React.JSX.Element {
+        this.state = this.props.parentState();
+        const pointer: ObjectPointer = this.props.pointer;
+        const attributeDefinition: Attribute = this.props.attributeDefinition;
+        const value = locateObjectValue(this.state, pointer)[this.props.attributeDefinition.name];
+
         // default bounds, if no are specified
         const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
+        const isList = isListAttribute(bounds.upperBound);
+
+        // prepare id
         const pathId = pointer
             .map(({ attribute, index }) => {
                 if (index !== undefined) {
@@ -372,38 +230,20 @@ export class CincoCloudPropertyWidget extends ReactWidget {
                 }
             })
             .join('-');
-        const inputIdPrefix = `property-input-${pathId}-${attributeDefinition.name}`;
-        const isList = isListAttribute(bounds.upperBound);
+        const postfix = pathId ? `${pathId}-${attributeDefinition.name}` : `${attributeDefinition.name}`;
+        const inputIdPrefix = `property-input-${postfix}`;
 
         // list-operation activation definitions
-        const objectValue = this.locateObjectValue(pointer);
+        const objectValue = locateObjectValue(this.state, pointer);
         const listLength = (objectValue[attributeDefinition.name]?.length ?? 0.0) + 1.0;
         const addCellActivated = isList && canAdd(listLength, bounds);
         const deleteCellActivated = (lengthIndex: number | undefined): boolean =>
             canDelete(lengthIndex === undefined ? 0.0 : lengthIndex - 1, bounds);
 
-        const valueList: any = (() => {
-            if (isList) {
-                return value ?? [];
-            } else {
-                if (value !== undefined) {
-                    return [value];
-                } else {
-                    return [attributeDefinition.defaultValue ?? ''];
-                }
-            }
-        })();
-        const firstInputId = (() => {
-            if (valueList.length > 0) {
-                if (isList) {
-                    return `${inputIdPrefix}-0`;
-                } else {
-                    return inputIdPrefix;
-                }
-            } else {
-                return undefined;
-            }
-        })();
+        const valueList: any = isList ? value ?? [] : [value ?? attributeDefinition.defaultValue ?? ''];
+        const firstInputId = valueList.length > 0 ? `${inputIdPrefix + (isList ? '-0' : '')}` : undefined;
+
+        // prepare header
         const header = (
             <th className='property-header' rowSpan={Math.max(1, valueList.length + (isList ? 1 : 0))}>
                 <label htmlFor={firstInputId}>
@@ -412,9 +252,19 @@ export class CincoCloudPropertyWidget extends ReactWidget {
                 </label>
             </th>
         );
+
+        // prepare add button
         const addCell = addCellActivated ? (
             <td className='button-cell'>
-                <button type='button' className='action-button' onClick={() => this.addPropertyValue(pointer, attributeDefinition.name)}>
+                <button
+                    type='button'
+                    className='action-button'
+                    onClick={() =>
+                        addPropertyValue(
+                        this.props.parent, (newState: PropertyWidgetState) => { this.setState(newState); }, this.state,
+                        pointer, attributeDefinition.name
+                    )
+                }>
                     <span className='codicon codicon-add'></span>
                 </button>
             </td>
@@ -425,7 +275,10 @@ export class CincoCloudPropertyWidget extends ReactWidget {
                 </button>
             </td>
         );
+
+        // prepare values
         if (isList && valueList.length === 0) {
+            // empty list
             return (
                 <tr key={`${attributeDefinition.name}-empty`}>
                     {header}
@@ -440,22 +293,47 @@ export class CincoCloudPropertyWidget extends ReactWidget {
                         <tr key={`${attributeDefinition.name}-${index}`}>
                             {index === 0 && header}
                             <td className='button-cell'>
-                                {!(bounds.lowerBound === 1 && bounds.upperBound === 1) && deleteCellActivated(valueList.length) && (
-                                    <button
-                                        type='button'
-                                        className='action-button'
-                                        onClick={() => this.deletePropertyValue(pointer, attributeDefinition, isList ? index : undefined)}
-                                    >
-                                        <span className='codicon codicon-trash'></span>
-                                    </button>
-                                )}
-                                {!(bounds.lowerBound === 1 && bounds.upperBound === 1) && !deleteCellActivated(valueList.length) && (
-                                    <button type='button' className='action-button' disabled>
-                                        <span className='codicon codicon-trash'></span>
-                                    </button>
-                                )}
+                                {
+                                    // delete button
+                                    !(bounds.lowerBound === 1 && bounds.upperBound === 1) && deleteCellActivated(valueList.length) && (
+                                        <button
+                                            type='button'
+                                            className='action-button'
+                                            onClick={() =>
+                                                 deletePropertyValue(
+                                                        this.props.parent,
+                                                        (newState: PropertyWidgetState) => { this.setState(newState);
+                                                    },
+                                                    this.state,
+                                                    pointer,
+                                                    attributeDefinition,
+                                                    isList ? index : undefined
+                                                )
+                                            }
+                                        >
+                                            <span className='codicon codicon-trash'></span>
+                                        </button>
+                                    )
+                                }
+                                {
+                                    // clear button
+                                    !(bounds.lowerBound === 1 && bounds.upperBound === 1) && !deleteCellActivated(valueList.length) && (
+                                        <button type='button' className='action-button' disabled>
+                                            <span className='codicon codicon-trash'></span>
+                                        </button>
+                                    )
+                                }
                             </td>
-                            <td>{this.renderPropertyValue(pointer, attributeDefinition, listItemValue, index, inputIdPrefix)}</td>
+                            <td>
+                                <CincoPropertyEntry
+                                    parent={this.props.parent}
+                                    parentState={this.props.parentState}
+                                    pointer={pointer}
+                                    attributeDefinition={attributeDefinition}
+                                    index={index}
+                                    inputIdPrefix={inputIdPrefix}
+                                ></CincoPropertyEntry>
+                            </td>
                         </tr>
                     ))}
                     {isList && (
@@ -469,7 +347,11 @@ export class CincoCloudPropertyWidget extends ReactWidget {
         }
     }
 
-    protected renderCardinalityIndicator(lowerBound: number, upperBound?: number): JSX.Element | undefined {
+    /**
+     * HEADER COMPONENTS
+     */
+
+    protected renderCardinalityIndicator(lowerBound: number, upperBound?: number): React.JSX.Element | undefined {
         return (
             <sup>
                 {(() => {
@@ -492,60 +374,178 @@ export class CincoCloudPropertyWidget extends ReactWidget {
             </sup>
         );
     }
+}
 
-    protected renderPropertyValue(
-        pointer: ObjectPointer,
-        attributeDefinition: Attribute,
-        value: any,
-        index: number,
-        inputIdPrefix: string
-    ): JSX.Element {
+export class CincoPropertyEntry extends React.Component<
+    {
+        parent: CincoCloudPropertyWidget;
+        parentState: () => PropertyWidgetState;
+        pointer: ObjectPointer;
+        attributeDefinition: Attribute;
+        index: number;
+        inputIdPrefix: string;
+    },
+    PropertyWidgetState
+> {
+    constructor(props: any) {
+        super(props);
+    }
+
+    override render(): React.JSX.Element {
+        this.state = this.props.parentState();
+        const pointer = this.props.pointer;
+        const attributeDefinition = this.props.attributeDefinition;
+        const valueName = this.props.attributeDefinition.name;
+        const index = this.props.index;
+        const inputIdPrefix = this.props.inputIdPrefix;
+
         const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
         const isList = isListAttribute(bounds.upperBound);
         const inputId = isList ? `${inputIdPrefix}-${index}` : inputIdPrefix;
+
+        const currentElement = getCurrentModelElement(this.state);
+        if (!currentElement) {
+            throw new Error('No current element while rendering properties widget.');
+        }
+
+        const objectValue = locateObjectValue(this.state, pointer);
+        const value = this.getValueAttribute(
+            attributeDefinition.type as PrimitivePropertyType,
+            isList ? objectValue[valueName][index] : objectValue[valueName]
+        );
+
+        // check annotations
+        const annotations = attributeDefinition.annotations ?? [];
+        const isReadOnly = attributeDefinition.final || annotations.filter(a => a.name === 'readOnly').length > 0;
         switch (attributeDefinition.type) {
             case 'string':
             case 'number':
             case 'boolean': {
-                const primitiveType: PrimitivePropertyType = attributeDefinition.type;
-                const inputType = this.getInputType(attributeDefinition.type);
+                const inputType = this.getInputType(attributeDefinition.type, annotations ?? []);
+                const isDisabled = isReadOnly && ['checkbox', 'color', 'date', 'file'].includes(inputType);
+                if (inputType === 'textarea') {
+                    return (
+                        <textarea
+                            onChange={event => {
+                                const newValue = event.currentTarget.value;
+                                // propagate
+                                assignPropertyValue(
+                                    this.props.parent,
+                                    (newState: PropertyWidgetState) => this.setState(newState),
+                                    this.state,
+                                    pointer,
+                                    attributeDefinition,
+                                    isList ? index : undefined,
+                                    newValue
+                                );
+                                const rows = calculateRowsForString(newValue);
+                                event.target.rows = rows;
+                            }}
+                            readOnly={isReadOnly}
+                            value={value.value}
+                            placeholder=''
+                            rows={calculateRowsForString(value.value as string)}
+                            id={inputId}
+                            style={{ width: '100%', height: '100%', boxSizing: 'border-box', resize: 'none', wordWrap: 'normal' }}
+                            className={`property-input property-input-${inputType}`}
+                        />
+                    );
+                } else if (inputType === 'file') {
+                    const fileDialogService = this.props.parent.fileDialogService;
+                    const fileTypes = (attributeDefinition.annotations ?? []).map(a => a.values).flat();
+                    const directorySelectable = fileTypes.filter(t => t === FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD).length > 0;
+                    const nonDirectoryFileTypesDefined = fileTypes.filter(t => t !== FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD).length > 0;
+                    const onlyDirectory = !nonDirectoryFileTypesDefined && directorySelectable;
+                    return (
+                        <span style={{ display: 'flex', width: '100%' }}>
+                            <input
+                                type={'button'}
+                                value={'Select'}
+                                onClick={event => {
+                                    fileDialogService
+                                        .showOpenDialog({
+                                            title: `Select a file for ${attributeDefinition.name}`,
+                                            canSelectFiles: !onlyDirectory,
+                                            canSelectMany: false,
+                                            canSelectFolders: directorySelectable || !nonDirectoryFileTypesDefined,
+                                            openLabel: 'Select',
+                                            modal: true,
+                                            filters: {
+                                                'FileType(s)': fileTypes.flat()
+                                            }
+                                        })
+                                        .then(uri => {
+                                            if (!uri) {
+                                                return;
+                                            }
+                                            const newValue = uri?.path.fsPath();
+                                            // propagate
+                                            assignPropertyValue(
+                                                this.props.parent,
+                                                (newState: PropertyWidgetState) => this.setState(newState),
+                                                this.state,
+                                                pointer,
+                                                attributeDefinition,
+                                                isList ? index : undefined,
+                                                newValue
+                                            );
+                                        });
+                                }}
+                                readOnly={isReadOnly}
+                                disabled={isDisabled}
+                                id={inputId}
+                                className={`property-input property-input-${inputType}`}
+                            />
+                            <input
+                                {...value}
+                                readOnly={true}
+                                disabled={isDisabled}
+                                style={{ width: '100%' }}
+                                className={`property-input property-input-${inputType}`}
+                            />
+                        </span>
+                    );
+                } else {
                 return (
                     <input
                         type={inputType}
-                        {...this.getValueAttribute(attributeDefinition.type, value)}
+                        {...value}
                         onChange={event => {
-                            const newValue = (() => {
-                                switch (primitiveType) {
-                                    case 'string':
-                                    case 'number': {
-                                        return event.currentTarget.value;
-                                    }
-                                    case 'boolean': {
-                                        return event.currentTarget.checked;
-                                    }
-                                }
-                            })();
-                            this.assignPropertyValue(pointer, attributeDefinition, isList ? index : undefined, newValue);
+                            const newValue = attributeDefinition.type === 'boolean'
+                                ? event.currentTarget.checked : event.currentTarget.value;
+                            // propagate
+                            assignPropertyValue(
+                                this.props.parent, (newState: PropertyWidgetState) => this.setState(newState), this.state,
+                                pointer, attributeDefinition, isList ? index : undefined, newValue
+                            );
                         }}
-                        id={inputId}
-                        className={`property-input property-input-${inputType}`}
-                    />
-                );
+                        readOnly={isReadOnly}
+                            disabled={isDisabled}
+                            id={inputId}
+                            className={`property-input property-input-${inputType}`}
+                        />
+                    );
+                }
             }
             default: {
-                const typeDefinition = this.getCustomTypeDefinition(attributeDefinition.type);
+                const typeDefinition = getCustomType(attributeDefinition.type);
                 if (Enum.is(typeDefinition)) {
                     return (
                         <select
-                            value={value}
-                            onChange={event =>
-                                this.assignPropertyValue(
+                            value={value.value}
+                            onChange={event => {
+                                // prepare new State
+                                assignPropertyValue(
+                                    this.props.parent,
+                                    (newState: PropertyWidgetState) => this.setState(newState),
+                                    this.state,
                                     pointer,
                                     attributeDefinition,
                                     isList ? index : undefined,
                                     event.currentTarget.value
-                                )
-                            }
+                                );
+                            }}
+                            disabled={isReadOnly}
                             id={inputId}
                         >
                             <option value=''></option>
@@ -560,28 +560,39 @@ export class CincoCloudPropertyWidget extends ReactWidget {
                     return (
                         <table className='attribute-table'>
                             <tbody>
-                                {typeDefinition.attributes.map(childDefinition =>
-                                    this.renderProperty(
-                                        pointer.concat({ attribute: attributeDefinition.name, index: isList ? index : undefined }),
-                                        childDefinition,
-                                        value[childDefinition.name]
-                                    )
-                                )}
+                                {
+                                    // userdefined type
+                                    typeDefinition.attributes.map(childDefinition => (
+                                        <CincoPropertyView
+                                            parent={this.props.parent}
+                                            parentState={this.props.parentState}
+                                            pointer={pointer.concat({
+                                                attribute: attributeDefinition.name,
+                                                index: isList ? index : undefined
+                                            })}
+                                            attributeDefinition={childDefinition}
+                                        ></CincoPropertyView>
+                                    ))
+                                }
                             </tbody>
                         </table>
                     );
                 } else {
                     return (
                         <select
-                            value={value}
+                            value={value.value}
                             onChange={event =>
-                                this.assignPropertyValue(
+                                assignPropertyValue(
+                                    this.props.parent,
+                                    (newState: PropertyWidgetState) => this.setState(newState),
+                                    this.state,
                                     pointer,
                                     attributeDefinition,
                                     isList ? index : undefined,
                                     event.currentTarget.value
                                 )
                             }
+                            disabled={isReadOnly}
                             id={inputId}
                         >
                             <option value=''></option>
@@ -589,9 +600,8 @@ export class CincoCloudPropertyWidget extends ReactWidget {
                                 // ModelElementReference identifier specified in the following fallback order:
                                 // name => label => attributeDefinitionType
                                 <option value={id} key={id}>
-                                    {name !== '' ? name : label !== '' ? label : attributeDefinition.type} (
-                                    {name !== '' ? label + ', ' : ''}
-                                    {id})
+                                    {name ? name : label ? label : attributeDefinition.type}
+                                    ({name ? label + ', ' : ''}{id})
                                 </option>
                             ))}
                         </select>
@@ -600,4 +610,273 @@ export class CincoCloudPropertyWidget extends ReactWidget {
             }
         }
     }
+
+    protected getInputType(type: PrimitivePropertyType, annotations: Annotation[]): React.HTMLInputTypeAttribute {
+        const isColor = annotations.filter(a => a.name === 'color').length > 0;
+        const isFile = annotations.filter(a => a.name === 'file').length > 0;
+        const isDate = annotations.filter(a => a.name === 'date').length > 0;
+        const isMultiLine = annotations.filter(a => a.name === 'multiline').length > 0;
+        switch (type) {
+            case 'string':
+                if (isMultiLine) {
+                    return 'textarea';
+                } else if (isFile) {
+                    return 'file';
+                } else if (isDate) {
+                    return 'date';
+                } else if (isColor) {
+                    return 'color';
+                }
+                return 'text';
+            case 'number':
+                return 'number';
+            case 'boolean':
+                return 'checkbox';
+        }
+    }
+
+    protected getValueAttribute(
+        type: PrimitivePropertyType,
+        value: any
+    ): Partial<React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>> {
+        switch (type) {
+            case 'string':
+            case 'number': {
+                return { value: value as string | number };
+            }
+            case 'boolean': {
+                const parsedValue = typeof value === 'string' ? (value === 'false' ? false : true) : value;
+                return { checked: parsedValue as boolean };
+            }
+            default: {
+                return { value: value };
+            }
+        }
+    }
+}
+
+/**
+ * CELL OPERATIONS
+ */
+
+function addPropertyValue(
+    widget: Widget,
+    setState: (newState: PropertyWidgetState) => void,
+    state: PropertyWidgetState,
+    pointer: ObjectPointer,
+    name: string
+): void {
+    const attributeDefinition = locateAttributeDefinition(state, pointer, name);
+    const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
+    const defaultValue = getFallbackDefaultValue(attributeDefinition.type);
+    const isList = isListAttribute(bounds.upperBound);
+
+    // TODO: The follwoing code mutates the state, the shallow copy in the next
+    // line does not prevent that.
+    const newState = { ...state };
+    const objectValue = locateObjectValue(newState, pointer);
+    if (isList) {
+        if (!objectValue[name]) {
+            objectValue[name] = [];
+        }
+        if (!canAdd(objectValue[name].length + 1, bounds)) {
+            return;
+        }
+        objectValue[name].push(defaultValue);
+    } else {
+        objectValue[name] = defaultValue;
+    }
+    setState(newState);
+
+    // persist data
+    postPropertyChange(state.modelElementId, pointer, name, { kind: 'addValue', isList, defaultValue });
+    widget.update();
+}
+
+function assignPropertyValue(
+    widget: Widget,
+    setState: (newState: PropertyWidgetState) => void,
+    state: PropertyWidgetState,
+    pointer: ObjectPointer,
+    attributeDefinition: Attribute,
+    index: number | undefined,
+    value: any
+): void {
+    const name = attributeDefinition.name;
+
+    // validation
+    if (!checkEnum(attributeDefinition.type, value)) {
+        return;
+    }
+    const type = attributeDefinition.type;
+    const typeDefinitions = getCustomTypes().filter(t => t.elementTypeId === type);
+    if (typeDefinitions.length > 0) {
+        const typeDefinition = typeDefinitions[0] as any;
+        if (typeDefinition['literals'] !== undefined) {
+            // isEnum
+            const literals: string[] = typeDefinition['literals'];
+            const canBeAssigned = literals.indexOf(value) >= 0;
+            if (!canBeAssigned) {
+                return;
+            }
+        }
+    }
+    if (!canAssign(index ?? 0.0, attributeDefinition.bounds ?? { lowerBound: 1.0, upperBound: 1.0 })) {
+        return;
+    }
+
+    // update state
+    const newState = { ...state };
+    const objectValue = locateObjectValue(newState, pointer);
+    if (index !== undefined) {
+        objectValue[name][index] = value;
+    } else {
+        objectValue[name] = value;
+    }
+    setState(newState);
+
+    // persist data
+    postPropertyChange(state.modelElementId, pointer, name, { kind: 'assignValue', index, value });
+
+    // update
+    widget.update();
+}
+
+function deletePropertyValue(
+    widget: Widget,
+    setState: (newState: PropertyWidgetState) => void,
+    state: PropertyWidgetState,
+    pointer: ObjectPointer,
+    attributeDefinition: Attribute,
+    index?: number
+): void {
+    const name = attributeDefinition.name;
+    const bounds = attributeDefinition.bounds ?? { lowerBound: 1.0, upperBound: 1.0 };
+
+    // update state
+    const newState = { ...state };
+    const objectValue = locateObjectValue(newState, pointer);
+    if (index !== undefined) {
+        if (!canDelete(objectValue[name].length - 1, bounds)) {
+            return;
+        }
+        objectValue[name].splice(index, 1);
+    } else {
+        objectValue[name] = '';
+    }
+    setState(newState);
+
+    // persist data
+    postPropertyChange(state.modelElementId, pointer, name, { kind: 'deleteValue', index });
+    widget.update();
+}
+
+/**
+ * COMMUNICATE
+ */
+
+function postPropertyChange(modelElementId: string, pointer: ObjectPointer, name: string, change: PropertyChange): void {
+    postMessage({
+        kind: 'editProperty',
+        modelElementId: modelElementId,
+        pointer,
+        name,
+        change
+    });
+}
+
+function postMessage(message: PropertyViewMessage): void {
+    window.postMessage(message);
+}
+
+/**
+ * VALUE HELPER
+ */
+
+function checkEnum(type: string, value: any): boolean {
+    const typeDefinitions = getCustomTypes().filter(t => t.elementTypeId === type);
+    if (typeDefinitions.length > 0) {
+        const typeDefinition = typeDefinitions[0] as any;
+        if (typeDefinition['literals'] !== undefined) {
+            // is enum
+            const literals: string[] = typeDefinition['literals'];
+            const canBeAssigned = literals.indexOf(value) >= 0;
+            if (!canBeAssigned) {
+                // is not inside enums domain
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * FUNCTIONS FOR LOCATING VALUES
+ */
+
+function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): any {
+    let objectValue: any = state.values; // these are the attributes of the modelElement
+    for (const step of pointer) {
+        let nextValue;
+        if (step.index !== undefined) {
+            nextValue = objectValue[step.attribute][step.index];
+        } else {
+            nextValue = objectValue[step.attribute];
+        }
+        // if steppedValue does not exists => repair with defaultValue
+        if (!nextValue) {
+            const attributeDefinition = state.attributeDefinitions.find(a => a.name === step.attribute);
+            if (attributeDefinition) {
+                const defaultValue = getFallbackDefaultValue(attributeDefinition.type);
+                nextValue = defaultValue;
+                if (step.index !== undefined) {
+                    objectValue[step.attribute][step.index] = nextValue;
+                } else {
+                    objectValue[step.attribute] = nextValue;
+                }
+            }
+        }
+        objectValue = nextValue;
+    }
+    return objectValue;
+}
+
+function locateAttributeDefinition(state: PropertyWidgetState, pointer: ObjectPointer, name: string): Attribute {
+    let definitions: Attribute[] = state.attributeDefinitions;
+    for (const step of pointer) {
+        const nextAttribute = definitions.find(attribute => attribute.name === step.attribute);
+        if (nextAttribute === undefined) {
+            throw new Error(`Object pointer on undefined attribute '${step.attribute}'`);
+        }
+        const typeDefinition = getCustomType(nextAttribute.type);
+        if (Enum.is(typeDefinition)) {
+            throw new Error(`Object pointer '${step.attribute}' on enum`);
+        } else if (UserDefinedType.is(typeDefinition)) {
+            definitions = (typeDefinition as UserDefinedType).attributes;
+        }
+    }
+    return definitions.find(definition => definition.name === name)!;
+}
+
+function getCurrentModelElement(state: PropertyWidgetState): LabeledModelElementReference | undefined {
+    return getModelElement(state.modelElementId, state.modelElementIndex);
+}
+
+function getModelElement(modelElementId: string, modelElementIndex: ModelElementIndex): LabeledModelElementReference | undefined {
+    for (const [, modelElements] of Object.entries(modelElementIndex)) {
+        for (const element of modelElements) {
+            if (element.id === modelElementId) {
+                return element;
+            }
+        }
+    }
+    return undefined;
+}
+
+function calculateRowsForString(inputString: string): number {
+    if (!inputString) {
+        return 1; // Minimum of 1 row
+    }
+
+    return inputString.split('\n').length;
 }

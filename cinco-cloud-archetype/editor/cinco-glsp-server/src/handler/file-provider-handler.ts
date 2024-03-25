@@ -13,12 +13,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, ActionHandler, Logger, MaybePromise } from '@eclipse-glsp/server-node';
+import { Action, ActionHandler, Logger, MaybePromise } from '@eclipse-glsp/server';
 
 import { FileProviderRequest, FileProviderResponse, FileProviderResponseItem } from '@cinco-glsp/cinco-glsp-common';
-import * as fs from 'fs';
 import { inject, injectable } from 'inversify';
-import { getFilesFromDirectories, getRootUri, readFilesFromDirectories } from '@cinco-glsp/cinco-glsp-api';
+import { getFilesFromDirectories, getLanguageFolder, getRootUri, readFilesFromDirectories } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class FileProviderHandler implements ActionHandler {
@@ -31,19 +30,27 @@ export class FileProviderHandler implements ActionHandler {
         const directories: string[] = action.directories;
         const readFiles: boolean = action.readFiles ?? false;
 
-        const dirs = directories.map(dir => `${getRootUri()}/${dir}`);
-        let response;
+        const dirs = directories.map(
+            dir =>
+                dir === FileProviderRequest.META_LANGUAGES_FOLDER_KEYWORD
+                    ? getLanguageFolder()
+                    : this.isAbsolutePath(dir)
+                    ? dir // absolute
+                    : `${getRootUri()}/${dir}` // relative to root
+        );
+        let items: FileProviderResponseItem[];
         if (readFiles) {
-            const fileContents = readFilesFromDirectories(fs, dirs, action.supportedTypes);
-            const items: FileProviderResponseItem[] = Array.from(fileContents.entries()).map(entry =>
-                FileProviderResponseItem.create(entry[0], entry[1])
-            );
-            response = FileProviderResponse.create(items);
+            const fileContents = readFilesFromDirectories(dirs, action.supportedTypes);
+            items = Array.from(fileContents.entries()).map(entry => FileProviderResponseItem.create(entry[0], entry[1]));
         } else {
-            const files = getFilesFromDirectories(fs, dirs, action.supportedTypes);
-            const items: FileProviderResponseItem[] = files.map(entry => FileProviderResponseItem.create(entry, undefined));
-            response = FileProviderResponse.create(items);
+            const files = getFilesFromDirectories(dirs, action.supportedTypes);
+            items = files.map(entry => FileProviderResponseItem.create(entry, undefined));
         }
+        const response = FileProviderResponse.create(items, action.requestId);
         return [response];
+    }
+
+    isAbsolutePath(path: string): boolean {
+        return path.startsWith('/') || path.startsWith('file://');
     }
 }

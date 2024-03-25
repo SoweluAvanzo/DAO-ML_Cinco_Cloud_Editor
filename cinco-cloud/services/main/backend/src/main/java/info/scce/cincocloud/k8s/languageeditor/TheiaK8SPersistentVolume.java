@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class TheiaK8SPersistentVolume extends TheiaK8SResource<PersistentVolume> {
 
-  private K8SPersistentVolumeOptions options;
+  private final K8SPersistentVolumeOptions options;
 
   public TheiaK8SPersistentVolume(KubernetesClient client, ProjectDB project, K8SPersistentVolumeOptions options) {
     super(client, project);

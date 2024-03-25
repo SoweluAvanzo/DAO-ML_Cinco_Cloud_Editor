@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { JsonRpcServer } from '@theia/core/lib/common/messaging/proxy-factory';
+import { RpcServer } from '@theia/core/lib/common/messaging/proxy-factory';
 import { ServerArgs } from '@cinco-glsp/cinco-glsp-common';
 
 export const GLSP_SERVER_UTIL_ENDPOINT = 'services/cc_glsp_server_util';
@@ -21,8 +21,10 @@ export const GLSPServerUtilClient = Symbol('GLSPServerUtilClient');
 export interface GLSPServerUtilClient {}
 export const GLSPServerUtilServer = Symbol('GLSPServerUtilServer');
 
-export interface GLSPServerUtilServer extends JsonRpcServer<GLSPServerUtilClient> {
+export interface GLSPServerUtilServer extends RpcServer<GLSPServerUtilClient> {
     connect(): Promise<boolean>;
     // provides all files of a specified absolute folder path
     getArgs(): Promise<ServerArgs> | undefined;
+    transpileLanguagesFolder(): Promise<void> | undefined;
+    transpileWatchLanguagesFolder(): Promise<boolean | undefined>;
 }

@@ -1,0 +1,60 @@
+{
+  "name": "@cinco-glsp/cinco-glsp-standalone",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standalone browser-app for the cinco-glsp-client",
+  "license": "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
+  "author": {
+    "name": "Cinco Cloud"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/scce/cinco-cloud.git"
+  },
+  "homepage": "https://gitlab.com/scce/cinco-cloud",
+  "bugs": "https://gitlab.com/scce/cinco-cloud/issues",
+  "contributors": [
+    {
+      "name": "Cinco Cloud",
+      "url": "https://gitlab.com/scce/cinco-cloud"
+    }
+  ],
+  "main": "lib",
+  "types": "lib",
+  "scripts": {
+    "build": "tsc -b && webpack",
+    "clean": "rimraf lib tsconfig.tsbuildinfo app/bundle.js app/bundle.js.map app/css",
+    "lint": "eslint --ext .ts,.tsx ./src",
+    "lint:ci": "yarn lint -o eslint.xml -f checkstyle",
+    "prepare": "yarn clean && yarn build",
+    "watch": "tsc -w -p ./tsconfig.json"
+  },
+  "dependencies": {
+    "@cinco-glsp/cinco-glsp-client": "1.0.0",
+    "@eclipse-glsp/client": "2.1.0-next",
+    "crypto-browserify": "3.12.0",
+    "os-browserify": "0.3.0",
+    "stream-browserify": "^3.0.0",
+    "buffer": "^6.0.3",
+    "process": "^0.11.10",
+    "react-app-rewired": "^2.2.1",
+    "vscode-languageserver-protocol": "^3.17.0"
+  },
+  "devDependencies": {
+    "circular-dependency-plugin": "^5.2.2",
+    "css-loader": "^6.7.1",
+    "inversify": "^6.0.1",
+    "path-browserify": "^1.0.1",
+    "source-map-loader": "^4.0.0",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "typescript": "4.5.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "theia": {
+    "target": "browser"
+  }
+}

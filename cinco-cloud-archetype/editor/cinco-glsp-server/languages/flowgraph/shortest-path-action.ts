@@ -15,11 +15,8 @@
  ********************************************************************************/
 
 import { CustomActionHandler, LanguageFilesRegistry, Node } from '@cinco-glsp/cinco-glsp-api';
-import { CustomAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action } from '@eclipse-glsp/server-node';
-import { injectable } from 'inversify';
+import { Action, CustomAction } from '@cinco-glsp/cinco-glsp-common';
 
-@injectable()
 export class ShortestPathAction extends CustomActionHandler {
     getShortest(node: Node, maxSearchDepth: number): number {
         if (node.type === 'node:end') {

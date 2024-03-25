@@ -11,4 +11,11 @@ public class SettingsDB extends PanacheEntity {
   public boolean autoActivateUsers = false;
 
   public boolean sendMails = true;
+
+  /**
+   * If true, for each user that registers a list of featured projects is created.
+   */
+  public boolean createDefaultProjects = false;
+
+  public String archetypeImage = "";
 }

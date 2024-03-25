@@ -23,3 +23,15 @@ version: 0.1.0
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
 appVersion: 0.1.0
+
+dependencies:
+  - name: postgresql
+    version: 13.1.5
+    repository: https://charts.bitnami.com/bitnami
+  - name: minio
+    version: 12.8.15
+    repository: https://charts.bitnami.com/bitnami
+  - name: mailhog
+    version: 5.2.3
+    repository: https://codecentric.github.io/helm-charts
+    condition: mailhog.enabled

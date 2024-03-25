@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core.services;
 
+import info.scce.cincocloud.core.rest.inputs.UpdateProjectInput;
 import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.OrganizationAccessRight;
 import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
@@ -9,26 +10,36 @@ import info.scce.cincocloud.db.ProjectType;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.db.WorkspaceImageBuildJobDB;
 import info.scce.cincocloud.db.WorkspaceImageDB;
+import info.scce.cincocloud.exeptions.RestException;
 import info.scce.cincocloud.sync.ProjectRegistry;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.panache.common.Page;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.Response;
 
 @ApplicationScoped
 @Transactional
 public class ProjectService {
 
+  private static final Logger LOGGER = Logger.getLogger(ProjectService.class.getName());
+
   @Inject
   ProjectRegistry projectRegistry;
+
+  @Inject
+  FileService fileService;
+
+  @Inject
+  SettingsService settingsService;
 
   @Inject
   OrganizationAccessRightVectorService orgAccessRightVectorService;
@@ -38,12 +49,8 @@ public class ProjectService {
         .orElseThrow(() -> new EntityNotFoundException("Cannot find project."));
   }
 
-  public List<ProjectDB> getAllAccessibleProjects(UserDB subject) {
-    return ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id).list();
-  }
-
-  public PanacheQuery<ProjectDB> getAllAccessibleProjectsPaged(UserDB subject, int index, int size) {
-    return ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id).page(Page.of(index, size));
+  public PanacheQuery<ProjectDB> getAllAccessibleProjects(UserDB subject) {
+    return ProjectDB.findProjectsWhereUserIsOwnerOrMember(subject.id);
   }
 
   public ProjectDB createProject(
@@ -63,6 +70,7 @@ public class ProjectService {
     imageOptional.ifPresent(image -> {
       project.template = image;
       project.type = ProjectType.MODEL_EDITOR;
+      copyLogoFromTemplate(project, image);
     });
 
     project.persist();
@@ -70,6 +78,33 @@ public class ProjectService {
     organizationOptional.ifPresent(organization -> organization.persist());
 
     return project;
+  }
+
+  public void createDefaultProjects(UserDB user) {
+    final var settings = settingsService.getSettings();
+    if (settings.createDefaultProjects) {
+      for (final var image: WorkspaceImageDB.findAllFeaturedImages().list()) {
+        createProject(
+          image.project.name,
+          image.project.description,
+          user,
+          Optional.empty(),
+          Optional.of(image)
+        );
+      }
+    }
+  }
+
+  private void copyLogoFromTemplate(ProjectDB project, WorkspaceImageDB image) {
+    if (image.project.logo != null) {
+      try {
+        final var filename = image.project.logo.filename;
+        final var is = this.fileService.loadFile(image.project.logo);
+        project.logo = this.fileService.storeFile(filename, is, image.project.logo.contentType);
+      } catch (Exception e) {
+        LOGGER.log(Level.INFO, "Could not copy project logo.", e);
+      }
+    }
   }
 
   public void deleteProject(ProjectDB project) {
@@ -101,24 +136,45 @@ public class ProjectService {
 
     WorkspaceImageBuildJobDB.deleteByIdIn(buildJobIds);
 
+    // remove featured image
+    if (project.image != null) {
+      project.image.featured = false;
+      project.image.persist();
+    }
+
+    if (project.logo != null) {
+      this.fileService.deleteFile(project.logo);
+    }
+
     project.buildJobs.clear();
     project.persist();
   }
 
-  public ProjectDB updateDescription(ProjectDB project, String description) {
-    project.description = description;
+  public ProjectDB updateProject(UserDB user, Long projectId, UpdateProjectInput input) {
+    final var project = getOrThrow(projectId);
 
-    return project;
-  }
+    if (!userCanEditProject(user, project)) {
+      throw new RestException(Response.Status.FORBIDDEN, "Insufficient access rights.");
+    }
 
-  public ProjectDB updateName(ProjectDB project, String name) {
-    project.name = name;
+    project.name = input.name;
+    project.description = input.description;
 
-    return project;
-  }
+    boolean logoAdded = project.logo == null && input.logoId != null;
+    boolean logoChanged = project.logo != null && input.logoId != null && !project.logo.id.equals(input.logoId);
+    boolean logoRemoved = project.logo != null && input.logoId == null;
 
-  public ProjectDB updateLogo(ProjectDB project, Optional<Long> logoIdOptional) {
-    project.logo = logoIdOptional.isPresent() ? BaseFileDB.findById(logoIdOptional.get()) : null;
+    if (logoChanged || logoAdded) {
+      if (project.logo != null) {
+        fileService.deleteFile(project.logo);
+      }
+
+      project.logo = (BaseFileDB) BaseFileDB.findByIdOptional(input.logoId)
+              .orElseThrow(() -> new RestException(Response.Status.NOT_FOUND, "Logo file not found."));
+    } else if (logoRemoved) {
+      fileService.deleteFile(project.logo);
+      project.logo = null;
+    }
 
     return project;
   }
@@ -136,9 +192,7 @@ public class ProjectService {
       }
       removePrivateOwnerFromProject(project);
       // remove new owner from the project member list, if he was a member
-      if (project.members.contains(targetUser)){
-        project.members.remove(targetUser);
-      }
+      project.members.remove(targetUser);
       addPrivateOwnerToProject(project, targetUser);
     }
     return project;
@@ -210,6 +264,7 @@ public class ProjectService {
   }
 
   public boolean userCanEditProject(UserDB user, ProjectDB project) {
+    if (user.isAdmin()) return true;
     if (project.organization == null) {
       return project.owner.equals(user);
     } else {
@@ -219,6 +274,7 @@ public class ProjectService {
   }
 
   public boolean userCanDeleteProject(UserDB user, ProjectDB project) {
+    if (user.isAdmin()) return true;
     if (project.organization == null) {
       return project.owner.equals(user);
     } else {

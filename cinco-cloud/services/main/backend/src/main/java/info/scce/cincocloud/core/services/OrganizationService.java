@@ -1,5 +1,6 @@
 package info.scce.cincocloud.core.services;
 
+import info.scce.cincocloud.core.rest.inputs.UpdateOrganizationInput;
 import info.scce.cincocloud.db.BaseFileDB;
 import info.scce.cincocloud.db.OrganizationAccessRightVectorDB;
 import info.scce.cincocloud.db.OrganizationDB;
@@ -7,21 +8,24 @@ import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.UserDB;
 import info.scce.cincocloud.exeptions.RestException;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.panache.common.Page;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.Response;
 
 @ApplicationScoped
 @Transactional
 public class OrganizationService {
+
   @Inject
   ProjectService projectService;
+
+  @Inject
+  FileService fileService;
 
   @Inject
   OrganizationAccessRightVectorService organizationAccessRightVectorService;
@@ -31,12 +35,8 @@ public class OrganizationService {
           .orElseThrow(() -> new EntityNotFoundException("Cannot find organization."));
   }
 
-  public List<OrganizationDB> getAllAccessibleOrganizations(UserDB subject) {
-    return OrganizationDB.findOrganizationsWhereUserIsOwnerOrMember(subject.id).list();
-  }
-
-  public PanacheQuery<OrganizationDB> getAllAccessibleOrganizationsPaged(UserDB subject, int index, int size) {
-    return OrganizationDB.findOrganizationsWhereUserIsOwnerOrMember(subject.id).page(Page.of(index, size));
+  public PanacheQuery<OrganizationDB> getAllAccessibleOrganizations(UserDB subject) {
+    return OrganizationDB.findOrganizationsWhereUserIsOwnerOrMember(subject.id);
   }
 
   public OrganizationDB create(String name, String description, UserDB subject) {
@@ -61,20 +61,31 @@ public class OrganizationService {
     return org;
   }
 
-  public OrganizationDB updateName(OrganizationDB organization, String name) {
-    organization.name = name;
+  public OrganizationDB updateOrganization(UserDB user, Long organizationId, UpdateOrganizationInput input) {
+    final var organization = getOrThrow(organizationId);
 
-    return organization;
-  }
+    if (!userCanEditOrganization(user, organization)) {
+      throw new RestException(Response.Status.FORBIDDEN, "Insufficient access rights.");
+    }
 
-  public OrganizationDB updateDescription(OrganizationDB organization, String description) {
-    organization.description = description;
+    organization.name = input.name;
+    organization.description = input.description;
 
-    return organization;
-  }
+    boolean logoAdded = organization.logo == null && input.logoId != null;
+    boolean logoChanged = organization.logo != null && input.logoId != null && !organization.logo.id.equals(input.logoId);
+    boolean logoRemoved = organization.logo != null && input.logoId == null;
 
-  public OrganizationDB updateLogo(OrganizationDB organization, Optional<Long> logoIdOptional) {
-    organization.logo = logoIdOptional.isPresent() ? BaseFileDB.findById(logoIdOptional.get()) : null;
+    if (logoChanged || logoAdded) {
+      if (organization.logo != null) {
+        fileService.deleteFile(organization.logo);
+      }
+
+      organization.logo = (BaseFileDB) BaseFileDB.findByIdOptional(input.logoId)
+              .orElseThrow(() -> new RestException(Response.Status.NOT_FOUND, "Logo file not found."));
+    } else if (logoRemoved) {
+      fileService.deleteFile(organization.logo);
+      organization.logo = null;
+    }
 
     return organization;
   }
@@ -163,7 +174,7 @@ public class OrganizationService {
   }
 
   public boolean userCanEditOrganization(UserDB subject, OrganizationDB organization) {
-    return organization.owners.contains(subject);
+    return subject.isAdmin() || organization.owners.contains(subject);
   }
 
   private void deleteAllProjects(OrganizationDB org) {

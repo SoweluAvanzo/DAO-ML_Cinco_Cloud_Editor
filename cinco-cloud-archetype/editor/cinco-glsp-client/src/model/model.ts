@@ -19,6 +19,9 @@ import {
     getSpecOf,
     getStyleByNameOf,
     isContainer,
+    isDeletable,
+    isMovable,
+    isSelectable,
     NodeStyle,
     RoutingPoint,
     Style,
@@ -27,29 +30,73 @@ import {
 import {
     AbstractEdgeRouter,
     Bounds,
+    boundsFeature,
+    connectableFeature,
+    deletableFeature,
     DIAMOND_ANCHOR_KIND,
+    editFeature,
     ELLIPTIC_ANCHOR_KIND,
-    GLSPGraph,
+    fadeFeature,
+    GEdge,
+    GGraph,
+    GGraphIndex,
+    GModelElement,
+    GModelElementSchema,
+    GNode,
+    hoverFeedbackFeature,
+    isGModelElementSchema,
+    layoutContainerFeature,
+    moveFeature,
     Point,
+    popupFeature,
     RECTANGULAR_ANCHOR_KIND,
-    SEdge,
-    SGraphIndex,
-    SModelElement,
-    SModelElementSchema,
-    SNode
+    selectFeature
 } from '@eclipse-glsp/client';
 import { FluentIterable } from 'sprotty/lib/utils/iterable';
 import { canContain } from '../utils/constraint-utils';
 
-export class CincoNode extends SNode {
+export interface CincoModelElement {
+    id: string;
+    spec?: ElementType;
+    type: string;
+}
+export namespace CincoModelElement {
+    export function is(object: any): object is CincoModelElement {
+        return object instanceof CincoEdge || object instanceof CincoNode || object instanceof CincoGraphModel;
+    }
+}
+
+export class CincoNode extends GNode implements CincoModelElement {
     [x: string]: any;
     override type: string;
-    protected specification?: ElementType;
+    spec?: ElementType;
     protected _view?: View; // runtime view
     protected _properties?: Record<string, any>;
 
     get elementType(): string | undefined {
         return this.type;
+    }
+
+    static getDefaultFeatures(elementTypeId: string): symbol[] {
+        const features = [
+            connectableFeature,
+            boundsFeature,
+            moveFeature,
+            layoutContainerFeature,
+            fadeFeature,
+            hoverFeedbackFeature,
+            popupFeature
+        ];
+        if (isDeletable(elementTypeId)) {
+            features.push(deletableFeature);
+        }
+        if (isSelectable(elementTypeId)) {
+            features.push(selectFeature);
+        }
+        if (isMovable(elementTypeId)) {
+            features.push(moveFeature);
+        }
+        return features;
     }
 
     get properties(): Record<string, any> | undefined {
@@ -85,8 +132,8 @@ export class CincoNode extends SNode {
         if (!this.elementType) {
             return undefined;
         }
-        this.specification = getSpecOf(this.elementType);
-        return this.specification?.view;
+        this.spec = getSpecOf(this.elementType);
+        return this.spec?.view;
     }
 
     get style(): Style | undefined {
@@ -102,6 +149,7 @@ export class CincoNode extends SNode {
 
     set style(style: Style | undefined) {
         if (this._view) {
+            this._view = { ...this._view } as View;
             this._view.style = { ...style } as Style;
         }
     }
@@ -123,8 +171,8 @@ export class CincoNode extends SNode {
         return ELLIPTIC_ANCHOR_KIND;
     }
 
-    override get incomingEdges(): FluentIterable<SEdge> {
-        if (this.index instanceof SGraphIndex) {
+    override get incomingEdges(): FluentIterable<GEdge> {
+        if (this.index instanceof GGraphIndex) {
             return this.index.getIncomingEdges(this);
         } else {
             return [];
@@ -135,8 +183,8 @@ export class CincoNode extends SNode {
      * The outgoing edges of this connectable element. They are resolved by the index, which must
      * be an `SGraphIndex`.
      */
-    override get outgoingEdges(): FluentIterable<SEdge> {
-        if (this.index instanceof SGraphIndex) {
+    override get outgoingEdges(): FluentIterable<GEdge> {
+        if (this.index instanceof GGraphIndex) {
             return this.index.getOutgoingEdges(this);
         } else {
             return [];
@@ -146,12 +194,16 @@ export class CincoNode extends SNode {
     get isContainer(): boolean {
         return this.elementType !== undefined && isContainer(this.elementType);
     }
+
+    get specification(): ElementType | undefined {
+        return this.spec;
+    }
 }
 
-export class CincoEdge extends SEdge {
+export class CincoEdge extends GEdge implements CincoModelElement {
     [x: string]: any;
     override type: string;
-    protected specification?: ElementType;
+    spec?: ElementType;
     protected _bendPoints?: Point[];
     protected _movingBendPoint?: Point;
     protected _movingBendPointIndex?: number;
@@ -162,6 +214,17 @@ export class CincoEdge extends SEdge {
 
     get elementType(): string | undefined {
         return this.type;
+    }
+
+    static getDefaultFeatures(elementTypeId: string): symbol[] {
+        const features = [editFeature, fadeFeature, hoverFeedbackFeature];
+        if (isDeletable(elementTypeId)) {
+            features.push(deletableFeature);
+        }
+        if (isSelectable(elementTypeId)) {
+            features.push(selectFeature);
+        }
+        return features;
     }
 
     get movingBendPoint(): Point | undefined {
@@ -249,8 +312,8 @@ export class CincoEdge extends SEdge {
         if (!this.elementType) {
             return undefined;
         }
-        this.specification = getSpecOf(this.elementType);
-        return this.specification?.view;
+        this.spec = getSpecOf(this.elementType);
+        return this.spec?.view;
     }
 
     get style(): Style | undefined {
@@ -268,6 +331,10 @@ export class CincoEdge extends SEdge {
         if (this._view) {
             this._view.style = { ...style } as Style;
         }
+    }
+
+    get specification(): ElementType | undefined {
+        return this.spec;
     }
 
     addBendPoint(point: Point, index: number): void {
@@ -387,9 +454,9 @@ export class CincoEdge extends SEdge {
     }
 }
 
-export class CincoGraphModel extends GLSPGraph {
-    override isContainableElement(input: string | SModelElement | SModelElementSchema): boolean {
-        const targetType = input instanceof SModelElement ? input.type : SModelElementSchema.is(input) ? input.type : input;
+export class CincoGraphModel extends GGraph implements CincoModelElement {
+    override isContainableElement(input: string | GModelElement | GModelElementSchema): boolean {
+        const targetType = input instanceof GModelElement ? input.type : isGModelElementSchema(input) ? input.type : input;
         return canContain(this, targetType);
     }
 }

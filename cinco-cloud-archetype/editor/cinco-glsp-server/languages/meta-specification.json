@@ -49,7 +49,9 @@
             "node:polygon",
             "node:othercategorynode",
             "node:stylelessnode",
-            "node:cssnode"
+            "node:cssnode",
+            "node:consttext",
+            "node:injectedParameterText"
           ]
         }
       ],
@@ -170,7 +172,7 @@
       "palettes": ["Test"],
       "view": {
         "style": "guiSIB",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -207,7 +209,7 @@
       "palettes": ["Test"],
       "view": {
         "style": "embeddedStyle",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -500,7 +502,7 @@
       "palettes": ["Test"],
       "view": {
         "style": "imageTest2",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -585,10 +587,10 @@
       "width": 92,
       "height": 36,
       "palettes": ["Test"],
-      "icon": "icon_flowgraph_activity",
+      "icon": "icons/icon_flowgraph_activity.png",
       "view": {
         "style": "multiTextTest",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -688,7 +690,6 @@
       "width": 36,
       "height": 36,
       "palettes": ["Mandatory", "Nodes"],
-      "icon": "icon_flowgraph_start",
       "view": {
         "style": "greenCircle"
       },
@@ -704,6 +705,10 @@
         {
           "name": "CustomAction",
           "values": ["LongestPathAction", "Calculate Longest Path"]
+        },
+        {
+          "name": "icon",
+          "values": ["icons/node_start.png"]
         }
       ],
       "attributes": [
@@ -789,10 +794,9 @@
       "width": 92,
       "height": 36,
       "palettes": [],
-      "icon": "icon_flowgraph_activity",
       "view": {
         "style": "blueTextRectangle",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -808,6 +812,18 @@
           "final": false
         },
         {
+          "name": "multiLineAnnotation",
+          "type": "string",
+          "defaultValue": "This should be a multiline textfield...\n\n...does it?",
+          "final": false,
+          "annotations": [
+            {
+              "name": "multiline",
+              "values": []
+            }
+          ]
+        },
+        {
           "name": "number",
           "type": "number",
           "bounds": {
@@ -821,8 +837,196 @@
           "bounds": {
             "lowerBound": 1,
             "upperBound": 1
-          }
+          },
+          "defaultValue": "false"
         },
+        {
+          "name": "hiddenString",
+          "type": "string",
+          "defaultValue": "This should not appear",
+          "final": false,
+          "annotations": [
+            {
+              "name": "hidden",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "readOnlyString",
+          "type": "string",
+          "defaultValue": "This should not be editable",
+          "final": false,
+          "annotations": [
+            {
+              "name": "readOnly",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "readOnlyMultiline",
+          "type": "string",
+          "defaultValue": "This should not be editable",
+          "final": false,
+          "annotations": [
+            {
+              "name": "readOnly",
+              "values": []
+            },
+            {
+              "name": "multiline",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "readOnlyNumber",
+          "type": "number",
+          "defaultValue": 42,
+          "final": false,
+          "annotations": [
+            {
+              "name": "readOnly",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "readOnlyBoolean",
+          "type": "boolean",
+          "defaultValue": "true",
+          "final": false,
+          "annotations": [
+            {
+              "name": "readOnly",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "finalString",
+          "type": "string",
+          "defaultValue": "This should not be editable",
+          "final": true
+        },
+        {
+          "name": "finalMultiline",
+          "type": "string",
+          "defaultValue": "This should not be editable",
+          "final": true,
+          "annotations": [
+            {
+              "name": "multiline",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "finalNumber",
+          "type": "number",
+          "defaultValue": 42,
+          "final": true
+        },
+        {
+          "name": "finalBoolean",
+          "type": "boolean",
+          "defaultValue": "true",
+          "final": true
+        },
+        {
+          "name": "color",
+          "type": "string",
+          "defaultValue": "#FFAA99",
+          "final": false,
+          "annotations": [
+            {
+              "name": "color",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "finalColor",
+          "type": "string",
+          "defaultValue": "#FFAA99",
+          "final": true,
+          "annotations": [
+            {
+              "name": "color",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "anyFile",
+          "type": "string",
+          "final": false,
+          "annotations": [
+            {
+              "name": "file",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "textFile",
+          "type": "string",
+          "final": false,
+          "annotations": [
+            {
+              "name": "file",
+              "values": ["txt"]
+            }
+          ]
+        },
+        {
+          "name": "directory",
+          "type": "string",
+          "final": false,
+          "annotations": [
+            {
+              "name": "file",
+              "values": ["%directory"]
+            }
+          ]
+        },
+        {
+          "name": "finalFile",
+          "type": "string",
+          "final": true,
+          "annotations": [
+            {
+              "name": "file",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "defaultValue": "2023-11-27",
+          "final": false,
+          "annotations": [
+            {
+              "name": "date",
+              "values": []
+            }
+          ]
+        },
+        {
+          "name": "finalDate",
+          "type": "string",
+          "defaultValue": "2023-11-27",
+          "final": true,
+          "annotations": [
+            {
+              "name": "date",
+              "values": []
+            }
+          ]
+        },
+
         {
           "name": "optional",
           "type": "string",
@@ -904,6 +1108,18 @@
         {
           "name": "CustomAction",
           "values": ["LongestPathAction", "Calculate Longest Path"]
+        },
+        {
+          "name": "AppearanceProvider",
+          "values": ["ExampleAppearanceProvider"]
+        },
+        {
+          "name": "palette",
+          "values": ["PaletteAnnotationGroup", "icons/icon_flowgraph_activity.png"]
+        },
+        {
+          "name": "icon",
+          "values": ["icons/icon_flowgraph_activity.png"]
         }
       ]
     },
@@ -985,7 +1201,7 @@
       "width": 36,
       "height": 36,
       "palettes": ["Mandatory"],
-      "icon": "icon_flowgraph_end",
+      "icon": "icons/icon_flowgraph_end.png",
       "view": {
         "style": "redCircle"
       },
@@ -1048,7 +1264,7 @@
       "icon": "icon_flowgraph_swimlane",
       "view": {
         "style": "swimlane",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1136,10 +1352,10 @@
       ],
       "width": 92,
       "height": 36,
-      "icon": "icon_flowgraph_activity",
+      "icon": "icons/icon_flowgraph_activity.png",
       "view": {
         "style": "blueTextRectangle",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1177,7 +1393,7 @@
       "incomingEdges": [],
       "width": 36,
       "height": 36,
-      "icon": "icon_flowgraph_start",
+      "icon": "icons/node_start.png",
       "view": {
         "style": "greenCircle"
       },
@@ -1188,6 +1404,66 @@
           "defaultValue": "",
           "final": false
         }
+      ]
+    },
+    {
+      "elementTypeId": "node:consttext",
+      "label": "ConstantText",
+      "deletable": true,
+      "reparentable": true,
+      "repositionable": true,
+      "resizable": true,
+      "outgoingEdges": [
+      ],
+      "incomingEdges": [
+      ],
+      "width": 92,
+      "height": 36,
+      "palettes": ["Test"],
+      "icon": "icons/icon_flowgraph_activity.png",
+      "view": {
+        "style": "blueTextRectangle",
+        "styleParameter": ["constant text"]
+      },
+      "attributes": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "Newnode:activity",
+          "final": false
+        }
+      ],
+      "annotations": [
+      ]
+    },
+    {
+      "elementTypeId": "node:injectedParameterText",
+      "label": "InjectedTextParameter",
+      "deletable": true,
+      "reparentable": true,
+      "repositionable": true,
+      "resizable": true,
+      "outgoingEdges": [
+      ],
+      "incomingEdges": [
+      ],
+      "width": 92,
+      "height": 36,
+      "palettes": ["Test"],
+      "icon": "icons/icon_flowgraph_activity.png",
+      "view": {
+        "style": "blueTextRectangle",
+        "styleParameter": ["inject name here ->${name}<-"]
+      },
+      "attributes": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "Newnode:activity",
+          "final": false
+        }
+      ],
+      "annotations": [
       ]
     }
   ],
@@ -1219,7 +1495,7 @@
       "routable": true,
       "view": {
         "style": "labeledArrow",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1391,7 +1667,7 @@
       "palettes": ["TestEdges"],
       "view": {
         "style": "simpleText",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1411,7 +1687,7 @@
       "palettes": ["TestEdges"],
       "view": {
         "style": "simpleMultiText",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {
@@ -1431,7 +1707,7 @@
       "palettes": ["TestEdges"],
       "view": {
         "style": "simpleContainer",
-        "styleParameter": ["name"]
+        "styleParameter": ["${name}"]
       },
       "attributes": [
         {

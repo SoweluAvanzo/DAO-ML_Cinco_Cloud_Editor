@@ -5,12 +5,7 @@ import javax.validation.constraints.NotNull;
 public class UpdateWorkspaceImageInput {
 
     @NotNull(message = "Field 'published' may not be null")
-    public boolean published;
+    public Boolean published;
 
-    public UpdateWorkspaceImageInput() {
-    }
-
-    public UpdateWorkspaceImageInput(boolean published) {
-        this.published = published;
-    }
+    public Boolean featured;
 }

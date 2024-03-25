@@ -15,9 +15,11 @@
  ********************************************************************************/
 import 'reflect-metadata';
 
+export * from './cinco-glsp-client';
 export * from './meta-resource';
 export * from './meta-specification';
 export * from './protocol/appearance-provider-protocol';
+export * from './protocol/cinco-glsp-lifecycle';
 export * from './protocol/custom-action-protocol';
 export * from './protocol/double-click-protocol';
 export * from './protocol/generator-protocol';
@@ -30,3 +32,5 @@ export * from './protocol/shared-protocol';
 export * from './protocol/type-utils';
 export * from './protocol/validation-protocol';
 export * from './protocol/args-protocol';
+export * from './protocol/arg-utils';
+export * from './protocol/editor-button-protocol';

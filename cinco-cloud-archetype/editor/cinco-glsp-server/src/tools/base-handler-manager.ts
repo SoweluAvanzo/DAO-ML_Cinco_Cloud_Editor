@@ -15,7 +15,17 @@
  ********************************************************************************/
 import { APIBaseHandler, GraphModelState, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import { ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action, ActionDispatcher, ActionHandler, Logger } from '@eclipse-glsp/server-node';
+import {
+    Action,
+    ActionDispatcher,
+    ActionHandler,
+    Logger,
+    SaveModelAction,
+    MessageAction,
+    SeverityLevel,
+    SourceModelStorage,
+    ModelSubmissionHandler
+} from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 
 /**
@@ -30,6 +40,10 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     protected readonly modelState: GraphModelState;
     @inject(ActionDispatcher)
     protected readonly actionDispatcher: ActionDispatcher;
+    @inject(SourceModelStorage)
+    protected sourceModelStorage: SourceModelStorage;
+    @inject(ModelSubmissionHandler)
+    protected submissionHandler: ModelSubmissionHandler;
 
     // this needs to contain KIND of the ManagedBaseAction A
     abstract actionKinds: string[];
@@ -68,6 +82,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                                 results.push(...v);
                                 leftToHandle = leftToHandle - 1;
                                 if (leftToHandle <= 0) {
+                                    // save model action
+                                    results.push(SaveModelAction.create());
                                     resolve(results);
                                 }
                             });
@@ -75,14 +91,19 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                             results.push(...result);
                             leftToHandle = leftToHandle - 1;
                             if (leftToHandle <= 0) {
+                                // save model action
+                                results.push(SaveModelAction.create());
                                 resolve(results);
                             }
                         }
-                    } catch(e) {
+                    } catch (e) {
                         console.log(`Error executing handler: ${(handler as any).name}`);
+                        this.notify(`${(handler as any).name} ran into errors!`, 'ERROR');
                         console.log(`${e}`);
                         leftToHandle = leftToHandle - 1;
                         if (leftToHandle <= 0) {
+                            // save model action
+                            results.push(SaveModelAction.create());
                             resolve(results);
                         }
                     }
@@ -101,30 +122,47 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
         return new Promise<H[]>((resolve, reject) => {
             try {
                 if (!this.hasHandlerProperty(element)) {
+                    console.log('This element has no assigned ' + this.baseHandlerName + '!');
                     return resolve([]);
                 }
-            } catch(e) {
-                console.log(`Error checking handlerProperties: (${element.type + '|' + element.id})`);
+            } catch (e) {
+                console.log(`Error checking handlerProperties: (${element?.type + '|' + element?.id})`);
+                this.notify(`Error checking handlerProperties: (${element?.type + '|' + element?.id})`, 'ERROR');
                 console.log(`${e}`);
                 return resolve([]);
             }
-            const applicableHandlerClasses = BaseHandlerManager.getHandlerClasses(this.baseHandlerName,
+            const applicableHandlerClasses = BaseHandlerManager.getHandlerClasses(
+                this.baseHandlerName,
                 (handlerClassName: string): boolean => {
                     try {
                         return this.isApplicableHandler(element, handlerClassName);
-                    } catch(e) {
+                    } catch (e) {
                         console.log(`Error checking applicability of: ${handlerClassName}`);
+                        this.notify(`Error checking applicability of: ${handlerClassName}`, 'ERROR');
                         console.log(`${e}`);
                         return false;
                     }
                 }
             );
+            if (applicableHandlerClasses.length <= 0) {
+                this.notify(
+                    'No ' + this.baseHandlerName + ' was found! Please make sure that the annotated ' + this.baseHandlerName + ' exists!',
+                    'ERROR'
+                );
+                return resolve([]);
+            }
             let leftToHandle: number = applicableHandlerClasses.length;
             const actionHandlers: H[] = [];
             console.log('[' + leftToHandle + '] handlers will be tested for execution as a ' + this.baseHandlerName + '!');
             for (const handlerClass of applicableHandlerClasses) {
                 // initialize handler
-                const handler = new handlerClass(this.logger, this.modelState, this.actionDispatcher);
+                const handler = new handlerClass(
+                    this.logger,
+                    this.modelState,
+                    this.actionDispatcher,
+                    this.sourceModelStorage,
+                    this.submissionHandler
+                );
                 // test if handler can be executed =>
                 try {
                     // test if handler can be executed
@@ -152,8 +190,9 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                             resolve(actionHandlers);
                         }
                     }
-                } catch(e) {
+                } catch (e) {
                     console.log(`Error checking executability of: ${handlerClass.name}`);
+                    this.notify(`Error checking executability of: ${handlerClass.name}`, 'ERROR');
                     console.log(`${e}`);
                     leftToHandle = leftToHandle - 1;
                     if (leftToHandle <= 0) {
@@ -170,11 +209,24 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     static getHandlerClasses(name: string, filter?: (arg0: string) => boolean): any[] {
         const result: any[] = [];
         for (const clss of LanguageFilesRegistry.getRegistered()) {
-            console.log(clss.__proto__.name);
             if (clss.__proto__.name === name && (filter === undefined || filter(clss.name))) {
                 result.push(clss);
             }
         }
         return result;
+    }
+
+    /**
+     *
+     * @param message
+     * @param severity "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
+     * @returns
+     */
+    notify(message: string, severity?: SeverityLevel, details?: string, timeout?: number): void {
+        const messageAction = MessageAction.create(message, {
+            severity: severity ?? 'INFO',
+            details: details ?? ''
+        });
+        this.actionDispatcher.dispatch(messageAction);
     }
 }

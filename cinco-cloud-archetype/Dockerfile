@@ -6,13 +6,12 @@ COPY ./cinco-cloud-archetype/vscode-extensions/cinco-languages-extension /cinco-
 # outputs extension to /cinco-languages-extension/cinco-langium-0.0.1.vsix
 RUN yarn
 
-# build cinco-project-initializer
+# build cinco-cloud-project-initializer
 # --------------------------------
-FROM docker.io/library/node:16-bookworm-slim as cinco-project-initializer-builder
-WORKDIR /cinco-project-initializer
-COPY ./cinco-cloud-archetype/vscode-extensions/cinco-project-initializer /cinco-project-initializer
-# outputs extension to /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix
-RUN npm install -g vsce --unsafe-perm
+FROM docker.io/library/node:18-bookworm-slim as cinco-cloud-project-initializer-builder
+WORKDIR /cinco-cloud-project-initializer
+COPY ./cinco-cloud-archetype/vscode-extensions/cinco-cloud-project-initializer /cinco-cloud-project-initializer
+# outputs extension to /cinco-cloud-project-initializer/cinco-cloud-project-initializer-0.0.1.vsix
 RUN yarn
 
 # build the base image with Python 3.8
@@ -62,17 +61,24 @@ RUN useradd -ms /bin/bash theia
 COPY --chown=theia:theia ./cinco-cloud-archetype/editor /editor
 
 # copy vscode-extensions into plugins; remove symlink before that
+RUN mkdir -p /editor/browser-app/plugins
 RUN rm -f ./cinco-cloud-archetype/editor/browser-app/plugins/*
 COPY --from=cinco-languages-extension-builder /cinco-languages-extension/cinco-langium-0.0.1.vsix /editor/browser-app/plugins
-COPY --from=cinco-project-initializer-builder /cinco-project-initializer/cinco-project-initializer-0.0.1.vsix /editor/browser-app/plugins
+
+# build minio-client
+RUN cd minio-client && yarn && cd ../
+
+# clean languages folder
+RUN cd /editor/cinco-glsp-server && rm -r languages && node clean-languages.js
 
 # build theia-editor
 RUN yarn
 
 # runtime configuration
 VOLUME /editor/workspace
-EXPOSE 3000 8000
-CMD cd /editor/browser-app && \
+EXPOSE 3000 8000 9000
+CMD cd minio-client && node bundle/cinco-minio-client --metaFolder ../cinco-glsp-server/languages && cd ../ && \
+    cd /editor/browser-app && \
     DATABASE_URL="${DATABASE_URL}" \
     DATABASE_USER="${DATABASE_USER}" \
     DATABASE_PASSWORD="${DATABASE_PASSWORD}" \
@@ -90,4 +96,4 @@ CMD cd /editor/browser-app && \
     WORKSPACE_PATH="${WORKSPACE_PATH}" \
     EDITOR_TYPE="${EDITOR_TYPE}" \
     ENVIRONMENT="${ENVIRONMENT}" \
-    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0
+    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0 --app-project-path=/editor/ --META_DEV_MODE --META_LANGUAGES_FOLDER="${META_LANGUAGES_FOLDER}"

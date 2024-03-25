@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 /********************************************************************************
  * Copyright (c) 2023 Cinco Cloud.
  *
@@ -14,11 +14,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-Object.defineProperty(exports, '__esModule', { value: true });
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExampleGeneratorHandler = void 0;
-const cinco_glsp_api_1 = require('@cinco-glsp/cinco-glsp-api');
-const cinco_glsp_common_1 = require('@cinco-glsp/cinco-glsp-common');
-const uri_1 = require('@theia/core/lib/common/uri');
+const cinco_glsp_api_1 = require("@cinco-glsp/cinco-glsp-api");
 /**
  * Language Designer defined example of a Generator
  */
@@ -28,33 +26,47 @@ class ExampleGeneratorHandler extends cinco_glsp_api_1.GeneratorHandler {
         this.CHANNEL_NAME = 'Flowgraph [' + this.modelState.root.id + ']';
     }
     execute(action, ...args) {
-        var _a;
         // parse action
-        const modelElementId = action.modelElementId;
-        const target = (_a = action.targetFolder) !== null && _a !== void 0 ? _a : '';
-        const targetFolderUri = new uri_1.default(target);
-        const element = this.modelState.index.findElement(modelElementId);
-        const filesContentSMap = this.getfileContentsMap(element, targetFolderUri);
-        // const graphContent: string = this.getContent(element);
+        const model = this.getElement(action.modelElementId);
+        // generate
+        this.generate(model);
         //  logging
-        const message = 'Elements [' + element.type + '] generation process  started';
+        const message = 'Element [' + model.type + '] generation process started';
         this.log(message, { show: true });
-        return [cinco_glsp_common_1.GeneratorCreateFileOperation.create(action.modelElementId, filesContentSMap)];
+        // const target: string = action.targetFolder ?? '';
+        // const targetFolderUri = new URI(target);
+        // old action based method: const filesContentSMap: Map<URI, string> = this.getfileContentsMap(model, targetFolderUri);
+        // old action based method: return [GeneratorCreateFileOperation.create(action.modelElementId, filesContentSMap)];
+        return [];
     }
     canExecute(action, ...args) {
         const element = this.getElement(action.modelElementId);
         return element !== undefined;
     }
     /**
-     * Set your generated Map filename-filecontent here !
+     * generate files
      */
-    getfileContentsMap(model, parentUri) {
-        const fileContentsMap = new Map();
+    generate(model) {
+        this.createFile('generated_flowgraph.txt', this.getContent(model));
+        this.createFile('generated_static_file.txt', 'static content');
+        const writtenFile = this.readFile('generated_static_file.txt');
+        console.log('WrittenFile: ' + writtenFile);
+    }
+    /**
+     * old action based method:
+     *
+     * Set your generated Map filename-filecontent here !
+     *
+    getfileContentsMap(model: ModelElement, parentUri: URI): Map<URI, string> {
+        const fileContentsMap = new Map<URI, string>();
+
         // add your different files here !
         fileContentsMap.set(parentUri.resolve('generated_flowgraph.txt'), this.getContent(model));
         fileContentsMap.set(parentUri.resolve('generated_static_file.txt'), 'static content');
+
         return fileContentsMap;
     }
+    */
     /**
      * Describe your file content here !
      */
@@ -65,4 +77,3 @@ class ExampleGeneratorHandler extends cinco_glsp_api_1.GeneratorHandler {
 exports.ExampleGeneratorHandler = ExampleGeneratorHandler;
 // register into app
 cinco_glsp_api_1.LanguageFilesRegistry.register(ExampleGeneratorHandler);
-//# sourceMappingURL=example-generator.js.map

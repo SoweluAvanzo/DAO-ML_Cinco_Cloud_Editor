@@ -5,10 +5,10 @@
   <div class="card-body" id="body">
     <div class="mb-3">
       <label>User</label>
-      <cc-search-user-input (user)="newOwner = $event"></cc-search-user-input>
+      <cc-search-user-input (user)="newOwner = $event"  />
     </div>
   </div>
   <div class="card-footer text-end" id="footer">
-    <button class="btn btn-sm btn-primary" (click)="transferPrivate()">Transfer</button>
+    <button class="btn btn-sm btn-primary" (click)="transferPrivate()" [disabled]="newOwner == null">Transfer</button>
   </div>
 </div>

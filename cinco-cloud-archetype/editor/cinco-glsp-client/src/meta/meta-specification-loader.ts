@@ -14,48 +14,18 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import {
-    /*
-    CompositionSpecification,
-    FileProviderResponse,*/
-    MetaSpecification,
-    MetaSpecificationReloadAction,
-    MetaSpecificationRequestAction
-} from '@cinco-glsp/cinco-glsp-common';
-import { IActionDispatcher } from '@eclipse-glsp/client';
+import { CompositionSpecification, MetaSpecification, MetaSpecificationRequestAction } from '@cinco-glsp/cinco-glsp-common';
+import { GLSPActionDispatcher, IActionDispatcher } from '@eclipse-glsp/client';
 import { MetaSpecificationResponseHandler } from './meta-specification-response-handler';
+import { IEnvironmentProvider } from '../api/environment-provider';
 
 export class MetaSpecificationLoader {
-    static meta_specifications: any[] = [];
-
-    static load(
-        actionDispatcher: IActionDispatcher
-    ): Promise<void> {
-        return new Promise<void>((resolve, _) => {
-            // used for standalone applications
-            actionDispatcher.dispatch(MetaSpecificationRequestAction.create(true)).then(async _ => {
-                await MetaSpecificationResponseHandler._meta_spec_loaded;
-                resolve();
-            });
-        });
-    }
-
-    static clear(actionDispatcher: IActionDispatcher): void {
-        MetaSpecification.clear();
-        {
-            // send a reload to the server
-            const reloadAction = MetaSpecificationReloadAction.create([], true);
-            actionDispatcher.dispatch(reloadAction);
+    static async load(actionDispatcher: IActionDispatcher, environmentProvider: IEnvironmentProvider): Promise<CompositionSpecification> {
+        if (!(actionDispatcher instanceof GLSPActionDispatcher)) {
+            throw Error('ActionDispatcher is not a GLSPActionDispatcher. The API must have been changed, please review!');
         }
-    }
-
-    static parseContent(content: string): object | undefined {
-        try {
-            return JSON.parse(content);
-            // Do something with the parsed data
-        } catch (err) {
-            console.error(err);
-        }
-        return undefined;
+        const response = await actionDispatcher.request(MetaSpecificationRequestAction.create());
+        MetaSpecificationResponseHandler.handleResponse(response, environmentProvider);
+        return MetaSpecification.get();
     }
 }

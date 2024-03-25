@@ -1,17 +1,15 @@
 package info.scce.cincocloud.core.services;
 
-import info.scce.cincocloud.config.Properties;
 import info.scce.cincocloud.db.BaseFileDB;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import info.scce.cincocloud.storage.MinioBuckets;
+import info.scce.cincocloud.storage.MinioService;
+import io.minio.GetObjectArgs;
+import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
@@ -19,76 +17,57 @@ import org.apache.commons.io.FilenameUtils;
 @ApplicationScoped
 public class FileService {
 
+  private static final Logger LOGGER = Logger.getLogger(FileService.class.getName());
+
   @Inject
-  Properties properties;
+  MinioService minio;
 
   public BaseFileDB getFileReference(final long id) {
     return BaseFileDB.findById(id);
-  }
-
-  public BaseFileDB getBaseFile(String baseFilePath) {
-    try {
-      final var uri = new URI(baseFilePath);
-      String[] segments = uri.getPath().split("/");
-      String idStr = segments[segments.length - 2];
-      long id = Long.parseLong(idStr);
-      return BaseFileDB.findById(id);
-    } catch (URISyntaxException e) {
-      e.printStackTrace();
-      return null;
-    }
   }
 
   public InputStream loadFile(final BaseFileDB identifier) {
     if (identifier == null) {
       return null;
     }
-    try {
-      final var fileName = identifier.fileExtension == null
-          ? identifier.filename
-          : identifier.filename + "." + identifier.fileExtension;
 
-      final var file = Paths.get(getUploadDir().toString(), String.valueOf(identifier.id), fileName);
-      return new FileInputStream(file.toFile());
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
+    try {
+      return minio.getClient().getObject(GetObjectArgs.builder()
+          .bucket(MinioBuckets.FILE_UPLOADS_KEY)
+          .object(identifier.getFullFilename())
+          .build());
+    } catch (Exception e) {
+      LOGGER.log(Level.INFO, "Failed to load file.", e);
       return null;
     }
   }
 
-  public BaseFileDB storeFile(final String fileName, final InputStream fileContent) throws IOException {
+  public BaseFileDB storeFile(final String fileName, final InputStream fileContent, final String contentType) throws IOException {
     final BaseFileDB result = new BaseFileDB();
-    result.filename = FilenameUtils.removeExtension(fileName);
+    result.persist();
+
+    // append BaseFileDB id to filename to avoid name collisions
+    result.filename = FilenameUtils.removeExtension(fileName) + "-" + result.id;
 
     if (FilenameUtils.indexOfExtension(fileName) > -1) {
       result.fileExtension = FilenameUtils.getExtension(fileName);
     } else {
       result.fileExtension = null;
     }
-    result.persist();
 
-    OutputStream out = null;
+    PutObjectArgs uArgs = PutObjectArgs.builder()
+        .bucket(MinioBuckets.FILE_UPLOADS_KEY)
+        .object(result.getFullFilename())
+        .stream(fileContent, -1, 5242880)
+        .contentType(contentType)
+        .build();
 
     try {
-      final var newFile = Paths.get(getUploadDir().toString(), String.valueOf(result.id), fileName).toFile();
-      if (!newFile.getParentFile().exists()) {
-        newFile.getParentFile().mkdirs();
-      }
-      newFile.createNewFile();
-      out = new FileOutputStream(newFile);
-
-      int read;
-      final byte[] bytes = new byte[1024];
-
-      while ((read = fileContent.read(bytes)) != -1) {
-        out.write(bytes, 0, read);
-      }
-    } catch (FileNotFoundException fne) {
+      minio.getClient().putObject(uArgs);
+    } catch (Exception e) {
+      LOGGER.log(Level.INFO, "Failed to upload file.", e);
       result.delete();
     } finally {
-      if (out != null) {
-        out.close();
-      }
       if (fileContent != null) {
         fileContent.close();
       }
@@ -97,18 +76,16 @@ public class FileService {
     return result;
   }
 
-  public void deleteFile(String baseFilePath) {
-    deleteFile(getBaseFile(baseFilePath));
-  }
-
   public void deleteFile(BaseFileDB identifier) {
-    final var filename = identifier.filename + "." + identifier.fileExtension;
-    final var file = Paths.get(getUploadDir().toString(), String.valueOf(identifier.id), filename).toFile();
-    file.delete();
-    identifier.delete();
-  }
-
-  private Path getUploadDir() {
-    return Path.of(properties.getDataDir(), "uploads");
+    try {
+      minio.getClient().removeObject(RemoveObjectArgs.builder()
+          .bucket(MinioBuckets.FILE_UPLOADS_KEY)
+          .object(identifier.getFullFilename())
+          .build());
+    } catch (Exception e) {
+      LOGGER.log(Level.INFO, "Failed to delete file " + identifier.id);
+    } finally {
+      identifier.delete();
+    }
   }
 }

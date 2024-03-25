@@ -36,12 +36,12 @@ export class FileProviderContribution implements CommandContribution {
 
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(
-            { id: FileProviderHandler.ID, label: 'Providing file-information' },
+            { id: FileProviderHandler.ID, label: 'Providing file-information', category: 'Cinco Cloud'},
             new FileProviderHandler(this.workspaceService, this.fsUtils)
         );
         commands.registerCommand(
-            { id: RootProviderHandler.ID, label: 'Providing root-information' },
-            new RootProviderHandler(this.workspaceService, this.fsUtils)
+            { id: WorkspaceRootProviderHandler.ID, label: 'Providing root-information', category: 'Cinco Cloud'},
+            new WorkspaceRootProviderHandler(this.workspaceService, this.fsUtils)
         );
     }
 }
@@ -67,7 +67,7 @@ export class FileProviderHandler implements CommandHandler {
     protected workspaceService: WorkspaceService;
     protected fsUtils: FilesystemUtilServer;
     protected ready: Promise<void>;
-    protected ROOTS: URI[] = [];
+    protected WORKSPACE_ROOTS: URI[] = [];
 
     constructor(workspaceService: WorkspaceService, fsUtils: FilesystemUtilServer) {
         this.workspaceService = workspaceService;
@@ -80,7 +80,7 @@ export class FileProviderHandler implements CommandHandler {
                     const rootUris = roots.map(r => r.resource);
                     rootUris.forEach(root => {
                         console.log(root);
-                        this.ROOTS.push(root);
+                        this.WORKSPACE_ROOTS.push(root);
                         resolve();
                     });
                 });
@@ -88,44 +88,56 @@ export class FileProviderHandler implements CommandHandler {
         });
     }
 
+    /**
+     * Searches for files either in a folder specified by an absolutePath (starting with '/'),
+     * or a relative path inside the workspace folder(s).
+     * @param args
+     * @returns
+     */
     execute(...args: any[]): any {
         return new Promise<FileProviderResponse>((resolve, reject) => {
             const param = args[0] as FileProviderParameter;
             this.ready
                 .then(() => {
                     param.directories.forEach(directory => {
-                        console.log(`searching for files inside directory: ${directory}`);
-                        this.ROOTS.forEach(root => {
-                            const pivotPath = path.join(root.path.fsPath(), FileProviderHandler.ROOT_FROM_WORKSPACE);
-                            const dir = path.join(pivotPath, directory);
-                            console.log('searching for files in: ' + dir);
-                            const result = this.fsUtils.getFiles(dir);
-                            if (result) {
-                                result.then(files => {
-                                    if (param.readFiles) {
-                                        // TODO: readfiles
-                                        let filteredFiles = files;
-                                        if (param.filter) {
-                                            filteredFiles = files.filter(f => {
-                                                const fileExtension = f.slice(f.lastIndexOf('.'));
-                                                return param.filter!.includes(fileExtension);
-                                            });
-                                        }
-                                        this.fsUtils.readFiles(filteredFiles.map(f => `${dir}/${f}`)).then(contents => {
-                                            const response = this.buildResponse(filteredFiles, contents);
-                                            resolve(response);
-                                        });
-                                    } else {
-                                        const response = this.buildResponse(files);
-                                        resolve(response);
-                                    }
-                                });
-                            }
-                        });
+                        if(this.isAbsolute(directory)) {
+                            this.resolveFiles(directory, param.readFiles ?? false, param.filter ?? [], resolve);
+                        } else {
+                            this.WORKSPACE_ROOTS.forEach(root => {
+                                const pivotPath = path.join(root.path.fsPath());
+                                const uriPath = path.join(pivotPath, directory);
+                                this.resolveFiles(uriPath, param.readFiles ?? false, param.filter ?? [], resolve);
+                            });
+                        }
                     });
                 })
                 .catch(e => reject(e));
         });
+    }
+
+    resolveFiles(uriPath: string, readFiles: boolean, fileTypes: string[], resolve: any): void {
+        console.log('searching for files in: ' + uriPath);
+        const result = this.fsUtils.getFiles(uriPath);
+        if (result) {
+            result.then(files => {
+                if (readFiles) {
+                    let filteredFiles = files;
+                    if (fileTypes.length > 0) {
+                        filteredFiles = files.filter(f => {
+                            const fileExtension = f.slice(f.lastIndexOf('.'));
+                            return fileTypes!.includes(fileExtension);
+                        });
+                    }
+                    this.fsUtils.readFiles(filteredFiles.map(f => `${uriPath}/${f}`)).then(contents => {
+                        const response = this.buildResponse(filteredFiles, contents);
+                        resolve(response);
+                    });
+                } else {
+                    const response = this.buildResponse(files);
+                    resolve(response);
+                }
+            });
+        }
     }
 
     isEnabled?(...args: any[]): boolean {
@@ -140,6 +152,10 @@ export class FileProviderHandler implements CommandHandler {
         return true;
     }
 
+    isAbsolute(uri: string): boolean {
+        return uri.charAt(0) === '/';
+    }
+
     private buildResponse(filePaths: string[], contents?: string[]): FileProviderResponse {
         const response: FileProviderResponse = {
             items: []
@@ -151,13 +167,13 @@ export class FileProviderHandler implements CommandHandler {
     }
 }
 
-export class RootProviderHandler implements CommandHandler {
-    static ID = 'rootProviderHandler';
+export class WorkspaceRootProviderHandler implements CommandHandler {
+    static ID = 'workspaceRootProviderHandler';
 
     protected workspaceService: WorkspaceService;
     protected fsUtils: FilesystemUtilServer;
     protected ready: Promise<void>;
-    protected ROOTS: URI[] = [];
+    protected WORKSPACE_ROOTS: URI[] = [];
 
     constructor(workspaceService: WorkspaceService, fsUtils: FilesystemUtilServer) {
         this.workspaceService = workspaceService;
@@ -170,7 +186,7 @@ export class RootProviderHandler implements CommandHandler {
                     const rootUris = roots.map(r => r.resource);
                     rootUris.forEach(root => {
                         console.log(root);
-                        this.ROOTS.push(root);
+                        this.WORKSPACE_ROOTS.push(root);
                         resolve();
                     });
                 });
@@ -182,7 +198,7 @@ export class RootProviderHandler implements CommandHandler {
         return new Promise<URI[]>((resolve, reject) => {
             this.ready
                 .then(() => {
-                    resolve(this.ROOTS);
+                    resolve(this.WORKSPACE_ROOTS);
                 })
                 .catch(e => reject(e));
         });

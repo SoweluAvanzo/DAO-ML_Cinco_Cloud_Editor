@@ -14,7 +14,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Action, ManagedBaseAction } from './shared-protocol';
+import { RequestAction, ResponseAction } from '@eclipse-glsp/protocol';
+import * as uuid from 'uuid';
 
 /**
  * Theia
@@ -25,7 +26,8 @@ export const CincoCloudProjectValidationWidgetCommand = { id: 'cincoCloudProject
 export const CincoCloudModelValidationWidgetCommand = { id: 'cincoCloudModelValidation:toggle' };
 export const ValidationModelWrapperCommand = {
     id: 'CincoCloud.triggerModelValidation',
-    label: 'Cinco Cloud: Validate Model'
+    label: 'Validate Model',
+    category: 'Cinco Cloud'
 };
 
 /**
@@ -45,30 +47,16 @@ export interface ValidationMessage {
     message: string;
 }
 
-export interface ValidationModelResponseAction extends Action {
-    kind: typeof ValidationModelResponseAction.KIND;
-    messages: ValidationMessage[];
-}
-export namespace ValidationModelResponseAction {
-    export const KIND = 'validationModelAnswer';
-
-    export function create(messages: ValidationMessage[]): ValidationModelResponseAction {
-        return {
-            kind: KIND,
-            messages: messages
-        };
-    }
-}
-
 /**
  * Action
  *
  * This action will be dispatched to the backend by the listeners of the ActionTool
  */
 
-export interface ValidationRequestAction extends ManagedBaseAction {
+export interface ValidationRequestAction extends RequestAction<ValidationResponseAction> {
     kind: typeof ValidationRequestAction.KIND;
     modelElementId: string;
+    requestId: string;
 }
 export namespace ValidationRequestAction {
     export const KIND = 'validationRequest';
@@ -76,22 +64,24 @@ export namespace ValidationRequestAction {
     export function create(graphModelId: string): ValidationRequestAction {
         return {
             kind: KIND,
-            modelElementId: graphModelId
+            modelElementId: graphModelId,
+            requestId: uuid.v4()
         };
     }
 }
 
-export interface ValidationModelAnswerAction extends Action {
-    kind: typeof ValidationModelAnswerAction.KIND;
+export interface ValidationResponseAction extends ResponseAction {
+    kind: typeof ValidationResponseAction.KIND;
     messages: ValidationMessage[];
 }
-export namespace ValidationModelAnswerAction {
+export namespace ValidationResponseAction {
     export const KIND = 'validationModelAnswer';
 
-    export function create(messages: ValidationMessage[]): ValidationModelAnswerAction {
+    export function create(messages: ValidationMessage[], responseId: string): ValidationResponseAction {
         return {
             kind: KIND,
-            messages: messages
+            messages: messages,
+            responseId: responseId
         };
     }
 }

@@ -25,7 +25,7 @@ import { injectable } from 'inversify';
 export class GLSP2TheiaCommandRegistrationContribution implements CommandContribution {
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(
-            { id: GLSP2TheiaCommandRegistration.ID, label: 'glsp2theia command registration' },
+            { id: GLSP2TheiaCommandRegistration.ID, label: 'glsp2theia command registration', category: 'Cinco Cloud'},
             new GLSP2TheiaCommandRegistration(commands)
         );
     }
@@ -44,6 +44,7 @@ export class GLSP2TheiaCommandRegistration implements CommandHandler {
         return new Promise<Disposable>(resolve => {
             const param = args[0] as GLSP2TheiaCommandRegistrationParameter;
             const commandId = param.commandId ?? 'undefined';
+            const label = param.label ?? commandId;
             const instanceId = param.instanceId;
             if(GLSP2TheiaCommandRegistration.registeredCommands.has(commandId)) {
                 // expand registered command and add callback
@@ -54,15 +55,15 @@ export class GLSP2TheiaCommandRegistration implements CommandHandler {
                 this.commands.unregisterCommand(commandId);
                 const params = Array.from(registeredCommands.values());
                 const disposable = this.commands.registerCommand(
-                    {id: commandId },
+                    {id: commandId, label: label, category: 'Cinco Cloud'  },
                     new GLSP2TheiaCommandHandler(param.commandId, params, param.visible));
                 resolve(disposable);
             } else {
                 // register new
                 GLSP2TheiaCommandRegistration.registeredCommands.set(commandId, new Map());
-                GLSP2TheiaCommandRegistration.registeredCommands.get(commandId)!.set(param.instanceId, param);
+                GLSP2TheiaCommandRegistration.registeredCommands.get(commandId)!.set(instanceId, param);
                 const disposable = this.commands.registerCommand(
-                    {id: commandId },
+                    {id: commandId, label: label, category: 'Cinco Cloud' },
                     new GLSP2TheiaCommandHandler(param.commandId, [param], param.visible));
                 resolve(disposable);
             }
@@ -87,6 +88,7 @@ export interface GLSP2TheiaCommandRegistrationParameter {
     instanceId: string;
     callbacks: ((arg: any) => any)[];
     visible?: boolean;
+    label?: string;
 }
 
 export class GLSP2TheiaCommandHandler implements CommandHandler {

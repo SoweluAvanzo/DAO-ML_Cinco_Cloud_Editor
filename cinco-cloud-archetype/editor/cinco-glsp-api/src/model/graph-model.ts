@@ -52,7 +52,7 @@ import {
     Text,
     View
 } from '@cinco-glsp/cinco-glsp-common';
-import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server-node';
+import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { CellAssignments, cellValues } from './cell-assignments';
 import { GraphModelIndex } from './graph-model-index';
 
@@ -80,7 +80,9 @@ export class ModelElement implements IdentifiableElement {
     protected _index?: GraphModelIndex;
     id: string = crypto.randomUUID();
     type: string;
-    protected _attributes: Record<string, any> = {};
+    _position: Point;
+    _size?: Size;
+    protected _attributes: Record<string, any>;
     protected _view?: View;
 
     get index(): GraphModelIndex {
@@ -91,6 +93,28 @@ export class ModelElement implements IdentifiableElement {
     }
     set index(index: GraphModelIndex | undefined) {
         this._index = index;
+    }
+
+    get size(): Size {
+        if (this._size) {
+            return this._size;
+        }
+        return { width: 0, height: 0 };
+    }
+
+    set size(size: Size) {
+        this._size = size;
+    }
+
+    get position(): Point {
+        if (this._position) {
+            return this._position;
+        }
+        return { x: 0, y: 0 };
+    }
+
+    set position(pos: Point) {
+        this._position = pos;
     }
 
     getSpec(): ElementType {
@@ -147,28 +171,27 @@ export class ModelElement implements IdentifiableElement {
         return violatedConstraint;
     }
 
-    get view(): View | undefined {
-        const _view = this._view ?? getSpecOf(this.type)?.view;
-        return _view;
+    get view(): View {
+        const _view = this._view ?? { ...getSpecOf(this.type)?.view };
+        return _view ?? ({} as View);
     }
 
-    set view(view: View | undefined) {
+    set view(view: View) {
         this._view = view;
     }
 
     get cssClasses(): string[] {
-        return this.view?.cssClass ?? [];
+        return this.view.cssClass ?? ([] as string[]).concat(getSpecOf(this.type)?.view?.cssClass ?? []);
     }
 
     set cssClasses(cssClasses: string[]) {
-        if (!this.view) {
-            throw new Error('ModelElement [' + this.id + ', ' + this.type + "] has no view. Couldn't set cssClasses!");
-        }
         this.view.cssClass = cssClasses;
     }
 
     get style(): Style | undefined {
-        let style: string | Style | undefined = this.view?.style ?? getSpecOf(this.type)?.view?.style;
+        const metaSpecStyle = getSpecOf(this.type)?.view?.style;
+        let style: string | Style | undefined =
+            this.view.style ?? (typeof metaSpecStyle == 'string' ? metaSpecStyle : { ...(metaSpecStyle ?? ({} as Style)) });
         if (typeof style === 'string') {
             style = getStyleByNameOf(style);
         }
@@ -181,11 +204,9 @@ export class ModelElement implements IdentifiableElement {
             return;
         }
         if (!this._view) {
-            this._view = {
-                style: {}
-            } as View;
+            this._view = this.view;
         }
-        this._view.style = style;
+        this.view.style = style;
     }
 
     get shape(): Shape | undefined {
@@ -209,7 +230,7 @@ export class ModelElement implements IdentifiableElement {
         if (!this.style) {
             throw new Error('ModelElement [' + this.id + ', ' + this.type + "] has no style. Couldn't set shape!");
         }
-        if (NodeStyle.is(this.style) && this.style.shape !== shape) {
+        if (NodeStyle.is(this.style)) {
             const style = { ...this.style };
             style.shape = { ...shape } as Shape;
             this.style = style;
@@ -237,7 +258,7 @@ export class ModelElement implements IdentifiableElement {
 
     set appearance(appearance: Appearance | string | undefined) {
         if (this instanceof Node) {
-            const currentShape = { ...this.shape };
+            const currentShape = this.shape;
             if (!currentShape) {
                 throw new Error('ModelElement [' + this.id + ', ' + this.type + "] has no shape. Couldn't set appearance!");
             }
@@ -255,11 +276,8 @@ export class ModelElement implements IdentifiableElement {
         }
     }
 
-    get propertyDefinitions(): Attribute[] {
-        return getAttributesOf(this.type);
-    }
-
-    get properties(): Record<string, any> {
+    initializeProperties(): void {
+        this._attributes = {};
         // fix all properties, that are not present
         const definitions = this.propertyDefinitions;
         for (const definition of definitions) {
@@ -271,6 +289,17 @@ export class ModelElement implements IdentifiableElement {
                 }
             }
         }
+    }
+
+    get propertyDefinitions(): Attribute[] {
+        return getAttributesOf(this.type);
+    }
+
+    get properties(): Record<string, any> {
+        if (this._attributes) {
+            return this._attributes;
+        }
+        this.initializeProperties();
         return this._attributes;
     }
 
@@ -284,18 +313,6 @@ export class ModelElement implements IdentifiableElement {
                     definition.name,
                     properties[definition.name] ?? definition.defaultValue ?? getFallbackDefaultValue(definition.type)
                 );
-            }
-        }
-    }
-
-    initializeProperties(): void {
-        const definitions = this.propertyDefinitions;
-        this._attributes = {};
-        for (const definition of definitions) {
-            if (!isList(definition)) {
-                this._attributes[definition.name] = getDefaultValue(this.type, definition.name);
-            } else {
-                this._attributes[definition.name] = [];
             }
         }
     }
@@ -347,9 +364,6 @@ export namespace ModelElement {
 }
 
 export class Node extends ModelElement {
-    _position: Point;
-    _size?: Size;
-
     get parent(): ModelElementContainer | undefined {
         return this.index!.findContainment(this);
     }
@@ -386,23 +400,37 @@ export class Node extends ModelElement {
         return [];
     }
 
-    canBeEdgeTarget(edgeType: string): boolean {
+    canBeEdgeTarget(edgeType: string, filter?: (e: Edge) => boolean): boolean {
         const spec = getSpecOf(this.type) as NodeType;
         if (!spec.incomingEdges) {
             return false;
         }
         const constraints: Constraint[] = spec.incomingEdges;
-        const elements = this.incomingEdges;
+        if (constraints.length <= 0) {
+            // cannot contain elements, if no relating constraints are defined
+            return false;
+        }
+        let elements = this.incomingEdges;
+        if (filter) {
+            elements = elements.filter(e => filter(e));
+        }
         return this.checkViolations(edgeType, elements, constraints).length <= 0;
     }
 
-    canBeEdgeSource(edgeType: string): boolean {
+    canBeEdgeSource(edgeType: string, filter?: (e: Edge) => boolean): boolean {
         const spec = getSpecOf(this.type) as NodeType;
         if (!spec.outgoingEdges) {
             return false;
         }
         const constraints: Constraint[] = spec.outgoingEdges;
-        const elements = this.outgoingEdges;
+        if (constraints.length <= 0) {
+            // cannot contain elements, if no relating constraints are defined
+            return false;
+        }
+        let elements = this.outgoingEdges;
+        if (filter) {
+            elements = elements.filter(e => filter(e));
+        }
         return this.checkViolations(edgeType, elements, constraints).length <= 0;
     }
 
@@ -410,7 +438,7 @@ export class Node extends ModelElement {
         return c.canContain(this.type);
     }
 
-    get size(): Size {
+    override get size(): Size {
         if (this._size) {
             return this._size;
         }
@@ -431,11 +459,11 @@ export class Node extends ModelElement {
         return { width: 10, height: 10 };
     }
 
-    set size(size: Size) {
+    override set size(size: Size) {
         this._size = size;
     }
 
-    get position(): Point {
+    override get position(): Point {
         if (this._position) {
             return this._position;
         }
@@ -443,7 +471,7 @@ export class Node extends ModelElement {
         return { x: pos.xPos, y: pos.yPos };
     }
 
-    set position(pos: Point) {
+    override set position(pos: Point) {
         this._position = pos;
     }
 
@@ -535,12 +563,12 @@ export class Edge extends ModelElement {
         return node;
     }
 
-    canConnectToTarget(node: Node): boolean {
-        return node.canBeEdgeTarget(this.type);
+    canConnectToTarget(node: Node, filter?: (e: Edge) => boolean): boolean {
+        return node.canBeEdgeTarget(this.type, filter);
     }
 
-    canConnectToSource(node: Node): boolean {
-        return node.canBeEdgeSource(this.type);
+    canConnectToSource(node: Node, filter?: (e: Edge) => boolean): boolean {
+        return node.canBeEdgeSource(this.type, filter);
     }
 
     get routingPoints(): RoutingPoint[] {

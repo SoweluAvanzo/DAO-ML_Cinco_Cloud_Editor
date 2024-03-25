@@ -1,3 +1,5 @@
+import { Size } from '../../generated/ast';
+
 interface Annotation {
 	name: string;
 	values: string[];
@@ -20,7 +22,7 @@ interface Containable {
 	containments: Containment[];
 }
 
-interface ContainerType extends Containable, NodeType {}
+export interface ContainerType extends Containable, NodeType {}
 
 interface Containment {
 	lowerBound: number;
@@ -40,7 +42,7 @@ interface EdgeElementConnection {
 	elements: string[];
 }
 
-interface EdgeStyle extends Style {
+export interface EdgeStyle extends Style {
 	connectionType?: string;
 	decorator: Decorator;
 	predefinedDecorator: PredefinedDecorator;
@@ -49,13 +51,12 @@ interface EdgeStyle extends Style {
 
 interface Element {
 	elementTypeId: string;
-	type: string;
 	annotations: Annotation[];
 }
 
 interface GraphType extends Containable, Element {}
 
-interface NodeStyle extends Style {
+export interface NodeStyle extends Style {
 	fixed: boolean;
 	styleType: 'NodeStyle';
 }
@@ -83,16 +84,53 @@ interface RgbColor {
 	r: number;
 }
 
-interface Specification {
+export interface Specification {
 	appearances: Appearance[];
 	edgeTypes: EdgeType[];
+    customTypes: CustomType[];
 	graphTypes: GraphType[];
 	nodeTypes: NodeType[];
 	styles: Style[];
 }
 
+
+export interface CustomType extends Element {}
+
+export interface Enum extends CustomType {
+    literals: string[];
+}
+
+export interface UserDefinedType extends CustomType {
+    attributes: Attribute[];
+}
+
+export interface Attribute {
+    name: string;
+    type: string;
+    bounds?: Constraint;
+    final?: boolean;
+    unique?: false;
+    defaultValue?: string;
+    annotations?: Annotation[];
+}
+
+export interface Constraint {
+    // intervall
+    lowerBound: number; // n >= 0 || * := n < 0
+    upperBound: number; // n >= 0 || * := n < 0
+
+    // associated elements
+    elements?: string[];
+}
+
 interface Style {
 	name: string;
 	appearance: string;
-	parameterCound: number;
+	parameterCount: number;
+	shape: Shape;
+}
+
+interface Shape {
+	type: string;
+	size: Size;
 }

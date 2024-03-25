@@ -1,0 +1,62 @@
+<div class="container mt-3 d-flex flex-column gap-3">
+  <div class="card shadow-md">
+    <div class="card-header">
+      <strong>Featured Projects</strong>
+    </div>
+    <div class="card-body">
+
+      <p class="text-muted">
+        Featured projects will be highlighted for everyone during project creation.
+      </p>
+
+      <cc-loading-indicator *ngIf="loader.get.inProgress$ | async; else loaded" />
+
+      <ng-template #loaded>
+        <div class="alert alert-info mb-0" *ngIf="imagesPage.items.length === 0; else imagesFound">
+          There are no published project images.
+        </div>
+
+        <ng-template #imagesFound>
+          <table class="table table-responsive mb-3">
+            <thead>
+            <tr>
+              <th style="width: 1px">#</th>
+              <th>Project</th>
+              <th>Owner</th>
+              <th>Image</th>
+              <th class="text-end">Featured</th>
+            </tr>
+            </thead>
+            <tbody class="table-group-divider">
+            <tr *ngFor="let image of imagesPage.items">
+              <td>{{image.project.id}}</td>
+              <td>
+                <div><strong>{{image.project.name}}</strong></div>
+                <div class="opacity-75">{{image.project.description}}</div>
+              </td>
+              <td>
+                <div *ngIf="image.project.owner != null; else noProjectOwner">{{image.project.owner.username}}</div>
+                <ng-template #noProjectOwner>
+                  <div>{{image.project.organization.name}}</div>
+                </ng-template>
+              </td>
+              <td>
+                <cc-workspace-image-badge [image]="image" />
+              </td>
+              <td class="text-end">
+                <cc-toggle-button [enabled]="image.featured" (toggle)="updateFeatured(image, $event)" />
+              </td>
+            </tr>
+            </tbody>
+          </table>
+
+          <cc-pagination
+            [page]="imagesPage"
+            (nextPage)="loadPage(imagesPage.number + 1)"
+            (previousPage)="loadPage(imagesPage.number - 1)"/>
+        </ng-template>
+      </ng-template>
+
+    </div>
+  </div>
+</div>

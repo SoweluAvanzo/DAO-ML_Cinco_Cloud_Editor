@@ -34,14 +34,14 @@ import {
     Size,
     Text,
     VAlignment,
+    WebView,
     getAppearanceByNameOf
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     Bounds,
     IActionDispatcher,
-    SLabel,
-    SModelElement,
-    alignFeature,
+    GLabel,
+    GModelElement,
     boundsFeature,
     createFeatureSet,
     edgeLayoutFeature,
@@ -51,11 +51,12 @@ import {
     layoutableChildFeature
 } from '@eclipse-glsp/client';
 import * as React from 'react';
-import { JsxVNodeChild, VNode, VNodeStyle } from 'snabbdom';
+import { JsxVNodeChild, VNode, VNodeStyle, h } from 'snabbdom';
 import * as jsx from 'sprotty/lib/lib/jsx';
 import * as uuid from 'uuid';
 import { CincoEdge, CincoNode } from '../../model/model';
 import { WorkspaceFileService } from '../../utils/workspace-file-service';
+
 /**
  * HELPER-FUNCTIONS
  */
@@ -66,7 +67,7 @@ export const CSS_DECORATOR_PREFIX = 'cc-decorator-';
 export const CSS_STYLE_PREFIX = 'cc-style-';
 export const USE_MARGIN_FIX = true;
 
-export const RESOURCE_MAP: Map<string, string | undefined> = new Map<string, string | undefined>();
+export const RESOURCE_MAP: Map<string, { location: string; url: string; content: string | undefined } | undefined> = new Map();
 
 export function resolveChildrenRecursivly(currentNode: VNode): VNode[] {
     let children: VNode[] = [];
@@ -91,30 +92,63 @@ export function resolveChildrenRecursivly(currentNode: VNode): VNode[] {
  * @param path relative path of the resource
  * @returns returns http-link to the resource
  */
-export function fromPathToURL(path: string, workspaceFileService: WorkspaceFileService): string {
-    new Promise<string | undefined>((resolve, reject) => {
-        // search inside internal resource folder
-        workspaceFileService.serveFile(path, '../languages/').then(servedLink => {
-            if (servedLink === undefined) {
-                // search inside workspace
-                workspaceFileService.serveFile(path).then(servedLink2 => {
-                    if (servedLink2 === undefined) {
-                        // use as direkt resource, e.g. path is already a html-link
-                        RESOURCE_MAP.set(path, `${path}`);
-                        resolve(path);
-                    } else {
-                        // found resource inside workspace folder
-                        RESOURCE_MAP.set(path, `${servedLink2}`);
-                        resolve(servedLink2);
+export function fromPathToURL(
+    path: string,
+    workspaceFileService: WorkspaceFileService,
+    options = {
+        contentMode: false
+    }
+): string {
+    const existsIn = workspaceFileService.servedExistsIn(path, workspaceFileService.actionDispatcher);
+    existsIn.then(fileURIString => {
+        if (!fileURIString) {
+            // resource does not exist
+            RESOURCE_MAP.delete(path);
+        } else {
+            if (options.contentMode || !RESOURCE_MAP.has(path)) {
+                // resource is not yet served, serving it
+                updateResourceServing(path, fileURIString, workspaceFileService, options);
+            } else {
+                if (RESOURCE_MAP.get(path)?.location !== fileURIString) {
+                    // resource does not exist in same location anymore
+                    RESOURCE_MAP.delete(path);
+                }
+            }
+        }
+    });
+    if (options.contentMode) {
+        // return current cached resource
+        return `${RESOURCE_MAP.get(path)?.content}`;
+    }
+    // return current cached resource
+    return `${RESOURCE_MAP.get(path)?.url}`;
+}
+
+function updateResourceServing(
+    path: string,
+    location: string,
+    workspaceFileService: WorkspaceFileService,
+    options = {
+        contentMode: false
+    }
+): void {
+    // search inside internal resource folder
+    workspaceFileService.serveFile(path).then(servedLink => {
+        if (servedLink === undefined) {
+            // resource does not exist
+            RESOURCE_MAP.delete(path);
+        } else {
+            if (options.contentMode) {
+                workspaceFileService.download(servedLink).then(content => {
+                    if (!RESOURCE_MAP.has(path) || (RESOURCE_MAP.has(path) && RESOURCE_MAP.get(path)?.content !== content)) {
+                        RESOURCE_MAP.set(path, { location: location, url: `${servedLink}`, content: content ?? '' });
                     }
                 });
             } else {
-                RESOURCE_MAP.set(path, `${servedLink}`);
-                resolve(servedLink);
+                RESOURCE_MAP.set(path, { location: location, url: `${servedLink}`, content: undefined });
             }
-        });
+        }
     });
-    return `${RESOURCE_MAP.get(path)}`;
 }
 
 export function mergeAppearance(
@@ -156,8 +190,16 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
     }
 
     // foreground, background, filled
-    const foreground = getProperty(appearance, a => a.foreground) ?? options?.foreground;
-    const background = getProperty(appearance, a => a.background) ?? options?.background;
+    let background;
+    let foreground;
+    if (options.isText) {
+        background = getProperty(appearance, a => a.foreground) ?? options?.background;
+        foreground = getProperty(appearance, a => a.background) ?? options?.foreground;
+    } else {
+        foreground = getProperty(appearance, a => a.foreground) ?? options?.foreground;
+        background = getProperty(appearance, a => a.background) ?? options?.background;
+    }
+
     const filled = getProperty(appearance, a => a.filled) ?? options?.filled;
     const borderColor = foreground ?? background;
     const fillColor = filled ? foreground ?? background : background;
@@ -452,6 +494,35 @@ export function resolveText(e: CincoNode | CincoEdge, text: string, parameterCou
 }
 
 /**
+ * Inside the string 'text' use '{{<any property name>>}}', e.g.:
+ * A CincoNode has the property name with the value 'Peter'. If a webview is used containing the following string:
+ * "Put here the name: {{name}}". That string will resolve to: "Put here the name: Peter"
+ *
+ * @param node  the node containing the properties used as parameters.
+ * @param text that can contain substrings of the regex-form '{{(\w\.)+}}'.
+ * @returns returns the resolved string
+ */
+export function resolveTextByProperties(node: CincoNode | CincoEdge, text: string): string {
+    let result: string = text;
+    const placeholderPattern = /({{)((\w|\.)+)(}})/g;
+    let currentFind;
+    while ((currentFind = placeholderPattern.exec(result))) {
+        const startIndex = currentFind.index;
+        const endIndex = startIndex + currentFind[0].length;
+        const prefix = result.substring(0, startIndex);
+        const postfix = result.substring(endIndex, result.length);
+        const parameterText = currentFind[2];
+        let property = '';
+        if (parameterText) {
+            // resolve parameter from attribute
+            property = resolveAttribute(node, parameterText);
+        }
+        result = prefix + property + postfix;
+    }
+    return result;
+}
+
+/**
  * Resolves the value of the following `text-shape`, by injecting parameters for `%s` and `%s`:
  * text {
  *		appearance labelFont
@@ -463,12 +534,11 @@ export function resolveText(e: CincoNode | CincoEdge, text: string, parameterCou
  * @param text the value of the text-shape.
  * @returns returns the resolved string
  */
-export function resolveTextIterative(e: CincoNode | CincoEdge, text: string): string {
+export function resolveTextIterative(node: CincoNode | CincoEdge, text: string): string {
     let result: string = text;
     const iterativePlaceholderPattern = /%s/g;
-    const styleParameters: string[] | undefined = e.view?.styleParameter;
+    const styleParameters: string[] | undefined = node.view?.styleParameter;
     if (styleParameters) {
-        const properties = e.properties;
         let currentFind;
         let currentIndex = 0;
         while ((currentFind = iterativePlaceholderPattern.exec(result))) {
@@ -476,8 +546,12 @@ export function resolveTextIterative(e: CincoNode | CincoEdge, text: string): st
             const endIndex = startIndex + currentFind.length + 1;
             const prefix = result.substring(0, startIndex);
             const postfix = result.substring(endIndex, result.length);
-            const parameterName = styleParameters[currentIndex];
-            const property = properties ? properties[parameterName] ?? '' : '';
+            const parameterText = styleParameters[currentIndex];
+            let property = '';
+            if (parameterText) {
+                // resolve parameter from attribute
+                property = resolveParameter(node, parameterText);
+            }
             result = prefix + property + postfix;
             currentIndex += 1;
         }
@@ -501,11 +575,10 @@ export function resolveTextIterative(e: CincoNode | CincoEdge, text: string): st
 export function resolveTextIndexed(node: CincoNode | CincoEdge, text: string, parameterCount: number): string {
     let result: string = text;
     const styleParameters: string[] | undefined = node.view?.styleParameter;
-    const properties = node.properties;
     for (let i = 0; i < parameterCount; i++) {
         let currentFind;
+        const indexedPlaceholderPattern = RegExp('(%(' + (i + 1) + ')(\\$s))', 'g');
         do {
-            const indexedPlaceholderPattern = RegExp('(%(' + (i + 1) + ')(\\$s))', 'g');
             currentFind = indexedPlaceholderPattern.exec(result);
             if (currentFind) {
                 const startIndex = currentFind.index;
@@ -513,15 +586,58 @@ export function resolveTextIndexed(node: CincoNode | CincoEdge, text: string, pa
                 const prefix = result.substring(0, startIndex);
                 const postfix = result.substring(endIndex, result.length);
                 const foundIndex = Number.parseInt(currentFind[2], 10) - 1;
-                const parameterName = styleParameters?.at(foundIndex);
-                if (parameterName) {
-                    const property = properties ? properties[parameterName] ?? '' : '';
-                    result = prefix + property + postfix;
+                const parameterText = styleParameters?.at(foundIndex);
+                let property = '';
+                if (parameterText) {
+                    // resolve parameter from attribute
+                    property = resolveParameter(node, parameterText);
                 }
+                result = prefix + property + postfix;
             }
         } while (currentFind);
     }
     return result;
+}
+
+export function resolveParameter(node: CincoNode | CincoEdge, parameter: string): string {
+    const parameterPattern = RegExp('(\\$\\{(.*)\\})', 'g');
+    let result: string = parameter;
+    let currentFind;
+    do {
+        currentFind = parameterPattern.exec(result);
+        if (currentFind) {
+            const startIndex = currentFind.index;
+            const endIndex = startIndex + currentFind[0].length;
+            const prefix = result.substring(0, startIndex);
+            const postfix = result.substring(endIndex, result.length);
+            const attributeName = currentFind[2];
+            if (attributeName) {
+                // resolve parameter from attribute
+                result = prefix + resolveAttribute(node, attributeName) + postfix;
+            }
+        }
+    } while (currentFind);
+    return result;
+}
+
+export function resolveAttribute(node: CincoNode | CincoEdge, attributeName: string): string {
+    if (attributeName === 'id') {
+        return node.id;
+    }
+    if (attributeName === 'type') {
+        return node.type;
+    }
+    if (attributeName === 'specification') {
+        return JSON.stringify({ ...node.specification });
+    }
+    if (attributeName === 'size.width') {
+        return node.size.width;
+    }
+    if (attributeName === 'size.height') {
+        return node.size.height;
+    }
+    const properties = node.properties;
+    return properties ? properties[attributeName] ?? '' : '';
 }
 
 /**
@@ -626,6 +742,17 @@ export function buildShape(
             parameterCount,
             workspaceFileService
         );
+    } else if (WebView.is(shapeStyle)) {
+        return buildWebviewShape(
+            element,
+            shapeStyle,
+            parentSize,
+            parentScale,
+            parentPosition ?? { x: 0, y: 0 },
+            parentCentered,
+            parameterCount,
+            workspaceFileService
+        );
     } else if (Polyline.is(shapeStyle)) {
         return buildPolylineShape(shapeStyle, parentSize, parentScale, parentPosition);
     } else if (Rectangle.is(shapeStyle)) {
@@ -713,7 +840,12 @@ export function buildTextShape(
     if (typeof appearance == 'string') {
         appearance = getAppearanceByNameOf(appearance);
     }
-    const style = appearanceToStyle(appearance, { lineWidth: 0.0, background: { r: 255, g: 255, b: 255 } });
+    const style = appearanceToStyle(appearance, {
+        lineWidth: 0.0,
+        background: { r: 255, g: 255, b: 255 },
+        foreground: { r: 0, g: 0, b: 0 },
+        isText: true
+    });
     const value = resolveText(element, shapeStyle.value, parameterCount);
     const measuredWidth = getTextWidth(value, style);
     const fontSize = appearance?.font?.size ?? 10;
@@ -778,7 +910,9 @@ export function buildMultiTextShape(
     // appearance to style
     const style = appearanceToStyle(shapeStyle.appearance, {
         lineWidth: 0.0,
-        background: { r: 255, g: 255, b: 255 }
+        background: { r: 255, g: 255, b: 255 },
+        foreground: { r: 0, g: 0, b: 0 },
+        isText: true
     });
 
     // position
@@ -872,6 +1006,66 @@ export function buildImageShape(
     // setup shape
     const imagePath = resolveText(element, shapeStyle.path ?? '', parameterCount);
     const shape = createImageShape(imagePath, cssShapeName, localSize, localPosition, workspaceFileService);
+
+    return shape;
+}
+
+/**
+ * @param element the element object.
+ * @param shapeStyle the shape that styles the element (containing an appearance object).
+ * @param parentSize Width and height of the parent shape
+ * @param parentScale scale of width and height of the parent shape affected by the modifiable bounds of the element
+ * @param parentPosition absolute position of parent shape inside the element
+ * @param parentCentered is the base of the parent in the center of the shape
+ *                      (e.g. ellipse it is centered, rectangle it is the upper left corner)
+ * @param parameterCount the number of parameters that are rendered from the element onto the shape.
+ * @returns a react compatible and msl styled VNode, that corresponds to an image shape.
+ */
+export function buildWebviewShape(
+    element: CincoNode | CincoEdge,
+    shapeStyle: WebView,
+    parentSize: Size,
+    parentScale: Point,
+    parentPosition: Point,
+    parentCentered: boolean,
+    parameterCount: number,
+    workspaceFileService: WorkspaceFileService
+): VNode | undefined {
+    // css reference by shapeName
+    const cssShapeName = toCSSShapeName(shapeStyle);
+
+    // size
+    const localSize = translateSize(parentSize, parentScale);
+
+    // position
+    const localCentered = false;
+    const relativeBasePosition = translatePosition(shapeStyle.position, localSize, localCentered, parentSize, parentCentered, {
+        x: localCentered ? parentSize.width / 2 : 0,
+        y: localCentered ? parentSize.height / 2 : 0
+    });
+    // apply margin
+    const position = shapeStyle.position;
+    const margin = getMargin(position);
+    // currently fix margin by position
+    if (USE_MARGIN_FIX) {
+        const marginedPosition = fixByApplyMargin(position, relativeBasePosition.x, relativeBasePosition.y, margin);
+        relativeBasePosition.x = marginedPosition.x;
+        relativeBasePosition.y = marginedPosition.y;
+    }
+    const localPosition = { x: parentPosition.x + relativeBasePosition.x, y: parentPosition.y + relativeBasePosition.y };
+
+    // setup shape
+    const webviewContent = resolveText(element, shapeStyle.content ?? '', parameterCount);
+    const shape = createWebviewShape(
+        webviewContent,
+        shapeStyle.padding ?? 5,
+        shapeStyle.scrollable ?? false,
+        cssShapeName,
+        localSize,
+        localPosition,
+        workspaceFileService,
+        element
+    );
 
     return shape;
 }
@@ -1002,19 +1196,12 @@ export function buildContainerShape(
  * HELPER-SHAPES
  */
 
-export function createLabel(element: SModelElement, text: string, bounds: Bounds): SLabel {
-    const label = new SLabel();
+export function createLabel(element: GModelElement, text: string, bounds: Bounds): GLabel {
+    const label = new GLabel();
     label.text = text;
     label.bounds = bounds;
     label.type = 'label';
-    label.features = createFeatureSet([
-        boundsFeature,
-        alignFeature,
-        layoutableChildFeature,
-        edgeLayoutFeature,
-        fadeFeature,
-        editLabelFeature
-    ]);
+    label.features = createFeatureSet([boundsFeature, layoutableChildFeature, edgeLayoutFeature, fadeFeature, editLabelFeature]);
     label.id = element.id + '_label_' + uuid.v4();
     return label;
 }
@@ -1029,10 +1216,9 @@ export function createEllipseShape(
     localPosition: Point,
     children: VNode[]
 ): VNode {
-    return createJSXElement(
+    const result = createJSXElement(
         'ellipse',
         {
-            className: cssShapeName,
             rx: Math.max(localSize.width / 2.0, 0),
             ry: Math.max(localSize.height / 2.0, 0),
             cx: localPosition.x,
@@ -1041,6 +1227,8 @@ export function createEllipseShape(
         },
         children
     ) as unknown as VNode;
+    result.data!.attrs!['class'] = `${cssShapeName}`;
+    return result;
 }
 
 export function createRectangleShape(
@@ -1050,10 +1238,9 @@ export function createRectangleShape(
     localPosition: Point,
     children?: VNode[]
 ): VNode {
-    return createJSXElement(
+    const result = createJSXElement(
         'rect',
         {
-            className: cssShapeName,
             width: Math.max(localSize.width, 0),
             height: Math.max(localSize.height, 0),
             x: localPosition.x,
@@ -1062,6 +1249,8 @@ export function createRectangleShape(
         },
         children
     ) as unknown as VNode;
+    result.data!.attrs!['class'] = `${cssShapeName}`;
+    return result;
 }
 
 export function createPolygonShape(
@@ -1080,10 +1269,9 @@ export function createPolygonShape(
             return `${x},${y}`;
         })
         .join(' ');
-    return createJSXElement(
+    const result = createJSXElement(
         'polygon',
         {
-            className: cssShapeName,
             width: Math.max(localSize.width, 0),
             height: Math.max(localSize.height, 0),
             style: style as React.CSSProperties,
@@ -1091,6 +1279,8 @@ export function createPolygonShape(
         },
         children
     ) as unknown as VNode;
+    result.data!.attrs!['class'] = `${cssShapeName}`;
+    return result;
 }
 
 export function createPolylineShape(
@@ -1108,13 +1298,14 @@ export function createPolylineShape(
             return `${x},${y}`;
         })
         .join(' ');
-    return createJSXElement('polyline', {
-        className: cssShapeName,
+    const result = createJSXElement('polyline', {
         width: localSize.width,
         height: localSize.height,
         style: style as React.CSSProperties,
         points: `${shapePoints}`
     }) as unknown as VNode;
+    result.data!.attrs!['class'] = `${cssShapeName}`;
+    return result;
 }
 
 export function createImageShape(
@@ -1128,7 +1319,6 @@ export function createImageShape(
     const childHeight = Math.max(localSize.height, 0);
     const uri = fromPathToURL(imagePath, workspaceFileService);
     const child = createJSXElement('image', {
-        className: cssShapeName,
         x: localPosition.x,
         y: localPosition.y,
         href: uri
@@ -1136,9 +1326,90 @@ export function createImageShape(
     child.data = child.data ?? {};
     child.data.attrs = child.data.attrs ?? {};
     child.data.style = child.data.style ?? {};
-    child.data.style['width'] = `${childWidth}px`;
-    child.data.style['height'] = `${childHeight}px`;
+    child.data.attrs['width'] = `${childWidth}px`;
+    child.data.attrs['height'] = `${childHeight}px`;
+    child.data!.attrs!['class'] = `${cssShapeName}`;
     return child;
+}
+
+export function createWebviewShape(
+    webviewContent: string,
+    padding: number,
+    scrollable: boolean,
+    cssShapeName: string,
+    localSize: Size,
+    localPosition: Point,
+    workspaceFileService: WorkspaceFileService,
+    e: CincoNode | CincoEdge
+): VNode {
+    const content = webviewContent.startsWith('<') || webviewContent.startsWith('{{') ? webviewContent : undefined;
+    const foreignObject = createForeignObject(cssShapeName, localSize, localPosition, padding);
+    let child;
+    if (content) {
+        const resolvedContent = resolveTextByProperties(e, content);
+        child = convertHTMLToVNode(resolvedContent ?? '');
+    } else {
+        if (webviewContent.startsWith('http') || webviewContent.startsWith('https')) {
+            // url reference
+            const url = fromPathToURL(webviewContent, workspaceFileService);
+            child = convertHTMLToVNode(
+                url && url !== 'undefined'
+                    ? `<iframe src="${url}" title="embedded link to: ${url}"
+                        style="border: hidden; min-width: 100%; min-height: 100%;"></iframe>`
+                    : 'undefined'
+            ) as VNode;
+            child!.data!.attrs!['style'] = 'border: hidden; width: 100%; height: 100%; min-height: 100%; min-width: 100%;';
+        } else {
+            // workspace reference
+            const referencedContent = fromPathToURL(webviewContent, workspaceFileService, { contentMode: true });
+            if (referencedContent && referencedContent !== 'undefined') {
+                // resolve referenced properties
+                const resolvedContent = resolveTextByProperties(e, referencedContent);
+                // execute script tags afterwards
+                child = convertHTMLToVNode('', 'iframe', {
+                    border: 'hidden',
+                    width: '100%',
+                    height: '100%',
+                    minheight: '100%',
+                    minWidth: '100%'
+                }) as VNode;
+                child.data!.attrs!['style'] = 'border: hidden; width: 100%; height: 100%; min-height: 100%; min-width: 100%;';
+                child.data!.attrs!['srcDoc'] = resolvedContent;
+            } else {
+                child = convertHTMLToVNode('undefined');
+            }
+        }
+    }
+    if (child) {
+        if (typeof child !== 'string') {
+            child.data = child.data ?? {};
+            child.data.attrs = child.data.attrs ?? {};
+            child.data.style = child.data.style ?? {};
+            child.data.attrs.id = `${cssShapeName}_${e.id}`;
+            child.data.style['overflow-y'] = scrollable === true ? 'scroll' : 'hidden';
+            child.data.style['overflow-x'] = scrollable === true ? 'scroll' : 'hidden';
+
+            const childWidth = Math.max(localSize.width, 0);
+            const childHeight = Math.max(localSize.height, 0);
+            child.data.attrs['width'] = childWidth;
+            child.data.attrs['height'] = childHeight;
+            child.data!.ns = 'http://www.w3.org/1999/xhtml';
+        }
+        foreignObject.children?.push(child);
+    }
+    return foreignObject;
+}
+
+function convertHTMLToVNode(htmlString: string, elementType = 'div', data?: any): VNode | string | undefined {
+    const element = h(elementType ?? 'div', data);
+    element.data = data !== undefined ? data : { props: { innerHTML: '' }, style: {}, attrs: {} };
+    element.data!.attrs = element.data!.attrs ?? { ...{} };
+    if (element.data) {
+        element.data.props = element.data.props ?? { innerHTML: '' };
+        element.data.style = element.data.style ?? { ...{} };
+        element.data.props.innerHTML = htmlString;
+    }
+    return element;
 }
 
 export function createTextShape(
@@ -1149,12 +1420,11 @@ export function createTextShape(
     fontSize: number,
     text: string
 ): VNode {
-    return createJSXElement(
+    const result = createJSXElement(
         'text',
         {
             id: id,
             'class-sprotty-label': 'true',
-            className: cssShapeClasses,
             style: style as React.CSSProperties,
             x: `${localPosition.x}px`,
             y: `${localPosition.y}px`,
@@ -1163,6 +1433,8 @@ export function createTextShape(
         },
         text
     ) as unknown as VNode;
+    result.data!.attrs!['class'] = `${cssShapeClasses}`;
+    return result;
 }
 
 export function createMultiTextShape(
@@ -1201,14 +1473,19 @@ export function createMultiTextShape(
     return foreignObject;
 }
 
-export function createForeignObject(cssShapeName: string, localSize: Size, localPosition: Point): VNode {
-    const foreignObject = createJSXElement('foreignObject', {
-        className: cssShapeName,
-        x: localPosition.x,
-        y: localPosition.y,
-        width: Math.max(localSize.width, 0),
-        height: Math.max(localSize.height, 0)
-    }) as unknown as VNode;
+export function createForeignObject(cssShapeName: string, localSize: Size, localPosition: Point, padding = 10, content?: string): VNode {
+    const foreignObject = createJSXElement(
+        'foreignObject',
+        {
+            x: localPosition.x - padding,
+            y: localPosition.y - padding
+        },
+        content
+    ) as unknown as VNode;
+    foreignObject.data!.attrs!['class'] = `${cssShapeName}`;
+    foreignObject.data!.attrs!['style'] = `width: ${Math.max(localSize.width, 0) + padding * 2}; height: ${
+        Math.max(localSize.height, 0) + padding * 2
+    }; padding: ${padding}px`;
     return foreignObject;
 }
 

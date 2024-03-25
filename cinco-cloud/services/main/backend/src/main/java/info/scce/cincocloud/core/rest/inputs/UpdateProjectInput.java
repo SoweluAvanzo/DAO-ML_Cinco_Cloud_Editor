@@ -1,29 +1,14 @@
 package info.scce.cincocloud.core.rest.inputs;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 public class UpdateProjectInput {
 
-  private long projectId = -1;
-  private long userId = -1;
+  public Long logoId;
 
-  @JsonProperty("projectId")
-  public long getprojectId() {
-    return this.projectId;
-  }
-
-  @JsonProperty("projectId")
-  public void setprojectId(final long projectId) {
-    this.projectId = projectId;
-  }
-
-  @JsonProperty("userId")
-  public long getuserId() {
-    return this.userId;
-  }
-
-  @JsonProperty("userId")
-  public void setuserId(final long userId) {
-    this.userId = userId;
-  }
+  @NotNull
+  @Size(min = 1, message = "Name should have at least 1 character.")
+  public String name;
+  public String description;
 }

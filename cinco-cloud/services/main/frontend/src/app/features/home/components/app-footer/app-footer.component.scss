@@ -1,0 +1,17 @@
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+
+.footer {
+  color: $gray-500;
+}
+
+a {
+  color: $gray-500;
+  text-decoration: none;
+  transition: color 200ms ease-in-out;
+
+  &:hover, &:active {
+    text-decoration: none;
+    color: $gray-200;
+  }
+}

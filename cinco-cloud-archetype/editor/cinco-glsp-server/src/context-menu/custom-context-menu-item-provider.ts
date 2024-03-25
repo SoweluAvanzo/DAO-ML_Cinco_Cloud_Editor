@@ -16,7 +16,7 @@
 
 import { GraphModelState, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import { CustomAction, getCustomActions, hasCustomAction } from '@cinco-glsp/cinco-glsp-common';
-import { Args, ContextMenuItemProvider, MenuItem, Point } from '@eclipse-glsp/server-node';
+import { Args, ContextMenuItemProvider, MenuItem, Point } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 
 @injectable()
@@ -40,6 +40,9 @@ export class CustomContextMenuItemProvider extends ContextMenuItemProvider {
     }
 
     getCustomMenuItems(selectedElementIds: string[]): MenuItem[] {
+        if (selectedElementIds.length <= 0) {
+            return [];
+        }
         const modelElement = this.modelState.index.findElement(selectedElementIds[0]) as ModelElement;
         const type = modelElement.type;
         const menuItems: MenuItem[] = [];

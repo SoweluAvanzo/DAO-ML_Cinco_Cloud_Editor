@@ -12,12 +12,14 @@
     Could not find any organization matching "{{form.controls['searchTerm'].value}}".
   </div>
 
-  <div *ngIf="foundOrganization != null" class="mt-3 rounded-3 p-2 border d-flex">
-    <div class="ms-2">
-      <div class="mb-1">
-        <fa-icon [fixedWidth]="true" [icon]="['fas', 'building']"></fa-icon>
-        {{foundOrganization.name}} <span class="text-muted">(@{{foundOrganization.id}})</span>
-      </div>
+  <div *ngIf="foundOrganization != null" class="my-3 list-group">
+    <div
+      class="list-group-item list-group-item-action"
+      [class.active]="selectedOrganization != null"
+      (click)="selectOrganization(foundOrganization)"
+    >
+      <fa-icon [fixedWidth]="true" [icon]="faBuilding"></fa-icon>
+      {{foundOrganization.name}} <span class="text-muted">(@{{foundOrganization.id}})</span>
     </div>
   </div>
 </div>

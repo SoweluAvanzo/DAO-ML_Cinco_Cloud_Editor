@@ -34,12 +34,13 @@
   ],
   "files": [
     "lib",
-    "src",
-    "languages"
+    "src"
   ],
   "dependencies": {
+    "@eclipse-glsp/protocol": "2.0.0"
   },
   "devDependencies": {
+    "circular-dependency-plugin": "^5.2.2"
   },
   "scripts": {
     "prepare": "yarn clean && yarn build && yarn lint",

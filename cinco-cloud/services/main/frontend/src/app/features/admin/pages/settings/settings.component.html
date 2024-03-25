@@ -1,11 +1,11 @@
 <div class="container mt-3">
   <div class="d-flex">
-    <button (click)="saveSettings()" class="btn btn-primary ms-auto">Save</button>
+    <button (click)="saveSettings()" [disabled]="!canSave" class="btn btn-primary ms-auto">Save</button>
   </div>
 
   <hr>
 
-  <div *ngIf="settings != null" class="list-group">
+  <form [formGroup]="settingsForm" (submit)="$event.preventDefault()" *ngIf="settings != null" class="list-group">
     <div class="list-group-item d-flex flex-row">
       <div class="w-100 mr-3">
         <strong>Allow user registration</strong>
@@ -57,5 +57,36 @@
         </span>
       </div>
     </div>
-  </div>
+    <div class="list-group-item d-flex flex-row">
+      <div class="w-100 mr-3">
+        <strong>Create default projects</strong>
+        <p class="mb-0 text-muted">
+          When enabled, default projects are created for new users based on featured projects.
+        </p>
+      </div>
+      <div class="d-flex align-items-center cursor-pointer">
+        <span
+          (click)="settings.createDefaultProjects = !settings.createDefaultProjects"
+          [ngbTooltip]="settings.createDefaultProjects ? 'Disable' : 'Enable'"
+          placement="top"
+        >
+          <fa-icon [icon]="settings.createDefaultProjects ? icons.toggleOn : icons.toggleOff"></fa-icon>
+        </span>
+      </div>
+    </div>
+    <div class="list-group-item d-flex flex-column">
+      <div class="w-100 mr-3">
+        <strong>Archetype Image</strong>
+      </div>
+      <div>
+        <input
+          type="text"
+          name="archetypeImage"
+          class="form-control"
+          placeholder="Enter the full URL of the archetype image"
+          formControlName="archetypeImage"
+        >
+      </div>
+    </div>
+  </form>
 </div>

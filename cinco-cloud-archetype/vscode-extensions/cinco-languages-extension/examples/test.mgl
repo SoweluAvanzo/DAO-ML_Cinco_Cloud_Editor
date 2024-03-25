@@ -28,7 +28,7 @@ graphModel extendsExternal extends testImport::test {
 edge testEdge {
     style testEdgeStyle
 
-    attr String as testLabel
+    attr string as testLabel
 }
 
 node testNode {
@@ -52,5 +52,5 @@ enum testEnum {
 
 type testUserDefinedType {
     attr testEnum as testEnumValue
-    attr Boolean as testBoolean
+    attr boolean as testBoolean
 }

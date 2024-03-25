@@ -13,75 +13,91 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {
-    getPort,
-    GLSPSocketServerContribution,
-    GLSPSocketServerContributionOptions
-} from '@eclipse-glsp/theia-integration/lib/node';
-import { DEFAULT_SERVER_PORT, META_DEV_MODE, META_LANGUAGES_FOLDER, WORKSPACE_FOLDER } from '@cinco-glsp/cinco-glsp-common';
+import { GLSPSocketServerContribution, GLSPSocketServerContributionOptions } from '@eclipse-glsp/theia-integration/lib/node';
 import { injectable, inject } from 'inversify';
 import * as path from 'path';
 import { getDiagramConfiguration } from '../common/cinco-language';
-import { GLSPServerUtilServerNode } from './glsp_server_args-provider';
-
-// args defined at start of the backend, but passed to the execution of the external server
-export const PORT_ARG_KEY = 'CINCO_GLSP';
-export const LANGUAGES_FOLDER_ARG_KEY = '--META_LANGUAGES_FOLDER';
-export const WORKSPACE_FOLDER_ARG_KEY = '--WORKSPACE_FOLDER';
-export const ROOT_FOLDER_ARG_KEY = '--ROOT_FOLDER';
-export const DEV_MODE_ARG_KEY = `--${META_DEV_MODE}`;
-
-export const DEFAULT_ROOT_FOLDER = __dirname + '/../../..';
-export const DEFAULT_META_LANGUAGES_FOLDER = META_LANGUAGES_FOLDER;
-export const DEFAULT_WORKSPACE_FOLDER = WORKSPACE_FOLDER;
-export const DEFAULT_META_DEV_MODE = '';
+import { CincoGLSPServerArgsSetup, DEFAULT_META_DEV_MODE } from './cinco-glsp-server-args-setup';
+import { Disposable, LogLevel } from '@theia/core';
+import * as fs from 'fs';
+import { RawProcess } from '@theia/process/lib/node/raw-process';
+import { CincoLogger } from './cinco-theia-logger';
 
 export const LOG_DIR = path.join(__dirname, '..', '..', 'logs');
 const MODULE_PATH = path.join(__dirname, '..', '..', '..', 'cinco-glsp-server', 'bundle', 'cinco-glsp-server-packed.js');
 
 @injectable()
 export class CincoGLSPSocketServerContribution extends GLSPSocketServerContribution {
-    @inject(GLSPServerUtilServerNode)
-    protected glspServerArgsProvider: GLSPServerUtilServerNode;
+    @inject(CincoGLSPServerArgsSetup)
+    protected glspServerArgsProvider: CincoGLSPServerArgsSetup;
+    @inject(CincoLogger)
+    protected cincoLogger: CincoLogger;
 
     readonly id = getDiagramConfiguration().contributionId;
 
     createContributionOptions(): Partial<GLSPSocketServerContributionOptions> {
-        const port = getPort(PORT_ARG_KEY, DEFAULT_SERVER_PORT);
-        const languagesFolder = getArgs(LANGUAGES_FOLDER_ARG_KEY) ?? DEFAULT_META_LANGUAGES_FOLDER;
-        const workspaceFolder = getArgs(WORKSPACE_FOLDER_ARG_KEY) ?? DEFAULT_WORKSPACE_FOLDER;
-        const rootFolder = getArgs(ROOT_FOLDER_ARG_KEY) ?? DEFAULT_ROOT_FOLDER;
-        const metaDevMode = hasArg(DEV_MODE_ARG_KEY) ? '--metaDevMode' : DEFAULT_META_DEV_MODE;
-        this.glspServerArgsProvider.setServerArgs(metaDevMode !== '', rootFolder, languagesFolder, workspaceFolder, port);
+        // env
+        const args = this.glspServerArgsProvider.getArg();
+        const launchServerExternal = process.env['SERVER_EXTERNAL'] === 'true';
         return {
+            launchOnDemand: false,
+            launchedExternally: launchServerExternal,
             executable: MODULE_PATH,
             additionalArgs: [
-                '-p', `${port}`, '--no-consoleLog', '--fileLog', 'true', '--logDir', LOG_DIR,
+                '-p',
+                `${args.port}`,
+                '--fileLog',
+                'true',
+                '--logDir',
+                LOG_DIR,
                 // cinco specific arguments
-                `--rootFolder='${rootFolder}'`,
-                metaDevMode,
-                `--metaLanguagesFolder='${languagesFolder}'`,
-                `--workspaceFolder='${workspaceFolder}'`
+                `--rootFolder='${args.rootFolder}'`,
+                args.metaDevMode ? '--metaDevMode' : DEFAULT_META_DEV_MODE,
+                `--metaLanguagesFolder='${args.languagePath}'`,
+                `--workspaceFolder='${args.workspacePath}'`,
+                '--webSocket',
+                `--webServerPort=${args.webServerPort}`,
+                '--host=0.0.0.0'
             ],
             socketConnectionOptions: {
-                port: port
+                port: args.port,
+                path: args.websocketPath
             }
         };
     }
-}
 
-export function getArgs(argsKey: string): string | undefined {
-    const args = process.argv.filter(a => a.startsWith(argsKey));
-    if (args.length > 0) {
-        const result = args[0].substring(argsKey.length + 1, undefined);
-        if (result) {
-            return result.replace(/"|'/g, ''); // replace quotes
+    override async launch(): Promise<void> {
+        try {
+            if (!this.options.executable) {
+                throw new Error('Could not launch GLSP server. No executable path is provided via the contribution options');
+            }
+            if (!fs.existsSync(this.options.executable)) {
+                throw new Error(`Could not launch GLSP server. The given server executable path is not valid: ${this.options.executable}`);
+            }
+            if (isNaN(this.options.socketConnectionOptions.port)) {
+                throw new Error(
+                    `Could not launch GLSP Server. The given server port is not a number: ${this.options.socketConnectionOptions.port}`
+                );
+            }
+            let process: RawProcess;
+            if (this.options.executable.endsWith('.jar')) {
+                process = await this.launchJavaProcess();
+            } else if (this.options.executable.endsWith('.js')) {
+                process = await this.launchNodeProcess();
+            } else {
+                throw new Error(`Could not launch GLSP Server. Invalid executable path ${this.options.executable}`);
+            }
+            process.outputStream.addListener('data', chunk => {
+                this.cincoLogger.logGLSPServer(LogLevel.INFO, chunk.toString());
+            });
+            process.outputStream.addListener('error', err => {
+                this.cincoLogger.logGLSPServer(LogLevel.ERROR, err.name + ': ' + err.message + '\n' + err.stack);
+            });
+            this.toDispose.push(Disposable.create(() => process.kill()));
+        } catch (error) {
+            this.onReadyDeferred.reject(error);
         }
-    }
-    return undefined;
-}
 
-export function hasArg(argsKey: string): boolean {
-    const args = process.argv.filter(a => a.startsWith(argsKey));
-    return args.length > 0;
+        return this.onReadyDeferred.promise;
+    }
 }

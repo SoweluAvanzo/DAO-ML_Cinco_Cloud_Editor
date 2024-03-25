@@ -1,0 +1,175 @@
+id info.scce.cinco.product.hierarchy
+stylePath "./Empty.style"
+
+graphModel HierarchyA extends HierarchyB {
+	diagramExtension "hierarchyA"	
+	containableElements(ContA[0,2]) // TODO: these are not correct. merge needed.
+	attr string as ofA
+	attr TA as ta
+	attr TA as taList [0, *]
+}
+
+abstract graphModel HierarchyB extends HierarchyC {
+	containableElements(ContB[0,2])
+	attr string as ofB
+	attr TB as tb
+	attr TB as tbList [0, *]
+}
+
+abstract graphModel HierarchyC extends HierarchyD {
+	containableElements(ContC[0,2])
+	attr string as ofC
+	attr TC as tc
+	attr TC as tcList [0, *]
+}
+
+graphModel HierarchyD {
+	diagramExtension "hierarchyD"
+	containableElements(ContD[0,2])
+	attr string as ofD
+	attr TD as td
+	attr TD as tdList [0, *]
+}
+
+/*
+ * WILDCARD-AND-ABSTRACT-EDGE-CASES
+ */
+
+node NodeAbstractEdgeB extends A {
+	style blueTextRectangle("${ofB}")
+	incomingEdges (EdgeB[1,*])
+	outgoingEdges (EdgeB[1,*])
+}
+
+node NodeAbstractEdgeC extends A {
+	style blueTextRectangle("${ofC}")
+	incomingEdges (EdgeC[1,*])
+	outgoingEdges (EdgeC[1,*])
+}
+
+node NodeWildcardEdge extends A {
+	style blueTextRectangle("${ofC}")
+	incomingEdges (*[0,*])
+	outgoingEdges (*[0,*])
+}
+
+container WildcardCont extends Cont {
+	style swimlane("${ofContA}")
+	containableElements(*[0,*]) // TODO: wildcard not mapped
+}
+
+/*
+ * Node-Chain
+ */
+
+node A extends B {
+	style blueTextRectangle("${ofD}")
+	incomingEdges (EdgeA[1,*]) // TODO: these are not correct. merge needed.
+	outgoingEdges (EdgeA[1,*]) // TODO: these are not correct. merge needed.
+	attr string as ofA
+	attr TA as ta
+	attr TA as taList [0, *]
+}
+
+abstract node B extends C {
+	incomingEdges (EdgeB[1,*])
+	outgoingEdges (EdgeB[1,*])
+	attr string as ofB
+	attr TB as tb
+	attr TB as tbList [0, *]
+}
+
+abstract node C extends D {
+	incomingEdges (EdgeC[1,*])
+	outgoingEdges (EdgeC[1,*])
+	attr string as ofC
+	attr TC as tc
+	attr TC as tcList [0, *]
+}
+
+node D {
+	style blueTextRectangle("${ofD}")
+	incomingEdges (EdgeD[1,*])
+	outgoingEdges (EdgeD[1,*])
+	attr string as ofD
+	attr TD as td
+	attr TD as tdList [0, *]
+}
+
+container Cont extends ContA {
+	style swimlane("${ofContA}")
+	containableElements(A[0,1], B[0,2], C[0,3], D[0,4]) // TODO: verify
+	attr string as ofCont
+}
+
+container ContA extends ContB {
+	style swimlane("${ofContD}")
+	containableElements(A[0,2])
+	attr string as ofContA
+	attr TA as ta
+	attr TA as taList [0, *]
+}
+
+abstract container ContB extends ContC {
+	containableElements(B[0,2])
+	attr string as ofContB
+	attr TB as tb
+	attr TB as tbList [0, *]
+}
+
+abstract container ContC extends ContD {
+	containableElements(C[0,2])
+	attr string as ofContC
+	attr TC as tc
+	attr TC as tcList [0, *]
+}
+
+container ContD {
+	style swimlane("${ofContD}")
+	containableElements(D[0,2])
+	attr string as ofContD
+	attr TD as td
+	attr TD as tdList [0, *]
+}
+
+edge EdgeA extends EdgeB {
+	style labeledArrow("${ofD}")
+	attr string as ofA
+	attr TA as ta
+	attr TA as taList [0, *]
+}
+
+abstract edge EdgeB extends EdgeC {
+	attr string as ofB
+	attr TB as tb
+	attr TB as tbList [0, *]
+}
+
+abstract edge EdgeC extends EdgeD{
+	attr string as ofC
+	attr TC as tc
+	attr TC as tcList [0, *]
+}
+
+edge EdgeD {
+	style labeledArrow("${ofD}")
+	attr string as ofD
+	attr TD as td
+	attr TD as tdList [0, *]
+}
+
+type TA extends TB {
+	attr string as ofTA // TODO: elementTypeId needed + attributes not polymorphic resolved
+}
+
+abstract type TB extends TC {
+	attr string as ofTB
+}
+
+abstract type TC extends TD {
+	attr string as ofTC
+}
+
+type TD {
+	attr string as ofTD
+}

@@ -13,35 +13,34 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { TYPES } from '@eclipse-glsp/client';
+
+import '../../css/cinco.css';
 import {
     ContainerContext,
     DiagramConfiguration,
     GLSPClientContribution,
+    GLSPDiagramContextKeyService,
     GLSPDiagramManager,
+    GLSPDiagramWidget,
     GLSPTheiaFrontendModule,
     registerDiagramManager
 } from '@eclipse-glsp/theia-integration';
 import { GLSPDiagramLanguage } from '@eclipse-glsp/theia-integration/lib/common';
-import { CommandContribution, MenuContribution, SelectionService } from '@theia/core';
+import { CommandContribution, MenuContribution } from '@theia/core';
 import {
     bindViewContribution,
     FrontendApplicationContribution,
+    KeybindingContribution,
     WebSocketConnectionProvider,
     WidgetFactory
 } from '@theia/core/lib/browser';
 
-import { getDiagramConfiguration, LanguageUpdateCommand } from '../common/cinco-language';
+import { getDiagramConfiguration } from '../common/cinco-language';
 import { FILESYSTEM_UTIL_ENDPOINT, FilesystemUtilClient, FilesystemUtilServer } from '../common/file-system-util-protocol';
 import { CincoDiagramConfiguration } from './diagram/cinco-diagram-configuration';
-import { CincoDiagramInitiator } from './diagram/cinco-diagram-initiator';
-import { CincoGLSPDiagramMananger } from './diagram/cinco-glsp-diagram-manager';
+import { CincoGLSPDiagramContextKeyService, CincoGLSPDiagramMananger } from './diagram/cinco-glsp-diagram-manager';
 import { FileSystemUtilService } from './file-system-util-contribution';
-import {
-    CreateGenerateGraphDiagramCommandContribution,
-    GenerateGraphDiagramCommandContribution,
-    GenerateGraphDiagramMenuContribution
-} from './generator/generator-contribution';
+import { GenerateGraphDiagramKeybindingContribution, GenerateGraphDiagramMenuContribution } from './generator/generator-menu-contributions';
 import { GitConfigurationContribution } from './git/git-configuration-contribution';
 import { ChannelAPIContribution } from './output-messages/channel-api-contribution';
 import { PropertyDataHandler } from './property-widget/property-data-handler';
@@ -61,8 +60,18 @@ import {
 } from './validation-widget/validation-widget-contribution';
 import { ValidationModelWrapperCommandContribution } from './validation-widget/validation-wrapper-commands';
 import { CincoGLSPClientContribution } from './cinco-glsp-client-contribution';
-import { GLSPServerArgsProvider } from './glsp-server-args-provider';
+import { GLSPServerUtilsProvider } from './glsp-server-utils-provider';
 import { GLSP_SERVER_UTIL_ENDPOINT, GLSPServerUtilClient, GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
+import { CincoEditorButtonConfigurator } from './menu/cinco-editor-button-configurator';
+import { CincoContextMenuButtonConfigurator } from './menu/cinco-context-menu-button-configurator';
+import { CincoGLSPDiagramWidget } from './diagram/cinco-glsp-diagram-widget';
+import {
+    createDiagramWidgetFactory,
+    DiagramWidgetFactory
+} from '@eclipse-glsp/theia-integration/lib/browser/diagram/diagram-widget-factory';
+import { LanguageUpdater } from './meta/language-updater';
+import { CINCO_LOGGING_ENDPOINT, CincoLoggingClient, CincoLoggingServer } from '../common/cinco-logging-protocol';
+import { CincoLoggingClientNode, CincoLoggingContribution } from './cinco-logging-contribution';
 
 export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
     protected override get diagramLanguage(): GLSPDiagramLanguage {
@@ -82,12 +91,10 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         bindViewContribution(context.bind, CincoCloudPropertyWidgetContribution);
         context.bind(FrontendApplicationContribution).toService(CincoCloudPropertyWidgetContribution);
         context.bind(PropertyDataHandler).toSelf().inSingletonScope();
-        context.bind(TYPES.SelectionService).to(SelectionService).inSingletonScope();
         context.bind(CommandContribution).to(PropertyUpdateCommandContribution);
         context.bind(CommandContribution).to(GLSP2TheiaCommandRegistrationContribution);
         context.bind(CommandContribution).to(FileProviderContribution);
-        context.bind(CommandContribution).to(GenerateGraphDiagramCommandContribution);
-        context.bind(CommandContribution).to(CreateGenerateGraphDiagramCommandContribution);
+        context.bind(KeybindingContribution).to(GenerateGraphDiagramKeybindingContribution);
         context.bind(MenuContribution).to(GenerateGraphDiagramMenuContribution);
 
         // provision of fileSystemUtils from backend to frontend
@@ -100,6 +107,17 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
             })
             .inSingletonScope();
         context.bind(FrontendApplicationContribution).to(FileSystemUtilService);
+
+        // provision of logging from backend to frontend
+        context
+            .bind(CincoLoggingServer)
+            .toDynamicValue(ctx => {
+                const client: CincoLoggingClient = new CincoLoggingClientNode();
+                const connection = ctx.container.get(WebSocketConnectionProvider);
+                return connection.createProxy<CincoLoggingServer>(CINCO_LOGGING_ENDPOINT, client);
+            })
+            .inSingletonScope();
+        context.bind(FrontendApplicationContribution).to(CincoLoggingContribution);
 
         // Validation Widgets
         context.bind(CincoCloudModelValidationWidget).toSelf();
@@ -126,18 +144,24 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         context.bind(CommandContribution).to(ValidationModelWrapperCommandContribution);
         context.bind(ValidationModelDataHandler).toSelf().inSingletonScope();
         context.bind(CommandContribution).to(ValidationModelUpdateCommandContribution);
+        context.bind(FrontendApplicationContribution).to(CincoEditorButtonConfigurator);
+        context.bind(FrontendApplicationContribution).to(CincoContextMenuButtonConfigurator);
 
         // bind new DiagramMananger (e.g. for file/diagramExtensions)
         context.bind(CincoGLSPDiagramMananger).toSelf().inSingletonScope();
         context.bind(GLSPDiagramManager).to(CincoGLSPDiagramMananger);
-        context.bind(FrontendApplicationContribution).to(CincoDiagramInitiator).inSingletonScope();
+        context.unbind(GLSPDiagramContextKeyService);
+        context.bind(GLSPDiagramContextKeyService).to(CincoGLSPDiagramContextKeyService);
+        context.bind(CincoGLSPDiagramContextKeyService).toSelf().inSingletonScope();
+        context.bind(GLSPDiagramWidget).to(CincoGLSPDiagramWidget);
+        context.bind(CincoGLSPDiagramWidget).toSelf();
 
         // bind update mechanism for meta-specification changes
-        context.bind(CommandContribution).to(LanguageUpdateCommand);
+        context.bind(CommandContribution).to(LanguageUpdater);
 
         // server args from backend to frontend
-        context.bind(GLSPServerArgsProvider).to(GLSPServerArgsProvider);
-        context.bind(CommandContribution).to(GLSPServerArgsProvider);
+        context.bind(GLSPServerUtilsProvider).to(GLSPServerUtilsProvider);
+        context.bind(CommandContribution).to(GLSPServerUtilsProvider);
         context
             .bind(GLSPServerUtilServer)
             .toDynamicValue(ctx => {
@@ -146,7 +170,7 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
                 return connection.createProxy<GLSPServerUtilServer>(GLSP_SERVER_UTIL_ENDPOINT, client);
             })
             .inSingletonScope();
-        context.bind(FrontendApplicationContribution).to(FileSystemUtilService);
+        context.bind(FrontendApplicationContribution).to(GLSPServerUtilsProvider);
 
         // bind git configuration
         context.bind(FrontendApplicationContribution).to(GitConfigurationContribution);
@@ -163,6 +187,14 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
             })
             .inSingletonScope();
         registerDiagramManager(context.bind, diagramManagerServiceId, false);
+    }
+
+    // TODO: SAMI - is this needed?
+    override bindDiagramWidgetFactory(context: ContainerContext): void {
+        context
+            .bind(DiagramWidgetFactory)
+            .toDynamicValue(ctx => createDiagramWidgetFactory(ctx, this.diagramLanguage.diagramType))
+            .inSingletonScope();
     }
 
     bindDiagramConfiguration(context: ContainerContext): void {

@@ -13,24 +13,22 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
+
 import * as crypto from 'crypto';
-import { GEdge, GLSPServerError, GNode, OperationHandler, ReconnectEdgeOperation } from '@eclipse-glsp/server-node';
-import { injectable, inject } from 'inversify';
+import { GEdge, GLSPServerError, GNode, ReconnectEdgeOperation } from '@eclipse-glsp/server';
+import { injectable } from 'inversify';
+import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 
 @injectable()
-export class ReconnectEdgeHandler implements OperationHandler {
+export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
     operationType = ReconnectEdgeOperation.KIND;
 
-    @inject(GraphModelIndex)
-    protected index: GraphModelIndex;
-
-    execute(operation: ReconnectEdgeOperation): void {
+    executeOperation(operation: ReconnectEdgeOperation): void {
         if (!operation.edgeElementId || !operation.sourceElementId || !operation.targetElementId) {
             throw new GLSPServerError('Incomplete reconnect connection action');
         }
 
-        const index = this.index;
+        const index = this.modelState.index;
 
         const gEdge = index.findByClass(operation.edgeElementId, GEdge);
         const gSource = index.findByClass(operation.sourceElementId, GNode);
@@ -45,7 +43,6 @@ export class ReconnectEdgeHandler implements OperationHandler {
         if (!edge) {
             throw new Error(`Invalid edge in source model: edge ID ${gEdge.id}`);
         }
-
         if (!gSource) {
             throw new Error(`Invalid source in graph model: source ID ${operation.sourceElementId}`);
         }
@@ -53,9 +50,14 @@ export class ReconnectEdgeHandler implements OperationHandler {
             throw new Error(`Invalid target in graph model: target ID ${operation.targetElementId}`);
         }
 
-        edge.sourceIDAssignments = {[crypto.randomUUID()]: gSource.id};
-        edge.targetID = gTarget.id;
-        edge.routingPoints = [];
+        const source = index.findNode(gSource.id);
+        const target = index.findNode(gTarget.id);
+        if (source && target && edge.canConnectToSource(source, _ => false) && edge.canConnectToTarget(target, _ => false)) {
+            edge.sourceIDAssignments = { [crypto.randomUUID()]: gSource.id };
+            edge.targetID = gTarget.id;
+            edge.routingPoints = [];
+        } else {
+            throw new Error(`Could not change source and target of edge: ${edge.id}`);
+        }
     }
 }
-

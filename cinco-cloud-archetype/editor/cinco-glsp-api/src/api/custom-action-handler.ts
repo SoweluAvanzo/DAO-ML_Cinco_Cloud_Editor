@@ -15,7 +15,7 @@
  ********************************************************************************/
 
 import { CustomAction } from '@cinco-glsp/cinco-glsp-common';
-import { Action } from '@eclipse-glsp/server-node';
+import { Action } from '@eclipse-glsp/server';
 import { APIBaseHandler } from './api-base-handler';
 
 export class CustomActionHandler extends APIBaseHandler {

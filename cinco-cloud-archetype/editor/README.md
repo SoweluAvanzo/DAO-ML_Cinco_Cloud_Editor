@@ -1,8 +1,22 @@
-# CINCO-Cloud IDE - Frontend
+<div align='center'>
 
-This part contains the frontend of the CINCO-Cloud IDE shown in the browser.
+<br />
 
-## Dependencies
+<img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
+
+<h2>CINCO CLOUD - ARCHETYPE - EDITOR</h2>
+
+</div>
+
+## Contents
+
+This project contains the custom Theia extensions for the editor used in the Cinco Cloud web application.
+
+## Documentation
+
+Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
+
+### Dependencies
 
 - NodeJS (version 18.9.0)
 - Yarn
@@ -13,23 +27,23 @@ NOTE: we recommend using [nvm](https://github.com/creationix/nvm#install-script)
     nvm use 18.9.0
     npm install -g yarn
 
-### Common Pitfall
+#### Common Pitfall
 
 If you change the node version using nvm while using vscode and want to execute a run/debug configuration of
 the project, vscode will use the version of node, that was present while it was opened. vscode will not
 update the node version using nvm.
 
-## Install linux packages (if necessary)
+### Install linux packages (if necessary)
 
     sudo apt-get install g++-4.8 libsecret-1-dev xvfb libx11-dev libxkbfile-dev libxml2-utils
 
-## Install python and additional dependencies (needed by theia dependencies)
+### Install python and additional dependencies (needed by theia dependencies)
 
 Please check the installation description [here](https://github.com/nodejs/node-gyp#installation).
 
 (On Windows run: ```npm config set msvs_version 2019```)
 
-## Developing with the browser example (untested)
+### Developing with the browser example (untested)
 
 0. If you want to build everything run the following command inside this folder:
 
@@ -59,3 +73,69 @@ Please check the installation description [here](https://github.com/nodejs/node-
    This start the browser app on `http://localhost:3000`
 
 **NOTE**: The browser does not reload automatically whenever you changed something, you need to reload yourself currently.
+
+## Flags for Backend
+
+There are several flags that can be used on the execution of the backend:
+
+- `--ROOT_FOLDER <absolutePath>`: Sets the root folder to the given `absolutePath`.
+
+- `--WORKSPACE_FOLDER <relativePath to root>`: Sets the workspace folder to the given `relativePath`. The workspace folder is the folder the user of the graphical languages uses and is presented in the theia editor.
+
+- `--META_LANGUAGES_FOLDER <relativePath to root>`: Sets the languages folder to the given `relativePath`. The languages folder is per default `cinco-glsp-server/languages` and contains the `meta-specification` of the graphical language, as well as it's hooks and actions.
+
+- `--META_DEV_MODE`: Executes the `GLSP Server` in `MetaDevMode`. This means, that `*.js`-files inside the `languages`-folder (default: `cinco-glsp-server/languages`) can be modified, while using. Default is `false`.
+
+## Run Configurations
+
+There are several launch configurations in this project. A running instance is always a combination of a `Cinco Theia Backend`, `Cinco GLSP Server` and a `Frontend`. The first two can be executed in multiple optional ways.
+
+The Frontend can be executed with the following:
+
+1. `Launch Theia Frontend`: This configuration launches a browser showing the frontend with the `workspace` folder opened.
+
+The Backend can be executed by the following:
+
+1. `Launch Cinco Theia Backend (Embedded GLSP Server)`: This configuration executes the Theia Backend. This way the Theia frontend can be accessed on `127.0.0.1:3000`. It also starts a `GLSP Server` in the background. This way, the `Launch Cinco GLSP Server` configurations are not needed, and also not possible to execute. This configuration is a production case. Don't use it if you want to debug the `GLSP Server`.
+
+2. `Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode)`: This configuration does the save as `Launch Cinco Theia Backend (Embedded GLSP Server)`. Additionally it executes the `GLSP Server` in `MetaDevMode`. This means, that `*.js`-files inside the `languages`-folder (default: `cinco-glsp-server/languages`) can be modified, while using.
+
+3. `Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode in Workspace)`: `Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode)`. Additionally, the `languages`-folder is set to `workspace/languages`. This way, a developer, who designs a language, can develop hooks and actions directly inside the theia-editor for the graphical language while using the language, on the fly.
+
+4. `Launch Cinco Theia Backend (External GLSP Server)`: This configuration executes the Theia Backend. This way the Theia frontend can be accessed on `127.0.0.1:3000`. Also it does not execute a `GLSP Server` in the background like `Launch Cinco Theia Backend (Embedded GLSP Server)` does. You need to launch it using `Launch Cinco GLSP Server` or one of the alternatives.
+
+5. `Launch Cinco Theia Backend (External GLSP Server in Workspace)`: This does the same as `Launch Cinco Theia Backend (External GLSP Server)`. Additionally, the `languages`-folder is set to `workspace/languages`. This way, a developer, who designs a language, can develop hooks and actions directly inside the theia-editor for the graphical language while using the language, on the fly.
+
+The Server can be executed with the following:
+
+1. `Launch Cinco GLSP Server`: This launches a `GLSP Server`. Launch this if you use `Launch Cinco Theia Backend (External GLSP Server)` or an equivalent run configuration. Use this if you want to debug the `GLSP Server`.
+
+2. `Launch Cinco GLSP Server in MetaDevMode`: This does the same as `Launch Cinco GLSP Server`. Additionally it executes the `GLSP Server` in `MetaDevMode`. This means, that `*.js`-files inside the `languages`-folder (default: `cinco-glsp-server/languages`) can be modified, while using.
+
+3. `Launch Cinco GLSP Server in MetaDevMode in Workspace`: This does the same as `Launch Cinco GLSP Server in MetaDevMode`. Additionally, the `languages`-folder is set to `workspace/languages`. This way, a developer, who designs a language, can develop hooks and actions directly inside the theia-editor for the graphical language while using the language, on the fly.
+
+## Related projects and Used Technologies
+
+[Theia][theia] - We are using Theia as a foundation for our editor.
+
+[Typescript][typescript] - Programming language.
+
+[GLSP][glsp] - Our graphical editor is based on the GLSP project.
+
+[Language Server Protocol][lsp] - A protocol for IDE agnostic programming language development.
+
+[Langium][langium] - Textual meta-languages are provided using Langium.
+
+[Sprotty][sprotty] - Used to visualize and edit graphical models.
+
+[//]: # "Source definitions"
+[theia]: https://github.com/eclipse-theia/theia "Theia"
+[typescript]: https://www.typescriptlang.org/ "Typescript"
+[glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
+[lsp]: https://microsoft.github.io/language-server-protocol/ "Language Server Protocol"
+[langium]: https://langium.org/ "Langium"
+[sprotty]: https://sprotty.org/ "Sprotty"
+
+## License
+
+[EPL2](https://www.eclipse.org/legal/epl-2.0/)

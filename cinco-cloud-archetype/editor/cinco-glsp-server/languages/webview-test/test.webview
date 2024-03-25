@@ -1,0 +1,65 @@
+{
+  "id": "5c514448-74e9-4342-86a3-a5bdd4200c8f",
+  "_containments": [
+    {
+      "id": "108f8f19-5c65-4594-8cce-9b9209bde180",
+      "type": "node:webviewnodecode",
+      "_attributes": {},
+      "_size": {
+        "width": 100,
+        "height": 100
+      },
+      "_position": {
+        "x": -399.319436581357,
+        "y": -241.91377016242026
+      }
+    },
+    {
+      "id": "f9969210-df06-4b78-bdf9-a36b6722bb06",
+      "type": "node:webviewnodelink",
+      "_attributes": {},
+      "_size": {
+        "width": 500,
+        "height": 500
+      },
+      "_position": {
+        "x": 196.35533789708148,
+        "y": -237.87444308939797
+      }
+    },
+    {
+      "id": "fadf7476-f073-46e8-a49c-46ff24c67d97",
+      "type": "node:webviewnodeparam",
+      "_attributes": {
+        "content": "<h1>This is parameter content</h1>"
+      },
+      "_size": {
+        "width": 131.10094798340896,
+        "height": 131.56272306750185
+      },
+      "_position": {
+        "x": -401.1567828663573,
+        "y": -99.48669087503706
+      }
+    },
+    {
+      "id": "9efcfd37-3785-43dc-bcd0-17a1f4b0c716",
+      "type": "node:webviewnoderef",
+      "_attributes": {
+        "code": "// here is some code"
+      },
+      "_size": {
+        "width": 400,
+        "height": 340
+      },
+      "_position": {
+        "x": -245.657040206573,
+        "y": -237.44634168702828
+      }
+    }
+  ],
+  "_edges": [],
+  "type": "graphmodel:webviewgraph",
+  "_sourceUri": "/Users/sami/Desktop/cinco-cloud/cinco-cloud/cinco-cloud-archetype/editor/workspace/test.webview",
+  "_attributes": {}
+}

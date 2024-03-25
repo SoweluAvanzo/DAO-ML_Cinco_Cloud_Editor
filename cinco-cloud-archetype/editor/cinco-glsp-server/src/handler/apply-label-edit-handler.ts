@@ -13,30 +13,17 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
-import { PropertyViewAction } from '@cinco-glsp/cinco-glsp-common';
+import { PropertyViewRequestAction } from '@cinco-glsp/cinco-glsp-common';
 import { ApplyLabelEditOperation } from '@eclipse-glsp/protocol';
-import {
-    ActionDispatcher,
-    GLSPServerError,
-    GNode,
-    MaybePromise,
-    OperationHandler,
-    toTypeGuard
-} from '@eclipse-glsp/server-node';
-import { inject, injectable } from 'inversify';
+import { GLSPServerError, GNode, toTypeGuard } from '@eclipse-glsp/server';
+import { injectable } from 'inversify';
+import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 
 @injectable()
-export class ApplyLabelEditHandler implements OperationHandler {
+export class ApplyLabelEditHandler extends CincoJsonOperationHandler {
     readonly operationType = ApplyLabelEditOperation.KIND;
 
-    @inject(GraphModelState)
-    protected readonly modelState: GraphModelState;
-
-    @inject(ActionDispatcher)
-    protected readonly actionDispatcher: ActionDispatcher;
-
-    execute(operation: ApplyLabelEditOperation): MaybePromise<void> {
+    executeOperation(operation: ApplyLabelEditOperation): void {
         const index = this.modelState.index;
         // Retrieve the parent node of the label that should be edited
         const activityNode = index.findParentElement(operation.labelId, toTypeGuard(GNode));
@@ -45,7 +32,7 @@ export class ApplyLabelEditHandler implements OperationHandler {
             if (!activity) {
                 throw new GLSPServerError(`Could not retrieve the parent task for the label with id ${operation.labelId}`);
             }
-            this.actionDispatcher.dispatchAfterNextUpdate(PropertyViewAction.create(activityNode.id));
+            this.actionDispatcher.dispatchAfterNextUpdate(PropertyViewRequestAction.create(activityNode.id));
             activity.setProperty('name', operation.text);
         }
     }

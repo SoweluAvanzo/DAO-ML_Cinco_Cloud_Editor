@@ -2,7 +2,6 @@ import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { Organization } from '../../../../../../core/models/organization';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { OrganizationStoreService } from '../../../../services/organization-store.service';
-import { UpdateOrganizationInput } from '../../../../../../core/models/forms/update-organization-input';
 import { FileApiService } from '../../../../../../core/services/api/file-api.service';
 import { ToastService, ToastType } from '../../../../../../core/services/toast.service';
 import { FileReference } from '../../../../../../core/models/file-reference';
@@ -10,8 +9,7 @@ import { FileInputComponent } from '../../../../../../core/components/file-input
 
 @Component({
   selector: 'cc-edit-organization-card',
-  templateUrl: './edit-organization-card.component.html',
-  styleUrls: ['./edit-organization-card.component.scss']
+  templateUrl: './edit-organization-card.component.html'
 })
 export class EditOrganizationCardComponent implements OnInit {
 
@@ -23,10 +21,10 @@ export class EditOrganizationCardComponent implements OnInit {
 
   logo: File;
   logoReference: FileReference;
-  updateLogo = false;
+  logoChanged = false;
 
   form = new UntypedFormGroup({
-    name: new UntypedFormControl('', [Validators.required]),
+    name: new UntypedFormControl('', [Validators.required, Validators.minLength(1)]),
     description: new UntypedFormControl('')
   });
 
@@ -42,36 +40,47 @@ export class EditOrganizationCardComponent implements OnInit {
   }
 
   update(): void {
-    const input: UpdateOrganizationInput = this.form.value;
+    const formValue = this.form.value;
 
-    if (this.updateLogo && this.logo != null) {
+    if (this.logo != null) {
       this.fileApi.create(this.logo).subscribe({
         next: (file: FileReference) => {
-          input.logo = file;
-          this.organizationStore.updateOrganization(input);
+          this.organizationStore.updateOrganization({
+            logoId: file.id,
+            name: formValue.name,
+            description: formValue.description
+          });
           this.logoReference = file;
           this.input.reset();
         },
-        error: () => this.toastService.show({ type: ToastType.DANGER, message: 'The logo could not be uploaded.' })
+        error: () => {
+          this.toastService.show({ type: ToastType.DANGER, message: 'The logo could not be uploaded.' })
+        }
       });
     } else {
-      this.organizationStore.updateOrganization(input);
+      this.organizationStore.updateOrganization({
+        logoId: this.logoChanged ? this.logoReference?.id : this.organization.logo?.id,
+        name: formValue.name,
+        description: formValue.description
+      });
     }
   }
 
   handleFileSelect(files: File[]): void {
-    this.logo = files[0];
-    this.updateLogo = true;
+    this.logo = files.length === 0 ? null : files[0];
+    this.logoChanged = true;
   }
 
-  handleClear(): void {
+  removeLogo(e): void {
+    if (e) e.preventDefault();
     this.logo = null;
-    this.updateLogo = false;
+    this.logoReference = null;
+    this.logoChanged = true;
   }
 
   get logoStyle(): any {
     return {
-      backgroundImage: `url(${this.logoReference.downloadPath})`,
+      backgroundImage: `url(${this.organization.logo?.downloadPath})`,
       backgroundSize: 'cover',
       width: '100px',
       height: '100px'

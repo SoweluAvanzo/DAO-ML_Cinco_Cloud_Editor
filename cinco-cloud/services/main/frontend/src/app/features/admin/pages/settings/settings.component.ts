@@ -3,6 +3,7 @@ import { Settings } from '../../../../core/models/settings';
 import { SettingsApiService } from '../../../../core/services/api/settings-api.service';
 import { faToggleOff, faToggleOn } from '@fortawesome/free-solid-svg-icons';
 import { ToastService, ToastType } from '../../../../core/services/toast.service';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'cc-settings',
@@ -17,6 +18,10 @@ export class SettingsComponent implements OnInit {
 
   settings: Settings;
 
+  settingsForm = new FormGroup({
+    archetypeImage: new FormControl('', [Validators.required])
+  })
+
   constructor(private settingsService: SettingsApiService,
               private toastService: ToastService) {
   }
@@ -25,11 +30,15 @@ export class SettingsComponent implements OnInit {
     this.settingsService.get().subscribe({
       next: settings => {
         this.settings = settings;
+        this.settingsForm.controls.archetypeImage.setValue(settings.archetypeImage);
       }
     });
   }
 
   saveSettings() {
+    console.log(this.settingsForm.value);
+    this.settings.archetypeImage = this.settingsForm.value.archetypeImage;
+
     this.settingsService.update(this.settings).subscribe({
       next: settings => {
         this.toastService.show({
@@ -57,5 +66,9 @@ export class SettingsComponent implements OnInit {
 
   setSendMails(sendMails: boolean) {
     this.settings.sendMails = sendMails;
+  }
+
+  get canSave(): boolean {
+    return this.settingsForm.valid;
   }
 }

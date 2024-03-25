@@ -53,8 +53,8 @@ export class DeleteUserModalComponent implements OnInit {
       }
     });
 
-    this.userApi.getAll().subscribe({
-      next: users => this.admins = users.filter(user => user.isAdmin)
+    this.userApi.getAll(0, 5, "ADMIN").subscribe({
+      next: page => this.admins = page.items
     });
   }
 

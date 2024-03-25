@@ -15,21 +15,42 @@
  ********************************************************************************/
 
 import { ElementType, getSpecOf, ServerDialogAction, ServerDialogResponse, ServerOutputAction } from '@cinco-glsp/cinco-glsp-common';
-import { ActionDispatcher, Logger, LogLevel, ServerMessageAction, ServerSeverity } from '@eclipse-glsp/server-node';
+import {
+    ActionDispatcher,
+    Logger,
+    LogLevel,
+    SeverityLevel,
+    MessageAction,
+    SourceModelStorage,
+    SaveModelAction,
+    ModelSubmissionHandler
+} from '@eclipse-glsp/server';
+import { RootPath } from './root-path';
 import { ModelElement } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
+import * as fileHelper from '../utils/file-helper';
 
 export abstract class APIBaseHandler {
     protected readonly logger: Logger;
     readonly modelState: GraphModelState;
     protected readonly actionDispatcher: ActionDispatcher;
+    protected sourceModelStorage: SourceModelStorage;
+    protected submissionHandler: ModelSubmissionHandler;
     CHANNEL_NAME: string | undefined;
 
-    constructor(logger: Logger, modelState: GraphModelState, actionDispatcher: ActionDispatcher) {
+    constructor(
+        logger: Logger,
+        modelState: GraphModelState,
+        actionDispatcher: ActionDispatcher,
+        sourceModelStorage: SourceModelStorage,
+        submissionHandler: ModelSubmissionHandler
+    ) {
         this.logger = logger;
         this.modelState = modelState;
         this.actionDispatcher = actionDispatcher;
+        this.sourceModelStorage = sourceModelStorage;
+        this.submissionHandler = submissionHandler;
     }
 
     getElement(modelElementId: string): ModelElement {
@@ -44,7 +65,8 @@ export abstract class APIBaseHandler {
     /**
      * The ChannelName where the logging will be provided, will be named in the following precedence:
      *
-     *      options.channelName ?? this.CHANNEL_NAME ?? this.logger.caller?.toString() ?? 'unnamed'
+     * options.channelName ?? this.CHANNEL_NAME ?? this.logger.caller?.toString() ?? 'unnamed'
+     *
      * @param message
      * @param options
      */
@@ -75,19 +97,47 @@ export abstract class APIBaseHandler {
         this.actionDispatcher.dispatch(serverOutputAction);
     }
 
+    debug(message: Error | string | undefined): void {
+        this.log(this.parseMessage(message), { show: true, logLevel: LogLevel.debug });
+    }
+
+    info(message: Error | string | undefined): void {
+        this.log(this.parseMessage(message), { show: true, logLevel: LogLevel.info });
+    }
+
+    warn(message: Error | string | undefined): void {
+        this.log(this.parseMessage(message), { show: true, logLevel: LogLevel.warn });
+    }
+
+    error(message: Error | string | undefined): void {
+        this.log(this.parseMessage(message), { show: true, logLevel: LogLevel.error });
+    }
+
+    private parseMessage(message: Error | string | undefined): string {
+        if (message === undefined) {
+            return '<undefined>';
+        }
+        if (typeof message == 'string') {
+            return message === '' ? '<empty string>' : message;
+        }
+        if (typeof message == 'object' && message instanceof Error) {
+            return message.stack ?? `${message.name}: ${message.message}`;
+        }
+        return message;
+    }
+
     /**
      *
      * @param message
      * @param severity "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
      * @returns
      */
-    notify(message: string, severity?: ServerSeverity, details?: string, timeout?: number): void {
-        const serverMessageAction = ServerMessageAction.create(message, {
+    notify(message: string, severity?: SeverityLevel, details?: string, timeout?: number): void {
+        const messageAction = MessageAction.create(message, {
             severity: severity ?? 'INFO',
-            details: details ?? '',
-            timeout: timeout ?? 5000
+            details: details ?? ''
         });
-        this.actionDispatcher.dispatch(serverMessageAction);
+        this.actionDispatcher.dispatch(messageAction);
     }
 
     dialog(title: string, message: string): Promise<string> {
@@ -97,5 +147,106 @@ export abstract class APIBaseHandler {
             const serverDialog = ServerDialogAction.create(messageId, title, message);
             this.actionDispatcher.dispatch(serverDialog);
         });
+    }
+
+    saveModel(): Promise<void> {
+        return new Promise<void>(resolve => {
+            const result = this.sourceModelStorage.saveSourceModel(SaveModelAction.create({ fileUri: this.modelState.sourceUri }));
+            if (result instanceof Promise) {
+                result.then(_ => resolve());
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    submitModel(): Promise<void> {
+        return new Promise<void>(resolve => {
+            const result = this.submissionHandler.submitModel();
+            if (result instanceof Promise) {
+                result.then(_ => resolve());
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    getParentDirectory(fileOrDirPath: string): string {
+        return fileHelper.getParentDirectory(fileOrDirPath);
+    }
+
+    getDirectoryName(dirPath: string): string {
+        return fileHelper.getDirectoryName(dirPath);
+    }
+
+    getFileName(filePath: string): string {
+        return fileHelper.getFileName(filePath);
+    }
+
+    getFileExtension(filePath: string): string {
+        return fileHelper.getFileExtension(filePath);
+    }
+
+    exists(relativePath: string, root = RootPath.WORKSPACE): boolean {
+        const targetPath = root.join(relativePath);
+        return fileHelper.exists(targetPath);
+    }
+
+    existsFile(relativePath: string, root = RootPath.WORKSPACE): boolean {
+        const targetPath = root.join(relativePath);
+        return fileHelper.existsFile(targetPath);
+    }
+
+    existsDirectory(relativePath: string, root = RootPath.WORKSPACE): boolean {
+        const targetPath = root.join(relativePath);
+        return fileHelper.existsDirectory(targetPath);
+    }
+
+    readFile(relativePath: string, root = RootPath.WORKSPACE, encoding = 'utf-8'): string | undefined {
+        const targetPath = root.join(relativePath);
+        return fileHelper.readFile(targetPath, encoding);
+    }
+
+    readDirectory(relativePath: string, root = RootPath.WORKSPACE): string[] {
+        const targetPath = root.join(relativePath);
+        return fileHelper.readDirectory(targetPath);
+    }
+
+    deleteFile(relativePath: string, force = false): void {
+        const targetPath = RootPath.WORKSPACE.join(relativePath);
+        fileHelper.deleteFile(targetPath, force);
+    }
+
+    deleteDirectory(relativePath: string, recursive = true, force = false): void {
+        const targetPath = RootPath.WORKSPACE.join(relativePath);
+        fileHelper.deleteDirectory(targetPath, recursive, force);
+    }
+
+    createFile(relativePath: string, content: string, overwriteExistingFile = true, encoding = 'utf-8'): void {
+        const targetPath = RootPath.WORKSPACE.join(relativePath);
+        fileHelper.writeFile(targetPath, content, overwriteExistingFile, encoding);
+    }
+
+    createDirectory(relativePath: string, deleteExistingDirectory = false): void {
+        const targetPath = RootPath.WORKSPACE.join(relativePath);
+        fileHelper.createDirectory(targetPath, deleteExistingDirectory);
+    }
+
+    copyFile(relativeSourcePath: string, relativeTargetPath: string, overwriteExistingFile = true, sourceRoot = RootPath.WORKSPACE): void {
+        const sourcePath = sourceRoot.join(relativeSourcePath);
+        const targetPath = RootPath.WORKSPACE.join(relativeTargetPath);
+        fileHelper.copyFile(sourcePath, targetPath, overwriteExistingFile);
+    }
+
+    copyDirectory(
+        relativeSourcePath: string,
+        relativeTargetPath: string,
+        deleteExistingDirectories = false,
+        overwriteExistingFiles = true,
+        sourceRoot = RootPath.WORKSPACE
+    ): void {
+        const sourcePath = sourceRoot.join(relativeSourcePath);
+        const targetPath = RootPath.WORKSPACE.join(relativeTargetPath);
+        fileHelper.copyDirectory(sourcePath, targetPath, deleteExistingDirectories, overwriteExistingFiles);
     }
 }

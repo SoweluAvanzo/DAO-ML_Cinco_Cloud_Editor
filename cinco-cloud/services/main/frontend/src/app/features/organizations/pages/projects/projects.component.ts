@@ -34,7 +34,9 @@ export class ProjectsComponent implements OnInit {
   }
 
   openCreateProjectModal(): void {
-    const ref = this.modalService.open(CreateProjectModalComponent);
+    const ref = this.modalService.open(CreateProjectModalComponent, {
+      size: 'lg'
+    });
     ref.componentInstance.organization = this.organization;
     ref.result.then(project => {
       this.organization.projects.push(project);
