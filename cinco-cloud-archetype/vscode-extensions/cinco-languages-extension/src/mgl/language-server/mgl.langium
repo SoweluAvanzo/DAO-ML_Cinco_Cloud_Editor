@@ -27,6 +27,7 @@ CustomDataType:
 	| UserDefinedType
     | NodeType
     | Edge
+	| GraphModel
 ;
 
 Edge:
