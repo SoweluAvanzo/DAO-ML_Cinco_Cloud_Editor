@@ -27,7 +27,6 @@ export class ProjectInitializerServerNode implements ProjectInitializerServer {
     client: ProjectInitializerClient | undefined;
 
     async fetchProjectTemplate(workspaceRoot: string, url: string, zipRootDirectory?: string): Promise<void> {
-        console.log('fetch project template', workspaceRoot, url);
         const tempDir = path.join(os.tmpdir(), await fs.mkdtemp('template-download'));
         await fs.mkdir(tempDir);
         const zipPath = path.join(tempDir, 'template.zip');
