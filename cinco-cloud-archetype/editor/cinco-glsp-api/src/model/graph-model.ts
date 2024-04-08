@@ -553,6 +553,14 @@ export class Edge extends ModelElement {
     targetID: string;
     _routingPoints: RoutingPoint[];
 
+    initialize({ type, sourceID, targetID }: { type: string; sourceID: string; targetID: string }): void {
+        this.type = type;
+        this.sourceIDAssignments = assignValue(sourceID);
+        this.targetID = targetID;
+        this.initializeProperties();
+        this.deletedAssignments = assignValue(false);
+    }
+
     sourceIDs(): string[] {
         return cellValues(this.sourceIDAssignments);
     }
