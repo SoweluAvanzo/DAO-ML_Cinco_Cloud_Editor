@@ -34,7 +34,13 @@ import {
     ObjectPointer,
     PrimitivePropertyType,
     PropertyChange,
-    PropertyViewMessage
+    PropertyViewMessage,
+    isMultiline,
+    isFile,
+    isColor,
+    isDate,
+    parseColorValueToHex,
+    parseColorValueFromHex
 } from '@cinco-glsp/cinco-glsp-common/lib/protocol/property-model';
 import { DiagramConfiguration } from '@eclipse-glsp/theia-integration';
 import { CommandService } from '@theia/core';
@@ -161,7 +167,7 @@ export class CincoPropertiesView extends React.Component<
 
         // filter out all attributes, that are hidden
         const isHidden: (attributeDefinition: any) => boolean = attributeDefinition =>
-            (attributeDefinition.annotations ?? []).filter((annotation: any) => annotation.name === 'hidden').length <= 0;
+            attributeDefinition.annotations.filter((annotation: any) => annotation.name === 'hidden').length <= 0;
         const attributeDefinitions = this.state.attributeDefinitions.filter(a => isHidden(a));
 
         return (
@@ -419,7 +425,7 @@ export class CincoPropertyEntry extends React.Component<
         const value = this.getValueAttribute(
             attributeDefinition.type as PrimitivePropertyType,
             isList ? objectValue[valueName][index] : objectValue[valueName],
-            attributeDefinition.annotations ?? []
+            attributeDefinition.annotations
         );
 
         // check annotations
@@ -435,7 +441,7 @@ export class CincoPropertyEntry extends React.Component<
             case 'File':
             case 'color':
             case 'Color': {
-                const inputType = this.getInputType(attributeDefinition.type, annotations ?? []);
+                const inputType = this.getInputType(attributeDefinition.type, annotations);
                 const isDisabled = isReadOnly && ['checkbox', 'color', 'date', 'file'].includes(inputType);
                 if (inputType === 'textarea') {
                     return (
@@ -466,7 +472,10 @@ export class CincoPropertyEntry extends React.Component<
                     );
                 } else if (inputType === 'file') {
                     const fileDialogService = this.props.parent.fileDialogService;
-                    const fileTypes = (attributeDefinition.annotations ?? []).map(a => a.values).flat();
+                    const fileTypes = annotations
+                        .filter(a => a.name === 'file')
+                        .map(a => a.values)
+                        .flat();
                     const directorySelectable = fileTypes.filter(t => t === FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD).length > 0;
                     const nonDirectoryFileTypesDefined = fileTypes.filter(t => t !== FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD).length > 0;
                     const onlyDirectory = !nonDirectoryFileTypesDefined && directorySelectable;
@@ -630,23 +639,17 @@ export class CincoPropertyEntry extends React.Component<
         }
     }
 
-    protected getInputType(type: PrimitivePropertyType, annotations: Annotation[]): React.HTMLInputTypeAttribute {
-        // resolve annotated types
-        const isColor = annotations.filter(a => a.name === 'color').length > 0;
-        const isFile = annotations.filter(a => a.name === 'file').length > 0;
-        const isDate = annotations.filter(a => a.name === 'date').length > 0;
-        const isMultiLine = annotations.filter(a => a.name === 'multiline').length > 0;
-
+    protected getInputType(type: PrimitivePropertyType, annotations: Annotation[] | undefined): React.HTMLInputTypeAttribute {
         // determine type
         switch (type) {
             case 'string':
-                if (isMultiLine) {
+                if (isMultiline(type, annotations)) {
                     return 'textarea';
-                } else if (isFile) {
+                } else if (isFile(type, annotations)) {
                     return 'file';
-                } else if (isDate) {
+                } else if (isDate(type, annotations)) {
                     return 'date';
-                } else if (isColor) {
+                } else if (isColor(type, annotations)) {
                     return 'color';
                 }
                 return 'text';
@@ -667,7 +670,7 @@ export class CincoPropertyEntry extends React.Component<
     protected getValueAttribute(
         type: PrimitivePropertyType,
         value: any,
-        annotations: Annotation[]
+        annotations: Annotation[] | undefined
     ): Partial<React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>> {
         switch (type) {
             case 'number': {
@@ -677,12 +680,17 @@ export class CincoPropertyEntry extends React.Component<
                 const parsedValue = typeof value === 'string' ? (value === 'false' ? false : true) : value;
                 return { checked: parsedValue as boolean };
             }
+            case 'color':
+            case 'date':
+            case 'file':
             case 'string': // string can be other types by annotation
-                if (annotations.filter(a => a.name === 'color').length > 0) {
-                    return { value: (value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('color', annotations) };
-                } else if (annotations.filter(a => a.name === 'file').length > 0) {
+                if (isColor(type, annotations)) {
+                    const v = (value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('color', annotations);
+                    const parsedValue = parseColorValueToHex(v, annotations);
+                    return { value: parsedValue };
+                } else if (isFile(type, annotations)) {
                     return { value: (value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('file', annotations) };
-                } else if (annotations.filter(a => a.name === 'date').length > 0) {
+                } else if (isDate(type, annotations)) {
                     return { value: (value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('date', annotations) };
                 } else {
                     return { value: value ?? getFallbackDefaultValue(type, annotations) };
@@ -707,7 +715,7 @@ function addPropertyValue(
 ): void {
     const attributeDefinition = locateAttributeDefinition(state, pointer, name);
     const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
-    const defaultValue = getFallbackDefaultValue(attributeDefinition.type, attributeDefinition.annotations ?? []);
+    const defaultValue = getFallbackDefaultValue(attributeDefinition.type, attributeDefinition.annotations);
     const isList = isListAttribute(bounds.upperBound);
 
     // TODO: The follwoing code mutates the state, the shallow copy in the next
@@ -762,6 +770,10 @@ function assignPropertyValue(
     }
     if (!canAssign(index ?? 0.0, attributeDefinition.bounds ?? { lowerBound: 1.0, upperBound: 1.0 })) {
         return;
+    }
+
+    if (isColor(type, attributeDefinition.annotations)) {
+        value = parseColorValueFromHex(value, attributeDefinition.annotations ?? []);
     }
 
     // update state
@@ -866,7 +878,7 @@ function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): 
         if (!nextValue) {
             const attributeDefinition = state.attributeDefinitions.find(a => a.name === step.attribute);
             if (attributeDefinition) {
-                const defaultValue = getFallbackDefaultValue(attributeDefinition.type, attributeDefinition.annotations ?? []);
+                const defaultValue = getFallbackDefaultValue(attributeDefinition.type, attributeDefinition.annotations);
                 nextValue = defaultValue;
                 if (step.index !== undefined) {
                     objectValue[step.attribute][step.index] = nextValue;

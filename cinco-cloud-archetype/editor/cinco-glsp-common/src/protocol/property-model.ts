@@ -50,7 +50,104 @@ export function isPrimitivePropertyType(type: PropertyType): type is PrimitivePr
 
 export type PropertyType = PrimitivePropertyType | string;
 
-export function getDefaultValue(elementTypeId: string, attributeName: string, annotations: Annotation[]): any {
+export function isMultiline(type: string, annotations: Annotation[] = []): boolean {
+    return type === 'string' && annotations.filter(a => a.name === 'multiline').length > 0;
+}
+
+export function isDate(type: string, annotations: Annotation[] = []): boolean {
+    return isType('date', type, annotations);
+}
+
+export function isFile(type: string, annotations: Annotation[] = []): boolean {
+    return isType('file', type, annotations);
+}
+
+export function isColor(type: string, annotations: Annotation[] = []): boolean {
+    return isType('color', type, annotations);
+}
+
+function isType(target: string, type: string, annotations: Annotation[] = []): boolean {
+    return target === type || annotations.filter(a => a.name === target).length > 0;
+}
+
+export function getColorStyle(annotations: Annotation[]): string | undefined {
+    const colorAnnotations = (annotations ?? []).filter(a => a.name === 'color');
+    if (colorAnnotations.length > 0) {
+        const colorAnnotationValues = colorAnnotations.map(a => a.values).flat();
+        const colorAnnotationValue = colorAnnotationValues.at(colorAnnotationValues.length - 1);
+        return colorAnnotationValue;
+    }
+    return undefined;
+}
+
+export function parseColorValueToHex(value: string, annotations: Annotation[] = []): string {
+    const colorStyle = getColorStyle(annotations);
+    if (value.startsWith('#') && colorStyle !== 'hex') {
+        // if for some reason, wrong style is persistet, correct it
+        value = parseColorValueFromHex(value, annotations);
+    }
+    if (colorStyle) {
+        // parse type
+        switch (colorStyle) {
+            case 'hex':
+                return value;
+            case 'rgb': {
+                return rgbaToHex(value);
+            }
+            case 'rgba': {
+                return rgbaToHex(value, false); // TODO: alpha is currently not supported by the HTML-input-element of type color
+            }
+        }
+    }
+    return value;
+}
+
+export function parseColorValueFromHex(value: string, annotations: Annotation[] = []): string {
+    const colorStyle = getColorStyle(annotations);
+    if (colorStyle) {
+        // parse type
+        switch (colorStyle) {
+            case 'hex':
+                return value;
+            case 'rgb': {
+                return hexToRGBA(value);
+            }
+            case 'rgba': {
+                return hexToRGBA(value);
+            }
+        }
+    }
+    return value;
+}
+
+function hexToRGBA(hex: string): string {
+    hex = hex.startsWith('#') ? hex.slice(1) : hex;
+    if (hex.length === 3) {
+        hex = Array.from(hex).reduce((str, x) => str + x + x, '');
+    }
+    const values = hex
+        .split(/([a-zA-Z0-9]{2,2})/)
+        .filter(Boolean)
+        .map(x => parseInt(x, 16));
+    return `${values.join(', ')}`;
+}
+
+function rgbaToHex(rgba: string, forceRemoveAlpha = false): string {
+    return (
+        '#' +
+        rgba
+            .replace(/^rgba?\(|\s+|\)$/g, '') // removes rgba / rgb string values
+            .split(',') // splits them at ","
+            .filter((_, index) => !forceRemoveAlpha || index !== 3)
+            .map(string => parseFloat(string)) // Converts them to numbers
+            .map((number, index) => (index === 3 ? Math.round(number * 255) : number)) // Converts alpha to 255 number
+            .map(number => number.toString(16)) // Converts numbers to hex
+            .map(string => (string.length === 1 ? '0' + string : string)) // Adds 0 when length of one number is 1
+            .join('')
+    );
+}
+
+export function getDefaultValue(elementTypeId: string, attributeName: string, annotations: Annotation[] = []): any {
     const definition = getAttribute(elementTypeId, attributeName);
     if (definition === undefined) {
         throw new Error(`Cannot get definition for attribute ${attributeName} of ${elementTypeId}.`);
@@ -58,18 +155,18 @@ export function getDefaultValue(elementTypeId: string, attributeName: string, an
     return definition.defaultValue ?? getFallbackDefaultValue(definition.type, annotations);
 }
 
-export function getFallbackDefaultValue(type: string, annotations: Annotation[]): any {
+export function getFallbackDefaultValue(type: string, annotations: Annotation[] = []): any {
     return getFallbackDefaultValueRecursive(type, [], annotations);
 }
 
-function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[], annotations: Annotation[]): any {
+function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[], annotations: Annotation[] = []): any {
     switch (type) {
         case 'string':
-            if (annotations.filter(a => a.name === 'color').length > 0) {
+            if (isColor(type, annotations)) {
                 return getFallbackDefaultValue('color', annotations);
-            } else if (annotations.filter(a => a.name === 'file').length > 0) {
+            } else if (isFile(type, annotations)) {
                 return getFallbackDefaultValue('file', annotations);
-            } else if (annotations.filter(a => a.name === 'date').length > 0) {
+            } else if (isDate(type, annotations)) {
                 return getFallbackDefaultValue('date', annotations);
             } else {
                 return '';
@@ -90,9 +187,17 @@ function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[],
             return defaultDate;
         }
         case 'color':
-        case 'Color': {
-            return '#FFFFFF';
-        }
+        case 'Color':
+            switch (getColorStyle(annotations)) {
+                case 'hex':
+                    return '#FFFFFF';
+                case 'rgb':
+                    return '255, 255, 255';
+                case 'rgba':
+                    return '255, 255, 255, 1';
+                default:
+                    return '#FFFFFF';
+            }
         case 'file':
         case 'File': {
             return '';
