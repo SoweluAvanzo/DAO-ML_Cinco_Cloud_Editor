@@ -67,7 +67,7 @@ export function isColor(type: string, annotations: Annotation[] = []): boolean {
 }
 
 function isType(target: string, type: string, annotations: Annotation[] = []): boolean {
-    return target === type || annotations.filter(a => a.name === target).length > 0;
+    return target === type.toLowerCase() || annotations.filter(a => a.name === target).length > 0;
 }
 
 export function getColorStyle(annotations: Annotation[]): string | undefined {
@@ -159,6 +159,14 @@ export function getFallbackDefaultValue(type: string, annotations: Annotation[] 
     return getFallbackDefaultValueRecursive(type, [], annotations);
 }
 
+export function cleanDate(dateString?: string): string | undefined {
+    if (dateString && dateString.indexOf('/') >= 0) {
+        const defaultDayComponents = dateString.split('/').map(entry => (entry.length === 1 ? '0' + entry : entry));
+        return defaultDayComponents.reverse().join('-');
+    }
+    return dateString;
+}
+
 function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[], annotations: Annotation[] = []): any {
     switch (type) {
         case 'string':
@@ -179,12 +187,8 @@ function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[],
         case 'date':
         case 'Date': {
             const currentDate = new Date();
-            const defaultDayComponents = currentDate
-                .toLocaleDateString()
-                .split('.')
-                .map(entry => (entry.length === 1 ? '0' + entry : entry));
-            const defaultDate = defaultDayComponents.reverse().join('-');
-            return defaultDate;
+            const defaultDateString = currentDate.toLocaleDateString('en-GB');
+            return cleanDate(defaultDateString);
         }
         case 'color':
         case 'Color':

@@ -40,7 +40,8 @@ import {
     isColor,
     isDate,
     parseColorValueToHex,
-    parseColorValueFromHex
+    parseColorValueFromHex,
+    cleanDate
 } from '@cinco-glsp/cinco-glsp-common/lib/protocol/property-model';
 import { DiagramConfiguration } from '@eclipse-glsp/theia-integration';
 import { CommandService } from '@theia/core';
@@ -681,8 +682,11 @@ export class CincoPropertyEntry extends React.Component<
                 return { checked: parsedValue as boolean };
             }
             case 'color':
+            case 'Color':
             case 'date':
+            case 'Date':
             case 'file':
+            case 'File':
             case 'string': // string can be other types by annotation
                 if (isColor(type, annotations)) {
                     const v = (value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('color', annotations);
@@ -691,7 +695,9 @@ export class CincoPropertyEntry extends React.Component<
                 } else if (isFile(type, annotations)) {
                     return { value: (value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('file', annotations) };
                 } else if (isDate(type, annotations)) {
-                    return { value: (value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('date', annotations) };
+                    return {
+                        value: cleanDate(value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('date', annotations)
+                    };
                 } else {
                     return { value: value ?? getFallbackDefaultValue(type, annotations) };
                 }
