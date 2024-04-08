@@ -6,8 +6,9 @@ stylePath "./Empty.style"
 // - external modelElementReference
 //
 // TODO:
-// - default value can only be written as a string, should be also int, float and boolean
-// - hex, rgb, rgba should be infered at runtime
+// - modelElementReference-fields are not updated correctly when another modelelement is selected
+// NOTE:
+// - rgba is not supported by the html-input-tag, only rgb. The internal code supports rgba, but not the element.
  
 graphModel Attributes {
 	diagramExtension "attributes"
@@ -49,7 +50,7 @@ graphModel Attributes {
 
 	// number
 	attr number as attrInt
-	attr number as attrIntDefault := "1"
+	attr number as attrIntDefault := 1337
 	attr number as attrIntList [0,*]
 	final attr number as attrIntFinal
 	final attr number as attrIntDefaultFinal := "1"
@@ -63,7 +64,7 @@ graphModel Attributes {
 	
 	// boolean
 	attr boolean as attrBoolean
-	attr boolean as attrBooleanDefault := "true"
+	attr boolean as attrBooleanDefault := TRUE
 	attr boolean as attrBooleanList [0,*]
 	final attr boolean as attrBooleanFinal
 	final attr boolean as attrBooleanDefaultFinal := "true"
@@ -77,11 +78,11 @@ graphModel Attributes {
 
 	// color
 	@color(hex) attr string as attrColorHEX
-	@color(rgb) attr string as attrColorRGB // TODO:
-	@color(rgba) attr string as attrColorRGBA // TODO:
+	@color(rgb) attr string as attrColorRGB
+	@color(rgba) attr string as attrColorRGBA
 	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
-	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
-	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
+	@color(rgb) attr string as attrColorRGBDefault := "255,0,10" 
+	@color(rgba) attr string as attrColorRGBADefault := "255,0,10,1" 
 	@color(hex) attr string as attrColorListHEX [0,*]
 	@color(rgb) attr string as attrColorListRGB [0,*]
 	@color(rgba) attr string as attrColorListRGBA [0,*]
@@ -89,8 +90,8 @@ graphModel Attributes {
 	@color(rgb) final attr string as attrColorRGBFinal
 	@color(rgba) final attr string as attrColorRGBAFinal
 	@color(hex) final attr string as attrColorHEXDefaultFinal := "#FFFFFF" 
-	@color(rgb) final attr string as attrColorRGBDefaultFinal := "255,255,255" 
-	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,255" 
+	@color(rgb) final attr string as attrColorRGBDefaultFinal := "255,0,10" 
+	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,0,10,1" 
 	@color(hex) final attr string as attrColorListHEXFinal [0,*]
 	@color(rgb) final attr string as attrColorListRGBFinal [0,*]
 	@color(rgba) final attr string as attrColorListRGBAFinal [0,*]
@@ -99,7 +100,7 @@ graphModel Attributes {
 	@readOnly @color(rgba) attr string as attrColorRGBAReadonly
 	@readOnly @color(hex) attr string as attrColorHEXDefaultReadonly := "#FFFFFF" 
 	@readOnly @color(rgb) attr string as attrColorRGBDefaultReadonly := "255,255,255" 
-	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,255" 
+	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,1" 
 	@readOnly @color(hex) attr string as attrColorHEXListReadonly [0,*]
 	@readOnly @color(rgb) attr string as attrColorRGBListReadonly [0,*]
 	@readOnly @color(rgba) attr string as attrColorRGBAListReadonly [0,*]
@@ -108,7 +109,7 @@ graphModel Attributes {
 	@hidden @color(rgba) attr string as attrColorRGBAHidden
 	@hidden @color(hex) attr string as attrColorHEXDefaultHidden := "#FFFFFF" 
 	@hidden @color(rgb) attr string as attrColorRGBDefaultHidden := "255,255,255" 
-	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,255" 
+	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,1" 
 	@hidden @color(hex) attr string as attrColorHEXListHidden [0,*]
 	@hidden @color(rgb) attr string as attrColorRGBListHidden [0,*]
 	@hidden @color(rgba) attr string as attrColorRGBAListHidden [0,*]
@@ -301,11 +302,11 @@ node AttributeNode {
 
 	// color
 	@color(hex) attr string as attrColorHEX
-	@color(rgb) attr string as attrColorRGB // TODO:
-	@color(rgba) attr string as attrColorRGBA // TODO:
+	@color(rgb) attr string as attrColorRGB
+	@color(rgba) attr string as attrColorRGBA
 	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
 	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
-	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
+	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,1" 
 	@color(hex) attr string as attrColorListHEX [0,*]
 	@color(rgb) attr string as attrColorListRGB [0,*]
 	@color(rgba) attr string as attrColorListRGBA [0,*]
@@ -314,7 +315,7 @@ node AttributeNode {
 	@color(rgba) final attr string as attrColorRGBAFinal
 	@color(hex) final attr string as attrColorHEXDefaultFinal := "#FFFFFF" 
 	@color(rgb) final attr string as attrColorRGBDefaultFinal := "255,255,255" 
-	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,255" 
+	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,1" 
 	@color(hex) final attr string as attrColorListHEXFinal [0,*]
 	@color(rgb) final attr string as attrColorListRGBFinal [0,*]
 	@color(rgba) final attr string as attrColorListRGBAFinal [0,*]
@@ -323,7 +324,7 @@ node AttributeNode {
 	@readOnly @color(rgba) attr string as attrColorRGBAReadonly
 	@readOnly @color(hex) attr string as attrColorHEXDefaultReadonly := "#FFFFFF" 
 	@readOnly @color(rgb) attr string as attrColorRGBDefaultReadonly := "255,255,255" 
-	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,255" 
+	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,1" 
 	@readOnly @color(hex) attr string as attrColorHEXListReadonly [0,*]
 	@readOnly @color(rgb) attr string as attrColorRGBListReadonly [0,*]
 	@readOnly @color(rgba) attr string as attrColorRGBAListReadonly [0,*]
@@ -332,7 +333,7 @@ node AttributeNode {
 	@hidden @color(rgba) attr string as attrColorRGBAHidden
 	@hidden @color(hex) attr string as attrColorHEXDefaultHidden := "#FFFFFF" 
 	@hidden @color(rgb) attr string as attrColorRGBDefaultHidden := "255,255,255" 
-	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,255" 
+	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,1" 
 	@hidden @color(hex) attr string as attrColorHEXListHidden [0,*]
 	@hidden @color(rgb) attr string as attrColorRGBListHidden [0,*]
 	@hidden @color(rgba) attr string as attrColorRGBAListHidden [0,*]
@@ -520,11 +521,11 @@ type AttributeType {
 
 	// color
 	@color(hex) attr string as attrColorHEX
-	@color(rgb) attr string as attrColorRGB // TODO:
-	@color(rgba) attr string as attrColorRGBA // TODO:
+	@color(rgb) attr string as attrColorRGB
+	@color(rgba) attr string as attrColorRGBA
 	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
 	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
-	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
+	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,1" 
 	@color(hex) attr string as attrColorListHEX [0,*]
 	@color(rgb) attr string as attrColorListRGB [0,*]
 	@color(rgba) attr string as attrColorListRGBA [0,*]
@@ -533,7 +534,7 @@ type AttributeType {
 	@color(rgba) final attr string as attrColorRGBAFinal
 	@color(hex) final attr string as attrColorHEXDefaultFinal := "#FFFFFF" 
 	@color(rgb) final attr string as attrColorRGBDefaultFinal := "255,255,255" 
-	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,255" 
+	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,1" 
 	@color(hex) final attr string as attrColorListHEXFinal [0,*]
 	@color(rgb) final attr string as attrColorListRGBFinal [0,*]
 	@color(rgba) final attr string as attrColorListRGBAFinal [0,*]
@@ -542,7 +543,7 @@ type AttributeType {
 	@readOnly @color(rgba) attr string as attrColorRGBAReadonly
 	@readOnly @color(hex) attr string as attrColorHEXDefaultReadonly := "#FFFFFF" 
 	@readOnly @color(rgb) attr string as attrColorRGBDefaultReadonly := "255,255,255" 
-	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,255" 
+	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,1" 
 	@readOnly @color(hex) attr string as attrColorHEXListReadonly [0,*]
 	@readOnly @color(rgb) attr string as attrColorRGBListReadonly [0,*]
 	@readOnly @color(rgba) attr string as attrColorRGBAListReadonly [0,*]
@@ -551,7 +552,7 @@ type AttributeType {
 	@hidden @color(rgba) attr string as attrColorRGBAHidden
 	@hidden @color(hex) attr string as attrColorHEXDefaultHidden := "#FFFFFF" 
 	@hidden @color(rgb) attr string as attrColorRGBDefaultHidden := "255,255,255" 
-	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,255" 
+	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,1" 
 	@hidden @color(hex) attr string as attrColorHEXListHidden [0,*]
 	@hidden @color(rgb) attr string as attrColorRGBListHidden [0,*]
 	@hidden @color(rgba) attr string as attrColorRGBAListHidden [0,*]
@@ -727,11 +728,11 @@ container AttributeContainer {
 
 	// color
 	@color(hex) attr string as attrColorHEX
-	@color(rgb) attr string as attrColorRGB // TODO:
-	@color(rgba) attr string as attrColorRGBA // TODO:
+	@color(rgb) attr string as attrColorRGB
+	@color(rgba) attr string as attrColorRGBA
 	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
 	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
-	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
+	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,1" 
 	@color(hex) attr string as attrColorListHEX [0,*]
 	@color(rgb) attr string as attrColorListRGB [0,*]
 	@color(rgba) attr string as attrColorListRGBA [0,*]
@@ -740,7 +741,7 @@ container AttributeContainer {
 	@color(rgba) final attr string as attrColorRGBAFinal
 	@color(hex) final attr string as attrColorHEXDefaultFinal := "#FFFFFF" 
 	@color(rgb) final attr string as attrColorRGBDefaultFinal := "255,255,255" 
-	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,255" 
+	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,1" 
 	@color(hex) final attr string as attrColorListHEXFinal [0,*]
 	@color(rgb) final attr string as attrColorListRGBFinal [0,*]
 	@color(rgba) final attr string as attrColorListRGBAFinal [0,*]
@@ -749,7 +750,7 @@ container AttributeContainer {
 	@readOnly @color(rgba) attr string as attrColorRGBAReadonly
 	@readOnly @color(hex) attr string as attrColorHEXDefaultReadonly := "#FFFFFF" 
 	@readOnly @color(rgb) attr string as attrColorRGBDefaultReadonly := "255,255,255" 
-	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,255" 
+	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,1" 
 	@readOnly @color(hex) attr string as attrColorHEXListReadonly [0,*]
 	@readOnly @color(rgb) attr string as attrColorRGBListReadonly [0,*]
 	@readOnly @color(rgba) attr string as attrColorRGBAListReadonly [0,*]
@@ -758,7 +759,7 @@ container AttributeContainer {
 	@hidden @color(rgba) attr string as attrColorRGBAHidden
 	@hidden @color(hex) attr string as attrColorHEXDefaultHidden := "#FFFFFF" 
 	@hidden @color(rgb) attr string as attrColorRGBDefaultHidden := "255,255,255" 
-	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,255" 
+	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,1" 
 	@hidden @color(hex) attr string as attrColorHEXListHidden [0,*]
 	@hidden @color(rgb) attr string as attrColorRGBListHidden [0,*]
 	@hidden @color(rgba) attr string as attrColorRGBAListHidden [0,*]
@@ -928,11 +929,11 @@ edge AttributeEdge {
 
 	// color
 	@color(hex) attr string as attrColorHEX
-	@color(rgb) attr string as attrColorRGB // TODO:
-	@color(rgba) attr string as attrColorRGBA // TODO:
+	@color(rgb) attr string as attrColorRGB
+	@color(rgba) attr string as attrColorRGBA
 	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
 	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
-	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
+	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,1" 
 	@color(hex) attr string as attrColorListHEX [0,*]
 	@color(rgb) attr string as attrColorListRGB [0,*]
 	@color(rgba) attr string as attrColorListRGBA [0,*]
@@ -941,7 +942,7 @@ edge AttributeEdge {
 	@color(rgba) final attr string as attrColorRGBAFinal
 	@color(hex) final attr string as attrColorHEXDefaultFinal := "#FFFFFF" 
 	@color(rgb) final attr string as attrColorRGBDefaultFinal := "255,255,255" 
-	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,255" 
+	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,1" 
 	@color(hex) final attr string as attrColorListHEXFinal [0,*]
 	@color(rgb) final attr string as attrColorListRGBFinal [0,*]
 	@color(rgba) final attr string as attrColorListRGBAFinal [0,*]
@@ -950,7 +951,7 @@ edge AttributeEdge {
 	@readOnly @color(rgba) attr string as attrColorRGBAReadonly
 	@readOnly @color(hex) attr string as attrColorHEXDefaultReadonly := "#FFFFFF" 
 	@readOnly @color(rgb) attr string as attrColorRGBDefaultReadonly := "255,255,255" 
-	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,255" 
+	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,1" 
 	@readOnly @color(hex) attr string as attrColorHEXListReadonly [0,*]
 	@readOnly @color(rgb) attr string as attrColorRGBListReadonly [0,*]
 	@readOnly @color(rgba) attr string as attrColorRGBAListReadonly [0,*]
@@ -959,7 +960,7 @@ edge AttributeEdge {
 	@hidden @color(rgba) attr string as attrColorRGBAHidden
 	@hidden @color(hex) attr string as attrColorHEXDefaultHidden := "#FFFFFF" 
 	@hidden @color(rgb) attr string as attrColorRGBDefaultHidden := "255,255,255" 
-	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,255" 
+	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,1" 
 	@hidden @color(hex) attr string as attrColorHEXListHidden [0,*]
 	@hidden @color(rgb) attr string as attrColorRGBListHidden [0,*]
 	@hidden @color(rgba) attr string as attrColorRGBAListHidden [0,*]
