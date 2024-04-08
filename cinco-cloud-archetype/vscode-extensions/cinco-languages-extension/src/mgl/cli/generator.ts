@@ -242,6 +242,9 @@ export class MGLGenerator {
 
           if (isPrimitiveAttribute(attribute)) {
             result.type = attribute.dataType;
+            if(attribute.dataType === 'boolean' && result.defaultValue && typeof(result.defaultValue) == 'string') {
+              result.defaultValue = result.defaultValue.toLowerCase();
+            }
           } else if (isComplexAttribute(attribute)) {
             const type = attribute.type.ref;
             if (type === undefined) {

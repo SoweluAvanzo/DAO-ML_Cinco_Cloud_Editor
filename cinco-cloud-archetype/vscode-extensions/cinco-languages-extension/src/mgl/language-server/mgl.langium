@@ -128,7 +128,7 @@ NodeType:
 
 PrimitiveAttribute:
 	(annotations+=Annotation)*
-	(notChangeable?='final')? (unique?='unique')? 'attr' dataType=DataType 'as' name=ID ('[' lowerBound=INT (',' upperBound=('*'|INT))? ']')? (':'? '=' defaultValue=STRING)?
+	(notChangeable?='final')? (unique?='unique')? 'attr' dataType=DataType 'as' name=ID ('[' lowerBound=INT (',' upperBound=('*'|INT))? ']')? (':'? '=' defaultValue=(DefaultValue))?
 ;
 
 // TODO Review this if Ecore is ever being removing
@@ -174,10 +174,16 @@ DataType returns string:
     | 'Date'
 ;
 
+DefaultValue returns string:
+	INT | NUMBER | STRING | BOOL
+;
+
 hidden terminal WS: /\s+/;
+terminal BOOL: /true|false|TRUE|FALSE|True|False/;
 terminal QNAME: /(?!.*\.{2})[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)*/;
 terminal ID: /[_a-zA-Z][\w_]*/;
 terminal INT returns number: /[0-9]+/;
+terminal NUMBER returns number: /[0-9]+(\.[0-9]+)?/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
