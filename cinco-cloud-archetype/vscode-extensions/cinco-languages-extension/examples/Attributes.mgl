@@ -70,6 +70,229 @@ graphModel Attributes {
 	@hidden attr boolean as attrBooleanDefaultHidden := "true"
 	@hidden attr boolean as attrBooleanListHiddem [0,*]
 
+	// color - TODO: rgb, rgba
+	@color(hex) attr string as attrColorHEX
+	@color(rgb) attr string as attrColorRGB
+	@color(rgba) attr string as attrColorRGBA
+	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
+	@color(rgb) attr string as attrColorRGBDefault := "255,255,255"
+	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255"
+	@color(hex) attr string as attrColorListHEX [0,*]
+	@color(rgb) attr string as attrColorListRGB [0,*]
+	@color(rgba) attr string as attrColorListRGBA [0,*]
+	@color(hex) final attr string as attrColorHEXFinal
+	@color(rgb) final attr string as attrColorRGBFinal
+	@color(rgba) final attr string as attrColorRGBAFinal
+	@color(hex) final attr string as attrColorHEXDefaultFinal := "#FFFFFF" 
+	@color(rgb) final attr string as attrColorRGBDefaultFinal := "255,255,255" 
+	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,255" 
+	@color(hex) final attr string as attrColorListHEXFinal [0,*]
+	@color(rgb) final attr string as attrColorListRGBFinal [0,*]
+	@color(rgba) final attr string as attrColorListRGBAFinal [0,*]
+	@readOnly @color(hex) attr string as attrColorHEXReadonly
+	@readOnly @color(rgb) attr string as attrColorRGBReadonly
+	@readOnly @color(rgba) attr string as attrColorRGBAReadonly
+	@readOnly @color(hex) attr string as attrColorHEXDefaultReadonly := "#FFFFFF" 
+	@readOnly @color(rgb) attr string as attrColorRGBDefaultReadonly := "255,255,255" 
+	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,255" 
+	@readOnly @color(hex) attr string as attrColorHEXListReadonly [0,*]
+	@readOnly @color(rgb) attr string as attrColorRGBListReadonly [0,*]
+	@readOnly @color(rgba) attr string as attrColorRGBAListReadonly [0,*]
+	@hidden @color(hex) attr string as attrColorHEXHidden
+	@hidden @color(rgb) attr string as attrColorRGBHidden
+	@hidden @color(rgba) attr string as attrColorRGBAHidden
+	@hidden @color(hex) attr string as attrColorHEXDefaultHidden := "#FFFFFF" 
+	@hidden @color(rgb) attr string as attrColorRGBDefaultHidden := "255,255,255" 
+	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,255" 
+	@hidden @color(hex) attr string as attrColorHEXListHidden [0,*]
+	@hidden @color(rgb) attr string as attrColorRGBListHidden [0,*]
+	@hidden @color(rgba) attr string as attrColorRGBAListHidden [0,*]
+
+	// file
+	@file attr string as attrFile
+	@file attr string as attrFileList [0, *]
+	@file final attr string as attrFileFinal
+	@file final attr string as attrFileListFinal [0, *]
+	@readOnly @file attr string as attrFileReadonly
+	@readOnly @file attr string as attrFileListReadonly [0, *]
+	@hidden @file attr string as attrFileHidden
+	@hidden @file attr string as attrFileListHidden [0, *]
+
+	// date
+	attr Date as attrDate
+	attr Date as attrDateDefault := "2022-04-25"
+	attr Date as attrDates [0,*]
+	final attr Date as attrDateFinal
+	final attr Date as attrDateDefaultFinal := "2022-04-25"
+	final attr Date as attrDatesFinal [0,*]
+	@readOnly attr Date as attrDateReadonly
+	@readOnly attr Date as attrDateDefaultReadonly := "2022-04-25"
+	@readOnly attr Date as attrDatesReadonly [0,*]
+	@hidden attr Date as attrDateHidden
+	@hidden attr Date as attrDateDefaultHidden := "2022-04-25"
+	@hidden attr Date as attrDatesHidden [0,*]
+
+	// date annotation
+	@date attr string as attrDateAnnotation
+	@date attr string as attrDateDefaultAnnotation := "2022-04-25"
+	@date attr string as attrDatesAnnotation [0,*]
+	@date final attr string as attrDateAnnotationFinal
+	@date final attr string as attrDateDefaultAnnotationFinal := "2022-04-25"
+	@date final attr string as attrDatesAnnotationFinal [0,*]
+	@readOnly @date attr string as attrDateAnnotationReadonly
+	@readOnly @date attr string as attrDateDefaultAnnotationReadonly := "2022-04-25"
+	@readOnly @date attr string as attrDatesAnnotationReadonly [0,*]
+	@hidden @date attr string as attrDateAnnotationHidden
+	@hidden @date attr string as attrDateDefaultAnnotationHidden := "2022-04-25"
+	@hidden @date attr string as attrDatesAnnotationHidden [0,*]
+
+	// enum
+	attr AttributeENum as attrEnum
+	attr AttributeENum as attrEnumDefault := "optionB"
+	attr AttributeENum as attrEnumList [0, *]
+	final attr AttributeENum as attrEnumFinal
+	final attr AttributeENum as attrEnumDefaultFinal := "optionB"
+	final attr AttributeENum as attrEnumListFinal [0, *]
+	@readOnly attr AttributeENum as attrEnumReadonly
+	@readOnly attr AttributeENum as attrEnumDefaultReadonly := "optionB"
+	@readOnly attr AttributeENum as attrEnumListReadonly [0, *]
+	@hidden attr AttributeENum as attrEnumHidden
+	@hidden attr AttributeENum as attrEnumDefaultHidden := "optionB"
+	@hidden attr AttributeENum as attrEnumListHidden [0, *]
+
+	// userdefinedType
+	attr AttributeType as attrType
+	attr AttributeType as attrTypes [0,*]
+	final attr AttributeType as attrTypeFinal
+	final attr AttributeType as attrTypesFinal [0,*]
+	@readOnly attr AttributeType as attrTypeReadonly
+	@readOnly attr AttributeType as attrTypesReadonly [0,*]
+	@hidden attr AttributeType as attrTypeHidden
+	@hidden attr AttributeType as attrTypesHidden [0,*]
+
+	// local modelElementReference
+	attr AttributeNode as attrNode
+	attr AttributeNode as attrNodes [0,*]
+	attr AttributeEdge as attrEdge
+	attr AttributeEdge as attrEdges [0,*]
+	attr AttributeContainer as attrContainer
+	attr AttributeContainer as attrContainers [0,*]
+	attr Attributes as attrAttribute
+	attr Attributes as attrAttributes [0,*]
+	final attr AttributeNode as attrNodeFinal
+	final attr AttributeNode as attrNodesFinal [0,*]
+	final attr AttributeEdge as attrEdgeFinal
+	final attr AttributeEdge as attrEdgesFinal [0,*]
+	final attr AttributeContainer as attrContainerFinal
+	final attr AttributeContainer as attrContainersFinal [0,*]
+	final attr Attributes as attrAttributeFinal
+	final attr Attributes as attrAttributesFinal [0,*]
+	@readOnly attr AttributeNode as attrNodeReadonly
+	@readOnly attr AttributeNode as attrNodesReadonly [0,*]
+	@readOnly attr AttributeEdge as attrEdgeReadonly
+	@readOnly attr AttributeEdge as attrEdgesReadonly [0,*]
+	@readOnly attr AttributeContainer as attrContainerReadonly
+	@readOnly attr AttributeContainer as attrContainersReadonly [0,*]
+	@readOnly attr Attributes as attrAttributeReadonly
+	@readOnly attr Attributes as attrAttributesReadonly [0,*]
+	@hidden attr AttributeNode as attrNodeHidden
+	@hidden attr AttributeNode as attrNodesHidden [0,*]
+	@hidden attr AttributeEdge as attrEdgeHidden
+	@hidden attr AttributeEdge as attrEdgesHidden [0,*]
+	@hidden attr AttributeContainer as attrContainerHidden
+	@hidden attr AttributeContainer as attrContainersHidden [0,*]
+	@hidden attr Attributes as attrAttributeHidden
+	@hidden attr Attributes as attrAttributesHidden [0,*]
+}
+
+/*
+ * Node Polymorphie Test (Should be representative for Containers and Edges)
+ */
+node OverridingAttributeNode extends AbstractAttributeNode2 {
+	style redCircle
+	// TODO: polymorphieTest: should override attributes from all ancestors
+}
+
+node ExtendingAttributeNode extends AbstractAttributeNode2 {
+	style redCircle
+	// polymorphieTest: should have attributes from all ancestors
+}
+
+node AbstractAttributeNode2 extends AbstractAttributeNode1 {
+	attr string as ofNode2
+}
+
+node AbstractAttributeNode1 extends AttributeNode {
+	attr string as ofNode1
+}
+
+node AttributeNode {
+	style redCircle
+	incomingEdges(AttributeEdge)
+	outgoingEdges(AttributeEdge)
+
+	/*
+	 * Attributes
+	 */
+
+	attr string as name
+
+	// string
+	attr string as attrString
+	attr string as attrStringDefault := "fooString"
+	attr string as attrStringList [0,*]
+	final attr string as attrStringFinal
+	final attr string as attrStringDefaultFinal := "fooString"
+	final attr string as attrStringListFinal [0,*]
+	@readOnly attr string as attrStringReadonly
+	@readOnly attr string as attrStringDefaultReadonly := "fooString"
+	@readOnly attr string as attrStringListReadonly [0,*]
+	@hidden attr string as attrStringHidden
+	@hidden attr string as attrStringDefaultHidden := "fooString"
+	@hidden attr string as attrStringListHidden [0,*]
+	
+	// string multiline
+	@multiline attr string as attrStringMultiline
+	@multiline attr string as attrStringDefaultMultiline := "fooString"
+	@multiline attr string as attrStringListMultiline [0,*]
+	@multiline final attr string as attrStringMultilineFinal
+	@multiline final attr string as attrStringDefaultMultilineFinal := "fooString"
+	@multiline final attr string as attrStringListMultilineFinal [0,*]
+	@readOnly @multiline attr string as attrStringReadonlyMultiline
+	@readOnly @multiline attr string as attrStringDefaultReadonlyMultiline := "fooString"
+	@readOnly @multiline attr string as attrStringListReadonlyMultiline [0,*]
+	@hidden @multiline attr string as attrStringHiddenMultiline
+	@hidden @multiline attr string as attrStringDefaultHiddenMultiline := "fooString"
+	@hidden @multiline attr string as attrStringListHiddenMultiline [0,*]
+
+	// number
+	attr number as attrInt
+	attr number as attrIntDefault := "1"
+	attr number as attrIntList [0,*]
+	final attr number as attrIntFinal
+	final attr number as attrIntDefaultFinal := "1"
+	final attr number as attrIntListFinal [0,*]
+	@readOnly attr number as attrIntReadonly
+	@readOnly attr number as attrIntDefaultReadonly := "1"
+	@readOnly attr number as attrIntListReadonly [0,*]
+	@hidden attr number as attrIntHidden
+	@hidden attr number as attrIntDefaultHidden := "1"
+	@hidden attr number as attrIntListHidden [0,*]
+	
+	// boolean
+	attr boolean as attrBoolean
+	attr boolean as attrBooleanDefault := "true"
+	attr boolean as attrBooleanList [0,*]
+	final attr boolean as attrBooleanFinal
+	final attr boolean as attrBooleanDefaultFinal := "true"
+	final attr boolean as attrBooleanListFinal [0,*]
+	@readOnly attr boolean as attrBooleanReadonly
+	@readOnly attr boolean as attrBooleanDefaultReadonly := "true"
+	@readOnly attr boolean as attrBooleanListReadonly [0,*]
+	@hidden attr boolean as attrBooleanHidden
+	@hidden attr boolean as attrBooleanDefaultHidden := "true"
+	@hidden attr boolean as attrBooleanListHiddem [0,*]
+
 	// color
 	@color(hex) attr string as attrColorHEX
 	@color(rgb) attr string as attrColorRGB
@@ -206,35 +429,6 @@ graphModel Attributes {
 }
 
 /*
- * Node Polymorphie Test (Should be representative for Containers and Edges)
- */
-node OverridingAttributeNode extends AbstractAttributeNode2 {
-	style redCircle
-	// TODO: polymorphieTest: should override attributes from all ancestors
-}
-
-node ExtendingAttributeNode extends AbstractAttributeNode2 {
-	style redCircle
-	// polymorphieTest: should have attributes from all ancestors
-}
-
-node AbstractAttributeNode2 extends AbstractAttributeNode1 {
-	attr string as ofNode2
-}
-
-node AbstractAttributeNode1 extends AttributeNode {
-	attr string as ofNode1
-}
-
-node AttributeNode {
-	style redCircle
-	incomingEdges(AttributeEdge)
-	outgoingEdges(AttributeEdge)
-	attr string as name
-	// TODO: place attributes of 'Attributes' here
-}
-
-/*
  * Type Polymorphie Test
  */
 
@@ -246,17 +440,211 @@ type ExtendingAttributeType extends AbstractAttributeType2 {
 	// polymorphieTest: should have attributes from all ancestors
 }
 
-abstract type AbstractAttributeType2 {
+abstract type AbstractAttributeType2 extends AbstractAttributeType1 {
 	attr string as ofType2
 }
 
-abstract type AbstractAttributeType1 {
+abstract type AbstractAttributeType1 extends AttributeType {
 	attr string as ofType1
 }
 
 type AttributeType {
+	/*
+	 * Attributes
+	 */
+
 	attr string as name
-	// TODO: place attributes of 'Attributes' here
+
+	// string
+	attr string as attrString
+	attr string as attrStringDefault := "fooString"
+	attr string as attrStringList [0,*]
+	final attr string as attrStringFinal
+	final attr string as attrStringDefaultFinal := "fooString"
+	final attr string as attrStringListFinal [0,*]
+	@readOnly attr string as attrStringReadonly
+	@readOnly attr string as attrStringDefaultReadonly := "fooString"
+	@readOnly attr string as attrStringListReadonly [0,*]
+	@hidden attr string as attrStringHidden
+	@hidden attr string as attrStringDefaultHidden := "fooString"
+	@hidden attr string as attrStringListHidden [0,*]
+	
+	// string multiline
+	@multiline attr string as attrStringMultiline
+	@multiline attr string as attrStringDefaultMultiline := "fooString"
+	@multiline attr string as attrStringListMultiline [0,*]
+	@multiline final attr string as attrStringMultilineFinal
+	@multiline final attr string as attrStringDefaultMultilineFinal := "fooString"
+	@multiline final attr string as attrStringListMultilineFinal [0,*]
+	@readOnly @multiline attr string as attrStringReadonlyMultiline
+	@readOnly @multiline attr string as attrStringDefaultReadonlyMultiline := "fooString"
+	@readOnly @multiline attr string as attrStringListReadonlyMultiline [0,*]
+	@hidden @multiline attr string as attrStringHiddenMultiline
+	@hidden @multiline attr string as attrStringDefaultHiddenMultiline := "fooString"
+	@hidden @multiline attr string as attrStringListHiddenMultiline [0,*]
+
+	// number
+	attr number as attrInt
+	attr number as attrIntDefault := "1"
+	attr number as attrIntList [0,*]
+	final attr number as attrIntFinal
+	final attr number as attrIntDefaultFinal := "1"
+	final attr number as attrIntListFinal [0,*]
+	@readOnly attr number as attrIntReadonly
+	@readOnly attr number as attrIntDefaultReadonly := "1"
+	@readOnly attr number as attrIntListReadonly [0,*]
+	@hidden attr number as attrIntHidden
+	@hidden attr number as attrIntDefaultHidden := "1"
+	@hidden attr number as attrIntListHidden [0,*]
+	
+	// boolean
+	attr boolean as attrBoolean
+	attr boolean as attrBooleanDefault := "true"
+	attr boolean as attrBooleanList [0,*]
+	final attr boolean as attrBooleanFinal
+	final attr boolean as attrBooleanDefaultFinal := "true"
+	final attr boolean as attrBooleanListFinal [0,*]
+	@readOnly attr boolean as attrBooleanReadonly
+	@readOnly attr boolean as attrBooleanDefaultReadonly := "true"
+	@readOnly attr boolean as attrBooleanListReadonly [0,*]
+	@hidden attr boolean as attrBooleanHidden
+	@hidden attr boolean as attrBooleanDefaultHidden := "true"
+	@hidden attr boolean as attrBooleanListHiddem [0,*]
+
+	// color
+	@color(hex) attr string as attrColorHEX
+	@color(rgb) attr string as attrColorRGB
+	@color(rgba) attr string as attrColorRGBA
+	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
+	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
+	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
+	@color(hex) attr string as attrColorListHEX [0,*]
+	@color(rgb) attr string as attrColorListRGB [0,*]
+	@color(rgba) attr string as attrColorListRGBA [0,*]
+	@color(hex) final attr string as attrColorHEXFinal
+	@color(rgb) final attr string as attrColorRGBFinal
+	@color(rgba) final attr string as attrColorRGBAFinal
+	@color(hex) final attr string as attrColorHEXDefaultFinal := "#FFFFFF" 
+	@color(rgb) final attr string as attrColorRGBDefaultFinal := "255,255,255" 
+	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,255" 
+	@color(hex) final attr string as attrColorListHEXFinal [0,*]
+	@color(rgb) final attr string as attrColorListRGBFinal [0,*]
+	@color(rgba) final attr string as attrColorListRGBAFinal [0,*]
+	@readOnly @color(hex) attr string as attrColorHEXReadonly
+	@readOnly @color(rgb) attr string as attrColorRGBReadonly
+	@readOnly @color(rgba) attr string as attrColorRGBAReadonly
+	@readOnly @color(hex) attr string as attrColorHEXDefaultReadonly := "#FFFFFF" 
+	@readOnly @color(rgb) attr string as attrColorRGBDefaultReadonly := "255,255,255" 
+	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,255" 
+	@readOnly @color(hex) attr string as attrColorHEXListReadonly [0,*]
+	@readOnly @color(rgb) attr string as attrColorRGBListReadonly [0,*]
+	@readOnly @color(rgba) attr string as attrColorRGBAListReadonly [0,*]
+	@hidden @color(hex) attr string as attrColorHEXHidden
+	@hidden @color(rgb) attr string as attrColorRGBHidden
+	@hidden @color(rgba) attr string as attrColorRGBAHidden
+	@hidden @color(hex) attr string as attrColorHEXDefaultHidden := "#FFFFFF" 
+	@hidden @color(rgb) attr string as attrColorRGBDefaultHidden := "255,255,255" 
+	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,255" 
+	@hidden @color(hex) attr string as attrColorHEXListHidden [0,*]
+	@hidden @color(rgb) attr string as attrColorRGBListHidden [0,*]
+	@hidden @color(rgba) attr string as attrColorRGBAListHidden [0,*]
+
+	// file
+	@file attr string as attrFile
+	@file(attributes, mgl) attr string as attrFileExtension // https://gitlab.com/scce/cinco/-/wikis/Meta-Plugins/Core-Meta-Plugins#filefileextension-
+	@file attr string as attrFileList [0, *]
+	@file final attr string as attrFileFinal
+	@file final attr string as attrFileListFinal [0, *]
+	@readOnly @file attr string as attrFileReadonly
+	@readOnly @file attr string as attrFileListReadonly [0, *]
+	@hidden @file attr string as attrFileHidden
+	@hidden @file attr string as attrFileListHidden [0, *]
+
+	// date
+	attr Date as attrDate
+	attr Date as attrDateDefault := "2022-04-25"
+	attr Date as attrDates [0,*]
+	final attr Date as attrDateFinal
+	final attr Date as attrDateDefaultFinal := "2022-04-25"
+	final attr Date as attrDatesFinal [0,*]
+	@readOnly attr Date as attrDateReadonly
+	@readOnly attr Date as attrDateDefaultReadonly := "2022-04-25"
+	@readOnly attr Date as attrDatesReadonly [0,*]
+	@hidden attr Date as attrDateHidden
+	@hidden attr Date as attrDateDefaultHidden := "2022-04-25"
+	@hidden attr Date as attrDatesHidden [0,*]
+
+	// date annotation
+	@date attr string as attrDateAnnotation
+	@date attr string as attrDateDefaultAnnotation := "2022-04-25"
+	@date attr string as attrDatesAnnotation [0,*]
+	@date final attr string as attrDateAnnotationFinal
+	@date final attr string as attrDateDefaultAnnotationFinal := "2022-04-25"
+	@date final attr string as attrDatesAnnotationFinal [0,*]
+	@readOnly @date attr string as attrDateAnnotationReadonly
+	@readOnly @date attr string as attrDateDefaultAnnotationReadonly := "2022-04-25"
+	@readOnly @date attr string as attrDatesAnnotationReadonly [0,*]
+	@hidden @date attr string as attrDateAnnotationHidden
+	@hidden @date attr string as attrDateDefaultAnnotationHidden := "2022-04-25"
+	@hidden @date attr string as attrDatesAnnotationHidden [0,*]
+
+	// enum
+	attr AttributeENum as attrEnum
+	attr AttributeENum as attrEnumDefault := "optionA"
+	attr AttributeENum as attrEnumList [0, *]
+	final attr AttributeENum as attrEnumFinal
+	final attr AttributeENum as attrEnumDefaultFinal := "optionA"
+	final attr AttributeENum as attrEnumListFinal [0, *]
+	@readOnly attr AttributeENum as attrEnumReadonly
+	@readOnly attr AttributeENum as attrEnumDefaultReadonly := "optionA"
+	@readOnly attr AttributeENum as attrEnumListReadonly [0, *]
+	@hidden attr AttributeENum as attrEnumHidden
+	@hidden attr AttributeENum as attrEnumDefaultHidden := "optionA"
+	@hidden attr AttributeENum as attrEnumListHidden [0, *]
+
+	// userdefinedType
+	// attr AttributeType as attrType // cannot have itself => leads to infinite instantiation
+	attr AttributeType as attrTypes [0,*]
+	// final attr AttributeType as attrTypeFinal
+	final attr AttributeType as attrTypesFinal [0,*]
+	// @readOnly attr AttributeType as attrTypeReadonly
+	@readOnly attr AttributeType as attrTypesReadonly [0,*]
+	// @hidden attr AttributeType as attrTypeHidden
+	@hidden attr AttributeType as attrTypesHidden [0,*]
+
+	// local modelElementReference
+	attr AttributeNode as attrNode
+	attr AttributeNode as attrNodes [0,*]
+	attr AttributeEdge as attrEdge
+	attr AttributeEdge as attrEdges [0,*]
+	attr AttributeContainer as attrContainer
+	attr AttributeContainer as attrContainers [0,*]
+	attr Attributes as attrAttribute
+	attr Attributes as attrAttributes [0,*]
+	final attr AttributeNode as attrNodeFinal
+	final attr AttributeNode as attrNodesFinal [0,*]
+	final attr AttributeEdge as attrEdgeFinal
+	final attr AttributeEdge as attrEdgesFinal [0,*]
+	final attr AttributeContainer as attrContainerFinal
+	final attr AttributeContainer as attrContainersFinal [0,*]
+	final attr Attributes as attrAttributeFinal
+	final attr Attributes as attrAttributesFinal [0,*]
+	@readOnly attr AttributeNode as attrNodeReadonly
+	@readOnly attr AttributeNode as attrNodesReadonly [0,*]
+	@readOnly attr AttributeEdge as attrEdgeReadonly
+	@readOnly attr AttributeEdge as attrEdgesReadonly [0,*]
+	@readOnly attr AttributeContainer as attrContainerReadonly
+	@readOnly attr AttributeContainer as attrContainersReadonly [0,*]
+	@readOnly attr Attributes as attrAttributeReadonly
+	@readOnly attr Attributes as attrAttributesReadonly [0,*]
+	@hidden attr AttributeNode as attrNodeHidden
+	@hidden attr AttributeNode as attrNodesHidden [0,*]
+	@hidden attr AttributeEdge as attrEdgeHidden
+	@hidden attr AttributeEdge as attrEdgesHidden [0,*]
+	@hidden attr AttributeContainer as attrContainerHidden
+	@hidden attr AttributeContainer as attrContainersHidden [0,*]
+	@hidden attr Attributes as attrAttributeHidden
+	@hidden attr Attributes as attrAttributesHidden [0,*]
 }
 
 /*
@@ -267,14 +655,402 @@ container AttributeContainer {
 	style swimlane("${name}")
 	incomingEdges(AttributeEdge)
 	outgoingEdges(AttributeEdge)
+
+	/*
+	 * Attributes
+	 */
+
 	attr string as name
-	// TODO: place attributes of 'Attributes' here
+
+	// string
+	attr string as attrString
+	attr string as attrStringDefault := "fooString"
+	attr string as attrStringList [0,*]
+	final attr string as attrStringFinal
+	final attr string as attrStringDefaultFinal := "fooString"
+	final attr string as attrStringListFinal [0,*]
+	@readOnly attr string as attrStringReadonly
+	@readOnly attr string as attrStringDefaultReadonly := "fooString"
+	@readOnly attr string as attrStringListReadonly [0,*]
+	@hidden attr string as attrStringHidden
+	@hidden attr string as attrStringDefaultHidden := "fooString"
+	@hidden attr string as attrStringListHidden [0,*]
+	
+	// string multiline
+	@multiline attr string as attrStringMultiline
+	@multiline attr string as attrStringDefaultMultiline := "fooString"
+	@multiline attr string as attrStringListMultiline [0,*]
+	@multiline final attr string as attrStringMultilineFinal
+	@multiline final attr string as attrStringDefaultMultilineFinal := "fooString"
+	@multiline final attr string as attrStringListMultilineFinal [0,*]
+	@readOnly @multiline attr string as attrStringReadonlyMultiline
+	@readOnly @multiline attr string as attrStringDefaultReadonlyMultiline := "fooString"
+	@readOnly @multiline attr string as attrStringListReadonlyMultiline [0,*]
+	@hidden @multiline attr string as attrStringHiddenMultiline
+	@hidden @multiline attr string as attrStringDefaultHiddenMultiline := "fooString"
+	@hidden @multiline attr string as attrStringListHiddenMultiline [0,*]
+
+	// number
+	attr number as attrInt
+	attr number as attrIntDefault := "1"
+	attr number as attrIntList [0,*]
+	final attr number as attrIntFinal
+	final attr number as attrIntDefaultFinal := "1"
+	final attr number as attrIntListFinal [0,*]
+	@readOnly attr number as attrIntReadonly
+	@readOnly attr number as attrIntDefaultReadonly := "1"
+	@readOnly attr number as attrIntListReadonly [0,*]
+	@hidden attr number as attrIntHidden
+	@hidden attr number as attrIntDefaultHidden := "1"
+	@hidden attr number as attrIntListHidden [0,*]
+	
+	// boolean
+	attr boolean as attrBoolean
+	attr boolean as attrBooleanDefault := "true"
+	attr boolean as attrBooleanList [0,*]
+	final attr boolean as attrBooleanFinal
+	final attr boolean as attrBooleanDefaultFinal := "true"
+	final attr boolean as attrBooleanListFinal [0,*]
+	@readOnly attr boolean as attrBooleanReadonly
+	@readOnly attr boolean as attrBooleanDefaultReadonly := "true"
+	@readOnly attr boolean as attrBooleanListReadonly [0,*]
+	@hidden attr boolean as attrBooleanHidden
+	@hidden attr boolean as attrBooleanDefaultHidden := "true"
+	@hidden attr boolean as attrBooleanListHiddem [0,*]
+
+	// color
+	@color(hex) attr string as attrColorHEX
+	@color(rgb) attr string as attrColorRGB
+	@color(rgba) attr string as attrColorRGBA
+	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
+	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
+	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
+	@color(hex) attr string as attrColorListHEX [0,*]
+	@color(rgb) attr string as attrColorListRGB [0,*]
+	@color(rgba) attr string as attrColorListRGBA [0,*]
+	@color(hex) final attr string as attrColorHEXFinal
+	@color(rgb) final attr string as attrColorRGBFinal
+	@color(rgba) final attr string as attrColorRGBAFinal
+	@color(hex) final attr string as attrColorHEXDefaultFinal := "#FFFFFF" 
+	@color(rgb) final attr string as attrColorRGBDefaultFinal := "255,255,255" 
+	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,255" 
+	@color(hex) final attr string as attrColorListHEXFinal [0,*]
+	@color(rgb) final attr string as attrColorListRGBFinal [0,*]
+	@color(rgba) final attr string as attrColorListRGBAFinal [0,*]
+	@readOnly @color(hex) attr string as attrColorHEXReadonly
+	@readOnly @color(rgb) attr string as attrColorRGBReadonly
+	@readOnly @color(rgba) attr string as attrColorRGBAReadonly
+	@readOnly @color(hex) attr string as attrColorHEXDefaultReadonly := "#FFFFFF" 
+	@readOnly @color(rgb) attr string as attrColorRGBDefaultReadonly := "255,255,255" 
+	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,255" 
+	@readOnly @color(hex) attr string as attrColorHEXListReadonly [0,*]
+	@readOnly @color(rgb) attr string as attrColorRGBListReadonly [0,*]
+	@readOnly @color(rgba) attr string as attrColorRGBAListReadonly [0,*]
+	@hidden @color(hex) attr string as attrColorHEXHidden
+	@hidden @color(rgb) attr string as attrColorRGBHidden
+	@hidden @color(rgba) attr string as attrColorRGBAHidden
+	@hidden @color(hex) attr string as attrColorHEXDefaultHidden := "#FFFFFF" 
+	@hidden @color(rgb) attr string as attrColorRGBDefaultHidden := "255,255,255" 
+	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,255" 
+	@hidden @color(hex) attr string as attrColorHEXListHidden [0,*]
+	@hidden @color(rgb) attr string as attrColorRGBListHidden [0,*]
+	@hidden @color(rgba) attr string as attrColorRGBAListHidden [0,*]
+
+	// file
+	@file attr string as attrFile
+	@file attr string as attrFileList [0, *]
+	@file final attr string as attrFileFinal
+	@file final attr string as attrFileListFinal [0, *]
+	@readOnly @file attr string as attrFileReadonly
+	@readOnly @file attr string as attrFileListReadonly [0, *]
+	@hidden @file attr string as attrFileHidden
+	@hidden @file attr string as attrFileListHidden [0, *]
+
+	// date
+	attr Date as attrDate
+	attr Date as attrDateDefault := "2022-04-25"
+	attr Date as attrDates [0,*]
+	final attr Date as attrDateFinal
+	final attr Date as attrDateDefaultFinal := "2022-04-25"
+	final attr Date as attrDatesFinal [0,*]
+	@readOnly attr Date as attrDateReadonly
+	@readOnly attr Date as attrDateDefaultReadonly := "2022-04-25"
+	@readOnly attr Date as attrDatesReadonly [0,*]
+	@hidden attr Date as attrDateHidden
+	@hidden attr Date as attrDateDefaultHidden := "2022-04-25"
+	@hidden attr Date as attrDatesHidden [0,*]
+
+	// date annotation
+	@date attr string as attrDateAnnotation
+	@date attr string as attrDateDefaultAnnotation := "2022-04-25"
+	@date attr string as attrDatesAnnotation [0,*]
+	@date final attr string as attrDateAnnotationFinal
+	@date final attr string as attrDateDefaultAnnotationFinal := "2022-04-25"
+	@date final attr string as attrDatesAnnotationFinal [0,*]
+	@readOnly @date attr string as attrDateAnnotationReadonly
+	@readOnly @date attr string as attrDateDefaultAnnotationReadonly := "2022-04-25"
+	@readOnly @date attr string as attrDatesAnnotationReadonly [0,*]
+	@hidden @date attr string as attrDateAnnotationHidden
+	@hidden @date attr string as attrDateDefaultAnnotationHidden := "2022-04-25"
+	@hidden @date attr string as attrDatesAnnotationHidden [0,*]
+
+	// enum
+	attr AttributeENum as attrEnum
+	attr AttributeENum as attrEnumDefault := "optionA"
+	attr AttributeENum as attrEnumList [0, *]
+	final attr AttributeENum as attrEnumFinal
+	final attr AttributeENum as attrEnumDefaultFinal := "optionA"
+	final attr AttributeENum as attrEnumListFinal [0, *]
+	@readOnly attr AttributeENum as attrEnumReadonly
+	@readOnly attr AttributeENum as attrEnumDefaultReadonly := "optionA"
+	@readOnly attr AttributeENum as attrEnumListReadonly [0, *]
+	@hidden attr AttributeENum as attrEnumHidden
+	@hidden attr AttributeENum as attrEnumDefaultHidden := "optionA"
+	@hidden attr AttributeENum as attrEnumListHidden [0, *]
+
+	// userdefinedType
+	attr AttributeType as attrType
+	attr AttributeType as attrTypes [0,*]
+	final attr AttributeType as attrTypeFinal
+	final attr AttributeType as attrTypesFinal [0,*]
+	@readOnly attr AttributeType as attrTypeReadonly
+	@readOnly attr AttributeType as attrTypesReadonly [0,*]
+	@hidden attr AttributeType as attrTypeHidden
+	@hidden attr AttributeType as attrTypesHidden [0,*]
+
+	// local modelElementReference
+	attr AttributeNode as attrNode
+	attr AttributeNode as attrNodes [0,*]
+	attr AttributeEdge as attrEdge
+	attr AttributeEdge as attrEdges [0,*]
+	attr AttributeContainer as attrContainer
+	attr AttributeContainer as attrContainers [0,*]
+	attr Attributes as attrAttribute
+	attr Attributes as attrAttributes [0,*]
+	final attr AttributeNode as attrNodeFinal
+	final attr AttributeNode as attrNodesFinal [0,*]
+	final attr AttributeEdge as attrEdgeFinal
+	final attr AttributeEdge as attrEdgesFinal [0,*]
+	final attr AttributeContainer as attrContainerFinal
+	final attr AttributeContainer as attrContainersFinal [0,*]
+	final attr Attributes as attrAttributeFinal
+	final attr Attributes as attrAttributesFinal [0,*]
+	@readOnly attr AttributeNode as attrNodeReadonly
+	@readOnly attr AttributeNode as attrNodesReadonly [0,*]
+	@readOnly attr AttributeEdge as attrEdgeReadonly
+	@readOnly attr AttributeEdge as attrEdgesReadonly [0,*]
+	@readOnly attr AttributeContainer as attrContainerReadonly
+	@readOnly attr AttributeContainer as attrContainersReadonly [0,*]
+	@readOnly attr Attributes as attrAttributeReadonly
+	@readOnly attr Attributes as attrAttributesReadonly [0,*]
+	@hidden attr AttributeNode as attrNodeHidden
+	@hidden attr AttributeNode as attrNodesHidden [0,*]
+	@hidden attr AttributeEdge as attrEdgeHidden
+	@hidden attr AttributeEdge as attrEdgesHidden [0,*]
+	@hidden attr AttributeContainer as attrContainerHidden
+	@hidden attr AttributeContainer as attrContainersHidden [0,*]
+	@hidden attr Attributes as attrAttributeHidden
+	@hidden attr Attributes as attrAttributesHidden [0,*]
 }
 
 edge AttributeEdge {
 	style simpleArrow
+
+	/*
+	 * Attributes
+	 */
+
 	attr string as name
-	// TODO: place attributes of 'Attributes' here
+
+	// string
+	attr string as attrString
+	attr string as attrStringDefault := "fooString"
+	attr string as attrStringList [0,*]
+	final attr string as attrStringFinal
+	final attr string as attrStringDefaultFinal := "fooString"
+	final attr string as attrStringListFinal [0,*]
+	@readOnly attr string as attrStringReadonly
+	@readOnly attr string as attrStringDefaultReadonly := "fooString"
+	@readOnly attr string as attrStringListReadonly [0,*]
+	@hidden attr string as attrStringHidden
+	@hidden attr string as attrStringDefaultHidden := "fooString"
+	@hidden attr string as attrStringListHidden [0,*]
+	
+	// string multiline
+	@multiline attr string as attrStringMultiline
+	@multiline attr string as attrStringDefaultMultiline := "fooString"
+	@multiline attr string as attrStringListMultiline [0,*]
+	@multiline final attr string as attrStringMultilineFinal
+	@multiline final attr string as attrStringDefaultMultilineFinal := "fooString"
+	@multiline final attr string as attrStringListMultilineFinal [0,*]
+	@readOnly @multiline attr string as attrStringReadonlyMultiline
+	@readOnly @multiline attr string as attrStringDefaultReadonlyMultiline := "fooString"
+	@readOnly @multiline attr string as attrStringListReadonlyMultiline [0,*]
+	@hidden @multiline attr string as attrStringHiddenMultiline
+	@hidden @multiline attr string as attrStringDefaultHiddenMultiline := "fooString"
+	@hidden @multiline attr string as attrStringListHiddenMultiline [0,*]
+
+	// number
+	attr number as attrInt
+	attr number as attrIntDefault := "1"
+	attr number as attrIntList [0,*]
+	final attr number as attrIntFinal
+	final attr number as attrIntDefaultFinal := "1"
+	final attr number as attrIntListFinal [0,*]
+	@readOnly attr number as attrIntReadonly
+	@readOnly attr number as attrIntDefaultReadonly := "1"
+	@readOnly attr number as attrIntListReadonly [0,*]
+	@hidden attr number as attrIntHidden
+	@hidden attr number as attrIntDefaultHidden := "1"
+	@hidden attr number as attrIntListHidden [0,*]
+	
+	// boolean
+	attr boolean as attrBoolean
+	attr boolean as attrBooleanDefault := "true"
+	attr boolean as attrBooleanList [0,*]
+	final attr boolean as attrBooleanFinal
+	final attr boolean as attrBooleanDefaultFinal := "true"
+	final attr boolean as attrBooleanListFinal [0,*]
+	@readOnly attr boolean as attrBooleanReadonly
+	@readOnly attr boolean as attrBooleanDefaultReadonly := "true"
+	@readOnly attr boolean as attrBooleanListReadonly [0,*]
+	@hidden attr boolean as attrBooleanHidden
+	@hidden attr boolean as attrBooleanDefaultHidden := "true"
+	@hidden attr boolean as attrBooleanListHiddem [0,*]
+
+	// color
+	@color(hex) attr string as attrColorHEX
+	@color(rgb) attr string as attrColorRGB
+	@color(rgba) attr string as attrColorRGBA
+	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
+	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
+	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
+	@color(hex) attr string as attrColorListHEX [0,*]
+	@color(rgb) attr string as attrColorListRGB [0,*]
+	@color(rgba) attr string as attrColorListRGBA [0,*]
+	@color(hex) final attr string as attrColorHEXFinal
+	@color(rgb) final attr string as attrColorRGBFinal
+	@color(rgba) final attr string as attrColorRGBAFinal
+	@color(hex) final attr string as attrColorHEXDefaultFinal := "#FFFFFF" 
+	@color(rgb) final attr string as attrColorRGBDefaultFinal := "255,255,255" 
+	@color(rgba) final attr string as attrColorRGBADefaultFinal := "255,255,255,255" 
+	@color(hex) final attr string as attrColorListHEXFinal [0,*]
+	@color(rgb) final attr string as attrColorListRGBFinal [0,*]
+	@color(rgba) final attr string as attrColorListRGBAFinal [0,*]
+	@readOnly @color(hex) attr string as attrColorHEXReadonly
+	@readOnly @color(rgb) attr string as attrColorRGBReadonly
+	@readOnly @color(rgba) attr string as attrColorRGBAReadonly
+	@readOnly @color(hex) attr string as attrColorHEXDefaultReadonly := "#FFFFFF" 
+	@readOnly @color(rgb) attr string as attrColorRGBDefaultReadonly := "255,255,255" 
+	@readOnly @color(rgba) attr string as attrColorRGBADefaultReadonly := "255,255,255,255" 
+	@readOnly @color(hex) attr string as attrColorHEXListReadonly [0,*]
+	@readOnly @color(rgb) attr string as attrColorRGBListReadonly [0,*]
+	@readOnly @color(rgba) attr string as attrColorRGBAListReadonly [0,*]
+	@hidden @color(hex) attr string as attrColorHEXHidden
+	@hidden @color(rgb) attr string as attrColorRGBHidden
+	@hidden @color(rgba) attr string as attrColorRGBAHidden
+	@hidden @color(hex) attr string as attrColorHEXDefaultHidden := "#FFFFFF" 
+	@hidden @color(rgb) attr string as attrColorRGBDefaultHidden := "255,255,255" 
+	@hidden @color(rgba) attr string as attrColorRGBADefaultHidden := "255,255,255,255" 
+	@hidden @color(hex) attr string as attrColorHEXListHidden [0,*]
+	@hidden @color(rgb) attr string as attrColorRGBListHidden [0,*]
+	@hidden @color(rgba) attr string as attrColorRGBAListHidden [0,*]
+
+	// file
+	@file attr string as attrFile
+	@file attr string as attrFileList [0, *]
+	@file final attr string as attrFileFinal
+	@file final attr string as attrFileListFinal [0, *]
+	@readOnly @file attr string as attrFileReadonly
+	@readOnly @file attr string as attrFileListReadonly [0, *]
+	@hidden @file attr string as attrFileHidden
+	@hidden @file attr string as attrFileListHidden [0, *]
+
+	// date
+	attr Date as attrDate
+	attr Date as attrDateDefault := "2022-04-25"
+	attr Date as attrDates [0,*]
+	final attr Date as attrDateFinal
+	final attr Date as attrDateDefaultFinal := "2022-04-25"
+	final attr Date as attrDatesFinal [0,*]
+	@readOnly attr Date as attrDateReadonly
+	@readOnly attr Date as attrDateDefaultReadonly := "2022-04-25"
+	@readOnly attr Date as attrDatesReadonly [0,*]
+	@hidden attr Date as attrDateHidden
+	@hidden attr Date as attrDateDefaultHidden := "2022-04-25"
+	@hidden attr Date as attrDatesHidden [0,*]
+
+	// date annotation
+	@date attr string as attrDateAnnotation
+	@date attr string as attrDateDefaultAnnotation := "2022-04-25"
+	@date attr string as attrDatesAnnotation [0,*]
+	@date final attr string as attrDateAnnotationFinal
+	@date final attr string as attrDateDefaultAnnotationFinal := "2022-04-25"
+	@date final attr string as attrDatesAnnotationFinal [0,*]
+	@readOnly @date attr string as attrDateAnnotationReadonly
+	@readOnly @date attr string as attrDateDefaultAnnotationReadonly := "2022-04-25"
+	@readOnly @date attr string as attrDatesAnnotationReadonly [0,*]
+	@hidden @date attr string as attrDateAnnotationHidden
+	@hidden @date attr string as attrDateDefaultAnnotationHidden := "2022-04-25"
+	@hidden @date attr string as attrDatesAnnotationHidden [0,*]
+
+	// enum
+	attr AttributeENum as attrEnum
+	attr AttributeENum as attrEnumDefault := "optionA"
+	attr AttributeENum as attrEnumList [0, *]
+	final attr AttributeENum as attrEnumFinal
+	final attr AttributeENum as attrEnumDefaultFinal := "optionA"
+	final attr AttributeENum as attrEnumListFinal [0, *]
+	@readOnly attr AttributeENum as attrEnumReadonly
+	@readOnly attr AttributeENum as attrEnumDefaultReadonly := "optionA"
+	@readOnly attr AttributeENum as attrEnumListReadonly [0, *]
+	@hidden attr AttributeENum as attrEnumHidden
+	@hidden attr AttributeENum as attrEnumDefaultHidden := "optionA"
+	@hidden attr AttributeENum as attrEnumListHidden [0, *]
+
+	// userdefinedType
+	attr AttributeType as attrType
+	attr AttributeType as attrTypes [0,*]
+	final attr AttributeType as attrTypeFinal
+	final attr AttributeType as attrTypesFinal [0,*]
+	@readOnly attr AttributeType as attrTypeReadonly
+	@readOnly attr AttributeType as attrTypesReadonly [0,*]
+	@hidden attr AttributeType as attrTypeHidden
+	@hidden attr AttributeType as attrTypesHidden [0,*]
+
+	// local modelElementReference
+	attr AttributeNode as attrNode
+	attr AttributeNode as attrNodes [0,*]
+	attr AttributeEdge as attrEdge
+	attr AttributeEdge as attrEdges [0,*]
+	attr AttributeContainer as attrContainer
+	attr AttributeContainer as attrContainers [0,*]
+	attr Attributes as attrAttribute
+	attr Attributes as attrAttributes [0,*]
+	final attr AttributeNode as attrNodeFinal
+	final attr AttributeNode as attrNodesFinal [0,*]
+	final attr AttributeEdge as attrEdgeFinal
+	final attr AttributeEdge as attrEdgesFinal [0,*]
+	final attr AttributeContainer as attrContainerFinal
+	final attr AttributeContainer as attrContainersFinal [0,*]
+	final attr Attributes as attrAttributeFinal
+	final attr Attributes as attrAttributesFinal [0,*]
+	@readOnly attr AttributeNode as attrNodeReadonly
+	@readOnly attr AttributeNode as attrNodesReadonly [0,*]
+	@readOnly attr AttributeEdge as attrEdgeReadonly
+	@readOnly attr AttributeEdge as attrEdgesReadonly [0,*]
+	@readOnly attr AttributeContainer as attrContainerReadonly
+	@readOnly attr AttributeContainer as attrContainersReadonly [0,*]
+	@readOnly attr Attributes as attrAttributeReadonly
+	@readOnly attr Attributes as attrAttributesReadonly [0,*]
+	@hidden attr AttributeNode as attrNodeHidden
+	@hidden attr AttributeNode as attrNodesHidden [0,*]
+	@hidden attr AttributeEdge as attrEdgeHidden
+	@hidden attr AttributeEdge as attrEdgesHidden [0,*]
+	@hidden attr AttributeContainer as attrContainerHidden
+	@hidden attr AttributeContainer as attrContainersHidden [0,*]
+	@hidden attr Attributes as attrAttributeHidden
+	@hidden attr Attributes as attrAttributesHidden [0,*]
 }
 
 /*
