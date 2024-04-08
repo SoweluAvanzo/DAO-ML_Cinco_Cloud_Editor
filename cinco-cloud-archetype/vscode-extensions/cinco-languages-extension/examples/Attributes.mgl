@@ -12,6 +12,11 @@ stylePath "./Empty.style"
 graphModel Attributes {
 	diagramExtension "attributes"
 	containableElements (AttributeNode, AttributeContainer)
+	
+	/*
+	 * Attributes
+	 */
+
 	attr string as name
 
 	// string
@@ -72,11 +77,11 @@ graphModel Attributes {
 
 	// color
 	@color(hex) attr string as attrColorHEX
-	@color(rgb) attr string as attrColorRGB
-	@color(rgba) attr string as attrColorRGBA
+	@color(rgb) attr string as attrColorRGB // TODO:
+	@color(rgba) attr string as attrColorRGBA // TODO:
 	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
-	@color(rgb) attr string as attrColorRGBDefault := "255,255,255"
-	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255"
+	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
+	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
 	@color(hex) attr string as attrColorListHEX [0,*]
 	@color(rgb) attr string as attrColorListRGB [0,*]
 	@color(rgba) attr string as attrColorListRGBA [0,*]
@@ -110,6 +115,7 @@ graphModel Attributes {
 
 	// file
 	@file attr string as attrFile
+	@file(attributes, mgl) attr string as attrFileExtension
 	@file attr string as attrFileList [0, *]
 	@file final attr string as attrFileFinal
 	@file final attr string as attrFileListFinal [0, *]
@@ -148,26 +154,26 @@ graphModel Attributes {
 
 	// enum
 	attr AttributeENum as attrEnum
-	attr AttributeENum as attrEnumDefault := "optionB"
+	attr AttributeENum as attrEnumDefault := "optionA"
 	attr AttributeENum as attrEnumList [0, *]
 	final attr AttributeENum as attrEnumFinal
-	final attr AttributeENum as attrEnumDefaultFinal := "optionB"
+	final attr AttributeENum as attrEnumDefaultFinal := "optionA"
 	final attr AttributeENum as attrEnumListFinal [0, *]
 	@readOnly attr AttributeENum as attrEnumReadonly
-	@readOnly attr AttributeENum as attrEnumDefaultReadonly := "optionB"
+	@readOnly attr AttributeENum as attrEnumDefaultReadonly := "optionA"
 	@readOnly attr AttributeENum as attrEnumListReadonly [0, *]
 	@hidden attr AttributeENum as attrEnumHidden
-	@hidden attr AttributeENum as attrEnumDefaultHidden := "optionB"
+	@hidden attr AttributeENum as attrEnumDefaultHidden := "optionA"
 	@hidden attr AttributeENum as attrEnumListHidden [0, *]
 
 	// userdefinedType
-	attr AttributeType as attrType
+	// attr AttributeType as attrType // cannot have itself => leads to infinite instantiation
 	attr AttributeType as attrTypes [0,*]
-	final attr AttributeType as attrTypeFinal
+	// final attr AttributeType as attrTypeFinal
 	final attr AttributeType as attrTypesFinal [0,*]
-	@readOnly attr AttributeType as attrTypeReadonly
+	// @readOnly attr AttributeType as attrTypeReadonly
 	@readOnly attr AttributeType as attrTypesReadonly [0,*]
-	@hidden attr AttributeType as attrTypeHidden
+	// @hidden attr AttributeType as attrTypeHidden
 	@hidden attr AttributeType as attrTypesHidden [0,*]
 
 	// local modelElementReference
@@ -295,8 +301,8 @@ node AttributeNode {
 
 	// color
 	@color(hex) attr string as attrColorHEX
-	@color(rgb) attr string as attrColorRGB
-	@color(rgba) attr string as attrColorRGBA
+	@color(rgb) attr string as attrColorRGB // TODO:
+	@color(rgba) attr string as attrColorRGBA // TODO:
 	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
 	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
 	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
@@ -333,6 +339,7 @@ node AttributeNode {
 
 	// file
 	@file attr string as attrFile
+	@file(attributes, mgl) attr string as attrFileExtension
 	@file attr string as attrFileList [0, *]
 	@file final attr string as attrFileFinal
 	@file final attr string as attrFileListFinal [0, *]
@@ -384,13 +391,13 @@ node AttributeNode {
 	@hidden attr AttributeENum as attrEnumListHidden [0, *]
 
 	// userdefinedType
-	attr AttributeType as attrType
+	// attr AttributeType as attrType // cannot have itself => leads to infinite instantiation
 	attr AttributeType as attrTypes [0,*]
-	final attr AttributeType as attrTypeFinal
+	// final attr AttributeType as attrTypeFinal
 	final attr AttributeType as attrTypesFinal [0,*]
-	@readOnly attr AttributeType as attrTypeReadonly
+	// @readOnly attr AttributeType as attrTypeReadonly
 	@readOnly attr AttributeType as attrTypesReadonly [0,*]
-	@hidden attr AttributeType as attrTypeHidden
+	// @hidden attr AttributeType as attrTypeHidden
 	@hidden attr AttributeType as attrTypesHidden [0,*]
 
 	// local modelElementReference
@@ -551,7 +558,7 @@ type AttributeType {
 
 	// file
 	@file attr string as attrFile
-	@file(attributes, mgl) attr string as attrFileExtension // TODO: https://gitlab.com/scce/cinco/-/wikis/Meta-Plugins/Core-Meta-Plugins#filefileextension-
+	@file(attributes, mgl) attr string as attrFileExtension
 	@file attr string as attrFileList [0, *]
 	@file final attr string as attrFileFinal
 	@file final attr string as attrFileListFinal [0, *]
@@ -720,8 +727,8 @@ container AttributeContainer {
 
 	// color
 	@color(hex) attr string as attrColorHEX
-	@color(rgb) attr string as attrColorRGB
-	@color(rgba) attr string as attrColorRGBA
+	@color(rgb) attr string as attrColorRGB // TODO:
+	@color(rgba) attr string as attrColorRGBA // TODO:
 	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
 	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
 	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
@@ -758,6 +765,7 @@ container AttributeContainer {
 
 	// file
 	@file attr string as attrFile
+	@file(attributes, mgl) attr string as attrFileExtension
 	@file attr string as attrFileList [0, *]
 	@file final attr string as attrFileFinal
 	@file final attr string as attrFileListFinal [0, *]
@@ -809,13 +817,13 @@ container AttributeContainer {
 	@hidden attr AttributeENum as attrEnumListHidden [0, *]
 
 	// userdefinedType
-	attr AttributeType as attrType
+	// attr AttributeType as attrType // cannot have itself => leads to infinite instantiation
 	attr AttributeType as attrTypes [0,*]
-	final attr AttributeType as attrTypeFinal
+	// final attr AttributeType as attrTypeFinal
 	final attr AttributeType as attrTypesFinal [0,*]
-	@readOnly attr AttributeType as attrTypeReadonly
+	// @readOnly attr AttributeType as attrTypeReadonly
 	@readOnly attr AttributeType as attrTypesReadonly [0,*]
-	@hidden attr AttributeType as attrTypeHidden
+	// @hidden attr AttributeType as attrTypeHidden
 	@hidden attr AttributeType as attrTypesHidden [0,*]
 
 	// local modelElementReference
@@ -920,8 +928,8 @@ edge AttributeEdge {
 
 	// color
 	@color(hex) attr string as attrColorHEX
-	@color(rgb) attr string as attrColorRGB
-	@color(rgba) attr string as attrColorRGBA
+	@color(rgb) attr string as attrColorRGB // TODO:
+	@color(rgba) attr string as attrColorRGBA // TODO:
 	@color(hex) attr string as attrColorHEXDefault := "#FFFFFF" 
 	@color(rgb) attr string as attrColorRGBDefault := "255,255,255" 
 	@color(rgba) attr string as attrColorRGBADefault := "255,255,255,255" 
@@ -958,6 +966,7 @@ edge AttributeEdge {
 
 	// file
 	@file attr string as attrFile
+	@file(attributes, mgl) attr string as attrFileExtension
 	@file attr string as attrFileList [0, *]
 	@file final attr string as attrFileFinal
 	@file final attr string as attrFileListFinal [0, *]
@@ -1009,13 +1018,13 @@ edge AttributeEdge {
 	@hidden attr AttributeENum as attrEnumListHidden [0, *]
 
 	// userdefinedType
-	attr AttributeType as attrType
+	// attr AttributeType as attrType // cannot have itself => leads to infinite instantiation
 	attr AttributeType as attrTypes [0,*]
-	final attr AttributeType as attrTypeFinal
+	// final attr AttributeType as attrTypeFinal
 	final attr AttributeType as attrTypesFinal [0,*]
-	@readOnly attr AttributeType as attrTypeReadonly
+	// @readOnly attr AttributeType as attrTypeReadonly
 	@readOnly attr AttributeType as attrTypesReadonly [0,*]
-	@hidden attr AttributeType as attrTypeHidden
+	// @hidden attr AttributeType as attrTypeHidden
 	@hidden attr AttributeType as attrTypesHidden [0,*]
 
 	// local modelElementReference
