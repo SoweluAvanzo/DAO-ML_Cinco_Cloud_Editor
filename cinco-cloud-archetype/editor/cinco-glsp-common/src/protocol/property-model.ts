@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Attribute, Enum, UserDefinedType, getAttribute, getCustomType } from '../meta-specification';
+import { Annotation, Attribute, Enum, UserDefinedType, getAttribute, getCustomType } from '../meta-specification';
 
 export interface ModelElementIndex {
     [type: string]: LabeledModelElementReference[];
@@ -27,13 +27,19 @@ export interface LabeledModelElementReference {
     label: string;
 }
 
-export type PrimitivePropertyType = 'string' | 'number' | 'boolean';
+export type PrimitivePropertyType = 'string' | 'number' | 'boolean' | 'date' | 'Date' | 'color' | 'Color' | 'file' | 'File';
 
 export function isPrimitivePropertyType(type: PropertyType): type is PrimitivePropertyType {
     switch (type) {
         case 'string':
         case 'number':
-        case 'boolean': {
+        case 'boolean':
+        case 'date':
+        case 'Date':
+        case 'file':
+        case 'File':
+        case 'color':
+        case 'Color': {
             return true;
         }
         default: {
@@ -44,31 +50,52 @@ export function isPrimitivePropertyType(type: PropertyType): type is PrimitivePr
 
 export type PropertyType = PrimitivePropertyType | string;
 
-export function getDefaultValue(elementTypeId: string, attributeName: string): any {
+export function getDefaultValue(elementTypeId: string, attributeName: string, annotations: Annotation[]): any {
     const definition = getAttribute(elementTypeId, attributeName);
     if (definition === undefined) {
-        throw new Error(
-            `Cannot get definition for attribute ${attributeName} of ${elementTypeId}.`
-        );
+        throw new Error(`Cannot get definition for attribute ${attributeName} of ${elementTypeId}.`);
     }
-    return definition.defaultValue ?? getFallbackDefaultValue(definition.type);
+    return definition.defaultValue ?? getFallbackDefaultValue(definition.type, annotations);
 }
 
-export function getFallbackDefaultValue(type: string): any {
-    return getFallbackDefaultValueRecursive(type, []);
+export function getFallbackDefaultValue(type: string, annotations: Annotation[]): any {
+    return getFallbackDefaultValueRecursive(type, [], annotations);
 }
 
-function getFallbackDefaultValueRecursive(
-    type: string,
-    ancestorTypes: string[]
-): any {
+function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[], annotations: Annotation[]): any {
     switch (type) {
         case 'string':
-            return '';
+            if (annotations.filter(a => a.name === 'color').length > 0) {
+                return getFallbackDefaultValue('color', annotations);
+            } else if (annotations.filter(a => a.name === 'file').length > 0) {
+                return getFallbackDefaultValue('file', annotations);
+            } else if (annotations.filter(a => a.name === 'date').length > 0) {
+                return getFallbackDefaultValue('date', annotations);
+            } else {
+                return '';
+            }
         case 'number':
             return 0;
         case 'boolean': {
             return false;
+        }
+        case 'date':
+        case 'Date': {
+            const currentDate = new Date();
+            const defaultDayComponents = currentDate
+                .toLocaleDateString()
+                .split('.')
+                .map(entry => (entry.length === 1 ? '0' + entry : entry));
+            const defaultDate = defaultDayComponents.reverse().join('-');
+            return defaultDate;
+        }
+        case 'color':
+        case 'Color': {
+            return '#FFFFFF';
+        }
+        case 'file':
+        case 'File': {
+            return '';
         }
         default: {
             const typeDefinition = getCustomType(type);
@@ -78,8 +105,7 @@ function getFallbackDefaultValueRecursive(
             } else if (Enum.is(typeDefinition)) {
                 return typeDefinition.literals[0];
             } else if (UserDefinedType.is(typeDefinition)) {
-                const newAncestorTypes =
-                    ancestorTypes.concat([typeDefinition.elementTypeId]);
+                const newAncestorTypes = ancestorTypes.concat([typeDefinition.elementTypeId]);
                 const defaultObject: any = {};
                 for (const child of typeDefinition.attributes) {
                     if (child.defaultValue !== undefined) {
@@ -94,8 +120,7 @@ function getFallbackDefaultValueRecursive(
                     if (bounds.lowerBound > 0 && newAncestorTypes.includes(child.type)) {
                         // Recursive user-defined type with non-zero lower
                         // bound, cannot build default value.
-                        defaultObject[child.name] =
-                            childIsList ? [] : undefined;
+                        defaultObject[child.name] = childIsList ? [] : undefined;
 
                         continue;
                     }
@@ -103,12 +128,12 @@ function getFallbackDefaultValueRecursive(
                     if (childIsList) {
                         const defaultValues = [];
                         for (let i = 0; i++; i < bounds.lowerBound) {
-                            defaultValues.push(getFallbackDefaultValue(child.type));
+                            defaultValues.push(getFallbackDefaultValue(child.type, annotations));
                         }
                         defaultObject[child.name] = defaultValues;
                     } else {
                         if (bounds.lowerBound > 0) {
-                            defaultObject[child.name] = getFallbackDefaultValue(child.type);
+                            defaultObject[child.name] = getFallbackDefaultValue(child.type, annotations);
                         }
                     }
                 }
@@ -127,13 +152,10 @@ export function isList(attribute: Attribute): boolean {
 }
 
 export function findAttribute(attributes: Attribute[], name: string): Attribute {
-    const matchingAttributes =
-        attributes.filter(attribute => attribute.name === name);
+    const matchingAttributes = attributes.filter(attribute => attribute.name === name);
 
     if (matchingAttributes.length !== 1) {
-        throw new Error(
-            `Found ${matchingAttributes.length} attributes matching the name ${name}, expected 1.`
-        );
+        throw new Error(`Found ${matchingAttributes.length} attributes matching the name ${name}, expected 1.`);
     }
 
     return matchingAttributes[0];
