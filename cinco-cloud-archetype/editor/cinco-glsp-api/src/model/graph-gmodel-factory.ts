@@ -14,15 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { EdgeType, NodeType, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
-import {
-    GEdge,
-    GEdgeBuilder,
-    GGraph,
-    GModelElement,
-    GModelFactory,
-    GNode,
-    GNodeBuilder
-} from '@eclipse-glsp/server';
+import { GEdge, GEdgeBuilder, GGraph, GModelElement, GModelFactory, GNode, GNodeBuilder } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
 import { GraphModelState } from './graph-model-state';
@@ -102,8 +94,8 @@ export class GraphGModelFactory implements GModelFactory {
 
         const routerKind = spec?.view?.routerKind;
 
-        if (edge.sourceIDs.length === 1) {
-            const sourceID = edge.sourceIDs[0];
+        if (edge.sourceIDs().length === 1) {
+            const sourceID = edge.sourceIDs()[0];
             const builder = GEdge.builder() //
                 .type(edge.type)
                 .id(edge.id)

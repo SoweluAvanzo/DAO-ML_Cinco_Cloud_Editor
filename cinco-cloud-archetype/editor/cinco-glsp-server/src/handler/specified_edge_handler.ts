@@ -43,7 +43,7 @@ export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
         const edge = new Edge();
         edge.type = elementTypeId;
         edge.initializeProperties();
-        edge.sourceID = sourceID;
+        edge.assignSourceID(sourceID);
         edge.targetID = targetID;
         return edge;
     }

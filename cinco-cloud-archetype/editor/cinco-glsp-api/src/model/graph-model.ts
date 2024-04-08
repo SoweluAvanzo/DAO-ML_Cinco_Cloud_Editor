@@ -388,7 +388,7 @@ export class Node extends ModelElement {
 
     get predecessors(): Node[] {
         const edges = this.incomingEdges;
-        return [...new Set(edges.flatMap(edge => edge.sources))];
+        return [...new Set(edges.flatMap(edge => edge.sources()))];
     }
 
     get outgoingEdges(): Edge[] {
@@ -553,25 +553,25 @@ export class Edge extends ModelElement {
     targetID: string;
     _routingPoints: RoutingPoint[];
 
-    get sourceIDs(): string[] {
+    sourceIDs(): string[] {
         return cellValues(this.sourceIDAssignments);
     }
 
-    set sourceID(sourceID: string) {
+    assignSourceID(sourceID: string): void {
         this.sourceIDAssignments = assignValue(sourceID);
         this.markEdited();
     }
 
-    set sourceIDs(sourceIDs: string[]) {
+    assignSourceIDs(sourceIDs: string[]): void {
         this.sourceIDAssignments = assignValues(sourceIDs);
         this.markEdited();
     }
 
-    get sources(): Node[] {
+    sources(): Node[] {
         return cellValues(this.sourceIDAssignments).map(sourceID => {
             const node = this.index!.findNode(sourceID);
             if (!node) {
-                throw new Error("Edge with id '" + this.id + "' has an undefined source!");
+                throw new Error(`Edge with id ${this.id} has an undefined sourceID ${sourceID}.`);
             }
             return node;
         });
@@ -581,7 +581,7 @@ export class Edge extends ModelElement {
         const id = this.targetID;
         const node = this.index!.findNode(id);
         if (!node) {
-            throw new Error("Edge with id '" + this.id + "' has an undefined target!");
+            throw new Error("Edge with id '" + this.id + "' has an undefined target.");
         }
         return node;
     }

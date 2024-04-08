@@ -51,7 +51,7 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
         const source = index.findNode(gSource.id);
         const target = index.findNode(gTarget.id);
         if (source && target && edge.canConnectToSource(source, _ => false) && edge.canConnectToTarget(target, _ => false)) {
-            edge.sourceID = gSource.id;
+            edge.assignSourceID(gSource.id);
             edge.targetID = gTarget.id;
             edge.routingPoints = [];
         } else {
