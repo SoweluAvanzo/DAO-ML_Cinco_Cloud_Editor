@@ -84,6 +84,19 @@ export class ModelElement implements IdentifiableElement {
     _size?: Size;
     protected _attributes: Record<string, any>;
     protected _view?: View;
+    protected deletedAssignments: Assignments<boolean>;
+
+    markEdited(): void {
+        this.deletedAssignments = assignValue(false);
+    }
+
+    delete(): void {
+        this.deletedAssignments = assignValue(true);
+    }
+
+    restore(): void {
+        this.deletedAssignments = assignValue(false);
+    }
 
     get index(): GraphModelIndex {
         if (!this._index) {
@@ -539,7 +552,6 @@ export class Edge extends ModelElement {
     sourceIDAssignments: Assignments<string>;
     targetID: string;
     _routingPoints: RoutingPoint[];
-    deletedAssignments: Assignments<boolean>;
 
     get sourceIDs(): string[] {
         return cellValues(this.sourceIDAssignments);
@@ -547,20 +559,12 @@ export class Edge extends ModelElement {
 
     set sourceID(sourceID: string) {
         this.sourceIDAssignments = assignValue(sourceID);
-        this.deletedAssignments = assignValue(false);
+        this.markEdited();
     }
 
     set sourceIDs(sourceIDs: string[]) {
         this.sourceIDAssignments = assignValues(sourceIDs);
-        this.deletedAssignments = assignValue(false);
-    }
-
-    delete(): void {
-        this.deletedAssignments = assignValue(true);
-    }
-
-    restore(): void {
-        this.deletedAssignments = assignValue(false);
+        this.markEdited();
     }
 
     get sources(): Node[] {
