@@ -9,17 +9,17 @@ stylePath "./Empty.style"
 // - modelElementReference-fields are not updated correctly when another modelelement is selected
 // NOTE:
 // - rgba is not supported by the html-input-tag, only rgb. The internal code supports rgba, but not the element.
- 
+
 graphModel Attributes {
 	diagramExtension "attributes"
-	containableElements (AttributeNode, AttributeContainer)
+	// containableElements (AttributeNode, AttributeContainer)
 	
-	/*
-	 * Attributes
-	 */
 
 	attr string as name
 
+	/*
+	 * Attributes
+	 */
 	// string
 	attr string as attrString
 	attr string as attrStringDefault := "fooString"
@@ -218,6 +218,12 @@ graphModel Attributes {
 node OverridingAttributeNode extends AbstractAttributeNode2 {
 	style redCircle
 	// TODO: polymorphieTest: should override attributes from all ancestors
+
+	// to override
+	override toOverrideString := "this should be overriden"
+	override toOverrideNumber := 1.0
+	override toOverrideBool := false
+	
 }
 
 node ExtendingAttributeNode extends AbstractAttributeNode2 {
@@ -243,7 +249,13 @@ node AttributeNode {
 	 */
 
 	attr string as name
-
+	
+	// to override
+	attr string as toOverrideString := "this should be overriden"
+	attr number as toOverrideNumber := 1.0
+	attr boolean as toOverrideBool := false
+	
+	
 	// string
 	attr string as attrString
 	attr string as attrStringDefault := "fooString"
