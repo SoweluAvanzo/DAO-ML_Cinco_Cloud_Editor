@@ -38,7 +38,9 @@ import {
     initializeDiagramContainer,
     ContainerConfiguration,
     bindOrRebind,
-    SetContextActions
+    SetContextActions,
+    configureModelElement,
+    GNode
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -64,6 +66,7 @@ import { CincoRestoreViewportHandler } from './glsp/cinco-viewport-handler';
 import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette';
 import { EnvironmentProvider } from './api/environment-provider';
 import { CincoToolPaletteUpdateHandler } from './glsp/cinco-tool-palette-update-handler';
+import { MarkerEdgeSourceTargetConflictView } from './views/marker-edge-source-target-conflict-view';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -153,6 +156,7 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
 
     configureDefaultModelElements(context);
+    configureModelElement(context, 'marker:edge-source-target-conflict', GNode, MarkerEdgeSourceTargetConflictView);
 
     bind(TYPES.IDiagramStartup).toService(EnvironmentProvider);
 });
