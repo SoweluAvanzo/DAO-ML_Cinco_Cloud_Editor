@@ -62,17 +62,27 @@ export class MglValidator {
         if (modelElement.defaultValueOverrides) {
             for (const defaultValueOverride of modelElement.defaultValueOverrides) {
                 // Check if DefaultValueOverride references an AttributeDefinition from an inherited node
-                const attributeName = defaultValueOverride.attribute
+                const attributeName = defaultValueOverride.attribute;
                 if (!this.isDefinedAttribute(modelElement, attributeName)) {
-                    acceptor('error', "Overriding Attribute name '$attributeName' is not a valid local or inherited attribute.", { node: defaultValueOverride, property: 'attribute' })
+                    acceptor('error', "Overriding Attribute is not a valid local or inherited attribute.", { node: defaultValueOverride, property: 'attribute' })
+                }
+                if(modelElement.defaultValueOverrides.filter(d => d.attribute === attributeName).length > 1) {
+                    acceptor('error', "Overriding Attribute is a duplicate.", { node: defaultValueOverride, property: 'attribute' })
+                }
+            }
+            for(const attribute of modelElement.attributes) {
+                // Check if DefaultValueOverride references an AttributeDefinition from an inherited node
+                const attributeName = attribute.name;
+                if (this.isDefinedAttribute(modelElement, attributeName, true)) {
+                    acceptor('error', "Attribute is a duplicate. It is either defined locally or an inherited attribute. Use 'override <attributeName>' to override it.", { node: attribute, property: 'name' })
                 }
             }
         }
     } 
 
-    isDefinedAttribute(modelElement: ComplexModelElement, attributeName: string): boolean {
+    isDefinedAttribute(modelElement: ComplexModelElement, attributeName: string, checkDuplicate = false): boolean {
         // Check if the attribute is defined locally in this node
-        if (modelElement.attributes.filter(a => a.name == attributeName).length > 0) {
+        if (modelElement.attributes.filter(a => a.name == attributeName).length > (checkDuplicate ? 1 : 0)) {
             return true
         }
         // Check if the attribute is inherited from parent nodes
