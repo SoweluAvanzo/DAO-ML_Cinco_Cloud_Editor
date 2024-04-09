@@ -12,8 +12,7 @@ stylePath "./Empty.style"
 
 graphModel Attributes {
 	diagramExtension "attributes"
-	// containableElements (AttributeNode, AttributeContainer)
-	
+	containableElements (AttributeNode, AttributeContainer)
 
 	attr string as name
 
@@ -217,18 +216,16 @@ graphModel Attributes {
  */
 node OverridingAttributeNode extends AbstractAttributeNode2 {
 	style redCircle
-	// TODO: polymorphieTest: should override attributes from all ancestors
 
 	// to override
 	override toOverrideString := "this should be overriden"
 	override toOverrideNumber := 1.0
 	override toOverrideBool := false
-	
 }
 
 node ExtendingAttributeNode extends AbstractAttributeNode2 {
 	style redCircle
-	// polymorphieTest: should have attributes from all ancestors
+	// polymorphieTest - should have attributes from all ancestors
 }
 
 node AbstractAttributeNode2 extends AbstractAttributeNode1 {
@@ -254,7 +251,6 @@ node AttributeNode {
 	attr string as toOverrideString := "this should be overriden"
 	attr number as toOverrideNumber := 1.0
 	attr boolean as toOverrideBool := false
-	
 	
 	// string
 	attr string as attrString
@@ -453,7 +449,10 @@ node AttributeNode {
  */
 
 type OverridingAttributeType extends AbstractAttributeType2 {
-	// TODO: polymorphieTest: should override attributes from all ancestors
+	// to override
+	override toOverrideString := "this should be overriden"
+	override toOverrideNumber := 1.0
+	override toOverrideBool := false
 }
 
 type ExtendingAttributeType extends AbstractAttributeType2 {
@@ -474,6 +473,11 @@ type AttributeType {
 	 */
 
 	attr string as name
+
+	// to override
+	attr string as toOverrideString := "this should be overriden"
+	attr number as toOverrideNumber := 1.0
+	attr boolean as toOverrideBool := false
 
 	// string
 	attr string as attrString
