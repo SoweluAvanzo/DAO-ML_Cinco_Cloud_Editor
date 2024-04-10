@@ -214,13 +214,22 @@ graphModel Attributes {
 /*
  * Node Polymorphie Test (Should be representative for Containers and Edges)
  */
-node OverridingAttributeNode extends AbstractAttributeNode2 {
+node OverridingAttributeNode2 extends OverridingAttributeNode1 {
+	style redCircle
+
+	// this should also have all the (overriden) attributes of OverridingAttributeNode1
+}
+
+/*
+ * Node Polymorphie Test (Should be representative for Containers and Edges)
+ */
+node OverridingAttributeNode1 extends AbstractAttributeNode2 {
 	style redCircle
 
 	// to override
 	override toOverrideString := "this should be overriden"
-	override toOverrideNumber := 1.0
-	override toOverrideBool := false
+	override toOverrideNumber := 42.0
+	override toOverrideBool := TRUE // This will be 'true' in the translated artifact
 }
 
 node ExtendingAttributeNode extends AbstractAttributeNode2 {
@@ -248,7 +257,7 @@ node AttributeNode {
 	attr string as name
 	
 	// to override
-	attr string as toOverrideString := "this should be overriden"
+	attr string as toOverrideString := "this needs to be overriden"
 	attr number as toOverrideNumber := 1.0
 	attr boolean as toOverrideBool := false
 	
@@ -448,11 +457,15 @@ node AttributeNode {
  * Type Polymorphie Test
  */
 
-type OverridingAttributeType extends AbstractAttributeType2 {
+type OverridingAttributeType2 extends OverridingAttributeType1 {
+	// this should also have all the (overriden) attributes of OverridingAttributeNode1
+}
+
+type OverridingAttributeType1 extends AbstractAttributeType2 {
 	// to override
 	override toOverrideString := "this should be overriden"
-	override toOverrideNumber := 1.0
-	override toOverrideBool := false
+	override toOverrideNumber := 42.0
+	override toOverrideBool := True // this should be 'true' in the translated artifact
 }
 
 type ExtendingAttributeType extends AbstractAttributeType2 {
@@ -475,7 +488,7 @@ type AttributeType {
 	attr string as name
 
 	// to override
-	attr string as toOverrideString := "this should be overriden"
+	attr string as toOverrideString := "this needs to be overriden"
 	attr number as toOverrideNumber := 1.0
 	attr boolean as toOverrideBool := false
 

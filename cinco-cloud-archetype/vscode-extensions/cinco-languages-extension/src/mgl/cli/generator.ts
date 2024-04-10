@@ -66,7 +66,7 @@ import { createMslServices } from "../../msl/language-server/msl-module";
 import { extractAstNode } from "../../msl/cli/cli-util";
 import { Styles } from "../../generated/ast";
 import { NodeFileSystem } from "langium/node";
-import { ContainerType, Specification } from "../model/specification-types";
+import { Attribute, ContainerType, Specification } from "../model/specification-types";
 import { isWebView } from "../../generated/ast";
 import { WebView } from "../../generated/ast";
 import path from "path";
@@ -221,6 +221,21 @@ export class MGLGenerator {
 
     if (!isEnum(modelElement)) {
       // Attributes
+      // check inherited attributes for override
+      if(modelElementSpec.attributes && modelElement.defaultValueOverrides) {
+        modelElementSpec.attributes = modelElementSpec.attributes.map((attribute: Attribute) => {
+          const overrides = modelElement.defaultValueOverrides.filter(o => o.attribute === attribute.name);
+          if(overrides.length > 0) {
+            // is overriden
+            const overridenAttribute = attribute;
+            overridenAttribute.defaultValue = ""+overrides[0].defaultValue;
+            return overridenAttribute;
+          } else {
+            return attribute;
+          }
+        });
+      }
+      // add new
       modelElementSpec.attributes = mergeArrays(
         modelElementSpec.attributes,
         modelElement.attributes.map((attribute) => {
@@ -242,9 +257,6 @@ export class MGLGenerator {
 
           if (isPrimitiveAttribute(attribute)) {
             result.type = attribute.dataType;
-            if(attribute.dataType === 'boolean' && result.defaultValue && typeof(result.defaultValue) == 'string') {
-              result.defaultValue = result.defaultValue.toLowerCase();
-            }
           } else if (isComplexAttribute(attribute)) {
             const type = attribute.type.ref;
             if (type === undefined) {
@@ -252,11 +264,17 @@ export class MGLGenerator {
             }
             result.type = getElementTypeId(type);
           }
-
           return result;
         }),
         "name"
       );
+      // normalize (e.g. boolean 'True' -> 'true')
+      modelElementSpec.attributes = modelElementSpec.attributes.map((attribute: any) => {
+        if(attribute.type === 'boolean' && attribute.defaultValue && typeof(attribute.defaultValue) == 'string') {
+          attribute.defaultValue = attribute.defaultValue.toLowerCase();
+        }
+        return attribute;
+      })
     }
 
     // handle containment constraints
