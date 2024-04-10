@@ -2,11 +2,15 @@ id info.scce.cinco.product.attributes
 stylePath "./Empty.style"
 
 // Not implemented:
-// - unique not implemented (UUID generated?)
-// - external modelElementReference
+// - unique-keyword not implemented (UUID generated?)
+// - checking of external modelElementReference
 //
 // TODO:
-// - modelElementReference-fields are not updated correctly when another modelelement is selected
+// - modelelement reference, can not yet resolve polymorphie. This needs to be resolved at the attribute (eager)
+//	by taking a set of compatible types (derived from the specified type, taking the subtypes)) as referencable
+//	or (lazy) by adding all supertypes of an entity into it's entry in the meta-specification and evaluating it at
+//  runtime in the properties-view
+//
 // NOTE:
 // - rgba is not supported by the html-input-tag, only rgb. The internal code supports rgba, but not the element.
 
