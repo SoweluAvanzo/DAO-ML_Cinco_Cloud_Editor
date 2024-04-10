@@ -1,7 +1,7 @@
 id info.scce.cinco.product.attributes
 stylePath "./Empty.style"
 
-// Not implemented:
+// Not implemented (no relevant use-case to-date):
 // - unique-keyword not implemented (UUID generated?)
 // - checking of external modelElementReference
 //
@@ -11,7 +11,7 @@ stylePath "./Empty.style"
 //	or (lazy) by adding all supertypes of an entity into it's entry in the meta-specification and evaluating it at
 //  runtime in the properties-view
 //
-// NOTE:
+// Won't fix (probably self resolving):
 // - rgba is not supported by the html-input-tag, only rgb. The internal code supports rgba, but not the element.
 
 graphModel Attributes {
