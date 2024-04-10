@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { EdgeType, NodeType, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
+import { EdgeType, NodeType, Point, Size, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
 import { GEdge, GGraph, GModelElement, GModelFactory, GNode, GNodeBuilder } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
@@ -101,7 +101,7 @@ export class GraphGModelFactory implements GModelFactory {
                         this.markerEdgeSourceTargetConflictID(edge.id)
                     )
                 );
-            const conflictMarker = this.buildConflictMarker(edge.id);
+            const conflictMarker = this.buildConflictMarker(edge);
             const targetSegment = this.buildEdgeSegment(
                 edge,
                 this.edgeTargetSegmentID(edge.id, edge.targetID),
@@ -132,12 +132,44 @@ export class GraphGModelFactory implements GModelFactory {
         return builder.build();
     }
 
-    protected buildConflictMarker(edgeID: string): GNode {
+    protected buildConflictMarker(edge: Edge): GNode {
         return GNode.builder()
             .type('marker:edge-source-target-conflict')
-            .id(this.markerEdgeSourceTargetConflictID(edgeID))
-            .position(0, 0)
+            .id(this.markerEdgeSourceTargetConflictID(edge.id))
+            .position(this.calculateConflictMarkerPosition(edge.sources(), [edge.target]))
             .build();
+    }
+    protected calculateConflictMarkerPosition(sources: Node[], targets: Node[]): Point {
+        const sourcePositions: Point[] = this.nodeCenterPoints(sources);
+        const targetPositions: Point[] = this.nodeCenterPoints(targets);
+        const markerCenter = this.positionAverage([this.positionAverage(sourcePositions), this.positionAverage(targetPositions)]);
+
+        return {
+            x: markerCenter.x - 40 / 2, // TODO: Replace 40 with global constant
+            y: markerCenter.y - 40 / 2 // TODO: Replace 40 with global constant
+        };
+    }
+
+    protected nodeCenterPoints(nodes: Node[]): Point[] {
+        return Array.from(nodes).map(node => this.centerPoint(node.position, node._size ?? { width: 0, height: 0 }));
+    }
+
+    protected centerPoint(position: Point, size: Size): Point {
+        return {
+            x: position.x + size.width / 2,
+            y: position.y + size.height / 2
+        };
+    }
+
+    protected positionAverage(points: Point[]): Point {
+        return {
+            x: this.average(points.map(point => point.x)),
+            y: this.average(points.map(point => point.y))
+        };
+    }
+
+    protected average(values: number[]): number {
+        return values.reduce((a, b) => a + b, 0) / values.length;
     }
 
     protected edgeSourceSegmentID(edgeID: string, nodeID: string): string {
