@@ -14,23 +14,38 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Container, GraphModel, GraphModelIndex, Node } from '@cinco-glsp/cinco-glsp-api';
-import { ModelElementContainer, getNodeSpecOf, getNodeTypes, NodeType } from '@cinco-glsp/cinco-glsp-common';
+import { ModelElementContainer, getNodeSpecOf, getNodeTypes, NodeType, CreateNodeArgument, HookTypes } from '@cinco-glsp/cinco-glsp-common';
 import { CreateNodeOperation, Point } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { AbstractSpecifiedNodeElementHandler } from './specified_element_handler';
+import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
+    protected hookManager: HookManager;
     override BLACK_LIST: string[] = [];
 
     override executeOperation(operation: CreateNodeOperation): void {
         // find container
         const container: Container | GraphModel | undefined = this.getValidConstrainedContainer(operation);
-        if (container === undefined) {
+        const parameters: CreateNodeArgument = {
+            kind: 'Create',
+            modelElementId: '<NONE>',
+            elementKind: 'Node',
+            containerElementId: container ? container.id : '<NONE>',
+            elementTypeId: operation.elementTypeId,
+            location: operation.location,
+            operation: operation
+        };
+
+        if (!this.hookManager) {
+            this.hookManager = HookManager.getInstance();
+        }
+        if (container === undefined || !this.hookManager.executeHook(parameters, HookTypes.CAN_CREATE)) {
             return;
         }
         // pre hook
-        this.preCreateHook(operation.elementTypeId, container.id, operation.location);
+        this.hookManager.executeHook(parameters, HookTypes.PRE_CREATE);
         // creation
         const elementTypeId = operation.elementTypeId;
         const relativeLocation = this.getRelativeLocation(operation) ?? Point.ORIGIN;
@@ -38,7 +53,9 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
         node.index = container.index;
         container.containments.push(node);
         // post hook
-        this.postCreateHook(node);
+        parameters.modelElementId = node.id;
+        parameters.modelElement = node;
+        this.hookManager.executeHook(parameters, HookTypes.POST_CREATE);
         this.saveAndUpdate();
     }
 
@@ -89,36 +106,4 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
         return result;
     }
 
-    protected preCreateHook(elementTypeId: string, containerId: string, location: Point | undefined): void {
-        // TODO: preCreate
-        return;
-    }
-
-    protected postCreateHook(node: Node): void {
-        // TODO: generalize postCreate
-        if (node.type !== 'flowgraph:activity') {
-            return;
-        }
-        const activityNames = [
-            'Close',
-            'Fix',
-            'Give',
-            'Look at',
-            'Open',
-            'Pick up',
-            'Pull',
-            'Push',
-            'Put on',
-            'Read',
-            'Take off',
-            'Talk to',
-            'Turn off',
-            'Turn on',
-            'Unlock',
-            'Use',
-            'Walk to'
-        ];
-        const randomActivityName = activityNames[Math.trunc((Math.random() * 10000) % activityNames.length)];
-        node.setProperty('name', randomActivityName);
-    }
 }

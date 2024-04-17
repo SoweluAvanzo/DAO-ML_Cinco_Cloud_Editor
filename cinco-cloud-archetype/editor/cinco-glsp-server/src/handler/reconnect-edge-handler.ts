@@ -13,6 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { HookTypes, ReconnectArgument } from '@cinco-glsp/cinco-glsp-common';
+import { HookManager } from '../tools/hook-manager';
 import { GEdge, GLSPServerError, GNode, ReconnectEdgeOperation } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
@@ -20,8 +22,19 @@ import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 @injectable()
 export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
     operationType = ReconnectEdgeOperation.KIND;
+    protected hookManager: HookManager;
 
     executeOperation(operation: ReconnectEdgeOperation): void {
+        if(!this.hookManager){
+            this.hookManager = HookManager.getInstance();
+        }
+        const reconnectArguments: ReconnectArgument = {
+            kind: 'Reconnect',
+            operation: operation,
+            sourceId: operation.sourceElementId,
+            targetId: operation.targetElementId,
+            modelElementId: operation.edgeElementId
+        };
         if (!operation.edgeElementId || !operation.sourceElementId || !operation.targetElementId) {
             throw new GLSPServerError('Incomplete reconnect connection action');
         }
@@ -50,10 +63,18 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
 
         const source = index.findNode(gSource.id);
         const target = index.findNode(gTarget.id);
-        if (source && target && edge.canConnectToSource(source, _ => false) && edge.canConnectToTarget(target, _ => false)) {
+        if (
+            source &&
+            target &&
+            edge.canConnectToSource(source, _ => false) &&
+            edge.canConnectToTarget(target, _ => false) &&
+            this.hookManager.executeHook(reconnectArguments,HookTypes.CAN_RECONNECT)
+        ) {
+            this.hookManager.executeHook(reconnectArguments,HookTypes.PRE_RECONNECT);
             edge.sourceID = gSource.id;
             edge.targetID = gTarget.id;
             edge.routingPoints = [];
+            this.hookManager.executeHook(reconnectArguments,HookTypes.POST_RECONNECT);
         } else {
             throw new Error(`Could not change source and target of edge: ${edge.id}`);
         }

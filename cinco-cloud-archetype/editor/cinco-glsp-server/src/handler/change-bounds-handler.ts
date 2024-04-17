@@ -14,17 +14,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
 import { ChangeBoundsOperation, Dimension, GNode, Point } from '@eclipse-glsp/server';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
+import {ResizeArgument, HookTypes, MoveArgument} from '@cinco-glsp/cinco-glsp-common';
+import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class ChangeBoundsHandler extends CincoJsonOperationHandler {
     readonly operationType = ChangeBoundsOperation.KIND;
 
-    @inject(GraphModelState)
-    override readonly modelState: GraphModelState;
+    protected hookManager: HookManager;
 
     override executeOperation(operation: ChangeBoundsOperation): void {
         for (const element of operation.newBounds) {
@@ -37,10 +37,43 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
         const node = index.findByClass(elementId, GNode);
         const nodeObj = node ? index.findNode(node.id) : undefined;
         if (nodeObj) {
-            nodeObj.size = newSize;
-            if (newPosition) {
+            if (newSize !== nodeObj.size) {
+                const parameters: ResizeArgument = {
+                    modelElementId: elementId,
+                    kind: 'Resize',
+                    newSize: newSize,
+                    oldSize: nodeObj.size
+                };
+                if(!this.hookManager){
+                    this.hookManager = HookManager.getInstance();
+                }
+                if (this.canResize(newSize, parameters)) {
+                    this.hookManager.executeHook(parameters, HookTypes.PRE_RESIZE);
+                    nodeObj.size = newSize;
+                    this.hookManager.executeHook(parameters, HookTypes.POST_RESIZE);
+                }
+            }
+            const moveParameters: MoveArgument = {
+                kind: 'Move',
+                modelElementId: elementId,
+                newPosition: newPosition,
+                oldPosition: nodeObj.position
+            };
+
+            if (newPosition && this.canMove( moveParameters)) {
+                this.hookManager.executeHook(moveParameters, HookTypes.PRE_MOVE);
                 nodeObj.position = newPosition;
+                this.hookManager.executeHook(moveParameters, HookTypes.POST_MOVE);
             }
         }
     }
+
+    private canMove(parameters: MoveArgument): boolean {
+        return this.hookManager.executeHook(parameters, HookTypes.CAN_MOVE);
+    }
+
+    private canResize(newSize: Dimension, parameters: ResizeArgument): boolean {
+        return this.hookManager.executeHook(parameters, HookTypes.CAN_RESIZE);
+    }
 }
+

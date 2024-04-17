@@ -24,14 +24,18 @@ import {
     canDelete,
     findAttribute,
     getUserDefinedType,
-    isList
+    isList,
+    AttributeChangeArgument,
+    HookTypes
 } from '@cinco-glsp/cinco-glsp-common';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
+import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class PropertyEditHandler extends CincoJsonOperationHandler {
     operationType = PropertyEditOperation.KIND;
+    protected hookManager: HookManager;
 
     override executeOperation(operation: PropertyEditOperation): void {
         const { modelElementId, pointer, name, change } = operation;
@@ -40,12 +44,22 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             // element is maybe contained inside another graphmodel
             return;
         }
+        const parameters: AttributeChangeArgument = {
+            kind: 'AttributeChange',
+            modelElementId: modelElementId,
+            oldValue: element.getProperty(name),
+            operation: operation
+        };
+        if(!this.hookManager){
+            this.hookManager = HookManager.getInstance();
+        }
         const { attributes, object } = this.locateObject(element, pointer);
         const attributeDefinition: Attribute = findAttribute(attributes, name);
-        if (!this.checkConstraint(object, attributeDefinition, change)) {
+        if (!this.checkConstraint(object, attributeDefinition, change, parameters)) {
             throw new Error('Property can not be changed. It violates a constraint!');
         }
         if (element !== undefined) {
+            this.hookManager.executeHook(parameters, HookTypes.PRE_ATTRIBUTE_CHANGE);
             switch (change.kind) {
                 case 'addValue': {
                     const { defaultValue } = change;
@@ -110,13 +124,14 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
                     break;
                 }
             }
+            this.hookManager.executeHook(parameters, HookTypes.POST_ATTRIBUTE_CHANGE);
         }
     }
 
     /**
      * @returns boolean value. true, iff the next change is still in the constraints range.
      */
-    checkConstraint(hostObject: any, attributeDefinition: Attribute, change: PropertyChange): boolean {
+    checkConstraint(hostObject: any, attributeDefinition: Attribute, change: PropertyChange, parameters: AttributeChangeArgument): boolean {
         const propertyName = attributeDefinition.name;
         const bounds = attributeDefinition.bounds ?? { lowerBound: 1.0, upperBound: 1.0 };
         if (!isList(attributeDefinition)) {
@@ -130,6 +145,10 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             list = hostObject[propertyName] ?? [];
         }
         const listLength = list.length;
+        const canSetValue = this.hookManager.executeHook(parameters, HookTypes.CAN_CHANGE_ATTRIBUTE);
+        if(!canSetValue) {
+            return false;
+        }
         switch (change.kind) {
             case 'addValue': {
                 return canAdd(listLength + 1, bounds);

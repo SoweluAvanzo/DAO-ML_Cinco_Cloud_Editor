@@ -55,6 +55,7 @@ import { PropertyEditHandler } from '../handler/property-edit-handler';
 import { GeneratorCreateFileHandler } from '../handler/generator-create-file-handler';
 import { PropertyViewHandler } from '../handler/property-view-handler';
 import { CompoundHandler } from '../handler/compound-handler';
+import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -78,6 +79,7 @@ export class CincoDiagramModule extends DiagramModule {
 
     protected override configureActionHandlers(binding: InstanceMultiBinding<ActionHandlerConstructor>): void {
         super.configureActionHandlers(binding);
+        binding.add(HookManager);
         binding.add(ServerResponseHandler); // Response Handle for e.g. Dialogs
         binding.add(ComputedBoundsActionHandler);
         binding.add(CustomActionManager); // CustomAction

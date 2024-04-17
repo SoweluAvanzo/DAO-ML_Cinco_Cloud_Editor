@@ -1114,6 +1114,22 @@
           "values": ["ExampleAppearanceProvider"]
         },
         {
+          "name": "Hook",
+          "values": [
+            "ActivityHooks",
+            "PostCreate",
+            "CanChangeAttribute",
+            "PostAttributeChange",
+            "PreAttributeChange",
+            "CanMove",
+            "PreMove",
+            "PostMove",
+            "CanResize",
+            "PreResize",
+            "PostResize"
+          ]
+        },
+        {
           "name": "palette",
           "values": ["PaletteAnnotationGroup", "icons/icon_flowgraph_activity.png"]
         },
@@ -1484,6 +1500,12 @@
           "type": "string",
           "defaultValue": "",
           "final": false
+        }
+      ],
+      "annotations": [
+        {
+          "name": "Hook",
+          "values": ["TransitionHooks", "PostDelete", "CanDelete", "PreDelete", "CanCreate"]
         }
       ]
     },

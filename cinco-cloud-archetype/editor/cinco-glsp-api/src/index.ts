@@ -31,3 +31,5 @@ export * from './model/graph-model-state';
 export * from './model/graph-storage';
 export * from './tools/server-dialog-response-handler';
 export * from './utils/file-helper';
+export * from './api/hook-handler';
+export * from './hook-registry';

@@ -14,10 +14,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { HookTypes } from './protocol/hooks/hook-types';
 import { hasArrayProp, hasBooleanProp, hasNumberProp, hasObjectProp, hasStringProp } from './protocol/type-utils';
 
 /**
- * Datamodell
+ * Data model
  */
 
 export namespace MetaSpecification {
@@ -901,6 +902,18 @@ export function getAllHandlerNames(): string[] {
         }
     }
     return handlerNames;
+}
+
+export function hasHooks(elementTypeId: string): boolean {
+    return hasAnnotation(elementTypeId,'Hook');
+}
+
+export function getHooks(elementTypeId: string, hookType: HookTypes): string[][] {
+    return getAllHooks(elementTypeId).filter((value: string[]) => value.includes(hookType.valueOf()));
+}
+
+export function getAllHooks(elementTypeId: string): string[][] {
+    return getAnnotationValues(elementTypeId, 'Hook');
 }
 
 export function isResizeable(type: string): boolean {

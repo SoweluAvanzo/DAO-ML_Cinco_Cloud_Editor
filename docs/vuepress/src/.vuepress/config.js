@@ -70,6 +70,10 @@ module.exports = {
           {
             title: 'Building Cinco products',
             path: '/content/user-guide/building-cinco-products/'
+          },
+          {
+            title: 'Creating Cinco Hooks',
+            path: '/content/user-guide/cinco-hooks/'
           }
         ]
       },
