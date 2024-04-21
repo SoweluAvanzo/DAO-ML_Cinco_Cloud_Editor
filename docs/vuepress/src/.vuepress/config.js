@@ -45,8 +45,16 @@ module.exports = {
     lastUpdated: true,
     nav: [
       {
-        text: 'Guide',
-        link: '/content/introduction/',
+        text: 'User Guide',
+        link: '/content/user-guide/building-cinco-products/',
+      },
+      {
+        text: 'Developer Guide',
+        link: '/content/developer-guide/overview/',
+      },
+      {
+        text: 'Operator Guide',
+        link: '/content/operator-guide/',
       },
       {
         text: 'CincoCloud@GitLab',
