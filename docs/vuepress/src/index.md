@@ -1,8 +1,8 @@
 ---
 home: true
-heroImage: /assets/cinco-logo.png
+heroImage: /assets/cinco-cloud-logo.png
 tagline: Documentation for developing, operating and using CincoCloud.
-actionText: Quick Start →
+actionText: Get Started →
 actionLink: /content/introduction/
-footer: Made by LS5 TU Dortmund
+footer: Made by LS5 CS TU Dortmund & Friends
 ---
