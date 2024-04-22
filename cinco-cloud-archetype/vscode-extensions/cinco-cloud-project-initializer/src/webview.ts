@@ -7,7 +7,7 @@ export function getWebviewContent(context: vscode.ExtensionContext, panel: vscod
     const backgroundColor = isDarkTheme ? '#1E1E1E' : '#FFFFFF';
     const textColor = isDarkTheme ? '#D4D4D4' : '#333333';
 
-    const onDiskPath = vscode.Uri.joinPath(context.extensionUri, 'images', 'cinco_cloud_logo.png');
+    const onDiskPath = vscode.Uri.joinPath(context.extensionUri, 'images', 'cinco-cloud-logo.png');
     const logoSrc = panel.webview.asWebviewUri(onDiskPath);
 
     const exampleProjects = [
