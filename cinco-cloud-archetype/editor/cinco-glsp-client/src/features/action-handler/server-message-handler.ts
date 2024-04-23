@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { ServerDialogAction, ServerOutputAction } from '@cinco-glsp/cinco-glsp-common';
+import { ServerDialogAction, ServerOutputAction, CommandAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action, IActionDispatcher, IActionHandler, ILogger, TYPES } from '@eclipse-glsp/client';
 import { inject, injectable } from 'inversify';
 import { EnvironmentProvider, IEnvironmentProvider } from '../../api/environment-provider';
@@ -32,6 +32,8 @@ export class ServerMessageHandler implements IActionHandler {
             this.environmentProvider.handleLogging(action);
         } else if (ServerDialogAction.is(action)) {
             this.environmentProvider.showDialog(action);
+        } else if (CommandAction.is(action)) {
+            this.environmentProvider.handleCommand(action);
         }
     }
 }

@@ -14,7 +14,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { ElementType, getSpecOf, ServerDialogAction, ServerDialogResponse, ServerOutputAction } from '@cinco-glsp/cinco-glsp-common';
+import {
+    CommandAction,
+    ElementType,
+    getSpecOf,
+    ServerDialogAction,
+    ServerDialogResponse,
+    ServerOutputAction
+} from '@cinco-glsp/cinco-glsp-common';
 import {
     ActionDispatcher,
     Logger,
@@ -95,6 +102,17 @@ export abstract class APIBaseHandler {
         };
         const serverOutputAction = ServerOutputAction.create(channelName, message, o);
         this.actionDispatcher.dispatch(serverOutputAction);
+    }
+
+    /**
+     * Execute the vscode/theia command from within the semantics of a language.
+     * Can be used to dedicate semantics to a vscode extension.
+     * @param commandId id of the theia/vscode command
+     * @param args args to execute the command
+     */
+    executeCommand(commandId: string, args: any[]): Promise<void> {
+        const commandAction = CommandAction.create(commandId, args);
+        return this.actionDispatcher.dispatch(commandAction);
     }
 
     debug(message: Error | string | undefined): void {
