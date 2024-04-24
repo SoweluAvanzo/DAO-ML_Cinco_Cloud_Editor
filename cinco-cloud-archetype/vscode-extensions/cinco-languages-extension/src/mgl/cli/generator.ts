@@ -5,6 +5,7 @@ import {
   Alignment,
   Annotation,
   Color,
+  ComplexModelElement,
   ContainerShape,
   Edge,
   EdgeElementConnection,
@@ -135,7 +136,9 @@ export class MGLGenerator {
     // Handle all model elements; abstract definitions are handled separately
     const localSortedModelElements = sortedModelElements.filter(
       (e) => e.$container === model
-    ); // only generate for local, not external modelElements
+    );
+    
+    // only generate for local, not external modelElements
     for (const modelElement of localSortedModelElements) {
       let elementTypeId = "";
       if (!isEnum(modelElement) && modelElement.isAbstract) {
@@ -165,48 +168,50 @@ export class MGLGenerator {
     return JSON.stringify(this.specification, null, 4);
   }
 
+  // If extendable and parent exists, first copy its entire specifications and overwrite customizations afterwards
+  resolveParentProperties(modelElement: ComplexModelElement): any {
+    const parentName = modelElement.localExtension?.ref
+      ? getElementTypeId(modelElement.localExtension?.ref)
+      : undefined;
+
+    if (parentName) {
+      let foundParent = undefined;
+      if (isGraphModel(modelElement)) {
+        foundParent = [
+          ...this.specification.graphTypes,
+          ...this.abstractModelElements.graphTypes,
+        ].find((type) => type.elementTypeId === parentName);
+      } else if (isNode(modelElement) || isNodeContainer(modelElement)) {
+        foundParent = [
+          ...this.specification.nodeTypes,
+          ...this.abstractModelElements.nodeTypes,
+        ].find((type) => type.elementTypeId === parentName);
+      } else if (isEdge(modelElement)) {
+        foundParent = [
+          ...this.specification.edgeTypes,
+          ...this.abstractModelElements.edgeTypes,
+        ].find((type) => type.elementTypeId === parentName);
+      } else if (isUserDefinedType(modelElement)) {
+        foundParent = [
+          ...this.specification.customTypes,
+          ...this.abstractModelElements.customTypes,
+        ].find((type) => type.elementTypeId === parentName);
+      }
+      // Copy the parent deeply
+      if (foundParent) {
+        return JSON.parse(JSON.stringify(foundParent));
+      }
+    }
+    return {};
+  }
+
   // Constructs the modelElementSpec and returns the resulting elementTypeId
   handleModelElement(
     modelElement: ModelElement,
     specification: Specification,
     importedModels: MglModel[]
   ): string {
-    var modelElementSpec: any = {};
-
-    // If parent exists, first copy its entire specifications and overwrite customizations afterwards
-    if (!isEnum(modelElement)) {
-      const parentName = modelElement.localExtension?.ref
-        ? getElementTypeId(modelElement.localExtension?.ref)
-        : undefined;
-      if (parentName) {
-        let foundParent = undefined;
-        if (isGraphModel(modelElement)) {
-          foundParent = [
-            ...this.specification.graphTypes,
-            ...this.abstractModelElements.graphTypes,
-          ].find((type) => type.elementTypeId === parentName);
-        } else if (isNode(modelElement) || isNodeContainer(modelElement)) {
-          foundParent = [
-            ...this.specification.nodeTypes,
-            ...this.abstractModelElements.nodeTypes,
-          ].find((type) => type.elementTypeId === parentName);
-        } else if (isEdge(modelElement)) {
-          foundParent = [
-            ...this.specification.edgeTypes,
-            ...this.abstractModelElements.edgeTypes,
-          ].find((type) => type.elementTypeId === parentName);
-        } else if (isUserDefinedType(modelElement)) {
-          foundParent = [
-            ...this.specification.customTypes,
-            ...this.abstractModelElements.customTypes,
-          ].find((type) => type.elementTypeId === parentName);
-        }
-        // Copy the parent deeply
-        if (foundParent) {
-          modelElementSpec = JSON.parse(JSON.stringify(foundParent));
-        }
-      }
-    }
+    var modelElementSpec: any = !isEnum(modelElement) ? this.resolveParentProperties(modelElement) : {};
 
     modelElementSpec.elementTypeId = getElementTypeId(modelElement);
     modelElementSpec.label = modelElement.name;
