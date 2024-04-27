@@ -26,7 +26,6 @@
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
-        "--app-project-path=${workspaceRoot}/",
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -69,7 +68,6 @@
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
-        "--app-project-path=${workspaceRoot}/",
         "--META_DEV_MODE"
       ],
       "skipFiles": [
@@ -113,7 +111,6 @@
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
-        "--app-project-path=${workspaceRoot}/",
         "--META_DEV_MODE",
         "--META_LANGUAGES_FOLDER=workspace/languages"
       ],
@@ -159,7 +156,6 @@
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
-        "--app-project-path=${workspaceRoot}/"
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -203,7 +199,6 @@
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
-        "--app-project-path=${workspaceRoot}/",
         "--META_LANGUAGES_FOLDER=workspace/languages",
       ],
       "skipFiles": [
