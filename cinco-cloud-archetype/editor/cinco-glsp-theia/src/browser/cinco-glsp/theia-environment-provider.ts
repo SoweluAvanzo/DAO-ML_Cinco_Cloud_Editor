@@ -42,6 +42,7 @@ import { ConfirmDialog } from '@theia/core/lib/browser';
 import { ThemeService } from '@theia/core/lib/browser/theming';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { CincoGLSPDiagramMananger } from '../diagram/cinco-glsp-diagram-manager';
+import { CommandAction } from '../../../../cinco-glsp-common/lib/protocol/server-message-protocol';
 
 @injectable()
 export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
@@ -62,6 +63,11 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
         return super.getWorkspaceRoot();
     }
 
+    override async preInitialize(): Promise<void> {}
+
+    override async preRequestModel?(): Promise<void> {}
+
+    override async postModelInitialization?(): Promise<void> {}
     /**
      * Used to register commands for a model
      */
@@ -162,6 +168,10 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
     async showDialogInTheia(title: string, msg: string): Promise<boolean | undefined> {
         const wrappedMsg = this.wrapMessage(msg);
         return new ConfirmDialog({ title, msg: wrappedMsg }).open();
+    }
+
+    override async handleCommand(command: CommandAction): Promise<void> {
+        return this.commandRegistry.executeCommand(command.commandId, command.args);
     }
 
     wrapMessage(msg: string): HTMLDivElement {

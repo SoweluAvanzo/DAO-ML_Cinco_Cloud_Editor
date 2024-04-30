@@ -96,4 +96,4 @@ CMD cd minio-client && node bundle/cinco-minio-client --metaFolder ../cinco-glsp
     WORKSPACE_PATH="${WORKSPACE_PATH}" \
     EDITOR_TYPE="${EDITOR_TYPE}" \
     ENVIRONMENT="${ENVIRONMENT}" \
-    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0 --app-project-path=/editor/ --META_DEV_MODE --META_LANGUAGES_FOLDER="${META_LANGUAGES_FOLDER}"
+    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0 --META_DEV_MODE --META_LANGUAGES_FOLDER="${META_LANGUAGES_FOLDER}"

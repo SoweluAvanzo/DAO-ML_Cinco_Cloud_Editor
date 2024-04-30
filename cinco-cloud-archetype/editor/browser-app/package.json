@@ -39,7 +39,6 @@
     "@theia/scm": "1.40.0",
     "cinco-branding": "1.0.0",
     "cinco-authenticator": "1.0.0",
-    "cinco-project-initializer": "1.0.0",
     "@cinco-glsp/cinco-glsp-theia": "1.0.0"
   },
   "devDependencies": {
@@ -50,7 +49,7 @@
     "theia": "theia",
     "build": "theia build --mode development",
     "start": "theia start --root-dir=../workspace --plugins=local-dir:./plugin --CINCO_GLSP=5007 --WS_PATH='cinco'",
-    "start:external": "theia startv--root-dir=../workspace --plugins=local-dir:./plugins --debug --CINCO_GLSP=5007 --WS_PATH='cinco'",
+    "start:external": "theia start --root-dir=../workspace --plugins=local-dir:./plugins --debug --CINCO_GLSP=5007 --WS_PATH='cinco'",
     "debug": "theia start --remote-debugging-port=9222 --loglevel=debug --debug --no-cluster --root-dir=../workspace --plugins=local-dir:./plugins --CINCO_GLSP=5007 --WS_PATH='cinco'",
     "watch": "theia build --watch --mode development",
     "download:plugins": "theia download:plugins"
