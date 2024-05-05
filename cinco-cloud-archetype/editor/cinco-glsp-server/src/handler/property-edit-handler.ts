@@ -22,12 +22,12 @@ import {
     canAdd,
     canAssign,
     canDelete,
+    findAttribute,
     getUserDefinedType,
     isList
 } from '@cinco-glsp/cinco-glsp-common';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import { findAttribute } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class PropertyEditHandler extends CincoJsonOperationHandler {
@@ -41,7 +41,7 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             return;
         }
         const { attributes, object } = this.locateObject(element, pointer);
-        const attributeDefinition: Attribute = findAttribute(attributes, name)
+        const attributeDefinition: Attribute = findAttribute(attributes, name);
         if (!this.checkConstraint(object, attributeDefinition, change)) {
             throw new Error('Property can not be changed. It violates a constraint!');
         }
@@ -151,25 +151,25 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
     }
 
     protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[], object: any } {
-        let attributes: Attribute[] = element.propertyDefinitions
-        let object: Record<string, any> = element.properties
+        let attributes: Attribute[] = element.propertyDefinitions;
+        let object: Record<string, any> = element.properties;
 
         for (const segment of pointer) {
             const type = findAttribute(attributes, segment.attribute).type;
-            const userDefinedType = getUserDefinedType(type)
+            const userDefinedType = getUserDefinedType(type);
 
             if (userDefinedType === undefined) {
-                throw new Error(`Cannot find user-defined type ${type}`)
+                throw new Error(`Cannot find user-defined type ${type}`);
             }
 
-            attributes = userDefinedType.attributes
+            attributes = userDefinedType.attributes;
 
             object =
                 segment.index !== undefined ?
                     object[segment.attribute][segment.index] :
-                    object[segment.attribute]
+                    object[segment.attribute];
         }
 
-        return { attributes, object }
+        return { attributes, object };
     }
 }

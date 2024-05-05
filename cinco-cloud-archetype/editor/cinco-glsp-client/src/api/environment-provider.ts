@@ -15,13 +15,23 @@
  ********************************************************************************/
 
 import { inject, injectable } from 'inversify';
-import { IActionDispatcher, IDiagramStartup, ILogger, KeyCode, SelectionService, TYPES, hasStringProp } from '@eclipse-glsp/client';
+import {
+    IActionDispatcher,
+    IDiagramStartup,
+    ILogger,
+    KeyCode,
+    MaybePromise,
+    SelectionService,
+    TYPES,
+    hasStringProp
+} from '@eclipse-glsp/client';
 import {
     CompositionSpecification,
     GeneratorAction,
     PropertyViewResponseAction,
     ServerDialogAction,
     ServerOutputAction,
+    CommandAction,
     ValidationRequestAction,
     hasGeneratorAction,
     hasValidator,
@@ -58,6 +68,7 @@ export const EnvironmentProvider = Symbol('IEnvironmentProvider');
 export interface IEnvironmentProvider extends IDiagramStartup {
     getWorkspaceRoot(): Promise<string>;
     handleLogging(action: ServerOutputAction): void | Promise<void>;
+    handleCommand(command: CommandAction): void | Promise<void>;
     showDialog(action: ServerDialogAction): void | Promise<void>;
     selectedElementsChanged(modelElementId: string[]): void | Promise<void>;
     provideProperties(action: PropertyViewResponseAction): void | Promise<void>;
@@ -71,6 +82,18 @@ export interface IEnvironmentProvider extends IDiagramStartup {
 
 @injectable()
 export class DefaultEnvironmentProvider implements IEnvironmentProvider {
+    handleCommand(command: CommandAction): void | Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    preInitialize?(): MaybePromise<void> {
+        throw new Error('Method not implemented.');
+    }
+    preRequestModel?(): MaybePromise<void> {
+        throw new Error('Method not implemented.');
+    }
+    postModelInitialization?(): MaybePromise<void> {
+        throw new Error('Method not implemented.');
+    }
     static _rank: number = CINCO_STARTUP_RANK - 2; // needs to be before CincoToolPalette (has: CINCO_STARTUP_RANK - 1)
     rank: number = DefaultEnvironmentProvider._rank;
     @inject(TYPES.IActionDispatcher) protected _actionDispatcher: IActionDispatcher;

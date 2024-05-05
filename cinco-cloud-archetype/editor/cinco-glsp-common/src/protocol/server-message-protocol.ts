@@ -185,3 +185,35 @@ export namespace ServerDialogResponse {
         };
     }
 }
+
+export interface CommandAction extends TypedServerMessageAction {
+    type: typeof CommandAction.TYPE;
+
+    /**
+     * The commandId for the mapping to a response callback.
+     */
+    commandId: string;
+
+    /**
+     * Context
+     */
+    args?: any[];
+}
+
+export namespace CommandAction {
+    export const KIND = TypedServerMessageAction.KIND;
+    export const TYPE = 'commandAction';
+
+    export function is(object: any): object is CommandAction {
+        return hasStringProp(object, 'commandId') && TypedServerMessageAction.is(object);
+    }
+
+    export function create(commandId: string, args?: any[]): CommandAction {
+        return {
+            kind: KIND,
+            type: TYPE,
+            commandId,
+            args
+        };
+    }
+}

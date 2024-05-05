@@ -1,5 +1,5 @@
 import { /*ValidationAcceptor,*/ ValidationAcceptor, ValidationChecks } from 'langium';
-import { CincoAstType, Edge, EdgeElementConnection, ModelElement, NodeType } from '../../generated/ast';
+import { CincoAstType, Edge, EdgeElementConnection, ModelElement, ComplexModelElement, NodeType } from '../../generated/ast';
 import type { MglServices } from './mgl-module';
 import { getConnectingEdges } from '../util/mgl-util';
 
@@ -10,7 +10,10 @@ export function registerValidationChecks(services: MglServices) {
     const registry = services.validation.ValidationRegistry;
     const validator = services.validation.MglValidator;
     const checks: ValidationChecks<CincoAstType> = {
-        ModelElement: validator.checkModelElementNameNotUnique,
+        ModelElement: [
+            validator.checkModelElementNameNotUnique,
+            validator.checkInheritedAttributes
+        ],
         NodeType: [
             // validator.checkIncomingEdgesUnique,
             // validator.checkOutgoingEdgesUnique
@@ -55,4 +58,44 @@ export class MglValidator {
         }
     }
 
+    checkInheritedAttributes(modelElement: ComplexModelElement, acceptor: ValidationAcceptor) {
+        if (modelElement.defaultValueOverrides) {
+            for (const defaultValueOverride of modelElement.defaultValueOverrides) {
+                // Check if DefaultValueOverride references an AttributeDefinition from an inherited node
+                const attributeName = defaultValueOverride.attribute;
+                if (!this.isDefinedAttribute(modelElement, attributeName)) {
+                    acceptor('error', "Overriding Attribute is not a valid local or inherited attribute.", { node: defaultValueOverride, property: 'attribute' })
+                }
+                if(modelElement.defaultValueOverrides.filter(d => d.attribute === attributeName).length > 1) {
+                    acceptor('error', "Overriding Attribute is a duplicate.", { node: defaultValueOverride, property: 'attribute' })
+                }
+            }
+            for(const attribute of modelElement.attributes) {
+                // Check if DefaultValueOverride references an AttributeDefinition from an inherited node
+                const attributeName = attribute.name;
+                if (this.isDefinedAttribute(modelElement, attributeName, true)) {
+                    acceptor('error', "Attribute is a duplicate. It is either defined locally or an inherited attribute. Use 'override <attributeName>' to override it.", { node: attribute, property: 'name' })
+                }
+            }
+        }
+    } 
+
+    isDefinedAttribute(modelElement: ComplexModelElement, attributeName: string, checkDuplicate = false): boolean {
+        // Check if the attribute is defined locally in this node
+        if (modelElement.attributes.filter(a => a.name == attributeName).length > (checkDuplicate ? 1 : 0)) {
+            return true
+        }
+        // Check if the attribute is inherited from parent nodes
+        if (modelElement.localExtension) {
+            const parent = modelElement.localExtension.ref;
+            if(parent) {
+                return this.isDefinedAttribute(parent, attributeName)
+            }
+        } else if (modelElement.externalExtension) {
+            // TODO: resolve
+			return true
+		}
+		// not extending, no attributes with the name
+        return false
+    }
 }

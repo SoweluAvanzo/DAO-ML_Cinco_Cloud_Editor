@@ -19,6 +19,7 @@ import { inject, injectable } from '@theia/core/shared/inversify';
 import { CincoProjectInitializerWidget } from './cinco-project-initializer-widget';
 import { FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
 import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
+import { ProjectInitializerClient } from '../common/fetch-project-template-protocol';
 
 export const CincoProjectInitializerWidgetCommand: Command = {
     id: 'cincoCloudProjectInitializer:open',
@@ -73,4 +74,7 @@ export class CincoProjectInitializerFrontendApplicationContribution implements F
             this.commandService.executeCommand(CincoProjectInitializerWidgetCommand.id);
         }
     }
+}
+
+export class ProjectInitializerClientNode implements ProjectInitializerClient {
 }

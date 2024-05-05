@@ -30,7 +30,7 @@ container Screen extends Activity {
 	incomingEdges (Transition, TrueTransition, FalseTransition)
 	containableElements (Area)
 	@file("jpg", "JPG", "png")
-	attr String as backgroundImage
+	attr string as backgroundImage
 }
 
 /* ELEMENTS THAT ARE PLACED WITHIN SCREENS */
@@ -56,7 +56,7 @@ node RectangleClickArea extends ClickArea {
 @palette("In-Screen Elements")
 node TextArea extends Area {
 	style textArea("${text}")
-	attr String as text
+	attr string as text
 	attr Color as color
 	attr FontSize as fontSize
 }
@@ -90,7 +90,7 @@ node ModifyVariable extends Activity {
 	style modifyVariable
 	incomingEdges(Transition, TrueTransition, FalseTransition)
 	outgoingEdges(Transition[1,1], DataFlow[1,1])
-	attr Boolean as value := "false"
+	attr boolean as value := "false"
 }
 
 @palette("Variables")
@@ -99,7 +99,7 @@ node Variable {
 	style variable("${name}")
 	incomingEdges (DataFlow)
 	outgoingEdges (DataFlow)
-	attr String as name
+	attr string as name
 }
 
 /* EDGE TYPES */

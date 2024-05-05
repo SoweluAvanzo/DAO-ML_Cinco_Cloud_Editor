@@ -1,7 +1,7 @@
 # Cinco Cloud
 
 <div align="center">
-    <img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="33%" alt="Cinco Cloud Logo" />
+    <img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco-cloud-logo.png" width="33%" alt="Cinco Cloud Logo" />
     <hr />
     <div id="badges" align="center">
         ![collaboration](https://img.shields.io/badge/Collaboration-Welcome-green)

@@ -2,7 +2,7 @@
 
 <br />
 
-<img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco_cloud_logo.png" width="10%" alt="Cinco Cloud Logo" />
+<img src="https://gitlab.com/scce/cinco-cloud/-/raw/main/docs/vuepress/src/.vuepress/public/assets/cinco-cloud-logo.png" width="10%" alt="Cinco Cloud Logo" />
 
 <h2>CINCO CLOUD - BACKEND</h2>
 

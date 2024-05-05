@@ -15,7 +15,8 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@theia/core": "1.40.0"
+    "@theia/core": "1.40.0",
+    "extract-zip": "^2.0.1"
   },
   "devDependencies": {
     "rimraf": "^3.0.2",
@@ -23,7 +24,8 @@
   },
   "theiaExtensions": [
     {
-      "frontend": "lib/browser/cinco-project-initializer-frontend-module"
+      "frontend": "lib/browser/cinco-project-initializer-frontend-module",
+      "backend": "lib/node/cinco-project-initializer-backend-module"
     }
   ]
 }

@@ -53,8 +53,8 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
         }
         node.type = elementTypeId;
         node.size = {
-            width: specification?.width ?? 0,
-            height: specification?.height ?? 0
+            width: node.size.width ?? specification?.width ?? 100,
+            height: node.size.height ?? specification?.height ?? 100
         };
         node.position = position;
         node.initializeProperties();
@@ -96,7 +96,7 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
 
     protected postCreateHook(node: Node): void {
         // TODO: generalize postCreate
-        if (node.type !== 'node:activity') {
+        if (node.type !== 'flowgraph:activity') {
             return;
         }
         const activityNames = [

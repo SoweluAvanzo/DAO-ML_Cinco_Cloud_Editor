@@ -15,35 +15,44 @@ interface ServerArgs {
     port: number;
 }
 
-/**
- * Saves the content into a file in the LanguagesFolder for MetaSpecification.
- * @param content 
- * @param fileName 
- * @returns the path to the languagesFolder
- */
-export function saveToLanguagesFolder(content: string, fileName: string, destinationPath?: string): Promise<string> {
+
+export function getLanguageFolder(rootPath?: string): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
         let serverArgs:  ServerArgs;
         try {
             serverArgs = await vscode.commands.executeCommand( 'cinco.provide.glsp-server-args');
         } catch(e) {
+            if(vscode.workspace.workspaceFolders) {
+                const rootFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
+                resolve(rootFolder + '/' + 'languages');
+                return;
+            }
             serverArgs = {
                 languagePath: "workspace/languages",
-                rootFolder: __dirname + "/../../../../../editor",
+                rootFolder: __dirname + "/../../../editor",
             } as ServerArgs;
+        }
+        const languagesFolder = rootPath ?? (serverArgs.rootFolder + '/' + serverArgs.languagePath);
+        resolve(languagesFolder);
+    });
+}
 
-        }
-        const languagesFolder = destinationPath ?? (serverArgs.rootFolder + '/' + serverArgs.languagePath);
+/**
+ * Saves the content into a file in the LanguagesFolder for MetaSpecification.
+ * @param content 
+ * @param fileName 
+ * @param targetFolder
+ */
+export function saveToFolder(content: string, fileName: string, targetFolder: string): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
         // create if not existing
-        if (!fs.existsSync(languagesFolder)) {
-            fs.mkdirSync(languagesFolder, { recursive: true });
+        if (!fs.existsSync(targetFolder)) {
+            fs.mkdirSync(targetFolder, { recursive: true });
         }
-        const targetPath = languagesFolder + '/' + fileName;
+        const targetPath = targetFolder + '/' + fileName;
         console.log('Integrating meta-specification to: '+ targetPath);
         fs.writeFileSync(targetPath, content);
-        resolve(languagesFolder);
-        //  update meta-specification in glsp-server
-        vscode.commands.executeCommand('cinco.meta-specification.reload');
+        resolve();
     });
 }
 

@@ -15,23 +15,37 @@
  ********************************************************************************/
 import { ContainerModule } from '@theia/core/shared/inversify';
 import { CincoProjectInitializerWidget } from './cinco-project-initializer-widget';
-import { FrontendApplicationContribution, WidgetFactory } from '@theia/core/lib/browser';
+import { FrontendApplicationContribution, WebSocketConnectionProvider, WidgetFactory } from '@theia/core/lib/browser';
 import {
     CincoProjectInitializerFrontendApplicationContribution,
-    CincoProjectInitializerWidgetContribution
+    CincoProjectInitializerWidgetContribution,
+    ProjectInitializerClientNode
 } from './cinco-project-initializer-contribution';
 import { CommandContribution, MenuContribution } from '@theia/core';
+import {
+    PROJECT_INITIALIZER_ENDPOINT,
+    ProjectInitializerClient,
+    ProjectInitializerServer
+} from '../common/fetch-project-template-protocol';
 
 export default new ContainerModule(bind => {
     bind(CincoProjectInitializerWidget).toSelf();
-    bind(WidgetFactory).toDynamicValue(ctx => ({
-        id: CincoProjectInitializerWidget.ID,
-        createWidget: () => ctx.container.get<CincoProjectInitializerWidget>(CincoProjectInitializerWidget)
-    })).inSingletonScope();
+    bind(WidgetFactory)
+        .toDynamicValue(ctx => ({
+            id: CincoProjectInitializerWidget.ID,
+            createWidget: () => ctx.container.get<CincoProjectInitializerWidget>(CincoProjectInitializerWidget)
+        }))
+        .inSingletonScope();
     bind(CincoProjectInitializerWidgetContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(CincoProjectInitializerWidgetContribution);
     bind(MenuContribution).toService(CincoProjectInitializerWidgetContribution);
-    bind(FrontendApplicationContribution)
-        .to(CincoProjectInitializerFrontendApplicationContribution)
+    bind(FrontendApplicationContribution).to(CincoProjectInitializerFrontendApplicationContribution).inSingletonScope();
+    // provision of logging from backend to frontend
+    bind(ProjectInitializerServer)
+        .toDynamicValue(ctx => {
+            const client: ProjectInitializerClient = new ProjectInitializerClientNode();
+            const connection = ctx.container.get(WebSocketConnectionProvider);
+            return connection.createProxy<ProjectInitializerServer>(PROJECT_INITIALIZER_ENDPOINT, client);
+        })
         .inSingletonScope();
 });
