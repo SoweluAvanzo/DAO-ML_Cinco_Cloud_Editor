@@ -14,25 +14,19 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    createDefaultModule,
-    createDefaultSharedModule,
-    DefaultSharedModuleContext,
-    inject,
-    LangiumServices,
-    LangiumSharedServices,
-    Module,
-    PartialLangiumServices
+    createDefaultModule, createDefaultSharedModule, DefaultSharedModuleContext, inject,
+    LangiumServices, LangiumSharedServices, Module, PartialLangiumServices
 } from 'langium';
-import { MslGeneratedModule, CincoGeneratedSharedModule } from '../../generated/module.js';
-import { MslValidator, registerValidationChecks } from './msl-validator.js';
+import { MslGeneratedModule, CincoGeneratedSharedModule } from '../../generated/module';
+import { MslValidator, registerValidationChecks } from './msl-validator';
 
 /**
  * Declaration of custom services - add your own service classes here.
  */
 export interface MslAddedServices {
     validation: {
-        MslValidator: MslValidator;
-    };
+        MslValidator: MslValidator
+    }
 }
 
 /**
@@ -68,11 +62,18 @@ export const MslModule: Module<MslServices, PartialLangiumServices & MslAddedSer
  * @returns An object wrapping the shared services and the language-specific services
  */
 export function createMslServices(context: DefaultSharedModuleContext): {
-    shared: LangiumSharedServices;
-    Msl: MslServices;
+    shared: LangiumSharedServices,
+    Msl: MslServices
 } {
-    const shared = inject(createDefaultSharedModule(context), CincoGeneratedSharedModule);
-    const Msl = inject(createDefaultModule({ shared }), MslGeneratedModule, MslModule);
+    const shared = inject(
+        createDefaultSharedModule(context),
+        CincoGeneratedSharedModule
+    );
+    const Msl = inject(
+        createDefaultModule({ shared }),
+        MslGeneratedModule,
+        MslModule
+    );
     shared.ServiceRegistry.register(Msl);
     registerValidationChecks(Msl);
     return { shared, Msl };

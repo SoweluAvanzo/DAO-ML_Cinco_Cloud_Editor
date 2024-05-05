@@ -17,64 +17,97 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { AstNode, BuildOptions, LangiumDocument, LangiumServices } from 'langium';
 import { URI } from 'vscode-uri';
-import { ModelElement, isEnum } from '../../generated/ast.js';
+import { Appearance, MglModel, ModelElement, Style, isEnum } from '../../generated/ast';
 
-export function topologicalSortWithDescendants(modelElements: ModelElement[]): {
-    sortedModelElements: ModelElement[];
-    descendantsMap: Record<string, Set<string>>;
+function getSuperTypes(id: string, inheritanceList: [string, ModelElement[]][]): [string, ModelElement[]][] {
+    return inheritanceList.filter(e =>
+        e[1].filter(
+            inheritingType => getElementTypeId(inheritingType) === id
+        ).length > 0
+    );
+}
+
+function calculateDegree(elementId: string, inheritanceList: [string, ModelElement[]][]): number {
+    let superTypes = getSuperTypes(elementId, inheritanceList);
+    let degree = 0;
+    let currentTypeId = elementId;
+    while(superTypes.length > 0) {
+        currentTypeId = superTypes[0][0];
+        degree ++;
+        superTypes = getSuperTypes(currentTypeId, inheritanceList);
+    }
+    return degree;
+}
+
+export function topologicalSortWithDescendants(model: MglModel, importedModels: MglModel[]): {
+    sortedModelElements: ModelElement[],
+    descendantsMap: Record<string, Set<string>>
 } {
-    const graph: Record<string, ModelElement[]> = {};
+    const inheritanceGraph: Record<string, ModelElement[]> = {}; // <superclass Id, subtype>
     const inDegree: Record<string, number> = {};
     const descendantsMap: Record<string, Set<string>> = {};
+    const importedModelElements = importedModels.map(m => m.modelElements).flat();
+    const allModelElements = model.modelElements.concat(importedModelElements);
+    const mglPath = path.parse(model.$document?.uri.fsPath ?? '');
 
     // Initialize the graph, in-degree maps, and descendants map
-    for (const element of modelElements) {
-        graph[element.name] = [];
-        inDegree[element.name] = 0;
-        descendantsMap[element.name] = new Set();
+    for (const element of allModelElements) {
+        const id = getElementTypeId(element);
+        inheritanceGraph[id] = [];
+        inDegree[id] = 0;
+        descendantsMap[id] = new Set();
     }
 
     // Build the graph.
-    for (const element of modelElements) {
-        if (!isEnum(element) && element.localExtension) {
-            const localExtensionName = element.localExtension.ref?.name;
-            if (localExtensionName) {
-                if (!graph[localExtensionName]) {
-                    throw new Error(`Element ${element.localExtension} not found.`);
+    for (const element of allModelElements.filter(e => !isEnum(e))) {
+        if (!isEnum(element)) {
+            if (element.localExtension) {
+                if (element.localExtension.ref) {
+                    const localExtensionId = getElementTypeId(element.localExtension.ref);
+                    if (!inheritanceGraph[localExtensionId]) {
+                        throw new Error(`Element ${element.localExtension} not found.`);
+                    }
+                    inheritanceGraph[localExtensionId].push(element);
                 }
-                graph[localExtensionName].push(element);
-                inDegree[element.name]++;
+            }  else if(element.externalExtension) {
+                if(!element.externalExtension.import.ref) {
+                    throw new Error('External reference can not be resolved!');
+                }
+                // find model and modelElements
+                const externalPath = path.join(mglPath.dir, element.externalExtension.import.ref?.importURI);
+                // add all extended modelElements
+                for(const extendedElement of element.externalExtension.elements) {
+                    allModelElements.forEach(externalElement => {
+                        if(getElementTypeId(externalElement) === constructElementTypeId(extendedElement, externalPath)) {
+                            const externalId = getElementTypeId(externalElement);
+                            inheritanceGraph[externalId].push(element);
+                        }
+                    });
+                }
             }
         }
+    }
+
+    // distributing degree values
+    const inheritanceList = Object.entries(inheritanceGraph);
+    for(const elementId of Object.keys(inDegree)) {
+        inDegree[elementId] = calculateDegree(elementId, inheritanceList);
     }
 
     // Array for order of elements.
     const sortedElements: ModelElement[] = [];
 
-    // Array for elements with in-degree = 0.
-    const queue: ModelElement[] = modelElements.filter(element => inDegree[element.name] === 0);
-
-    while (queue.length) {
-        const node = queue.pop()!;
-        sortedElements.push(node);
-
-        for (const child of graph[node.name]) {
-            inDegree[child.name]--;
-
-            // Update descendants map
-            descendantsMap[node.name].add(child.name);
-            descendantsMap[child.name].forEach(descendant => {
-                descendantsMap[node.name].add(descendant);
-            });
-
-            if (inDegree[child.name] === 0) {
-                queue.push(child);
-            }
+    // sort by degree
+    const sortedRecords = Object.entries(inDegree).sort((a, b) => a[1] - b[1]);
+    for(const entry of Object.entries(sortedRecords)) {
+        const element = allModelElements.find((e: ModelElement) => getElementTypeId(e) === entry[1][0]);
+        if(element) {
+            sortedElements.push(element);
         }
     }
 
     // If not all elements are in sortedElements, then there's a cycle.
-    if (sortedElements.length !== modelElements.length) {
+    if (sortedElements.length !== allModelElements.length) {
         throw new Error("There's a cycle in the inheritance graph.");
     }
 
@@ -195,4 +228,19 @@ export function copyDirectory(source: string, target: string): void {
             fs.copyFileSync(sourcePath, targetPath);
         }
     }
+}
+
+export function getElementTypeId(element: ModelElement | Appearance | Style): string {
+    const containerPath = element.$container.$document?.uri.fsPath;
+    if (containerPath === undefined) {
+        throw new Error(
+        'Model is not associated with any document. A uri is needed!'
+        );
+    }
+    return constructElementTypeId(element.name, containerPath);
+}
+
+export function constructElementTypeId(elementName: string, containerPath: string): string {
+    const containerName = path.parse(containerPath).name;
+    return containerName.toLocaleLowerCase() + ':' + elementName.toLowerCase();
 }

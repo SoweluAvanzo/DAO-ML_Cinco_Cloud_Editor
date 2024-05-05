@@ -6,7 +6,7 @@ entry MglModel:
     ('id' package=QNAME)?
     'stylePath' stylePath=STRING
 	('includeResources' '(' includeResources+=STRING (',' includeResources+=STRING)* ')')?
-    modelElements+=ModelElement*
+    modelElements+=(ModelElement)*
 ;
 
 Annotation:
@@ -25,6 +25,9 @@ ComplexAttribute:
 CustomDataType:
 	Enum
 	| UserDefinedType
+    | NodeType
+    | Edge
+	| GraphModel
 ;
 
 Edge:
@@ -58,7 +61,7 @@ ExternalReference:
     import=[Import] '::' (elements+=ID | '{' elements+=ID (',' elements+=ID)* '}');
 
 DefaultValueOverride:
-	'override' attribute=[PrimitiveAttribute:ID] (':'? '=' defaultValue=STRING)?
+	'override' attribute=ID (':'? '=' defaultValue=PrimitiveDefaultValue)?
 ;
 
 GraphicalElementContainment:
@@ -86,9 +89,14 @@ Import:
     (stealth?='stealth')? 'import' (external?='external')? importURI=STRING 'as' name=ID;
 
 ModelElement:
+	ComplexModelElement
+	| Enum
+;
+
+ComplexModelElement:
     NodeType
     | Edge
-    | CustomDataType
+    | UserDefinedType
 	| GraphModel
 ;
 
@@ -108,7 +116,7 @@ Node:
 NodeContainer:
 	(annotations+=Annotation)*
 	(isAbstract?='abstract')?
-	'container' name=ID ('extends' (externalExtension=ExternalReference | localExtension=[Node:ID]))?
+	'container' name=ID ('extends' (externalExtension=ExternalReference | localExtension=[NodeType:ID]))?
 	('{'(
 	    ('style' usedStyle=ID ('(' styleParameters+=STRING (',' styleParameters+=STRING)* ')')? )?
 	    ('incomingEdges' '(' (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard) (',' (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard))* ')')?
@@ -125,7 +133,7 @@ NodeType:
 
 PrimitiveAttribute:
 	(annotations+=Annotation)*
-	(notChangeable?='final')? (unique?='unique')? 'attr' dataType=DataType 'as' name=ID ('[' lowerBound=INT (',' upperBound=('*'|INT))? ']')? (':'? '=' defaultValue=STRING)?
+	(notChangeable?='final')? (unique?='unique')? 'attr' dataType=DataType 'as' name=ID ('[' lowerBound=INT (',' upperBound=('*'|INT))? ']')? (':'? '=' defaultValue=PrimitiveDefaultValue)?
 ;
 
 // TODO Review this if Ecore is ever being removing
@@ -171,11 +179,18 @@ DataType returns string:
     | 'Date'
 ;
 
+PrimitiveDefaultValue returns string:
+	INT | DOUBLE | STRING | BOOL
+;
+
+terminal BOOL: /true|false|TRUE|FALSE|True|False/;
+terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
+terminal DOUBLE returns number: INT '.' INT;
+terminal INT returns number: /[0-9]+/;
+
 hidden terminal WS: /\s+/;
 terminal QNAME: /(?!.*\.{2})[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)*/;
 terminal ID: /[_a-zA-Z][\w_]*/;
-terminal INT returns number: /[0-9]+/;
-terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
 hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;

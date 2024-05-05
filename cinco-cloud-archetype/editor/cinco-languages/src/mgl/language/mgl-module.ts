@@ -14,25 +14,19 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    createDefaultModule,
-    createDefaultSharedModule,
-    DefaultSharedModuleContext,
-    inject,
-    LangiumServices,
-    LangiumSharedServices,
-    Module,
-    PartialLangiumServices
+    createDefaultModule, createDefaultSharedModule, DefaultSharedModuleContext, inject,
+    LangiumServices, LangiumSharedServices, Module, PartialLangiumServices
 } from 'langium';
-import { MglGeneratedModule, CincoGeneratedSharedModule } from '../../generated/module.js';
-import { MglValidator, registerValidationChecks } from './mgl-validator.js';
+import { MglGeneratedModule, CincoGeneratedSharedModule } from '../../generated/module';
+import { MglValidator, registerValidationChecks } from './mgl-validator';
 
 /**
  * Declaration of custom services - add your own service classes here.
  */
 export interface MglAddedServices {
     validation: {
-        MglValidator: MglValidator;
-    };
+        MglValidator: MglValidator
+    }
 }
 
 /**
@@ -68,11 +62,18 @@ export const MglModule: Module<MglServices, PartialLangiumServices & MglAddedSer
  * @returns An object wrapping the shared services and the language-specific services
  */
 export function createMglServices(context: DefaultSharedModuleContext): {
-    shared: LangiumSharedServices;
-    Mgl: MglServices;
+    shared: LangiumSharedServices,
+    Mgl: MglServices
 } {
-    const shared = inject(createDefaultSharedModule(context), CincoGeneratedSharedModule);
-    const Mgl = inject(createDefaultModule({ shared }), MglGeneratedModule, MglModule);
+    const shared = inject(
+        createDefaultSharedModule(context),
+        CincoGeneratedSharedModule
+    );
+    const Mgl = inject(
+        createDefaultModule({ shared }),
+        MglGeneratedModule,
+        MglModule
+    );
     shared.ServiceRegistry.register(Mgl);
     registerValidationChecks(Mgl);
     return { shared, Mgl };

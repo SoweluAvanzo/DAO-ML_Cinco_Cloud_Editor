@@ -8,14 +8,15 @@ import type { AstNode, Reference, ReferenceInfo, TypeMetaData } from 'langium';
 import { AbstractAstReflection } from 'langium';
 
 export const CincoTerminals = {
+    BOOL: /true|false|TRUE|FALSE|True|False/,
+    STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/,
+    DOUBLE: /[0-9]*\.[0-9]+/,
+    INT: /(-)?[0-9]+/,
     WS: /\s+/,
     QNAME: /(?!.*\.{2})[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)*/,
     ID: /[_a-zA-Z][\w_]*/,
-    INT: /(-)?[0-9]+/,
-    STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/,
     ML_COMMENT: /\/\*[\s\S]*?\*\//,
     SL_COMMENT: /\/\/[^\n\r]*/,
-    DOUBLE: /[0-9]*\.[0-9]+/
 };
 
 export type AbstractPosition = AbsolutePosition | Alignment;
@@ -42,6 +43,14 @@ export function isAttribute(item: unknown): item is Attribute {
     return reflection.isInstance(item, Attribute);
 }
 
+export type ComplexModelElement = Edge | GraphModel | NodeType | UserDefinedType;
+
+export const ComplexModelElement = 'ComplexModelElement';
+
+export function isComplexModelElement(item: unknown): item is ComplexModelElement {
+    return reflection.isInstance(item, ComplexModelElement);
+}
+
 export type ContainerShape = Ellipse | Polygon | Rectangle | RoundedRectangle;
 
 export const ContainerShape = 'ContainerShape';
@@ -50,7 +59,7 @@ export function isContainerShape(item: unknown): item is ContainerShape {
     return reflection.isInstance(item, ContainerShape);
 }
 
-export type CustomDataType = Enum | UserDefinedType;
+export type CustomDataType = Edge | Enum | GraphModel | NodeType | UserDefinedType;
 
 export const CustomDataType = 'CustomDataType';
 
@@ -72,7 +81,7 @@ export function isGraphicsAlgorithm(item: unknown): item is GraphicsAlgorithm {
     return reflection.isInstance(item, GraphicsAlgorithm);
 }
 
-export type ModelElement = CustomDataType | Edge | GraphModel | NodeType;
+export type ModelElement = ComplexModelElement | Enum;
 
 export const ModelElement = 'ModelElement';
 
@@ -87,6 +96,8 @@ export const NodeType = 'NodeType';
 export function isNodeType(item: unknown): item is NodeType {
     return reflection.isInstance(item, NodeType);
 }
+
+export type PrimitiveDefaultValue = number | string;
 
 export type Shape = Image | MultiText | Polyline | Text | WebView;
 
@@ -107,8 +118,8 @@ export function isStyle(item: unknown): item is Style {
 export interface AbsolutePosition extends AstNode {
     readonly $container: Ellipse | Image | MultiText | Polygon | Rectangle | RoundedRectangle | Text | WebView;
     readonly $type: 'AbsolutePosition';
-    xPos: number;
-    yPos: number;
+    xPos: number
+    yPos: number
 }
 
 export const AbsolutePosition = 'AbsolutePosition';
@@ -120,10 +131,10 @@ export function isAbsolutePosition(item: unknown): item is AbsolutePosition {
 export interface Alignment extends AstNode {
     readonly $container: Ellipse | Image | MultiText | Polygon | Rectangle | RoundedRectangle | Text | WebView;
     readonly $type: 'Alignment';
-    horizontal: HAlignment;
-    vertical: VAlignment;
-    xMargin?: number;
-    yMargin?: number;
+    horizontal: HAlignment
+    vertical: VAlignment
+    xMargin?: number
+    yMargin?: number
 }
 
 export const Alignment = 'Alignment';
@@ -133,21 +144,10 @@ export function isAlignment(item: unknown): item is Alignment {
 }
 
 export interface Annotation extends AstNode {
-    readonly $container:
-        | ComplexAttribute
-        | Edge
-        | Enum
-        | GraphModel
-        | MglModel
-        | Node
-        | NodeContainer
-        | PrimitiveAttribute
-        | ReferencedEClass
-        | ReferencedModelElement
-        | UserDefinedType;
+    readonly $container: ComplexAttribute | Edge | Enum | GraphModel | MglModel | Node | NodeContainer | PrimitiveAttribute | ReferencedEClass | ReferencedModelElement | UserDefinedType;
     readonly $type: 'Annotation';
-    name: string;
-    value: Array<string>;
+    name: string
+    value: Array<string>
 }
 
 export const Annotation = 'Annotation';
@@ -159,16 +159,16 @@ export function isAnnotation(item: unknown): item is Annotation {
 export interface Appearance extends AstNode {
     readonly $container: Styles;
     readonly $type: 'Appearance';
-    background?: Color;
-    filled?: Boolean;
-    font?: Font;
-    foreground?: Color;
-    imagePath?: string;
-    lineStyle?: LineStyle;
-    lineWidth?: number;
-    name: string;
-    parent?: Reference<Appearance>;
-    transparency?: number;
+    background?: Color
+    filled?: Boolean
+    font?: Font
+    foreground?: Color
+    imagePath?: string
+    lineStyle?: LineStyle
+    lineWidth?: number
+    name: string
+    parent?: Reference<Appearance>
+    transparency?: number
 }
 
 export const Appearance = 'Appearance';
@@ -180,7 +180,7 @@ export function isAppearance(item: unknown): item is Appearance {
 export interface Boolean extends AstNode {
     readonly $container: Appearance | InlineAppearance | WebView;
     readonly $type: 'Boolean';
-    value: 'false' | 'true';
+    value: 'false' | 'true'
 }
 
 export const Boolean = 'Boolean';
@@ -192,9 +192,9 @@ export function isBoolean(item: unknown): item is Boolean {
 export interface Color extends AstNode {
     readonly $container: Appearance | InlineAppearance;
     readonly $type: 'Color';
-    b: number;
-    g: number;
-    r: number;
+    b: number
+    g: number
+    r: number
 }
 
 export const Color = 'Color';
@@ -206,15 +206,15 @@ export function isColor(item: unknown): item is Color {
 export interface ComplexAttribute extends AstNode {
     readonly $container: Edge | GraphModel | Node | NodeContainer | UserDefinedType;
     readonly $type: 'ComplexAttribute';
-    annotations: Array<Annotation>;
-    defaultValue?: string;
-    lowerBound?: number;
-    name: string;
-    notChangeable: boolean;
-    override: boolean;
-    type: Reference<CustomDataType>;
-    unique: boolean;
-    upperBound?: '*' | number;
+    annotations: Array<Annotation>
+    defaultValue?: string
+    lowerBound?: number
+    name: string
+    notChangeable: boolean
+    override: boolean
+    type: Reference<CustomDataType>
+    unique: boolean
+    upperBound?: '*' | number
 }
 
 export const ComplexAttribute = 'ComplexAttribute';
@@ -226,11 +226,11 @@ export function isComplexAttribute(item: unknown): item is ComplexAttribute {
 export interface ConnectionDecorator extends AstNode {
     readonly $container: EdgeStyle;
     readonly $type: 'ConnectionDecorator';
-    decoratorShape?: GraphicsAlgorithm;
-    location: number;
-    movable: boolean;
-    name?: string;
-    predefinedDecorator?: PredefinedDecorator;
+    decoratorShape?: GraphicsAlgorithm
+    location: number
+    movable: boolean
+    name?: string
+    predefinedDecorator?: PredefinedDecorator
 }
 
 export const ConnectionDecorator = 'ConnectionDecorator';
@@ -242,7 +242,7 @@ export function isConnectionDecorator(item: unknown): item is ConnectionDecorato
 export interface ConnectionType extends AstNode {
     readonly $container: EdgeStyle;
     readonly $type: 'ConnectionType';
-    FreeForm: 'freeform';
+    FreeForm: 'freeform'
 }
 
 export const ConnectionType = 'ConnectionType';
@@ -254,7 +254,7 @@ export function isConnectionType(item: unknown): item is ConnectionType {
 export interface DecoratorShape extends AstNode {
     readonly $container: PredefinedDecorator;
     readonly $type: 'DecoratorShape';
-    shapeType: 'ARROW' | 'CIRCLE' | 'DIAMOND' | 'TRIANGLE';
+    shapeType: 'ARROW' | 'CIRCLE' | 'DIAMOND' | 'TRIANGLE'
 }
 
 export const DecoratorShape = 'DecoratorShape';
@@ -266,8 +266,8 @@ export function isDecoratorShape(item: unknown): item is DecoratorShape {
 export interface DefaultValueOverride extends AstNode {
     readonly $container: Edge | GraphModel | Node | NodeContainer | UserDefinedType;
     readonly $type: 'DefaultValueOverride';
-    attribute: Reference<PrimitiveAttribute>;
-    defaultValue?: string;
+    attribute: string
+    defaultValue?: PrimitiveDefaultValue
 }
 
 export const DefaultValueOverride = 'DefaultValueOverride';
@@ -279,15 +279,15 @@ export function isDefaultValueOverride(item: unknown): item is DefaultValueOverr
 export interface Edge extends AstNode {
     readonly $container: MglModel;
     readonly $type: 'Edge';
-    annotations: Array<Annotation>;
-    attributes: Array<Attribute>;
-    defaultValueOverrides: Array<DefaultValueOverride>;
-    externalExtension?: ExternalReference;
-    isAbstract: boolean;
-    localExtension?: Reference<Edge>;
-    name: string;
-    styleParameters: Array<string>;
-    usedStyle?: string;
+    annotations: Array<Annotation>
+    attributes: Array<Attribute>
+    defaultValueOverrides: Array<DefaultValueOverride>
+    externalExtension?: ExternalReference
+    isAbstract: boolean
+    localExtension?: Reference<Edge>
+    name: string
+    styleParameters: Array<string>
+    usedStyle?: string
 }
 
 export const Edge = 'Edge';
@@ -299,10 +299,10 @@ export function isEdge(item: unknown): item is Edge {
 export interface EdgeElementConnection extends AstNode {
     readonly $container: Node | NodeContainer;
     readonly $type: 'EdgeElementConnection';
-    externalConnection?: ExternalReference;
-    localConnection: Array<Reference<Edge>>;
-    lowerBound?: number;
-    upperBound?: '*' | number;
+    externalConnection?: ExternalReference
+    localConnection: Array<Reference<Edge>>
+    lowerBound?: number
+    upperBound?: '*' | number
 }
 
 export const EdgeElementConnection = 'EdgeElementConnection';
@@ -314,13 +314,13 @@ export function isEdgeElementConnection(item: unknown): item is EdgeElementConne
 export interface EdgeStyle extends AstNode {
     readonly $container: Styles;
     readonly $type: 'EdgeStyle';
-    appearanceProvider?: string;
-    connectionType?: ConnectionType;
-    decorator: Array<ConnectionDecorator>;
-    inlineAppearance?: InlineAppearance;
-    name: string;
-    parameterCount?: number;
-    referencedAppearance?: Reference<Appearance>;
+    appearanceProvider?: string
+    connectionType?: ConnectionType
+    decorator: Array<ConnectionDecorator>
+    inlineAppearance?: InlineAppearance
+    name: string
+    parameterCount?: number
+    referencedAppearance?: Reference<Appearance>
 }
 
 export const EdgeStyle = 'EdgeStyle';
@@ -332,13 +332,13 @@ export function isEdgeStyle(item: unknown): item is EdgeStyle {
 export interface Ellipse extends AstNode {
     readonly $container: ConnectionDecorator | Ellipse | NodeStyle | Polygon | Rectangle | RoundedRectangle;
     readonly $type: 'Ellipse';
-    anchorShape: boolean;
-    children: Array<AbstractShape>;
-    inlineAppearance?: InlineAppearance;
-    name?: string;
-    position?: AbstractPosition;
-    referencedAppearance?: Reference<Appearance>;
-    size?: Size;
+    anchorShape: boolean
+    children: Array<AbstractShape>
+    inlineAppearance?: InlineAppearance
+    name?: string
+    position?: AbstractPosition
+    referencedAppearance?: Reference<Appearance>
+    size?: Size
 }
 
 export const Ellipse = 'Ellipse';
@@ -350,9 +350,9 @@ export function isEllipse(item: unknown): item is Ellipse {
 export interface Enum extends AstNode {
     readonly $container: MglModel;
     readonly $type: 'Enum';
-    annotations: Array<Annotation>;
-    literals: Array<string>;
-    name: string;
+    annotations: Array<Annotation>
+    literals: Array<string>
+    name: string
 }
 
 export const Enum = 'Enum';
@@ -364,8 +364,8 @@ export function isEnum(item: unknown): item is Enum {
 export interface ExternalReference extends AstNode {
     readonly $container: Edge | EdgeElementConnection | GraphModel | GraphicalElementContainment | Node | NodeContainer | UserDefinedType;
     readonly $type: 'ExternalReference';
-    elements: Array<string>;
-    import: Reference<Import>;
+    elements: Array<string>
+    import: Reference<Import>
 }
 
 export const ExternalReference = 'ExternalReference';
@@ -377,10 +377,10 @@ export function isExternalReference(item: unknown): item is ExternalReference {
 export interface Font extends AstNode {
     readonly $container: Appearance | InlineAppearance;
     readonly $type: 'Font';
-    fontName: string;
-    isBold: boolean;
-    isItalic: boolean;
-    size: number;
+    fontName: string
+    isBold: boolean
+    isItalic: boolean
+    size: number
 }
 
 export const Font = 'Font';
@@ -392,10 +392,10 @@ export function isFont(item: unknown): item is Font {
 export interface GraphicalElementContainment extends AstNode {
     readonly $container: GraphModel | NodeContainer;
     readonly $type: 'GraphicalElementContainment';
-    externalContainment?: ExternalReference;
-    localContainments: Array<Reference<NodeType>>;
-    lowerBound?: number;
-    upperBound?: '*' | number;
+    externalContainment?: ExternalReference
+    localContainments: Array<Reference<NodeType>>
+    lowerBound?: number
+    upperBound?: '*' | number
 }
 
 export const GraphicalElementContainment = 'GraphicalElementContainment';
@@ -407,17 +407,17 @@ export function isGraphicalElementContainment(item: unknown): item is GraphicalE
 export interface GraphModel extends AstNode {
     readonly $container: MglModel;
     readonly $type: 'GraphModel';
-    annotations: Array<Annotation>;
-    attributes: Array<Attribute>;
-    containableElements: Array<GraphicalElementContainment>;
-    containmentWildcards: Array<Wildcard>;
-    defaultValueOverrides: Array<DefaultValueOverride>;
-    externalExtension?: ExternalReference;
-    fileExtension?: string;
-    iconPath?: string;
-    isAbstract: boolean;
-    localExtension?: Reference<GraphModel>;
-    name: string;
+    annotations: Array<Annotation>
+    attributes: Array<Attribute>
+    containableElements: Array<GraphicalElementContainment>
+    containmentWildcards: Array<Wildcard>
+    defaultValueOverrides: Array<DefaultValueOverride>
+    externalExtension?: ExternalReference
+    fileExtension?: string
+    iconPath?: string
+    isAbstract: boolean
+    localExtension?: Reference<GraphModel>
+    name: string
 }
 
 export const GraphModel = 'GraphModel';
@@ -429,7 +429,7 @@ export function isGraphModel(item: unknown): item is GraphModel {
 export interface HAlignment extends AstNode {
     readonly $container: Alignment;
     readonly $type: 'HAlignment';
-    alignmentType: 'CENTER' | 'LEFT' | 'RIGHT';
+    alignmentType: 'CENTER' | 'LEFT' | 'RIGHT'
 }
 
 export const HAlignment = 'HAlignment';
@@ -441,11 +441,11 @@ export function isHAlignment(item: unknown): item is HAlignment {
 export interface Image extends AstNode {
     readonly $container: ConnectionDecorator | Ellipse | NodeStyle | Polygon | Rectangle | RoundedRectangle;
     readonly $type: 'Image';
-    anchorShape: boolean;
-    name?: string;
-    path: string;
-    position?: AbstractPosition;
-    size: Size;
+    anchorShape: boolean
+    name?: string
+    path: string
+    position?: AbstractPosition
+    size: Size
 }
 
 export const Image = 'Image';
@@ -457,10 +457,10 @@ export function isImage(item: unknown): item is Image {
 export interface Import extends AstNode {
     readonly $container: MglModel;
     readonly $type: 'Import';
-    external: boolean;
-    importURI: string;
-    name: string;
-    stealth: boolean;
+    external: boolean
+    importURI: string
+    name: string
+    stealth: boolean
 }
 
 export const Import = 'Import';
@@ -472,15 +472,15 @@ export function isImport(item: unknown): item is Import {
 export interface InlineAppearance extends AstNode {
     readonly $container: EdgeStyle | Ellipse | MultiText | Polygon | Polyline | PredefinedDecorator | Rectangle | RoundedRectangle | Text;
     readonly $type: 'InlineAppearance';
-    background?: Color;
-    filled?: Boolean;
-    font?: Font;
-    foreground?: Color;
-    imagePath?: string;
-    lineStyle?: LineStyle;
-    lineWidth?: number;
-    parent?: Reference<Appearance>;
-    transparency?: number;
+    background?: Color
+    filled?: Boolean
+    font?: Font
+    foreground?: Color
+    imagePath?: string
+    lineStyle?: LineStyle
+    lineWidth?: number
+    parent?: Reference<Appearance>
+    transparency?: number
 }
 
 export const InlineAppearance = 'InlineAppearance';
@@ -492,7 +492,7 @@ export function isInlineAppearance(item: unknown): item is InlineAppearance {
 export interface LineStyle extends AstNode {
     readonly $container: Appearance | InlineAppearance;
     readonly $type: 'LineStyle';
-    lineType: 'DASH' | 'DASHDOT' | 'DASHDOTDOT' | 'DOT' | 'SOLID';
+    lineType: 'DASH' | 'DASHDOT' | 'DASHDOTDOT' | 'DOT' | 'SOLID'
 }
 
 export const LineStyle = 'LineStyle';
@@ -503,12 +503,12 @@ export function isLineStyle(item: unknown): item is LineStyle {
 
 export interface MglModel extends AstNode {
     readonly $type: 'MglModel';
-    annotations: Array<Annotation>;
-    imports: Array<Import>;
-    includeResources: Array<string>;
-    modelElements: Array<ModelElement>;
-    package?: string;
-    stylePath: string;
+    annotations: Array<Annotation>
+    imports: Array<Import>
+    includeResources: Array<string>
+    modelElements: Array<ModelElement>
+    package?: string
+    stylePath: string
 }
 
 export const MglModel = 'MglModel';
@@ -520,12 +520,12 @@ export function isMglModel(item: unknown): item is MglModel {
 export interface MultiText extends AstNode {
     readonly $container: ConnectionDecorator | Ellipse | NodeStyle | Polygon | Rectangle | RoundedRectangle;
     readonly $type: 'MultiText';
-    anchorShape: boolean;
-    inlineAppearance?: InlineAppearance;
-    name?: string;
-    position?: AbstractPosition;
-    referencedAppearance?: Reference<Appearance>;
-    value: string;
+    anchorShape: boolean
+    inlineAppearance?: InlineAppearance
+    name?: string
+    position?: AbstractPosition
+    referencedAppearance?: Reference<Appearance>
+    value: string
 }
 
 export const MultiText = 'MultiText';
@@ -537,20 +537,20 @@ export function isMultiText(item: unknown): item is MultiText {
 export interface Node extends AstNode {
     readonly $container: MglModel;
     readonly $type: 'Node';
-    annotations: Array<Annotation>;
-    attributes: Array<Attribute>;
-    defaultValueOverrides: Array<DefaultValueOverride>;
-    externalExtension?: ExternalReference;
-    incomingEdgeConnections: Array<EdgeElementConnection>;
-    incomingWildcards: Array<Wildcard>;
-    isAbstract: boolean;
-    localExtension?: Reference<Node>;
-    name: string;
-    outgoingEdgeConnections: Array<EdgeElementConnection>;
-    outgoingWildcards: Array<Wildcard>;
-    primeReference?: ReferencedEClass | ReferencedModelElement;
-    styleParameters: Array<string>;
-    usedStyle?: string;
+    annotations: Array<Annotation>
+    attributes: Array<Attribute>
+    defaultValueOverrides: Array<DefaultValueOverride>
+    externalExtension?: ExternalReference
+    incomingEdgeConnections: Array<EdgeElementConnection>
+    incomingWildcards: Array<Wildcard>
+    isAbstract: boolean
+    localExtension?: Reference<Node>
+    name: string
+    outgoingEdgeConnections: Array<EdgeElementConnection>
+    outgoingWildcards: Array<Wildcard>
+    primeReference?: ReferencedEClass | ReferencedModelElement
+    styleParameters: Array<string>
+    usedStyle?: string
 }
 
 export const Node = 'Node';
@@ -562,22 +562,22 @@ export function isNode(item: unknown): item is Node {
 export interface NodeContainer extends AstNode {
     readonly $container: MglModel;
     readonly $type: 'NodeContainer';
-    annotations: Array<Annotation>;
-    attributes: Array<Attribute>;
-    containableElements: Array<GraphicalElementContainment>;
-    containmentWildcards: Array<Wildcard>;
-    defaultValueOverrides: Array<DefaultValueOverride>;
-    externalExtension?: ExternalReference;
-    incomingEdgeConnections: Array<EdgeElementConnection>;
-    incomingWildcards: Array<Wildcard>;
-    isAbstract: boolean;
-    localExtension?: Reference<Node>;
-    name: string;
-    outgoingEdgeConnections: Array<EdgeElementConnection>;
-    outgoingWildcards: Array<Wildcard>;
-    primeReference?: ReferencedEClass | ReferencedModelElement;
-    styleParameters: Array<string>;
-    usedStyle?: string;
+    annotations: Array<Annotation>
+    attributes: Array<Attribute>
+    containableElements: Array<GraphicalElementContainment>
+    containmentWildcards: Array<Wildcard>
+    defaultValueOverrides: Array<DefaultValueOverride>
+    externalExtension?: ExternalReference
+    incomingEdgeConnections: Array<EdgeElementConnection>
+    incomingWildcards: Array<Wildcard>
+    isAbstract: boolean
+    localExtension?: Reference<NodeType>
+    name: string
+    outgoingEdgeConnections: Array<EdgeElementConnection>
+    outgoingWildcards: Array<Wildcard>
+    primeReference?: ReferencedEClass | ReferencedModelElement
+    styleParameters: Array<string>
+    usedStyle?: string
 }
 
 export const NodeContainer = 'NodeContainer';
@@ -589,11 +589,11 @@ export function isNodeContainer(item: unknown): item is NodeContainer {
 export interface NodeStyle extends AstNode {
     readonly $container: Styles;
     readonly $type: 'NodeStyle';
-    appearanceProvider?: string;
-    fixed: boolean;
-    mainShape: AbstractShape;
-    name: string;
-    parameterCount?: number;
+    appearanceProvider?: string
+    fixed: boolean
+    mainShape: AbstractShape
+    name: string
+    parameterCount?: number
 }
 
 export const NodeStyle = 'NodeStyle';
@@ -605,8 +605,8 @@ export function isNodeStyle(item: unknown): item is NodeStyle {
 export interface Point extends AstNode {
     readonly $container: Polygon | Polyline;
     readonly $type: 'Point';
-    x: number;
-    y: number;
+    x: number
+    y: number
 }
 
 export const Point = 'Point';
@@ -618,14 +618,14 @@ export function isPoint(item: unknown): item is Point {
 export interface Polygon extends AstNode {
     readonly $container: ConnectionDecorator | Ellipse | NodeStyle | Polygon | Rectangle | RoundedRectangle;
     readonly $type: 'Polygon';
-    anchorShape: boolean;
-    children: Array<AbstractShape>;
-    inlineAppearance?: InlineAppearance;
-    name?: string;
-    points: Array<Point>;
-    position?: AbstractPosition;
-    referencedAppearance?: Reference<Appearance>;
-    size?: Size;
+    anchorShape: boolean
+    children: Array<AbstractShape>
+    inlineAppearance?: InlineAppearance
+    name?: string
+    points: Array<Point>
+    position?: AbstractPosition
+    referencedAppearance?: Reference<Appearance>
+    size?: Size
 }
 
 export const Polygon = 'Polygon';
@@ -637,12 +637,12 @@ export function isPolygon(item: unknown): item is Polygon {
 export interface Polyline extends AstNode {
     readonly $container: ConnectionDecorator | Ellipse | NodeStyle | Polygon | Rectangle | RoundedRectangle;
     readonly $type: 'Polyline';
-    anchorShape: boolean;
-    inlineAppearance?: InlineAppearance;
-    name?: string;
-    points: Array<Point>;
-    referencedAppearance?: Reference<Appearance>;
-    size?: Size;
+    anchorShape: boolean
+    inlineAppearance?: InlineAppearance
+    name?: string
+    points: Array<Point>
+    referencedAppearance?: Reference<Appearance>
+    size?: Size
 }
 
 export const Polyline = 'Polyline';
@@ -654,9 +654,9 @@ export function isPolyline(item: unknown): item is Polyline {
 export interface PredefinedDecorator extends AstNode {
     readonly $container: ConnectionDecorator;
     readonly $type: 'PredefinedDecorator';
-    inlineAppearance?: InlineAppearance;
-    referencedAppearance?: Reference<Appearance>;
-    shape: DecoratorShape;
+    inlineAppearance?: InlineAppearance
+    referencedAppearance?: Reference<Appearance>
+    shape: DecoratorShape
 }
 
 export const PredefinedDecorator = 'PredefinedDecorator';
@@ -668,14 +668,14 @@ export function isPredefinedDecorator(item: unknown): item is PredefinedDecorato
 export interface PrimitiveAttribute extends AstNode {
     readonly $container: Edge | GraphModel | Node | NodeContainer | UserDefinedType;
     readonly $type: 'PrimitiveAttribute';
-    annotations: Array<Annotation>;
-    dataType: DataType;
-    defaultValue?: string;
-    lowerBound?: number;
-    name: string;
-    notChangeable: boolean;
-    unique: boolean;
-    upperBound?: '*' | number;
+    annotations: Array<Annotation>
+    dataType: DataType
+    defaultValue?: PrimitiveDefaultValue
+    lowerBound?: number
+    name: string
+    notChangeable: boolean
+    unique: boolean
+    upperBound?: '*' | number
 }
 
 export const PrimitiveAttribute = 'PrimitiveAttribute';
@@ -687,13 +687,13 @@ export function isPrimitiveAttribute(item: unknown): item is PrimitiveAttribute 
 export interface Rectangle extends AstNode {
     readonly $container: Ellipse | NodeStyle | Polygon | Rectangle | RoundedRectangle;
     readonly $type: 'Rectangle';
-    anchorShape: boolean;
-    children: Array<AbstractShape>;
-    inlineAppearance?: InlineAppearance;
-    name?: string;
-    position?: AbstractPosition;
-    referencedAppearance?: Reference<Appearance>;
-    size?: Size;
+    anchorShape: boolean
+    children: Array<AbstractShape>
+    inlineAppearance?: InlineAppearance
+    name?: string
+    position?: AbstractPosition
+    referencedAppearance?: Reference<Appearance>
+    size?: Size
 }
 
 export const Rectangle = 'Rectangle';
@@ -705,11 +705,11 @@ export function isRectangle(item: unknown): item is Rectangle {
 export interface ReferencedEClass extends AstNode {
     readonly $container: Node | NodeContainer;
     readonly $type: 'ReferencedEClass';
-    annotations: Array<Annotation>;
-    copiedAttributes: Array<ReferencedEStructuralFeature>;
-    eClass: string;
-    import: Reference<Import>;
-    name: string;
+    annotations: Array<Annotation>
+    copiedAttributes: Array<ReferencedEStructuralFeature>
+    eClass: string
+    import: Reference<Import>
+    name: string
 }
 
 export const ReferencedEClass = 'ReferencedEClass';
@@ -721,9 +721,9 @@ export function isReferencedEClass(item: unknown): item is ReferencedEClass {
 export interface ReferencedEStructuralFeature extends AstNode {
     readonly $container: ReferencedEClass;
     readonly $type: 'ReferencedEStructuralFeature';
-    feature: string;
-    name: string;
-    parameter: boolean;
+    feature: string
+    name: string
+    parameter: boolean
 }
 
 export const ReferencedEStructuralFeature = 'ReferencedEStructuralFeature';
@@ -735,8 +735,8 @@ export function isReferencedEStructuralFeature(item: unknown): item is Reference
 export interface ReferencedMGLAttribute extends AstNode {
     readonly $container: ReferencedModelElement;
     readonly $type: 'ReferencedMGLAttribute';
-    feature: Reference<Attribute>;
-    name: string;
+    feature: Reference<Attribute>
+    name: string
 }
 
 export const ReferencedMGLAttribute = 'ReferencedMGLAttribute';
@@ -748,12 +748,12 @@ export function isReferencedMGLAttribute(item: unknown): item is ReferencedMGLAt
 export interface ReferencedModelElement extends AstNode {
     readonly $container: Node | NodeContainer;
     readonly $type: 'ReferencedModelElement';
-    annotations: Array<Annotation>;
-    copiedAttributes: Array<ReferencedMGLAttribute>;
-    import?: Reference<Import>;
-    modelElement?: Reference<ModelElement>;
-    name: string;
-    referencedModelElement?: string;
+    annotations: Array<Annotation>
+    copiedAttributes: Array<ReferencedMGLAttribute>
+    import?: Reference<Import>
+    modelElement?: Reference<ModelElement>
+    name: string
+    referencedModelElement?: string
 }
 
 export const ReferencedModelElement = 'ReferencedModelElement';
@@ -765,15 +765,15 @@ export function isReferencedModelElement(item: unknown): item is ReferencedModel
 export interface RoundedRectangle extends AstNode {
     readonly $container: Ellipse | NodeStyle | Polygon | Rectangle | RoundedRectangle;
     readonly $type: 'RoundedRectangle';
-    anchorShape: boolean;
-    children: Array<AbstractShape>;
-    cornerHeight: number;
-    cornerWidth: number;
-    inlineAppearance?: InlineAppearance;
-    name?: string;
-    position?: AbstractPosition;
-    referencedAppearance?: Reference<Appearance>;
-    size: Size;
+    anchorShape: boolean
+    children: Array<AbstractShape>
+    cornerHeight: number
+    cornerWidth: number
+    inlineAppearance?: InlineAppearance
+    name?: string
+    position?: AbstractPosition
+    referencedAppearance?: Reference<Appearance>
+    size: Size
 }
 
 export const RoundedRectangle = 'RoundedRectangle';
@@ -785,10 +785,10 @@ export function isRoundedRectangle(item: unknown): item is RoundedRectangle {
 export interface Size extends AstNode {
     readonly $container: Ellipse | Image | Polygon | Polyline | Rectangle | RoundedRectangle | WebView;
     readonly $type: 'Size';
-    height: number;
-    heightFixed: boolean;
-    width: number;
-    widthFixed: boolean;
+    height: number
+    heightFixed: boolean
+    width: number
+    widthFixed: boolean
 }
 
 export const Size = 'Size';
@@ -799,8 +799,8 @@ export function isSize(item: unknown): item is Size {
 
 export interface Styles extends AstNode {
     readonly $type: 'Styles';
-    appearances: Array<Appearance>;
-    styles: Array<Style>;
+    appearances: Array<Appearance>
+    styles: Array<Style>
 }
 
 export const Styles = 'Styles';
@@ -812,12 +812,12 @@ export function isStyles(item: unknown): item is Styles {
 export interface Text extends AstNode {
     readonly $container: ConnectionDecorator | Ellipse | NodeStyle | Polygon | Rectangle | RoundedRectangle;
     readonly $type: 'Text';
-    anchorShape: boolean;
-    inlineAppearance?: InlineAppearance;
-    name?: string;
-    position?: AbstractPosition;
-    referencedAppearance?: Reference<Appearance>;
-    value?: string;
+    anchorShape: boolean
+    inlineAppearance?: InlineAppearance
+    name?: string
+    position?: AbstractPosition
+    referencedAppearance?: Reference<Appearance>
+    value?: string
 }
 
 export const Text = 'Text';
@@ -829,13 +829,13 @@ export function isText(item: unknown): item is Text {
 export interface UserDefinedType extends AstNode {
     readonly $container: MglModel;
     readonly $type: 'UserDefinedType';
-    annotations: Array<Annotation>;
-    attributes: Array<Attribute>;
-    defaultValueOverrides: Array<DefaultValueOverride>;
-    externalExtension?: ExternalReference;
-    isAbstract: boolean;
-    localExtension?: Reference<UserDefinedType>;
-    name: string;
+    annotations: Array<Annotation>
+    attributes: Array<Attribute>
+    defaultValueOverrides: Array<DefaultValueOverride>
+    externalExtension?: ExternalReference
+    isAbstract: boolean
+    localExtension?: Reference<UserDefinedType>
+    name: string
 }
 
 export const UserDefinedType = 'UserDefinedType';
@@ -847,7 +847,7 @@ export function isUserDefinedType(item: unknown): item is UserDefinedType {
 export interface VAlignment extends AstNode {
     readonly $container: Alignment;
     readonly $type: 'VAlignment';
-    alignmentType: 'BOTTOM' | 'MIDDLE' | 'TOP';
+    alignmentType: 'BOTTOM' | 'MIDDLE' | 'TOP'
 }
 
 export const VAlignment = 'VAlignment';
@@ -859,13 +859,13 @@ export function isVAlignment(item: unknown): item is VAlignment {
 export interface WebView extends AstNode {
     readonly $container: ConnectionDecorator | Ellipse | NodeStyle | Polygon | Rectangle | RoundedRectangle;
     readonly $type: 'WebView';
-    anchorShape: boolean;
-    content: string;
-    name?: string;
-    padding?: number;
-    position?: AbstractPosition;
-    scrollable?: Boolean;
-    size?: Size;
+    anchorShape: boolean
+    content: string
+    name?: string
+    padding?: number
+    position?: AbstractPosition
+    scrollable?: Boolean
+    size?: Size
 }
 
 export const WebView = 'WebView';
@@ -877,10 +877,10 @@ export function isWebView(item: unknown): item is WebView {
 export interface Wildcard extends AstNode {
     readonly $container: GraphModel | Node | NodeContainer;
     readonly $type: 'Wildcard';
-    lowerBound?: number;
-    referencedImport?: Reference<Import>;
-    selfWildcard: boolean;
-    upperBound?: '*' | number;
+    lowerBound?: number
+    referencedImport?: Reference<Import>
+    selfWildcard: boolean
+    upperBound?: '*' | number
 }
 
 export const Wildcard = 'Wildcard';
@@ -890,128 +890,71 @@ export function isWildcard(item: unknown): item is Wildcard {
 }
 
 export type CincoAstType = {
-    AbsolutePosition: AbsolutePosition;
-    AbstractPosition: AbstractPosition;
-    AbstractShape: AbstractShape;
-    Alignment: Alignment;
-    Annotation: Annotation;
-    Appearance: Appearance;
-    Attribute: Attribute;
-    Boolean: Boolean;
-    Color: Color;
-    ComplexAttribute: ComplexAttribute;
-    ConnectionDecorator: ConnectionDecorator;
-    ConnectionType: ConnectionType;
-    ContainerShape: ContainerShape;
-    CustomDataType: CustomDataType;
-    DecoratorShape: DecoratorShape;
-    DefaultValueOverride: DefaultValueOverride;
-    Edge: Edge;
-    EdgeElementConnection: EdgeElementConnection;
-    EdgeStyle: EdgeStyle;
-    Ellipse: Ellipse;
-    Enum: Enum;
-    ExternalReference: ExternalReference;
-    Font: Font;
-    GraphModel: GraphModel;
-    GraphicalElementContainment: GraphicalElementContainment;
-    GraphicsAlgorithm: GraphicsAlgorithm;
-    HAlignment: HAlignment;
-    Image: Image;
-    Import: Import;
-    InlineAppearance: InlineAppearance;
-    LineStyle: LineStyle;
-    MglModel: MglModel;
-    ModelElement: ModelElement;
-    MultiText: MultiText;
-    Node: Node;
-    NodeContainer: NodeContainer;
-    NodeStyle: NodeStyle;
-    NodeType: NodeType;
-    Point: Point;
-    Polygon: Polygon;
-    Polyline: Polyline;
-    PredefinedDecorator: PredefinedDecorator;
-    PrimitiveAttribute: PrimitiveAttribute;
-    Rectangle: Rectangle;
-    ReferencedEClass: ReferencedEClass;
-    ReferencedEStructuralFeature: ReferencedEStructuralFeature;
-    ReferencedMGLAttribute: ReferencedMGLAttribute;
-    ReferencedModelElement: ReferencedModelElement;
-    RoundedRectangle: RoundedRectangle;
-    Shape: Shape;
-    Size: Size;
-    Style: Style;
-    Styles: Styles;
-    Text: Text;
-    UserDefinedType: UserDefinedType;
-    VAlignment: VAlignment;
-    WebView: WebView;
-    Wildcard: Wildcard;
-};
+    AbsolutePosition: AbsolutePosition
+    AbstractPosition: AbstractPosition
+    AbstractShape: AbstractShape
+    Alignment: Alignment
+    Annotation: Annotation
+    Appearance: Appearance
+    Attribute: Attribute
+    Boolean: Boolean
+    Color: Color
+    ComplexAttribute: ComplexAttribute
+    ComplexModelElement: ComplexModelElement
+    ConnectionDecorator: ConnectionDecorator
+    ConnectionType: ConnectionType
+    ContainerShape: ContainerShape
+    CustomDataType: CustomDataType
+    DecoratorShape: DecoratorShape
+    DefaultValueOverride: DefaultValueOverride
+    Edge: Edge
+    EdgeElementConnection: EdgeElementConnection
+    EdgeStyle: EdgeStyle
+    Ellipse: Ellipse
+    Enum: Enum
+    ExternalReference: ExternalReference
+    Font: Font
+    GraphModel: GraphModel
+    GraphicalElementContainment: GraphicalElementContainment
+    GraphicsAlgorithm: GraphicsAlgorithm
+    HAlignment: HAlignment
+    Image: Image
+    Import: Import
+    InlineAppearance: InlineAppearance
+    LineStyle: LineStyle
+    MglModel: MglModel
+    ModelElement: ModelElement
+    MultiText: MultiText
+    Node: Node
+    NodeContainer: NodeContainer
+    NodeStyle: NodeStyle
+    NodeType: NodeType
+    Point: Point
+    Polygon: Polygon
+    Polyline: Polyline
+    PredefinedDecorator: PredefinedDecorator
+    PrimitiveAttribute: PrimitiveAttribute
+    Rectangle: Rectangle
+    ReferencedEClass: ReferencedEClass
+    ReferencedEStructuralFeature: ReferencedEStructuralFeature
+    ReferencedMGLAttribute: ReferencedMGLAttribute
+    ReferencedModelElement: ReferencedModelElement
+    RoundedRectangle: RoundedRectangle
+    Shape: Shape
+    Size: Size
+    Style: Style
+    Styles: Styles
+    Text: Text
+    UserDefinedType: UserDefinedType
+    VAlignment: VAlignment
+    WebView: WebView
+    Wildcard: Wildcard
+}
 
 export class CincoAstReflection extends AbstractAstReflection {
+
     getAllTypes(): string[] {
-        return [
-            'AbsolutePosition',
-            'AbstractPosition',
-            'AbstractShape',
-            'Alignment',
-            'Annotation',
-            'Appearance',
-            'Attribute',
-            'Boolean',
-            'Color',
-            'ComplexAttribute',
-            'ConnectionDecorator',
-            'ConnectionType',
-            'ContainerShape',
-            'CustomDataType',
-            'DecoratorShape',
-            'DefaultValueOverride',
-            'Edge',
-            'EdgeElementConnection',
-            'EdgeStyle',
-            'Ellipse',
-            'Enum',
-            'ExternalReference',
-            'Font',
-            'GraphModel',
-            'GraphicalElementContainment',
-            'GraphicsAlgorithm',
-            'HAlignment',
-            'Image',
-            'Import',
-            'InlineAppearance',
-            'LineStyle',
-            'MglModel',
-            'ModelElement',
-            'MultiText',
-            'Node',
-            'NodeContainer',
-            'NodeStyle',
-            'NodeType',
-            'Point',
-            'Polygon',
-            'Polyline',
-            'PredefinedDecorator',
-            'PrimitiveAttribute',
-            'Rectangle',
-            'ReferencedEClass',
-            'ReferencedEStructuralFeature',
-            'ReferencedMGLAttribute',
-            'ReferencedModelElement',
-            'RoundedRectangle',
-            'Shape',
-            'Size',
-            'Style',
-            'Styles',
-            'Text',
-            'UserDefinedType',
-            'VAlignment',
-            'WebView',
-            'Wildcard'
-        ];
+        return ['AbsolutePosition', 'AbstractPosition', 'AbstractShape', 'Alignment', 'Annotation', 'Appearance', 'Attribute', 'Boolean', 'Color', 'ComplexAttribute', 'ComplexModelElement', 'ConnectionDecorator', 'ConnectionType', 'ContainerShape', 'CustomDataType', 'DecoratorShape', 'DefaultValueOverride', 'Edge', 'EdgeElementConnection', 'EdgeStyle', 'Ellipse', 'Enum', 'ExternalReference', 'Font', 'GraphModel', 'GraphicalElementContainment', 'GraphicsAlgorithm', 'HAlignment', 'Image', 'Import', 'InlineAppearance', 'LineStyle', 'MglModel', 'ModelElement', 'MultiText', 'Node', 'NodeContainer', 'NodeStyle', 'NodeType', 'Point', 'Polygon', 'Polyline', 'PredefinedDecorator', 'PrimitiveAttribute', 'Rectangle', 'ReferencedEClass', 'ReferencedEStructuralFeature', 'ReferencedMGLAttribute', 'ReferencedModelElement', 'RoundedRectangle', 'Shape', 'Size', 'Style', 'Styles', 'Text', 'UserDefinedType', 'VAlignment', 'WebView', 'Wildcard'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
@@ -1024,15 +967,18 @@ export class CincoAstReflection extends AbstractAstReflection {
             case PrimitiveAttribute: {
                 return this.isSubtype(Attribute, supertype);
             }
+            case ComplexModelElement: {
+                return this.isSubtype(ModelElement, supertype);
+            }
             case ContainerShape:
             case Shape: {
                 return this.isSubtype(AbstractShape, supertype);
             }
-            case CustomDataType:
             case Edge:
             case GraphModel:
-            case NodeType: {
-                return this.isSubtype(ModelElement, supertype);
+            case NodeType:
+            case UserDefinedType: {
+                return this.isSubtype(ComplexModelElement, supertype) || this.isSubtype(CustomDataType, supertype);
             }
             case EdgeStyle:
             case NodeStyle: {
@@ -1042,9 +988,8 @@ export class CincoAstReflection extends AbstractAstReflection {
             case Polygon: {
                 return this.isSubtype(ContainerShape, supertype) || this.isSubtype(GraphicsAlgorithm, supertype);
             }
-            case Enum:
-            case UserDefinedType: {
-                return this.isSubtype(CustomDataType, supertype);
+            case Enum: {
+                return this.isSubtype(CustomDataType, supertype) || this.isSubtype(ModelElement, supertype);
             }
             case Image:
             case MultiText:
@@ -1086,9 +1031,6 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'ComplexAttribute:type': {
                 return CustomDataType;
             }
-            case 'DefaultValueOverride:attribute': {
-                return PrimitiveAttribute;
-            }
             case 'Edge:localExtension':
             case 'EdgeElementConnection:localConnection': {
                 return Edge;
@@ -1099,14 +1041,14 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'Wildcard:referencedImport': {
                 return Import;
             }
-            case 'GraphicalElementContainment:localContainments': {
+            case 'GraphicalElementContainment:localContainments':
+            case 'NodeContainer:localExtension': {
                 return NodeType;
             }
             case 'GraphModel:localExtension': {
                 return GraphModel;
             }
-            case 'Node:localExtension':
-            case 'NodeContainer:localExtension': {
+            case 'Node:localExtension': {
                 return Node;
             }
             case 'ReferencedMGLAttribute:feature': {
@@ -1129,7 +1071,9 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'Annotation': {
                 return {
                     name: 'Annotation',
-                    mandatory: [{ name: 'value', type: 'array' }]
+                    mandatory: [
+                        { name: 'value', type: 'array' }
+                    ]
                 };
             }
             case 'ComplexAttribute': {
@@ -1146,7 +1090,9 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'ConnectionDecorator': {
                 return {
                     name: 'ConnectionDecorator',
-                    mandatory: [{ name: 'movable', type: 'boolean' }]
+                    mandatory: [
+                        { name: 'movable', type: 'boolean' }
+                    ]
                 };
             }
             case 'Edge': {
@@ -1164,13 +1110,17 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'EdgeElementConnection': {
                 return {
                     name: 'EdgeElementConnection',
-                    mandatory: [{ name: 'localConnection', type: 'array' }]
+                    mandatory: [
+                        { name: 'localConnection', type: 'array' }
+                    ]
                 };
             }
             case 'EdgeStyle': {
                 return {
                     name: 'EdgeStyle',
-                    mandatory: [{ name: 'decorator', type: 'array' }]
+                    mandatory: [
+                        { name: 'decorator', type: 'array' }
+                    ]
                 };
             }
             case 'Ellipse': {
@@ -1194,7 +1144,9 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'ExternalReference': {
                 return {
                     name: 'ExternalReference',
-                    mandatory: [{ name: 'elements', type: 'array' }]
+                    mandatory: [
+                        { name: 'elements', type: 'array' }
+                    ]
                 };
             }
             case 'Font': {
@@ -1209,7 +1161,9 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'GraphicalElementContainment': {
                 return {
                     name: 'GraphicalElementContainment',
-                    mandatory: [{ name: 'localContainments', type: 'array' }]
+                    mandatory: [
+                        { name: 'localContainments', type: 'array' }
+                    ]
                 };
             }
             case 'GraphModel': {
@@ -1228,7 +1182,9 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'Image': {
                 return {
                     name: 'Image',
-                    mandatory: [{ name: 'anchorShape', type: 'boolean' }]
+                    mandatory: [
+                        { name: 'anchorShape', type: 'boolean' }
+                    ]
                 };
             }
             case 'Import': {
@@ -1254,7 +1210,9 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'MultiText': {
                 return {
                     name: 'MultiText',
-                    mandatory: [{ name: 'anchorShape', type: 'boolean' }]
+                    mandatory: [
+                        { name: 'anchorShape', type: 'boolean' }
+                    ]
                 };
             }
             case 'Node': {
@@ -1294,7 +1252,9 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'NodeStyle': {
                 return {
                     name: 'NodeStyle',
-                    mandatory: [{ name: 'fixed', type: 'boolean' }]
+                    mandatory: [
+                        { name: 'fixed', type: 'boolean' }
+                    ]
                 };
             }
             case 'Polygon': {
@@ -1347,7 +1307,9 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'ReferencedEStructuralFeature': {
                 return {
                     name: 'ReferencedEStructuralFeature',
-                    mandatory: [{ name: 'parameter', type: 'boolean' }]
+                    mandatory: [
+                        { name: 'parameter', type: 'boolean' }
+                    ]
                 };
             }
             case 'ReferencedModelElement': {
@@ -1389,7 +1351,9 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'Text': {
                 return {
                     name: 'Text',
-                    mandatory: [{ name: 'anchorShape', type: 'boolean' }]
+                    mandatory: [
+                        { name: 'anchorShape', type: 'boolean' }
+                    ]
                 };
             }
             case 'UserDefinedType': {
@@ -1406,13 +1370,17 @@ export class CincoAstReflection extends AbstractAstReflection {
             case 'WebView': {
                 return {
                     name: 'WebView',
-                    mandatory: [{ name: 'anchorShape', type: 'boolean' }]
+                    mandatory: [
+                        { name: 'anchorShape', type: 'boolean' }
+                    ]
                 };
             }
             case 'Wildcard': {
                 return {
                     name: 'Wildcard',
-                    mandatory: [{ name: 'selfWildcard', type: 'boolean' }]
+                    mandatory: [
+                        { name: 'selfWildcard', type: 'boolean' }
+                    ]
                 };
             }
             default: {

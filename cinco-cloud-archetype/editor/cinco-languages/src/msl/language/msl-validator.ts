@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { ValidationChecks } from 'langium';
-import { CincoAstType } from '../../generated/ast.js';
+import { CincoAstType } from '../../generated/ast';
 import type { MslServices } from './msl-module.js';
 
 /**
