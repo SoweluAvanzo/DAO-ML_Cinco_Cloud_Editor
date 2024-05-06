@@ -20,28 +20,27 @@ import { URI } from 'vscode-uri';
 import { Appearance, MglModel, ModelElement, Style, isEnum } from '../../generated/ast';
 
 function getSuperTypes(id: string, inheritanceList: [string, ModelElement[]][]): [string, ModelElement[]][] {
-    return inheritanceList.filter(e =>
-        e[1].filter(
-            inheritingType => getElementTypeId(inheritingType) === id
-        ).length > 0
-    );
+    return inheritanceList.filter(e => e[1].filter(inheritingType => getElementTypeId(inheritingType) === id).length > 0);
 }
 
 function calculateDegree(elementId: string, inheritanceList: [string, ModelElement[]][]): number {
     let superTypes = getSuperTypes(elementId, inheritanceList);
     let degree = 0;
     let currentTypeId = elementId;
-    while(superTypes.length > 0) {
+    while (superTypes.length > 0) {
         currentTypeId = superTypes[0][0];
-        degree ++;
+        degree++;
         superTypes = getSuperTypes(currentTypeId, inheritanceList);
     }
     return degree;
 }
 
-export function topologicalSortWithDescendants(model: MglModel, importedModels: MglModel[]): {
-    sortedModelElements: ModelElement[],
-    descendantsMap: Record<string, Set<string>>
+export function topologicalSortWithDescendants(
+    model: MglModel,
+    importedModels: MglModel[]
+): {
+    sortedModelElements: ModelElement[];
+    descendantsMap: Record<string, Set<string>>;
 } {
     const inheritanceGraph: Record<string, ModelElement[]> = {}; // <superclass Id, subtype>
     const inDegree: Record<string, number> = {};
@@ -69,16 +68,16 @@ export function topologicalSortWithDescendants(model: MglModel, importedModels: 
                     }
                     inheritanceGraph[localExtensionId].push(element);
                 }
-            }  else if(element.externalExtension) {
-                if(!element.externalExtension.import.ref) {
+            } else if (element.externalExtension) {
+                if (!element.externalExtension.import.ref) {
                     throw new Error('External reference can not be resolved!');
                 }
                 // find model and modelElements
                 const externalPath = path.join(mglPath.dir, element.externalExtension.import.ref?.importURI);
                 // add all extended modelElements
-                for(const extendedElement of element.externalExtension.elements) {
+                for (const extendedElement of element.externalExtension.elements) {
                     allModelElements.forEach(externalElement => {
-                        if(getElementTypeId(externalElement) === constructElementTypeId(extendedElement, externalPath)) {
+                        if (getElementTypeId(externalElement) === constructElementTypeId(extendedElement, externalPath)) {
                             const externalId = getElementTypeId(externalElement);
                             inheritanceGraph[externalId].push(element);
                         }
@@ -90,8 +89,15 @@ export function topologicalSortWithDescendants(model: MglModel, importedModels: 
 
     // distributing degree values
     const inheritanceList = Object.entries(inheritanceGraph);
-    for(const elementId of Object.keys(inDegree)) {
+    for (const elementId of Object.keys(inDegree)) {
         inDegree[elementId] = calculateDegree(elementId, inheritanceList);
+    }
+
+    // build descendents map
+    for (const entry of inheritanceList) {
+        for (const subType of entry[1]) {
+            descendantsMap[entry[0]].add(getElementTypeId(subType));
+        }
     }
 
     // Array for order of elements.
@@ -99,9 +105,9 @@ export function topologicalSortWithDescendants(model: MglModel, importedModels: 
 
     // sort by degree
     const sortedRecords = Object.entries(inDegree).sort((a, b) => a[1] - b[1]);
-    for(const entry of Object.entries(sortedRecords)) {
+    for (const entry of Object.entries(sortedRecords)) {
         const element = allModelElements.find((e: ModelElement) => getElementTypeId(e) === entry[1][0]);
-        if(element) {
+        if (element) {
             sortedElements.push(element);
         }
     }
@@ -233,9 +239,7 @@ export function copyDirectory(source: string, target: string): void {
 export function getElementTypeId(element: ModelElement | Appearance | Style): string {
     const containerPath = element.$container.$document?.uri.fsPath;
     if (containerPath === undefined) {
-        throw new Error(
-        'Model is not associated with any document. A uri is needed!'
-        );
+        throw new Error('Model is not associated with any document. A uri is needed!');
     }
     return constructElementTypeId(element.name, containerPath);
 }
