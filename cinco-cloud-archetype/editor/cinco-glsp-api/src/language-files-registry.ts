@@ -14,12 +14,13 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { DEVELOPMENT_MODE, META_DEV_MODE, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
+import { DEVELOPMENT_MODE, META_DEV_MODE, getAllHandlerNames, HookTypes } from '@cinco-glsp/cinco-glsp-common';
 import { getLanguageFolder, isDevModeArg, readFilesFromDirectories } from './utils/file-helper';
 
 export abstract class LanguageFilesRegistry {
     protected static _overwrite = true;
     protected static _registered: { name: string; cls: any }[] = [];
+    protected static _registeredHooks: Map<string, Map<HookTypes, any[]>> = new Map();
 
     /**
      * There are three ways to activate DEV_MODE:
@@ -41,28 +42,73 @@ export abstract class LanguageFilesRegistry {
     }
 
     static register(cls: any): void {
-        const containedClass = this._registered.find(r => r.name === cls.name);
-        if (this._overwrite || containedClass === undefined) {
-            if (this._overwrite) {
-                // remove old containedClass
-                this._registered = this._registered.filter(r => r !== containedClass);
-                this._registered.push({ name: cls.name, cls: cls });
-                console.log('Reregistered: ' + cls.name);
-            } else {
-                this._registered.push({ name: cls.name, cls: cls });
-                console.log('Registered: ' + cls.name);
+        const isHook = this.isHook(cls);
+
+        if (isHook) {
+            const hookNotRegistered = this._registeredHooks.get(cls.typeId) === undefined;
+            if (this._overwrite || hookNotRegistered) {
+                const modelTypeId: string = cls.typeId;
+                const hookTypes: HookTypes[] = cls.hookTypes;
+                hookTypes.forEach(hookType => {
+                    let hookRegistry: Map<HookTypes, any[]> | undefined = this._registeredHooks.get(modelTypeId);
+                    if (!hookRegistry) {
+                        hookRegistry = new Map();
+                        hookRegistry.set(hookType, [cls]);
+                        this._registeredHooks.set(modelTypeId, hookRegistry);
+                    } else {
+                        let hookList: any[] | undefined = hookRegistry.get(hookType);
+                        if (!hookList) {
+                            hookList = [cls];
+                        } else {
+                            (hookList as any[]).push(cls);
+                        }
+                        hookRegistry.set(hookType, hookList);
+                        this._registeredHooks.set(modelTypeId, hookRegistry);
+                    }
+                });
+                console.log((this._overwrite && !hookNotRegistered ? 'Reregistered Hook: ' : 'Registered Hook: ') + cls.typeId);
+            }
+        } else {
+            const containedClass = this._registered.find(r => r.name === cls.name);
+            if (this._overwrite || containedClass === undefined) {
+                if (this._overwrite) {
+                    // remove old containedClass
+                    this._registered = this._registered.filter(r => r !== containedClass);
+                    this._registered.push({ name: cls.name, cls: cls });
+                    console.log('Reregistered: ' + cls.name);
+                } else {
+                    this._registered.push({ name: cls.name, cls: cls });
+                    console.log('Registered: ' + cls.name);
+                }
             }
         }
     }
 
     static unregister(name: string): void {
-        console.log('Uregistered: ' + name);
         this._registered = this._registered.filter(r => r.name !== name);
+        this._registeredHooks.forEach(hookRegistry => {
+            hookRegistry.forEach((hookList, hookType) => {
+                const filteredHookList = hookList.filter(hook => hook.name !== name);
+                hookRegistry.set(hookType, filteredHookList);
+            });
+        });
+        console.log('Unregistered: ' + name);
     }
 
     static getRegistered(): any[] {
         this._registered = this.fetch();
         return this._registered.map(r => r.cls);
+    }
+
+    static getRegisteredHooks(modelTypeId: string, hookType: HookTypes): any[] {
+        const hookMap = this._registeredHooks.get(modelTypeId);
+        if (hookMap) {
+            const hooks = hookMap.get(hookType);
+            if (hooks) {
+                return hooks;
+            }
+        }
+        return [];
     }
 
     static fetch(): { name: string; cls: any }[] {
@@ -82,6 +128,10 @@ export abstract class LanguageFilesRegistry {
         this.unregisterOutdated(handlerToImport.map(h => h.name));
 
         return this._registered;
+    }
+
+    static isHook(cls: any): boolean {
+        return Object.prototype.hasOwnProperty.call(cls, 'hookTypes');
     }
 
     static collectHandlersToImport(): { name: string; path: string; content: string }[] {
@@ -132,6 +182,7 @@ export abstract class LanguageFilesRegistry {
         // eslint-disable-next-line no-eval
         const cinco_glsp_api = eval("( require('@cinco-glsp/cinco-glsp-api') )");
         const registered = cinco_glsp_api.LanguageFilesRegistry._registered as { name: string; cls: any }[];
+        const registeredHooks = cinco_glsp_api.LanguageFilesRegistry._registeredHooks as Map<string, Map<HookTypes, any[]>>;
 
         // load handler code
         for (const handler of handlerToImport) {
@@ -145,8 +196,21 @@ export abstract class LanguageFilesRegistry {
             }
         }
         for (const newInstance of registered) {
-            // the registered from the other package are synchronized to here
+            // the registered files from the other package are synchronized to this instance
             this.register(newInstance.cls);
+        }
+        for (const [, hookRegistry] of registeredHooks) {
+            const alreadyRegistered: string[] = [];
+            for (const [, hookList] of hookRegistry) {
+                for (const hook of hookList) {
+                    // the registered hooks from the other package are synchronized to here
+                    if (alreadyRegistered.includes(hook.name)) {
+                        continue;
+                    }
+                    this.register(hook);
+                    alreadyRegistered.push(hook.name);
+                }
+            }
         }
     }
 

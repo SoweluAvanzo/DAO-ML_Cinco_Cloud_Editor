@@ -18,7 +18,6 @@ import { CreateEdgeOperation, CreateNodeOperation, CreateOperation, Dimension, P
 import { PropertyEditOperation } from '@cinco-glsp/cinco-glsp-common/src/protocol/property-protocol';
 import { APIBaseHandler } from '../api/api-base-handler';
 import { Edge, GraphModel, ModelElement, Node } from '../model/graph-model';
-import { HookRegistry } from '../hook-registry';
 
 export abstract class AbstractHooks extends APIBaseHandler {
 
@@ -26,9 +25,6 @@ export abstract class AbstractHooks extends APIBaseHandler {
     static hookName = 'AbstractHooks';
     static hookTypes: string[] = [];
     static readonly actionKinds: string[] = [];
-    static register(): void {
-        HookRegistry.registerHooks(this);
-    }
 }
 
 export abstract class AbstractNodeHooks extends AbstractHooks implements NodeHooks {
@@ -36,7 +32,7 @@ export abstract class AbstractNodeHooks extends AbstractHooks implements NodeHoo
         return true;
     }
     preAttributeChange(operation: PropertyEditOperation): void { }
-    postAttributeChange(node: Node, attributeName: string, oldValue: any ): void { }
+    postAttributeChange(node: Node, attributeName: string, oldValue: any): void { }
     canCreate(operation: CreateNodeOperation): boolean {
         return true;
     }

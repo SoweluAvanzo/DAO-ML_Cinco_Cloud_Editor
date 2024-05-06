@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { HookRegistry, AbstractHooks, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { AbstractHooks, ModelElement, LanguageFilesRegistry } from '@cinco-glsp/cinco-glsp-api';
 import {
     OperationArgument,
     CreateArgument,
@@ -125,7 +125,7 @@ export class HookManager extends BaseHandlerManager<OperationArgument, AbstractH
     }
 
     private loadHookClasses(hookClassName: string, modelTypeId: string, hookType: HookTypes): any {
-        return HookRegistry.getHooks(modelTypeId, hookType).filter((hook: any) => hook.name === hookClassName)[0];
+        return LanguageFilesRegistry.getRegisteredHooks(modelTypeId, hookType).filter((hook: any) => hook.name === hookClassName)[0];
     }
 
     private dispatchHook(hk: AbstractHooks, parameters: OperationArgument, type: HookTypes): boolean {
@@ -261,7 +261,7 @@ export class HookManager extends BaseHandlerManager<OperationArgument, AbstractH
     private postAttributeChangeHook(hk: any, parameters: AttributeChangeArgument): void {
         const modelElement = this.getModelElement(parameters.modelElementId);
         if (modelElement && hk.postAttributeChange) {
-            hk.postAttributeChange(modelElement, parameters.operation.name,parameters.oldValue);
+            hk.postAttributeChange(modelElement, parameters.operation.name, parameters.oldValue);
         }
     }
 
