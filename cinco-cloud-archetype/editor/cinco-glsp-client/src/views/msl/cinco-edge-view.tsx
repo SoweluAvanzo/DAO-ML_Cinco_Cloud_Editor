@@ -593,7 +593,7 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
         const innerLength = length;
         appearance.lineWidth = length / 5; // lineWidth is a fifth of the full length
         const decoratorStyle = appearanceToStyle(appearance, {
-            isEdge: true,
+            isEdge: false,
             strokeRound: false
         });
 
