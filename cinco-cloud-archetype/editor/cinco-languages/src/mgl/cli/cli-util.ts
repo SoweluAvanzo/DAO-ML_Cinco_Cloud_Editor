@@ -143,12 +143,10 @@ export async function extractDocument(fileName: string, services: LangiumService
     const extensions = services.LanguageMetaData.fileExtensions;
     if (!extensions.includes(path.extname(fileName))) {
         console.error(`Please choose a file with one of these extensions: ${extensions}.`);
-        process.exit(1);
     }
 
     if (!fs.existsSync(fileName)) {
         console.error(`File ${fileName} does not exist.`);
-        process.exit(1);
     }
 
     const document = services.shared.workspace.LangiumDocuments.getOrCreateDocument(URI.file(path.resolve(fileName)));
@@ -164,7 +162,6 @@ export async function extractDocument(fileName: string, services: LangiumService
                 )}]`
             );
         }
-        process.exit(1);
     }
 
     return document;

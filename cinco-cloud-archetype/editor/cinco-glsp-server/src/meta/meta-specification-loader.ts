@@ -113,21 +113,21 @@ export class MetaSpecificationLoader {
             }
             files.forEach(async (file: string) => {
                 const fileExtension = file.slice(file.indexOf('.'));
-                if (fileExtension === '.mgl') {
-                    try {
+                try {
+                    if (fileExtension === '.mgl') {
                         const parsedMgl = await loadLanguage(`${metaLanguagesPath}/${file}`, {});
                         const metaSpec = JSON.parse(parsedMgl);
                         if (metaSpec && CompositionSpecification.is(metaSpec)) {
                             MetaSpecification.merge(metaSpec);
                         }
-                    } catch (e) {
-                        console.log('Error parsing: ' + file + '\n' + e);
+                    } else {
+                        const metaSpec = readJson(`${metaLanguagesPath}/${file}`);
+                        if (metaSpec && CompositionSpecification.is(metaSpec)) {
+                            MetaSpecification.merge(metaSpec);
+                        }
                     }
-                } else {
-                    const metaSpec = readJson(`${metaLanguagesPath}/${file}`);
-                    if (metaSpec && CompositionSpecification.is(metaSpec)) {
-                        MetaSpecification.merge(metaSpec);
-                    }
+                } catch (e) {
+                    console.log('Error parsing: ' + file + '\n' + e);
                 }
                 countdown -= 1;
                 if (countdown <= 0) {

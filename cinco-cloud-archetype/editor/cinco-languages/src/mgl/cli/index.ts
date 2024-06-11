@@ -22,7 +22,8 @@ import { NodeFileSystem } from 'langium/lib/node/index';
 export const loadLanguage = async (filePath: string, opts: GenerateOptions): Promise<any> => {
     const services = createMglServices(NodeFileSystem).Mgl;
     const model = await extractAstNode<MglModel>(filePath, services);
-    const generatedMetaSpecification = await new MGLGenerator().generateMetaSpecification(model, filePath, services).catch(e => {
+    const mglGenerator = new MGLGenerator();
+    const generatedMetaSpecification = await mglGenerator.generateMetaSpecification(model, filePath, services).catch(e => {
         console.log('Generation failed with error:\n' + e);
     });
     if (generatedMetaSpecification === undefined) {
