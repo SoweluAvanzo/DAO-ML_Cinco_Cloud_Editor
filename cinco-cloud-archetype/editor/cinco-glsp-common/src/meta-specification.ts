@@ -869,12 +869,12 @@ export function hasAnnotation(type: string, annotation: string): boolean {
 
 export function getAnnotations(type: string, annotation: string): Annotation[] {
     const elementSpec = getSpecOf(type) as ElementType;
-    return (elementSpec.annotations ?? []).filter(a => a.name === annotation);
+    return (elementSpec?.annotations ?? []).filter(a => a.name === annotation);
 }
 
 export function getAllAnnotations(type: string): Annotation[] {
     const elementSpec = getSpecOf(type) as ElementType;
-    return elementSpec.annotations ?? [];
+    return elementSpec?.annotations ?? [];
 }
 
 export function getAllHandlerNames(): string[] {
