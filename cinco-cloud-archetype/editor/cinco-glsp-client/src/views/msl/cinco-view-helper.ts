@@ -25,9 +25,7 @@ import {
     HAlignment,
     Image,
     LineStyle,
-    ModelElementContainer,
     MultiText,
-    NodeType,
     Point,
     Polygon,
     Polyline,
@@ -37,9 +35,8 @@ import {
     Text,
     VAlignment,
     WebView,
-    getAppearanceByNameOf,
-    getContainmentsOf,
-    getSpecOf
+    canBeCreated,
+    getAppearanceByNameOf
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     Bounds,
@@ -1543,13 +1540,13 @@ export function updatePalette(actionDispatcher: IActionDispatcher): void {
 }
 
 export function isUnknownNodeType(e: GModelElement): boolean {
-    const modelType = e.root.type;
-    const modelSpec = getSpecOf(modelType);
-    const nodeSpec = getSpecOf(e.type);
-    const isContainable = getContainmentsOf(modelSpec as ModelElementContainer).includes(nodeSpec as NodeType);
-    return (!(e instanceof CincoNode) || !isContainable) && (e as any)['layoutOptions'];
+    return isUnknownType(e.type, e.root.type) && (e as any)['layoutOptions'] !== undefined;
 }
 
 export function isUnknownEdgeType(e: GModelElement): boolean {
-    return !(e instanceof CincoEdge) && (e as any)['routingPoints'];
+    return isUnknownType(e.type, e.root.type) && (e as any)['routingPoints'] !== undefined;
+}
+
+export function isUnknownType(type: string, modelType: string): boolean {
+    return !canBeCreated(modelType, type);
 }
