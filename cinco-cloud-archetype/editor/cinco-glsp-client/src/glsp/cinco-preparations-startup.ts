@@ -21,6 +21,7 @@ import {
     Ranked,
     SModelRegistry,
     TYPES,
+    TypeHintProvider,
     ViewRegistry
 } from '@eclipse-glsp/client';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
@@ -55,6 +56,8 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
     @inject(TYPES.IViewerProvider)
     @optional()
     protected readonly viewerProvider: IViewerProvider;
+    @inject(TypeHintProvider)
+    protected typeHintProvider: TypeHintProvider;
 
     protected context: {
         bind: any;
@@ -103,6 +106,7 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
         this.graphModelProvider.graphModel.then(g => {
             this.viewerProvider.modelViewer.update(g);
         });
+        this.typeHintProvider.postRequestModel();
     }
 
     async postRequestModel?(): Promise<void> {
