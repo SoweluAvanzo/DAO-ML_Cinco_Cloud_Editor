@@ -131,13 +131,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
 
     protected getSpecifiedHandlers(handlers: CreateOperationHandler[], type: string): SpecifiedElementHandler[] {
         if (type === 'nodes') {
-            const specifiedNodeHandlers = Array.from(
-                new Set(
-                    handlers
-                        .filter(h => h instanceof SpecifiedNodeHandler) // all specified handlers
-                        .map(h => h as SpecifiedNodeHandler)
-                )
-            );
+            const specifiedNodeHandlers = this.getAllSpecifiedHandler(handlers, SpecifiedNodeHandler);
             return specifiedNodeHandlers.filter(h => {
                 const specs = h.elementTypeIds.map(e => getNodeSpecOf(e));
                 const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
@@ -151,13 +145,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                 return isNoPalette.indexOf(true) >= 0;
             });
         } else if (type === 'edges') {
-            const specifiedEdgeHandler = Array.from(
-                new Set(
-                    handlers
-                        .filter(h => h instanceof SpecifiedEdgeHandler) // all specified handlers
-                        .map(h => h as SpecifiedEdgeHandler)
-                )
-            );
+            const specifiedEdgeHandler = this.getAllSpecifiedHandler(handlers, SpecifiedEdgeHandler);
             return specifiedEdgeHandler.filter(h => {
                 const specs = h.elementTypeIds.map(e => getEdgeSpecOf(e));
                 const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
@@ -172,6 +160,16 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             });
         }
         return [];
+    }
+
+    getAllSpecifiedHandler(handlers: CreateOperationHandler[], T: any): SpecifiedElementHandler[] {
+        const specifiedHandler = Array.from([] as SpecifiedElementHandler[]);
+        for (const handler of handlers) {
+            if (handler instanceof T && specifiedHandler.filter(h => handler.constructor.name === h.constructor.name).length <= 0) {
+                specifiedHandler.push(handler as SpecifiedElementHandler);
+            }
+        }
+        return specifiedHandler;
     }
 
     createCustomItem(

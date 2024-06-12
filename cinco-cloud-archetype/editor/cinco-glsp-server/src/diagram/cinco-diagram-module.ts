@@ -29,6 +29,7 @@ import {
     ModelState,
     MultiBinding,
     OperationHandlerConstructor,
+    OperationHandlerRegistry,
     SourceModelStorage,
     ToolPaletteItemProvider
 } from '@eclipse-glsp/server';
@@ -58,6 +59,7 @@ import { GeneratorCreateFileHandler } from '../handler/generator-create-file-han
 import { PropertyViewHandler } from '../handler/property-view-handler';
 import { CompoundHandler } from '../handler/compound-handler';
 import { CincoClientSessionInitializer } from './cinco-client-session-initializer';
+import { CincoOperationHandlerRegistry } from './cinco-handler-registry';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -103,6 +105,8 @@ export class CincoDiagramModule extends DiagramModule {
 
     protected override configureOperationHandlers(binding: InstanceMultiBinding<OperationHandlerConstructor>): void {
         super.configureOperationHandlers(binding);
+        this.context.bind(SpecifiedNodeHandler).toSelf();
+        this.context.bind(SpecifiedEdgeHandler).toSelf();
         binding.add(SpecifiedNodeHandler);
         binding.add(SpecifiedEdgeHandler);
         binding.add(ChangeBoundsHandler);
@@ -126,5 +130,9 @@ export class CincoDiagramModule extends DiagramModule {
 
     protected override bindContextMenuItemProvider(): BindingTarget<ContextMenuItemProvider> | undefined {
         return CustomContextMenuItemProvider;
+    }
+
+    protected override bindOperationHandlerRegistry(): BindingTarget<OperationHandlerRegistry> {
+        return CincoOperationHandlerRegistry;
     }
 }
