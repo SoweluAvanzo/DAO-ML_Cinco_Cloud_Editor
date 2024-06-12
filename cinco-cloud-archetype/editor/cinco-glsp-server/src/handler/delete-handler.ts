@@ -38,7 +38,7 @@ export class DeleteHandler extends CincoJsonOperationHandler {
 
     protected deleteElement(element: IdentifiableElement): void {
         if (Container.is(element)) {
-            const containments = element.containments;
+            const containments = element.containments ?? [];
             containments.forEach((c: Node) => this.deleteElement(c));
         }
         if (Node.is(element)) {
