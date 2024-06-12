@@ -118,12 +118,12 @@ export class CincoNode extends GNode implements CincoModelElement {
 
     get view(): View | undefined {
         // 1. Runtime View
-        if (this._view) {
+        if (this._view && (this._view.style || this._view?.cssClass)) {
             return this._view;
         }
         // 2. Persisted View
         const args = this['args'] as any;
-        if (args !== undefined && args.persistedView) {
+        if (args !== undefined && args.persistedView && (args.persistedView.style || args.persistedView.cssClass)) {
             const persistedView = JSON.parse(args.persistedView) as View;
             this._view = persistedView;
             return this._view;
@@ -298,12 +298,12 @@ export class CincoEdge extends GEdge implements CincoModelElement {
 
     get view(): View | undefined {
         // 1. Runtime View
-        if (this._view) {
+        if (this._view && (this._view.style || this._view?.cssClass)) {
             return this._view;
         }
         // 2. Persisted View
         const args = this['args'] as any;
-        if (args !== undefined && args.persistedView) {
+        if (args !== undefined && args.persistedView && (args.persistedView.style || args.persistedView.cssClass)) {
             const persistedView = JSON.parse(args.persistedView) as View;
             this._view = persistedView;
             return this._view;
