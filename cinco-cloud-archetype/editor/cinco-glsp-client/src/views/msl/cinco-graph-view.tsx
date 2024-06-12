@@ -17,8 +17,12 @@ import { RenderingContext, GGraph, GGraphView, svg } from '@eclipse-glsp/client'
 import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
 import { CincoEdge, CincoGraphModel, CincoNode } from '../../model/model';
+import { isUnknownEdgeType, isUnknownNodeType } from './cinco-view-helper';
+import { CincoNodeView } from './cinco-node-view';
+import { CincoEdgeView } from './cinco-edge-view';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
+
 /**
  * IView component that turns an SGraph element and its children into a tree of virtual DOM elements.
  */
@@ -40,14 +44,39 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
         const elements = context.renderChildren(model, { edgeRouting });
 
         // discriminate between nodes, containers, edges and rest to fix clipping
-        const nodes = model.children.filter(e => e instanceof CincoNode && !e.isContainer);
-        const containers = model.children.filter(e => e instanceof CincoNode && e.isContainer);
-        const edges = model.children.filter(e => e instanceof CincoEdge);
+        const nodes = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && !e.isContainer);
+        const containers = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && e.isContainer);
+        const edges = model.children.filter(e => e instanceof CincoEdge && !isUnknownEdgeType(e));
+
         const gNodes = elements.filter(gElement => nodes.find(n => n.id === gElement.key));
         const gContainers = elements.filter(gElement => containers.find(n => n.id === gElement.key));
         const gEdges = elements.filter(gElement => edges.find(n => n.id === gElement.key));
+
+        // handle unknowns
+        const unknownNodes = model.children.filter(e => isUnknownNodeType(e));
+        const unknownEdges = model.children.filter(e => isUnknownEdgeType(e));
+        const unknownNodeTypes = Array.from(new Set(unknownNodes.map(e => e.type)));
+        const unknownEdgeTypes = Array.from(new Set(unknownEdges.map(e => e.type)));
+        for (const unknown of unknownNodeTypes) {
+            if (!context.viewRegistry.hasKey(unknown)) {
+                context.viewRegistry.register(unknown, new CincoNodeView());
+            }
+        }
+        for (const unknown of unknownEdgeTypes) {
+            if (!context.viewRegistry.hasKey(unknown)) {
+                context.viewRegistry.register(unknown, new CincoEdgeView());
+            }
+        }
+        const unknownGNodes = elements.filter(gElement => unknownNodes.find(n => n.id === gElement.key));
+        const unknownGEdges = elements.filter(gElement => unknownEdges.find(n => n.id === gElement.key));
+
         const rest = elements.filter(
-            gElement => !gEdges.includes(gElement) && !gContainers.includes(gElement) && !gNodes.includes(gElement)
+            gElement =>
+                !gEdges.includes(gElement) &&
+                !gContainers.includes(gElement) &&
+                !gNodes.includes(gElement) &&
+                !unknownGNodes.includes(gElement) &&
+                !unknownGEdges.includes(gElement)
         );
 
         return (
@@ -56,6 +85,8 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
                     {gContainers as Iterable<React.ReactNode>}
                     {gNodes as Iterable<React.ReactNode>}
                     {gEdges as Iterable<React.ReactNode>}
+                    {unknownGNodes as Iterable<React.ReactNode>}
+                    {unknownGEdges as Iterable<React.ReactNode>}
                     {rest as Iterable<React.ReactNode>}
                 </g>
             </svg>

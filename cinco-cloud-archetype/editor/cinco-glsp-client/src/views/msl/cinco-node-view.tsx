@@ -19,7 +19,14 @@ import { inject, injectable } from 'inversify';
 import { VNode } from 'snabbdom';
 import { CincoEdge, CincoNode } from '../../model/model';
 import { WorkspaceFileService } from '../../utils/workspace-file-service';
-import { CSS_STYLE_PREFIX, buildShape, resolveChildrenRecursivly } from './cinco-view-helper';
+import {
+    CSS_STYLE_PREFIX,
+    UNKNOWN_HEIGHT,
+    UNKNOWN_WIDTH,
+    buildShape,
+    isUnknownNodeType,
+    resolveChildrenRecursivly
+} from './cinco-view-helper';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
 
@@ -36,10 +43,12 @@ export class CincoNodeView extends ShapeView {
      * @param args
      * @returns
      */
-    render(node: Readonly<GShapeElement & Hoverable & Selectable>, context: RenderingContext, args?: IViewArgs): VNode | undefined {
-        if (!(node instanceof CincoNode) || !this.isVisible(node, context)) {
+    render(n: Readonly<GShapeElement & Hoverable & Selectable>, context: RenderingContext, args?: IViewArgs): VNode | undefined {
+        const isUnknown = isUnknownNodeType(n);
+        if (!isUnknown && (!(n instanceof CincoNode) || !this.isVisible(n, context))) {
             return undefined;
         }
+        const node = n as CincoNode;
         const style = node.style as NodeStyle | undefined;
         const artificialCSSClass = `${CSS_STYLE_PREFIX}${style?.name ?? 'default'}`;
         const mainContainer = (children: VNode[]): VNode => {
@@ -78,11 +87,21 @@ export class CincoNodeView extends ShapeView {
                 }
             }
         }
-        const vnode = buildShape(node, style?.shape, node.size, parentScale, undefined, false, parameterCount, this.workspaceFileService)!;
+        const vnode = buildShape(
+            node,
+            style?.shape,
+            node.size,
+            parentScale,
+            undefined,
+            false,
+            parameterCount,
+            this.workspaceFileService,
+            isUnknown
+        )!;
 
         // Selector
         const borderSize = (vnode?.data?.style?.['strokeWidth'] ?? 0) as number;
-        const selector = this.createSelector(node, borderSize);
+        const selector = this.createSelector(node, borderSize, isUnknown);
 
         // resolve children
         const vNodeChildren = resolveChildrenRecursivly(vnode);
@@ -92,11 +111,11 @@ export class CincoNodeView extends ShapeView {
         // context-elements (and fix for false located children, e.g. resizeHandles)
         const oldBounds = node.bounds;
         node.bounds = {
-            x: node.bounds.x,
-            y: node.bounds.y,
+            x: isUnknown ? node.position.x : node.bounds.x,
+            y: isUnknown ? node.position.y : node.bounds.y,
             // temporarily add bordersizes to nodes bounds
-            width: Math.max(node.bounds.width + 2 * borderSize, 0),
-            height: Math.max(node.bounds.height + 2 * borderSize, 0)
+            width: Math.max((isUnknown ? UNKNOWN_WIDTH : node.bounds.width) + 2 * borderSize, 0),
+            height: Math.max((isUnknown ? UNKNOWN_HEIGHT : node.bounds.height) + 2 * borderSize, 0)
         };
         const contextChildren = context.renderChildren(node);
         container.children = container.children?.concat(contextChildren);
@@ -116,15 +135,15 @@ export class CincoNodeView extends ShapeView {
      * MANDATORY-HELPER-FUNCTIONS
      */
 
-    protected createSelector(node: CincoNode, borderSize: number): VNode {
+    protected createSelector(node: CincoNode, borderSize: number, isUnknown = false): VNode {
         const result = (
             <rect
                 class-sprotty-node={node instanceof GNode}
                 class-sprotty-port={node instanceof GPort}
                 class-mouseover={node?.hoverFeedback}
                 class-selected={node?.selected}
-                width={Math.max(node.size.width + 2 * borderSize, 0)}
-                height={Math.max(node.size.height + 2 * borderSize, 0)}
+                width={Math.max((isUnknown ? UNKNOWN_WIDTH : node.size.width) + 2 * borderSize, 0)}
+                height={Math.max((isUnknown ? UNKNOWN_HEIGHT : node.size.height) + 2 * borderSize, 0)}
                 style={{ fill: '#a41d1d00', opacity: '1.0', pointerEvents: 'none' }}
                 x={0 - borderSize}
                 y={0 - borderSize}

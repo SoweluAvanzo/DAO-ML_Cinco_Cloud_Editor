@@ -25,7 +25,9 @@ import {
     HAlignment,
     Image,
     LineStyle,
+    ModelElementContainer,
     MultiText,
+    NodeType,
     Point,
     Polygon,
     Polyline,
@@ -35,7 +37,9 @@ import {
     Text,
     VAlignment,
     WebView,
-    getAppearanceByNameOf
+    getAppearanceByNameOf,
+    getContainmentsOf,
+    getSpecOf
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     Bounds,
@@ -61,6 +65,8 @@ import { WorkspaceFileService } from '../../utils/workspace-file-service';
  * HELPER-FUNCTIONS
  */
 
+export const UNKNOWN_WIDTH = 100;
+export const UNKNOWN_HEIGHT = 100;
 export const CSS_RESOURCE_BASE = '../../../languages/';
 export const CSS_SHAPE_PREFIX = 'cc-shape-';
 export const CSS_DECORATOR_PREFIX = 'cc-decorator-';
@@ -192,7 +198,7 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
     // foreground, background, filled
     let background;
     let foreground;
-    if (options.isText) {
+    if (options?.isText) {
         background = getProperty(appearance, a => a.foreground) ?? options?.background;
         foreground = getProperty(appearance, a => a.background) ?? options?.foreground;
     } else {
@@ -203,14 +209,14 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
     const filled = getProperty(appearance, a => a.filled) ?? options?.filled;
     const borderColor = foreground ?? background;
     const fillColor = filled ? foreground ?? background : background;
-    if (!options.isEdge) {
+    if (!options?.isEdge) {
         /*
          * edges are discrimnated, because 'fill' breaks the
          * selection mechanism for edges of the GLSP. If 'fill' is set,
          * edges can cover other edges. Those edges can subsequently not be selected.
          */
         style['fill'] =
-            options.isEdge && !background
+            options?.isEdge && !background
                 ? `rgba(${fillColor?.r ?? 0},${fillColor?.g ?? 0},${fillColor?.b ?? 0}, 0)`
                 : `rgb(${fillColor?.r ?? 0},${fillColor?.g ?? 0},${fillColor?.b ?? 0})`;
         style['background-color'] = `rgb(${background?.r ?? 0},${background?.g ?? 0},${background?.b ?? 0})`;
@@ -261,7 +267,7 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
     }
     // Decide between, e.g. Rectangle and RoundedRectangle
     style['strokeLinecap'] = 'round';
-    if (!options.strokeRound) {
+    if (!options?.strokeRound) {
         style['strokeLinejoin'] = 'miter';
     } else {
         style['strokeLinejoin'] = 'round';
@@ -269,7 +275,7 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
 
     // transparency
     const transparency = getProperty(appearance, a => a.transparency) ?? options?.transparency;
-    if (!options.isEdge || transparency !== undefined) {
+    if (!options?.isEdge || transparency !== undefined) {
         /*
          * edges are discrimnated, because the transparency effect is used
          * by the glsp for hovering over edges, for selection.
@@ -725,7 +731,8 @@ export function buildShape(
     parentPosition: Point | undefined,
     parentCentered: boolean,
     parameterCount: number,
-    workspaceFileService: WorkspaceFileService
+    workspaceFileService: WorkspaceFileService,
+    isUnknown: boolean = false
 ): VNode | undefined {
     if (Text.is(shapeStyle)) {
         return buildTextShape(element, shapeStyle, parentSize, parentPosition ?? { x: 0, y: 0 }, parentCentered, parameterCount);
@@ -799,6 +806,8 @@ export function buildShape(
             parameterCount,
             workspaceFileService
         );
+    } else if (isUnknown) {
+        return buildUnknownShape(element);
     } else {
         return buildDefaultShape(element);
     }
@@ -812,6 +821,38 @@ export function buildDefaultShape(element: CincoNode | CincoEdge): VNode {
         x: 0,
         y: 0
     });
+}
+
+/**
+ * @param element the element object.
+ */
+export function buildUnknownShape(element: CincoNode | CincoEdge): VNode {
+    const unknownAppearance = {
+        background: {
+            r: 255,
+            g: 100,
+            b: 100
+        },
+        foreground: {
+            r: 255,
+            g: 100,
+            b: 100
+        },
+        lineWidth: 1
+    } as Appearance;
+    const unkownStyle = appearanceToStyle(unknownAppearance);
+    return createRectangleShape(
+        unkownStyle,
+        element.cssClasses?.join(' ') ?? fromStringToCSSShapeName('unknown'),
+        {
+            width: UNKNOWN_WIDTH,
+            height: UNKNOWN_HEIGHT
+        },
+        {
+            x: 0,
+            y: 0
+        }
+    );
 }
 
 /**
@@ -1169,7 +1210,8 @@ export function buildContainerShape(
             localPosition,
             localCentered,
             parameterCount,
-            workspaceFileService
+            workspaceFileService,
+            false
         );
         if (childShape) {
             children.push(childShape);
@@ -1498,4 +1540,16 @@ export function updatePalette(actionDispatcher: IActionDispatcher): void {
         kind: 'enableToolPalette'
     };
     actionDispatcher.dispatch(paletteUpdateAction);
+}
+
+export function isUnknownNodeType(e: GModelElement): boolean {
+    const modelType = e.root.type;
+    const modelSpec = getSpecOf(modelType);
+    const nodeSpec = getSpecOf(e.type);
+    const isContainable = getContainmentsOf(modelSpec as ModelElementContainer).includes(nodeSpec as NodeType);
+    return (!(e instanceof CincoNode) || !isContainable) && (e as any)['layoutOptions'];
+}
+
+export function isUnknownEdgeType(e: GModelElement): boolean {
+    return !(e instanceof CincoEdge) && (e as any)['routingPoints'];
 }
