@@ -1079,7 +1079,7 @@ export function getContainerNodes(): NodeType[] {
 }
 
 export function getContainmentsOf(e: ModelElementContainer): NodeType[] {
-    if (e.containments !== undefined) {
+    if (e?.containments !== undefined) {
         const containmentTypesIds = e.containments.map((c: Constraint) => c.elements ?? []).flat();
         return containmentTypesIds.map(id => getNodeSpecOf(id)).filter((n: NodeType | undefined) => n !== undefined) as NodeType[];
     }
