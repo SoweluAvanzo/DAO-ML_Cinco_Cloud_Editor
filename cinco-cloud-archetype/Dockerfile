@@ -44,6 +44,7 @@ ENV INTERNAL_USE_SSL="false"
 ENV EXTERNAL_USE_SSL="false"
 ENV WORKSPACE_PATH="/editor/workspace"
 ENV EDITOR_TYPE="LANGUAGE_EDITOR"
+ENV META_LANGUAGES_FOLDER="workspace/languages"
 ENV NODE_ENV="development"
 # make readable for root only
 RUN chmod -R 750 /var/run/
