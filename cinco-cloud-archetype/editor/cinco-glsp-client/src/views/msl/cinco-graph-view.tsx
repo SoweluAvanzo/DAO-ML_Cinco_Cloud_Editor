@@ -41,7 +41,7 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
             ) as unknown as VNode;
         }
         const edgeRouting = this.edgeRouterRegistry.routeAllChildren(model);
-        const elements = context.renderChildren(model, { edgeRouting });
+        const elements = context.renderChildren(model, { edgeRouting, edgeRouterRegistry: this.edgeRouterRegistry });
 
         // discriminate between nodes, containers, edges and rest to fix clipping
         const nodes = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && !e.isContainer);

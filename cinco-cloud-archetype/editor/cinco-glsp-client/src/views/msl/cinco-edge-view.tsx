@@ -56,6 +56,7 @@ import {
     appearanceToStyle,
     buildShape,
     calculateEdgeLocation,
+    isUnknownEdgeType,
     mergeAppearance,
     normalizeDecoratorLocation,
     resolveChildrenRecursivly,
@@ -454,12 +455,17 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
         L ${lengthX / 2 + offsetX},${lengthY / 2.0 + offsetY}
         Z`;
 
-    render(target: Readonly<CincoEdge>, context: RenderingContext, args?: IViewArgs): VNode | undefined {
-        if (!(target instanceof CincoEdge)) {
-            return undefined;
-        }
+    render(target: Readonly<CincoEdge>, context: RenderingContext, args: { edgeRouterRegistry: EdgeRouterRegistry }): VNode | undefined {
+        const isUnknown = isUnknownEdgeType(target);
+
+        this.edgeRouterRegistry = args.edgeRouterRegistry;
+
         // update routingPoints
-        const edge = target.root.index.getById(target.id) as CincoEdge;
+        let edge = target.root.index.getById(target.id) as CincoEdge;
+        if (!(edge instanceof CincoEdge)) {
+            edge = Object.assign(new CincoEdge(), edge);
+        }
+
         const edgeRouter = this.edgeRouterRegistry.get(undefined) as AbstractEdgeRouter; // needed for anchor
         edge.updateRoutingPoints(edgeRouter);
 
@@ -471,7 +477,7 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
 
         // setup edge styling
         const edgeStyle = (edge.style ? edge.style : {}) as EdgeStyle;
-        this.lineType = this.connectionToLineType(edgeStyle.type ?? (edge.view as EdgeView | undefined)?.routerKind ?? this.lineType);
+        this.lineType = this.connectionToLineType(edgeStyle.type ?? (edge?.view as EdgeView | undefined)?.routerKind ?? this.lineType);
         this.lineCrossType = LINE_CROSS_TYPE.GAP; // TODO: could be implemented in future msl
         const artificialCSSClass = `${CSS_STYLE_PREFIX}${edgeStyle?.name ?? 'default'}`;
 
@@ -486,7 +492,7 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
             filled: false,
             isEdge: true,
             // GLSP default values
-            foreground: { r: 178, g: 178, b: 178 },
+            foreground: isUnknown ? { r: 255, g: 100, b: 100 } : { r: 178, g: 178, b: 178 },
             lineWidth: 1.5
         } as Appearance);
 
@@ -497,7 +503,7 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
         // create decorators/additionals
         const decorators = this.createDecorators(edge, route, connectionDecorator, edgeAppearance, parameterCount);
 
-        if (!this.isVisible(edge, route, context)) {
+        if (!this.isVisible(edge, route, context) && edge.children) {
             if (edge.children.length === 0) {
                 return undefined;
             }
