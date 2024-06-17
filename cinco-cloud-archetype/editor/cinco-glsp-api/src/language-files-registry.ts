@@ -131,7 +131,6 @@ export abstract class LanguageFilesRegistry {
          */
         // eslint-disable-next-line no-eval
         const cinco_glsp_api = eval("( require('@cinco-glsp/cinco-glsp-api') )");
-        const registered = cinco_glsp_api.LanguageFilesRegistry._registered as { name: string; cls: any }[];
 
         // load handler code
         for (const handler of handlerToImport) {
@@ -144,6 +143,8 @@ export abstract class LanguageFilesRegistry {
                 console.log(e);
             }
         }
+        const registered = cinco_glsp_api.LanguageFilesRegistry._registered as { name: string; cls: any }[];
+
         for (const newInstance of registered) {
             // the registered from the other package are synchronized to here
             this.register(newInstance.cls);
