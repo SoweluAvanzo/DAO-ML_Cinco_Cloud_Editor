@@ -63,6 +63,7 @@ COPY --chown=theia:theia ./cinco-cloud-archetype/editor /editor
 RUN mkdir -p /editor/browser-app/plugins
 RUN rm -f ./cinco-cloud-archetype/editor/browser-app/plugins/*
 COPY --from=cinco-languages-extension-builder /cinco-languages-extension/cinco-langium-0.0.1.vsix /editor/browser-app/plugins
+COPY --from=cinco-cloud-project-initializer-builder /cinco-cloud-project-initializer/cinco-cloud-project-initializer-0.0.1.vsix /editor/browser-app/plugins
 
 # build minio-client
 RUN cd minio-client && yarn && cd ../
