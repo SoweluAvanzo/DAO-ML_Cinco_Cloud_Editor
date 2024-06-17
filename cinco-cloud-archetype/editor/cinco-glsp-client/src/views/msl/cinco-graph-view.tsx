@@ -13,13 +13,14 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { RenderingContext, GGraph, GGraphView, svg } from '@eclipse-glsp/client';
+import { RenderingContext, GGraph, GGraphView, svg, Bounds } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
 import { CincoEdge, CincoGraphModel, CincoNode } from '../../model/model';
-import { isUnknownEdgeType, isUnknownNodeType } from './cinco-view-helper';
+import { isEdgeType, isNodeType, isUnknownEdgeType, isUnknownNodeType } from './cinco-view-helper';
 import { CincoNodeView } from './cinco-node-view';
 import { CincoEdgeView } from './cinco-edge-view';
+import { UNKNOWN_HEIGHT, UNKNOWN_WIDTH } from './unknown-definitions';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
 
@@ -40,21 +41,50 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
                 </svg>
             ) as unknown as VNode;
         }
+
+        // identify nodes, containers, edges and rest to fix clipping
+        let nodes = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && !e.isContainer);
+        let containers = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && e.isContainer);
+        let edges = model.children.filter(e => e instanceof CincoEdge && !isUnknownEdgeType(e));
+
+        // identify unknowns
+        let unknownNodes = model.children.filter(e => isUnknownNodeType(e));
+        const unknownEdges = model.children.filter(e => isUnknownEdgeType(e));
+        // get knownNodes that are no CincoNodes/CincoEdges
+        const knownUnidentifiedNodes = model.children.filter(
+            e => !isUnknownNodeType(e) && isNodeType(e) && !nodes.includes(e) && !containers.includes(e)
+        );
+        const mappedKnownNodes = knownUnidentifiedNodes.map(kn => Object.assign(new CincoNode(), kn));
+        const knownUnidentifiedEdges = model.children.filter(e => !isUnknownEdgeType(e) && isEdgeType(e) && !edges.includes(e));
+        containers = containers.concat(mappedKnownNodes.filter(mkn => mkn.isContainer));
+        nodes = nodes.concat(mappedKnownNodes.filter(mkn => !mkn.isContainer));
+        edges = edges.concat(knownUnidentifiedEdges.map(ke => Object.assign(new CincoEdge(), ke)));
+
+        // correcting missing values with defaults
+        unknownNodes = unknownNodes.map(un => {
+            const anyUn = un as any;
+            if (!anyUn['bounds']) {
+                anyUn['bounds'] = {
+                    x: anyUn['position'] ? anyUn['position'].x : 0,
+                    y: anyUn['position'] ? anyUn['position'].y : 0,
+                    width: anyUn['layoutOptions'] ? anyUn['layoutOptions'].prefWidth : UNKNOWN_WIDTH,
+                    height: anyUn['layoutOptions'] ? anyUn['layoutOptions'].prefHeight : UNKNOWN_HEIGHT
+                } as Bounds;
+            }
+            if (!anyUn['strokeWidth']) {
+                anyUn['strokeWidth'] = 0;
+            }
+            return anyUn;
+        });
+        Object.assign(model.children, unknownNodes.concat(unknownEdges).concat(containers).concat(edges).concat(nodes));
+
         const edgeRouting = this.edgeRouterRegistry.routeAllChildren(model);
         const elements = context.renderChildren(model, { edgeRouting, edgeRouterRegistry: this.edgeRouterRegistry });
-
-        // discriminate between nodes, containers, edges and rest to fix clipping
-        const nodes = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && !e.isContainer);
-        const containers = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && e.isContainer);
-        const edges = model.children.filter(e => e instanceof CincoEdge && !isUnknownEdgeType(e));
-
         const gNodes = elements.filter(gElement => nodes.find(n => n.id === gElement.key));
         const gContainers = elements.filter(gElement => containers.find(n => n.id === gElement.key));
         const gEdges = elements.filter(gElement => edges.find(n => n.id === gElement.key));
 
         // handle unknowns
-        const unknownNodes = model.children.filter(e => isUnknownNodeType(e));
-        const unknownEdges = model.children.filter(e => isUnknownEdgeType(e));
         const unknownNodeTypes = Array.from(new Set(unknownNodes.map(e => e.type)));
         const unknownEdgeTypes = Array.from(new Set(unknownEdges.map(e => e.type)));
         for (const unknown of unknownNodeTypes) {

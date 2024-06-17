@@ -61,9 +61,6 @@ import { WorkspaceFileService } from '../../utils/workspace-file-service';
 /**
  * HELPER-FUNCTIONS
  */
-
-export const UNKNOWN_WIDTH = 100;
-export const UNKNOWN_HEIGHT = 100;
 export const CSS_RESOURCE_BASE = '../../../languages/';
 export const CSS_SHAPE_PREFIX = 'cc-shape-';
 export const CSS_DECORATOR_PREFIX = 'cc-decorator-';
@@ -728,8 +725,7 @@ export function buildShape(
     parentPosition: Point | undefined,
     parentCentered: boolean,
     parameterCount: number,
-    workspaceFileService: WorkspaceFileService,
-    isUnknown: boolean = false
+    workspaceFileService: WorkspaceFileService
 ): VNode | undefined {
     if (Text.is(shapeStyle)) {
         return buildTextShape(element, shapeStyle, parentSize, parentPosition ?? { x: 0, y: 0 }, parentCentered, parameterCount);
@@ -803,8 +799,6 @@ export function buildShape(
             parameterCount,
             workspaceFileService
         );
-    } else if (isUnknown) {
-        return buildUnknownShape(element);
     } else {
         return buildDefaultShape(element);
     }
@@ -818,38 +812,6 @@ export function buildDefaultShape(element: CincoNode | CincoEdge): VNode {
         x: 0,
         y: 0
     });
-}
-
-/**
- * @param element the element object.
- */
-export function buildUnknownShape(element: CincoNode | CincoEdge): VNode {
-    const unknownAppearance = {
-        background: {
-            r: 255,
-            g: 100,
-            b: 100
-        },
-        foreground: {
-            r: 255,
-            g: 100,
-            b: 100
-        },
-        lineWidth: 1
-    } as Appearance;
-    const unkownStyle = appearanceToStyle(unknownAppearance);
-    return createRectangleShape(
-        unkownStyle,
-        element.cssClasses?.join(' ') ?? fromStringToCSSShapeName('unknown'),
-        {
-            width: UNKNOWN_WIDTH,
-            height: UNKNOWN_HEIGHT
-        },
-        {
-            x: 0,
-            y: 0
-        }
-    );
 }
 
 /**
@@ -1207,8 +1169,7 @@ export function buildContainerShape(
             localPosition,
             localCentered,
             parameterCount,
-            workspaceFileService,
-            false
+            workspaceFileService
         );
         if (childShape) {
             children.push(childShape);
@@ -1540,13 +1501,20 @@ export function updatePalette(actionDispatcher: IActionDispatcher): void {
 }
 
 export function isUnknownNodeType(e: GModelElement): boolean {
-    return isUnknownType(e.type, e.root.type) && (e as any)['layoutOptions'] !== undefined;
+    return isUnknownType(e.type, e.root.type) && isNodeType(e);
 }
 
 export function isUnknownEdgeType(e: GModelElement): boolean {
-    return isUnknownType(e.type, e.root.type) && (e as any)['routingPoints'] !== undefined;
+    return isUnknownType(e.type, e.root.type) && isEdgeType(e);
 }
 
 export function isUnknownType(type: string, modelType: string): boolean {
     return !canBeCreated(modelType, type);
+}
+export function isNodeType(e: GModelElement): boolean {
+    return (e as any)['layoutOptions'] !== undefined;
+}
+
+export function isEdgeType(e: GModelElement): boolean {
+    return (e as any)['routingPoints'] !== undefined;
 }

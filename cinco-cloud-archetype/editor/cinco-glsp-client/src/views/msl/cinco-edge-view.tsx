@@ -62,6 +62,7 @@ import {
     resolveChildrenRecursivly,
     toCSSDecoratorName
 } from './cinco-view-helper';
+import { UNKNOWN_DECORATOR_SIZE, UNKNOWN_ELEMENT_CSS, getUnknownEdgeShape } from './unknown-definitions';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
 
@@ -461,9 +462,11 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
         this.edgeRouterRegistry = args.edgeRouterRegistry;
 
         // update routingPoints
-        let edge = target.root.index.getById(target.id) as CincoEdge;
-        if (!(edge instanceof CincoEdge)) {
-            edge = Object.assign(new CincoEdge(), edge);
+        let edge: CincoEdge;
+        if (!(target instanceof CincoEdge)) {
+            edge = Object.assign(new CincoEdge(), target);
+        } else {
+            edge = target;
         }
 
         const edgeRouter = this.edgeRouterRegistry.get(undefined) as AbstractEdgeRouter; // needed for anchor
@@ -501,7 +504,9 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
         const connectionDecorator = edgeStyle.decorator ?? [];
 
         // create decorators/additionals
-        const decorators = this.createDecorators(edge, route, connectionDecorator, edgeAppearance, parameterCount);
+        const decorators = isUnknown
+            ? this.createUnknownDecoratorShape(edge, route, 0.5)
+            : this.createDecorators(edge, route, connectionDecorator, edgeAppearance, parameterCount);
 
         if (!this.isVisible(edge, route, context) && edge.children) {
             if (edge.children.length === 0) {
@@ -747,7 +752,7 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
             // there is no GraphicsAlgorithm that is no AbstractShape!
             return undefined;
         }
-        const parentSize = { width: 1.0, height: 1.0 };
+        const parentSize = { width: 0.0, height: 0.0 };
         const parentScale = { x: 1.0, y: 1.0 };
         const position = calculateEdgeLocation(route, location);
         if (!position) {
@@ -758,6 +763,37 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
         const artificialCSSClass = `${CSS_STYLE_PREFIX}${style?.name ?? 'default'}`;
 
         const vnode = buildShape(edge, shape, parentSize, parentScale, position.point, false, parameterCount, this.workspaceFileService);
+        if (vnode === undefined) {
+            return undefined;
+        }
+
+        // resolve children (glsp needs flat hierarchy)
+        const vNodeChildren = resolveChildrenRecursivly(vnode);
+        const children = [vnode].concat(vNodeChildren);
+        const mainContainer = (c: VNode[]): VNode =>
+            (<g className={artificialCSSClass}>{c as Iterable<React.ReactNode>}</g>) as unknown as VNode;
+        return mainContainer(children);
+    }
+
+    protected createUnknownDecoratorShape(edge: CincoEdge, route: RoutedPoint[], location: number): VNode | undefined {
+        const position = calculateEdgeLocation(route, location);
+        if (!position) {
+            return undefined;
+        }
+        const artificialCSSClass = `${CSS_STYLE_PREFIX}${UNKNOWN_ELEMENT_CSS}`;
+        const parentScale = { x: 1.0, y: 1.0 };
+
+        const label = '' + edge.elementType + '\n' + '(' + edge.id + ')';
+        const vnode = buildShape(
+            edge,
+            getUnknownEdgeShape({ width: UNKNOWN_DECORATOR_SIZE.width, height: UNKNOWN_DECORATOR_SIZE.height }, label),
+            { width: 0, height: 0 },
+            parentScale,
+            position.point,
+            false,
+            0,
+            this.workspaceFileService
+        );
         if (vnode === undefined) {
             return undefined;
         }

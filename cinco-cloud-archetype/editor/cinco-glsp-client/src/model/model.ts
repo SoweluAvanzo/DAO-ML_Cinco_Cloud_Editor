@@ -37,6 +37,8 @@ import {
     editFeature,
     ELLIPTIC_ANCHOR_KIND,
     fadeFeature,
+    GChildElement,
+    GConnectableElement,
     GEdge,
     GGraph,
     GGraphIndex,
@@ -452,6 +454,24 @@ export class CincoEdge extends GEdge implements CincoModelElement {
         );
         console.log('--------------------------------------');
     }
+
+    override get source(): GConnectableElement | undefined {
+        const element = this.index.getById(this.sourceId);
+        if (!element) {
+            return undefined;
+        }
+        const result = fixNode(element);
+        return result as GConnectableElement | undefined;
+    }
+
+    override get target(): GConnectableElement | undefined {
+        const element = this.index.getById(this.targetId);
+        if (!element) {
+            return undefined;
+        }
+        const result = fixNode(element);
+        return result as GConnectableElement | undefined;
+    }
 }
 
 export class CincoGraphModel extends GGraph implements CincoModelElement {
@@ -459,4 +479,34 @@ export class CincoGraphModel extends GGraph implements CincoModelElement {
         const targetType = input instanceof GModelElement ? input.type : isGModelElementSchema(input) ? input.type : input;
         return canContain(this, targetType);
     }
+
+    override move(child: GChildElement, newIndex: number): void {
+        const children = this.children as GChildElement[];
+        const childInModel = children.filter(c => c.id === child.id);
+        const isContained = childInModel.length > 0;
+        if (!isContained) {
+            throw new Error(`No such child ${child.id}`);
+        } else {
+            if (newIndex < 0 || newIndex > children.length - 1) {
+                throw new Error(`Child index ${newIndex} out of bounds (0..${children.length})`);
+            }
+            const i = children.indexOf(childInModel[0]);
+            children.splice(i, 1);
+            children.splice(newIndex, 0, child);
+        }
+    }
+}
+
+function fixNode(element: GModelElement): GModelElement {
+    // fix procedure, if element is not identified as a CincoNode
+    const result = element as any;
+    if (!result.bounds) {
+        result.bounds = {
+            x: result.position.x,
+            y: result.position.y,
+            width: result.layoutOptions ? (result.layoutOptions.prefWidth as number) : 1.0,
+            height: result.layoutOptions ? (result.layoutOptions.prefHeight as number) : 1.0
+        };
+    }
+    return result as GModelElement;
 }

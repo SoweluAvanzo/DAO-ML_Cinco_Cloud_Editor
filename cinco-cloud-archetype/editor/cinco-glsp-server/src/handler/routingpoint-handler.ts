@@ -44,8 +44,11 @@ export class RoutingPointHandler extends CincoJsonOperationHandler {
                         // remove deleted routingPoints
                         for (const removed of removedRoutingPoints) {
                             // insert the point by index
-                            const routingPoints1 = element.routingPoints.slice(0, removed[1]);
-                            const routingPoints2 = element.routingPoints.slice(removed[1] + 1, element.routingPoints.length);
+                            const routingPoints1 = (element.routingPoints ?? []).slice(0, removed[1]);
+                            const routingPoints2 = (element.routingPoints ?? []).slice(
+                                removed[1] + 1,
+                                (element.routingPoints ?? []).length
+                            );
                             element.routingPoints = routingPoints1.concat(routingPoints2);
                         }
                         // add new routingPoints
@@ -53,8 +56,8 @@ export class RoutingPointHandler extends CincoJsonOperationHandler {
                             // inject the point by index
                             const index = newRoutingPoint[1];
                             const newPoint = newRoutingPoint[0];
-                            const routingPoints1 = element.routingPoints.slice(0, index);
-                            const routingPoints2 = element.routingPoints.slice(index, element.routingPoints.length);
+                            const routingPoints1 = (element.routingPoints ?? []).slice(0, index);
+                            const routingPoints2 = (element.routingPoints ?? []).slice(index, (element.routingPoints ?? []).length);
                             element.routingPoints = routingPoints1.concat([newPoint]).concat(routingPoints2);
                         }
                     }

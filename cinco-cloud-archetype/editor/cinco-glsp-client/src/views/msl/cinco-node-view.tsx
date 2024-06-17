@@ -19,14 +19,8 @@ import { inject, injectable } from 'inversify';
 import { VNode } from 'snabbdom';
 import { CincoEdge, CincoNode } from '../../model/model';
 import { WorkspaceFileService } from '../../utils/workspace-file-service';
-import {
-    CSS_STYLE_PREFIX,
-    UNKNOWN_HEIGHT,
-    UNKNOWN_WIDTH,
-    buildShape,
-    isUnknownNodeType,
-    resolveChildrenRecursivly
-} from './cinco-view-helper';
+import { CSS_STYLE_PREFIX, buildShape, isUnknownNodeType, resolveChildrenRecursivly } from './cinco-view-helper';
+import { UNKNOWN_HEIGHT, UNKNOWN_WIDTH, getUnknownNodeShape } from './unknown-definitions';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
 
@@ -87,17 +81,18 @@ export class CincoNodeView extends ShapeView {
                 }
             }
         }
-        const vnode = buildShape(
-            node,
-            style?.shape,
-            node.size,
-            parentScale,
-            undefined,
-            false,
-            parameterCount,
-            this.workspaceFileService,
-            isUnknown
-        )!;
+        const vnode = isUnknown
+            ? buildShape(
+                  node,
+                  getUnknownNodeShape(node.size ?? node.bounds, '' + node.type + '\n' + '(' + node.id + ')'),
+                  node.size,
+                  parentScale,
+                  undefined,
+                  false,
+                  0,
+                  this.workspaceFileService
+              )!
+            : buildShape(node, style?.shape, node.size, parentScale, undefined, false, parameterCount, this.workspaceFileService)!;
 
         // Selector
         const borderSize = (vnode?.data?.style?.['strokeWidth'] ?? 0) as number;
@@ -114,8 +109,8 @@ export class CincoNodeView extends ShapeView {
             x: isUnknown ? node.position.x : node.bounds.x,
             y: isUnknown ? node.position.y : node.bounds.y,
             // temporarily add bordersizes to nodes bounds
-            width: Math.max((isUnknown ? UNKNOWN_WIDTH : node.bounds.width) + 2 * borderSize, 0),
-            height: Math.max((isUnknown ? UNKNOWN_HEIGHT : node.bounds.height) + 2 * borderSize, 0)
+            width: Math.max((isUnknown ? node.bounds.width ?? UNKNOWN_WIDTH : node.bounds.width) + 2 * borderSize, 0),
+            height: Math.max((isUnknown ? node.bounds.height ?? UNKNOWN_HEIGHT : node.bounds.height) + 2 * borderSize, 0)
         };
         const contextChildren = context.renderChildren(node);
         container.children = container.children?.concat(contextChildren);
@@ -142,8 +137,8 @@ export class CincoNodeView extends ShapeView {
                 class-sprotty-port={node instanceof GPort}
                 class-mouseover={node?.hoverFeedback}
                 class-selected={node?.selected}
-                width={Math.max((isUnknown ? UNKNOWN_WIDTH : node.size.width) + 2 * borderSize, 0)}
-                height={Math.max((isUnknown ? UNKNOWN_HEIGHT : node.size.height) + 2 * borderSize, 0)}
+                width={Math.max((isUnknown ? node.bounds.width ?? UNKNOWN_WIDTH : node.size.width) + 2 * borderSize, 0)}
+                height={Math.max((isUnknown ? node.bounds.height ?? UNKNOWN_HEIGHT : node.size.height) + 2 * borderSize, 0)}
                 style={{ fill: '#a41d1d00', opacity: '1.0', pointerEvents: 'none' }}
                 x={0 - borderSize}
                 y={0 - borderSize}
