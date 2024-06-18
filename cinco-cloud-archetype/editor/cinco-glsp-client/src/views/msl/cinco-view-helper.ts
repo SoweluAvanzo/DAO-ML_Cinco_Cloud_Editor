@@ -808,6 +808,10 @@ export function buildShape(
  * @param element the element object.
  */
 export function buildDefaultShape(element: CincoNode | CincoEdge): VNode {
+    element.size = {
+        width: element.bounds.width < 0 ? 100 : element.bounds.width,
+        height: element.bounds.height < 0 ? 100 : element.bounds.height
+    } as Bounds;
     return createRectangleShape(undefined, element.cssClasses?.join(' ') ?? fromStringToCSSShapeName('default'), element.bounds, {
         x: 0,
         y: 0

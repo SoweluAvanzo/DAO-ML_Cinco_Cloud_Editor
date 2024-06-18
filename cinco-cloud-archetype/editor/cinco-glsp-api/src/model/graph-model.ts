@@ -49,7 +49,8 @@ import {
     Size,
     Style,
     Text,
-    View
+    View,
+    WebView
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import * as uuid from 'uuid';
@@ -455,6 +456,8 @@ export class Node extends ModelElement {
         } else if (Polyline.is(shape)) {
             return shape.size ?? { width: 10, height: 10 };
         } else if (Image.is(shape)) {
+            return shape.size ?? { width: 10, height: 10 };
+        } else if (WebView.is(shape)) {
             return shape.size ?? { width: 10, height: 10 };
         }
         return { width: 10, height: 10 };
