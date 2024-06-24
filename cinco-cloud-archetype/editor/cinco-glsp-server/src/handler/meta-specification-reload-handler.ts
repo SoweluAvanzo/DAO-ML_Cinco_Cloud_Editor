@@ -37,9 +37,7 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
         if (items === undefined || items.length <= 0) {
             // default behaviour
             const folderPath = getLanguageFolder();
-            await MetaSpecificationLoader.load(folderPath, async () => {
-                await this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
-            });
+            await MetaSpecificationLoader.load(folderPath);
         } else {
             for (const item of items) {
                 const folderPaths = item.folderPaths;

@@ -14,102 +14,53 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { CompositionSpecification, META_FILE_TYPES, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
-import { getFilesFromFolder, getLanguageFolder, getLibLanguageFolder, isBundle, readJson } from '@cinco-glsp/cinco-glsp-api';
+import {
+    CincoFolderWatcher,
+    getFiles,
+    getLanguageFolder,
+    getLibLanguageFolder,
+    getSubfolder,
+    isBundle,
+    readJson
+} from '@cinco-glsp/cinco-glsp-api';
 import { loadLanguage } from '@cinco-glsp/cinco-languages/lib/index';
-import * as fs from 'fs';
-import { FSWatcher, WatchOptions } from 'fs-extra';
+import { WatchEventType } from 'fs-extra';
 export class MetaSpecificationLoader {
-    private static watchingFolder: string | undefined = undefined;
-    private static watcher: FSWatcher | undefined = undefined;
-    private static callback: (() => Promise<void>) | undefined;
-    private static eventAggregationMap: Map<string, number[]> = new Map();
-    private static eventDelta = 600;
-    /*
-     * watches only one folder
-     */
-    static watch(folderToWatch: string, callback?: () => Promise<void>): void {
-        if (!folderToWatch || (this.watchingFolder === folderToWatch && this.callback?.toString() === callback?.toString())) {
-            // already watching or nothing to watch
-            return;
-        }
-
-        // folder changed, while already watching
-        if (this.watcher && this.watchingFolder !== folderToWatch) {
-            this.watcher.close();
-            this.callback = undefined;
-        }
-
-        // set parameter
-        this.callback = callback;
-        this.watchingFolder = folderToWatch;
-
-        // start watching
-        try {
-            this.watcher = fs.watch(
-                folderToWatch,
-                {
-                    // TODO: recursive not possible on Linux until Node 20. But theia currently not Node 20 compatible.
-                    // Probable workaround would be a programatical approach, but we should wait for Theia Node 20.
-                    //
-                    // recursive: true
-                } as WatchOptions,
-                async (eventType, filename) => {
-                    if (filename) {
-                        const fileExtension = filename.slice(filename.indexOf('.'));
-                        if (META_FILE_TYPES.includes(fileExtension)) {
-                            const changeTimes = this.eventAggregationMap.get(filename) ?? [];
-                            const currentTime = Date.now();
-                            if (this.eventAggregationMap.has(filename)) {
-                                const deltaTimes = changeTimes.filter(cT => Math.abs(cT - currentTime) < this.eventDelta);
-                                if (deltaTimes.length > 0) {
-                                    // atleast one event occured in the last eventDelta
-                                    // skip this event
-                                    return;
-                                }
-                            }
-                            this.eventAggregationMap.set(filename, changeTimes.concat(currentTime));
-                            console.log('changed:\nEventtype: ' + eventType + '\nfilename: ' + filename);
-                            if (this.callback) {
-                                let executed = false;
-                                while (!executed) {
-                                    try {
-                                        await this.callback()
-                                            .catch(e => {
-                                                console.log('An error occured executing file watcher callback: ' + e);
-                                            })
-                                            .then(_ => {
-                                                executed = true;
-                                            });
-                                    } catch (e) {
-                                        console.log('something went wrong executing file watcher callback: ' + e);
-                                    }
-                                }
-                            }
-                        }
-                    }
+    static async watch(callback: () => Promise<void>): Promise<void> {
+        const languagesFolder = getLanguageFolder();
+        const folders = getSubfolder(languagesFolder);
+        folders.push(languagesFolder);
+        for (const f of folders) {
+            CincoFolderWatcher.watch(f, META_FILE_TYPES, async (filename: string, eventType: WatchEventType) => {
+                console.log('changed in: ' + f + ' | ' + filename);
+                console.log('eventType: ' + eventType);
+                const subFolders = getSubfolder(languagesFolder);
+                folders.push(languagesFolder);
+                MetaSpecificationLoader.clear();
+                for (const sf of subFolders) {
+                    await this.reloadFiles(sf, META_FILE_TYPES);
                 }
-            );
-        } catch (e) {
-            console.log('something went wrong registering or executing file watcher: ' + e);
+                return callback();
+            });
         }
     }
 
-    static async load(metaLanguagesFolder?: string, callback?: () => Promise<void>): Promise<void> {
-        const metaLanguagesPath = metaLanguagesFolder ?? `${getLanguageFolder()}`;
+    static async load(metaLanguagesFolder?: string): Promise<void> {
+        const languagesFolder = metaLanguagesFolder ?? `${getLanguageFolder()}`;
+        const folders = getSubfolder(languagesFolder);
+        folders.push(languagesFolder);
+        for (const f of folders) {
+            await this.reloadFiles(f, META_FILE_TYPES);
+        }
+        return;
+    }
 
-        // register watching (optional)
-        this.watch(metaLanguagesPath, callback);
-
-        const foundFiles = getFilesFromFolder(metaLanguagesPath, './');
-        const files = await foundFiles.filter((file: string) => {
-            const fileExtension = file.slice(file.indexOf('.'));
-            const isSupported = META_FILE_TYPES.includes(fileExtension);
-            return file !== undefined && isSupported;
-        });
+    private static async reloadFiles(metaLanguagesPath: string, fileTypes: string[]): Promise<CompositionSpecification> {
+        const files = getFiles(metaLanguagesPath, fileTypes);
         let countdown = files.length;
-        return new Promise<void>(resolve => {
+        return new Promise<CompositionSpecification>(resolve => {
             if (files.length <= 0) {
-                resolve();
+                resolve(MetaSpecification.get());
             }
             files.forEach(async (file: string) => {
                 const fileExtension = file.slice(file.indexOf('.'));
@@ -120,18 +71,20 @@ export class MetaSpecificationLoader {
                         if (metaSpec && CompositionSpecification.is(metaSpec)) {
                             MetaSpecification.merge(metaSpec);
                         }
-                    } else {
+                    } else if (fileExtension === '.json') {
                         const metaSpec = readJson(`${metaLanguagesPath}/${file}`);
                         if (metaSpec && CompositionSpecification.is(metaSpec)) {
                             MetaSpecification.merge(metaSpec);
                         }
+                    } else {
+                        console.log('File not handled: ' + file);
                     }
                 } catch (e) {
                     console.log('Error parsing: ' + file + '\n' + e);
                 }
                 countdown -= 1;
                 if (countdown <= 0) {
-                    resolve();
+                    resolve(MetaSpecification.get());
                 }
             });
         });
@@ -144,7 +97,7 @@ export class MetaSpecificationLoader {
     static loadClassFiles(supportedDynamicImportFileTypes: string[]): void {
         // Import all injected language-files under './languages/*.ts'
         const languagesPath = `${getLibLanguageFolder()}`;
-        const foundFiles = getFilesFromFolder(languagesPath, './');
+        const foundFiles = getFiles(languagesPath);
         foundFiles
             .filter((file: string) => {
                 const fileExtension = file.slice(file.indexOf('.'));

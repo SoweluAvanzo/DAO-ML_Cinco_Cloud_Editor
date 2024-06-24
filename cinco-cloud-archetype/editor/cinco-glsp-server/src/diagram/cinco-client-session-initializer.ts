@@ -14,7 +14,6 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { getLanguageFolder } from '@cinco-glsp/cinco-glsp-api';
 import { ActionDispatcher, Args, ClientSessionInitializer, ClientSessionManager, InjectionContainer } from '@eclipse-glsp/server';
 import { Container, inject, injectable } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
@@ -33,7 +32,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
 
     initialize(_args?: Args): void {
         CincoClientSessionInitializer.addClient(this.serverContainer.id, this.actionDispatcher);
-        MetaSpecificationLoader.watch(getLanguageFolder(), async () => {
+        MetaSpecificationLoader.watch(async () => {
             await this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
         });
     }

@@ -14,86 +14,112 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { DEVELOPMENT_MODE, META_DEV_MODE, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
-import { getLanguageFolder, isDevModeArg, readFilesFromDirectories } from './utils/file-helper';
+import { SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
+import { existsFile, getLanguageFolder, getSubfolder, isLanguageDesignMode, readFile, readFilesFromDirectories } from './utils/file-helper';
+import { CincoFolderWatcher } from './cinco-folder-watcher';
+import * as fs from 'fs';
+
+interface LanguageFilesRegistryEntry {
+    name: string;
+    cls: any;
+}
+
+interface HandlerEntry {
+    name: string;
+    path: string;
+    content: string;
+}
 
 export abstract class LanguageFilesRegistry {
-    protected static _overwrite = true;
-    protected static _registered: { name: string; cls: any }[] = [];
+    private static initialized = false;
+    private static _overwrite = true;
+    private static _dirty: string[] = [];
+    private static _registered: LanguageFilesRegistryEntry[] = [];
 
-    /**
-     * There are three ways to activate DEV_MODE:
-     * - start with arg '--metaDevMode'
-     * - set environment variable 'META_DEV_MODE' to true
-     * - set default DEVELOPMENT_MODE runtime variable to true
-     */
-    static get isMetaDevMode(): boolean {
-        if (isDevModeArg()) {
-            return true;
+    static init(): void {
+        if (this.initialized) {
+            return;
         }
-        console.log('--metaDevMode - not set');
-        const metaDevModeString = process.env[META_DEV_MODE];
-        if (!metaDevModeString) {
-            console.log('ENV VAR META_DEV_MODE - not set');
-        }
-        const metaDevMode = metaDevModeString === 'true' || metaDevModeString === 'True' || DEVELOPMENT_MODE;
-        return metaDevMode;
-    }
-
-    static register(cls: any): void {
-        const containedClass = this._registered.find(r => r.name === cls.name);
-        if (this._overwrite || containedClass === undefined) {
-            if (this._overwrite) {
-                // remove old containedClass
-                this._registered = this._registered.filter(r => r !== containedClass);
-                this._registered.push({ name: cls.name, cls: cls });
-                console.log('Reregistered: ' + cls.name);
-            } else {
-                this._registered.push({ name: cls.name, cls: cls });
-                console.log('Registered: ' + cls.name);
+        this.initialized = true;
+        const languagesFolder = getLanguageFolder();
+        const folders = getSubfolder(languagesFolder);
+        folders.push(languagesFolder);
+        if (isLanguageDesignMode()) {
+            // Initialize FileWatcher on languages Folder and subfolders
+            for (const f of folders) {
+                CincoFolderWatcher.watch(f, SUPPORTED_DYNAMIC_FILE_TYPES, async (filename: string, eventType: fs.WatchEventType) => {
+                    if (!existsFile(filename)) {
+                        this.reloadAllFolders();
+                    } else if (!this._dirty.includes(filename)) {
+                        console.log('changed: ' + filename);
+                        console.log('eventType: ' + eventType);
+                        this._dirty.push(filename);
+                    }
+                });
             }
         }
+        this._registered = this.fetchSemanticFiles(folders); // initial fetch
     }
 
-    static unregister(name: string): void {
-        console.log('Uregistered: ' + name);
-        this._registered = this._registered.filter(r => r.name !== name);
+    static reloadAllFolders(): void {
+        const languagesFolder = getLanguageFolder();
+        const folders = getSubfolder(languagesFolder);
+        folders.push(languagesFolder);
+        this._registered = this.fetchSemanticFiles(folders);
     }
 
     static getRegistered(): any[] {
-        this._registered = this.fetch();
+        if (!this.initialized) {
+            throw new Error('LanguageFilesRegistry not yet initialized!');
+        }
+        if (isLanguageDesignMode()) {
+            this._registered = this.fetchDirtySemanticFiles(); // fetch dirty files (no parameter)
+        }
         return this._registered.map(r => r.cls);
     }
 
-    static fetch(): { name: string; cls: any }[] {
-        if (!this.isMetaDevMode) {
-            // only reload files in development mode
-            // in production this would be a security issue
-            return this._registered;
-        }
-        console.log('*************** META_DEV_MODE - active ***********');
-
-        const handlerToImport = this.collectHandlersToImport();
-
+    private static fetchDirtySemanticFiles(): LanguageFilesRegistryEntry[] {
+        const handlerToImport = this.collectDirtyHandlers();
         // register all found
         this.registerFound(handlerToImport);
-
         // unregister all outdated files
-        this.unregisterOutdated(handlerToImport.map(h => h.name));
-
+        // this.unregisterOutdated(handlerToImport.map(h => h.name));
         return this._registered;
     }
 
-    static collectHandlersToImport(): { name: string; path: string; content: string }[] {
-        const handlerNames = getAllHandlerNames();
-        const fileMap = readFilesFromDirectories([getLanguageFolder()], ['.js']);
+    private static collectDirtyHandlers(): HandlerEntry[] {
+        const dirtyFiles = this._dirty;
+        this._dirty = []; // clear dirty files
+        const files = dirtyFiles.map(df => [df, readFile(df)]).filter(df => df[1] !== undefined) as [string, string][];
+        return this.collectHandlersToImport(files);
+    }
+
+    private static fetchSemanticFiles(languagesFolder: string[]): LanguageFilesRegistryEntry[] {
+        let handlerToImport = [] as HandlerEntry[];
+        for (const lf of languagesFolder) {
+            handlerToImport = handlerToImport.concat(this.collectHandlersFromFolder(lf));
+        }
+        // register all found
+        this.registerFound(handlerToImport);
+        // unregister all outdated files
+        this.unregisterOutdated(handlerToImport.map(h => h.name));
+        return this._registered;
+    }
+
+    private static collectHandlersFromFolder(folder: string): HandlerEntry[] {
+        const fileMap = readFilesFromDirectories([folder], SUPPORTED_DYNAMIC_FILE_TYPES);
         const files = Array.from(fileMap.entries());
-        const handlerToImport: { name: string; path: string; content: string }[] = [];
         if (files.length <= 0) {
-            console.log(`no files found in: ${getLanguageFolder()}`);
+            console.log(`no files found in: ${folder}`);
         } else {
             console.log(`${files.length} file(s) will be prepared for evaluation.`);
         }
+        return this.collectHandlersToImport(files);
+    }
+
+    private static collectHandlersToImport(files: [string, string][]): HandlerEntry[] {
+        const handlerNames = getAllHandlerNames();
+        const handlerToImport: HandlerEntry[] = [];
         for (const file of files) {
             const fileContent = file[1];
             for (const handlerName of handlerNames) {
@@ -118,7 +144,7 @@ export abstract class LanguageFilesRegistry {
         return handlerToImport;
     }
 
-    static registerFound(handlerToImport: { name: string; path: string; content: string }[]): void {
+    private static registerFound(handlerToImport: HandlerEntry[]): void {
         /**
          * Javascript can have two of the same static classes at the same time,
          * from different packages (Package A and B both use Package C, containing the class).
@@ -143,15 +169,17 @@ export abstract class LanguageFilesRegistry {
                 console.log(e);
             }
         }
-        const registered = cinco_glsp_api.LanguageFilesRegistry._registered as { name: string; cls: any }[];
+        if (handlerToImport) {
+            const registered = cinco_glsp_api.LanguageFilesRegistry._registered as LanguageFilesRegistryEntry[];
 
-        for (const newInstance of registered) {
-            // the registered from the other package are synchronized to here
-            this.register(newInstance.cls);
+            for (const newInstance of registered) {
+                // the registered from the other package are synchronized to here
+                this.register(newInstance.cls);
+            }
         }
     }
 
-    static unregisterOutdated(currentHandler: string[]): void {
+    private static unregisterOutdated(currentHandler: string[]): void {
         /**
          * Javascript can have two of the same static classes at the same time,
          * from different packages (Package A and B both use Package C, containing the class).
@@ -164,7 +192,7 @@ export abstract class LanguageFilesRegistry {
          */
         // eslint-disable-next-line no-eval
         const cinco_glsp_api = eval("( require('@cinco-glsp/cinco-glsp-api') )");
-        const registered = cinco_glsp_api.LanguageFilesRegistry._registered as { name: string; cls: any }[];
+        const registered = cinco_glsp_api.LanguageFilesRegistry._registered as LanguageFilesRegistryEntry[];
 
         // all registered that are not found in the files, that were ready to be registered
         const outdated1 = this._registered.filter(r => !currentHandler.includes(r.name));
@@ -175,5 +203,33 @@ export abstract class LanguageFilesRegistry {
             this.unregister(o);
             cinco_glsp_api.LanguageFilesRegistry.unregister(o);
         });
+    }
+
+    /**
+     * This method is used by the Semantics to register themselves
+     * @param cls class of the semantic (e.g. ExampleDoubleClickHandler)
+     */
+    static register(cls: any): void {
+        const containedClass = this._registered.find(r => r.name === cls.name);
+        if (this._overwrite || containedClass === undefined) {
+            if (this._overwrite) {
+                // remove old containedClass
+                this._registered = this._registered.filter(r => r !== containedClass);
+                this._registered.push({ name: cls.name, cls: cls });
+                console.log('Reregistered: ' + cls.name);
+            } else {
+                this._registered.push({ name: cls.name, cls: cls });
+                console.log('Registered: ' + cls.name);
+            }
+        }
+    }
+
+    /**
+     * This method is used by the Semantics to unregister themselves
+     * @param name name of the semantic (e.g. ExampleDoubleClickHandler)
+     */
+    static unregister(name: string): void {
+        console.log('Uregistered: ' + name);
+        this._registered = this._registered.filter(r => r.name !== name);
     }
 }

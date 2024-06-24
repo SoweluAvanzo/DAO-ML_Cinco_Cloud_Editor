@@ -17,16 +17,18 @@ import { SUPPORTED_DYNAMIC_FILE_TYPES } from '@cinco-glsp/cinco-glsp-common';
 import 'reflect-metadata';
 import { launch } from './app';
 import { MetaSpecificationLoader } from './meta/meta-specification-loader';
+import { LanguageFilesRegistry } from '@cinco-glsp/cinco-glsp-api';
 
-async function loadMetaFiles(): Promise<void> {
+async function loadLanguageFiles(): Promise<void> {
     /**
      * Load meta specification if available
      * Load all files from language-folder.
      * These files contain the language-designer defined hooks, actions, generators, etc.
      */
     await MetaSpecificationLoader.load();
+    LanguageFilesRegistry.init();
     MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
 }
-loadMetaFiles().then(_ => {
+loadLanguageFiles().then(_ => {
     launch(process.argv).catch((error: any): void => console.error('Error in cinco server launcher:', error));
 });
