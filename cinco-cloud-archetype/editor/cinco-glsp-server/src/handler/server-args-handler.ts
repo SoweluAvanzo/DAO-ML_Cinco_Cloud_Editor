@@ -37,7 +37,7 @@ import {
     getWorkspaceFolderArg,
     getWebsocketPathArg,
     getWebServerPortArg,
-    isLanguageDesignMode
+    isMetaDevMode
 } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
@@ -46,7 +46,7 @@ export class ServerArgsRequestHandler implements ActionHandler {
 
     execute(action: ServerArgsRequest, ...args: unknown[]): MaybePromise<Action[]> {
         const serverArgs = ServerArgs.create(
-            isLanguageDesignMode(),
+            isMetaDevMode(),
             getRoot(),
             getLanguageFolderArg() ?? WORKSPACE_FOLDER,
             getWorkspaceFolderArg() ?? META_LANGUAGES_FOLDER,

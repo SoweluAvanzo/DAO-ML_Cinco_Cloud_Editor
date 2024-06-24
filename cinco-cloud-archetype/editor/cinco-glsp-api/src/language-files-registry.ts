@@ -15,7 +15,7 @@
  ********************************************************************************/
 
 import { SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
-import { existsFile, getLanguageFolder, getSubfolder, isLanguageDesignMode, readFile, readFilesFromDirectories } from './utils/file-helper';
+import { existsFile, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories } from './utils/file-helper';
 import { CincoFolderWatcher } from './cinco-folder-watcher';
 import * as fs from 'fs';
 
@@ -44,7 +44,7 @@ export abstract class LanguageFilesRegistry {
         const languagesFolder = getLanguageFolder();
         const folders = getSubfolder(languagesFolder);
         folders.push(languagesFolder);
-        if (isLanguageDesignMode()) {
+        if (isMetaDevMode()) {
             // Initialize FileWatcher on languages Folder and subfolders
             for (const f of folders) {
                 CincoFolderWatcher.watch(f, SUPPORTED_DYNAMIC_FILE_TYPES, async (filename: string, eventType: fs.WatchEventType) => {
@@ -72,7 +72,7 @@ export abstract class LanguageFilesRegistry {
         if (!this.initialized) {
             throw new Error('LanguageFilesRegistry not yet initialized!');
         }
-        if (isLanguageDesignMode()) {
+        if (isMetaDevMode()) {
             this._registered = this.fetchDirtySemanticFiles(); // fetch dirty files (no parameter)
         }
         return this._registered.map(r => r.cls);

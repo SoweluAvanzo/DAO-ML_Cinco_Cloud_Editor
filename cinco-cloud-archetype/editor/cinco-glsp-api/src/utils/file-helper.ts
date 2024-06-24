@@ -346,7 +346,7 @@ export function getArgs(argsKey: string): string | undefined {
     return undefined;
 }
 
-export function isLanguageDesignMode(): boolean {
+export function isMetaDevMode(): boolean {
     if (isMetaDevModeArg()) {
         return true;
     }
