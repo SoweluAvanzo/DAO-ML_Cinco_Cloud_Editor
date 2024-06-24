@@ -41,7 +41,6 @@ export function getFilesFromDirectories(directories: string[], filterTypes: stri
 
 export function getFiles(absFolderPath: string, filterTypes: string[] = []): string[] {
     try {
-        console.log(`loading files from:  ${absFolderPath}`);
         return getFileEntities(absFolderPath, './', filterTypes);
     } catch (e) {
         console.log('failed to access filesystem.');
@@ -49,10 +48,16 @@ export function getFiles(absFolderPath: string, filterTypes: string[] = []): str
     return [];
 }
 
-export function getSubfolder(absFolderPath: string): string[] {
+export function getSubfolder(absFolderPath: string, depth?: number): string[] {
+    if (depth === 0) {
+        return [];
+    }
     try {
-        console.log(`loading files from:  ${absFolderPath}`);
-        return getFileEntities(absFolderPath, './', [FOLDER_TYPE]);
+        let subfolders = getFileEntities(absFolderPath, './', [FOLDER_TYPE]);
+        for (const sf of subfolders) {
+            subfolders = subfolders.concat(getSubfolder(sf, (depth ?? 0) - 1));
+        }
+        return subfolders;
     } catch (e) {
         console.log('failed to access filesystem.');
     }
@@ -94,19 +99,17 @@ function getFileEntities(absRoot: string, folderPath: string, filterTypes?: stri
 
     foundEntities = foundEntities.concat(containedFiles);
     if (filterTypes && filterTypes.length > 0) {
+        // filter by filterTypes
+        foundEntities = getFilesByExtensions(
+            foundEntities,
+            filterTypes.filter(f => f !== FOLDER_TYPE)
+        );
         if (filterTypes.includes(FOLDER_TYPE)) {
             if (filterTypes.length === 1) {
                 foundEntities = []; // remove all files, that were previously added...
             }
             foundEntities = foundEntities.concat(foundFolders.map(f => `${absRoot}/${f}`)); // ...and add only the folders
         }
-        // filter by filterTypes
-        foundEntities = foundEntities.concat(
-            getFilesByExtensions(
-                foundEntities,
-                filterTypes.filter(f => f !== FOLDER_TYPE)
-            )
-        );
     }
     return foundEntities;
 }
