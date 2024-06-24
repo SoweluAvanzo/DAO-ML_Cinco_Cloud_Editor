@@ -18,6 +18,7 @@ import { ActionDispatcher, Args, ClientSessionInitializer, ClientSessionManager,
 import { Container, inject, injectable } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { MetaSpecificationReloadAction } from '@cinco-glsp/cinco-glsp-common';
+import { isMetaDevMode } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class CincoClientSessionInitializer implements ClientSessionInitializer {
@@ -32,9 +33,11 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
 
     initialize(_args?: Args): void {
         CincoClientSessionInitializer.addClient(this.serverContainer.id, this.actionDispatcher);
-        MetaSpecificationLoader.watch(async () => {
-            await this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
-        });
+        if (isMetaDevMode()) {
+            MetaSpecificationLoader.watch(async () => {
+                await this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
+            });
+        }
     }
 
     static addClient(id: number, actionDispatcher: ActionDispatcher): void {

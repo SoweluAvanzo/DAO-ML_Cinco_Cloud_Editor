@@ -17,7 +17,7 @@ import { MetaSpecification, MetaSpecificationReloadAction, MetaSpecificationResp
 import { Action, ActionDispatcher, ActionHandler, InjectionContainer } from '@eclipse-glsp/server';
 import { injectable, inject, Container } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
-import { getLanguageFolder } from '@cinco-glsp/cinco-glsp-api';
+import { getLanguageFolder, isMetaDevMode } from '@cinco-glsp/cinco-glsp-api';
 import { CincoClientSessionInitializer } from '../diagram/cinco-client-session-initializer';
 
 @injectable()
@@ -29,27 +29,30 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
     actionKinds: string[] = [MetaSpecificationReloadAction.KIND];
 
     async execute(action: MetaSpecificationReloadAction, ...args: unknown[]): Promise<Action[]> {
-        const items = action.items;
-        const clear = action.clear ?? false;
-        if (clear) {
-            MetaSpecificationLoader.clear();
-        }
-        if (items === undefined || items.length <= 0) {
-            // default behaviour
-            const folderPath = getLanguageFolder();
-            await MetaSpecificationLoader.load(folderPath);
-        } else {
-            for (const item of items) {
-                const folderPaths = item.folderPaths;
-                for (const folderPath of folderPaths) {
-                    MetaSpecificationLoader.load(folderPath);
+        if (isMetaDevMode()) {
+            const items = action.items;
+            const clear = action.clear ?? false;
+            if (clear) {
+                MetaSpecificationLoader.clear();
+            }
+            if (items === undefined || items.length <= 0) {
+                // default behaviour
+                const folderPath = getLanguageFolder();
+                await MetaSpecificationLoader.load(folderPath);
+            } else {
+                for (const item of items) {
+                    const folderPaths = item.folderPaths;
+                    for (const folderPath of folderPaths) {
+                        MetaSpecificationLoader.load(folderPath);
+                    }
                 }
             }
+            // forward the update to the clients, after reload
+            const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
+            this.sendToAllOtherClients(response);
+            return [response];
         }
-
-        // forward the update to the clients, after reload
         const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
-        this.sendToAllOtherClients(response);
         return [response];
     }
 
