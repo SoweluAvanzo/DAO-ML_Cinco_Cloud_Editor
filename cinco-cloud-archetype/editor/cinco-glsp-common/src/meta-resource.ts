@@ -22,7 +22,6 @@ export const META_FILE_TYPES = ['.json', '.mgl', '.msl', '.style'];
 export const RESOURCE_TYPES = ['.css'];
 export const SUPPORTED_DYNAMIC_FILE_TYPES = ['.js'];
 export const DIAGRAM_TYPE = 'cinco-diagram';
-export const DEVELOPMENT_MODE = false;
 
 // environment and args keys
 export const META_DEV_MODE = 'META_DEV_MODE';
