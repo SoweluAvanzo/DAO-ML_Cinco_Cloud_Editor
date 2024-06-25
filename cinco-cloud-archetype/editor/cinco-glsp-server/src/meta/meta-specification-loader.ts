@@ -34,12 +34,6 @@ export class MetaSpecificationLoader {
             CincoFolderWatcher.watch(f, META_FILE_TYPES, async (filename: string, eventType: WatchEventType) => {
                 console.log('changed in: ' + f + ' | ' + filename);
                 console.log('eventType: ' + eventType);
-                const subFolders = getSubfolder(languagesFolder);
-                folders.push(languagesFolder);
-                MetaSpecificationLoader.clear();
-                for (const sf of subFolders) {
-                    await this.reloadFiles(sf, META_FILE_TYPES);
-                }
                 return callback();
             });
         }
@@ -47,21 +41,17 @@ export class MetaSpecificationLoader {
 
     static async load(metaLanguagesFolder?: string): Promise<void> {
         const languagesFolder = metaLanguagesFolder ?? `${getLanguageFolder()}`;
-        const folders = getSubfolder(languagesFolder);
-        folders.push(languagesFolder);
-        for (const f of folders) {
-            await this.reloadFiles(f, META_FILE_TYPES);
-        }
-        return;
+        return this.reloadFiles(languagesFolder, META_FILE_TYPES);
     }
 
-    private static async reloadFiles(metaLanguagesPath: string, fileTypes: string[]): Promise<CompositionSpecification> {
+    private static async reloadFiles(metaLanguagesPath: string, fileTypes: string[]): Promise<void> {
         const files = getFiles(metaLanguagesPath, fileTypes);
-        let countdown = files.length;
-        return new Promise<CompositionSpecification>(resolve => {
+        return new Promise<void>(resolve => {
             if (files.length <= 0) {
-                resolve(MetaSpecification.get());
+                resolve();
             }
+            let countdown = files.length;
+            console.log('Reloading ' + countdown + ' Files');
             files.forEach(async (file: string) => {
                 const fileExtension = file.slice(file.indexOf('.'));
                 try {
@@ -84,7 +74,7 @@ export class MetaSpecificationLoader {
                 }
                 countdown -= 1;
                 if (countdown <= 0) {
-                    resolve(MetaSpecification.get());
+                    resolve();
                 }
             });
         });
