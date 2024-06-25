@@ -26,12 +26,12 @@ interface WatchEntry {
 interface WatchCallback {
     watchedFileTypes: string[];
     callback: (filename: string, eventType: fs.WatchEventType) => Promise<void>;
-    eventAggregationMap: Map<string, number[]>;
 }
 
 export abstract class CincoFolderWatcher {
     private static watchedFolders: Map<string, WatchEntry> = new Map();
-    private static eventDelta = 600;
+    private static eventDelta = 4000;
+    private static eventAggregationMap: Map<string, number[]> = new Map();
 
     /*
      * watches folder
@@ -64,8 +64,7 @@ export abstract class CincoFolderWatcher {
             }
             watchEntry.callbacks.push({
                 callback: callback,
-                watchedFileTypes: watchedFileTypes,
-                eventAggregationMap: new Map()
+                watchedFileTypes: watchedFileTypes
             });
         }
         if (!watchEntry.watcher) {
@@ -77,7 +76,6 @@ export abstract class CincoFolderWatcher {
                     {
                         // TODO: recursive not possible on Linux until Node 20. But theia currently not Node 20 compatible.
                         // Probable workaround would be a programatical approach, but we should wait for Theia Node 20.
-                        // recursive: true
                     } as WatchOptions,
                     async (eventType, filename) => {
                         console.log('Changed detected: ' + filename + ' | ' + 'Eventtype: ' + eventType);
@@ -93,31 +91,31 @@ export abstract class CincoFolderWatcher {
                                     for (const cb of watcherCallbacks) {
                                         this.watch(path, cb.watchedFileTypes, cb.callback);
                                     }
-                                } else {
-                                    console.log('This watch handling is not defined: ' + eventType);
                                 }
                             } else {
+                                const changeTimes = this.eventAggregationMap.get(filename) ?? [];
+                                const currentTime = Date.now();
+                                console.log('Changed Time: ' + changeTimes.toString());
+                                console.log('Delta Time: ' + changeTimes.map(cT => Math.abs(currentTime - cT) - this.eventDelta));
+                                if (this.eventAggregationMap.has(filename)) {
+                                    const deltaTimes = changeTimes.filter(cT => Math.abs(currentTime - cT) < this.eventDelta);
+                                    if (deltaTimes.length > 0) {
+                                        // atleast one event occured in the last eventDelta
+                                        // skip this event
+                                        console.log('changed under ' + this.eventDelta + 'ms, skipping callbacks');
+                                        return;
+                                    }
+                                }
+                                this.eventAggregationMap.set(filename, changeTimes.concat(currentTime));
+                                console.log('changed:\nEventtype: ' + eventType + '\nfilename: ' + filename);
                                 const watcherCallbacks = this.watchedFolders.get(folderToWatch)!.callbacks;
                                 for (const entry of watcherCallbacks) {
                                     const cb = entry.callback;
                                     const fileTypes = entry.watchedFileTypes;
-                                    const eventAggregationMap = entry.eventAggregationMap;
                                     const fileExtension = filename.slice(filename.indexOf('.'));
                                     if (fileTypes && fileTypes.length > 0 ? !fileTypes.includes(fileExtension) : false) {
                                         continue;
                                     }
-                                    const changeTimes = eventAggregationMap.get(filename) ?? [];
-                                    const currentTime = Date.now();
-                                    if (eventAggregationMap.has(filename)) {
-                                        const deltaTimes = changeTimes.filter(cT => Math.abs(cT - currentTime) < this.eventDelta);
-                                        if (deltaTimes.length > 0) {
-                                            // atleast one event occured in the last eventDelta
-                                            // skip this event
-                                            return;
-                                        }
-                                    }
-                                    eventAggregationMap.set(filename, changeTimes.concat(currentTime));
-                                    console.log('changed:\nEventtype: ' + eventType + '\nfilename: ' + filename);
                                     let executed = false;
                                     while (!executed) {
                                         try {
