@@ -43,7 +43,7 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
                 for (const item of items) {
                     const folderPaths = item.folderPaths;
                     for (const folderPath of folderPaths) {
-                        MetaSpecificationLoader.load(folderPath);
+                        await MetaSpecificationLoader.load(folderPath);
                     }
                 }
             }
