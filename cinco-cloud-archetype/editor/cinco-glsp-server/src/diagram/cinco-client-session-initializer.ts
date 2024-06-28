@@ -34,7 +34,9 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
     initialize(_args?: Args): void {
         CincoClientSessionInitializer.addClient(this.serverContainer.id, this.actionDispatcher);
         if (isMetaDevMode()) {
-            MetaSpecificationLoader.watch(async () => this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true)));
+            MetaSpecificationLoader.watch(this.sessions, async () => {
+                this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
+            });
         }
     }
 

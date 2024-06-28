@@ -17,6 +17,7 @@
 import * as fs from 'fs';
 import { FSWatcher, WatchOptions } from 'fs-extra';
 import { existsDirectory, readFile } from './utils/file-helper';
+import * as uuid from 'uuid';
 
 interface WatchEntry {
     watcher: FSWatcher;
@@ -26,6 +27,7 @@ interface WatchEntry {
 interface WatchCallback {
     watchedFileTypes: string[];
     callback: (filename: string, eventType: fs.WatchEventType) => Promise<void>;
+    id: string;
 }
 
 export abstract class CincoFolderWatcher {
@@ -39,7 +41,7 @@ export abstract class CincoFolderWatcher {
         folderToWatch: string,
         watchedFileTypes: string[],
         callback: (filename: string, eventType: fs.WatchEventType) => Promise<void>
-    ): void {
+    ): string | undefined {
         console.log('Folder to watch: ' + folderToWatch);
         console.log('WatchedFilesTypes: ' + watchedFileTypes.toString());
         if (
@@ -50,16 +52,16 @@ export abstract class CincoFolderWatcher {
             return;
         }
         // set parameter
+        const referenceId = uuid.v4();
         const watchEntry = this.watchedFolders.has(folderToWatch) ? this.watchedFolders.get(folderToWatch)! : ({} as WatchEntry);
-        if (callback) {
-            if (!watchEntry.callbacks) {
-                watchEntry.callbacks = [];
-            }
-            watchEntry.callbacks.push({
-                callback: callback,
-                watchedFileTypes: watchedFileTypes
-            });
+        if (!watchEntry.callbacks) {
+            watchEntry.callbacks = [];
         }
+        watchEntry.callbacks.push({
+            callback: callback,
+            watchedFileTypes: watchedFileTypes,
+            id: referenceId
+        });
         if (!watchEntry.watcher) {
             console.log('creating watcher...');
             // start watching
@@ -136,6 +138,7 @@ export abstract class CincoFolderWatcher {
             console.log('watcher already present!');
         }
         this.watchedFolders.set(folderToWatch, watchEntry);
+        return referenceId;
     }
 
     static unwatch(folderToWatch: string): WatchEntry | undefined {
@@ -151,15 +154,15 @@ export abstract class CincoFolderWatcher {
         return watchedEntry;
     }
 
-    static removeCallback(folderToWatch: string, callbackName: string): WatchCallback | undefined {
+    static removeCallback(folderToWatch: string, referenceId: string): WatchCallback | undefined {
         if (!this.watchedFolders.has(folderToWatch)) {
             return undefined;
         }
         const watchedEntry = this.watchedFolders.get(folderToWatch)!;
         let toRemove: WatchCallback | undefined;
         for (const entry of watchedEntry.callbacks) {
-            const cb = entry.callback;
-            if (cb.toString() === callbackName) {
+            const cbId = entry.id;
+            if (cbId === referenceId) {
                 toRemove = entry;
             }
         }
