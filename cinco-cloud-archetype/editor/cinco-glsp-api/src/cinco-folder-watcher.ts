@@ -16,7 +16,7 @@
 
 import * as fs from 'fs';
 import { FSWatcher, WatchOptions } from 'fs-extra';
-import { existsDirectory } from './utils/file-helper';
+import { existsDirectory, readFile } from './utils/file-helper';
 
 interface WatchEntry {
     watcher: FSWatcher;
@@ -30,8 +30,7 @@ interface WatchCallback {
 
 export abstract class CincoFolderWatcher {
     private static watchedFolders: Map<string, WatchEntry> = new Map();
-    private static eventDelta = 4000;
-    private static eventAggregationMap: Map<string, number[]> = new Map();
+    private static eventAggregationMap: Map<string, string | undefined> = new Map();
 
     /*
      * watches folder
@@ -47,14 +46,8 @@ export abstract class CincoFolderWatcher {
             !folderToWatch || // no folder to watch specified
             !callback
         ) {
-            console.log('No folder to watch or callback specified');
+            console.log('No folder to watch or no callback specified');
             return;
-        }
-        if (
-            this.watchedFolders.has(folderToWatch) // already watches folder
-        ) {
-            console.log('already watches folder: ' + folderToWatch);
-            console.log('adding addtional callback to watched folder: ' + folderToWatch);
         }
         // set parameter
         const watchEntry = this.watchedFolders.has(folderToWatch) ? this.watchedFolders.get(folderToWatch)! : ({} as WatchEntry);
@@ -93,20 +86,19 @@ export abstract class CincoFolderWatcher {
                                     }
                                 }
                             } else {
-                                const changeTimes = this.eventAggregationMap.get(filename) ?? [];
-                                const currentTime = Date.now();
-                                console.log('Changed Time: ' + changeTimes.toString());
-                                console.log('Delta Time: ' + changeTimes.map(cT => Math.abs(currentTime - cT) - this.eventDelta));
+                                const currentContent = readFile(path);
                                 if (this.eventAggregationMap.has(filename)) {
-                                    const deltaTimes = changeTimes.filter(cT => Math.abs(currentTime - cT) < this.eventDelta);
-                                    if (deltaTimes.length > 0) {
+                                    const lastContent = this.eventAggregationMap.get(filename)!;
+                                    // console.log('Delta Time: ' + (Math.abs(currentTime - lastChange)));
+                                    // const tooEarlyGuard = Math.abs(currentTime - lastChange) < this.eventDelta;
+                                    if (currentContent === lastContent) {
                                         // atleast one event occured in the last eventDelta
                                         // skip this event
-                                        console.log('changed under ' + this.eventDelta + 'ms, skipping callbacks');
+                                        console.log('no change, skipping callbacks');
                                         return;
                                     }
                                 }
-                                this.eventAggregationMap.set(filename, changeTimes.concat(currentTime));
+                                this.eventAggregationMap.set(filename, currentContent);
                                 console.log('changed:\nEventtype: ' + eventType + '\nfilename: ' + filename);
                                 const watcherCallbacks = this.watchedFolders.get(folderToWatch)!.callbacks;
                                 for (const entry of watcherCallbacks) {
