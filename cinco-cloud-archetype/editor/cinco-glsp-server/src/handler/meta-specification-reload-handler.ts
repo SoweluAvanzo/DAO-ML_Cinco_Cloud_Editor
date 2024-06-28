@@ -33,7 +33,7 @@ export class MetaSpecificationReloadHandler implements ActionHandler {
             const items = action.items;
             const clear = action.clear ?? false;
             if (clear) {
-                MetaSpecificationLoader.clear();
+                MetaSpecification.clear();
             }
             if (items === undefined || items.length <= 0) {
                 // default behaviour
