@@ -58,7 +58,7 @@ import { PropertyEditHandler } from '../handler/property-edit-handler';
 import { GeneratorCreateFileHandler } from '../handler/generator-create-file-handler';
 import { PropertyViewHandler } from '../handler/property-view-handler';
 import { CompoundHandler } from '../handler/compound-handler';
-import { CincoClientSessionInitializer } from './cinco-client-session-initializer';
+import { CincoClientSessionInitializer } from '../sessions/cinco-client-session-initializer';
 import { CincoOperationHandlerRegistry } from './cinco-handler-registry';
 
 @injectable()

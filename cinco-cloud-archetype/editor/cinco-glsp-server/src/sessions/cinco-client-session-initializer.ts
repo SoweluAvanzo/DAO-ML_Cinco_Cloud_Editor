@@ -14,10 +14,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { ActionDispatcher, Args, ClientSessionInitializer, ClientSessionManager, InjectionContainer } from '@eclipse-glsp/server';
+import { Action, ActionDispatcher, Args, ClientSessionInitializer, ClientSessionManager, InjectionContainer } from '@eclipse-glsp/server';
 import { Container, inject, injectable } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
-import { MetaSpecificationReloadAction } from '@cinco-glsp/cinco-glsp-common';
+import { MetaSpecificationResponseAction, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
 import { isMetaDevMode } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
@@ -27,7 +27,6 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
     @inject(InjectionContainer)
     protected serverContainer: Container;
     @inject(ClientSessionManager) protected sessions: ClientSessionManager;
-    actionKinds: string[] = [MetaSpecificationReloadAction.KIND];
     @inject(ActionDispatcher)
     protected actionDispatcher: ActionDispatcher;
 
@@ -35,7 +34,10 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         CincoClientSessionInitializer.addClient(this.serverContainer.id, this.actionDispatcher);
         if (isMetaDevMode()) {
             MetaSpecificationLoader.watch(this.sessions, async () => {
-                this.actionDispatcher.dispatch(MetaSpecificationReloadAction.create([], true));
+                // only propagate. MetaSpecificationLoader.watch reloads on dirty.
+                const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
+                this.actionDispatcher.dispatch(response);
+                this.sendToAllOtherClients(response);
             });
         }
     }
@@ -46,5 +48,17 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
 
     static removeClient(id: number): void {
         CincoClientSessionInitializer.clientSessionsActionDispatcher.delete(id);
+    }
+
+    sendToAllOtherClients(message: Action): void {
+        const actionDispatcherMap = CincoClientSessionInitializer.clientSessionsActionDispatcher;
+        for (const entry of actionDispatcherMap.entries()) {
+            if (entry[0] !== this.serverContainer.id) {
+                entry[1].dispatch(message).catch(e => {
+                    console.log('An error occured, maybe the client is not connected anymore:\n' + e);
+                    CincoClientSessionInitializer.removeClient(entry[0]);
+                });
+            }
+        }
     }
 }

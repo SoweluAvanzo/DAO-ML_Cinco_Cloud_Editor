@@ -73,13 +73,13 @@ export abstract class CincoFolderWatcher {
                         // Probable workaround would be a programatical approach, but we should wait for Theia Node 20.
                     } as WatchOptions,
                     async (eventType, filename) => {
-                        console.log('Changed detected: ' + filename + ' | ' + 'Eventtype: ' + eventType);
                         if (filename) {
                             if (!this.watchedFolders.has(folderToWatch)) {
                                 return;
                             }
                             const path = `${folderToWatch}/${filename}`;
                             if (existsDirectory(path)) {
+                                // recursive workaround to watch new folders inside watched folders
                                 if (eventType === 'rename') {
                                     console.log('Identified new Subfolder. Initializing watcher...');
                                     const watcherCallbacks = this.watchedFolders.get(folderToWatch)!.callbacks;
@@ -97,11 +97,10 @@ export abstract class CincoFolderWatcher {
                                         // atleast one event occured in the last eventDelta
                                         // skip this event
                                         console.log('no change, skipping callbacks');
-                                        return;
+                                        // return;
                                     }
                                 }
                                 this.eventAggregationMap.set(filename, currentContent);
-                                console.log('changed:\nEventtype: ' + eventType + '\nfilename: ' + filename);
                                 const watcherCallbacks = this.watchedFolders.get(folderToWatch)!.callbacks;
                                 for (const entry of watcherCallbacks) {
                                     const cb = entry.callback;

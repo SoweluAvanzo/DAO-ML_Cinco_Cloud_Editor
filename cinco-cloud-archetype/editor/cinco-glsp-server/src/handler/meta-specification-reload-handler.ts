@@ -18,7 +18,7 @@ import { Action, ActionDispatcher, ActionHandler, InjectionContainer } from '@ec
 import { injectable, inject, Container } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { getLanguageFolder, isMetaDevMode } from '@cinco-glsp/cinco-glsp-api';
-import { CincoClientSessionInitializer } from '../diagram/cinco-client-session-initializer';
+import { CincoClientSessionInitializer } from '../sessions/cinco-client-session-initializer';
 
 @injectable()
 export class MetaSpecificationReloadHandler implements ActionHandler {

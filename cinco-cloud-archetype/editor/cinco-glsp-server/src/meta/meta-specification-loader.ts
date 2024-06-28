@@ -26,14 +26,14 @@ import {
 import { loadLanguage } from '@cinco-glsp/cinco-languages/lib/index';
 import { WatchEventType } from 'fs-extra';
 import { ClientSessionManager } from '@eclipse-glsp/server';
-import { CincoClientSessionListener } from '../diagram/cinco-client-session-listener';
+import { CincoClientSessionListener } from '../sessions/cinco-client-session-listener';
 import * as uuid from 'uuid';
 
 export class MetaSpecificationLoader {
     static dirtyCallbacks: Map<string, () => Promise<void>> = new Map();
     static dirty = false;
     static stopDirtyCheck = false;
-    static reloadDelay = 600; // heuristic value
+    static reloadDelay = 100; // heuristic value
 
     static async watch(sessions: ClientSessionManager, dirtyCallback: () => Promise<void>): Promise<void> {
         const languagesFolder = getLanguageFolder();
@@ -42,13 +42,10 @@ export class MetaSpecificationLoader {
         const dirtyCallbackId = uuid.v4();
         for (const f of folders) {
             const referenceId = CincoFolderWatcher.watch(f, META_FILE_TYPES, async (filename: string, eventType: WatchEventType) => {
-                console.log('changed in: ' + f + ' | ' + filename);
-                console.log('eventType: ' + eventType);
                 this.dirty = true;
             });
             sessions.addListener(
                 new CincoClientSessionListener(clientSessionListener => {
-                    console.log('session disposed -> remove callback');
                     if (referenceId) {
                         CincoFolderWatcher.removeCallback(f, referenceId); // remove callback, if connection was closed
                     }
@@ -68,12 +65,15 @@ export class MetaSpecificationLoader {
         this.dirtyCallbacks.set(dirtyCallbackId, dirtyCallback);
     }
 
+    // this procedure should be singleton
     static startDirtyCheck(): void {
         setTimeout(async () => {
             // all <reloadDelay>ms check if changes were made to the metafiles,
             // by the use of the <dirty>-variable. If so, call the dirtyCallback.s
             if (this.dirty) {
                 this.dirty = false;
+                MetaSpecification.clear();
+                await this.load();
                 for (const dirtyCallback of this.dirtyCallbacks.values()) {
                     await dirtyCallback();
                 }
@@ -99,7 +99,6 @@ export class MetaSpecificationLoader {
                 resolve();
             }
             let countdown = files.length;
-            console.log('Reloading ' + countdown + ' Files');
             files.forEach(async (file: string) => {
                 const fileExtension = file.slice(file.indexOf('.'));
                 try {
@@ -114,8 +113,6 @@ export class MetaSpecificationLoader {
                         if (metaSpec && CompositionSpecification.is(metaSpec)) {
                             MetaSpecification.merge(metaSpec);
                         }
-                    } else {
-                        console.log('File not handled: ' + file);
                     }
                 } catch (e) {
                     console.log('Error parsing: ' + file + '\n' + e);

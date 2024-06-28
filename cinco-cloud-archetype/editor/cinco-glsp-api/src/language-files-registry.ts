@@ -49,10 +49,10 @@ export abstract class LanguageFilesRegistry {
             for (const f of folders) {
                 CincoFolderWatcher.watch(f, SUPPORTED_DYNAMIC_FILE_TYPES, async (filename: string, eventType: fs.WatchEventType) => {
                     if (!existsFile(filename)) {
+                        // a file was deleted -> reload all folders
+                        // (no way to identify which file it was by the default filewatcher)
                         this.reloadAllFolders();
                     } else if (!this._dirty.includes(filename)) {
-                        console.log('changed: ' + filename);
-                        console.log('eventType: ' + eventType);
                         this._dirty.push(filename);
                     }
                 });
