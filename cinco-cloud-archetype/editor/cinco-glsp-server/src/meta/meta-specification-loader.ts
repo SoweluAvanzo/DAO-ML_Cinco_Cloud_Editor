@@ -25,44 +25,33 @@ import {
 } from '@cinco-glsp/cinco-glsp-api';
 import { loadLanguage } from '@cinco-glsp/cinco-languages/lib/index';
 import { WatchEventType } from 'fs-extra';
-import { ClientSessionManager } from '@eclipse-glsp/server';
-import { CincoClientSessionListener } from '../sessions/cinco-client-session-listener';
 import * as uuid from 'uuid';
 
 export class MetaSpecificationLoader {
     static dirtyCallbacks: Map<string, () => Promise<void>> = new Map();
     static dirty = false;
-    static stopDirtyCheck = false;
     static reloadDelay = 100; // heuristic value
 
-    static async watch(sessions: ClientSessionManager, dirtyCallback: () => Promise<void>): Promise<void> {
+    static async watch(dirtyCallback: () => Promise<void>): Promise<string[]> {
         const languagesFolder = getLanguageFolder();
         const folders = getSubfolder(languagesFolder);
         folders.push(languagesFolder);
         const dirtyCallbackId = uuid.v4();
+        const watcherIds: string[] = [];
         for (const f of folders) {
             const referenceId = CincoFolderWatcher.watch(f, META_FILE_TYPES, async (filename: string, eventType: WatchEventType) => {
                 this.dirty = true;
             });
-            sessions.addListener(
-                new CincoClientSessionListener(clientSessionListener => {
-                    if (referenceId) {
-                        CincoFolderWatcher.removeCallback(f, referenceId); // remove callback, if connection was closed
-                    }
-                    sessions.removeListener(clientSessionListener); // remove this listener
-                    this.dirtyCallbacks.delete(dirtyCallbackId);
-                    if (this.dirtyCallbacks.size <= 0) {
-                        // if there are not dirtyCallbacks, schedule a stop of dirtyChecks
-                        this.stopDirtyCheck = true;
-                    }
-                })
-            );
+            if (referenceId) {
+                watcherIds.push(referenceId);
+            }
         }
         // start if not running
         if (this.dirtyCallbacks.size <= 0) {
             this.startDirtyCheck();
         }
         this.dirtyCallbacks.set(dirtyCallbackId, dirtyCallback);
+        return watcherIds;
     }
 
     // this procedure should be singleton
@@ -78,12 +67,8 @@ export class MetaSpecificationLoader {
                     await dirtyCallback();
                 }
             }
-            if (this.stopDirtyCheck) {
-                this.stopDirtyCheck = false;
-            } else {
-                // if not stopping, then shedule next dirtyCheck
-                this.startDirtyCheck();
-            }
+            // if not stopping, then shedule next dirtyCheck
+            this.startDirtyCheck();
         }, this.reloadDelay);
     }
 

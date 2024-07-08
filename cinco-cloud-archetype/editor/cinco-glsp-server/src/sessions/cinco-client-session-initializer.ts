@@ -18,7 +18,8 @@ import { Action, ActionDispatcher, Args, ClientSessionInitializer, ClientSession
 import { Container, inject, injectable } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { MetaSpecificationResponseAction, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
-import { isMetaDevMode } from '@cinco-glsp/cinco-glsp-api';
+import { CincoFolderWatcher, isMetaDevMode } from '@cinco-glsp/cinco-glsp-api';
+import { CincoClientSessionListener } from './cinco-client-session-listener';
 
 @injectable()
 export class CincoClientSessionInitializer implements ClientSessionInitializer {
@@ -32,13 +33,23 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
 
     initialize(_args?: Args): void {
         CincoClientSessionInitializer.addClient(this.serverContainer.id, this.actionDispatcher);
-        if (isMetaDevMode()) {
-            MetaSpecificationLoader.watch(this.sessions, async () => {
-                // only propagate. MetaSpecificationLoader.watch reloads on dirty.
-                const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
-                this.actionDispatcher.dispatch(response);
-                this.sendToAllOtherClients(response);
-            });
+        if (!CincoClientSessionListener.initialized) {
+            const createdCallback = async (clientId: string): Promise<void> => {
+                if (isMetaDevMode()) {
+                    const watchCallbackIds = await MetaSpecificationLoader.watch(async () => {
+                        // only propagate. MetaSpecificationLoader.watch reloads on dirty.
+                        const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
+                        this.actionDispatcher.dispatch(response);
+                        this.sendToAllOtherClients(response);
+                    });
+                    CincoClientSessionListener.addDisposeCallback(clientId, () => {
+                        for (const cbId of watchCallbackIds) {
+                            CincoFolderWatcher.removeCallback(cbId);
+                        }
+                    });
+                }
+            };
+            this.sessions.addListener(new CincoClientSessionListener(createdCallback));
         }
     }
 

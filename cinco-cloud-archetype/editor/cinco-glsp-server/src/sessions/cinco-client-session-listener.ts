@@ -16,13 +16,36 @@
 import { ClientSession, ClientSessionListener } from '@eclipse-glsp/server';
 
 export class CincoClientSessionListener implements ClientSessionListener {
-    disposedCallback: (ClientSessionListener: ClientSessionListener) => void;
+    static disposedCallback: Map<string, () => void> = new Map();
+    static createdCallback: (clientId: string) => void;
+    static initialized = false;
 
-    constructor(disposedCallback: (clientSessionListener: ClientSessionListener) => void) {
-        this.disposedCallback = disposedCallback;
+    constructor(createdCallback: (clientId: string) => void) {
+        CincoClientSessionListener.initialized = true;
+        CincoClientSessionListener.createdCallback = createdCallback;
     }
 
-    sessionDisposed(_: ClientSession): void {
-        this.disposedCallback(this);
+    static addDisposeCallback(id: string, cb: () => void): void {
+        this.disposedCallback.set(id, cb);
+    }
+
+    static removeDisposeCallback(clientId: string): void {
+        if (this.disposedCallback.has(clientId)) {
+            this.disposedCallback.delete(clientId);
+        }
+    }
+
+    sessionCreated(clientSession: ClientSession): void {
+        CincoClientSessionListener.createdCallback(clientSession.id);
+    }
+
+    sessionDisposed(client: ClientSession): void {
+        for (const entry of CincoClientSessionListener.disposedCallback.entries()) {
+            const clientId = entry[0];
+            const cb = entry[1];
+            if (client.id === clientId) {
+                cb();
+            }
+        }
     }
 }

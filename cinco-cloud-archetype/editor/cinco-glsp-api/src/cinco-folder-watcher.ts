@@ -89,18 +89,15 @@ export abstract class CincoFolderWatcher {
                                 }
                             } else {
                                 const currentContent = readFile(path);
-                                if (this.eventAggregationMap.has(filename)) {
-                                    const lastContent = this.eventAggregationMap.get(filename)!;
-                                    // console.log('Delta Time: ' + (Math.abs(currentTime - lastChange)));
-                                    // const tooEarlyGuard = Math.abs(currentTime - lastChange) < this.eventDelta;
+                                if (this.eventAggregationMap.has(path)) {
+                                    const lastContent = this.eventAggregationMap.get(path)!;
                                     if (currentContent === lastContent) {
-                                        // atleast one event occured in the last eventDelta
-                                        // skip this event
                                         console.log('no change, skipping callbacks');
-                                        // return;
+                                        this.eventAggregationMap.set(path, currentContent);
+                                        return;
                                     }
                                 }
-                                this.eventAggregationMap.set(filename, currentContent);
+                                this.eventAggregationMap.set(path, currentContent);
                                 const watcherCallbacks = this.watchedFolders.get(folderToWatch)!.callbacks;
                                 for (const entry of watcherCallbacks) {
                                     const cb = entry.callback;
@@ -146,26 +143,32 @@ export abstract class CincoFolderWatcher {
         }
         const watchedEntry = this.watchedFolders.get(folderToWatch)!;
         for (const cbs of watchedEntry.callbacks) {
-            this.removeCallback(folderToWatch, cbs.callback.toString());
+            this.removeCallback(cbs.callback.toString());
         }
         watchedEntry.watcher.close();
         this.watchedFolders.delete(folderToWatch);
         return watchedEntry;
     }
 
-    static removeCallback(folderToWatch: string, referenceId: string): WatchCallback | undefined {
-        if (!this.watchedFolders.has(folderToWatch)) {
-            return undefined;
-        }
-        const watchedEntry = this.watchedFolders.get(folderToWatch)!;
+    static removeCallback(referenceId: string): WatchCallback | undefined {
         let toRemove: WatchCallback | undefined;
-        for (const entry of watchedEntry.callbacks) {
-            const cbId = entry.id;
-            if (cbId === referenceId) {
-                toRemove = entry;
+        let found = false;
+        for (const folderToWatch of this.watchedFolders) {
+            const watchEntry = folderToWatch[1];
+            if (watchEntry) {
+                for (const cb of watchEntry.callbacks) {
+                    if (cb.id === referenceId) {
+                        toRemove = cb;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    watchEntry.callbacks = watchEntry.callbacks.filter(cb => cb !== toRemove);
+                    break;
+                }
             }
         }
-        watchedEntry.callbacks = watchedEntry.callbacks.filter(cb => cb !== toRemove);
         return toRemove;
     }
 }
