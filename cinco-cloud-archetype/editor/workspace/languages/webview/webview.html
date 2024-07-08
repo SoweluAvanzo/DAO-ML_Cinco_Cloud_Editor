@@ -1,0 +1,66 @@
+
+<html>
+    <head>
+        <script type='text/javascript'  src='https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/loader.js'></script>
+        <style>
+            .editorCode {
+                min-height: 250px;
+                min-width: 100px;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1>EDITOR</h1>
+            <div class='editor'>
+                <div id='editorCode_{{id}}' class='editorCode'></div>
+            </div>
+            <script type='text/javascript'>
+                const CODE = (`{{code}}`);
+                const editorID = 'editorCode_{{id}}';
+                const editorCode = document.getElementById(editorID);
+
+                require.config({
+                    paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor/min/vs' }
+                });
+                require(['vs/editor/editor.main'], function() {
+                    createEditor(editorCode);
+                });
+                window.MonacoEnvironment = {
+                    getWorkerUrl: function(workerId, label) {
+                    return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+                        self.MonacoEnvironment = {
+                        baseUrl: 'https://cdn.jsdelivr.net/npm/monaco-editor/min/'
+                        };
+                        importScripts('https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/base/worker/workerMain.js');`)}`;
+                    }
+                };
+                
+                function createEditor(editorContainer) {
+                    const isReadonly = '{{editable}}' === 'true' ? false : true;
+                    let editor = monaco.editor.create(editorContainer, {
+                        value: CODE,
+                        language: 'javascript',
+                        minimap: { enabled: false },
+                        readOnly: isReadonly,
+                        automaticLayout: true,
+                        contextmenu: false,
+                        fontSize: 12,
+                        theme: 'vs-dark',
+                        scrollbar: {
+                            useShadows: false,
+                            vertical: 'visible',
+                            horizontal: 'visible',
+                            horizontalScrollbarSize: 12,
+                            verticalScrollbarSize: 12
+                        }
+                    });
+                    
+                
+                    editor.onDidChangeModelContent(() => {
+                    });
+                }
+            </script>
+        </div>
+    </body>
+</html>

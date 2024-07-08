@@ -1,0 +1,76 @@
+{
+  "id": "de2f9fa6-feff-43c8-b47d-70c4dd13ed41",
+  "_containments": [
+    {
+      "id": "533c2228-ac07-4e72-87b1-97bfd1461d8d",
+      "type": "example:a",
+      "_attributes": {
+        "name": "asd"
+      },
+      "_size": {
+        "width": 100,
+        "height": 100
+      },
+      "_position": {
+        "x": 296.9410534307788,
+        "y": -226.35017131827115
+      }
+    },
+    {
+      "id": "578fcd21-63cf-4457-a1ef-83ba7ffcb0bb",
+      "type": "example:b",
+      "_attributes": {
+        "name": ""
+      },
+      "_size": {
+        "width": 120.29272288724937,
+        "height": 93.18023188892303
+      },
+      "_position": {
+        "x": 699.7632633875415,
+        "y": -222.8441676618655
+      }
+    },
+    {
+      "id": "e79518ec-075e-44c1-a18a-92a4a23b1618",
+      "type": "example:clickable",
+      "_attributes": {
+        "name": ""
+      },
+      "_containments": [],
+      "_size": {
+        "width": 100,
+        "height": 100
+      },
+      "_position": {
+        "x": 712.049579504744,
+        "y": -1.8925193329634986
+      }
+    }
+  ],
+  "_edges": [
+    {
+      "id": "33feaa4d-6477-4e07-a249-84afbf190447",
+      "type": "example:t2",
+      "_attributes": {
+        "name": ""
+      },
+      "sourceID": "578fcd21-63cf-4457-a1ef-83ba7ffcb0bb",
+      "targetID": "e79518ec-075e-44c1-a18a-92a4a23b1618",
+      "_routingPoints": []
+    },
+    {
+      "id": "56d0a8c6-c798-4fcd-8380-3a1bedf5f875",
+      "type": "example:t1",
+      "_attributes": {
+        "name": ""
+      },
+      "sourceID": "533c2228-ac07-4e72-87b1-97bfd1461d8d",
+      "targetID": "578fcd21-63cf-4457-a1ef-83ba7ffcb0bb",
+      "_routingPoints": []
+    }
+  ],
+  "type": "example:model",
+  "_sourceUri": "/Users/sami/Desktop/rebase/cinco-cloud/cinco-cloud-archetype/editor/workspace/example-models/example.example",
+  "_attributes": {}
+}

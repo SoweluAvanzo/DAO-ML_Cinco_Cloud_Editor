@@ -1,0 +1,83 @@
+stylePath "webstory.style" 
+
+@GeneratorAction(WebstoryGenerator)
+graphModel Webstory {
+    diagramExtension "story"
+
+    containableElements (StartMarker[1,1], Activity, Variable)
+}
+
+@disable(resize)
+@palette("Main Elements")
+node StartMarker {
+    style startMarker 
+    outgoingEdges(Transition[1,1])
+}
+
+abstract node Activity {} 
+
+@disable(resize)
+@palette("Main Elements")
+container Screen extends Activity {
+	style screen("${backgroundImage}")
+	 
+    incomingEdges (Transition)
+    containableElements (ClickArea)
+
+	attr string as backgroundImage
+}
+
+edge Transition { 
+	style controlFlow
+}
+
+abstract node ClickArea {
+	style rectangleClickArea
+	outgoingEdges (Transition[1,1])	
+}
+
+node EllipseClickArea extends ClickArea { 
+	style ellipseClickArea
+}
+
+node RectangleClickArea extends ClickArea { 
+	style rectangleClickArea
+}
+
+@palette("Variables")
+@disable(resize)
+node Condition extends Activity {
+	style condition
+	incomingEdges (DataFlow[1,1], Transition, TTransition, FTransition)	
+	outgoingEdges (TTransition[1,1], FTransition[1,1])
+}
+
+@palette("Variables")
+@disable(resize)
+node Variable {
+	style variable("${name}")
+	incomingEdges (DataFlow)
+	outgoingEdges (DataFlow)
+	attr string as name
+}
+
+@palette("Variables")
+@disable(resize)
+node ModifyVariable extends Activity {
+	style modifyVariable("${value}")
+	incomingEdges(Transition, TTransition, FTransition)
+	outgoingEdges(Transition[1,1], DataFlow[1,1])
+	attr boolean as value = "false"
+} 
+
+edge TTransition { 
+	style controlFlow
+}
+
+edge FTransition { 
+	style fFlow
+}
+
+edge DataFlow { 
+	style dataFlow
+}
