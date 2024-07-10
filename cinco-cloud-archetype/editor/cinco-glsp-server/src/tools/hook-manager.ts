@@ -81,15 +81,6 @@ export class HookManager extends BaseHandlerManager<OperationArgument, AbstractH
         return [];
     }
 
-    private getSuitableClassNames(elementTypeId: string, hookType: HookTypes): string[] {
-        if (hasHooks(elementTypeId)) {
-            return getHooks(elementTypeId, hookType)
-                .map((value: string[]) => value[0])
-                .flat();
-        }
-        return [];
-    }
-
     executeHook(parameters: OperationArgument, type: HookTypes): boolean {
         let elementTypeId = '';
         if (parameters.kind === 'Create') {
@@ -122,6 +113,15 @@ export class HookManager extends BaseHandlerManager<OperationArgument, AbstractH
             }
         }
         return true;
+    }
+
+    private getSuitableClassNames(elementTypeId: string, hookType: HookTypes): string[] {
+        if (hasHooks(elementTypeId)) {
+            return getHooks(elementTypeId, hookType)
+                .map((value: string[]) => value[0])
+                .flat();
+        }
+        return [];
     }
 
     private loadHookClasses(hookClassName: string, modelTypeId: string, hookType: HookTypes): any {

@@ -1277,7 +1277,7 @@
       "incomingEdges": [],
       "width": 400,
       "height": 100,
-      "icon": "icon_flowgraph_swimlane",
+      "icon": "icons/icon_flowgraph_swimlane.png",
       "view": {
         "style": "swimlane",
         "styleParameter": ["${name}"]

@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { fetchMetaSpecification } from "./minio/minio-handler";
+import { fetchMetaSpecification } from './minio/minio-handler';
 import * as process from 'process';
 
 function init(targetFolder: string) {
@@ -22,7 +22,6 @@ function init(targetFolder: string) {
 }
 
 function needHelp(): boolean {
-    const args = process.argv;
     return !process.argv || process.argv.length <= 2 || hasArg('--help');
 }
 
@@ -32,8 +31,8 @@ function hasArg(key: string): boolean {
 
 function getArgIndex(key: string): number {
     const args = process.argv;
-    for(let i = 0; i < args.length; i++) {
-        if(args[i] === key) {
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === key) {
             return i;
         }
     }
@@ -46,12 +45,12 @@ function getArgValue(key: string): string {
     return args[index + 1];
 }
 
-if(needHelp()) {
-    console.log("Please execute with argument '--metaFolder <pathToFolder>'.")
+if (needHelp()) {
+    console.log("Please execute with argument '--metaFolder <pathToFolder>'.");
 } else {
     const metaFolder = getArgValue('--metaFolder');
-    if(!metaFolder) {
-        throw new Error("No metaFolder defined! Please execute with argument '--metaFolder <pathToFolder>'.")
+    if (!metaFolder) {
+        throw new Error("No metaFolder defined! Please execute with argument '--metaFolder <pathToFolder>'.");
     }
     init(metaFolder);
 }

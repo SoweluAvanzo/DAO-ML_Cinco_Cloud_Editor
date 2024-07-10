@@ -15,16 +15,17 @@
  ********************************************************************************/
 
 import { ChangeBoundsOperation, Dimension, GNode, Point } from '@eclipse-glsp/server';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import {ResizeArgument, HookTypes, MoveArgument} from '@cinco-glsp/cinco-glsp-common';
+import { ResizeArgument, HookTypes, MoveArgument } from '@cinco-glsp/cinco-glsp-common';
 import { HookManager } from '../tools/hook-manager';
+import { Node } from '@cinco-glsp/cinco-glsp-api/lib/model/graph-model';
 
 @injectable()
 export class ChangeBoundsHandler extends CincoJsonOperationHandler {
-    readonly operationType = ChangeBoundsOperation.KIND;
-
+    @inject(HookManager)
     protected hookManager: HookManager;
+    readonly operationType = ChangeBoundsOperation.KIND;
 
     override executeOperation(operation: ChangeBoundsOperation): void {
         for (const element of operation.newBounds) {
@@ -37,35 +38,55 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
         const node = index.findByClass(elementId, GNode);
         const nodeObj = node ? index.findNode(node.id) : undefined;
         if (nodeObj) {
-            if (newSize !== nodeObj.size) {
-                const parameters: ResizeArgument = {
-                    modelElementId: elementId,
-                    kind: 'Resize',
-                    newSize: newSize,
-                    oldSize: nodeObj.size
-                };
-                if(!this.hookManager){
-                    this.hookManager = HookManager.getInstance();
-                }
-                if (this.canResize(newSize, parameters)) {
-                    this.hookManager.executeHook(parameters, HookTypes.PRE_RESIZE);
-                    nodeObj.size = newSize;
-                    this.hookManager.executeHook(parameters, HookTypes.POST_RESIZE);
-                }
-            }
-            const moveParameters: MoveArgument = {
-                kind: 'Move',
-                modelElementId: elementId,
-                newPosition: newPosition,
-                oldPosition: nodeObj.position
-            };
+            this.handleMove(nodeObj, newPosition);
+            this.handleResize(nodeObj, newSize);
+        }
+    }
 
-            if (newPosition && this.canMove( moveParameters)) {
-                this.hookManager.executeHook(moveParameters, HookTypes.PRE_MOVE);
-                nodeObj.position = newPosition;
-                this.hookManager.executeHook(moveParameters, HookTypes.POST_MOVE);
+    private handleMove(node: Node, newPosition: Point | undefined): void {
+        const oldPosition = node.position;
+        if (!newPosition || !this.isMove(oldPosition, newPosition)) {
+            return;
+        }
+        const moveParameters: MoveArgument = {
+            kind: 'Move',
+            modelElementId: node.position,
+            oldPosition: node.position,
+            newPosition: newPosition
+        };
+        if (newPosition && this.canMove(moveParameters)) {
+            this.hookManager.executeHook(moveParameters, HookTypes.PRE_MOVE);
+            node.position = newPosition;
+            this.hookManager.executeHook(moveParameters, HookTypes.POST_MOVE);
+        }
+    }
+
+    private handleResize(node: Node, newSize: Dimension | undefined): void {
+        const oldSize = node.size;
+        if (!newSize || !oldSize || !this.isResize(oldSize, newSize)) {
+            return;
+        }
+        if (newSize !== node.size) {
+            const parameters: ResizeArgument = {
+                kind: 'Resize',
+                modelElementId: node.id,
+                oldSize: node.size,
+                newSize: newSize
+            };
+            if (this.canResize(newSize, parameters)) {
+                this.hookManager.executeHook(parameters, HookTypes.PRE_RESIZE);
+                node.size = newSize;
+                this.hookManager.executeHook(parameters, HookTypes.POST_RESIZE);
             }
         }
+    }
+
+    private isMove(oldPosition: Point, newPosition: Point): boolean {
+        return true; // TODO-SAMI
+    }
+
+    private isResize(oldDim: Dimension, newDim: Dimension): boolean {
+        return true; // TODO-SAMI
     }
 
     private canMove(parameters: MoveArgument): boolean {
@@ -76,4 +97,3 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
         return this.hookManager.executeHook(parameters, HookTypes.CAN_RESIZE);
     }
 }
-

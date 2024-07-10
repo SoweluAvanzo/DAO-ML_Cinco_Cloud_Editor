@@ -13,10 +13,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { IActionDispatcher, IDiagramOptions, IDiagramStartup, Ranked, SModelRegistry, TYPES, ViewRegistry } from '@eclipse-glsp/client';
+import {
+    IActionDispatcher,
+    IDiagramOptions,
+    IDiagramStartup,
+    IViewerProvider,
+    Ranked,
+    SModelRegistry,
+    TYPES,
+    TypeHintProvider,
+    ViewRegistry
+} from '@eclipse-glsp/client';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { MetaSpecificationResponseHandler } from '../meta/meta-specification-response-handler';
-import { inject, injectable } from 'inversify';
+import { inject, injectable, optional } from 'inversify';
 import { ServerArgsProvider } from '../meta/server-args-response-handler';
 import { FrontendResourceLoader } from '../meta/frontend-resource.loader';
 import { reregisterBindings } from '../meta/meta-model-glsp-registration-handler';
@@ -43,6 +53,11 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
     protected readonly actionDispatcher: IActionDispatcher;
     @inject(TYPES.IDiagramOptions)
     protected options: IDiagramOptions;
+    @inject(TYPES.IViewerProvider)
+    @optional()
+    protected readonly viewerProvider: IViewerProvider;
+    @inject(TypeHintProvider)
+    protected typeHintProvider: TypeHintProvider;
 
     protected context: {
         bind: any;
@@ -87,6 +102,11 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
         reregisterBindings(this.context, this.ctx, this.registry, this.viewRegistry);
         // dynamic tool palette update
         CincoToolPalette.requestPalette(this.actionDispatcher);
+        // update canvas
+        this.graphModelProvider.graphModel.then(g => {
+            this.viewerProvider.modelViewer.update(g);
+        });
+        this.typeHintProvider.postRequestModel();
     }
 
     async postRequestModel?(): Promise<void> {

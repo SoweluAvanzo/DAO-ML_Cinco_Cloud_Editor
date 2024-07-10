@@ -16,18 +16,42 @@
 import { HookTypes, ReconnectArgument } from '@cinco-glsp/cinco-glsp-common';
 import { HookManager } from '../tools/hook-manager';
 import { GEdge, GLSPServerError, GNode, ReconnectEdgeOperation } from '@eclipse-glsp/server';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 
 @injectable()
 export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
-    operationType = ReconnectEdgeOperation.KIND;
+    @inject(HookManager)
     protected hookManager: HookManager;
+    operationType = ReconnectEdgeOperation.KIND;
 
     executeOperation(operation: ReconnectEdgeOperation): void {
-        if(!this.hookManager){
-            this.hookManager = HookManager.getInstance();
+        if (!operation.edgeElementId || !operation.sourceElementId || !operation.targetElementId) {
+            throw new GLSPServerError('Incomplete reconnect connection action');
         }
+        const index = this.modelState.index;
+        const gEdge = index.findByClass(operation.edgeElementId, GEdge);
+        const gSource = index.findByClass(operation.sourceElementId, GNode);
+        const gTarget = index.findByClass(operation.targetElementId, GNode);
+        if (!gEdge) {
+            throw new Error(`Invalid edge in graph model: edge ID ${operation.edgeElementId}`);
+        }
+        const edge = index.findEdge(gEdge.id);
+        if (!edge) {
+            throw new Error(`Invalid edge in source model: edge ID ${gEdge.id}`);
+        } else if (!gSource) {
+            throw new Error(`Invalid source in graph model: source ID ${operation.sourceElementId}`);
+        } else if (!gTarget) {
+            throw new Error(`Invalid target in graph model: target ID ${operation.targetElementId}`);
+        }
+        const source = index.findNode(gSource.id);
+        const target = index.findNode(gTarget.id);
+        if (!source || !target) {
+            throw new Error(`Could not change source and target of edge: ${edge.id}`);
+        }
+
+        // CAN
+        const inConstraint = edge.canConnectToSource(source, _ => false) && edge.canConnectToTarget(target, _ => false);
         const reconnectArguments: ReconnectArgument = {
             kind: 'Reconnect',
             operation: operation,
@@ -35,46 +59,15 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
             targetId: operation.targetElementId,
             modelElementId: operation.edgeElementId
         };
-        if (!operation.edgeElementId || !operation.sourceElementId || !operation.targetElementId) {
-            throw new GLSPServerError('Incomplete reconnect connection action');
-        }
-
-        const index = this.modelState.index;
-
-        const gEdge = index.findByClass(operation.edgeElementId, GEdge);
-        const gSource = index.findByClass(operation.sourceElementId, GNode);
-        const gTarget = index.findByClass(operation.targetElementId, GNode);
-
-        if (!gEdge) {
-            throw new Error(`Invalid edge in graph model: edge ID ${operation.edgeElementId}`);
-        }
-
-        const edge = index.findEdge(gEdge.id);
-
-        if (!edge) {
-            throw new Error(`Invalid edge in source model: edge ID ${gEdge.id}`);
-        }
-        if (!gSource) {
-            throw new Error(`Invalid source in graph model: source ID ${operation.sourceElementId}`);
-        }
-        if (!gTarget) {
-            throw new Error(`Invalid target in graph model: target ID ${operation.targetElementId}`);
-        }
-
-        const source = index.findNode(gSource.id);
-        const target = index.findNode(gTarget.id);
-        if (
-            source &&
-            target &&
-            edge.canConnectToSource(source, _ => false) &&
-            edge.canConnectToTarget(target, _ => false) &&
-            this.hookManager.executeHook(reconnectArguments,HookTypes.CAN_RECONNECT)
-        ) {
-            this.hookManager.executeHook(reconnectArguments,HookTypes.PRE_RECONNECT);
+        const canConnect = (): boolean => this.hookManager.executeHook(reconnectArguments, HookTypes.CAN_RECONNECT);
+        if (inConstraint && canConnect()) {
+            // PRE
+            this.hookManager.executeHook(reconnectArguments, HookTypes.PRE_RECONNECT);
             edge.sourceID = gSource.id;
             edge.targetID = gTarget.id;
             edge.routingPoints = [];
-            this.hookManager.executeHook(reconnectArguments,HookTypes.POST_RECONNECT);
+            // POST
+            this.hookManager.executeHook(reconnectArguments, HookTypes.POST_RECONNECT);
         } else {
             throw new Error(`Could not change source and target of edge: ${edge.id}`);
         }

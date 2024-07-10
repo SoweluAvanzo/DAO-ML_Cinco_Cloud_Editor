@@ -28,14 +28,10 @@ Indepth Documentation is under construction and will be found as part of our [we
 USE THESE SCRIPTS ONLY FOR DEVELOPMENT PURPOSE!
 
 1. to compile the docker image execute **from the root of the cinco-cloud project**:
-    
+
     `docker build -f cinco-cloud-archetype/Dockerfile -t editor .`
 
-2. to setup a database for a pyro-application run:
-
-    `docker compose -f postgres.yml up`
-
-3. to run the docker image execute:
+2. to run the docker image execute:
 
     `./run.sh`
 

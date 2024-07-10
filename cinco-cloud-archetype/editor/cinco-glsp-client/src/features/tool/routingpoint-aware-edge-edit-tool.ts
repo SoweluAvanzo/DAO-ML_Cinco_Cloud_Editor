@@ -386,7 +386,7 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
             // we need to re-retrieve the edge as it might have changed due to a server update since we do not reset the state between
             // reroute actions
             const latestEdge = target.index.getById(this.edge.id);
-            if (latestEdge && latestEdge instanceof CincoEdge && isRoutable(latestEdge)) {
+            if (latestEdge && latestEdge instanceof CincoEdge && isRoutable(latestEdge) && latestEdge.movingBendPointIndex !== undefined) {
                 const changeRoutingPointOperation: ChangeAwareRoutingPointsOperation = this.createChangeRoutingPointOperation(
                     latestEdge,
                     { x: event.offsetX, y: event.offsetY },

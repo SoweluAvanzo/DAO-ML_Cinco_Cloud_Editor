@@ -16,12 +16,13 @@
 import { Edge, GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
 import { getEdgeSpecOf, getEdgeTypes, EdgeType, CreateEdgeArgument, HookTypes } from '@cinco-glsp/cinco-glsp-common';
 import { CreateEdgeOperation } from '@eclipse-glsp/server';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { AbstractSpecifiedEdgeElementHandler } from './specified_element_handler';
 import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
+    @inject(HookManager)
     protected hookManager: HookManager;
 
     override get elementTypeIds(): string[] {
@@ -32,6 +33,7 @@ export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
     }
 
     override executeOperation(operation: CreateEdgeOperation): void {
+        // CAN
         const parameters: CreateEdgeArgument = {
             kind: 'Create',
             elementKind: 'Edge',
@@ -41,12 +43,9 @@ export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
             sourceElementId: operation.sourceElementId,
             targetElementId: operation.targetElementId
         };
-        if (!this.hookManager) {
-            this.hookManager = HookManager.getInstance();
-        }
-
-        // if constraint is met, create element
-        if (this.checkConstraints(operation) && this.hookManager.executeHook(parameters, HookTypes.CAN_CREATE)) {
+        const canCreate = (): boolean => this.hookManager.executeHook(parameters, HookTypes.CAN_CREATE);
+        if (this.checkConstraints(operation) && canCreate()) {
+            // PRE
             this.hookManager.executeHook(parameters, HookTypes.PRE_CREATE);
             const edge = this.createEdge(operation.sourceElementId, operation.targetElementId, operation.elementTypeId);
             edge.index = this.modelState.index;
@@ -54,6 +53,7 @@ export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
             graphmodel.edges.push(edge);
             parameters.modelElementId = edge.id;
             parameters.modelElement = edge;
+            // POST
             this.hookManager.executeHook(parameters, HookTypes.POST_CREATE);
             this.saveAndUpdate();
         }

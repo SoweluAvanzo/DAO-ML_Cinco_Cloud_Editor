@@ -18,6 +18,7 @@ import { DIAGRAM_TYPE } from '@cinco-glsp/cinco-glsp-common';
 import {
     ActionHandlerConstructor,
     BindingTarget,
+    ClientSessionInitializer,
     ComputedBoundsActionHandler,
     ContextMenuItemProvider,
     DiagramConfiguration,
@@ -26,7 +27,9 @@ import {
     GModelIndex,
     InstanceMultiBinding,
     ModelState,
+    MultiBinding,
     OperationHandlerConstructor,
+    OperationHandlerRegistry,
     SourceModelStorage,
     ToolPaletteItemProvider
 } from '@eclipse-glsp/server';
@@ -55,6 +58,8 @@ import { PropertyEditHandler } from '../handler/property-edit-handler';
 import { GeneratorCreateFileHandler } from '../handler/generator-create-file-handler';
 import { PropertyViewHandler } from '../handler/property-view-handler';
 import { CompoundHandler } from '../handler/compound-handler';
+import { CincoClientSessionInitializer } from '../sessions/cinco-client-session-initializer';
+import { CincoOperationHandlerRegistry } from './cinco-handler-registry';
 import { HookManager } from '../tools/hook-manager';
 
 @injectable()
@@ -77,6 +82,11 @@ export class CincoDiagramModule extends DiagramModule {
         return GraphGModelFactory;
     }
 
+    override configureClientSessionInitializers(binding: MultiBinding<ClientSessionInitializer>): void {
+        super.configureClientSessionInitializers(binding);
+        binding.add(CincoClientSessionInitializer);
+    }
+
     protected override configureActionHandlers(binding: InstanceMultiBinding<ActionHandlerConstructor>): void {
         super.configureActionHandlers(binding);
         binding.add(HookManager);
@@ -97,6 +107,8 @@ export class CincoDiagramModule extends DiagramModule {
 
     protected override configureOperationHandlers(binding: InstanceMultiBinding<OperationHandlerConstructor>): void {
         super.configureOperationHandlers(binding);
+        this.context.bind(SpecifiedNodeHandler).toSelf();
+        this.context.bind(SpecifiedEdgeHandler).toSelf();
         binding.add(SpecifiedNodeHandler);
         binding.add(SpecifiedEdgeHandler);
         binding.add(ChangeBoundsHandler);
@@ -120,5 +132,9 @@ export class CincoDiagramModule extends DiagramModule {
 
     protected override bindContextMenuItemProvider(): BindingTarget<ContextMenuItemProvider> | undefined {
         return CustomContextMenuItemProvider;
+    }
+
+    protected override bindOperationHandlerRegistry(): BindingTarget<OperationHandlerRegistry> {
+        return CincoOperationHandlerRegistry;
     }
 }

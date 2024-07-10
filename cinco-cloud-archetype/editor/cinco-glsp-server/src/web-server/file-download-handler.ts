@@ -30,7 +30,7 @@ import {
 } from 'http-status-codes';
 import URI from '@theia/core/lib/common/uri';
 import { isEmpty } from '@theia/core/lib/common/objects';
-import { FileUri } from '@theia/core/lib/node/file-uri';
+import { FileUri } from '@theia/core/lib/common/file-uri';
 import { FileDownloadCache, DownloadStorageItem } from './file-download-cache';
 
 export interface FileDownloadData {
@@ -102,6 +102,8 @@ export abstract class FileDownloadHandler {
             const range = this.parseRangeHeader(request.headers['range'], statSize);
             if (!range) {
                 response.setHeader('Content-Length', statSize);
+                response.setHeader('Access-Control-Allow-Origin', '*');
+                response.setHeader('mode', 'no-cors');
                 this.streamDownload(OK, response, fs.createReadStream(filePath), id);
             } else {
                 const rangeStart = range.start;
@@ -212,6 +214,7 @@ export class DownloadLinkHandler extends FileDownloadHandler {
         if (method === 'HEAD') {
             response.setHeader('Content-Length', downloadInfo.size);
             response.setHeader('Access-Control-Allow-Origin', '*');
+            response.setHeader('mode', 'no-cors');
             response.status(OK).end();
             return;
         }

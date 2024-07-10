@@ -16,18 +16,20 @@
 import { Container, GraphModel, GraphModelIndex, Node } from '@cinco-glsp/cinco-glsp-api';
 import { ModelElementContainer, getNodeSpecOf, getNodeTypes, NodeType, CreateNodeArgument, HookTypes } from '@cinco-glsp/cinco-glsp-common';
 import { CreateNodeOperation, Point } from '@eclipse-glsp/server';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { AbstractSpecifiedNodeElementHandler } from './specified_element_handler';
 import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
+    @inject(HookManager)
     protected hookManager: HookManager;
-    override BLACK_LIST: string[] = [];
 
     override executeOperation(operation: CreateNodeOperation): void {
         // find container
-        const container: Container | GraphModel | undefined = this.getValidConstrainedContainer(operation);
+        const container: Container | GraphModel | undefined = this.findContainer(operation);
+
+        // CAN
         const parameters: CreateNodeArgument = {
             kind: 'Create',
             modelElementId: '<NONE>',
@@ -37,26 +39,23 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
             location: operation.location,
             operation: operation
         };
-
-        if (!this.hookManager) {
-            this.hookManager = HookManager.getInstance();
+        const inConstraint = this.canBeContained(container, operation.elementTypeId);
+        const canCreate = (): boolean => this.hookManager.executeHook(parameters, HookTypes.CAN_CREATE);
+        if (inConstraint || canCreate()) {
+            // PRE
+            this.hookManager.executeHook(parameters, HookTypes.PRE_CREATE);
+            // creation
+            const elementTypeId = operation.elementTypeId;
+            const relativeLocation = this.getRelativeLocation(operation) ?? Point.ORIGIN;
+            const node = this.createNode(relativeLocation, elementTypeId);
+            node.index = container!.index;
+            container!.containments.push(node);
+            // POST
+            parameters.modelElementId = node.id;
+            parameters.modelElement = node;
+            this.hookManager.executeHook(parameters, HookTypes.POST_CREATE);
+            this.saveAndUpdate();
         }
-        if (container === undefined || !this.hookManager.executeHook(parameters, HookTypes.CAN_CREATE)) {
-            return;
-        }
-        // pre hook
-        this.hookManager.executeHook(parameters, HookTypes.PRE_CREATE);
-        // creation
-        const elementTypeId = operation.elementTypeId;
-        const relativeLocation = this.getRelativeLocation(operation) ?? Point.ORIGIN;
-        const node = this.createNode(relativeLocation, elementTypeId);
-        node.index = container.index;
-        container.containments.push(node);
-        // post hook
-        parameters.modelElementId = node.id;
-        parameters.modelElement = node;
-        this.hookManager.executeHook(parameters, HookTypes.POST_CREATE);
-        this.saveAndUpdate();
     }
 
     protected createNode(position: Point, elementTypeId: string): Node {
@@ -78,20 +77,12 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
         return node;
     }
 
-    getValidConstrainedContainer(operation: CreateNodeOperation): Container | GraphModel | undefined {
-        // find container
-        const container: Container | GraphModel | undefined = this.findContainer(operation);
-        if (container === undefined) {
-            return undefined;
+    canBeContained(container: Container | GraphModel | undefined, nodeTypeId: string): boolean {
+        const specification = getNodeSpecOf(nodeTypeId);
+        if (!specification || !container) {
+            return false;
         }
-        // check constraint
-        const specification = getNodeSpecOf(operation.elementTypeId);
-        if (!specification) {
-            return undefined;
-        }
-        const canBeContained = container.canContain(specification.elementTypeId);
-        // if constraint is met, return container
-        return canBeContained ? container : undefined;
+        return container.canContain(specification.elementTypeId);
     }
 
     findContainer(operation: CreateNodeOperation): Container | GraphModel | undefined {
@@ -105,5 +96,4 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
             .filter((e: string) => this.BLACK_LIST.indexOf(e) < 0);
         return result;
     }
-
 }
