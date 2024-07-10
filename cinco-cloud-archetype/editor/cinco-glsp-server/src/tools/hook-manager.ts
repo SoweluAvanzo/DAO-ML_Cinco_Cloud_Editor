@@ -14,7 +14,24 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { AbstractHooks, ModelElement, LanguageFilesRegistry } from '@cinco-glsp/cinco-glsp-api';
+import {
+    ModelElement,
+    LanguageFilesRegistry,
+    GraphModelState,
+    AbstractHooks,
+    AbstractEdgeHooks,
+    AbstractNodeHooks,
+    AbstractUserDefinedTypeHooks,
+    AttributeHooks,
+    Edge,
+    Node,
+    GraphicalElementHooks,
+    ModelElementHooks,
+    AbstractGraphModelHooks,
+    NodeElementHooks,
+    EdgeElementHooks,
+    ModelElementContainer
+} from '@cinco-glsp/cinco-glsp-api';
 import {
     OperationArgument,
     CreateArgument,
@@ -27,67 +44,24 @@ import {
     SelectArgument,
     getHooks,
     hasHooks,
-    getAllHooks
+    DoubleClickArgument
 } from '@cinco-glsp/cinco-glsp-common';
-import { BaseHandlerManager } from './base-handler-manager';
-import { Action } from '@eclipse-glsp/server';
-import { injectable } from 'inversify';
-let HOOK_MANAGER_INSTANCE: any;
-@injectable()
-export class HookManager extends BaseHandlerManager<OperationArgument, AbstractHooks> {
-    override actionKinds: string[] = [AbstractHooks.hookName];
-    override baseHandlerName = 'AbstractHook';
-    readonly baseHandlerNames: string[] = ['AbstractNodeHooks', 'AbstractEdgeHooks', 'AbstractGraphModelHooks'];
+import { ActionDispatcher, Logger, MessageAction, SeverityLevel } from '@eclipse-glsp/server';
 
-    constructor() {
-        super();
-        HOOK_MANAGER_INSTANCE = this;
-    }
-
-    static getInstance(): HookManager {
-        if (!HOOK_MANAGER_INSTANCE) {
-            throw Error('HookManager Not Initialized, yet.');
-        }
-        return HOOK_MANAGER_INSTANCE as HookManager;
-    }
-
-    override hasHandlerProperty(element: ModelElement): boolean {
-        return hasHooks(element.type);
-    }
-
-    override isApplicableHandler(element: ModelElement, handlerClassName: string): boolean {
-        return (
-            getAllHooks(element.type).filter(
-                // In the value set of annotations, there exists a value with the handlerClassName
-                (a: string[]) => a.indexOf(handlerClassName) >= 0
-            ).length > 0
-        );
-    }
-
-    override handlerCanBeExecuted(
-        handler: AbstractHooks,
-        element: ModelElement,
-        action: OperationArgument,
-        args: any
-    ): boolean | Promise<boolean> {
-        return false;
-    }
-    override executeHandler(
-        handler: AbstractHooks,
-        element: ModelElement,
-        action: OperationArgument,
-        args: any
-    ): Action[] | Promise<Action[]> {
-        return [];
-    }
-
-    executeHook(parameters: OperationArgument, type: HookTypes): boolean {
+export class HookManager {
+    static executeHook(
+        parameters: OperationArgument,
+        type: HookTypes,
+        modelState: GraphModelState,
+        logger: Logger,
+        actionDispatcher: ActionDispatcher
+    ): boolean {
         let elementTypeId = '';
         if (parameters.kind === 'Create') {
             elementTypeId = (parameters as CreateArgument).elementTypeId;
         } else {
             if (parameters.modelElementId !== '<NONE>') {
-                const modelElement = this.getModelElement(parameters.modelElementId);
+                const modelElement = modelState.index.findModelElement(parameters.modelElementId);
                 if (modelElement) {
                     elementTypeId = modelElement.type;
                 } else {
@@ -95,27 +69,29 @@ export class HookManager extends BaseHandlerManager<OperationArgument, AbstractH
                 }
             }
         }
+        // load hook class
         const hookClassNames = this.getSuitableClassNames(elementTypeId, type);
-
+        // execute all hooks
         for (const hookClassName of hookClassNames) {
             const hookClass = this.loadHookClasses(hookClassName, elementTypeId, type);
             try {
-                const hk: AbstractHooks = new hookClass(this.logger, this.modelState, this.actionDispatcher);
-                if (!this.dispatchHook(hk, parameters, type)) {
-                    return false;
-                }
+                const hook = new hookClass(logger, modelState, actionDispatcher);
+                return this.dispatchHook(hook, parameters, type, modelState);
             } catch (error: any) {
-                this.logger.error(error);
+                logger.error(error);
                 const errorMsg =
                     'No Hook for Element "' + elementTypeId + '" with Class "' + hookClassName + '" and hook type : "' + type + '" found.';
-                this.notify(errorMsg, 'ERROR');
+                this.notify(actionDispatcher, errorMsg, 'ERROR');
                 return false;
             }
         }
-        return true;
+        if (hookClassNames.length <= 0) {
+            return true;
+        }
+        return false;
     }
 
-    private getSuitableClassNames(elementTypeId: string, hookType: HookTypes): string[] {
+    private static getSuitableClassNames(elementTypeId: string, hookType: HookTypes): string[] {
         if (hasHooks(elementTypeId)) {
             return getHooks(elementTypeId, hookType)
                 .map((value: string[]) => value[0])
@@ -124,69 +100,256 @@ export class HookManager extends BaseHandlerManager<OperationArgument, AbstractH
         return [];
     }
 
-    private loadHookClasses(hookClassName: string, modelTypeId: string, hookType: HookTypes): any {
-        return LanguageFilesRegistry.getRegisteredHooks(modelTypeId, hookType).filter((hook: any) => hook.name === hookClassName)[0];
+    private static loadHookClasses(hookClassName: string, modelTypeId: string, hookType: HookTypes): any {
+        const hooks = LanguageFilesRegistry.getRegistered().filter((hook: any) => hook.name === hookClassName);
+        return hooks.length > 0 ? hooks[0] : undefined;
     }
 
-    private dispatchHook(hk: AbstractHooks, parameters: OperationArgument, type: HookTypes): boolean {
+    private static dispatchHook(hook: AbstractHooks, parameters: OperationArgument, type: HookTypes, modelState: GraphModelState): boolean {
         try {
             switch (type) {
-                case HookTypes.CAN_CHANGE_ATTRIBUTE:
-                    return this.canChangeAttributeHook(hk, parameters as AttributeChangeArgument);
+                case HookTypes.CAN_CHANGE_ATTRIBUTE: {
+                    if (!AttributeHooks.is(hook)) {
+                        throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                    }
+                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    if (!modelElement) {
+                        throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                    }
+                    return this.canChangeAttributeHook(hook, parameters as AttributeChangeArgument, modelElement);
+                }
                 case HookTypes.PRE_ATTRIBUTE_CHANGE:
-                    this.preAttributeChangeHook(hk, parameters as AttributeChangeArgument);
+                    {
+                        if (!AttributeHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.preAttributeChangeHook(hook, parameters as AttributeChangeArgument, modelElement);
+                    }
                     break;
                 case HookTypes.POST_ATTRIBUTE_CHANGE:
-                    this.postAttributeChangeHook(hk, parameters as AttributeChangeArgument);
+                    {
+                        if (!AttributeHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.postAttributeChangeHook(hook, parameters as AttributeChangeArgument, modelElement);
+                    }
                     break;
-                case HookTypes.CAN_CREATE:
-                    return this.canCreateHook(hk, parameters as CreateArgument);
+                case HookTypes.CAN_CREATE: {
+                    if (!ModelElementHooks.is(hook)) {
+                        throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                    }
+                    return this.canCreateHook(hook, parameters as CreateArgument);
+                }
                 case HookTypes.PRE_CREATE:
-                    this.preCreateHook(hk, parameters as CreateArgument);
+                    {
+                        if (!ModelElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        this.preCreateHook(hook, parameters as CreateArgument, modelState);
+                    }
                     break;
                 case HookTypes.POST_CREATE:
-                    this.postCreateHook(hk, parameters as CreateArgument);
+                    {
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        if (!ModelElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        this.postCreateHook(hook, modelElement);
+                    }
                     break;
-                case HookTypes.CAN_DOUBLE_CLICK:
-                    throw new Error('Not Implemented, Use DoubleClick Action');
-                case HookTypes.POST_DOUBLE_CLICK:
-                    throw new Error('Not Implemented, Use DoubleClick Action');
                 case HookTypes.CAN_DELETE:
-                    return this.canDeleteHook(hk, parameters as DeleteArgument);
+                    {
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        if (!ModelElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        this.canDeleteHook(hook, modelElement);
+                    }
+                    break;
                 case HookTypes.PRE_DELETE:
-                    this.preDeleteHook(hk, parameters as DeleteArgument);
+                    {
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        if (!ModelElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        this.preDeleteHook(hook, modelElement);
+                    }
                     break;
                 case HookTypes.POST_DELETE:
-                    this.postDeleteHook(hk, parameters as DeleteArgument);
+                    {
+                        if (!ModelElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = (parameters as DeleteArgument).deleted;
+                        if (!modelElement && ModelElement.is(modelElement)) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.postDeleteHook(hook, modelElement);
+                    }
                     break;
-                case HookTypes.CAN_MOVE:
-                    return this.canMoveHook(hk, parameters as MoveArgument);
+                case HookTypes.CAN_MOVE: {
+                    if (!NodeElementHooks.is(hook)) {
+                        throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                    }
+                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    if (!modelElement) {
+                        throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                    }
+                    return this.canMoveHook(hook, parameters as MoveArgument, modelElement);
+                }
                 case HookTypes.PRE_MOVE:
-                    this.preMoveHook(hk, parameters as MoveArgument);
+                    {
+                        if (!NodeElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.preMoveHook(hook, parameters as MoveArgument, modelElement);
+                    }
                     break;
                 case HookTypes.POST_MOVE:
-                    this.postMoveHook(hk, parameters as MoveArgument);
+                    {
+                        if (!NodeElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.postMoveHook(hook, parameters as MoveArgument, modelElement);
+                    }
                     break;
-                case HookTypes.CAN_RESIZE:
-                    return this.canResizeHook(hk, parameters as ResizeArgument);
+                case HookTypes.CAN_RESIZE: {
+                    if (!NodeElementHooks.is(hook)) {
+                        throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                    }
+                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    if (!modelElement) {
+                        throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                    }
+                    return this.canResizeHook(hook, parameters as ResizeArgument, modelElement);
+                }
                 case HookTypes.PRE_RESIZE:
-                    this.preResizeHook(hk, parameters as ResizeArgument);
+                    {
+                        if (!NodeElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.preResizeHook(hook, parameters as ResizeArgument, modelElement);
+                    }
                     break;
                 case HookTypes.POST_RESIZE:
-                    this.postResizeHook(hk, parameters as ResizeArgument);
+                    {
+                        if (!NodeElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.postResizeHook(hook, parameters as ResizeArgument, modelElement);
+                    }
                     break;
-                case HookTypes.CAN_SELECT:
-                    return this.canSelectHook(hk, parameters as SelectArgument);
-                case HookTypes.POST_SELECT:
-                    this.postSelectHook(hk, parameters as SelectArgument);
-                    break;
-                case HookTypes.CAN_RECONNECT:
-                    return this.canReconnectHook(hk, parameters as ReconnectArgument);
+                case HookTypes.CAN_RECONNECT: {
+                    if (!EdgeElementHooks.is(hook)) {
+                        throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                    }
+                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    if (!modelElement) {
+                        throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                    }
+                    return this.canReconnectHook(hook, parameters as ReconnectArgument, modelElement);
+                }
                 case HookTypes.PRE_RECONNECT:
-                    this.preReconnectHook(hk, parameters as ReconnectArgument);
+                    {
+                        if (!EdgeElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.preReconnectHook(hook, parameters as ReconnectArgument, modelElement);
+                    }
                     break;
                 case HookTypes.POST_RECONNECT:
-                    this.postReconnectHook(hk, parameters as ReconnectArgument);
+                    {
+                        if (!EdgeElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.postReconnectHook(hook, parameters as ReconnectArgument, modelElement);
+                    }
+                    break;
+                case HookTypes.CAN_SELECT: {
+                    if (!GraphicalElementHooks.is(hook)) {
+                        throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                    }
+                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    if (!modelElement) {
+                        throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                    }
+                    return this.canSelectHook(hook, parameters as SelectArgument, modelElement);
+                }
+                case HookTypes.POST_SELECT:
+                    {
+                        if (!GraphicalElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.postSelectHook(hook, parameters as SelectArgument, modelElement);
+                    }
+                    break;
+                case HookTypes.CAN_DOUBLE_CLICK: {
+                    if (!GraphicalElementHooks.is(hook)) {
+                        throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                    }
+                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    if (!modelElement) {
+                        throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                    }
+                    return this.canDoubleClickHook(hook, parameters as DoubleClickArgument, modelElement);
+                }
+                case HookTypes.POST_DOUBLE_CLICK:
+                    {
+                        if (!GraphicalElementHooks.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.postDoubleClickHook(hook, parameters as DoubleClickArgument, modelElement);
+                    }
+                    break;
             }
         } catch (e) {
             return false;
@@ -194,145 +357,218 @@ export class HookManager extends BaseHandlerManager<OperationArgument, AbstractH
         return true;
     }
 
-    private preCreateHook(hk: any, parameters: CreateArgument): void {
-        if (hk.preCreate !== undefined) {
+    /**
+     * Attributes
+     */
+
+    private static canChangeAttributeHook(
+        hook: AttributeHooks<ModelElement>,
+        parameter: AttributeChangeArgument,
+        modelElement: ModelElement
+    ): boolean {
+        return !hook.canChangeAttribute || hook.canChangeAttribute(modelElement, parameter.operation);
+    }
+
+    private static preAttributeChangeHook(
+        hook: AttributeHooks<ModelElement>,
+        parameters: AttributeChangeArgument,
+        modelElement: ModelElement
+    ): void {
+        if (hook.preAttributeChange) {
+            hook.preAttributeChange(modelElement, parameters.operation);
+        }
+    }
+
+    private static postAttributeChangeHook(
+        hook: AttributeHooks<ModelElement>,
+        parameters: AttributeChangeArgument,
+        modelElement: ModelElement
+    ): void {
+        if (hook.postAttributeChange) {
+            hook.postAttributeChange(modelElement, parameters.operation.name, parameters.oldValue);
+        }
+    }
+
+    /**
+     * Create
+     */
+
+    private static canCreateHook(hook: ModelElementHooks<ModelElement>, parameters: CreateArgument): boolean {
+        return !hook.canCreate || hook.canCreate(parameters.operation);
+    }
+
+    private static preCreateHook(hook: ModelElementHooks<any>, parameters: CreateArgument, modelState: GraphModelState): void {
+        if (hook.preCreate !== undefined) {
             switch (parameters.elementKind) {
                 case 'Node':
                     {
-                        const container = this.getModelElement(parameters.containerElementId);
-                        if (container) {
-                            hk.preCreate(container, parameters.location);
+                        const container = modelState.index.findModelElement(parameters.containerElementId);
+                        if (hook instanceof AbstractNodeHooks && ModelElementContainer.is(container)) {
+                            hook.preCreate(container, parameters.location);
+                        } else {
+                            throw Error('Can not PreCreate node.');
                         }
                     }
                     break;
                 case 'Edge':
-                    hk.preCreate(parameters.sourceElementId, parameters.targetElementId);
+                    {
+                        const source = modelState.index.findNode(parameters.sourceElementId);
+                        const target = modelState.index.findNode(parameters.targetElementId);
+                        if (hook instanceof AbstractEdgeHooks && source && target) {
+                            hook.preCreate(source, target);
+                        }
+                    }
                     break;
-                case 'GraphModel':
-                    throw Error('Can not PreCreate for GraphModel');
+                case 'UserDefinedType':
+                    {
+                        const args = parameters.args;
+                        if (hook instanceof AbstractUserDefinedTypeHooks) {
+                            hook.preCreate(args);
+                        }
+                    }
+                    break;
+                case 'GraphModel': {
+                    const path = parameters.path;
+                    if (hook instanceof AbstractGraphModelHooks) {
+                        hook.preCreate(path);
+                    }
+                }
             }
         }
         return;
     }
 
-    private postCreateHook(hk: any, parameters: CreateArgument): void {
-        if (hk.postCreate !== undefined) {
-            const modelElement = parameters.modelElement as ModelElement;
-            if (modelElement) {
-                hk.postCreate(modelElement);
-            }
+    private static postCreateHook(hook: ModelElementHooks<ModelElement>, modelElement: ModelElement): void {
+        if (hook.postCreate) {
+            hook.postCreate(modelElement);
         }
     }
 
-    private canCreateHook(hk: any, parameters: CreateArgument): boolean {
-        return !hk.canCreate || hk.canCreate(parameters.operation);
+    private static canDeleteHook(hook: ModelElementHooks<ModelElement>, modelElement: ModelElement): boolean {
+        return !hook.canDelete || hook.canDelete(modelElement);
     }
 
-    private canDeleteHook(hk: any, parameters: DeleteArgument): boolean {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        return modelElement && (!hk.canDelete || hk.canDelete(modelElement));
-    }
-
-    private preDeleteHook(hk: any, parameters: DeleteArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (modelElement && hk.preDelete) {
-            hk.preDelete(modelElement);
+    private static preDeleteHook(hook: ModelElementHooks<ModelElement>, modelElement: ModelElement): void {
+        if (hook.preDelete) {
+            hook.preDelete(modelElement);
         }
     }
 
-    private postDeleteHook(hk: any, parameters: DeleteArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (modelElement && hk.postDelete) {
-            hk.postDelete(modelElement);
+    private static postDeleteHook(hook: ModelElementHooks<ModelElement>, modelElement: ModelElement): void {
+        if (hook.postDelete) {
+            hook.postDelete(modelElement);
         }
     }
 
-    private canChangeAttributeHook(hk: any, parameter: AttributeChangeArgument): boolean {
-        return !hk.canChangeAttribute || hk.canChangeAttribute(parameter.operation);
-    }
-
-    private preAttributeChangeHook(hk: any, parameters: AttributeChangeArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (modelElement && hk.preAttributeChange) {
-            hk.preAttributeChange(modelElement);
+    private static canReconnectHook(hook: AbstractEdgeHooks, parameters: ReconnectArgument, modelElement: ModelElement): boolean {
+        const newSource = modelElement.index.findNode(parameters.sourceId);
+        const newTarget = modelElement.index.findNode(parameters.targetId);
+        if (Edge.is(modelElement) && newSource && newTarget) {
+            return !hook.canChangeAttribute || hook.canReconnect(modelElement, newSource, newTarget);
+        } else {
+            throw new Error('Could not execute canReconnectHook.');
         }
     }
 
-    private postAttributeChangeHook(hk: any, parameters: AttributeChangeArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (modelElement && hk.postAttributeChange) {
-            hk.postAttributeChange(modelElement, parameters.operation.name, parameters.oldValue);
+    private static preReconnectHook(hook: AbstractEdgeHooks, parameters: ReconnectArgument, modelElement: ModelElement): void {
+        const newSource = modelElement.index.findNode(parameters.sourceId);
+        const newTarget = modelElement.index.findNode(parameters.targetId);
+        if (hook.preReconnect && Edge.is(modelElement) && newSource && newTarget) {
+            hook.preReconnect(modelElement, newSource, newTarget);
+        } else {
+            throw new Error('Could execute preReconnectHook.');
         }
     }
 
-    private canReconnectHook(hk: any, parameters: ReconnectArgument): boolean {
-        return !hk.canChangeAttribute || hk.canReconnect(parameters.operation);
-    }
-
-    private preReconnectHook(hk: any, parameters: ReconnectArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (modelElement && hk.preReconnect) {
-            hk.preReconnect(modelElement);
+    private static postReconnectHook(hook: AbstractEdgeHooks, parameters: ReconnectArgument, modelElement: ModelElement): void {
+        const oldSource = modelElement.index.findNode(parameters.sourceId);
+        const oldTarget = modelElement.index.findNode(parameters.targetId);
+        if (hook.postReconnect && Edge.is(modelElement) && oldSource && oldTarget) {
+            hook.postReconnect(modelElement, oldSource, oldTarget);
+        } else {
+            throw new Error('Could execute postReconnectHook.');
         }
     }
 
-    private postReconnectHook(hk: any, parameters: ReconnectArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (modelElement && hk.postReconnect) {
-            hk.postReconnect(modelElement);
+    private static canMoveHook(hook: AbstractNodeHooks, parameters: MoveArgument, modelElement: ModelElement): boolean {
+        return !hook.canMove || (Node.is(modelElement) && hook.canMove(modelElement, parameters.newPosition));
+    }
+
+    private static preMoveHook(hook: AbstractNodeHooks, parameters: MoveArgument, modelElement: ModelElement): void {
+        if (hook.preMove && Node.is(modelElement)) {
+            hook.preMove(modelElement, parameters.newPosition);
         }
     }
 
-    private canMoveHook(hk: any, parameters: MoveArgument): boolean {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        return modelElement && (!hk.canMove || hk.canMove(modelElement, parameters.newPosition));
-    }
-
-    private preMoveHook(hk: any, parameters: MoveArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (modelElement && hk.preMove) {
-            hk.preMove(modelElement, parameters.newPosition);
+    private static postMoveHook(hook: AbstractNodeHooks, parameters: MoveArgument, modelElement: ModelElement): void {
+        if (hook.postMove && Node.is(modelElement)) {
+            hook.postMove(modelElement, parameters.oldPosition);
         }
     }
 
-    private postMoveHook(hk: any, parameters: MoveArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (modelElement && hk.postMove) {
-            hk.postMove(modelElement, parameters.oldPosition);
+    private static canResizeHook(hook: AbstractNodeHooks, parameters: ResizeArgument, modelElement: ModelElement | undefined): boolean {
+        return !hook.canChangeAttribute || (Node.is(modelElement) && hook.canResize(modelElement, parameters.newSize));
+    }
+
+    private static preResizeHook(hook: AbstractNodeHooks, parameters: ResizeArgument, modelElement: ModelElement | undefined): void {
+        if (hook.preResize && Node.is(modelElement)) {
+            hook.preResize(modelElement, parameters.newSize);
         }
     }
 
-    private canResizeHook(hk: any, parameters: ResizeArgument): boolean {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        return modelElement && (!hk.canChangeAttribute || hk.canResize(modelElement, parameters.newSize));
-    }
-
-    private preResizeHook(hk: any, parameters: ResizeArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (modelElement && hk.preResize) {
-            hk.preResize(modelElement, parameters.newSize);
+    private static postResizeHook(hook: AbstractNodeHooks, parameters: ResizeArgument, modelElement: ModelElement | undefined): void {
+        if (hook.postResize && Node.is(modelElement)) {
+            hook.postResize(modelElement, parameters.oldSize);
         }
     }
 
-    private postResizeHook(hk: any, parameters: ResizeArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (modelElement && hk.postResize) {
-            hk.postResize(modelElement, parameters.oldSize);
+    private static canSelectHook(
+        hook: GraphicalElementHooks<any>,
+        parameters: SelectArgument,
+        modelElement: ModelElement | undefined
+    ): boolean {
+        return !hook.canSelect || hook.canSelect(modelElement);
+    }
+
+    private static postSelectHook(
+        hook: GraphicalElementHooks<any>,
+        parameters: SelectArgument,
+        modelElement: ModelElement | undefined
+    ): void {
+        if (hook.postSelect) {
+            hook.postSelect(modelElement);
         }
     }
 
-    private canSelectHook(hk: any, parameters: SelectArgument): boolean {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        return modelElement && (!hk.canSelect || hk.canSelect(modelElement));
+    private static canDoubleClickHook(
+        hook: GraphicalElementHooks<any>,
+        parameters: DoubleClickArgument,
+        modelElement: ModelElement | undefined
+    ): boolean {
+        return !hook.canDoubleClick || hook.canDoubleClick(modelElement);
     }
-    private postSelectHook(hk: any, parameters: SelectArgument): void {
-        const modelElement = this.getModelElement(parameters.modelElementId);
-        if (hk.postSelect) {
-            hk.postSelect(modelElement);
+
+    private static postDoubleClickHook(
+        hook: GraphicalElementHooks<any>,
+        parameters: DoubleClickArgument,
+        modelElement: ModelElement | undefined
+    ): void {
+        if (hook.postDoubleClick) {
+            hook.postDoubleClick(modelElement);
         }
     }
 
-    private getModelElement(modelElementId: string): ModelElement | undefined {
-        return this.modelState.index.findModelElement(modelElementId);
+    /**
+     *
+     * @param message
+     * @param severity "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
+     * @returns
+     */
+    static notify(actionDispatcher: ActionDispatcher, message: string, severity?: SeverityLevel, details?: string, timeout?: number): void {
+        const messageAction = MessageAction.create(message, {
+            severity: severity ?? 'INFO',
+            details: details ?? ''
+        });
+        actionDispatcher.dispatch(messageAction);
     }
 }

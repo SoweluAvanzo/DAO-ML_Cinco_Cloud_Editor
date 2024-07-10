@@ -16,15 +16,12 @@
 import { Container, GraphModel, GraphModelIndex, Node } from '@cinco-glsp/cinco-glsp-api';
 import { ModelElementContainer, getNodeSpecOf, getNodeTypes, NodeType, CreateNodeArgument, HookTypes } from '@cinco-glsp/cinco-glsp-common';
 import { CreateNodeOperation, Point } from '@eclipse-glsp/server';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { AbstractSpecifiedNodeElementHandler } from './specified_element_handler';
 import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
-    @inject(HookManager)
-    protected hookManager: HookManager;
-
     override executeOperation(operation: CreateNodeOperation): void {
         // find container
         const container: Container | GraphModel | undefined = this.findContainer(operation);
@@ -40,20 +37,21 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
             operation: operation
         };
         const inConstraint = this.canBeContained(container, operation.elementTypeId);
-        const canCreate = (): boolean => this.hookManager.executeHook(parameters, HookTypes.CAN_CREATE);
-        if (inConstraint || canCreate()) {
+        const canCreate = (): boolean =>
+            HookManager.executeHook(parameters, HookTypes.CAN_CREATE, this.modelState, this.logger, this.actionDispatcher);
+        if (inConstraint && canCreate()) {
             // PRE
-            this.hookManager.executeHook(parameters, HookTypes.PRE_CREATE);
+            HookManager.executeHook(parameters, HookTypes.PRE_CREATE, this.modelState, this.logger, this.actionDispatcher);
             // creation
             const elementTypeId = operation.elementTypeId;
             const relativeLocation = this.getRelativeLocation(operation) ?? Point.ORIGIN;
             const node = this.createNode(relativeLocation, elementTypeId);
             node.index = container!.index;
             container!.containments.push(node);
+            this.modelState.refresh();
             // POST
             parameters.modelElementId = node.id;
-            parameters.modelElement = node;
-            this.hookManager.executeHook(parameters, HookTypes.POST_CREATE);
+            HookManager.executeHook(parameters, HookTypes.POST_CREATE, this.modelState, this.logger, this.actionDispatcher);
             this.saveAndUpdate();
         }
     }

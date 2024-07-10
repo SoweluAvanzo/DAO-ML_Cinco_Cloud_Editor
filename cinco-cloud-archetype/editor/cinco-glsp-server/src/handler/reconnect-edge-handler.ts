@@ -16,13 +16,11 @@
 import { HookTypes, ReconnectArgument } from '@cinco-glsp/cinco-glsp-common';
 import { HookManager } from '../tools/hook-manager';
 import { GEdge, GLSPServerError, GNode, ReconnectEdgeOperation } from '@eclipse-glsp/server';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 
 @injectable()
 export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
-    @inject(HookManager)
-    protected hookManager: HookManager;
     operationType = ReconnectEdgeOperation.KIND;
 
     executeOperation(operation: ReconnectEdgeOperation): void {
@@ -59,15 +57,16 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
             targetId: operation.targetElementId,
             modelElementId: operation.edgeElementId
         };
-        const canConnect = (): boolean => this.hookManager.executeHook(reconnectArguments, HookTypes.CAN_RECONNECT);
+        const canConnect = (): boolean =>
+            HookManager.executeHook(reconnectArguments, HookTypes.CAN_RECONNECT, this.modelState, this.logger, this.actionDispatcher);
         if (inConstraint && canConnect()) {
             // PRE
-            this.hookManager.executeHook(reconnectArguments, HookTypes.PRE_RECONNECT);
+            HookManager.executeHook(reconnectArguments, HookTypes.PRE_RECONNECT, this.modelState, this.logger, this.actionDispatcher);
             edge.sourceID = gSource.id;
             edge.targetID = gTarget.id;
             edge.routingPoints = [];
             // POST
-            this.hookManager.executeHook(reconnectArguments, HookTypes.POST_RECONNECT);
+            HookManager.executeHook(reconnectArguments, HookTypes.POST_RECONNECT, this.modelState, this.logger, this.actionDispatcher);
         } else {
             throw new Error(`Could not change source and target of edge: ${edge.id}`);
         }

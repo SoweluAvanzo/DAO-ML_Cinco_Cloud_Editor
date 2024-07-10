@@ -15,15 +15,13 @@
  ********************************************************************************/
 import { Container, Edge, Node, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import { DeleteElementOperation, SaveModelAction, remove } from '@eclipse-glsp/server';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 import { DeleteArgument, HookTypes } from '@cinco-glsp/cinco-glsp-common';
 import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class DeleteHandler extends CincoJsonOperationHandler {
-    @inject(HookManager)
-    protected hookManager: HookManager;
     readonly operationType = DeleteElementOperation.KIND;
 
     executeOperation(operation: DeleteElementOperation): void {
@@ -44,17 +42,19 @@ export class DeleteHandler extends CincoJsonOperationHandler {
         const parameters: DeleteArgument = {
             kind: 'Delete',
             modelElementId: element.id,
-            operation: operation
+            operation: operation,
+            deleted: undefined
         };
         // CAN
-        if (!this.hookManager.executeHook(parameters, HookTypes.CAN_DELETE)) {
+        if (!HookManager.executeHook(parameters, HookTypes.CAN_DELETE, this.modelState, this.logger, this.actionDispatcher)) {
             return;
         }
         // PRE
-        this.hookManager.executeHook(parameters, HookTypes.PRE_DELETE);
+        HookManager.executeHook(parameters, HookTypes.PRE_DELETE, this.modelState, this.logger, this.actionDispatcher);
+        parameters.deleted = element;
         if (Container.is(element)) {
             const containments = element.containments ?? [];
-            containments.forEach((c: Node) => this.deleteElement(c, parameters));
+            containments.forEach((c: Node) => this.deleteElement(c, operation));
         }
         if (Node.is(element)) {
             // disjunct from container
@@ -74,7 +74,7 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             remove(this.modelState.graphModel.edges, element);
         }
         // POST
-        this.hookManager.executeHook(parameters, HookTypes.POST_DELETE);
+        HookManager.executeHook(parameters, HookTypes.POST_DELETE, this.modelState, this.logger, this.actionDispatcher);
     }
 
     saveAndUpdate(): void {

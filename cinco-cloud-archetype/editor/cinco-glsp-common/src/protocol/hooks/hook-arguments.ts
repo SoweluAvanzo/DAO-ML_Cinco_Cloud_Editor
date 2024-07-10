@@ -13,7 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { CreateEdgeOperation,
+import {
+    CreateEdgeOperation,
     CreateOperation,
     Dimension,
     ReconnectEdgeOperation,
@@ -25,19 +26,32 @@ import { PropertyEditOperation } from '../property-protocol';
 import { Point } from '../../meta-specification';
 
 export type OperationArgument = Argument &
-                                ( AttributeChangeArgument
-                                    | MoveArgument
-                                    | ResizeArgument
-                                    | ReconnectArgument
-                                    | DeleteArgument
-                                    | CreateArgument
-                                    | SelectArgument
-                                );
+    (
+        | AttributeChangeArgument
+        | MoveArgument
+        | ResizeArgument
+        | ReconnectArgument
+        | DeleteArgument
+        | CreateArgument
+        | SelectArgument
+        | DoubleClickArgument
+    );
 
-interface Argument extends ManagedBaseAction{
+interface Argument extends ManagedBaseAction {
     modelElementId: string;
     operation?: Operation;
-    kind: 'CreateNode' | 'CreateEdge' | 'CreateGraphModel' | 'Delete' | 'AttributeChange' | 'Move' | 'Reconnect' | 'Resize' | 'Create';
+    kind:
+        | 'CreateNode'
+        | 'CreateEdge'
+        | 'CreateGraphModel'
+        | 'Delete'
+        | 'AttributeChange'
+        | 'Move'
+        | 'Reconnect'
+        | 'Resize'
+        | 'Create'
+        | 'Select'
+        | 'DoubleClick';
 }
 
 export interface AttributeChangeArgument extends Argument {
@@ -45,12 +59,11 @@ export interface AttributeChangeArgument extends Argument {
     operation: PropertyEditOperation;
     oldValue: any;
 }
-export type CreateArgument = CreateEdgeArgument | CreateNodeArgument | CreateGraphModelArgument;
+export type CreateArgument = CreateEdgeArgument | CreateNodeArgument | CreateGraphModelArgument | CreateUserDefinedTypeArgument;
 interface CreateArgumentInterface extends Argument {
     kind: 'Create';
-    elementKind: 'Node' | 'Edge' | 'GraphModel';
+    elementKind: 'Node' | 'Edge' | 'GraphModel' | 'UserDefinedType'; // TODO:
     elementTypeId: string;
-    modelElement?: any;
     operation: CreateOperation;
 }
 
@@ -70,10 +83,18 @@ export interface CreateEdgeArgument extends CreateArgumentInterface {
 
 export interface CreateGraphModelArgument extends CreateArgumentInterface {
     elementKind: 'GraphModel';
+    path: string;
 }
+
+export interface CreateUserDefinedTypeArgument extends CreateArgumentInterface {
+    elementKind: 'UserDefinedType';
+    args: any;
+}
+
 export interface DeleteArgument extends Argument {
     kind: 'Delete';
     operation: DeleteElementOperation;
+    deleted: any;
 }
 
 export interface MoveArgument extends Argument {
@@ -82,8 +103,8 @@ export interface MoveArgument extends Argument {
     kind: 'Move';
 }
 export interface ReconnectArgument extends Argument {
-    sourceId: string,
-    targetId: string,
+    sourceId: string;
+    targetId: string;
     operation: ReconnectEdgeOperation;
     kind: 'Reconnect';
 }
@@ -94,5 +115,10 @@ export interface ResizeArgument extends Argument {
     kind: 'Resize';
 }
 
-export interface SelectArgument extends Argument{
+export interface SelectArgument extends Argument {
+    kind: 'Select';
+}
+
+export interface DoubleClickArgument extends Argument {
+    kind: 'DoubleClick';
 }

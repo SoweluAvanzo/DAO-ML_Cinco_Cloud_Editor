@@ -802,6 +802,8 @@ function resolveAppearance(app: string | Appearance | undefined): Appearance | u
  * Annotation
  */
 
+const handlerAnnotations = ['Hook', 'CustomAction', 'AppearanceProvider', 'Validator', 'Generator', 'Interpreter', 'DoubleClickAction'];
+
 export function hasAppearanceProvider(type: string): boolean {
     return getAppearanceProvider(type).length > 0;
 }
@@ -890,14 +892,20 @@ export function getAllHandlerNames(): string[] {
 
         // get mgl annotations
         const annotations = getAllAnnotations(element.elementTypeId);
-        for (const ann of annotations) {
-            const values = ann.values;
-            // handlerClassNames have to be the first value of annotations
-            if (values.length > 0) {
-                const handlerName = values[0];
-                if (!handlerNames.includes(handlerName)) {
-                    handlerNames.push(handlerName);
-                }
+        for (const ann of annotations.filter(a => handlerAnnotations.includes(a.name))) {
+            switch (ann.name) {
+                default:
+                    {
+                        const values = ann.values;
+                        // handlerClassNames have to be the first value of annotations
+                        if (values.length > 0) {
+                            const handlerName = values[0];
+                            if (!handlerNames.includes(handlerName)) {
+                                handlerNames.push(handlerName);
+                            }
+                        }
+                    }
+                    break;
             }
         }
     }
@@ -905,7 +913,7 @@ export function getAllHandlerNames(): string[] {
 }
 
 export function hasHooks(elementTypeId: string): boolean {
-    return hasAnnotation(elementTypeId,'Hook');
+    return hasAnnotation(elementTypeId, 'Hook');
 }
 
 export function getHooks(elementTypeId: string, hookType: HookTypes): string[][] {
