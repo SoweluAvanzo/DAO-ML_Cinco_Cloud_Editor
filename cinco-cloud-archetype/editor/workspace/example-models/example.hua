@@ -1,0 +1,52 @@
+{
+  "id": "12f64c85-a751-4229-82ff-ae88c114ae7d",
+  "_containments": [
+    {
+      "id": "06ad7eb4-4479-4330-8965-88fd74133e63",
+      "type": "hooksandactions:activity",
+      "_attributes": {
+        "name": "Pull"
+      },
+      "_size": {
+        "width": 96,
+        "height": 32
+      },
+      "_position": {
+        "x": 611.001708984375,
+        "y": 143.56597137451172
+      }
+    },
+    {
+      "id": "3372a126-cc64-40c0-98c0-40ae8966a49e",
+      "type": "hooksandactions:activity",
+      "_attributes": {
+        "name": "Pick up"
+      },
+      "_size": {
+        "width": 96,
+        "height": 32
+      },
+      "_position": {
+        "x": 705.001708984375,
+        "y": 236.56597137451172
+      }
+    }
+  ],
+  "_edges": [
+    {
+      "id": "e6549c54-80b9-4661-9196-339bb41007dc",
+      "type": "hooksandactions:transition",
+      "_attributes": {
+        "name": ""
+      },
+      "sourceID": "06ad7eb4-4479-4330-8965-88fd74133e63",
+      "targetID": "3372a126-cc64-40c0-98c0-40ae8966a49e",
+      "_routingPoints": []
+    }
+  ],
+  "type": "hooksandactions:hooksandactions",
+  "_sourceUri": "/Users/sami/Desktop/rebase/cinco-cloud/cinco-cloud-archetype/editor/workspace/example-models/example.hua",
+  "_attributes": {
+    "name": ""
+  }
+}
