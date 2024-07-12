@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Annotation, Attribute, Enum, UserDefinedType, getAttribute, getCustomType } from '../meta-specification';
+import { Annotation, Attribute, Enum, UserDefinedType, getAttribute, getCustomType, getNonAbstractTypeOptions } from '../meta-specification';
 
 export interface ModelElementIndex {
     [type: string]: LabeledModelElementReference[];
@@ -207,18 +207,26 @@ function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[],
             return '';
         }
         default: {
-            const typeDefinition = getCustomType(type);
-            if (!typeDefinition) {
+            const specifiedTypeDefinition = getCustomType(type);
+            if (!specifiedTypeDefinition) {
                 // could be modelElementReference: default should be 'not set', i.e. undefined
                 return undefined;
-            } else if (Enum.is(typeDefinition)) {
-                return typeDefinition.literals[0];
-            } else if (UserDefinedType.is(typeDefinition)) {
-                const newAncestorTypes = ancestorTypes.concat([typeDefinition.elementTypeId]);
-                const defaultObject: any = {};
-                for (const child of typeDefinition.attributes) {
+            } else if (Enum.is(specifiedTypeDefinition)) {
+                return specifiedTypeDefinition.literals[0];
+            } else if (UserDefinedType.is(specifiedTypeDefinition)) {
+                // Check potential polymorphism
+                const typeOptions = getNonAbstractTypeOptions(specifiedTypeDefinition)
+                if (typeOptions.length === 0) {
+                    return {}; // No instantiable type (e.g. abstract type without subtypes)
+                }
+                const instantiableTypeDefinition: UserDefinedType = typeOptions[0] as UserDefinedType;
+
+
+                const newAncestorTypes = ancestorTypes.concat([instantiableTypeDefinition.elementTypeId]);
+                const defaultObject: any = { _type: instantiableTypeDefinition.elementTypeId, _value: {} };
+                for (const child of instantiableTypeDefinition.attributes) {
                     if (child.defaultValue !== undefined) {
-                        defaultObject[child.name] = child.defaultValue;
+                        defaultObject._value[child.name] = child.defaultValue;
                         continue;
                     }
 
@@ -229,7 +237,7 @@ function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[],
                     if (bounds.lowerBound > 0 && newAncestorTypes.includes(child.type)) {
                         // Recursive user-defined type with non-zero lower
                         // bound, cannot build default value.
-                        defaultObject[child.name] = childIsList ? [] : undefined;
+                        defaultObject._value[child.name] = childIsList ? [] : undefined;
 
                         continue;
                     }
@@ -239,10 +247,10 @@ function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[],
                         for (let i = 0; i++; i < bounds.lowerBound) {
                             defaultValues.push(getFallbackDefaultValue(child.type, annotations));
                         }
-                        defaultObject[child.name] = defaultValues;
+                        defaultObject._value[child.name] = defaultValues;
                     } else {
                         if (bounds.lowerBound > 0) {
-                            defaultObject[child.name] = getFallbackDefaultValue(child.type, annotations);
+                            defaultObject._value[child.name] = getFallbackDefaultValue(child.type, annotations);
                         }
                     }
                 }
@@ -282,7 +290,7 @@ export interface EditProperty {
 
 export type ObjectPointer = { attribute: string; index?: number }[];
 
-export type PropertyChange = AddValue | AssignValue | DeleteValue;
+export type PropertyChange = AddValue | AssignValue | DeleteValue | ChangeType;
 
 export interface AddValue {
     kind: 'addValue';
@@ -299,4 +307,11 @@ export interface AssignValue {
 export interface DeleteValue {
     kind: 'deleteValue';
     index?: number;
+}
+
+export interface ChangeType {
+    kind: 'changeType';
+    index?: number;
+    newType: string;
+    newValue: any;
 }

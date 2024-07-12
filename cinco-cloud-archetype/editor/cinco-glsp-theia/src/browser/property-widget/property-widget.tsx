@@ -22,8 +22,10 @@ import {
     canAssign,
     canDelete,
     Enum,
+    getNonAbstractTypeOptions,
     getCustomType,
     getCustomTypes,
+    getUserDefinedType,
     UserDefinedType
 } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
 import {
@@ -300,6 +302,42 @@ export class CincoPropertyView extends React.Component<
                 </tr>
             );
         } else {
+            // Allow potential subtype selection for polymorphic types
+            const userType: UserDefinedType | undefined = getUserDefinedType(attributeDefinition.type);
+            const typeOptions = userType !== undefined ? getNonAbstractTypeOptions(userType) : [];
+            const isPolymorphic: boolean = typeOptions.length > 1;
+
+            // copy attributeDefinition, replace type with selected type and pass into PropertyView so that correct attributes are rendered (state should remain unaffected)
+            const selectedAttributeDefinition = { ...attributeDefinition };
+
+            let typeSelection: React.JSX.Element;
+            if (isPolymorphic) {
+                let objectValue = locateObjectValue(this.state, pointer);
+                const selectedTypeId: string = objectValue[attributeDefinition.name]._type;
+                const currentType: UserDefinedType = getUserDefinedType(selectedTypeId)!;
+                // Change attributeDefinition type so that properties of actual type are displayed in PropertiesView
+                // TODO if type is changed in state, supertype is not set as type anymore?
+                selectedAttributeDefinition.type = currentType.elementTypeId;
+                typeSelection = (
+                    <select
+                        value={currentType!.elementTypeId}
+                        onChange={event => {
+                            assignPropertyType(
+                                this.props.parent,
+                                (newState: PropertyWidgetState) => this.setState(newState),
+                                this.state,
+                                pointer,
+                                attributeDefinition,
+                                event.currentTarget.value
+                            )
+                        }}
+                    >
+                        {typeOptions.map((type, index) => (
+                            <option value={type.elementTypeId} key={`typeSelection-${attributeDefinition.name}-${index}`}>{type.label}</option>
+                        ))}
+                    </select>
+                );
+            }
             return (
                 <>
                     {(valueList as any[]).map((listItemValue, index) => (
@@ -339,11 +377,12 @@ export class CincoPropertyView extends React.Component<
                                 }
                             </td>
                             <td>
+                                {isPolymorphic && typeSelection}
                                 <CincoPropertyEntry
                                     parent={this.props.parent}
                                     parentState={this.props.parentState}
                                     pointer={pointer}
-                                    attributeDefinition={attributeDefinition}
+                                    attributeDefinition={selectedAttributeDefinition}
                                     index={index}
                                     inputIdPrefix={inputIdPrefix}
                                 ></CincoPropertyEntry>
@@ -746,6 +785,30 @@ function addPropertyValue(
     widget.update();
 }
 
+function assignPropertyType(
+    widget: Widget,
+    setState: (newState: PropertyWidgetState) => void,
+    state: PropertyWidgetState,
+    pointer: ObjectPointer,
+    attributeDefinition: Attribute,
+    value: string
+) {
+    const newState = { ...state }
+    const propertyRef = locateObjectValue(newState, pointer);
+    propertyRef[attributeDefinition.name]._type = value;
+    // value has to be reset, because types don't necessarily have compatible attributes
+    const defaultVal = getFallbackDefaultValue(value, attributeDefinition.annotations);
+    propertyRef[attributeDefinition.name]._value = defaultVal._value;
+    // TODO Try assigning compatible values from before into new type?
+    setState(newState);
+
+    // persist data 
+    postPropertyChange(state.modelElementId, pointer, attributeDefinition.name, { kind: 'changeType', newType: value, newValue: defaultVal._value });
+
+    // update
+    widget.update();
+}
+
 function assignPropertyValue(
     widget: Widget,
     setState: (newState: PropertyWidgetState) => void,
@@ -784,7 +847,8 @@ function assignPropertyValue(
 
     // update state
     const newState = { ...state };
-    const objectValue = locateObjectValue(newState, pointer);
+    let objectValue = locateObjectValue(newState, pointer);
+    objectValue = objectValue._value ?? objectValue;
     if (index !== undefined) {
         objectValue[name][index] = value;
     } else {
@@ -870,10 +934,13 @@ function checkEnum(type: string, value: any): boolean {
 /**
  * FUNCTIONS FOR LOCATING VALUES
  */
-
 function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): any {
     let objectValue: any = state.values; // these are the attributes of the modelElement
     for (const step of pointer) {
+        if (objectValue._value !== undefined) {
+            objectValue = objectValue._value;
+        }
+
         let nextValue;
         if (step.index !== undefined) {
             nextValue = objectValue[step.attribute][step.index];
@@ -895,7 +962,8 @@ function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): 
         }
         objectValue = nextValue;
     }
-    return objectValue;
+    // For UserDefinedTypes, unwrap actual value
+    return objectValue._value ?? objectValue;
 }
 
 function locateAttributeDefinition(state: PropertyWidgetState, pointer: ObjectPointer, name: string): Attribute {

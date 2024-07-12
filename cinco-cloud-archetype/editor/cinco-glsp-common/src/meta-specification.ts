@@ -179,7 +179,7 @@ export namespace AbsolutePosition {
     }
 }
 
-export interface AbstractPosition {}
+export interface AbstractPosition { }
 
 export namespace AbstractPosition {
     export function is(object: any): object is AbstractPosition {
@@ -301,7 +301,7 @@ export namespace Text {
     }
 }
 
-export interface GraphicsAlgorithm {}
+export interface GraphicsAlgorithm { }
 
 export interface ContainerShape extends AbstractShape {
     appearance?: string | Appearance;
@@ -397,7 +397,7 @@ export namespace EdgeStyle {
     }
 }
 
-export interface GraphModelStyle extends Style {}
+export interface GraphModelStyle extends Style { }
 
 export namespace GraphModelStyle {
     export function is(object: any): object is GraphModelStyle {
@@ -422,7 +422,7 @@ export namespace Style {
     }
 }
 
-export interface GraphModelView extends View {}
+export interface GraphModelView extends View { }
 
 export namespace GraphModelView {
     export function is(object: any): object is GraphModelView {
@@ -529,6 +529,8 @@ export interface Type {
     elementTypeId: string;
     label: string;
     annotations?: Annotation[];
+    abstract?: boolean;
+    parent?: string;
 }
 
 export namespace Type {
@@ -580,7 +582,7 @@ export interface ReferencedModelElement {
     name: string;
     type: string;
 }
-export interface ModelElementContainer extends NodeType {}
+export interface ModelElementContainer extends NodeType { }
 
 export namespace ModelElementContainer {
     export function is(object: any): object is ModelElementContainer {
@@ -625,7 +627,7 @@ export interface Attribute {
     annotations?: Annotation[];
 }
 
-export interface CustomType extends Type {}
+export interface CustomType extends Type { }
 
 export namespace CustomType {
     export function is(object: any): object is CustomType {
@@ -686,6 +688,29 @@ export function getUserDefinedTypes(): UserDefinedType[] {
 
 export function getUserDefinedType(elementTypeId: string): UserDefinedType | undefined {
     return getUserDefinedTypes().filter(t => t.elementTypeId === elementTypeId)[0] ?? undefined;
+}
+
+export function getNonAbstractTypeOptions(parentType: Type): Type[] {
+    let relevantTypes: Type[] = [];
+    if (NodeType.is(parentType)) {
+        relevantTypes = getNodeTypes();
+    } else if (EdgeType.is(parentType)) {
+        relevantTypes = getEdgeTypes();
+    } else if (GraphType.is(parentType)) {
+        relevantTypes = getGraphTypes();
+    } else if (Enum.is(parentType)) {
+        relevantTypes = getEnums();
+    } else if (UserDefinedType.is(parentType)) {
+        relevantTypes = getUserDefinedTypes();
+    }
+
+    return [parentType].concat(getNonAbstractTypeOptionsRecursive(parentType, relevantTypes)).filter(type => !type.abstract);
+}
+
+export function getNonAbstractTypeOptionsRecursive(parentType: Type, relevantTypes: Type[]): Type[] {
+    const subTypes = relevantTypes.filter(type => type.parent === parentType.elementTypeId);
+    subTypes.forEach(subType => subTypes.concat(getNonAbstractTypeOptionsRecursive(subType, relevantTypes)));
+    return [...new Set(subTypes)]; // remove duplicates
 }
 
 export function getAttributesOf(elementTypeId: string): Attribute[] {

@@ -109,6 +109,13 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
                     }
                     break;
                 }
+                case 'changeType': {
+                    if (object[attributeDefinition.name]._type === undefined) {
+                        throw new Error(`Value of specified object does not fit UserDefinedType (no _type-property)`);
+                    }
+                    object[attributeDefinition.name]._type = change.newType;
+                    object[attributeDefinition.name]._value = change.newValue;
+                }
             }
         }
     }
@@ -150,12 +157,21 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
         return false;
     }
 
+    // TODO: Inside of the for loop, the attribute considered is always a UserDefinedType (?)
+    // Then the if-conditions regarding _value-property are only relevant because of "root" level attribute
     protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[], object: any } {
         let attributes: Attribute[] = element.propertyDefinitions;
         let object: Record<string, any> = element.properties;
 
         for (const segment of pointer) {
-            const type = findAttribute(attributes, segment.attribute).type;
+            // UserDefinedType -> go into _value property to get the actual value
+            if (object._value !== undefined) {
+                object = object._value;
+            }
+
+            // For UserDefinedTypes the type stored in the metaspecification might not be the one instantiated
+            // -> Potentially select type from model element instead
+            const type = object[segment.attribute]._type ?? findAttribute(attributes, segment.attribute).type;
             const userDefinedType = getUserDefinedType(type);
 
             if (userDefinedType === undefined) {
@@ -170,6 +186,6 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
                     object[segment.attribute];
         }
 
-        return { attributes, object };
+        return { attributes: attributes, object: object._value ?? object };
     }
 }
