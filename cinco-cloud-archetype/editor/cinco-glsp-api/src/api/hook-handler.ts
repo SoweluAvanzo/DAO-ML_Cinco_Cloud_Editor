@@ -59,10 +59,10 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
     preResize(node: Node, newSize: Dimension, newPosition: Point): void {}
     postResize(node: Node, oldSize: Dimension, oldPosition: Point): void {}
     // Select
-    canSelect(node: Node): boolean {
+    canSelect(node: Node, isSelected: boolean): boolean {
         return true;
     }
-    postSelect(node: Node): void {}
+    postSelect(node: Node, isSelected: boolean): void {}
 }
 
 export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook {
@@ -96,10 +96,10 @@ export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook 
     preReconnect(edge: Edge, newSource: Node, newTarget: Node): void {}
     postReconnect(edge: Edge, oldSource: Node, oldTarget: Node): void {}
     // Select
-    canSelect(edge: Edge): boolean {
+    canSelect(edge: Edge, isSelected: boolean): boolean {
         return true;
     }
-    postSelect(edge: Edge): void {}
+    postSelect(edge: Edge, isSelected: boolean): void {}
 }
 
 export abstract class AbstractGraphModelHook extends AbstractHook implements GraphModelHook {
@@ -127,10 +127,10 @@ export abstract class AbstractGraphModelHook extends AbstractHook implements Gra
     }
     postDoubleClick(graphModel: GraphModel): void {}
     // Select
-    canSelect(modelElement: GraphModel): boolean {
+    canSelect(modelElement: GraphModel, isSelected: boolean): boolean {
         return true;
     }
-    postSelect(modelElement: GraphModel): void {}
+    postSelect(modelElement: GraphModel, isSelected: boolean): void {}
     // Save
     preSave(graphModel: GraphModel): void {}
     postSave(graphModel: GraphModel): void {}
@@ -252,8 +252,8 @@ export namespace AttributeHook {
 }
 
 export interface GraphicalElementHook<T extends ModelElement> extends ModelElementHook<T> {
-    canSelect(modelElement: T): boolean;
-    postSelect(modelElement: T): void;
+    canSelect(modelElement: T, isSelected: boolean): boolean;
+    postSelect(modelElement: T, isSelected: boolean): void;
     canDoubleClick(modelElement: T): boolean;
     postDoubleClick(modelElement: T): void;
 }

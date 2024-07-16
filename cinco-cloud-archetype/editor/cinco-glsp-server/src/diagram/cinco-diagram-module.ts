@@ -60,6 +60,7 @@ import { PropertyViewHandler } from '../handler/property-view-handler';
 import { CompoundHandler } from '../handler/compound-handler';
 import { CincoClientSessionInitializer } from '../sessions/cinco-client-session-initializer';
 import { CincoOperationHandlerRegistry } from './cinco-handler-registry';
+import { SelectManager } from '../tools/select-manager';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -90,11 +91,12 @@ export class CincoDiagramModule extends DiagramModule {
         super.configureActionHandlers(binding);
         binding.add(ServerResponseHandler); // Response Handle for e.g. Dialogs
         binding.add(ComputedBoundsActionHandler);
-        binding.add(CustomActionManager); // CustomAction
-        binding.add(DoubleClickManager); // DoubleClick ActionHandler
-        binding.add(AppearanceProviderManager); // DoubleClick ActionHandler
-        binding.add(PropertyViewHandler); // Property View ActionHandler
-        binding.add(ValidationManager); // Validation ActionHandler
+        binding.add(CustomActionManager); // CustomAction (Contextmenu Action)
+        binding.add(DoubleClickManager);
+        binding.add(SelectManager);
+        binding.add(AppearanceProviderManager);
+        binding.add(PropertyViewHandler);
+        binding.add(ValidationManager);
         binding.add(GeneratorManager);
         binding.add(MetaSpecificationReloadHandler);
         binding.add(MetaSpecificationRequestHandler);

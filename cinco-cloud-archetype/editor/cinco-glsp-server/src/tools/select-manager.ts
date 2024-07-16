@@ -32,33 +32,35 @@ export class SelectManager extends BaseHandlerManager<SelectAction, SelectHandle
         // parse
         const selectedElements = action.selectedElementsIDs;
         const deselectedElements = action.deselectedElementsIDs;
-        const unselect = action.deselectAll;
+        // Not yet used: const unselect = action.deselectAll;
         const parameters = {
             modelElementId: '',
             selectedElements: selectedElements,
-            deselectedElements: deselectedElements,
-            isSelected: !unselect
+            deselectedElements: deselectedElements
         } as SelectArgument;
         const allSelectionElements = Array.from(new Set(selectedElements.concat(deselectedElements)));
-        const selectableElements = [];
-        // Can Hook
+        if (selectedElements.length <= 0) {
+            allSelectionElements.push(action.root); // when no element is selected, select the root
+        }
+        let results: Action[] = [];
         for (const element of allSelectionElements) {
             const param = parameters;
             param.modelElementId = element;
+            action.modelElementId = element;
+            param.isSelected = param.selectedElements.includes(param.modelElementId);
+
+            // Can Hook
             const canSelect = HookManager.executeHook(param, HookType.CAN_SELECT, this.modelState, this.logger, this.actionDispatcher);
             if (canSelect) {
-                selectableElements.push(element);
+                // Action
+                const result = await super.execute(action, args);
+                results = results.concat(result);
+
+                // Post Hook
+                HookManager.executeHook(parameters, HookType.POST_SELECT, this.modelState, this.logger, this.actionDispatcher);
             }
         }
-        // Action
-        const doubleClickActionResult = await super.execute(action, args);
-        // Post Hook
-        for (const element of selectableElements) {
-            const param = parameters;
-            param.modelElementId = element;
-            HookManager.executeHook(parameters, HookType.POST_DOUBLE_CLICK, this.modelState, this.logger, this.actionDispatcher);
-        }
-        return doubleClickActionResult;
+        return results;
     }
 
     hasHandlerProperty(element: ModelElement): boolean {

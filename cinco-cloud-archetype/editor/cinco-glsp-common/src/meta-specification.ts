@@ -806,8 +806,8 @@ const handlerAnnotations = [
     'Hook',
     'CustomAction',
     'AppearanceProvider',
-    'Validator',
-    'Generator',
+    'Validation',
+    'GeneratorAction',
     'Interpreter',
     'DoubleClickAction',
     'SelectAction'

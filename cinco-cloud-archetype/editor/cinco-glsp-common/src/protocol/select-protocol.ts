@@ -19,15 +19,17 @@ import { ManagedBaseAction } from './shared-protocol';
 
 export interface SelectAction extends ManagedBaseAction, GLSPSelectAction {
     kind: typeof SelectAction.KIND;
+    root: string;
 }
 export namespace SelectAction {
     export const KIND = GLSPSelectAction.KIND;
 
-    export function create(selectedElements: string[], deselectedElements: string[] = []): SelectAction {
+    export function create(root: string, selectedElements: string[], deselectedElements: string[] = []): SelectAction {
         const action = GLSPSelectAction.create({
             selectedElementsIDs: selectedElements,
             deselectedElementsIDs: deselectedElements
         }) as SelectAction;
+        action.root = root;
         action.modelElementId = selectedElements.length > 0 ? selectedElements[0] : deselectedElements[0]; // just a representant
         return action;
     }

@@ -293,9 +293,7 @@ export interface AddValue {
 
 export namespace AddValue {
     export function is(object: any): object is AddValue {
-        return (
-            hasStringProp(object, 'kind') && object.kind == 'addValue'
-        );
+        return hasStringProp(object, 'kind') && object.kind === 'addValue';
     }
 }
 
@@ -307,9 +305,7 @@ export interface AssignValue {
 
 export namespace AssignValue {
     export function is(object: any): object is AssignValue {
-        return (
-            hasStringProp(object, 'kind') && object.kind == 'assignValue'
-        );
+        return hasStringProp(object, 'kind') && object.kind === 'assignValue';
     }
 }
 
@@ -320,8 +316,6 @@ export interface DeleteValue {
 
 export namespace DeleteValue {
     export function is(object: any): object is DeleteValue {
-        return (
-            hasStringProp(object, 'kind') && object.kind == 'deleteValue'
-        );
+        return hasStringProp(object, 'kind') && object.kind === 'deleteValue';
     }
 }

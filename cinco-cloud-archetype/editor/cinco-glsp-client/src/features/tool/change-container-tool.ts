@@ -39,7 +39,8 @@ import {
     isViewport,
     removeMovementRestrictionFeedback,
     toAbsolutePosition,
-    ISelectionListener
+    ISelectionListener,
+    SelectionChange
 } from '@eclipse-glsp/client';
 import { CursorCSS, applyCssClasses, cursorFeedbackAction } from '@eclipse-glsp/client/lib/base/feedback/css-feedback';
 import { Action, Bounds, ChangeContainerOperation, Point } from '@eclipse-glsp/protocol';
@@ -52,7 +53,6 @@ import {
 } from '../../utils/canvas-utils';
 import { isContainableByConstraints } from '../../utils/constraint-utils';
 import { EnvironmentProvider, IEnvironmentProvider } from '../../api/environment-provider';
-import { SelectAction } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class ChangeContainerTool extends ChangeBoundsTool {
@@ -60,10 +60,31 @@ export class ChangeContainerTool extends ChangeBoundsTool {
     static override ID = 'change-container-tool';
     private enabled = false;
     private _changeContainerListener: ChangeContainerAndBoundsListener | undefined;
+    private _lastChange: SelectionChange | undefined;
+
+    private isSame(arr1: string[], arr2: string[]): boolean {
+        return arr1.toString() === arr2.toString();
+    }
 
     get changeContainerListener(): ChangeContainerAndBoundsListener {
         if (!this._changeContainerListener) {
             this._changeContainerListener = this.createChangeContainerListener();
+            // initialize listener
+            this.selectionService.onSelectionChanged(change => {
+                if (
+                    this._lastChange &&
+                    this.isSame(this._lastChange.deselectedElements, change.deselectedElements) &&
+                    this.isSame(this._lastChange.selectedElements, change.selectedElements)
+                ) {
+                    return;
+                } else {
+                    this._lastChange = change;
+                }
+                this.changeContainerListener.selectionChanged(change.root, change.selectedElements);
+            });
+            this.selectionService.onSelectionChanged(change => {
+                this.environmentProvider.selectedElementsChanged(change.selectedElements);
+            });
         }
         return this._changeContainerListener;
     }
@@ -76,20 +97,12 @@ export class ChangeContainerTool extends ChangeBoundsTool {
         // install change container listener for client-side container changing of containments
         if (!this.enabled) {
             this.mouseTool.register(this.changeContainerListener);
-            this.selectionService.onSelectionChanged(change => {
-                this.changeContainerListener.selectionChanged(change.root, change.selectedElements);
-                // selection action
-                this.actionDispatcher.dispatch(SelectAction.create(change.selectedElements, change.deselectedElements));
-            });
             this.enabled = true;
         }
     }
 
     override disable(): void {
         this.mouseTool.deregister(this.changeContainerListener);
-        this.selectionService.onSelectionChanged(change => {
-            this.environmentProvider.selectedElementsChanged(change.selectedElements);
-        });
         this.deregisterFeedback(this.changeContainerListener, [HideChangeBoundsToolResizeFeedbackAction.create()]);
         this.enabled = false;
     }

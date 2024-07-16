@@ -537,7 +537,7 @@ export class HookManager {
         parameters: SelectArgument,
         modelElement: ModelElement | undefined
     ): boolean {
-        return !hook.canSelect || hook.canSelect(modelElement);
+        return !hook.canSelect || hook.canSelect(modelElement, parameters.isSelected);
     }
 
     private static postSelectHook(
@@ -546,7 +546,7 @@ export class HookManager {
         modelElement: ModelElement | undefined
     ): void {
         if (hook.postSelect) {
-            hook.postSelect(modelElement);
+            hook.postSelect(modelElement, parameters.isSelected);
         }
     }
 
