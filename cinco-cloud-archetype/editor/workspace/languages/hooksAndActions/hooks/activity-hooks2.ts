@@ -13,12 +13,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Node, AbstractNodeHooks, LanguageFilesRegistry, ModelElement, Container } from '@cinco-glsp/cinco-glsp-api';
+import { Node, AbstractNodeHook, LanguageFilesRegistry, Container } from '@cinco-glsp/cinco-glsp-api';
 import { PropertyEditOperation, AssignValue } from '@cinco-glsp/cinco-glsp-common';
 import { CreateNodeOperation, Dimension, Point } from '@eclipse-glsp/server';
 
-export class ActivityHooks2 extends AbstractNodeHooks {
-    override CHANNEL_NAME: string | undefined = 'ActivityHooks2 [' + this.modelState.root.id + ']';
+export class ActivityHook2 extends AbstractNodeHook {
+    override CHANNEL_NAME: string | undefined = 'ActivityHook2 [' + this.modelState.root.id + ']';
 
     /**
      * Create
@@ -162,4 +162,4 @@ export class ActivityHooks2 extends AbstractNodeHooks {
     }
 }
 
-LanguageFilesRegistry.register(ActivityHooks2);
+LanguageFilesRegistry.register(ActivityHook2);
