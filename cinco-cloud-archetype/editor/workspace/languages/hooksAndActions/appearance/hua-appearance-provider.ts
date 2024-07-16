@@ -26,7 +26,6 @@ import {
     Rectangle,
     RequestAppearanceUpdateAction
 } from '@cinco-glsp/cinco-glsp-common';
-import { delay } from 'lodash';
 
 const EXAMPLE_APPEARANCE: Appearance = {
     background: {
@@ -80,11 +79,7 @@ export class HooksAndActionsExampleAppearanceProvider extends AppearanceProvider
          * calculate new appearance
          */
 
-        if (
-            !element.style ||
-            !(element.style as NodeStyle).shape ||
-            !((element.style as NodeStyle).shape as Rectangle).appearance
-        ) {
+        if (!element.style || !(element.style as NodeStyle).shape || !((element.style as NodeStyle).shape as Rectangle).appearance) {
             element.style = EXAMPLE_STYLE;
         }
 
@@ -95,7 +90,7 @@ export class HooksAndActionsExampleAppearanceProvider extends AppearanceProvider
         } else {
             appearance.transparency = 1.0;
         }
-        
+
         element.appearance = appearance;
         const appearanceUpdate = ApplyAppearanceUpdateAction.create(modelElementId, [], { ...appearance });
         // logging
@@ -105,7 +100,7 @@ export class HooksAndActionsExampleAppearanceProvider extends AppearanceProvider
         // save and update gui
         this.saveModel();
         this.submitModel();
-        
+
         return [appearanceUpdate];
     }
 }
