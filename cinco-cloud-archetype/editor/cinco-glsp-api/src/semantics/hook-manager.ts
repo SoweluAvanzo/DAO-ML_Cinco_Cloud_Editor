@@ -515,18 +515,20 @@ export class HookManager {
     }
 
     private static canResizeHook(hook: AbstractNodeHook, parameters: ResizeArgument, modelElement: ModelElement | undefined): boolean {
-        return !hook.canAttributeChange || (Node.is(modelElement) && hook.canResize(modelElement, parameters.newSize));
+        return (
+            !hook.canAttributeChange || (Node.is(modelElement) && hook.canResize(modelElement, parameters.newSize, parameters.newPosition))
+        );
     }
 
     private static preResizeHook(hook: AbstractNodeHook, parameters: ResizeArgument, modelElement: ModelElement | undefined): void {
         if (hook.preResize && Node.is(modelElement)) {
-            hook.preResize(modelElement, parameters.newSize);
+            hook.preResize(modelElement, parameters.newSize, parameters.newPosition);
         }
     }
 
     private static postResizeHook(hook: AbstractNodeHook, parameters: ResizeArgument, modelElement: ModelElement | undefined): void {
         if (hook.postResize && Node.is(modelElement)) {
-            hook.postResize(modelElement, parameters.oldSize);
+            hook.postResize(modelElement, parameters.oldSize, parameters.oldPosition);
         }
     }
 

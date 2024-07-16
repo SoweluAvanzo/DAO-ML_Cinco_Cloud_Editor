@@ -69,7 +69,9 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
                 kind: 'Resize',
                 modelElementId: node.id,
                 oldSize: node.size,
-                newSize: newSize
+                newSize: newSize,
+                oldPosition: node.position,
+                newPosition: node.position // TODO: This needs to change (For @Jochel)
             };
             if (this.canResize(newSize, parameters)) {
                 HookManager.executeHook(parameters, HookType.PRE_RESIZE, this.modelState, this.logger, this.actionDispatcher);

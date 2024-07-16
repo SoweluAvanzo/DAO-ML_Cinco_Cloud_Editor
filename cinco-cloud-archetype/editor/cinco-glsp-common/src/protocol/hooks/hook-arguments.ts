@@ -112,6 +112,8 @@ export interface ReconnectArgument extends Argument {
 export interface ResizeArgument extends Argument {
     newSize: Dimension;
     oldSize: Dimension;
+    newPosition: Point;
+    oldPosition: Point;
     kind: 'Resize';
 }
 

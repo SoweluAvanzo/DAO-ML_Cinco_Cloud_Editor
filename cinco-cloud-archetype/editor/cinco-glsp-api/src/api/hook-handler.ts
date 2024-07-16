@@ -53,11 +53,11 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
     preMove(node: Node, newPosition?: Point): void {}
     postMove(node: Node, oldPosition?: Point): void {}
     // Resize
-    canResize(node: Node, newSize?: Dimension): boolean {
+    canResize(node: Node, newSize: Dimension, newPosition: Point): boolean {
         return true;
     }
-    preResize(node: Node, newSize?: Dimension): void {}
-    postResize(node: Node, oldSize?: Dimension): void {}
+    preResize(node: Node, newSize: Dimension, newPosition: Point): void {}
+    postResize(node: Node, oldSize: Dimension, oldPosition: Point): void {}
     // Select
     canSelect(node: Node): boolean {
         return true;
@@ -167,9 +167,9 @@ interface NodeElementHook<T extends Node> extends GraphicalElementHook<T>, Attri
     canMove(node: T, newPosition?: Point): boolean;
     preMove(node: T, newPosition?: Point): void;
     postMove(node: T, oldPosition?: Point): void;
-    canResize(node: T, newSize?: Dimension): boolean;
-    preResize(node: T, newSize?: Dimension): void;
-    postResize(node: T, oldSize?: Dimension): void;
+    canResize(node: T, newSize: Dimension, newPosition: Point): boolean;
+    preResize(node: T, newSize: Dimension, newPosition: Point): void;
+    postResize(node: T, oldSize: Dimension, oldPosition: Point): void;
 }
 
 export namespace NodeElementHook {
