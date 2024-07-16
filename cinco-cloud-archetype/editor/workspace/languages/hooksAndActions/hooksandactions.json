@@ -3,7 +3,7 @@
     {
       "elementTypeId": "hooksandactions:hooksandactions",
       "label": "HooksAndActions",
-      "diagramExtension": "hua",
+      "diagramExtension": "hooks",
       "containments": [
         {
           "lowerBound": 0,
@@ -84,14 +84,13 @@
         {
           "name": "Hook",
           "values": [
-            "ActivityHooks",
-            "CanCreate",
+            "ActivityHook",
             "PreCreate",
             "PostCreate",
             "CanDelete",
             "PreDelete",
             "PostDelete",
-            "CanChangeAttribute",
+            "CanAttributeChange",
             "PostAttributeChange",
             "PreAttributeChange",
             "CanMove",
@@ -104,6 +103,20 @@
             "PostSelect",
             "CanDoubleClick",
             "PostDoubleClick"
+          ]
+        },
+        {
+          "name": "Hook",
+          "values": [
+            "ActivityHook2",
+            "CanCreate",
+            "PostCreate"
+          ]
+        },
+        {
+          "name": "DoubleClickAction",
+          "values": [
+            "HooksAndActionsExampleDoubleClickHandler"
           ]
         },
         {
@@ -140,13 +153,12 @@
             "name": "Hook",
             "values": [
                 "TransitionHooks", 
-                "CanCreate",
                 "PreCreate",
                 "PostCreate",
                 "CanDelete",
                 "PreDelete",
                 "PostDelete",
-                "CanChangeAttribute",
+                "CanAttributeChange",
                 "PostAttributeChange",
                 "PreAttributeChange",
                 "CanSelect",
