@@ -41,6 +41,11 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
     }
     preAttributeChange(modelElement: Node, operation: PropertyEditOperation): void {}
     postAttributeChange(node: Node, attributeName: string, oldValue: any): void {}
+    // Select
+    canSelect(node: Node, isSelected: boolean): boolean {
+        return true;
+    }
+    postSelect(node: Node, isSelected: boolean): void {}
     // Double Click
     canDoubleClick(node: Node): boolean {
         return true;
@@ -58,57 +63,46 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
     }
     preResize(node: Node, newSize: Dimension, newPosition: Point): void {}
     postResize(node: Node, oldSize: Dimension, oldPosition: Point): void {}
-    // Select
-    canSelect(node: Node, isSelected: boolean): boolean {
-        return true;
-    }
-    postSelect(node: Node, isSelected: boolean): void {}
 }
 
 export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook {
-    // Attribute Change
-    canAttributeChange(modelElement: Edge, operation: PropertyEditOperation): boolean {
-        return true;
-    }
-    preAttributeChange(modelElement: Edge, operation: PropertyEditOperation): void {}
-    postAttributeChange(edge: Edge, attributeName: string, oldValue: any): void {}
     // Create
     canCreate(operation: CreateEdgeOperation): boolean {
         return true;
     }
     preCreate(source: Node, target: Node): void {}
     postCreate(edge: Edge): void {}
-    // Double Click
-    canDoubleClick(edge: Edge): boolean {
-        return true;
-    }
-    postDoubleClick(edge: Edge): void {}
     // Delete
     canDelete(edge: Edge): boolean {
         return true;
     }
     preDelete(edge: Edge): void {}
     postDelete(edge: Edge): void {}
+    // Attribute Change
+    canAttributeChange(modelElement: Edge, operation: PropertyEditOperation): boolean {
+        return true;
+    }
+    preAttributeChange(modelElement: Edge, operation: PropertyEditOperation): void {}
+    postAttributeChange(edge: Edge, attributeName: string, oldValue: any): void {}
+    // Select
+    canSelect(edge: Edge, isSelected: boolean): boolean {
+        return true;
+    }
+    postSelect(edge: Edge, isSelected: boolean): void {}
+    // Double Click
+    canDoubleClick(edge: Edge): boolean {
+        return true;
+    }
+    postDoubleClick(edge: Edge): void {}
     // Reconnect
     canReconnect(edge: Edge, newSource: Node, newTarget: Node): boolean {
         return true;
     }
     preReconnect(edge: Edge, newSource: Node, newTarget: Node): void {}
     postReconnect(edge: Edge, oldSource: Node, oldTarget: Node): void {}
-    // Select
-    canSelect(edge: Edge, isSelected: boolean): boolean {
-        return true;
-    }
-    postSelect(edge: Edge, isSelected: boolean): void {}
 }
 
 export abstract class AbstractGraphModelHook extends AbstractHook implements GraphModelHook {
-    // Attribute Change
-    canAttributeChange(modelElement: GraphModel, operation: PropertyEditOperation): boolean {
-        return true;
-    }
-    preAttributeChange(modelElement: GraphModel, operation: PropertyEditOperation): void {}
-    postAttributeChange(graphModel: GraphModel, attributeName: string, oldValue: any): void {}
     // Create
     preCreate(path: string): void {}
     postCreate(graphModel: GraphModel): void {}
@@ -121,16 +115,22 @@ export abstract class AbstractGraphModelHook extends AbstractHook implements Gra
     }
     preDelete(modelElement: GraphModel): void {}
     postDelete(modelElement: GraphModel): void {}
-    // Double Click
-    canDoubleClick(graphModel: GraphModel): boolean {
+    // Attribute Change
+    canAttributeChange(modelElement: GraphModel, operation: PropertyEditOperation): boolean {
         return true;
     }
-    postDoubleClick(graphModel: GraphModel): void {}
+    preAttributeChange(modelElement: GraphModel, operation: PropertyEditOperation): void {}
+    postAttributeChange(graphModel: GraphModel, attributeName: string, oldValue: any): void {}
     // Select
     canSelect(modelElement: GraphModel, isSelected: boolean): boolean {
         return true;
     }
     postSelect(modelElement: GraphModel, isSelected: boolean): void {}
+    // Double Click
+    canDoubleClick(graphModel: GraphModel): boolean {
+        return true;
+    }
+    postDoubleClick(graphModel: GraphModel): void {}
     // Save
     preSave(graphModel: GraphModel): void {}
     postSave(graphModel: GraphModel): void {}
