@@ -119,6 +119,9 @@ export interface ResizeArgument extends Argument {
 
 export interface SelectArgument extends Argument {
     kind: 'Select';
+    selectedElements: string[];
+    deselectedElements: string[];
+    isSelected: boolean;
 }
 
 export interface DoubleClickArgument extends Argument {

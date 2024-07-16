@@ -20,6 +20,7 @@ export * from './api/api-base-handler';
 export * from './api/appearance-provider';
 export * from './api/custom-action-handler';
 export * from './api/double-click-handler';
+export * from './api/select-handler';
 export * from './api/generator-handler';
 export * from './api/root-path';
 export * from './api/validation-handler';

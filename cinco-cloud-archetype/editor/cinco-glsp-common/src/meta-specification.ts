@@ -802,7 +802,16 @@ function resolveAppearance(app: string | Appearance | undefined): Appearance | u
  * Annotation
  */
 
-const handlerAnnotations = ['Hook', 'CustomAction', 'AppearanceProvider', 'Validator', 'Generator', 'Interpreter', 'DoubleClickAction'];
+const handlerAnnotations = [
+    'Hook',
+    'CustomAction',
+    'AppearanceProvider',
+    'Validator',
+    'Generator',
+    'Interpreter',
+    'DoubleClickAction',
+    'SelectAction'
+];
 
 export function hasAppearanceProvider(type: string): boolean {
     return getAppearanceProvider(type).length > 0;
@@ -850,6 +859,14 @@ export function hasDoubleClickAction(type: string): boolean {
 
 export function getDoubleClickActions(elementTypeId: string): string[][] {
     return getAnnotationValues(elementTypeId, 'DoubleClickAction');
+}
+
+export function hasSelectAction(type: string): boolean {
+    return hasAnnotation(type, 'SelectAction');
+}
+
+export function getSelectActions(elementTypeId: string): string[][] {
+    return getAnnotationValues(elementTypeId, 'SelectAction');
 }
 
 export function hasValidator(graphElementTypeId: string): boolean {

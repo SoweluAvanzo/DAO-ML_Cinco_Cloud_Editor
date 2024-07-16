@@ -22,6 +22,7 @@ export * from './protocol/appearance-provider-protocol';
 export * from './protocol/cinco-glsp-lifecycle';
 export * from './protocol/custom-action-protocol';
 export * from './protocol/double-click-protocol';
+export * from './protocol/select-protocol';
 export * from './protocol/generator-protocol';
 export * from './protocol/meta-specification-reload-protocol';
 export * from './protocol/property-model';
