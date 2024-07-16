@@ -42,9 +42,9 @@ import {
     MoveArgument,
     ResizeArgument,
     SelectArgument,
-    getHooks,
     hasHooks,
-    DoubleClickArgument
+    DoubleClickArgument,
+    getHooksOfType
 } from '@cinco-glsp/cinco-glsp-common';
 import { ActionDispatcher, Logger, MessageAction, SeverityLevel } from '@eclipse-glsp/server';
 
@@ -71,29 +71,31 @@ export class HookManager {
         }
         // load hook class
         const hookClassNames = this.getSuitableClassNames(elementTypeId, type);
+        const hookResults: boolean[] = [];
         // execute all hooks
         for (const hookClassName of hookClassNames) {
             const hookClass = this.loadHookClasses(hookClassName, elementTypeId, type);
             try {
                 const hook = new hookClass(logger, modelState, actionDispatcher);
-                return this.dispatchHook(hook, parameters, type, modelState);
+                const result = this.dispatchHook(hook, parameters, type, modelState, logger, actionDispatcher);
+                hookResults.push(result);
             } catch (error: any) {
                 logger.error(error);
                 const errorMsg =
                     'No Hook for Element "' + elementTypeId + '" with Class "' + hookClassName + '" and hook type : "' + type + '" found.';
                 this.notify(actionDispatcher, errorMsg, 'ERROR');
-                return false;
+                hookResults.push(false);
             }
         }
         if (hookClassNames.length <= 0) {
             return true;
         }
-        return false;
+        return hookResults.filter(v => !v).length <= 0; // no false was returned => true
     }
 
     private static getSuitableClassNames(elementTypeId: string, hookType: HookTypes): string[] {
         if (hasHooks(elementTypeId)) {
-            return getHooks(elementTypeId, hookType)
+            return getHooksOfType(elementTypeId, hookType)
                 .map((value: string[]) => value[0])
                 .flat();
         }
@@ -105,7 +107,14 @@ export class HookManager {
         return hooks.length > 0 ? hooks[0] : undefined;
     }
 
-    private static dispatchHook(hook: AbstractHooks, parameters: OperationArgument, type: HookTypes, modelState: GraphModelState): boolean {
+    private static dispatchHook(
+        hook: AbstractHooks,
+        parameters: OperationArgument,
+        type: HookTypes,
+        modelState: GraphModelState,
+        logger: Logger,
+        actionDispatcher: ActionDispatcher
+    ): boolean {
         try {
             switch (type) {
                 case HookTypes.CAN_CHANGE_ATTRIBUTE: {
@@ -351,7 +360,9 @@ export class HookManager {
                     }
                     break;
             }
-        } catch (e) {
+        } catch (e: any) {
+            logger.error(e);
+            this.notify(actionDispatcher, e.message, 'ERROR');
             return false;
         }
         return true;
