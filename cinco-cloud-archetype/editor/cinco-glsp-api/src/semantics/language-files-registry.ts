@@ -15,8 +15,8 @@
  ********************************************************************************/
 
 import { SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
-import { existsFile, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories } from './utils/file-helper';
-import { CincoFolderWatcher } from './cinco-folder-watcher';
+import { existsFile, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories } from '../utils/file-helper';
+import { CincoFolderWatcher } from '../api/cinco-folder-watcher';
 import * as fs from 'fs';
 
 interface LanguageFilesRegistryEntry {

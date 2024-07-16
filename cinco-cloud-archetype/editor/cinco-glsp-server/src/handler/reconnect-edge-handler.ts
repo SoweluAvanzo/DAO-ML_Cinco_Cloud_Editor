@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { HookTypes, ReconnectArgument } from '@cinco-glsp/cinco-glsp-common';
-import { HookManager } from '../tools/hook-manager';
+import { HookManager } from '@cinco-glsp/cinco-glsp-api';
 import { GEdge, GLSPServerError, GNode, ReconnectEdgeOperation } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';

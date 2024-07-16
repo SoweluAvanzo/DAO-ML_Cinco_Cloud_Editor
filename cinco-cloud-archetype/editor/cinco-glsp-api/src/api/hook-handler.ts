@@ -20,9 +20,9 @@ import { APIBaseHandler } from '../api/api-base-handler';
 import { Edge, GraphModel, ModelElement, Node, ModelElementContainer } from '../model/graph-model';
 import { AnyObject } from '@cinco-glsp/cinco-glsp-common';
 
-export abstract class AbstractHooks extends APIBaseHandler {}
+export abstract class AbstractHook extends APIBaseHandler {}
 
-export abstract class AbstractNodeHooks extends AbstractHooks implements NodeHooks {
+export abstract class AbstractNodeHook extends AbstractHook implements NodeHook {
     // Create
     canCreate(operation: CreateNodeOperation): boolean {
         return true;
@@ -65,7 +65,7 @@ export abstract class AbstractNodeHooks extends AbstractHooks implements NodeHoo
     postSelect(node: Node): void {}
 }
 
-export abstract class AbstractEdgeHooks extends AbstractHooks implements EdgeHooks {
+export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook {
     // Attribute Change
     canChangeAttribute(modelElement: Edge, operation: PropertyEditOperation): boolean {
         return true;
@@ -102,7 +102,7 @@ export abstract class AbstractEdgeHooks extends AbstractHooks implements EdgeHoo
     postSelect(edge: Edge): void {}
 }
 
-export abstract class AbstractGraphModelHooks extends AbstractHooks implements GraphModelHooks {
+export abstract class AbstractGraphModelHook extends AbstractHook implements GraphModelHook {
     // Attribute Change
     canChangeAttribute(modelElement: GraphModel, operation: PropertyEditOperation): boolean {
         return true;
@@ -137,7 +137,7 @@ export abstract class AbstractGraphModelHooks extends AbstractHooks implements G
 }
 
 // TODO-SAMI
-export abstract class AbstractUserDefinedTypeHooks extends AbstractHooks implements UserdefinedTypeHooks {
+export abstract class AbstractUserDefinedTypeHook extends AbstractHook implements UserdefinedTypeHook {
     // Attribute Change
     canChangeAttribute(modelElement: Edge, operation: PropertyEditOperation): boolean {
         return true;
@@ -162,7 +162,7 @@ export abstract class AbstractUserDefinedTypeHooks extends AbstractHooks impleme
  * INTERFACES
  */
 
-interface NodeElementHooks<T extends Node> extends GraphicalElementHooks<T>, AttributeHooks<T> {
+interface NodeElementHook<T extends Node> extends GraphicalElementHook<T>, AttributeHook<T> {
     preCreate(container: ModelElementContainer, location: Point | undefined): void;
     canMove(node: T, newPosition?: Point): boolean;
     preMove(node: T, newPosition?: Point): void;
@@ -172,11 +172,11 @@ interface NodeElementHooks<T extends Node> extends GraphicalElementHooks<T>, Att
     postResize(node: T, oldSize?: Dimension): void;
 }
 
-export namespace NodeElementHooks {
-    export function is(object: any): object is NodeElementHooks<any> {
+export namespace NodeElementHook {
+    export function is(object: any): object is NodeElementHook<any> {
         return (
-            GraphicalElementHooks.is(object) &&
-            AttributeHooks.is(object) &&
+            GraphicalElementHook.is(object) &&
+            AttributeHook.is(object) &&
             (hasFunctionProp(object, 'preCreate') ||
                 hasFunctionProp(object, 'canMove') ||
                 hasFunctionProp(object, 'preMove') ||
@@ -188,18 +188,18 @@ export namespace NodeElementHooks {
     }
 }
 
-interface EdgeElementHooks<T extends Edge> extends GraphicalElementHooks<T>, AttributeHooks<T> {
+interface EdgeElementHook<T extends Edge> extends GraphicalElementHook<T>, AttributeHook<T> {
     preCreate(sourceElement: Node, targetElement: Node): void;
     canReconnect(edge: T, newSource: Node, newTarget: Node): boolean;
     preReconnect(edge: T, newSource: Node, newTarget: Node): void;
     postReconnect(edge: T, oldSource: Node, oldTarget: Node): void;
 }
 
-export namespace EdgeElementHooks {
-    export function is(object: any): object is EdgeElementHooks<any> {
+export namespace EdgeElementHook {
+    export function is(object: any): object is EdgeElementHook<any> {
         return (
-            GraphicalElementHooks.is(object) &&
-            AttributeHooks.is(object) &&
+            GraphicalElementHook.is(object) &&
+            AttributeHook.is(object) &&
             (hasFunctionProp(object, 'preCreate') ||
                 hasFunctionProp(object, 'canReconnect') ||
                 hasFunctionProp(object, 'preReconnect') ||
@@ -208,40 +208,40 @@ export namespace EdgeElementHooks {
     }
 }
 
-interface GraphModelElementHooks<T extends GraphModel> extends GraphicalElementHooks<T>, AttributeHooks<T> {
+interface GraphModelElementHook<T extends GraphModel> extends GraphicalElementHook<T>, AttributeHook<T> {
     preCreate(path: string): void; // Use-case, prepare related files before creation of model
     preSave(graphModel: T): void;
     postSave(graphModel: T): void;
 }
 
-export namespace GraphModelElementHooks {
-    export function is(object: any): object is GraphModelElementHooks<any> {
+export namespace GraphModelElementHook {
+    export function is(object: any): object is GraphModelElementHook<any> {
         return (
-            GraphicalElementHooks.is(object) &&
-            AttributeHooks.is(object) &&
+            GraphicalElementHook.is(object) &&
+            AttributeHook.is(object) &&
             (hasFunctionProp(object, 'preCreate') || hasFunctionProp(object, 'preSave') || hasFunctionProp(object, 'postSave'))
         );
     }
 }
 
-interface UserdefinedTypeElementHooks<T extends ModelElement> extends ModelElementHooks<T> {
+interface UserdefinedTypeElementHook<T extends ModelElement> extends ModelElementHook<T> {
     preCreate(args: any): void;
 }
 
-export namespace UserdefinedTypeElementHooks {
-    export function is(object: any): object is UserdefinedTypeElementHooks<any> {
-        return ModelElementHooks.is(object) && hasFunctionProp(object, 'preCreate');
+export namespace UserdefinedTypeElementHook {
+    export function is(object: any): object is UserdefinedTypeElementHook<any> {
+        return ModelElementHook.is(object) && hasFunctionProp(object, 'preCreate');
     }
 }
 
-export interface AttributeHooks<T extends ModelElement> {
+export interface AttributeHook<T extends ModelElement> {
     canChangeAttribute(modelElement: T, operation: PropertyEditOperation): boolean;
     preAttributeChange(modelElement: T, operation: PropertyEditOperation): void;
     postAttributeChange(modelElement: T, attributeName: string, oldValue: any): void;
 }
 
-export namespace AttributeHooks {
-    export function is(object: any): object is AttributeHooks<any> {
+export namespace AttributeHook {
+    export function is(object: any): object is AttributeHook<any> {
         return (
             hasFunctionProp(object, 'canSelect') ||
             hasFunctionProp(object, 'postSelect') ||
@@ -251,17 +251,17 @@ export namespace AttributeHooks {
     }
 }
 
-export interface GraphicalElementHooks<T extends ModelElement> extends ModelElementHooks<T> {
+export interface GraphicalElementHook<T extends ModelElement> extends ModelElementHook<T> {
     canSelect(modelElement: T): boolean;
     postSelect(modelElement: T): void;
     canDoubleClick(modelElement: T): boolean;
     postDoubleClick(modelElement: T): void;
 }
 
-export namespace GraphicalElementHooks {
-    export function is(object: any): object is GraphicalElementHooks<any> {
+export namespace GraphicalElementHook {
+    export function is(object: any): object is GraphicalElementHook<any> {
         return (
-            ModelElementHooks.is(object) &&
+            ModelElementHook.is(object) &&
             (hasFunctionProp(object, 'canSelect') ||
                 hasFunctionProp(object, 'postSelect') ||
                 hasFunctionProp(object, 'canDoubleClick') ||
@@ -270,7 +270,7 @@ export namespace GraphicalElementHooks {
     }
 }
 
-export interface ModelElementHooks<T extends ModelElement> {
+export interface ModelElementHook<T extends ModelElement> {
     preCreate(...args: any): void;
     canCreate(operation: CreateOperation): boolean;
     postCreate(modelElement: T): void;
@@ -279,8 +279,8 @@ export interface ModelElementHooks<T extends ModelElement> {
     postDelete(modelElement: T): void;
 }
 
-export namespace ModelElementHooks {
-    export function is(object: any): object is ModelElementHooks<any> {
+export namespace ModelElementHook {
+    export function is(object: any): object is ModelElementHook<any> {
         return (
             AnyObject.is(object) &&
             (hasFunctionProp(object, 'canCreate') ||
@@ -292,9 +292,9 @@ export namespace ModelElementHooks {
     }
 }
 
-interface NodeHooks extends NodeElementHooks<Node> {}
-interface EdgeHooks extends EdgeElementHooks<Edge> {}
-interface GraphModelHooks extends GraphModelElementHooks<GraphModel> {}
+interface NodeHook extends NodeElementHook<Node> {}
+interface EdgeHook extends EdgeElementHook<Edge> {}
+interface GraphModelHook extends GraphModelElementHook<GraphModel> {}
 
 // TODO:
-interface UserdefinedTypeHooks extends UserdefinedTypeElementHooks<any> {}
+interface UserdefinedTypeHook extends UserdefinedTypeElementHook<any> {}

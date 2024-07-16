@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { HookManager, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import {
     Attribute,
     ObjectPointer,
@@ -30,7 +30,6 @@ import {
 } from '@cinco-glsp/cinco-glsp-common';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class PropertyEditHandler extends CincoJsonOperationHandler {

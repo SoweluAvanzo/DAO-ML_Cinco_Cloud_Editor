@@ -16,7 +16,7 @@
 
 import * as fs from 'fs';
 import { FSWatcher, WatchOptions } from 'fs-extra';
-import { existsDirectory, readFile } from './utils/file-helper';
+import { existsDirectory, readFile } from '../utils/file-helper';
 import * as uuid from 'uuid';
 
 interface WatchEntry {

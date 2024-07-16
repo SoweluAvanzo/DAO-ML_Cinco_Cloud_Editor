@@ -19,7 +19,7 @@ import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 import { ResizeArgument, HookTypes, MoveArgument } from '@cinco-glsp/cinco-glsp-common';
 import { Node } from '@cinco-glsp/cinco-glsp-api/lib/model/graph-model';
-import { HookManager } from '../tools/hook-manager';
+import { HookManager } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class ChangeBoundsHandler extends CincoJsonOperationHandler {

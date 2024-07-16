@@ -13,12 +13,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Container, GraphModel, GraphModelIndex, Node } from '@cinco-glsp/cinco-glsp-api';
+import { Container, GraphModel, GraphModelIndex, Node, HookManager } from '@cinco-glsp/cinco-glsp-api';
 import { ModelElementContainer, getNodeSpecOf, getNodeTypes, NodeType, CreateNodeArgument, HookTypes } from '@cinco-glsp/cinco-glsp-common';
 import { CreateNodeOperation, Point } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { AbstractSpecifiedNodeElementHandler } from './specified_element_handler';
-import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {

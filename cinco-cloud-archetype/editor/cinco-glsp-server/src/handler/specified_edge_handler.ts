@@ -13,12 +13,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Edge, GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
+import { Edge, GraphModelIndex, HookManager } from '@cinco-glsp/cinco-glsp-api';
 import { getEdgeSpecOf, getEdgeTypes, EdgeType, CreateEdgeArgument, HookTypes } from '@cinco-glsp/cinco-glsp-common';
 import { CreateEdgeOperation } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { AbstractSpecifiedEdgeElementHandler } from './specified_element_handler';
-import { HookManager } from '../tools/hook-manager';
 
 @injectable()
 export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
