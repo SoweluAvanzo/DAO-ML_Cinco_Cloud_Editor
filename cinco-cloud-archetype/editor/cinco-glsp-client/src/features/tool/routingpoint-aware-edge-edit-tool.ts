@@ -242,7 +242,7 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
         // note: order is important here as we want the reconnect handles to cover the routing handles
         const feedbackActions = [];
         if (canEditRouting(edge)) {
-            // feedbackActions.push(SwitchRoutingModeAction.create({ elementsToActivate: [this.edge.id] })); // TODO:
+            feedbackActions.push(SwitchRoutingModeAction.create({ elementsToActivate: [this.edge.id] }));
         }
         if (isReconnectable(edge)) {
             feedbackActions.push(ShowEdgeReconnectHandlesFeedbackAction.create(this.edge.id));
@@ -382,9 +382,6 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
             this.setNewConnectable(target);
         }
         if (!this.isReadyToReconnect() && !this.isReadyToReroute()) {
-            if (this.reconnectMode) {
-                return [HideEdgeReconnectHandlesFeedbackAction.create()];
-            }
             return result;
         }
 
