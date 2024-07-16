@@ -36,7 +36,7 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
     preDelete(node: Node): void {}
     postDelete(node: Node): void {}
     // Attribute Change
-    canChangeAttribute(modelElement: Node, operation: PropertyEditOperation): boolean {
+    canAttributeChange(modelElement: Node, operation: PropertyEditOperation): boolean {
         return true;
     }
     preAttributeChange(modelElement: Node, operation: PropertyEditOperation): void {}
@@ -67,7 +67,7 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
 
 export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook {
     // Attribute Change
-    canChangeAttribute(modelElement: Edge, operation: PropertyEditOperation): boolean {
+    canAttributeChange(modelElement: Edge, operation: PropertyEditOperation): boolean {
         return true;
     }
     preAttributeChange(modelElement: Edge, operation: PropertyEditOperation): void {}
@@ -104,7 +104,7 @@ export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook 
 
 export abstract class AbstractGraphModelHook extends AbstractHook implements GraphModelHook {
     // Attribute Change
-    canChangeAttribute(modelElement: GraphModel, operation: PropertyEditOperation): boolean {
+    canAttributeChange(modelElement: GraphModel, operation: PropertyEditOperation): boolean {
         return true;
     }
     preAttributeChange(modelElement: GraphModel, operation: PropertyEditOperation): void {}
@@ -139,7 +139,7 @@ export abstract class AbstractGraphModelHook extends AbstractHook implements Gra
 // TODO-SAMI
 export abstract class AbstractUserDefinedTypeHook extends AbstractHook implements UserdefinedTypeHook {
     // Attribute Change
-    canChangeAttribute(modelElement: Edge, operation: PropertyEditOperation): boolean {
+    canAttributeChange(modelElement: Edge, operation: PropertyEditOperation): boolean {
         return true;
     }
     preAttributeChange(modelElement: Edge, operation: PropertyEditOperation): void {}
@@ -235,7 +235,7 @@ export namespace UserdefinedTypeElementHook {
 }
 
 export interface AttributeHook<T extends ModelElement> {
-    canChangeAttribute(modelElement: T, operation: PropertyEditOperation): boolean;
+    canAttributeChange(modelElement: T, operation: PropertyEditOperation): boolean;
     preAttributeChange(modelElement: T, operation: PropertyEditOperation): void;
     postAttributeChange(modelElement: T, attributeName: string, oldValue: any): void;
 }

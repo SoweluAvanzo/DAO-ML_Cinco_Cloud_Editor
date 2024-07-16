@@ -54,7 +54,7 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             operation: operation
         };
         const canSetValue = (): boolean =>
-            HookManager.executeHook(parameters, HookType.CAN_CHANGE_ATTRIBUTE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(parameters, HookType.CAN_ATTRIBUTE_CHANGE, this.modelState, this.logger, this.actionDispatcher);
         if (inConstraint && canSetValue() && element !== undefined) {
             // PRE
             HookManager.executeHook(parameters, HookType.PRE_ATTRIBUTE_CHANGE, this.modelState, this.logger, this.actionDispatcher);

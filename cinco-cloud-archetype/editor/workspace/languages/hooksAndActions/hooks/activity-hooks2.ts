@@ -25,17 +25,17 @@ export class ActivityHook2 extends AbstractNodeHook {
      */
 
     override canCreate(operation: CreateNodeOperation): boolean {
-        this.log("Triggered canCreate. Can create node of type: "+operation.elementTypeId);
+        this.log('Triggered canCreate. Can create node of type: ' + operation.elementTypeId);
         return true;
     }
 
     override preCreate(container: Container, location: Point | undefined): void {
-        this.log("Triggered preCreate. Creating node in container ("+container.id + ") at position ("+location+")");
+        this.log('Triggered preCreate. Creating node in container (' + container.id + ') at position (' + location + ')');
     }
 
     override postCreate(node: Node): void {
-        this.log("Triggered postCreate on node ("+node.id + ")");
-        throw(Error("This is a test error in the 'postCreate' hook of ActivityHooks2"));
+        this.log('Triggered postCreate on node (' + node.id + ')');
+        throw Error("This is a test error in the 'postCreate' hook of ActivityHooks2");
     }
 
     /**
@@ -43,17 +43,17 @@ export class ActivityHook2 extends AbstractNodeHook {
      */
 
     override canDelete(node: Node): boolean {
-        this.log("Triggered canDelete on node ("+node.id + ")");
+        this.log('Triggered canDelete on node (' + node.id + ')');
         return true;
     }
 
     override preDelete(node: Node): boolean {
-        this.log("Triggered preDelete on node ("+node.id + ")");
+        this.log('Triggered preDelete on node (' + node.id + ')');
         return true;
     }
 
     override postDelete(node: Node): boolean {
-        this.log("Triggered postDelete on node ("+node.id + ")");
+        this.log('Triggered postDelete on node (' + node.id + ')');
         return true;
     }
 
@@ -61,24 +61,27 @@ export class ActivityHook2 extends AbstractNodeHook {
      * Change Attribute
      */
 
-    override canChangeAttribute(node: Node, operation: PropertyEditOperation): boolean {
-        this.log("Triggered canChangeAttribute on node ("+node.id + ")");
+    override canAttributeChange(node: Node, operation: PropertyEditOperation): boolean {
+        this.log('Triggered canAttributeChange on node (' + node.id + ')');
         return operation.change.kind === 'assignValue';
     }
 
     override preAttributeChange(node: Node, operation: PropertyEditOperation): void {
-        this.log("Triggered preAttributeChange on node ("+node.id + ")");
-        this.log('Changing: ' + operation.name
-            + ' from: ' + node.getProperty(operation.name)
-            + " to: "+ 
-            (AssignValue.is(operation.change) ? operation.change.value : 'undefined'));
+        this.log('Triggered preAttributeChange on node (' + node.id + ')');
+        this.log(
+            'Changing: ' +
+                operation.name +
+                ' from: ' +
+                node.getProperty(operation.name) +
+                ' to: ' +
+                (AssignValue.is(operation.change) ? operation.change.value : 'undefined')
+        );
     }
 
     override postAttributeChange(node: Node, attributeName: string, oldValue: any): void {
-        this.log("Triggered postAttributeChange on node ("+node.id + ")");
-        this.log('Changed: ' + attributeName + ' from: ' + oldValue + " to: "+ node.getProperty(attributeName));
+        this.log('Triggered postAttributeChange on node (' + node.id + ')');
+        this.log('Changed: ' + attributeName + ' from: ' + oldValue + ' to: ' + node.getProperty(attributeName));
     }
-
 
     /**
      * The following has currently issues
@@ -87,22 +90,22 @@ export class ActivityHook2 extends AbstractNodeHook {
     /**
      * Move
      */
-    
+
     override canMove(node: Node, newPosition: Point): boolean {
-        this.log("Triggered canMove on node ("+node.id + ")");
+        this.log('Triggered canMove on node (' + node.id + ')');
         this.log('Can move to position?: ' + newPosition);
         this.log('CurrentPosition: ' + node.position);
         return true;
     }
 
     override preMove(node: Node, newPosition: Point): void {
-        this.log("Triggered preMove on node ("+node.id + ")");
+        this.log('Triggered preMove on node (' + node.id + ')');
         this.log('Moving from: ' + node.position);
         this.log('Moving to: ' + newPosition);
     }
 
     override postMove(node: Node, oldPosition?: Point): void {
-        this.log("Triggered postMove on node ("+node.id + ")");
+        this.log('Triggered postMove on node (' + node.id + ')');
         this.log('Moved from: ' + oldPosition);
         this.log('Moved to: ' + node.position);
     }
@@ -112,20 +115,20 @@ export class ActivityHook2 extends AbstractNodeHook {
      */
 
     override canResize(node: Node, newSize: Dimension): boolean {
-        this.log("Triggered canResize on node ("+node.id + ")");
+        this.log('Triggered canResize on node (' + node.id + ')');
         this.log('can Resize from?: ' + node.size);
         this.log('CurrentSize: ' + newSize);
         return true;
     }
 
     override preResize(node: Node, newSize: Dimension): void {
-        this.log("Triggered preResize on node ("+node.id + ")");
+        this.log('Triggered preResize on node (' + node.id + ')');
         this.log('Resizing from: ' + node.size);
         this.log('Resizing to: ' + newSize);
     }
-    
+
     override postResize(node: Node, oldSize: Dimension): void {
-        this.log("Triggered postResize on node ("+node.id + ")");
+        this.log('Triggered postResize on node (' + node.id + ')');
         this.log('Resized from: ' + oldSize);
         this.log('Resized to: ' + node.size);
     }
@@ -139,12 +142,12 @@ export class ActivityHook2 extends AbstractNodeHook {
      */
 
     override canSelect(node: Node): boolean {
-        this.log("Triggered canSelect on node ("+node.id + ")");
+        this.log('Triggered canSelect on node (' + node.id + ')');
         return true;
     }
 
     override postSelect(node: Node): boolean {
-        this.log("Triggered postSelect on node ("+node.id + ")");
+        this.log('Triggered postSelect on node (' + node.id + ')');
         return true;
     }
 
@@ -153,12 +156,12 @@ export class ActivityHook2 extends AbstractNodeHook {
      */
 
     override canDoubleClick(node: Node): boolean {
-        this.log("Triggered canDoubleClick on node ("+node.id + ")");
+        this.log('Triggered canDoubleClick on node (' + node.id + ')');
         return true;
     }
 
     override postDoubleClick(node: Node): void {
-        this.log("Triggered postDoubleClick on node ("+node.id + ")");
+        this.log('Triggered postDoubleClick on node (' + node.id + ')');
     }
 }
 

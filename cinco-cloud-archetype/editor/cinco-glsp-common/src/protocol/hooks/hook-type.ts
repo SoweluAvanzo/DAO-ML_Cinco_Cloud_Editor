@@ -15,7 +15,7 @@
  ********************************************************************************/
 
 export enum HookType {
-    CAN_CHANGE_ATTRIBUTE = 'CanChangeAttribute',
+    CAN_ATTRIBUTE_CHANGE = 'CanAttributeChange',
     PRE_ATTRIBUTE_CHANGE = 'PreAttributeChange',
     POST_ATTRIBUTE_CHANGE = 'PostAttributeChange',
     CAN_CREATE = 'CanCreate',

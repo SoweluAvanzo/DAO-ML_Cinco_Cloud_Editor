@@ -82,8 +82,8 @@ export class ActivityHook extends AbstractNodeHook {
      * Change Attribute
      */
 
-    override canChangeAttribute(node: Node, operation: PropertyEditOperation): boolean {
-        this.log('Triggered canChangeAttribute on node (' + node.id + ')');
+    override canAttributeChange(node: Node, operation: PropertyEditOperation): boolean {
+        this.log('Triggered canAttributeChange on node (' + node.id + ')');
         return operation.change.kind === 'assignValue';
     }
 

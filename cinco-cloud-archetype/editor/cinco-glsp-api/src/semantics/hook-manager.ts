@@ -114,7 +114,7 @@ export class HookManager {
     ): boolean {
         try {
             switch (type) {
-                case HookType.CAN_CHANGE_ATTRIBUTE: {
+                case HookType.CAN_ATTRIBUTE_CHANGE: {
                     if (!AttributeHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                     }
@@ -122,7 +122,7 @@ export class HookManager {
                     if (!modelElement) {
                         throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                     }
-                    return this.canChangeAttributeHook(hook, parameters as AttributeChangeArgument, modelElement);
+                    return this.canAttributeChangeHook(hook, parameters as AttributeChangeArgument, modelElement);
                 }
                 case HookType.PRE_ATTRIBUTE_CHANGE:
                     {
@@ -369,12 +369,12 @@ export class HookManager {
      * Attributes
      */
 
-    private static canChangeAttributeHook(
+    private static canAttributeChangeHook(
         hook: AttributeHook<ModelElement>,
         parameter: AttributeChangeArgument,
         modelElement: ModelElement
     ): boolean {
-        return !hook.canChangeAttribute || hook.canChangeAttribute(modelElement, parameter.operation);
+        return !hook.canAttributeChange || hook.canAttributeChange(modelElement, parameter.operation);
     }
 
     private static preAttributeChangeHook(
@@ -472,7 +472,7 @@ export class HookManager {
         const newSource = modelElement.index.findNode(parameters.sourceId);
         const newTarget = modelElement.index.findNode(parameters.targetId);
         if (Edge.is(modelElement) && newSource && newTarget) {
-            return !hook.canChangeAttribute || hook.canReconnect(modelElement, newSource, newTarget);
+            return !hook.canAttributeChange || hook.canReconnect(modelElement, newSource, newTarget);
         } else {
             throw new Error('Could not execute canReconnectHook.');
         }
@@ -515,7 +515,7 @@ export class HookManager {
     }
 
     private static canResizeHook(hook: AbstractNodeHook, parameters: ResizeArgument, modelElement: ModelElement | undefined): boolean {
-        return !hook.canChangeAttribute || (Node.is(modelElement) && hook.canResize(modelElement, parameters.newSize));
+        return !hook.canAttributeChange || (Node.is(modelElement) && hook.canResize(modelElement, parameters.newSize));
     }
 
     private static preResizeHook(hook: AbstractNodeHook, parameters: ResizeArgument, modelElement: ModelElement | undefined): void {
