@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { HookTypes } from './protocol/hooks/hook-types';
+import { HookType } from './protocol/hooks/hook-type';
 import { hasArrayProp, hasBooleanProp, hasNumberProp, hasObjectProp, hasStringProp } from './protocol/type-utils';
 
 /**
@@ -924,7 +924,7 @@ export function getHookTypes(elementTypeId: string, hookClassName: string): stri
     return [];
 }
 
-export function getHooksOfType(elementTypeId: string, hookType: HookTypes): string[][] {
+export function getHooksOfType(elementTypeId: string, hookType: HookType): string[][] {
     return getAllHooks(elementTypeId).filter(values => values.includes(hookType.valueOf()));
 }
 

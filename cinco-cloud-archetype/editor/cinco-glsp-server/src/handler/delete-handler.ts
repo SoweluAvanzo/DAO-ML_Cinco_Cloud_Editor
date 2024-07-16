@@ -17,7 +17,7 @@ import { Container, Edge, Node, ModelElement, HookManager } from '@cinco-glsp/ci
 import { DeleteElementOperation, SaveModelAction, remove } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import { DeleteArgument, HookTypes } from '@cinco-glsp/cinco-glsp-common';
+import { DeleteArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class DeleteHandler extends CincoJsonOperationHandler {
@@ -45,11 +45,11 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             deleted: undefined
         };
         // CAN
-        if (!HookManager.executeHook(parameters, HookTypes.CAN_DELETE, this.modelState, this.logger, this.actionDispatcher)) {
+        if (!HookManager.executeHook(parameters, HookType.CAN_DELETE, this.modelState, this.logger, this.actionDispatcher)) {
             return;
         }
         // PRE
-        HookManager.executeHook(parameters, HookTypes.PRE_DELETE, this.modelState, this.logger, this.actionDispatcher);
+        HookManager.executeHook(parameters, HookType.PRE_DELETE, this.modelState, this.logger, this.actionDispatcher);
         parameters.deleted = element;
         if (Container.is(element)) {
             const containments = element.containments ?? [];
@@ -73,7 +73,7 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             remove(this.modelState.graphModel.edges, element);
         }
         // POST
-        HookManager.executeHook(parameters, HookTypes.POST_DELETE, this.modelState, this.logger, this.actionDispatcher);
+        HookManager.executeHook(parameters, HookType.POST_DELETE, this.modelState, this.logger, this.actionDispatcher);
     }
 
     saveAndUpdate(): void {

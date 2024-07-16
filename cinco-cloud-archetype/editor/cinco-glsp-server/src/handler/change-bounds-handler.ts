@@ -17,7 +17,7 @@
 import { ChangeBoundsOperation, Dimension, GNode, Point } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import { ResizeArgument, HookTypes, MoveArgument } from '@cinco-glsp/cinco-glsp-common';
+import { ResizeArgument, HookType, MoveArgument } from '@cinco-glsp/cinco-glsp-common';
 import { Node } from '@cinco-glsp/cinco-glsp-api/lib/model/graph-model';
 import { HookManager } from '@cinco-glsp/cinco-glsp-api';
 
@@ -53,9 +53,9 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
             newPosition: newPosition
         };
         if (newPosition && this.canMove(moveParameters)) {
-            HookManager.executeHook(moveParameters, HookTypes.PRE_MOVE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(moveParameters, HookType.PRE_MOVE, this.modelState, this.logger, this.actionDispatcher);
             node.position = newPosition;
-            HookManager.executeHook(moveParameters, HookTypes.POST_MOVE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(moveParameters, HookType.POST_MOVE, this.modelState, this.logger, this.actionDispatcher);
         }
     }
 
@@ -72,9 +72,9 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
                 newSize: newSize
             };
             if (this.canResize(newSize, parameters)) {
-                HookManager.executeHook(parameters, HookTypes.PRE_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+                HookManager.executeHook(parameters, HookType.PRE_RESIZE, this.modelState, this.logger, this.actionDispatcher);
                 node.size = newSize;
-                HookManager.executeHook(parameters, HookTypes.POST_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+                HookManager.executeHook(parameters, HookType.POST_RESIZE, this.modelState, this.logger, this.actionDispatcher);
             }
         }
     }
@@ -88,10 +88,10 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
     }
 
     private canMove(parameters: MoveArgument): boolean {
-        return HookManager.executeHook(parameters, HookTypes.CAN_MOVE, this.modelState, this.logger, this.actionDispatcher);
+        return HookManager.executeHook(parameters, HookType.CAN_MOVE, this.modelState, this.logger, this.actionDispatcher);
     }
 
     private canResize(newSize: Dimension, parameters: ResizeArgument): boolean {
-        return HookManager.executeHook(parameters, HookTypes.CAN_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+        return HookManager.executeHook(parameters, HookType.CAN_RESIZE, this.modelState, this.logger, this.actionDispatcher);
     }
 }

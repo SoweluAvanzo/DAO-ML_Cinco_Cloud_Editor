@@ -26,7 +26,7 @@ import {
     getUserDefinedType,
     isList,
     AttributeChangeArgument,
-    HookTypes
+    HookType
 } from '@cinco-glsp/cinco-glsp-common';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
@@ -54,10 +54,10 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             operation: operation
         };
         const canSetValue = (): boolean =>
-            HookManager.executeHook(parameters, HookTypes.CAN_CHANGE_ATTRIBUTE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(parameters, HookType.CAN_CHANGE_ATTRIBUTE, this.modelState, this.logger, this.actionDispatcher);
         if (inConstraint && canSetValue() && element !== undefined) {
             // PRE
-            HookManager.executeHook(parameters, HookTypes.PRE_ATTRIBUTE_CHANGE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(parameters, HookType.PRE_ATTRIBUTE_CHANGE, this.modelState, this.logger, this.actionDispatcher);
 
             // Change
             switch (change.kind) {
@@ -126,7 +126,7 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             }
 
             // POST
-            HookManager.executeHook(parameters, HookTypes.POST_ATTRIBUTE_CHANGE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(parameters, HookType.POST_ATTRIBUTE_CHANGE, this.modelState, this.logger, this.actionDispatcher);
         }
     }
 

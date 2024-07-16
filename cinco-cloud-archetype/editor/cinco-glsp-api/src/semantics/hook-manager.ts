@@ -20,7 +20,7 @@ import {
     DeleteArgument,
     AttributeChangeArgument,
     ReconnectArgument,
-    HookTypes,
+    HookType,
     MoveArgument,
     ResizeArgument,
     SelectArgument,
@@ -48,7 +48,7 @@ import { GraphModelState } from '../model/graph-model-state';
 export class HookManager {
     static executeHook(
         parameters: OperationArgument,
-        type: HookTypes,
+        type: HookType,
         modelState: GraphModelState,
         logger: Logger,
         actionDispatcher: ActionDispatcher
@@ -90,7 +90,7 @@ export class HookManager {
         return hookResults.filter(v => !v).length <= 0; // no false was returned => true
     }
 
-    private static getSuitableClassNames(elementTypeId: string, hookType: HookTypes): string[] {
+    private static getSuitableClassNames(elementTypeId: string, hookType: HookType): string[] {
         if (hasHooks(elementTypeId)) {
             return getHooksOfType(elementTypeId, hookType)
                 .map((value: string[]) => value[0])
@@ -99,7 +99,7 @@ export class HookManager {
         return [];
     }
 
-    private static loadHookClasses(hookClassName: string, modelTypeId: string, hookType: HookTypes): any {
+    private static loadHookClasses(hookClassName: string, modelTypeId: string, hookType: HookType): any {
         const hooks = LanguageFilesRegistry.getRegistered().filter((hook: any) => hook.name === hookClassName);
         return hooks.length > 0 ? hooks[0] : undefined;
     }
@@ -107,14 +107,14 @@ export class HookManager {
     private static dispatchHook(
         hook: AbstractHook,
         parameters: OperationArgument,
-        type: HookTypes,
+        type: HookType,
         modelState: GraphModelState,
         logger: Logger,
         actionDispatcher: ActionDispatcher
     ): boolean {
         try {
             switch (type) {
-                case HookTypes.CAN_CHANGE_ATTRIBUTE: {
+                case HookType.CAN_CHANGE_ATTRIBUTE: {
                     if (!AttributeHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                     }
@@ -124,7 +124,7 @@ export class HookManager {
                     }
                     return this.canChangeAttributeHook(hook, parameters as AttributeChangeArgument, modelElement);
                 }
-                case HookTypes.PRE_ATTRIBUTE_CHANGE:
+                case HookType.PRE_ATTRIBUTE_CHANGE:
                     {
                         if (!AttributeHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -136,7 +136,7 @@ export class HookManager {
                         this.preAttributeChangeHook(hook, parameters as AttributeChangeArgument, modelElement);
                     }
                     break;
-                case HookTypes.POST_ATTRIBUTE_CHANGE:
+                case HookType.POST_ATTRIBUTE_CHANGE:
                     {
                         if (!AttributeHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -148,13 +148,13 @@ export class HookManager {
                         this.postAttributeChangeHook(hook, parameters as AttributeChangeArgument, modelElement);
                     }
                     break;
-                case HookTypes.CAN_CREATE: {
+                case HookType.CAN_CREATE: {
                     if (!ModelElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                     }
                     return this.canCreateHook(hook, parameters as CreateArgument);
                 }
-                case HookTypes.PRE_CREATE:
+                case HookType.PRE_CREATE:
                     {
                         if (!ModelElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -162,7 +162,7 @@ export class HookManager {
                         this.preCreateHook(hook, parameters as CreateArgument, modelState);
                     }
                     break;
-                case HookTypes.POST_CREATE:
+                case HookType.POST_CREATE:
                     {
                         const modelElement = modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
@@ -174,7 +174,7 @@ export class HookManager {
                         this.postCreateHook(hook, modelElement);
                     }
                     break;
-                case HookTypes.CAN_DELETE:
+                case HookType.CAN_DELETE:
                     {
                         const modelElement = modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
@@ -186,7 +186,7 @@ export class HookManager {
                         this.canDeleteHook(hook, modelElement);
                     }
                     break;
-                case HookTypes.PRE_DELETE:
+                case HookType.PRE_DELETE:
                     {
                         const modelElement = modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
@@ -198,7 +198,7 @@ export class HookManager {
                         this.preDeleteHook(hook, modelElement);
                     }
                     break;
-                case HookTypes.POST_DELETE:
+                case HookType.POST_DELETE:
                     {
                         if (!ModelElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -210,7 +210,7 @@ export class HookManager {
                         this.postDeleteHook(hook, modelElement);
                     }
                     break;
-                case HookTypes.CAN_MOVE: {
+                case HookType.CAN_MOVE: {
                     if (!NodeElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                     }
@@ -220,7 +220,7 @@ export class HookManager {
                     }
                     return this.canMoveHook(hook, parameters as MoveArgument, modelElement);
                 }
-                case HookTypes.PRE_MOVE:
+                case HookType.PRE_MOVE:
                     {
                         if (!NodeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -232,7 +232,7 @@ export class HookManager {
                         this.preMoveHook(hook, parameters as MoveArgument, modelElement);
                     }
                     break;
-                case HookTypes.POST_MOVE:
+                case HookType.POST_MOVE:
                     {
                         if (!NodeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -244,7 +244,7 @@ export class HookManager {
                         this.postMoveHook(hook, parameters as MoveArgument, modelElement);
                     }
                     break;
-                case HookTypes.CAN_RESIZE: {
+                case HookType.CAN_RESIZE: {
                     if (!NodeElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                     }
@@ -254,7 +254,7 @@ export class HookManager {
                     }
                     return this.canResizeHook(hook, parameters as ResizeArgument, modelElement);
                 }
-                case HookTypes.PRE_RESIZE:
+                case HookType.PRE_RESIZE:
                     {
                         if (!NodeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -266,7 +266,7 @@ export class HookManager {
                         this.preResizeHook(hook, parameters as ResizeArgument, modelElement);
                     }
                     break;
-                case HookTypes.POST_RESIZE:
+                case HookType.POST_RESIZE:
                     {
                         if (!NodeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -278,7 +278,7 @@ export class HookManager {
                         this.postResizeHook(hook, parameters as ResizeArgument, modelElement);
                     }
                     break;
-                case HookTypes.CAN_RECONNECT: {
+                case HookType.CAN_RECONNECT: {
                     if (!EdgeElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                     }
@@ -288,7 +288,7 @@ export class HookManager {
                     }
                     return this.canReconnectHook(hook, parameters as ReconnectArgument, modelElement);
                 }
-                case HookTypes.PRE_RECONNECT:
+                case HookType.PRE_RECONNECT:
                     {
                         if (!EdgeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -300,7 +300,7 @@ export class HookManager {
                         this.preReconnectHook(hook, parameters as ReconnectArgument, modelElement);
                     }
                     break;
-                case HookTypes.POST_RECONNECT:
+                case HookType.POST_RECONNECT:
                     {
                         if (!EdgeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -312,7 +312,7 @@ export class HookManager {
                         this.postReconnectHook(hook, parameters as ReconnectArgument, modelElement);
                     }
                     break;
-                case HookTypes.CAN_SELECT: {
+                case HookType.CAN_SELECT: {
                     if (!GraphicalElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                     }
@@ -322,7 +322,7 @@ export class HookManager {
                     }
                     return this.canSelectHook(hook, parameters as SelectArgument, modelElement);
                 }
-                case HookTypes.POST_SELECT:
+                case HookType.POST_SELECT:
                     {
                         if (!GraphicalElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
@@ -334,7 +334,7 @@ export class HookManager {
                         this.postSelectHook(hook, parameters as SelectArgument, modelElement);
                     }
                     break;
-                case HookTypes.CAN_DOUBLE_CLICK: {
+                case HookType.CAN_DOUBLE_CLICK: {
                     if (!GraphicalElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                     }
@@ -344,7 +344,7 @@ export class HookManager {
                     }
                     return this.canDoubleClickHook(hook, parameters as DoubleClickArgument, modelElement);
                 }
-                case HookTypes.POST_DOUBLE_CLICK:
+                case HookType.POST_DOUBLE_CLICK:
                     {
                         if (!GraphicalElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);

@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-export enum HookTypes {
+export enum HookType {
     CAN_CHANGE_ATTRIBUTE = 'CanChangeAttribute',
     PRE_ATTRIBUTE_CHANGE = 'PreAttributeChange',
     POST_ATTRIBUTE_CHANGE = 'PostAttributeChange',
