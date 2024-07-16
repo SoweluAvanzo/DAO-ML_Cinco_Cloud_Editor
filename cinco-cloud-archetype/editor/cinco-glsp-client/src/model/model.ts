@@ -480,6 +480,10 @@ export class CincoGraphModel extends GGraph implements CincoModelElement {
         return canContain(this, targetType);
     }
 
+    override add(child: GChildElement, index?: number): void {
+        super.add(child, index);
+    }
+
     override move(child: GChildElement, newIndex: number): void {
         const children = this.children as GChildElement[];
         const childInModel = children.filter(c => c.id === child.id);

@@ -62,13 +62,17 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
         if (inConstraint && canConnect()) {
             // PRE
             HookManager.executeHook(reconnectArguments, HookType.PRE_RECONNECT, this.modelState, this.logger, this.actionDispatcher);
+            reconnectArguments.sourceId = edge.sourceID;
+            reconnectArguments.targetId = edge.targetID;
             edge.sourceID = gSource.id;
             edge.targetID = gTarget.id;
             edge.routingPoints = [];
+            this.modelState.refresh();
             // POST
             HookManager.executeHook(reconnectArguments, HookType.POST_RECONNECT, this.modelState, this.logger, this.actionDispatcher);
         } else {
-            throw new Error(`Could not change source and target of edge: ${edge.id}`);
+            this.logger.info(`Could not change source and target of edge: ${edge.id}`);
+            this.modelState.refresh();
         }
     }
 }
