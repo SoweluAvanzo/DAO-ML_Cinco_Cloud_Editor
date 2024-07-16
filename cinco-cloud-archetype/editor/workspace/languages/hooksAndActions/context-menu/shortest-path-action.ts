@@ -19,7 +19,7 @@ import { Action, CustomAction } from '@cinco-glsp/cinco-glsp-common';
 
 export class ShortestPathAction extends CustomActionHandler {
     getShortest(node: Node, maxSearchDepth: number): number {
-        if (node.type === 'node:end') {
+        if (node.type === 'hooksandactions:end') {
             return 0;
         }
         if (maxSearchDepth === 0) {
@@ -45,9 +45,7 @@ export class ShortestPathAction extends CustomActionHandler {
         this.logger.info(action.modelElementId);
         selectedElements.forEach(e => {
             const shortestPath = this.getShortest(e, 100);
-            // TODO: print shortest path
             this.logger.info('Shortest Path for ' + e.type + '[' + e.id + ']: ' + shortestPath);
-            //  this.notify('Shortest Path for ' + e.type + '[' + e.id + ']: ' + shortestPath);
         });
 
         return [];

@@ -16,11 +16,8 @@
 import { LanguageFilesRegistry, ValidationHandler } from '@cinco-glsp/cinco-glsp-api';
 import { Action, ValidationResponseAction, ValidationRequestAction, ValidationStatus } from '@cinco-glsp/cinco-glsp-common';
 
-/**
- * Language Designer defined example of a Validator
- */
-export class HooksAndActionsExampleValidator extends ValidationHandler {
-    override CHANNEL_NAME: string | undefined = 'Validator Flowgraph [' + this.modelState.root.id + ']';
+export class HooksAndActionsValidator extends ValidationHandler {
+    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
 
     override execute(action: ValidationRequestAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // next actions
@@ -40,8 +37,8 @@ export class HooksAndActionsExampleValidator extends ValidationHandler {
 
     override canExecute(action: ValidationRequestAction, ...args: unknown[]): Promise<boolean> | boolean {
         const element = this.getElement(action.modelElementId);
-        return element !== undefined && element.type === 'graphmodel:flowgraph';
+        return element !== undefined;
     }
 }
 // register into app
-LanguageFilesRegistry.register(HooksAndActionsExampleValidator);
+LanguageFilesRegistry.register(HooksAndActionsValidator);

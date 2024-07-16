@@ -23,15 +23,16 @@
      override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
  
      override execute(action: SelectAction, ...args: unknown[]): Promise<Action[]> | Action[] {
-         // parse action
-         const modelElementId: string = action.modelElementId;
-         const element = this.modelState.index.findElement(modelElementId)! as ModelElement;
+        // parse action
+        const modelElementId: string = action.modelElementId;
+        const element = this.modelState.index.findElement(modelElementId)! as ModelElement;
+        const isSelected = action.selectedElementsIDs.includes(modelElementId);
+
+        // logging
+        const message = 'Element [' + element.type + '] was '+ (isSelected ? '' : 'un') +'selected with id: ' + element.id;
+        this.log(message, { show: false });
  
-         // logging
-         const message = 'Element [' + element.type + '] was selected with id: ' + element.id;
-         this.log(message, { show: true });
- 
-         return [];
+        return [];
      }
  
      override canExecute(action: SelectAction, ...args: unknown[]): Promise<boolean> | boolean {

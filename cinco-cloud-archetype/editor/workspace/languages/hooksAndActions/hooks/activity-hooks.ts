@@ -168,13 +168,13 @@ export class ActivityHook extends AbstractNodeHook {
      * Select
      */
 
-    override canSelect(node: Node): boolean {
-        this.log('Triggered canSelect on node (' + node.id + ')');
+    override canSelect(node: Node, isSelected: boolean): boolean {
+        this.log('Triggered canSelect on node (' + node.id + ') - selected: ' + isSelected);
         return true;
     }
 
-    override postSelect(node: Node): boolean {
-        this.log('Triggered postSelect on node (' + node.id + ')');
+    override postSelect(node: Node, isSelected: boolean): boolean {
+        this.log('Triggered postSelect on node (' + node.id + ') - selected: ' + isSelected);
         return true;
     }
 

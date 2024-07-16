@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2023 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -20,8 +20,8 @@ import { Action, GeneratorAction } from '@cinco-glsp/cinco-glsp-common';
 /**
  * Language Designer defined example of a Generator
  */
-export class HooksAndActionsExampleGenerator extends GeneratorHandler {
-    override CHANNEL_NAME: string | undefined = 'Flowgraph [' + this.modelState.root.id + ']';
+export class HooksAndActionsGenerator extends GeneratorHandler {
+    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
 
     override execute(action: GeneratorAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // parse action
@@ -34,10 +34,6 @@ export class HooksAndActionsExampleGenerator extends GeneratorHandler {
         const message = 'Element [' + model.type + '] generation process started';
         this.log(message, { show: true });
 
-        // const target: string = action.targetFolder ?? '';
-        // const targetFolderUri = new URI(target);
-        // old action based method: const filesContentSMap: Map<URI, string> = this.getfileContentsMap(model, targetFolderUri);
-        // old action based method: return [GeneratorCreateFileOperation.create(action.modelElementId, filesContentSMap)];
         return [];
     }
 
@@ -50,27 +46,11 @@ export class HooksAndActionsExampleGenerator extends GeneratorHandler {
      * generate files
      */
     generate(model: ModelElement): void {
-        this.createFile('generated_flowgraph.txt', this.getContent(model));
+        this.createFile('generated_file.txt', this.getContent(model));
         this.createFile('generated_static_file.txt', 'static content');
         const writtenFile = this.readFile('generated_static_file.txt');
         console.log('WrittenFile: ' + writtenFile);
     }
-
-    /**
-     * old action based method:
-     *
-     * Set your generated Map filename-filecontent here !
-     *
-    getfileContentsMap(model: ModelElement, parentUri: URI): Map<URI, string> {
-        const fileContentsMap = new Map<URI, string>();
-
-        // add your different files here !
-        fileContentsMap.set(parentUri.resolve('generated_flowgraph.txt'), this.getContent(model));
-        fileContentsMap.set(parentUri.resolve('generated_static_file.txt'), 'static content');
-
-        return fileContentsMap;
-    }
-    */
 
     /**
      * Describe your file content here !
@@ -79,5 +59,6 @@ export class HooksAndActionsExampleGenerator extends GeneratorHandler {
         return model.type + ' generation content';
     }
 }
+
 // register into app
-LanguageFilesRegistry.register(HooksAndActionsExampleGenerator);
+LanguageFilesRegistry.register(HooksAndActionsGenerator);

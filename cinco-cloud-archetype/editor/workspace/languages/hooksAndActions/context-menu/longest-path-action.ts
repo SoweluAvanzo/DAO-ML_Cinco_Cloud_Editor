@@ -19,7 +19,7 @@ import { Action, CustomAction } from '@cinco-glsp/cinco-glsp-common';
 
 export class LongestPathAction extends CustomActionHandler {
     getLongest(node: Node, maxSearchDepth: number): number {
-        if (node.type === 'node:end') {
+        if (node.type === 'hooksandactions:end') {
             return 0;
         }
         if (maxSearchDepth === 0) {
@@ -45,7 +45,6 @@ export class LongestPathAction extends CustomActionHandler {
         this.logger.info(action.modelElementId);
         selectedElements.forEach(e => {
             const longestPath = this.getLongest(e, 100);
-            // TODO: print longest path
             this.logger.info('Longest Path for ' + e.type + '[' + e.id + ']: ' + longestPath);
         });
 

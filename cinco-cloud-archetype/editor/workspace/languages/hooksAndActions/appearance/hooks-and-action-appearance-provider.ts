@@ -61,7 +61,7 @@ const EXAMPLE_STYLE: NodeStyle = {
 /**
  * Language Designer defined example of a DoubleClickHandler
  */
-export class HooksAndActionsExampleAppearanceProvider extends AppearanceProvider {
+export class HooksAndActionsAppearanceProvider extends AppearanceProvider {
     override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
 
     getAppearance(
@@ -105,4 +105,4 @@ export class HooksAndActionsExampleAppearanceProvider extends AppearanceProvider
     }
 }
 // register into app
-LanguageFilesRegistry.register(HooksAndActionsExampleAppearanceProvider);
+LanguageFilesRegistry.register(HooksAndActionsAppearanceProvider);

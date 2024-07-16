@@ -14,11 +14,11 @@
       "annotations": [
         {
           "name": "Validation",
-          "values": ["HooksAndActionsExampleValidator"]
+          "values": ["HooksAndActionsValidator"]
         },
         {
           "name": "GeneratorAction",
-          "values": ["HooksAndActionsExampleGenerator"]
+          "values": ["HooksAndActionsGenerator"]
         }
       ],
       "attributes": [
@@ -79,7 +79,7 @@
         },
         {
           "name": "AppearanceProvider",
-          "values": ["HooksAndActionsExampleAppearanceProvider"]
+          "values": ["HooksAndActionsAppearanceProvider"]
         },
         {
           "name": "Hook",
@@ -116,13 +116,13 @@
         {
           "name": "DoubleClickAction",
           "values": [
-            "HooksAndActionsExampleDoubleClickHandler"
+            "HooksAndActionsDoubleClickHandler"
           ]
         },
         {
           "name": "SelectAction",
           "values": [
-            "HooksAndActionsExampleSelectHandler"
+            "HooksAndActionsSelectHandler"
           ]
         },
         {
