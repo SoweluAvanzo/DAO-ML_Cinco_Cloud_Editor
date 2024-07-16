@@ -55,11 +55,17 @@ import { EnvironmentProvider, IEnvironmentProvider } from '../../api/environment
 
 @injectable()
 export class ChangeContainerTool extends ChangeBoundsTool {
-    static override ID = 'change-container-tool';
-
-    private changeContainerListener: ChangeContainerAndBoundsListener;
-
     @inject(EnvironmentProvider) protected readonly environmentProvider: IEnvironmentProvider;
+    static override ID = 'change-container-tool';
+    private enabled = false;
+    private _changeContainerListener: ChangeContainerAndBoundsListener | undefined;
+
+    get changeContainerListener(): ChangeContainerAndBoundsListener {
+        if (!this._changeContainerListener) {
+            this._changeContainerListener = this.createChangeContainerListener();
+        }
+        return this._changeContainerListener;
+    }
 
     override get id(): string {
         return ChangeContainerTool.ID;
@@ -67,11 +73,13 @@ export class ChangeContainerTool extends ChangeBoundsTool {
 
     override enable(): void {
         // install change container listener for client-side container changing of containments
-        this.changeContainerListener = this.createChangeContainerListener();
-        this.mouseTool.register(this.changeContainerListener);
-        this.selectionService.onSelectionChanged(change =>
-            this.changeContainerListener.selectionChanged(change.root, change.selectedElements)
-        );
+        if (!this.enabled) {
+            this.mouseTool.register(this.changeContainerListener);
+            this.selectionService.onSelectionChanged(change =>
+                this.changeContainerListener.selectionChanged(change.root, change.selectedElements)
+            );
+            this.enabled = true;
+        }
     }
 
     override disable(): void {
@@ -80,9 +88,10 @@ export class ChangeContainerTool extends ChangeBoundsTool {
             this.environmentProvider.selectedElementsChanged(change.selectedElements);
         });
         this.deregisterFeedback(this.changeContainerListener, [HideChangeBoundsToolResizeFeedbackAction.create()]);
+        this.enabled = false;
     }
 
-    protected createChangeContainerListener(): ChangeContainerAndBoundsListener {
+    private createChangeContainerListener(): ChangeContainerAndBoundsListener {
         return new ChangeContainerAndBoundsListener(this);
     }
 }

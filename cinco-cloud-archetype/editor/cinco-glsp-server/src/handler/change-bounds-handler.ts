@@ -31,13 +31,17 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
         }
     }
 
-    protected changeElementBounds(elementId: string, newSize: Dimension, newPosition?: Point): void {
+    protected changeElementBounds(elementId: string, newSize?: Dimension, newPosition?: Point): void {
         const index = this.modelState.index;
         const node = index.findByClass(elementId, GNode);
         const nodeObj = node ? index.findNode(node.id) : undefined;
         if (nodeObj) {
-            this.handleMove(nodeObj, newPosition);
-            this.handleResize(nodeObj, newSize);
+            if (newPosition && this.isMove(nodeObj.position, newPosition)) {
+                this.handleMove(nodeObj, newPosition);
+            }
+            if (newSize && this.isResize(nodeObj.size, newSize)) {
+                this.handleResize(nodeObj, newSize);
+            }
         }
     }
 
@@ -82,11 +86,11 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
     }
 
     private isMove(oldPosition: Point, newPosition: Point): boolean {
-        return true; // TODO-SAMI
+        return !Point.equals(oldPosition, newPosition);
     }
 
-    private isResize(oldDim: Dimension, newDim: Dimension): boolean {
-        return true; // TODO-SAMI
+    private isResize(oldDimension: Dimension, newDimension: Dimension): boolean {
+        return oldDimension.width !== newDimension.width || oldDimension.height !== newDimension.height;
     }
 
     private canMove(parameters: MoveArgument): boolean {
