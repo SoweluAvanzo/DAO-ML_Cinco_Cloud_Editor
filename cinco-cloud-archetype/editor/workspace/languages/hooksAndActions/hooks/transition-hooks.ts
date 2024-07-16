@@ -98,6 +98,29 @@ export class TransitionHooks extends AbstractEdgeHook {
     override postDoubleClick(edge: Edge): void {
         this.log('Triggered postDoubleClick on edge (' + edge.id + ')');
     }
+
+    /**
+     * Reconnect
+     */
+
+    override canReconnect(edge: Edge, newSource: Node, newTarget: Node): boolean {
+        this.log('Triggered canReconnect on edge (' + edge.id + ')');
+        this.log('Current Source (' + edge.source.id + ') - Current Target (' + edge.target.id + ')');
+        this.log('New Source (' + newSource.id + ') - New Target (' + newTarget.id + ')');
+        return true;
+    }
+
+    override preReconnect(edge: Edge, newSource: Node, newTarget: Node): void {
+        this.log('Triggered canReconnect on edge (' + edge.id + ')');
+        this.log('Current Source (' + edge.source.id + ') - Current Target (' + edge.target.id + ')');
+        this.log('New Source (' + newSource.id + ') - New Target (' + newTarget.id + ')');
+    }
+
+    override postReconnect(edge: Edge, oldSource: Node, oldTarget: Node): void {
+        this.log('Triggered postReconnect on edge (' + edge.id + ')');
+        this.log('Old Source (' + oldSource.id + ') - Old Target (' + oldTarget.id + ')');
+        this.log('Current Source (' + edge.source.id + ') - Current Target (' + edge.target.id + ')');
+    }
 }
 
 LanguageFilesRegistry.register(TransitionHooks);
