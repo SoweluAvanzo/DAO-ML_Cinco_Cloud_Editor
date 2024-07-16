@@ -120,6 +120,12 @@
           ]
         },
         {
+          "name": "SelectAction",
+          "values": [
+            "HooksAndActionsExampleSelectHandler"
+          ]
+        },
+        {
           "name": "palette",
           "values": ["PaletteAnnotationGroup", "icons/icon_flowgraph_activity.png"]
         },

@@ -19,7 +19,7 @@ import { Action, DoubleClickAction, RequestAppearanceUpdateAction } from '@cinco
 /**
  * Language Designer defined example of a DoubleClickHandler
  */
-export class HooksAndActionsExampleDoubleClickHandler extends DoubleClickHandler {
+export class HooksAndActionsDoubleClickHandler extends DoubleClickHandler {
     override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
 
     override execute(action: DoubleClickAction, ...args: unknown[]): Promise<Action[]> | Action[] {
@@ -42,4 +42,4 @@ export class HooksAndActionsExampleDoubleClickHandler extends DoubleClickHandler
     }
 }
 // register into app
-LanguageFilesRegistry.register(HooksAndActionsExampleDoubleClickHandler);
+LanguageFilesRegistry.register(HooksAndActionsDoubleClickHandler);
