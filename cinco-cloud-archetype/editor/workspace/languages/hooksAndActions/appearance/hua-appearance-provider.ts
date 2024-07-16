@@ -24,15 +24,9 @@ import {
     LineStyle,
     NodeStyle,
     Rectangle,
-    RequestAppearanceUpdateAction,
-    View
+    RequestAppearanceUpdateAction
 } from '@cinco-glsp/cinco-glsp-common';
-
-// eslint-disable-next-line no-shadow
-enum CHANGE_APPEARANCE_MODE {
-    CSS,
-    APPEARANCE
-}
+import { delay } from 'lodash';
 
 const EXAMPLE_APPEARANCE: Appearance = {
     background: {
@@ -69,10 +63,7 @@ const EXAMPLE_STYLE: NodeStyle = {
  * Language Designer defined example of a DoubleClickHandler
  */
 export class HooksAndActionsExampleAppearanceProvider extends AppearanceProvider {
-    CHANGE_MODE: CHANGE_APPEARANCE_MODE = CHANGE_APPEARANCE_MODE.APPEARANCE;
-    defaultCSSClass = 'flowgraph-activity';
-    toggledCSSClass = 'flowgraph-activity-toggled';
-    override CHANNEL_NAME: string | undefined = 'Flowgraph [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
 
     getAppearance(
         action: RequestAppearanceUpdateAction,
@@ -80,63 +71,41 @@ export class HooksAndActionsExampleAppearanceProvider extends AppearanceProvider
     ): ApplyAppearanceUpdateAction[] | Promise<ApplyAppearanceUpdateAction[]> {
         // parse action
         const modelElementId: string = action.modelElementId;
-        const element = this.modelState.index.findElement(modelElementId) as ModelElement;
+        const element = this.getElement(modelElementId);
         if (element === undefined) {
             return [];
         }
-        let appearanceUpdate: ApplyAppearanceUpdateAction;
 
         /**
          * calculate new appearance
          */
-        switch (this.CHANGE_MODE) {
-            // change by appearance (Legacy of CINCO)
-            case CHANGE_APPEARANCE_MODE.APPEARANCE:
-                {
-                    if (
-                        !element.style ||
-                        !(element.style as NodeStyle).shape ||
-                        !((element.style as NodeStyle).shape as Rectangle).appearance
-                    ) {
-                        element.style = EXAMPLE_STYLE;
-                    }
 
-                    // toggle transparency
-                    const appearance = { ...element.appearance } as Appearance;
-                    if ((appearance.transparency ?? 1.0) >= 1.0) {
-                        appearance.transparency = 0.5;
-                    } else {
-                        appearance.transparency = 1.0;
-                    }
-                    element.appearance = appearance;
-                    appearanceUpdate = ApplyAppearanceUpdateAction.create(modelElementId, [], { ...appearance });
-                }
-                break;
-            // Change by a CSS Class (new method)
-            case CHANGE_APPEARANCE_MODE.CSS: {
-                if (!element.view) {
-                    element.view = { cssClass: [] } as View;
-                }
-                // change element's style and propagate this style to the frontend
-                const currentView = element.view;
-                let currentCSSClasses = currentView.cssClass;
-                // toggle css style
-                if (currentCSSClasses) {
-                    if (currentCSSClasses.indexOf(this.defaultCSSClass) >= 0) {
-                        currentCSSClasses = currentCSSClasses.filter(css => css !== this.defaultCSSClass);
-                        currentCSSClasses.push(this.toggledCSSClass);
-                    } else {
-                        currentCSSClasses = currentCSSClasses.filter(css => css !== this.toggledCSSClass);
-                        currentCSSClasses.push(this.defaultCSSClass);
-                    }
-                    currentView.cssClass = currentCSSClasses;
-                }
-                appearanceUpdate = ApplyAppearanceUpdateAction.create(modelElementId, currentCSSClasses);
-            }
+        if (
+            !element.style ||
+            !(element.style as NodeStyle).shape ||
+            !((element.style as NodeStyle).shape as Rectangle).appearance
+        ) {
+            element.style = EXAMPLE_STYLE;
         }
+
+        // toggle transparency
+        const appearance = { ...element.appearance } as Appearance;
+        if ((appearance.transparency ?? 1.0) >= 1.0) {
+            appearance.transparency = 0.5;
+        } else {
+            appearance.transparency = 1.0;
+        }
+        
+        element.appearance = appearance;
+        const appearanceUpdate = ApplyAppearanceUpdateAction.create(modelElementId, [], { ...appearance });
         // logging
         const message = 'Element [' + element.type + ', ' + modelElementId + '] is changing appearance.';
         this.log(message, { show: true });
+
+        // save and update gui
+        this.saveModel();
+        this.submitModel();
+        
         return [appearanceUpdate];
     }
 }

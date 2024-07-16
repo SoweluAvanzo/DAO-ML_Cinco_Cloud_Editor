@@ -20,7 +20,7 @@ import { Action, DoubleClickAction, RequestAppearanceUpdateAction } from '@cinco
  * Language Designer defined example of a DoubleClickHandler
  */
 export class HooksAndActionsExampleDoubleClickHandler extends DoubleClickHandler {
-    override CHANNEL_NAME: string | undefined = 'HUA [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
 
     override execute(action: DoubleClickAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // parse action
@@ -30,21 +30,9 @@ export class HooksAndActionsExampleDoubleClickHandler extends DoubleClickHandler
         // logging
         const message = 'Element [' + element.type + '] was double-clicked with id: ' + element.id;
         this.log(message, { show: true });
-        this.dialog('DoubleClickEvent!', message).then(dialogResult => {
-            const buttonText = dialogResult === 'true' ? 'OK' : 'Cancel';
-            this.notify('You clicked: ' + buttonText);
-
-            this.saveModel();
-            this.notify('saved Model');
-            this.submitModel();
-            this.notify('submitted Model');
-        });
 
         // next actions => find all activities and update their appearance
-        const consecutiveActions: Action[] = [];
-        const allGAcitivties = this.modelState.index.getModelElements('hooksandactions:activity');
-        const allAcitivties = allGAcitivties.map((e: ModelElement) => this.modelState.index.findElement(e.id)) as Node[];
-        allAcitivties.forEach(a => consecutiveActions.push(RequestAppearanceUpdateAction.create(a.id)));
+        const consecutiveActions: Action[] = [RequestAppearanceUpdateAction.create(modelElementId)];
         return consecutiveActions;
     }
 

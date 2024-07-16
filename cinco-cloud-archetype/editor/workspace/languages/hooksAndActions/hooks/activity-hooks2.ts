@@ -14,8 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Node, AbstractNodeHook, LanguageFilesRegistry, Container } from '@cinco-glsp/cinco-glsp-api';
-import { PropertyEditOperation, AssignValue } from '@cinco-glsp/cinco-glsp-common';
-import { CreateNodeOperation, Dimension, Point } from '@eclipse-glsp/server';
+import { CreateNodeOperation, Point } from '@eclipse-glsp/server';
 
 export class ActivityHook2 extends AbstractNodeHook {
     override CHANNEL_NAME: string | undefined = 'ActivityHook2 [' + this.modelState.root.id + ']';
@@ -29,6 +28,7 @@ export class ActivityHook2 extends AbstractNodeHook {
         return true;
     }
 
+    // This should not be triggered in this test
     override preCreate(container: Container, location: Point | undefined): void {
         this.log('Triggered preCreate. Creating node in container (' + container.id + ') at position (' + location + ')');
     }
@@ -36,138 +36,6 @@ export class ActivityHook2 extends AbstractNodeHook {
     override postCreate(node: Node): void {
         this.log('Triggered postCreate on node (' + node.id + ')');
         throw Error("This is a test error in the 'postCreate' hook of ActivityHooks2");
-    }
-
-    /**
-     * Delete
-     */
-
-    override canDelete(node: Node): boolean {
-        this.log('Triggered canDelete on node (' + node.id + ')');
-        return true;
-    }
-
-    override preDelete(node: Node): boolean {
-        this.log('Triggered preDelete on node (' + node.id + ')');
-        return true;
-    }
-
-    override postDelete(node: Node): boolean {
-        this.log('Triggered postDelete on node (' + node.id + ')');
-        return true;
-    }
-
-    /**
-     * Change Attribute
-     */
-
-    override canAttributeChange(node: Node, operation: PropertyEditOperation): boolean {
-        this.log('Triggered canAttributeChange on node (' + node.id + ')');
-        return operation.change.kind === 'assignValue';
-    }
-
-    override preAttributeChange(node: Node, operation: PropertyEditOperation): void {
-        this.log('Triggered preAttributeChange on node (' + node.id + ')');
-        this.log(
-            'Changing: ' +
-                operation.name +
-                ' from: ' +
-                node.getProperty(operation.name) +
-                ' to: ' +
-                (AssignValue.is(operation.change) ? operation.change.value : 'undefined')
-        );
-    }
-
-    override postAttributeChange(node: Node, attributeName: string, oldValue: any): void {
-        this.log('Triggered postAttributeChange on node (' + node.id + ')');
-        this.log('Changed: ' + attributeName + ' from: ' + oldValue + ' to: ' + node.getProperty(attributeName));
-    }
-
-    /**
-     * The following has currently issues
-     */
-
-    /**
-     * Move
-     */
-
-    override canMove(node: Node, newPosition: Point): boolean {
-        this.log('Triggered canMove on node (' + node.id + ')');
-        this.log('Can move to position?: ' + newPosition);
-        this.log('CurrentPosition: ' + node.position);
-        return true;
-    }
-
-    override preMove(node: Node, newPosition: Point): void {
-        this.log('Triggered preMove on node (' + node.id + ')');
-        this.log('Moving from: ' + node.position);
-        this.log('Moving to: ' + newPosition);
-    }
-
-    override postMove(node: Node, oldPosition?: Point): void {
-        this.log('Triggered postMove on node (' + node.id + ')');
-        this.log('Moved from: ' + oldPosition);
-        this.log('Moved to: ' + node.position);
-    }
-
-    /**
-     * Resize
-     */
-
-    override canResize(node: Node, newSize: Dimension, newPosition: Point): boolean {
-        this.log('Triggered canResize on node (' + node.id + ')');
-        this.log('can Resize from size?: ' + node.size);
-        this.log('can Resize from position?: ' + node.position);
-        this.log('New Size: ' + newSize);
-        this.log('New Position: ' + newPosition);
-        return true;
-    }
-
-    override preResize(node: Node, newSize: Dimension, newPosition: Point): void {
-        this.log('Triggered preResize on node (' + node.id + ')');
-        this.log('Resizing from: ' + node.size);
-        this.log('Resizing from position: ' + node.position);
-        this.log('Resizing to: ' + newSize);
-        this.log('Resizing to position: ' + newPosition);
-    }
-
-    override postResize(node: Node, oldSize: Dimension, oldPosition: Point): void {
-        this.log('Triggered postResize on node (' + node.id + ')');
-        this.log('Resized from: ' + oldSize);
-        this.log('Resized from position: ' + oldPosition);
-        this.log('Resized to: ' + node.size);
-        this.log('Resized to position: ' + node.position);
-    }
-
-    /**
-     * The following are not yet implemented
-     */
-
-    /**
-     * Select
-     */
-
-    override canSelect(node: Node): boolean {
-        this.log('Triggered canSelect on node (' + node.id + ')');
-        return true;
-    }
-
-    override postSelect(node: Node): boolean {
-        this.log('Triggered postSelect on node (' + node.id + ')');
-        return true;
-    }
-
-    /**
-     * Double Click
-     */
-
-    override canDoubleClick(node: Node): boolean {
-        this.log('Triggered canDoubleClick on node (' + node.id + ')');
-        return true;
-    }
-
-    override postDoubleClick(node: Node): void {
-        this.log('Triggered postDoubleClick on node (' + node.id + ')');
     }
 }
 
