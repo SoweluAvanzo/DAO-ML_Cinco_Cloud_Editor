@@ -135,23 +135,29 @@ export class ActivityHook extends AbstractNodeHook {
      * Resize
      */
 
-    override canResize(node: Node, newSize: Dimension): boolean {
+    override canResize(node: Node, newSize: Dimension, newPosition: Point): boolean {
         this.log('Triggered canResize on node (' + node.id + ')');
-        this.log('can Resize from?: ' + node.size);
-        this.log('CurrentSize: ' + newSize);
+        this.log('can Resize from size?: ' + node.size);
+        this.log('can Resize from position?: ' + node.position);
+        this.log('New Size: ' + newSize);
+        this.log('New Position: ' + newPosition);
         return true;
     }
 
-    override preResize(node: Node, newSize: Dimension): void {
+    override preResize(node: Node, newSize: Dimension, newPosition: Point): void {
         this.log('Triggered preResize on node (' + node.id + ')');
         this.log('Resizing from: ' + node.size);
+        this.log('Resizing from position: ' + node.position);
         this.log('Resizing to: ' + newSize);
+        this.log('Resizing to position: ' + newPosition);
     }
 
-    override postResize(node: Node, oldSize: Dimension): void {
+    override postResize(node: Node, oldSize: Dimension, oldPosition: Point): void {
         this.log('Triggered postResize on node (' + node.id + ')');
         this.log('Resized from: ' + oldSize);
+        this.log('Resized from position: ' + oldPosition);
         this.log('Resized to: ' + node.size);
+        this.log('Resized to position: ' + node.position);
     }
 
     /**
