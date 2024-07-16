@@ -63,8 +63,7 @@ import {
     DrawFeedbackEdgeAction,
     FeedbackEdgeEnd,
     feedbackEdgeEndId,
-    feedbackEdgeId,
-    RemoveFeedbackEdgeAction
+    feedbackEdgeId
 } from '@eclipse-glsp/client/lib/features/tools/edge-creation/dangling-edge-feedback';
 import { Action, ReconnectEdgeOperation } from '@eclipse-glsp/protocol';
 import { inject, injectable, optional } from 'inversify';
@@ -382,6 +381,17 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
             this.setNewConnectable(target);
         }
         if (!this.isReadyToReconnect() && !this.isReadyToReroute()) {
+            if (!this.newConnectable && this.reconnectMode && this.edge) {
+                // breakup reconnection
+                result.push(
+                    ReconnectEdgeOperation.create({
+                        edgeElementId: this.edge.id,
+                        sourceElementId: this.edge.sourceId,
+                        targetElementId: this.edge.targetId
+                    })
+                );
+                this.reset();
+            }
             return result;
         }
 
@@ -533,18 +543,15 @@ class RoutingPointAwareEdgeEditListener extends DragAwareMouseListener implement
     }
 
     protected resetFeedback(): void {
-        const result: Action[] = [];
+        const feedbackActions: Action[] = [cursorFeedbackAction(CursorCSS.DEFAULT)];
         if (this.edge) {
-            result.push(SwitchRoutingModeAction.create({ elementsToDeactivate: [this.edge.id] }));
+            if (canEditRouting(this.edge)) {
+                feedbackActions.push(SwitchRoutingModeAction.create({ elementsToDeactivate: [this.edge.id] }));
+            }
+            if (isReconnectable(this.edge)) {
+                feedbackActions.push(HideEdgeReconnectHandlesFeedbackAction.create());
+            }
         }
-        result.push(
-            ...[
-                HideEdgeReconnectHandlesFeedbackAction.create(),
-                cursorFeedbackAction(CursorCSS.EDGE_RECONNECT),
-                RemoveFeedbackEdgeAction.create()
-            ]
-        );
-        this.tool.deregisterFeedback(result);
-        this.tool.registerFeedback([cursorFeedbackAction(CursorCSS.DEFAULT)]);
+        this.tool.registerFeedback(feedbackActions, this);
     }
 }
