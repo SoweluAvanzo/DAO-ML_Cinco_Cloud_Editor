@@ -125,7 +125,7 @@ export class CincoNode extends GNode implements CincoModelElement {
         }
         // 2. Persisted View
         const args = this['args'] as any;
-        if (args !== undefined && args.persistedView && (args.persistedView.style || args.persistedView.cssClass)) {
+        if (args !== undefined && args.persistedView) {
             const persistedView = JSON.parse(args.persistedView) as View;
             this._view = persistedView;
             return this._view;
@@ -150,8 +150,8 @@ export class CincoNode extends GNode implements CincoModelElement {
     }
 
     set style(style: Style | undefined) {
-        if (this._view) {
-            this._view = { ...this._view } as View;
+        if (this.view) {
+            this._view = { ...this.view } as View;
             this._view.style = { ...style } as Style;
         }
     }
