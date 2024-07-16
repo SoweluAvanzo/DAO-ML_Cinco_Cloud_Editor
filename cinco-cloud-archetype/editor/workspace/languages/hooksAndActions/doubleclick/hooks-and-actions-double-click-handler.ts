@@ -38,7 +38,7 @@ export class HooksAndActionsDoubleClickHandler extends DoubleClickHandler {
 
     override canExecute(action: DoubleClickAction, ...args: unknown[]): Promise<boolean> | boolean {
         const element = this.getElement(action.modelElementId);
-        return element !== undefined && element.type === 'hooksandactions:activity';
+        return element !== undefined;
     }
 }
 // register into app

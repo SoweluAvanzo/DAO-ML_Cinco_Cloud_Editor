@@ -73,8 +73,18 @@ export class TransitionHooks extends AbstractEdgeHook {
     }
 
     /**
-     * The following are not yet implemented
+     * Select
      */
+
+    override canSelect(edge: Edge, isSelected: boolean): boolean {
+        this.log('Triggered canSelect on edge (' + edge.id + ')');
+        return true;
+    }
+
+    override postSelect(edge: Edge, isSelected: boolean): boolean {
+        this.log('Triggered postSelect on edge (' + edge.id + ')');
+        return true;
+    }
 
     /**
      * Double Click
@@ -87,20 +97,6 @@ export class TransitionHooks extends AbstractEdgeHook {
 
     override postDoubleClick(edge: Edge): void {
         this.log('Triggered postDoubleClick on edge (' + edge.id + ')');
-    }
-
-    /**
-     * Select
-     */
-
-    override canSelect(edge: Edge): boolean {
-        this.log('Triggered canSelect on edge (' + edge.id + ')');
-        return true;
-    }
-
-    override postSelect(edge: Edge): boolean {
-        this.log('Triggered postSelect on edge (' + edge.id + ')');
-        return true;
     }
 }
 

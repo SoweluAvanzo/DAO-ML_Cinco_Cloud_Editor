@@ -114,15 +114,15 @@
           ]
         },
         {
-          "name": "DoubleClickAction",
-          "values": [
-            "HooksAndActionsDoubleClickHandler"
-          ]
-        },
-        {
           "name": "SelectAction",
           "values": [
             "HooksAndActionsSelectHandler"
+          ]
+        },
+        {
+          "name": "DoubleClickAction",
+          "values": [
+            "HooksAndActionsDoubleClickHandler"
           ]
         },
         {
@@ -172,6 +172,18 @@
                 "CanDoubleClick",
                 "PostDoubleClick"
             ]
+        },
+        {
+          "name": "SelectAction",
+          "values": [
+            "HooksAndActionsSelectHandler"
+          ]
+        },
+        {
+          "name": "DoubleClickAction",
+          "values": [
+            "HooksAndActionsDoubleClickHandler"
+          ]
         }
       ]
     }

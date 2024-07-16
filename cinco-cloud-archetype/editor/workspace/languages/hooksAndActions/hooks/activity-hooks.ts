@@ -105,8 +105,31 @@ export class ActivityHook extends AbstractNodeHook {
     }
 
     /**
-     * The following has currently issues
+     * Select
      */
+
+    override canSelect(node: Node, isSelected: boolean): boolean {
+        this.log('Triggered canSelect on node (' + node.id + ') - selected: ' + isSelected);
+        return true;
+    }
+
+    override postSelect(node: Node, isSelected: boolean): boolean {
+        this.log('Triggered postSelect on node (' + node.id + ') - selected: ' + isSelected);
+        return true;
+    }
+
+    /**
+     * Double Click
+     */
+
+    override canDoubleClick(node: Node): boolean {
+        this.log('Triggered canDoubleClick on node (' + node.id + ')');
+        return true;
+    }
+
+    override postDoubleClick(node: Node): void {
+        this.log('Triggered postDoubleClick on node (' + node.id + ')');
+    }
 
     /**
      * Move
@@ -158,37 +181,6 @@ export class ActivityHook extends AbstractNodeHook {
         this.log('Resized from position: ' + oldPosition);
         this.log('Resized to: ' + node.size);
         this.log('Resized to position: ' + node.position);
-    }
-
-    /**
-     * The following are not yet implemented
-     */
-
-    /**
-     * Select
-     */
-
-    override canSelect(node: Node, isSelected: boolean): boolean {
-        this.log('Triggered canSelect on node (' + node.id + ') - selected: ' + isSelected);
-        return true;
-    }
-
-    override postSelect(node: Node, isSelected: boolean): boolean {
-        this.log('Triggered postSelect on node (' + node.id + ') - selected: ' + isSelected);
-        return true;
-    }
-
-    /**
-     * Double Click
-     */
-
-    override canDoubleClick(node: Node): boolean {
-        this.log('Triggered canDoubleClick on node (' + node.id + ')');
-        return true;
-    }
-
-    override postDoubleClick(node: Node): void {
-        this.log('Triggered postDoubleClick on node (' + node.id + ')');
     }
 }
 
