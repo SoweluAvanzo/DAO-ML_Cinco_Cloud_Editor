@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2023 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -20,13 +20,13 @@ import { AssignValue, PropertyEditOperation } from '@cinco-glsp/cinco-glsp-commo
 export class TransitionHooks extends AbstractEdgeHook {
     override CHANNEL_NAME: string | undefined = 'TransitionHooks [' + this.modelState.root.id + ']';
 
-    override canCreate(operation: CreateEdgeOperation): boolean {
-        this.log('Triggered canCreate. Can create edge of type: ' + operation.elementTypeId);
+    override canCreate(elementTypeId: string, source: Node, target: Node): boolean {
+        this.log('Triggered preCreate. Can create edge of type (' + elementTypeId + ') for source (' + source.id + ') and target (' + target.id + ')');
         return true;
     }
 
-    override preCreate(source: Node, target: Node): void {
-        this.log('Triggered preCreate. Creating edge for source (' + source.id + ') and target (' + target.id + ')');
+    override preCreate(elementTypeId: string, source: Node, target: Node): void {
+        this.log('Triggered preCreate. Creating edge of type (' + elementTypeId + ') for source (' + source.id + ') and target (' + target.id + ')');
     }
 
     override postCreate(edge: Edge): void {

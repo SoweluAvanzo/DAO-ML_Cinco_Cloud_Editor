@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,9 +13,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Node, AbstractNodeHook, LanguageFilesRegistry, Container } from '@cinco-glsp/cinco-glsp-api';
+import { Node, AbstractNodeHook, LanguageFilesRegistry, Container, GraphModel } from '@cinco-glsp/cinco-glsp-api';
 import { PropertyEditOperation, AssignValue } from '@cinco-glsp/cinco-glsp-common';
-import { CreateNodeOperation, Dimension, Point } from '@eclipse-glsp/server';
+import { Dimension, Point } from '@eclipse-glsp/server';
 
 export class ActivityHook extends AbstractNodeHook {
     override CHANNEL_NAME: string | undefined = 'ActivityHook [' + this.modelState.root.id + ']';
@@ -24,13 +24,13 @@ export class ActivityHook extends AbstractNodeHook {
      * Create
      */
 
-    override canCreate(operation: CreateNodeOperation): boolean {
-        this.log('Triggered canCreate. Can create node of type: ' + operation.elementTypeId);
+    canCreate(elementTypeId: string, container: Container | GraphModel, location?: Point): boolean {
+        this.log('Triggered preCreate. Can create node of type (' + elementTypeId + ') in container (' + container.id + ') at position (' + location + ')');
         return true;
     }
 
-    override preCreate(container: Container, location: Point | undefined): void {
-        this.log('Triggered preCreate. Creating node in container (' + container.id + ') at position (' + location + ')');
+    preCreate(elementTypeId: string, container: Container | GraphModel, location?: Point): void {
+        this.log('Triggered preCreate. Creating node of type (' + elementTypeId + ') in container (' + container.id + ') at position (' + location + ')');
     }
 
     override postCreate(node: Node): void {

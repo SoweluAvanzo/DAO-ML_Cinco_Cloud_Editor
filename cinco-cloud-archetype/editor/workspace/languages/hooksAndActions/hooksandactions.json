@@ -19,6 +19,15 @@
         {
           "name": "GeneratorAction",
           "values": ["HooksAndActionsGenerator"]
+        },
+        {
+          "name": "Hook",
+          "values": [
+            "HooksAndActionsHook",
+            "CanCreate",
+            "PreCreate",
+            "PostCreate"
+          ]
         }
       ],
       "attributes": [
