@@ -27,9 +27,18 @@
             "CanCreate",
             "PreCreate",
             "PostCreate",
+            "CanDelete",
+            "PreDelete",
+            "PostDelete",
             "CanAttributeChange",
+            "PreAttributeChange",
             "PostAttributeChange",
-            "PreAttributeChange"
+            "CanSelect",
+            "PostSelect",
+            "CanDoubleClick",
+            "PostDoubleClick",
+            "PreSave",
+            "PostSave"
           ]
         }
       ],
