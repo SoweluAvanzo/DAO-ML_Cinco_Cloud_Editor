@@ -23,19 +23,45 @@
      /**
       * Create
       */
-    canCreate(modelElementType: string, path: string): boolean {
+
+    override canCreate(modelElementType: string, path: string): boolean {
         this.log('Triggered canCreate. Can create model of type (' + modelElementType + ') at path (' + path + ')');
         return true;
     }
     
-    preCreate(modelElementType: string, path: string): void {
+    override preCreate(modelElementType: string, path: string): void {
         this.log('Triggered preCreate. Creating model of type (' + modelElementType + ') at path (' + path + ')');
     }
  
-     override postCreate(graphModel: GraphModel): void {
+    override postCreate(graphModel: GraphModel): void {
         this.log('Triggered postCreate on graphmodel (' + graphModel.id + ')');
-     }
+    }
 
+    /**
+     * Attribute Change
+     */
+
+     override canAttributeChange(graphModel: GraphModel, operation: PropertyEditOperation): boolean {
+        this.log('Triggered canAttributeChange on graphModel (' + graphModel.id + ')');
+        return operation.change.kind === 'assignValue';
+    }
+
+    override preAttributeChange(graphModel: GraphModel, operation: PropertyEditOperation): void {
+        this.log('Triggered preAttributeChange on graphModel (' + graphModel.id + ')');
+        this.log(
+            'Changing: ' +
+                operation.name +
+                ' from: ' +
+                graphModel.getProperty(operation.name) +
+                ' to: ' +
+                (AssignValue.is(operation.change) ? operation.change.value : 'undefined')
+        );
+    }
+
+    override postAttributeChange(graphModel: GraphModel, attributeName: string, oldValue: any): void {
+        this.log('Triggered postAttributeChange on graphModel (' + graphModel.id + ')');
+        this.log('Changed: ' + attributeName + ' from: ' + oldValue + ' to: ' + graphModel.getProperty(attributeName));
+    }
  }
  
  LanguageFilesRegistry.register(HooksAndActionsHook);

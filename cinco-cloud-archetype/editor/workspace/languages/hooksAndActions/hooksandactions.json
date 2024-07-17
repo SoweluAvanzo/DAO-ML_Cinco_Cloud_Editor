@@ -26,7 +26,10 @@
             "HooksAndActionsHook",
             "CanCreate",
             "PreCreate",
-            "PostCreate"
+            "PostCreate",
+            "CanAttributeChange",
+            "PostAttributeChange",
+            "PreAttributeChange"
           ]
         }
       ],
