@@ -9,5 +9,5 @@ static/bundle/
 static/monaco-editor-workers/
 static/worker/
 syntaxes/
-bundle
+bundle/*.js
 bundle/cinco-languages.js
