@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,20 +14,20 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { CreateEdgeOperation, CreateNodeOperation, CreateOperation, Dimension, hasFunctionProp, Point } from '@eclipse-glsp/server';
+import { Dimension, hasFunctionProp, Point } from '@eclipse-glsp/server';
 import { PropertyEditOperation } from '@cinco-glsp/cinco-glsp-common/src/protocol/property-protocol';
 import { APIBaseHandler } from '../api/api-base-handler';
 import { Edge, GraphModel, ModelElement, Node, ModelElementContainer } from '../model/graph-model';
-import { AnyObject } from '@cinco-glsp/cinco-glsp-common';
+import { AnyObject, UserDefinedType } from '@cinco-glsp/cinco-glsp-common';
 
 export abstract class AbstractHook extends APIBaseHandler {}
 
 export abstract class AbstractNodeHook extends AbstractHook implements NodeHook {
     // Create
-    canCreate(operation: CreateNodeOperation): boolean {
+    canCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): boolean {
         return true;
     }
-    preCreate(container: ModelElementContainer, location: Point | undefined): void {}
+    preCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): void {}
     postCreate(node: Node): void {}
     // Delete
     canDelete(node: Node): boolean {
@@ -67,10 +67,10 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
 
 export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook {
     // Create
-    canCreate(operation: CreateEdgeOperation): boolean {
+    canCreate(elementTypeId: string, source: Node, target: Node): boolean {
         return true;
     }
-    preCreate(source: Node, target: Node): void {}
+    preCreate(elementTypeId: string, source: Node, target: Node): void {}
     postCreate(edge: Edge): void {}
     // Delete
     canDelete(edge: Edge): boolean {
@@ -104,11 +104,11 @@ export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook 
 
 export abstract class AbstractGraphModelHook extends AbstractHook implements GraphModelHook {
     // Create
-    preCreate(path: string): void {}
-    postCreate(graphModel: GraphModel): void {}
-    canCreate(operation: CreateOperation): boolean {
+    canCreate(elementTypeId: string, path: string): boolean {
         return true;
     }
+    preCreate(elementTypeId: string, path: string): void {}
+    postCreate(graphModel: GraphModel): void {}
     // Delete
     canDelete(modelElement: GraphModel): boolean {
         return true;
@@ -138,24 +138,24 @@ export abstract class AbstractGraphModelHook extends AbstractHook implements Gra
 
 // TODO-SAMI
 export abstract class AbstractUserDefinedTypeHook extends AbstractHook implements UserdefinedTypeHook {
-    // Attribute Change
-    canAttributeChange(modelElement: Edge, operation: PropertyEditOperation): boolean {
-        return true;
-    }
-    preAttributeChange(modelElement: Edge, operation: PropertyEditOperation): void {}
-    postAttributeChange(edge: Edge, attributeName: string, oldValue: any): void {}
     // Create
-    canCreate(operation: CreateEdgeOperation): boolean {
+    canCreate(host: ModelElement): boolean {
         return true;
     }
-    preCreate(args: any): void {}
-    postCreate(edge: Edge): void {}
+    preCreate(host: ModelElement): void {}
+    postCreate(modelElement: UserDefinedType): void {}
     // Delete
     canDelete(edge: Edge): boolean {
         return true;
     }
     preDelete(edge: Edge): void {}
     postDelete(edge: Edge): void {}
+    // Attribute Change
+    canAttributeChange(modelElement: Edge, operation: PropertyEditOperation): boolean {
+        return true;
+    }
+    preAttributeChange(modelElement: Edge, operation: PropertyEditOperation): void {}
+    postAttributeChange(edge: Edge, attributeName: string, oldValue: any): void {}
 }
 
 /**
@@ -163,7 +163,8 @@ export abstract class AbstractUserDefinedTypeHook extends AbstractHook implement
  */
 
 interface NodeElementHook<T extends Node> extends GraphicalElementHook<T>, AttributeHook<T> {
-    preCreate(container: ModelElementContainer, location: Point | undefined): void;
+    canCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): boolean;
+    preCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): void;
     canMove(node: T, newPosition?: Point): boolean;
     preMove(node: T, newPosition?: Point): void;
     postMove(node: T, oldPosition?: Point): void;
@@ -189,7 +190,8 @@ export namespace NodeElementHook {
 }
 
 interface EdgeElementHook<T extends Edge> extends GraphicalElementHook<T>, AttributeHook<T> {
-    preCreate(sourceElement: Node, targetElement: Node): void;
+    canCreate(elementTypeId: string, source: Node, target: Node): boolean;
+    preCreate(elementTypeId: string, source: Node, target: Node): void;
     canReconnect(edge: T, newSource: Node, newTarget: Node): boolean;
     preReconnect(edge: T, newSource: Node, newTarget: Node): void;
     postReconnect(edge: T, oldSource: Node, oldTarget: Node): void;
@@ -209,7 +211,7 @@ export namespace EdgeElementHook {
 }
 
 interface GraphModelElementHook<T extends GraphModel> extends GraphicalElementHook<T>, AttributeHook<T> {
-    preCreate(path: string): void; // Use-case, prepare related files before creation of model
+    preCreate(elementTypeId: string, path: string): void; // Use-case, prepare related files before creation of model
     preSave(graphModel: T): void;
     postSave(graphModel: T): void;
 }
@@ -271,8 +273,8 @@ export namespace GraphicalElementHook {
 }
 
 export interface ModelElementHook<T extends ModelElement> {
+    canCreate(...args: any): boolean;
     preCreate(...args: any): void;
-    canCreate(operation: CreateOperation): boolean;
     postCreate(modelElement: T): void;
     canDelete(modelElement: T): boolean;
     preDelete(modelElement: T): void;
@@ -297,4 +299,8 @@ interface EdgeHook extends EdgeElementHook<Edge> {}
 interface GraphModelHook extends GraphModelElementHook<GraphModel> {}
 
 // TODO:
-interface UserdefinedTypeHook extends UserdefinedTypeElementHook<any> {}
+interface UserdefinedTypeHook extends ModelElementHook<any> {
+    canCreate(host: ModelElement): boolean;
+    preCreate(host: ModelElement): void;
+    postCreate(modelElement: UserDefinedType): void;
+}

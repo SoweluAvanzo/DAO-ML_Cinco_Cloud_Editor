@@ -35,7 +35,6 @@ export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
             elementKind: 'Edge',
             elementTypeId: operation.elementTypeId,
             modelElementId: '<NONE>',
-            operation: operation,
             sourceElementId: operation.sourceElementId,
             targetElementId: operation.targetElementId
         };

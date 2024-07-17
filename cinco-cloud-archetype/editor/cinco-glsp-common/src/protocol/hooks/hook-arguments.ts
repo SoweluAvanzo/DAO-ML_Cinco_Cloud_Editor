@@ -13,14 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {
-    CreateEdgeOperation,
-    CreateOperation,
-    Dimension,
-    ReconnectEdgeOperation,
-    CreateNodeOperation,
-    DeleteElementOperation
-} from '@eclipse-glsp/server';
+import { Dimension, ReconnectEdgeOperation, DeleteElementOperation } from '@eclipse-glsp/server';
 import { ManagedBaseAction, Operation } from '../shared-protocol';
 import { PropertyEditOperation } from '../property-protocol';
 import { Point } from '../../meta-specification';
@@ -64,19 +57,16 @@ interface CreateArgumentInterface extends Argument {
     kind: 'Create';
     elementKind: 'Node' | 'Edge' | 'GraphModel' | 'UserDefinedType'; // TODO:
     elementTypeId: string;
-    operation: CreateOperation;
 }
 
 export interface CreateNodeArgument extends CreateArgumentInterface {
     elementKind: 'Node';
     containerElementId: string;
     location?: Point;
-    operation: CreateNodeOperation;
 }
 
 export interface CreateEdgeArgument extends CreateArgumentInterface {
     elementKind: 'Edge';
-    operation: CreateEdgeOperation;
     sourceElementId: string;
     targetElementId: string;
 }

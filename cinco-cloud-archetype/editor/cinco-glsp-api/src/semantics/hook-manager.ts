@@ -42,7 +42,7 @@ import {
     AbstractGraphModelHook
 } from '../api/hook-handler';
 import { LanguageFilesRegistry } from './language-files-registry';
-import { ModelElement, Edge, Node, ModelElementContainer } from '../model/graph-model';
+import { ModelElement, Edge, Node, ModelElementContainer, Container } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 
 export class HookManager {
@@ -152,7 +152,7 @@ export class HookManager {
                     if (!ModelElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                     }
-                    return this.canCreateHook(hook, parameters as CreateArgument);
+                    return this.canCreateHook(hook, parameters as CreateArgument, modelState);
                 }
                 case HookType.PRE_CREATE:
                     {
@@ -401,49 +401,82 @@ export class HookManager {
      * Create
      */
 
-    private static canCreateHook(hook: ModelElementHook<ModelElement>, parameters: CreateArgument): boolean {
-        return !hook.canCreate || hook.canCreate(parameters.operation);
+    private static canCreateHook(hook: ModelElementHook<ModelElement>, parameters: CreateArgument, modelState: GraphModelState): boolean {
+        if (!hook.canCreate) {
+            return true;
+        }
+        switch (parameters.elementKind) {
+            case 'Node': {
+                const container = modelState.index.findModelElement(parameters.containerElementId);
+                if (hook instanceof AbstractNodeHook && ModelElementContainer.is(container)) {
+                    return hook.canCreate(parameters.elementTypeId, container, parameters.location);
+                }
+                return false;
+            }
+            case 'Edge': {
+                const source = modelState.index.findNode(parameters.sourceElementId);
+                const target = modelState.index.findNode(parameters.targetElementId);
+                if (hook instanceof AbstractEdgeHook && source && target) {
+                    return hook.canCreate(parameters.elementTypeId, source, target);
+                }
+                return false;
+            }
+            case 'UserDefinedType': {
+                const host = modelState.index.findModelElement(parameters.elementTypeId);
+                if (host && hook instanceof AbstractUserDefinedTypeHook) {
+                    return hook.canCreate(host);
+                }
+                return false;
+            }
+            case 'GraphModel': {
+                if (hook instanceof AbstractGraphModelHook) {
+                    return (hook as AbstractGraphModelHook).canCreate(parameters.elementTypeId, parameters.path);
+                }
+                return false;
+            }
+        }
     }
 
     private static preCreateHook(hook: ModelElementHook<any>, parameters: CreateArgument, modelState: GraphModelState): void {
-        if (hook.preCreate !== undefined) {
-            switch (parameters.elementKind) {
-                case 'Node':
-                    {
-                        const container = modelState.index.findModelElement(parameters.containerElementId);
-                        if (hook instanceof AbstractNodeHook && ModelElementContainer.is(container)) {
-                            hook.preCreate(container, parameters.location);
-                        } else {
-                            throw Error('Can not PreCreate node.');
-                        }
-                    }
-                    break;
-                case 'Edge':
-                    {
-                        const source = modelState.index.findNode(parameters.sourceElementId);
-                        const target = modelState.index.findNode(parameters.targetElementId);
-                        if (hook instanceof AbstractEdgeHook && source && target) {
-                            hook.preCreate(source, target);
-                        }
-                    }
-                    break;
-                case 'UserDefinedType':
-                    {
-                        const args = parameters.args;
-                        if (hook instanceof AbstractUserDefinedTypeHook) {
-                            hook.preCreate(args);
-                        }
-                    }
-                    break;
-                case 'GraphModel': {
-                    const path = parameters.path;
-                    if (hook instanceof AbstractGraphModelHook) {
-                        hook.preCreate(path);
+        if (!hook.preCreate) {
+            return;
+        }
+        switch (parameters.elementKind) {
+            case 'Node':
+                {
+                    const container = modelState.index.findModelElement(parameters.containerElementId);
+                    if (hook instanceof AbstractNodeHook && ModelElementContainer.is(container)) {
+                        hook.preCreate(parameters.elementTypeId, container, parameters.location);
+                    } else {
+                        throw Error('Can not PreCreate node.');
                     }
                 }
-            }
+                break;
+            case 'Edge':
+                {
+                    const source = modelState.index.findNode(parameters.sourceElementId);
+                    const target = modelState.index.findNode(parameters.targetElementId);
+                    if (hook instanceof AbstractEdgeHook && source && target) {
+                        hook.preCreate(parameters.elementTypeId, source, target);
+                    }
+                }
+                break;
+            case 'UserDefinedType':
+                {
+                    const host = modelState.index.findModelElement(parameters.elementTypeId);
+                    if (host && hook instanceof AbstractUserDefinedTypeHook) {
+                        hook.preCreate(host);
+                    }
+                }
+                break;
+            case 'GraphModel':
+                {
+                    if (hook instanceof AbstractGraphModelHook) {
+                        hook.preCreate(parameters.elementTypeId, parameters.path);
+                    }
+                }
+                break;
         }
-        return;
     }
 
     private static postCreateHook(hook: ModelElementHook<ModelElement>, modelElement: ModelElement): void {

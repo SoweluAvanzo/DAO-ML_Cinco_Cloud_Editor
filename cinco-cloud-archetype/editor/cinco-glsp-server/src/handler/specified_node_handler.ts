@@ -32,8 +32,7 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
             elementKind: 'Node',
             containerElementId: container ? container.id : '<NONE>',
             elementTypeId: operation.elementTypeId,
-            location: operation.location,
-            operation: operation
+            location: operation.location
         };
         const inConstraint = this.canBeContained(container, operation.elementTypeId);
         const canCreate = (): boolean =>
