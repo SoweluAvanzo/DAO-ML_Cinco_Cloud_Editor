@@ -106,6 +106,7 @@
           "name": "Hook",
           "values": [
             "ActivityHook",
+            "CanCreate",
             "PreCreate",
             "PostCreate",
             "CanDelete",

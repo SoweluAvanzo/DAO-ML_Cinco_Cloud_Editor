@@ -25,7 +25,7 @@ export class ActivityHook extends AbstractNodeHook {
      */
 
     canCreate(elementTypeId: string, container: Container | GraphModel, location?: Point): boolean {
-        this.log('Triggered preCreate. Can create node of type (' + elementTypeId + ') in container (' + container.id + ') at position (' + location + ')');
+        this.log('Triggered canCreate. Can create node of type (' + elementTypeId + ') in container (' + container.id + ') at position (' + location + ')');
         return true;
     }
 
