@@ -42,7 +42,7 @@ import {
     AbstractGraphModelHook
 } from '../api/hook-handler';
 import { LanguageFilesRegistry } from './language-files-registry';
-import { ModelElement, Edge, Node, ModelElementContainer, Container } from '../model/graph-model';
+import { ModelElement, Edge, Node, ModelElementContainer } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 
 export class HookManager {
