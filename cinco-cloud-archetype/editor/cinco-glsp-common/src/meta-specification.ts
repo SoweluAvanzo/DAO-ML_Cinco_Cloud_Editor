@@ -1216,6 +1216,10 @@ export function getGraphModelOfFileType(diagramExtension: string): GraphType | u
     return getGraphSpecByFilterOf(e => e.diagramExtension === diagramExtension);
 }
 
+export function getDiagramExtensions(): string[] {
+    return Array.from(new Set(getGraphTypes().map(g => g.diagramExtension)));
+}
+
 export function getModelElementSpecifications(): ElementType[] {
     const nodeTypes: NodeType[] = getNodeTypes();
     const edgeTypes: EdgeType[] = getEdgeTypes();

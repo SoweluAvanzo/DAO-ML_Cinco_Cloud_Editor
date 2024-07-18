@@ -14,55 +14,37 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { CompositionSpecification, META_FILE_TYPES, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
-import { CincoFolderWatcher, getFiles, getLanguageFolder, getLibLanguageFolder, isBundle, readJson } from '@cinco-glsp/cinco-glsp-api';
+import { getFiles, getLanguageFolder, getLibLanguageFolder, isBundle, readJson, DirtyFileWatcher } from '@cinco-glsp/cinco-glsp-api';
 import { loadLanguage } from '@cinco-glsp/cinco-languages/lib/index';
-import { WatchEventType } from 'fs-extra';
-import * as uuid from 'uuid';
 
 export class MetaSpecificationLoader {
-    static dirtyCallbacks: Map<string, () => Promise<void>> = new Map();
-    static dirty = false;
-    static reloadDelay = 100; // heuristic value
+    static initialized = false;
+    static reloadCallbacks: (() => Promise<void>)[] = [];
+
+    static addReloadCallback(reloadCallback: () => Promise<void>): void {
+        this.reloadCallbacks.push(reloadCallback);
+    }
 
     static async watch(dirtyCallback: () => Promise<void>): Promise<string[]> {
         const languagesFolder = getLanguageFolder();
-        const dirtyCallbackId = uuid.v4();
-        const entries = CincoFolderWatcher.watchRecursive(
-            languagesFolder,
-            META_FILE_TYPES,
-            async (_filename: string, _eventType: WatchEventType) => {
-                this.dirty = true;
-            }
-        );
-        // start if not running
-        if (this.dirtyCallbacks.size <= 0) {
-            this.startDirtyCheck();
-        }
-        this.dirtyCallbacks.set(dirtyCallbackId, dirtyCallback);
-        return entries.map(e => e.watchId);
-    }
-
-    // this procedure should be singleton
-    static startDirtyCheck(): void {
-        setTimeout(async () => {
-            // all <reloadDelay>ms check if changes were made to the metafiles,
-            // by the use of the <dirty>-variable. If so, call the dirtyCallback.s
-            if (this.dirty) {
-                this.dirty = false;
+        if (!this.initialized) {
+            // the first dirtyCallback that is always triggered is a reset of the metaspec
+            this.initialized = true;
+            await DirtyFileWatcher.watch(languagesFolder, META_FILE_TYPES, async () => {
                 MetaSpecification.clear();
                 await this.load();
-                for (const dirtyCallback of this.dirtyCallbacks.values()) {
-                    await dirtyCallback();
-                }
-            }
-            // if not stopping, then shedule next dirtyCheck
-            this.startDirtyCheck();
-        }, this.reloadDelay);
+            });
+        }
+        return DirtyFileWatcher.watch(languagesFolder, META_FILE_TYPES, dirtyCallback);
     }
 
     static async load(metaLanguagesFolder?: string): Promise<void> {
         const languagesFolder = metaLanguagesFolder ?? `${getLanguageFolder()}`;
-        return this.reloadFiles(languagesFolder, META_FILE_TYPES);
+        const result = await this.reloadFiles(languagesFolder, META_FILE_TYPES);
+        if (this.reloadCallbacks.length > 0) {
+            this.reloadCallbacks.forEach(async cb => cb());
+        }
+        return result;
     }
 
     private static async reloadFiles(metaLanguagesPath: string, fileTypes: string[]): Promise<void> {

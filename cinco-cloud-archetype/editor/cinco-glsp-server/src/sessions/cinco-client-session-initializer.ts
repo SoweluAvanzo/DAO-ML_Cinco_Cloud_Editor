@@ -18,7 +18,7 @@ import { Action, ActionDispatcher, Args, ClientSessionInitializer, ClientSession
 import { Container, inject, injectable } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { MetaSpecificationResponseAction, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
-import { CincoFolderWatcher, isMetaDevMode } from '@cinco-glsp/cinco-glsp-api';
+import { CincoFolderWatcher, GraphModelWatcher, isMetaDevMode } from '@cinco-glsp/cinco-glsp-api';
 import { CincoClientSessionListener } from './cinco-client-session-listener';
 
 @injectable()
@@ -35,6 +35,10 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         CincoClientSessionInitializer.addClient(this.serverContainer.id, this.actionDispatcher);
         if (!CincoClientSessionListener.initialized) {
             const createdCallback = async (clientId: string): Promise<void> => {
+                MetaSpecificationLoader.addReloadCallback(async () => {
+                    // add graphmodel Watcher
+                    GraphModelWatcher.watch(); // TODO: Hier deletion hook check
+                });
                 if (isMetaDevMode()) {
                     const watchCallbackIds = await MetaSpecificationLoader.watch(async () => {
                         // only propagate. MetaSpecificationLoader.watch reloads on dirty.

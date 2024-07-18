@@ -16,7 +16,7 @@
 
 import { SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
 import { existsFile, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories } from '../utils/file-helper';
-import { CincoFolderWatcher } from '../api/cinco-folder-watcher';
+import { CincoFolderWatcher } from '../api/watcher/cinco-folder-watcher';
 import * as fs from 'fs';
 
 interface LanguageFilesRegistryEntry {
@@ -30,6 +30,11 @@ interface HandlerEntry {
     content: string;
 }
 
+/**
+ * This registry uses a different more lazy Watcher procedure than the rest.
+ * It only needs to fetch the watched files ondemand, as semantics are event driven
+ * and not that responsive.
+ */
 export abstract class LanguageFilesRegistry {
     private static initialized = false;
     private static _overwrite = true;
