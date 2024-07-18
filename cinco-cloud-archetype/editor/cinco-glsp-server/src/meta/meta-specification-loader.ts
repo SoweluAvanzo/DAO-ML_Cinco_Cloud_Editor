@@ -14,15 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { CompositionSpecification, META_FILE_TYPES, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
-import {
-    CincoFolderWatcher,
-    getFiles,
-    getLanguageFolder,
-    getLibLanguageFolder,
-    getSubfolder,
-    isBundle,
-    readJson
-} from '@cinco-glsp/cinco-glsp-api';
+import { CincoFolderWatcher, getFiles, getLanguageFolder, getLibLanguageFolder, isBundle, readJson } from '@cinco-glsp/cinco-glsp-api';
 import { loadLanguage } from '@cinco-glsp/cinco-languages/lib/index';
 import { WatchEventType } from 'fs-extra';
 import * as uuid from 'uuid';
@@ -34,24 +26,20 @@ export class MetaSpecificationLoader {
 
     static async watch(dirtyCallback: () => Promise<void>): Promise<string[]> {
         const languagesFolder = getLanguageFolder();
-        const folders = getSubfolder(languagesFolder);
-        folders.push(languagesFolder);
         const dirtyCallbackId = uuid.v4();
-        const watcherIds: string[] = [];
-        for (const f of folders) {
-            const referenceId = CincoFolderWatcher.watch(f, META_FILE_TYPES, async (filename: string, eventType: WatchEventType) => {
+        const entries = CincoFolderWatcher.watchRecursive(
+            languagesFolder,
+            META_FILE_TYPES,
+            async (_filename: string, _eventType: WatchEventType) => {
                 this.dirty = true;
-            });
-            if (referenceId) {
-                watcherIds.push(referenceId);
             }
-        }
+        );
         // start if not running
         if (this.dirtyCallbacks.size <= 0) {
             this.startDirtyCheck();
         }
         this.dirtyCallbacks.set(dirtyCallbackId, dirtyCallback);
-        return watcherIds;
+        return entries.map(e => e.watchId);
     }
 
     // this procedure should be singleton
@@ -87,17 +75,15 @@ export class MetaSpecificationLoader {
             files.forEach(async (file: string) => {
                 const fileExtension = file.slice(file.indexOf('.'));
                 try {
+                    let metaSpec;
                     if (fileExtension === '.mgl') {
                         const parsedMgl = await loadLanguage(`${metaLanguagesPath}/${file}`, {});
-                        const metaSpec = JSON.parse(parsedMgl);
-                        if (metaSpec && CompositionSpecification.is(metaSpec)) {
-                            MetaSpecification.merge(metaSpec);
-                        }
+                        metaSpec = JSON.parse(parsedMgl);
                     } else if (fileExtension === '.json') {
-                        const metaSpec = readJson(`${metaLanguagesPath}/${file}`);
-                        if (metaSpec && CompositionSpecification.is(metaSpec)) {
-                            MetaSpecification.merge(metaSpec);
-                        }
+                        metaSpec = readJson(`${metaLanguagesPath}/${file}`);
+                    }
+                    if (metaSpec && CompositionSpecification.is(metaSpec)) {
+                        MetaSpecification.merge(metaSpec);
                     }
                 } catch (e) {
                     console.log('Error parsing: ' + file + '\n' + e);

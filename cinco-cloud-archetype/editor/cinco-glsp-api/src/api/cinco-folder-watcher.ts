@@ -16,7 +16,7 @@
 
 import * as fs from 'fs';
 import { FSWatcher, WatchOptions } from 'fs-extra';
-import { existsDirectory, readFile } from '../utils/file-helper';
+import { existsDirectory, getSubfolder, readFile } from '../utils/file-helper';
 import * as uuid from 'uuid';
 
 interface WatchEntry {
@@ -33,6 +33,30 @@ interface WatchCallback {
 export abstract class CincoFolderWatcher {
     private static watchedFolders: Map<string, WatchEntry> = new Map();
     private static eventAggregationMap: Map<string, string | undefined> = new Map();
+
+    static watchRecursive(
+        folderToWatch: string,
+        fileTypes: string[],
+        callBack: (filename: string, eventType: fs.WatchEventType) => Promise<void>,
+        callbackCondition?: () => boolean
+    ): { folderPath: string; watchId: string }[] {
+        const entries: { folderPath: string; watchId: string }[] = [] as { folderPath: string; watchId: string }[];
+        const foldersToWatch = getSubfolder(folderToWatch);
+        foldersToWatch.push(folderToWatch);
+        if (!callbackCondition || callbackCondition()) {
+            // Initialize FileWatcher on languages Folder and subfolders
+            for (const f of foldersToWatch) {
+                const watchId = CincoFolderWatcher.watch(f, fileTypes, callBack);
+                if (watchId) {
+                    entries.push({
+                        folderPath: f,
+                        watchId: watchId
+                    });
+                }
+            }
+        }
+        return entries;
+    }
 
     /*
      * watches folder

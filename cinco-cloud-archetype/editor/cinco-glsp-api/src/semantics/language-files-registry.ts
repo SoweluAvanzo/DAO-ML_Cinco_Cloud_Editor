@@ -42,22 +42,21 @@ export abstract class LanguageFilesRegistry {
         }
         this.initialized = true;
         const languagesFolder = getLanguageFolder();
-        const folders = getSubfolder(languagesFolder);
-        folders.push(languagesFolder);
-        if (isMetaDevMode()) {
-            // Initialize FileWatcher on languages Folder and subfolders
-            for (const f of folders) {
-                CincoFolderWatcher.watch(f, SUPPORTED_DYNAMIC_FILE_TYPES, async (filename: string, eventType: fs.WatchEventType) => {
-                    if (!existsFile(filename)) {
-                        // a file was deleted -> reload all folders
-                        // (no way to identify which file it was by the default filewatcher)
-                        this.reloadAllFolders();
-                    } else if (!this._dirty.includes(filename)) {
-                        this._dirty.push(filename);
-                    }
-                });
-            }
-        }
+        const entries = CincoFolderWatcher.watchRecursive(
+            languagesFolder,
+            SUPPORTED_DYNAMIC_FILE_TYPES,
+            async (filename: string, eventType: fs.WatchEventType) => {
+                if (!existsFile(filename)) {
+                    // a file was deleted -> reload all folders
+                    // (no way to identify which file it was by the default filewatcher)
+                    this.reloadAllFolders();
+                } else if (!this._dirty.includes(filename)) {
+                    this._dirty.push(filename);
+                }
+            },
+            isMetaDevMode
+        );
+        const folders = entries.map(e => e.folderPath);
         this._registered = this.fetchSemanticFiles(folders); // initial fetch
     }
 
