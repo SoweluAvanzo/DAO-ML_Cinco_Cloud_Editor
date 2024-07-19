@@ -189,7 +189,6 @@ export class CincoTheiaFrontendModule extends GLSPTheiaFrontendModule {
         registerDiagramManager(context.bind, diagramManagerServiceId, false);
     }
 
-    // TODO: SAMI - is this needed?
     override bindDiagramWidgetFactory(context: ContainerContext): void {
         context
             .bind(DiagramWidgetFactory)
