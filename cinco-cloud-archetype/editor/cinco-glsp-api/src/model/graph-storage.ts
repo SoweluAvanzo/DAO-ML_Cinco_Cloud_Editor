@@ -22,6 +22,7 @@ import {
     MaybePromise,
     RequestModelAction,
     SaveModelAction,
+    SOURCE_URI_ARG,
     TypeGuard
 } from '@eclipse-glsp/server';
 import { AbstractJsonModelStorage } from '@eclipse-glsp/server/lib/node/abstract-json-model-storage';
@@ -29,6 +30,7 @@ import { inject, injectable } from 'inversify';
 import { GraphModel } from './graph-model';
 import { GraphModelState } from './graph-model-state';
 import { HookManager } from '../semantics/hook-manager';
+import { readJson, toPath, writeFile } from '../utils/file-helper';
 
 @injectable()
 export class GraphModelStorage extends AbstractJsonModelStorage {
@@ -39,9 +41,23 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
     @inject(ActionDispatcher)
     protected actionDispatcher: ActionDispatcher;
 
-    loadSourceModel(action: RequestModelAction): MaybePromise<void> {
+    override loadSourceModel(action: RequestModelAction): MaybePromise<void> {
         const sourceUri = this.getSourceUri(action);
-        const { graphModel, initialized } = this.loadFromFile(sourceUri, GraphModel.is);
+        GraphModelStorage.loadSourceModel(sourceUri, this.modelState, this.logger, this.actionDispatcher);
+    }
+
+    override saveSourceModel(action: SaveModelAction): MaybePromise<void> {
+        const fileUri = this.getFileUri(action);
+        GraphModelStorage.saveSourceModel(fileUri, this.modelState);
+    }
+
+    static loadSourceModel(
+        sourceUri: string,
+        modelState: GraphModelState,
+        logger: Logger,
+        actionDispatcher: ActionDispatcher
+    ): MaybePromise<void> {
+        const { graphModel, initialized } = GraphModelStorage.loadFromFile(sourceUri, modelState, logger, actionDispatcher, GraphModel.is);
 
         if (graphModel) {
             if (initialized) {
@@ -50,32 +66,34 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
                     modelElementId: '<NONE>',
                     elementTypeId: graphModel.type,
                     elementKind: 'GraphModel',
-                    path: this.toPath(sourceUri)
+                    path: toPath(sourceUri)
                 };
-                HookManager.executeHook(parameters, HookType.PRE_CREATE, this.modelState, this.logger, this.actionDispatcher);
-                this.modelState.graphModel = graphModel;
+                HookManager.executeHook(parameters, HookType.PRE_CREATE, modelState, logger, actionDispatcher);
+                modelState.graphModel = graphModel;
                 parameters.modelElementId = graphModel.id;
-                HookManager.executeHook(parameters, HookType.POST_CREATE, this.modelState, this.logger, this.actionDispatcher);
-                this.saveSourceModel({ fileUri: sourceUri, kind: 'saveModel' });
+                HookManager.executeHook(parameters, HookType.POST_CREATE, modelState, logger, actionDispatcher);
+                this.saveSourceModel(sourceUri, modelState);
             } else {
-                this.modelState.graphModel = graphModel;
+                modelState.graphModel = graphModel;
             }
         }
     }
 
-    saveSourceModel(action: SaveModelAction): MaybePromise<void> {
-        const sourceUri = this.getFileUri(action);
-        const serializableModel = this.modelState.sourceModel;
-        this.writeFile(sourceUri, serializableModel);
+    static saveSourceModel(sourceUri: string, modelState: GraphModelState): MaybePromise<void> {
+        const serializableModel = modelState.sourceModel;
+        writeFile(sourceUri, JSON.stringify(serializableModel));
     }
 
-    protected override loadFromFile(
+    protected static loadFromFile(
         sourceUri: string,
+        modelState: GraphModelState,
+        logger: Logger,
+        actionDispatcher: ActionDispatcher,
         guard?: TypeGuard<GraphModel>
     ): { graphModel: GraphModel | undefined; initialized: boolean } {
         try {
-            const path = this.toPath(sourceUri);
-            let fileContent: GraphModel | any = this.readFile(path);
+            const path = toPath(sourceUri);
+            let fileContent: GraphModel | any = readJson(path, { hideError: true });
             let initialized = false;
             if (!fileContent) {
                 fileContent = this.createModelForEmptyFile(path); // initialized
@@ -86,13 +104,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
                     elementKind: 'GraphModel',
                     path: path
                 };
-                const canCreate = HookManager.executeHook(
-                    parameters,
-                    HookType.CAN_CREATE,
-                    this.modelState,
-                    this.logger,
-                    this.actionDispatcher
-                );
+                const canCreate = HookManager.executeHook(parameters, HookType.CAN_CREATE, modelState, logger, actionDispatcher);
                 if (!canCreate) {
                     return { graphModel: undefined, initialized: false };
                 }
@@ -104,14 +116,14 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
             if (guard && !guard(fileContent)) {
                 throw new Error('The loaded root object is not of the expected type!');
             }
-            fileContent = this.modelState.fixMissingProperties(fileContent, sourceUri);
+            fileContent = modelState.fixMissingProperties(fileContent, sourceUri);
             return { graphModel: fileContent, initialized: initialized };
         } catch (error) {
             throw new GLSPServerError(`Could not load model from file: ${sourceUri}`, error);
         }
     }
 
-    protected override createModelForEmptyFile(path: string): GraphModel {
+    protected static createModelForEmptyFile(path: string): GraphModel {
         const fileTypeIndex = path.lastIndexOf('.') + 1;
         const fileType = path.substring(fileTypeIndex);
         const spec = getGraphModelOfFileType(fileType);
@@ -120,5 +132,13 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
             graphModel.type = spec?.elementTypeId;
         }
         return graphModel;
+    }
+
+    protected static getFileUri(action: SaveModelAction, modelState: GraphModelState): string {
+        const uri = action.fileUri ?? modelState.get(SOURCE_URI_ARG);
+        if (!uri) {
+            throw new GLSPServerError('Could not derive fileUri for saving the current source model');
+        }
+        return uri;
     }
 }

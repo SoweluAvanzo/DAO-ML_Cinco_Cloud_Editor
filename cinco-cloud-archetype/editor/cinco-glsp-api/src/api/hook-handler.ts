@@ -109,23 +109,27 @@ export abstract class AbstractGraphModelHook extends AbstractHook implements Gra
     }
     preCreate(elementTypeId: string, path: string): void {}
     postCreate(graphModel: GraphModel): void {}
-    // Delete
-    canDelete(modelElement: GraphModel): boolean {
-        return true;
+    // Modelfile Change
+    postDelete(path: string): void {
+        // THIS IS A SYSTEM TRACKED HOOK. YOU CAN NOT USE GUI-RELATED FEEDBACK.
     }
-    preDelete(modelElement: GraphModel): void {}
-    postDelete(modelElement: GraphModel): void {}
+    postPathChange(graphModel: GraphModel): void {
+        // THIS IS A SYSTEM TRACKED HOOK. YOU CAN NOT USE GUI-RELATED FEEDBACK.
+    }
+    postContentChange(graphModel: GraphModel): void {
+        // THIS IS A SYSTEM TRACKED HOOK. YOU CAN NOT USE GUI-RELATED FEEDBACK.
+    }
     // Attribute Change
-    canAttributeChange(modelElement: GraphModel, operation: PropertyEditOperation): boolean {
+    canAttributeChange(graphModel: GraphModel, operation: PropertyEditOperation): boolean {
         return true;
     }
-    preAttributeChange(modelElement: GraphModel, operation: PropertyEditOperation): void {}
+    preAttributeChange(graphModel: GraphModel, operation: PropertyEditOperation): void {}
     postAttributeChange(graphModel: GraphModel, attributeName: string, oldValue: any): void {}
     // Select
-    canSelect(modelElement: GraphModel, isSelected: boolean): boolean {
+    canSelect(graphModel: GraphModel, isSelected: boolean): boolean {
         return true;
     }
-    postSelect(modelElement: GraphModel, isSelected: boolean): void {}
+    postSelect(graphModel: GraphModel, isSelected: boolean): void {}
     // Double Click
     canDoubleClick(graphModel: GraphModel): boolean {
         return true;
@@ -162,7 +166,7 @@ export abstract class AbstractUserDefinedTypeHook extends AbstractHook implement
  * INTERFACES
  */
 
-interface NodeElementHook<T extends Node> extends GraphicalElementHook<T>, AttributeHook<T> {
+interface NodeElementHook<T extends Node> extends GraphicalElementHook<T>, ModelElementHook<T>, AttributeHook<T> {
     canCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): boolean;
     preCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): void;
     canMove(node: T, newPosition?: Point): boolean;
@@ -189,7 +193,7 @@ export namespace NodeElementHook {
     }
 }
 
-interface EdgeElementHook<T extends Edge> extends GraphicalElementHook<T>, AttributeHook<T> {
+interface EdgeElementHook<T extends Edge> extends GraphicalElementHook<T>, ModelElementHook<T>, AttributeHook<T> {
     canCreate(elementTypeId: string, source: Node, target: Node): boolean;
     preCreate(elementTypeId: string, source: Node, target: Node): void;
     canReconnect(edge: T, newSource: Node, newTarget: Node): boolean;
@@ -210,7 +214,7 @@ export namespace EdgeElementHook {
     }
 }
 
-interface GraphModelElementHook<T extends GraphModel> extends GraphicalElementHook<T>, AttributeHook<T> {
+interface GraphModelElementHook<T extends GraphModel> extends GraphicalElementHook<T>, AttributeHook<T>, ModelFileHook<T> {
     preCreate(elementTypeId: string, path: string): void; // Use-case, prepare related files before creation of model
     preSave(graphModel: T): void;
     postSave(graphModel: T): void;
@@ -253,7 +257,7 @@ export namespace AttributeHook {
     }
 }
 
-export interface GraphicalElementHook<T extends ModelElement> extends ModelElementHook<T> {
+export interface GraphicalElementHook<T extends ModelElement> {
     canSelect(modelElement: T, isSelected: boolean): boolean;
     postSelect(modelElement: T, isSelected: boolean): void;
     canDoubleClick(modelElement: T): boolean;
@@ -273,9 +277,11 @@ export namespace GraphicalElementHook {
 }
 
 export interface ModelElementHook<T extends ModelElement> {
+    // Create
     canCreate(...args: any): boolean;
     preCreate(...args: any): void;
     postCreate(modelElement: T): void;
+    // Delete
     canDelete(modelElement: T): boolean;
     preDelete(modelElement: T): void;
     postDelete(modelElement: T): void;
@@ -286,10 +292,37 @@ export namespace ModelElementHook {
         return (
             AnyObject.is(object) &&
             (hasFunctionProp(object, 'canCreate') ||
+                hasFunctionProp(object, 'preCreate') ||
                 hasFunctionProp(object, 'postCreate') ||
                 hasFunctionProp(object, 'canDelete') ||
                 hasFunctionProp(object, 'preDelete') ||
                 hasFunctionProp(object, 'postDelete'))
+        );
+    }
+}
+
+export interface ModelFileHook<T extends ModelElement> {
+    // Create
+    canCreate(...args: any): boolean;
+    preCreate(...args: any): void;
+    postCreate(modelElement: T): void;
+    // Delete
+    postDelete(path: string): void;
+    // Change
+    postPathChange(modelElement: T): void;
+    postContentChange(modelElement: T): void;
+}
+
+export namespace ModelFileHook {
+    export function is(object: any): object is ModelFileHook<any> {
+        return (
+            AnyObject.is(object) &&
+            (hasFunctionProp(object, 'canCreate') ||
+                hasFunctionProp(object, 'preCreate') ||
+                hasFunctionProp(object, 'postCreate') ||
+                hasFunctionProp(object, 'postDelete') ||
+                hasFunctionProp(object, 'postPathChange') ||
+                hasFunctionProp(object, 'postContentChange'))
         );
     }
 }

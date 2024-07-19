@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Dimension, ReconnectEdgeOperation, DeleteElementOperation } from '@eclipse-glsp/server';
+import { Dimension, ReconnectEdgeOperation } from '@eclipse-glsp/server';
 import { ManagedBaseAction, Operation } from '../shared-protocol';
 import { PropertyEditOperation } from '../property-protocol';
 import { Point } from '../../meta-specification';
@@ -28,10 +28,12 @@ export type OperationArgument = Argument &
         | CreateArgument
         | SelectArgument
         | DoubleClickArgument
+        | ModelFileChangeArgument
     );
 
 interface Argument extends ManagedBaseAction {
     modelElementId: string;
+    elementTypeId?: string;
     operation?: Operation;
     kind:
         | 'CreateNode'
@@ -44,7 +46,8 @@ interface Argument extends ManagedBaseAction {
         | 'Resize'
         | 'Create'
         | 'Select'
-        | 'DoubleClick';
+        | 'DoubleClick'
+        | 'ModelFileChange';
 }
 
 export interface AttributeChangeArgument extends Argument {
@@ -83,7 +86,6 @@ export interface CreateUserDefinedTypeArgument extends CreateArgumentInterface {
 
 export interface DeleteArgument extends Argument {
     kind: 'Delete';
-    operation: DeleteElementOperation;
     deleted: any;
 }
 
@@ -116,4 +118,8 @@ export interface SelectArgument extends Argument {
 
 export interface DoubleClickArgument extends Argument {
     kind: 'DoubleClick';
+}
+
+export interface ModelFileChangeArgument extends Argument {
+    kind: 'ModelFileChange';
 }

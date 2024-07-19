@@ -41,7 +41,6 @@ export class DeleteHandler extends CincoJsonOperationHandler {
         const parameters: DeleteArgument = {
             kind: 'Delete',
             modelElementId: element.id,
-            operation: operation,
             deleted: undefined
         };
         // CAN

@@ -36,5 +36,7 @@ export enum HookType {
     POST_SELECT = 'PostSelect',
     CAN_RECONNECT = 'CanReconnect',
     PRE_RECONNECT = 'PreReconnect',
-    POST_RECONNECT = 'PostReconnect'
+    POST_RECONNECT = 'PostReconnect',
+    POST_PATH_CHANGE = 'PostPathChange',
+    POST_CONTENT_CHANGE = 'PostContentChange'
 }

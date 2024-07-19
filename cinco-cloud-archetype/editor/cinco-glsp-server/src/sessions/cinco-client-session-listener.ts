@@ -13,14 +13,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { ClientSession, ClientSessionListener } from '@eclipse-glsp/server';
+import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
+import { ActionDispatcher, ClientSession, ClientSessionListener } from '@eclipse-glsp/server';
 
 export class CincoClientSessionListener implements ClientSessionListener {
     static disposedCallback: Map<string, (() => void)[]> = new Map();
-    static createdCallback: (clientId: string) => void;
+    static createdCallback: (clientId: string, modelState: GraphModelState, actionDispatcher: ActionDispatcher) => void;
     static initialized = false;
 
-    constructor(createdCallback: (clientId: string) => void) {
+    constructor(createdCallback: (clientId: string, modelState: GraphModelState, actionDispatcher: ActionDispatcher) => void) {
         CincoClientSessionListener.initialized = true;
         CincoClientSessionListener.createdCallback = createdCallback;
     }
@@ -39,7 +40,9 @@ export class CincoClientSessionListener implements ClientSessionListener {
     }
 
     sessionCreated(clientSession: ClientSession): void {
-        CincoClientSessionListener.createdCallback(clientSession.id);
+        const graphModelState = clientSession.container.get(GraphModelState);
+        const actionDispatcher = clientSession.container.get(ActionDispatcher) as ActionDispatcher;
+        CincoClientSessionListener.createdCallback(clientSession.id, graphModelState, actionDispatcher);
     }
 
     sessionDisposed(client: ClientSession): void {
