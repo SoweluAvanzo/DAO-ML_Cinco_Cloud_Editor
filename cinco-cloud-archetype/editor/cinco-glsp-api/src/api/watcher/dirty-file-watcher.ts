@@ -19,35 +19,42 @@ import { CincoFolderWatcher } from './cinco-folder-watcher';
 import { getFileExtension } from '@cinco-glsp/cinco-glsp-common';
 
 export class DirtyFileWatcher {
-    static dirtyCallbacks: Map<string, { folder: string; fileTypes: string[]; callback: (dirtyFiles: string[]) => Promise<void> }> =
-        new Map();
-    static dirtyFiles: string[] = [];
+    static dirtyCallbacks: Map<
+        string,
+        { folder: string; fileTypes: string[]; callback: (dirtyFiles: { path: string; eventType: WatchEventType }[]) => Promise<void> }
+    > = new Map();
+    static dirtyFiles: { path: string; eventType: WatchEventType }[] = [];
     static reloadDelay = 100; // heuristic value
 
     static async watch(
         folderToWatch: string,
         fileTypes: string[],
-        dirtyCallback: (dirtyFiles: string[]) => Promise<void>
-    ): Promise<string[]> {
-        const entries = CincoFolderWatcher.watchRecursive(
-            folderToWatch,
-            fileTypes,
-            async (filename: string, _eventType: WatchEventType) => {
-                if (!this.dirtyFiles.includes(filename)) {
-                    this.dirtyFiles.push(filename);
-                }
+        dirtyCallback: (dirtyFiles: { path: string; eventType: WatchEventType }[]) => Promise<void>,
+        id?: string
+    ): Promise<{ dirtyCallbackId: string; watchIds: string[] }> {
+        const entries = CincoFolderWatcher.watchRecursive(folderToWatch, fileTypes, async (filename: string, eventType: WatchEventType) => {
+            const entry = { path: filename, eventType };
+            if (this.dirtyFiles.filter(e => e.path === entry.path && e.eventType === entry.eventType).length <= 0) {
+                this.dirtyFiles.push(entry);
             }
-        );
+        });
+        const watchIds = entries.map(e => e.watchId);
         // start if not running
         if (this.dirtyCallbacks.size <= 0) {
             this.startDirtyCheck();
         }
-        this.dirtyCallbacks.set(uuid.v4(), { folder: folderToWatch, fileTypes: fileTypes, callback: dirtyCallback });
-        return entries.map(e => e.watchId);
+        const dirtyCallbackId = id ? id : uuid.v4();
+        this.dirtyCallbacks.set(dirtyCallbackId, { folder: folderToWatch, fileTypes: fileTypes, callback: dirtyCallback });
+        return { dirtyCallbackId: dirtyCallbackId, watchIds: watchIds };
     }
 
-    static unwatch(watchIds: string[]): void {
-        CincoFolderWatcher.removeCallbacks(watchIds);
+    static unwatch(watchInfo: { dirtyCallbackId: string; watchIds: string[] } | undefined): void {
+        if (watchInfo) {
+            CincoFolderWatcher.removeCallbacks(watchInfo.watchIds);
+            if (this.dirtyCallbacks.has(watchInfo.dirtyCallbackId)) {
+                this.dirtyCallbacks.delete(watchInfo.dirtyCallbackId);
+            }
+        }
     }
 
     static startDirtyCheck(): void {
@@ -62,7 +69,9 @@ export class DirtyFileWatcher {
                     const folder = dirtyCallback.folder;
                     const callback = dirtyCallback.callback;
                     const fileTypes = dirtyCallback.fileTypes;
-                    const relatedFiles = dirtyFiles.filter(f => fileTypes.includes('.' + getFileExtension(f)) && f.indexOf(folder) >= 0);
+                    const relatedFiles = dirtyFiles.filter(
+                        f => fileTypes.includes('.' + getFileExtension(f.path)) && f.path.indexOf(folder) >= 0
+                    );
                     if (relatedFiles.length > 0) {
                         await callback(relatedFiles);
                     }

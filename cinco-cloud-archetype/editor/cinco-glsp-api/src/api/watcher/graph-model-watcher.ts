@@ -17,30 +17,34 @@
 import { getDiagramExtensions } from '@cinco-glsp/cinco-glsp-common';
 import { getWorkspaceRootUri } from '../../utils/file-helper';
 import { DirtyFileWatcher } from './dirty-file-watcher';
-import * as uuid from 'uuid';
+import { WatchEventType } from 'fs-extra';
 
 export class GraphModelWatcher {
-    static currentWatchIds: string[] = [];
-    static graphModelChangeCallbacks: Map<string, (dirtyFiles: string[]) => Promise<void>> = new Map();
+    static watchInfo: { dirtyCallbackId: string; watchIds: string[] } | undefined;
+    static graphModelChangeCallbacks: Map<string, (dirtyFiles: { path: string; eventType: WatchEventType }[]) => Promise<void>> = new Map();
 
-    static async watch(folderToWatch: string = getWorkspaceRootUri()): Promise<void> {
-        DirtyFileWatcher.unwatch(this.currentWatchIds);
+    static async watch(id?: string, folderToWatch: string = getWorkspaceRootUri()): Promise<void> {
+        DirtyFileWatcher.unwatch(this.watchInfo);
         const fileTypes = getDiagramExtensions().map(e => '.' + e);
-        this.currentWatchIds = await DirtyFileWatcher.watch(folderToWatch, fileTypes, async (dirtyFiles: string[]) => {
-            for (const callback of this.graphModelChangeCallbacks.values()) {
-                await callback(dirtyFiles);
-            }
-        });
+        this.watchInfo = await DirtyFileWatcher.watch(
+            folderToWatch,
+            fileTypes,
+            async (dirtyFiles: { path: string; eventType: WatchEventType }[]) => {
+                for (const callback of this.graphModelChangeCallbacks.values()) {
+                    await callback(dirtyFiles);
+                }
+            },
+            'GraphModelWatcher_' + id
+        );
     }
 
-    static addCallback(callback: (dirtyFiles: string[]) => Promise<void>): string {
-        const id = uuid.v4();
+    static addCallback(id: string, callback: (dirtyFiles: { path: string; eventType: WatchEventType }[]) => Promise<void>): string {
         this.graphModelChangeCallbacks.set(id, callback);
         return id;
     }
 
     static removeCallback(id: string): void {
-        if (this.graphModelChangeCallbacks.has(id)) {
+        if (id && this.graphModelChangeCallbacks.has(id)) {
             this.graphModelChangeCallbacks.delete(id);
         }
     }

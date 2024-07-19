@@ -16,7 +16,7 @@
 import { ClientSession, ClientSessionListener } from '@eclipse-glsp/server';
 
 export class CincoClientSessionListener implements ClientSessionListener {
-    static disposedCallback: Map<string, () => void> = new Map();
+    static disposedCallback: Map<string, (() => void)[]> = new Map();
     static createdCallback: (clientId: string) => void;
     static initialized = false;
 
@@ -26,7 +26,10 @@ export class CincoClientSessionListener implements ClientSessionListener {
     }
 
     static addDisposeCallback(id: string, cb: () => void): void {
-        this.disposedCallback.set(id, cb);
+        if (!this.disposedCallback.has(id)) {
+            this.disposedCallback.set(id, []);
+        }
+        this.disposedCallback.get(id)?.push(cb);
     }
 
     static removeDisposeCallback(clientId: string): void {
@@ -42,9 +45,15 @@ export class CincoClientSessionListener implements ClientSessionListener {
     sessionDisposed(client: ClientSession): void {
         for (const entry of CincoClientSessionListener.disposedCallback.entries()) {
             const clientId = entry[0];
-            const cb = entry[1];
+            const cbs = entry[1];
             if (client.id === clientId) {
-                cb();
+                for (const cb of cbs) {
+                    try {
+                        cb();
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
             }
         }
     }

@@ -25,17 +25,26 @@ export class MetaSpecificationLoader {
         this.reloadCallbacks.push(reloadCallback);
     }
 
-    static async watch(dirtyCallback: () => Promise<void>): Promise<string[]> {
+    static async watch(dirtyCallback: () => Promise<void>, callbackId?: string): Promise<{ dirtyCallbackId: string; watchIds: string[] }> {
         const languagesFolder = getLanguageFolder();
         if (!this.initialized) {
             // the first dirtyCallback that is always triggered is a reset of the metaspec
             this.initialized = true;
-            await DirtyFileWatcher.watch(languagesFolder, META_FILE_TYPES, async () => {
-                MetaSpecification.clear();
-                await this.load();
-            });
+            await DirtyFileWatcher.watch(
+                languagesFolder,
+                META_FILE_TYPES,
+                async () => {
+                    MetaSpecification.clear();
+                    await this.load();
+                },
+                'MetaSpecificationReset'
+            );
         }
-        return DirtyFileWatcher.watch(languagesFolder, META_FILE_TYPES, dirtyCallback);
+        return DirtyFileWatcher.watch(languagesFolder, META_FILE_TYPES, dirtyCallback, callbackId);
+    }
+
+    static unwatch(watchInfo: { dirtyCallbackId: string; watchIds: string[] }): void {
+        DirtyFileWatcher.unwatch(watchInfo);
     }
 
     static async load(metaLanguagesFolder?: string): Promise<void> {

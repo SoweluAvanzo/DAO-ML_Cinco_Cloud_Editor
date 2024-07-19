@@ -18,7 +18,7 @@ import { Action, ActionDispatcher, Args, ClientSessionInitializer, ClientSession
 import { Container, inject, injectable } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
 import { MetaSpecificationResponseAction, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
-import { CincoFolderWatcher, GraphModelWatcher, isMetaDevMode } from '@cinco-glsp/cinco-glsp-api';
+import { existsFile, GraphModelWatcher, isMetaDevMode } from '@cinco-glsp/cinco-glsp-api';
 import { CincoClientSessionListener } from './cinco-client-session-listener';
 
 @injectable()
@@ -30,31 +30,55 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
     @inject(ClientSessionManager) protected sessions: ClientSessionManager;
     @inject(ActionDispatcher)
     protected actionDispatcher: ActionDispatcher;
+    protected graphModelWatcherCallback: string;
 
     initialize(_args?: Args): void {
         CincoClientSessionInitializer.addClient(this.serverContainer.id, this.actionDispatcher);
         if (!CincoClientSessionListener.initialized) {
             const createdCallback = async (clientId: string): Promise<void> => {
+                this.updateGraphModelWatcher(clientId);
                 MetaSpecificationLoader.addReloadCallback(async () => {
-                    // add graphmodel Watcher
-                    GraphModelWatcher.watch(); // TODO: Hier deletion hook check
+                    this.updateGraphModelWatcher(clientId);
                 });
                 if (isMetaDevMode()) {
-                    const watchCallbackIds = await MetaSpecificationLoader.watch(async () => {
-                        // only propagate. MetaSpecificationLoader.watch reloads on dirty.
+                    const watchInfo = await MetaSpecificationLoader.watch(async () => {
                         const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
                         this.actionDispatcher.dispatch(response);
                         this.sendToAllOtherClients(response);
-                    });
+                    }, 'metaspecWatcher_' + clientId);
                     CincoClientSessionListener.addDisposeCallback(clientId, () => {
-                        for (const cbId of watchCallbackIds) {
-                            CincoFolderWatcher.removeCallback(cbId);
-                        }
+                        MetaSpecificationLoader.unwatch(watchInfo);
+                        GraphModelWatcher.removeCallback(clientId);
                     });
                 }
             };
             this.sessions.addListener(new CincoClientSessionListener(createdCallback));
         }
+    }
+
+    updateGraphModelWatcher(clientId: string): void {
+        if (clientId !== 'SYSTEM') {
+            return;
+        }
+        // add graphmodel Watcher
+        GraphModelWatcher.removeCallback(clientId);
+        GraphModelWatcher.addCallback(clientId, async dirtyFiles => {
+            for (const dirtyFile of dirtyFiles) {
+                const wasMovedOrDeleted = dirtyFile.eventType === 'rename' && !existsFile(dirtyFile.path);
+                const wasMovedRenamedOrCreated = dirtyFile.eventType === 'rename' && existsFile(dirtyFile.path);
+                const wasChanged = dirtyFile.eventType === 'change';
+                if (wasMovedOrDeleted) {
+                    // trigger delete Hook
+                    console.log('File was deleted: ' + dirtyFile.path);
+                } else if (wasMovedRenamedOrCreated) {
+                    // trigger changedPath (moved or renamed) Hook
+                    console.log('File was Moved/Renamed/Created: ' + dirtyFile.path);
+                } else if (wasChanged) {
+                    // console.log('Graphmodel-File was changed: ' + dirtyFile.path);
+                }
+            }
+        });
+        GraphModelWatcher.watch(clientId);
     }
 
     static addClient(id: number, actionDispatcher: ActionDispatcher): void {

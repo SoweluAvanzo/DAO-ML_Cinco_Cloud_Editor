@@ -195,6 +195,7 @@ export abstract class CincoFolderWatcher {
                 }
                 if (found) {
                     watchEntry.callbacks = watchEntry.callbacks.filter(cb => cb !== toRemove);
+                    folderToWatch[1] = watchEntry;
                     break;
                 }
             }
