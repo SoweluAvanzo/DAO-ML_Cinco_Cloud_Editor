@@ -82,7 +82,6 @@ export abstract class FileDownloadHandler {
             });
             // do not send filePath but instead use the downloadId
             const data = { name, id: options.downloadId };
-            console.log('Serving File: ' + data.name + ' - at id: ' + data.id);
             response.setHeader('Access-Control-Allow-Origin', '*');
             response.status(OK).send(data).end();
         } catch (e: any) {
@@ -256,7 +255,7 @@ export class SingleFileDownloadHandler extends FileDownloadHandler {
         let stat: fs.Stats;
         try {
             stat = await fs.stat(filePath);
-        } catch {
+        } catch (e) {
             this.handleError(response, `The file does not exist. URI: ${uri}.`, NOT_FOUND);
             return;
         }
