@@ -149,11 +149,11 @@
         },
         {
           "name": "palette",
-          "values": ["PaletteAnnotationGroup", "icons/icon_flowgraph_activity.png"]
+          "values": ["Interactive", "msl-example/icons/icon_flowgraph_activity.png"]
         },
         {
           "name": "icon",
-          "values": ["icons/icon_flowgraph_activity.png"]
+          "values": ["msl-example/icons/icon_flowgraph_activity.png"]
         }
       ]
     }
