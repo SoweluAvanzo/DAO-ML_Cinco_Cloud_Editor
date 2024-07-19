@@ -37,22 +37,22 @@ export class HooksAndActionsHook extends AbstractGraphModelHook {
     }
 
     /**
-     * Delete - TODO
+     * Modelfile Change
      */
 
-     override canDelete(graphModel: GraphModel): boolean {
-        this.log('Triggered canDelete on graphModel (' + graphModel.id + ')');
-        return true;
+    override postDelete(path: string): void {
+        // THIS IS A SYSTEM TRACKED HOOK. YOU CAN NOT USE GUI-RELATED FEEDBACK.
+        console.log('Triggered postDelete on graphModel from path (' + path + ')');
     }
 
-    override preDelete(graphModel: GraphModel): boolean {
-        this.log('Triggered preDelete on graphModel (' + graphModel.id + ')');
-        return true;
+    override postPathChange(graphModel: GraphModel): void {
+        // THIS IS A SYSTEM TRACKED HOOK. YOU CAN NOT USE GUI-RELATED FEEDBACK.
+        console.log('Triggered postPathChange on graphmodel (' + graphModel.id + ')');
     }
-
-    override postDelete(graphModel: GraphModel): boolean {
-        this.log('Triggered postDelete on graphModel (' + graphModel.id + ')');
-        return true;
+    
+    override postContentChange(graphModel: GraphModel): void {
+        // THIS IS A SYSTEM TRACKED HOOK. YOU CAN NOT USE GUI-RELATED FEEDBACK.
+        console.log('Triggered postContentChange on graphmodel (' + graphModel.id + ')');
     }
 
     /**
