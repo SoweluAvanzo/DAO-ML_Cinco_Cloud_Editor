@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { CreateGraphModelArgument, getGraphModelOfFileType, HookType } from '@cinco-glsp/cinco-glsp-common';
+import { CreateGraphModelArgument, getGraphModelOfFileType, HookType, SaveModelFileArgument } from '@cinco-glsp/cinco-glsp-common';
 import {
     ActionDispatcher,
     GLSPServerError,
@@ -48,7 +48,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
 
     override saveSourceModel(action: SaveModelAction): MaybePromise<void> {
         const fileUri = this.getFileUri(action);
-        GraphModelStorage.saveSourceModel(fileUri, this.modelState);
+        GraphModelStorage.saveSourceModel(fileUri, this.modelState, this.logger, this.actionDispatcher);
     }
 
     static loadSourceModel(
@@ -72,16 +72,37 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
                 modelState.graphModel = graphModel;
                 parameters.modelElementId = graphModel.id;
                 HookManager.executeHook(parameters, HookType.POST_CREATE, modelState, logger, actionDispatcher);
-                this.saveSourceModel(sourceUri, modelState);
+                this.saveSourceModel(sourceUri, modelState, logger, actionDispatcher);
             } else {
                 modelState.graphModel = graphModel;
             }
         }
     }
 
-    static saveSourceModel(sourceUri: string, modelState: GraphModelState): MaybePromise<void> {
+    static saveSourceModel(
+        sourceUri: string,
+        modelState: GraphModelState,
+        logger: Logger,
+        actionDispatcher: ActionDispatcher
+    ): MaybePromise<void> {
         const serializableModel = modelState.sourceModel;
-        writeFile(sourceUri, JSON.stringify(serializableModel));
+        const canSave = HookManager.executeHook(
+            { kind: 'SaveModelFile', modelElementId: modelState.graphModel.id, path: sourceUri } as SaveModelFileArgument,
+            HookType.CAN_SAVE,
+            modelState,
+            logger,
+            actionDispatcher
+        );
+        if (canSave) {
+            writeFile(sourceUri, JSON.stringify(serializableModel));
+            HookManager.executeHook(
+                { kind: 'SaveModelFile', modelElementId: modelState.graphModel.id, path: sourceUri } as SaveModelFileArgument,
+                HookType.POST_SAVE,
+                modelState,
+                logger,
+                actionDispatcher
+            );
+        }
     }
 
     protected static loadFromFile(

@@ -136,8 +136,10 @@ export abstract class AbstractGraphModelHook extends AbstractHook implements Gra
     }
     postDoubleClick(graphModel: GraphModel): void {}
     // Save
-    preSave(graphModel: GraphModel): void {}
-    postSave(graphModel: GraphModel): void {}
+    canSave(graphModel: GraphModel, path: string): boolean {
+        return true;
+    }
+    postSave(graphModel: GraphModel, path: string): void {}
 }
 
 // TODO-SAMI
@@ -214,10 +216,10 @@ export namespace EdgeElementHook {
     }
 }
 
-interface GraphModelElementHook<T extends GraphModel> extends GraphicalElementHook<T>, AttributeHook<T>, ModelFileHook<T> {
+export interface GraphModelElementHook<T extends GraphModel> extends GraphicalElementHook<T>, AttributeHook<T>, ModelFileHook<T> {
     preCreate(elementTypeId: string, path: string): void; // Use-case, prepare related files before creation of model
-    preSave(graphModel: T): void;
-    postSave(graphModel: T): void;
+    canSave(graphModel: T, path: string): boolean;
+    postSave(graphModel: T, path: string): void;
 }
 
 export namespace GraphModelElementHook {
@@ -225,7 +227,7 @@ export namespace GraphModelElementHook {
         return (
             GraphicalElementHook.is(object) &&
             AttributeHook.is(object) &&
-            (hasFunctionProp(object, 'preCreate') || hasFunctionProp(object, 'preSave') || hasFunctionProp(object, 'postSave'))
+            (hasFunctionProp(object, 'preCreate') || hasFunctionProp(object, 'canSave') || hasFunctionProp(object, 'postSave'))
         );
     }
 }

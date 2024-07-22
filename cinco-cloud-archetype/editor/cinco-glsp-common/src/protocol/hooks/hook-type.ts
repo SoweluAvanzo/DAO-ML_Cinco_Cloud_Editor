@@ -38,5 +38,7 @@ export enum HookType {
     PRE_RECONNECT = 'PreReconnect',
     POST_RECONNECT = 'PostReconnect',
     POST_PATH_CHANGE = 'PostPathChange',
-    POST_CONTENT_CHANGE = 'PostContentChange'
+    POST_CONTENT_CHANGE = 'PostContentChange',
+    CAN_SAVE = 'CanSave',
+    POST_SAVE = 'PostSave'
 }

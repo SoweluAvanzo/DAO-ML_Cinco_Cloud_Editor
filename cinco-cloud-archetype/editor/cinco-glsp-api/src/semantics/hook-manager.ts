@@ -26,7 +26,8 @@ import {
     SelectArgument,
     hasHooks,
     DoubleClickArgument,
-    getHooksOfType
+    getHooksOfType,
+    SaveModelFileArgument
 } from '@cinco-glsp/cinco-glsp-common';
 import { ActionDispatcher, hasStringProp, Logger, MessageAction, SeverityLevel } from '@eclipse-glsp/server';
 import {
@@ -40,10 +41,11 @@ import {
     AbstractEdgeHook,
     AbstractUserDefinedTypeHook,
     AbstractGraphModelHook,
-    ModelFileHook
+    ModelFileHook,
+    GraphModelElementHook
 } from '../api/hook-handler';
 import { LanguageFilesRegistry } from './language-files-registry';
-import { ModelElement, Edge, Node, ModelElementContainer } from '../model/graph-model';
+import { ModelElement, Edge, Node, ModelElementContainer, GraphModel } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 
 export class HookManager {
@@ -214,6 +216,28 @@ export class HookManager {
                             const modelElement = (parameters as DeleteArgument).deleted;
                             this.postDeleteHook(hook, modelElement);
                         }
+                    }
+                    break;
+                case HookType.CAN_SAVE: {
+                    if (!GraphModelElementHook.is(hook)) {
+                        throw new Error(`Hook of type ${type} could not be executed. hook is not a ModelElementHook.`);
+                    }
+                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    if (!GraphModel.is(modelElement)) {
+                        throw new Error(`Hook of type ${type} could not be executed. Modelelement is not a GraphModel.`);
+                    }
+                    return this.canSaveHook(hook, parameters as SaveModelFileArgument, modelElement);
+                }
+                case HookType.POST_SAVE:
+                    {
+                        if (!GraphModelElementHook.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not a ModelElementHook.`);
+                        }
+                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        if (!GraphModel.is(modelElement)) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is not a GraphModel.`);
+                        }
+                        this.postSaveHook(hook, parameters as SaveModelFileArgument, modelElement);
                     }
                     break;
                 case HookType.POST_CONTENT_CHANGE:
@@ -515,6 +539,10 @@ export class HookManager {
         }
     }
 
+    /**
+     * Delete
+     */
+
     private static canDeleteHook(hook: ModelElementHook<ModelElement>, modelElement: ModelElement): boolean {
         return !hook.canDelete || hook.canDelete(modelElement);
     }
@@ -533,6 +561,32 @@ export class HookManager {
         }
     }
 
+    /**
+     * Create
+     */
+
+    private static canSaveHook(
+        hook: GraphModelElementHook<GraphModel>,
+        parameters: SaveModelFileArgument,
+        graphModel: GraphModel
+    ): boolean {
+        if (!hook.canSave) {
+            return true;
+        }
+        return hook.canSave(graphModel, parameters.path);
+    }
+
+    private static postSaveHook(hook: GraphModelElementHook<GraphModel>, parameters: SaveModelFileArgument, graphModel: GraphModel): void {
+        if (!hook.postSave) {
+            return;
+        }
+        hook.postSave(graphModel, parameters.path);
+    }
+
+    /**
+     * Change
+     */
+
     private static postPathChange(hook: ModelFileHook<ModelElement>, modelElement: ModelElement): void {
         if (hook.postPathChange) {
             hook.postPathChange(modelElement);
@@ -544,6 +598,10 @@ export class HookManager {
             hook.postContentChange(modelElement);
         }
     }
+
+    /**
+     * Reconnect
+     */
 
     private static canReconnectHook(hook: AbstractEdgeHook, parameters: ReconnectArgument, modelElement: ModelElement): boolean {
         const newSource = modelElement.index.findNode(parameters.sourceId);
