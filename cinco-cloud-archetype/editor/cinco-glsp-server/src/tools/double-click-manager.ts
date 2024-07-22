@@ -13,14 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { DoubleClickHandler, HookManager, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import {
-    DoubleClickAction,
-    DoubleClickArgument,
-    getDoubleClickActions,
-    hasDoubleClickAction,
-    HookType
-} from '@cinco-glsp/cinco-glsp-common';
+import { DoubleClickHandler, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { DoubleClickAction, getDoubleClickActions, hasDoubleClickAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { BaseHandlerManager } from './base-handler-manager';
@@ -35,21 +29,7 @@ export class DoubleClickManager extends BaseHandlerManager<DoubleClickAction, Do
     actionKinds: string[] = [DoubleClickAction.KIND];
 
     override async execute(action: DoubleClickAction, ...args: unknown[]): Promise<Action[]> {
-        const parameters = {
-            modelElementId: action.modelElementId
-        } as DoubleClickArgument;
-        const canDoubleClick = HookManager.executeHook(
-            parameters,
-            HookType.CAN_DOUBLE_CLICK,
-            this.modelState,
-            this.logger,
-            this.actionDispatcher
-        );
-        const doubleClickActionResult = await super.execute(action, args);
-        if (canDoubleClick) {
-            HookManager.executeHook(parameters, HookType.POST_DOUBLE_CLICK, this.modelState, this.logger, this.actionDispatcher);
-        }
-        return doubleClickActionResult;
+        return super.execute(action, args);
     }
 
     hasHandlerProperty(element: ModelElement): boolean {

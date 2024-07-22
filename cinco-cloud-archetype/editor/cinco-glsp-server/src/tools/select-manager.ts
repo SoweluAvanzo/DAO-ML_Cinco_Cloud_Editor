@@ -13,8 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { SelectHandler, HookManager, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import { getSelectActions, hasSelectAction, HookType, SelectAction, SelectArgument } from '@cinco-glsp/cinco-glsp-common';
+import { SelectHandler, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { getSelectActions, hasSelectAction, SelectAction } from '@cinco-glsp/cinco-glsp-common';
 import { Action } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { BaseHandlerManager } from './base-handler-manager';
@@ -29,38 +29,10 @@ export class SelectManager extends BaseHandlerManager<SelectAction, SelectHandle
     actionKinds: string[] = [SelectAction.KIND];
 
     override async execute(action: SelectAction, ...args: unknown[]): Promise<Action[]> {
-        // parse
-        const selectedElements = action.selectedElementsIDs;
-        const deselectedElements = action.deselectedElementsIDs;
-        // Not yet used: const unselect = action.deselectAll;
-        const parameters = {
-            modelElementId: '',
-            selectedElements: selectedElements,
-            deselectedElements: deselectedElements
-        } as SelectArgument;
-        const allSelectionElements = Array.from(new Set(selectedElements.concat(deselectedElements)));
-        if (selectedElements.length <= 0) {
-            allSelectionElements.push(action.root); // when no element is selected, select the root
+        if (!action.modelElementId) {
+            action.modelElementId = this.modelState.graphModel.id;
         }
-        let results: Action[] = [];
-        for (const element of allSelectionElements) {
-            const param = parameters;
-            param.modelElementId = element;
-            action.modelElementId = element;
-            param.isSelected = param.selectedElements.includes(param.modelElementId);
-
-            // Can Hook
-            const canSelect = HookManager.executeHook(param, HookType.CAN_SELECT, this.modelState, this.logger, this.actionDispatcher);
-            if (canSelect) {
-                // Action
-                const result = await super.execute(action, args);
-                results = results.concat(result);
-
-                // Post Hook
-                HookManager.executeHook(parameters, HookType.POST_SELECT, this.modelState, this.logger, this.actionDispatcher);
-            }
-        }
-        return results;
+        return super.execute(action, args);
     }
 
     hasHandlerProperty(element: ModelElement): boolean {

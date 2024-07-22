@@ -933,6 +933,21 @@ export function hasHooks(elementTypeId: string): boolean {
     return hasAnnotation(elementTypeId, 'Hook');
 }
 
+export function hasHooksOfTypes(elementTypeId: string, hookTypes: HookType[]): boolean {
+    return getHooksOfTypes(elementTypeId, hookTypes).length > 0;
+}
+
+export function getHooksOfTypes(elementTypeId: string, hookTypes: HookType[]): string[][] {
+    return getAllHooks(elementTypeId).filter(values => {
+        for (const h of hookTypes) {
+            if (values.includes(h.valueOf())) {
+                return true;
+            }
+        }
+        return false;
+    });
+}
+
 export function getHookTypes(elementTypeId: string, hookClassName: string): string[] {
     const hook = getAllHooks(elementTypeId).filter(values => values.length > 0 && values.at(0) === hookClassName);
     if (hook.length > 0) {
