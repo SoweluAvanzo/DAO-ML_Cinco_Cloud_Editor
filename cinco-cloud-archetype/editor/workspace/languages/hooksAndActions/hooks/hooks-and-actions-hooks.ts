@@ -82,7 +82,7 @@ export class HooksAndActionsHook extends AbstractGraphModelHook {
     }
 
     /**
-     * Select - TODO
+     * Select
      */
 
     override canSelect(graphModel: GraphModel, isSelected: boolean): boolean {
@@ -96,7 +96,7 @@ export class HooksAndActionsHook extends AbstractGraphModelHook {
     }
 
     /**
-     * Double Click - TODO
+     * Double Click
      */
 
     override canDoubleClick(graphModel: GraphModel): boolean {
@@ -109,15 +109,16 @@ export class HooksAndActionsHook extends AbstractGraphModelHook {
     }
 
     /**
-     * Save - TODO
+     * Save
      */
 
-    preSave(graphModel: GraphModel): void {
-        this.log('Triggered preSave on graphModel (' + graphModel.id + ')');
+    canSave(graphModel: GraphModel, path: string): boolean {
+        this.log('Triggered canSave on graphModel (' + graphModel.id + ') to path: '+path);
+        return true;
     }
 
-    postSave(graphModel: GraphModel): void {
-        this.log('Triggered postSave on graphModel (' + graphModel.id + ')');
+    postSave(graphModel: GraphModel, path: string): void {
+        this.log('Triggered postSave on graphModel (' + graphModel.id + ') to path: '+path);
     }
 }
  
