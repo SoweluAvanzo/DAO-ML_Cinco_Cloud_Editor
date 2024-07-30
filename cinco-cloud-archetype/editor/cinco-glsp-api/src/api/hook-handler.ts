@@ -14,9 +14,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { Dimension, hasFunctionProp, Point } from '@eclipse-glsp/server';
+import { hasFunctionProp, Point } from '@eclipse-glsp/server';
 import { PropertyEditOperation } from '@cinco-glsp/cinco-glsp-common/src/protocol/property-protocol';
-import { APIBaseHandler } from '../api/api-base-handler';
+import { APIBaseHandler } from './api-base-handler';
+import { ResizeBounds } from './resize-bounds';
 import { Edge, GraphModel, ModelElement, Node, ModelElementContainer } from '../model/graph-model';
 import { AnyObject, UserDefinedType } from '@cinco-glsp/cinco-glsp-common';
 
@@ -58,11 +59,11 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
     preMove(node: Node, newPosition?: Point): void {}
     postMove(node: Node, oldPosition?: Point): void {}
     // Resize
-    canResize(node: Node, newSize: Dimension, newPosition: Point): boolean {
+    canResize(node: Node, resizeBounds: ResizeBounds): boolean {
         return true;
     }
-    preResize(node: Node, newSize: Dimension, newPosition: Point): void {}
-    postResize(node: Node, oldSize: Dimension, oldPosition: Point): void {}
+    preResize(node: Node, resizeBounds: ResizeBounds): void {}
+    postResize(node: Node, resizeBounds: ResizeBounds): void {}
 }
 
 export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook {
@@ -174,9 +175,9 @@ interface NodeElementHook<T extends Node> extends GraphicalElementHook<T>, Model
     canMove(node: T, newPosition?: Point): boolean;
     preMove(node: T, newPosition?: Point): void;
     postMove(node: T, oldPosition?: Point): void;
-    canResize(node: T, newSize: Dimension, newPosition: Point): boolean;
-    preResize(node: T, newSize: Dimension, newPosition: Point): void;
-    postResize(node: T, oldSize: Dimension, oldPosition: Point): void;
+    canResize(node: T, resizeBounds: ResizeBounds): boolean;
+    preResize(node: T, resizeBounds: ResizeBounds): void;
+    postResize(node: T, resizeBounds: ResizeBounds): void;
 }
 
 export namespace NodeElementHook {
