@@ -25,10 +25,10 @@ export abstract class AbstractHook extends APIBaseHandler {}
 
 export abstract class AbstractNodeHook extends AbstractHook implements NodeHook {
     // Create
-    canCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): boolean {
+    canCreate(elementTypeId: string, container: ModelElementContainer, position?: Point): boolean {
         return true;
     }
-    preCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): void {}
+    preCreate(elementTypeId: string, container: ModelElementContainer, position?: Point): void {}
     postCreate(node: Node): void {}
     // Delete
     canDelete(node: Node): boolean {
@@ -37,10 +37,10 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
     preDelete(node: Node): void {}
     postDelete(node: Node): void {}
     // Attribute Change
-    canAttributeChange(modelElement: Node, operation: PropertyEditOperation): boolean {
+    canAttributeChange(node: Node, operation: PropertyEditOperation): boolean {
         return true;
     }
-    preAttributeChange(modelElement: Node, operation: PropertyEditOperation): void {}
+    preAttributeChange(node: Node, operation: PropertyEditOperation): void {}
     postAttributeChange(node: Node, attributeName: string, oldValue: any): void {}
     // Select
     canSelect(node: Node, isSelected: boolean): boolean {
@@ -80,10 +80,10 @@ export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook 
     preDelete(edge: Edge): void {}
     postDelete(edge: Edge): void {}
     // Attribute Change
-    canAttributeChange(modelElement: Edge, operation: PropertyEditOperation): boolean {
+    canAttributeChange(edge: Edge, operation: PropertyEditOperation): boolean {
         return true;
     }
-    preAttributeChange(modelElement: Edge, operation: PropertyEditOperation): void {}
+    preAttributeChange(edge: Edge, operation: PropertyEditOperation): void {}
     postAttributeChange(edge: Edge, attributeName: string, oldValue: any): void {}
     // Select
     canSelect(edge: Edge, isSelected: boolean): boolean {
@@ -170,8 +170,8 @@ export abstract class AbstractUserDefinedTypeHook extends AbstractHook implement
  */
 
 interface NodeElementHook<T extends Node> extends GraphicalElementHook<T>, ModelElementHook<T>, AttributeHook<T> {
-    canCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): boolean;
-    preCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): void;
+    canCreate(elementTypeId: string, container: ModelElementContainer, position?: Point): boolean;
+    preCreate(elementTypeId: string, container: ModelElementContainer, position?: Point): void;
     canMove(node: T, newPosition?: Point): boolean;
     preMove(node: T, newPosition?: Point): void;
     postMove(node: T, oldPosition?: Point): void;

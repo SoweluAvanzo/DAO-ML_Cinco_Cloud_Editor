@@ -464,7 +464,7 @@ export class HookManager {
             case 'Node': {
                 const container = modelState.index.findModelElement(parameters.containerElementId);
                 if (hook instanceof AbstractNodeHook && ModelElementContainer.is(container)) {
-                    return hook.canCreate(parameters.elementTypeId, container, parameters.location);
+                    return hook.canCreate(parameters.elementTypeId, container, parameters.position);
                 }
                 return false;
             }
@@ -501,7 +501,7 @@ export class HookManager {
                 {
                     const container = modelState.index.findModelElement(parameters.containerElementId);
                     if (hook instanceof AbstractNodeHook && ModelElementContainer.is(container)) {
-                        hook.preCreate(parameters.elementTypeId, container, parameters.location);
+                        hook.preCreate(parameters.elementTypeId, container, parameters.position);
                     } else {
                         throw Error('Can not PreCreate node.');
                     }
