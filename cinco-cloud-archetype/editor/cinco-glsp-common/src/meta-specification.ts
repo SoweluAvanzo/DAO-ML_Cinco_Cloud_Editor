@@ -551,8 +551,7 @@ export namespace ElementType {
     }
 }
 
-export interface GraphType extends ElementType {
-    containments: Constraint[];
+export interface GraphType extends ModelElementContainer, ElementType {
     view?: GraphModelView;
     diagramExtension: string;
 }
@@ -560,7 +559,7 @@ export interface GraphType extends ElementType {
 export namespace GraphType {
     export function is(object: any): object is GraphType {
         const isSpecified = (MetaSpecification.get().graphTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
-        return ElementType.is(object) && (isSpecified || hasArrayProp(object, 'containments'));
+        return ElementType.is(object) && (isSpecified || ModelElementContainer.is(object));
     }
 }
 
@@ -581,14 +580,14 @@ export interface ReferencedModelElement {
     name: string;
     type: string;
 }
-export interface ModelElementContainer extends NodeType {}
+
+export interface ModelElementContainer {
+    containments?: Constraint[];
+}
 
 export namespace ModelElementContainer {
     export function is(object: any): object is ModelElementContainer {
-        return (
-            GraphType.is(object) ||
-            (NodeType.is(object) && hasArrayProp(object, 'containments') && (object.containments?.length ?? 0.0) > 0)
-        );
+        return hasArrayProp(object, 'containments') && (!NodeType.is(object) || (object.containments?.length ?? 0.0) > 0);
     }
 }
 
@@ -652,6 +651,18 @@ export namespace UserDefinedType {
     export function is(object: any): object is UserDefinedType {
         const isSpecified = (MetaSpecification.get().customTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
         return Type.is(object) && (isSpecified || hasArrayProp(object, 'attributes'));
+    }
+}
+
+export interface PrimeNodePaletteCategory {
+    primeElementTypeId: string;
+    label: string;
+    elementTypeIds: string[];
+}
+
+export namespace PrimeNodePaletteCategory {
+    export function is(object: any): object is PrimeNodePaletteCategory {
+        return hasStringProp(object, 'elementTypeId') && hasStringProp(object, 'label') && hasArrayProp(object, 'elementTypeIds');
     }
 }
 
@@ -1070,11 +1081,15 @@ export function getPalettes(elementTypeId: string | undefined): string[] {
         return [];
     }
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
+    let result: string[] = [];
     if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
         const paletteNamesOfAnnotations = getPalettesFromAnnotation(elementTypeId).map(a => a[0]);
-        return (elementSpec.palettes ?? []).concat(paletteNamesOfAnnotations);
+        result = (elementSpec.palettes ?? []).concat(paletteNamesOfAnnotations);
+        if (result.length <= 0 && isPrime(elementTypeId)) {
+            result.push((elementSpec as NodeType).primeReference!.name);
+        }
     }
-    return [];
+    return result;
 }
 
 export function getNodePalettes(): string[] {
@@ -1086,13 +1101,35 @@ export function getNodePalettes(): string[] {
     return palettes;
 }
 
-export function getPrimeNodePalettes(): string[] {
-    const palettes: string[] = [];
-    getNodeTypes((e: NodeType) => e.primeReference !== undefined)
-        .map((e, i, a) => e.label)
-        .flat()
-        .forEach((paletteElement: string) => (palettes.indexOf(paletteElement) < 0 ? palettes.push(paletteElement) : undefined));
-    return palettes;
+export function getPrimeNodePaletteCategories(): PrimeNodePaletteCategory[] {
+    return getNodeTypes((e: NodeType) => isPrimeReference(e.elementTypeId))
+        .map(e => getPrimeNodePaletteCategoryOf(e.elementTypeId))
+        .filter(e => e !== undefined) as PrimeNodePaletteCategory[];
+}
+
+export function getPrimeNodePaletteCategoriesOf(elementTypeId: string): PrimeNodePaletteCategory[] {
+    const graphType = getGraphSpecOf(elementTypeId);
+    if (!graphType) {
+        return [];
+    }
+    return getContainmentsOf(graphType)
+        .filter(e => NodeType.is(e))
+        .filter((e: NodeType) => isPrimeReference(e.elementTypeId))
+        .map(e => getPrimeNodePaletteCategoryOf(e.elementTypeId))
+        .filter(e => e !== undefined) as PrimeNodePaletteCategory[];
+}
+
+export function getPrimeNodePaletteCategoryOf(elementTypeId: string): PrimeNodePaletteCategory | undefined {
+    if (!isPrimeReference(elementTypeId)) {
+        return undefined;
+    }
+    const spec = getNodeSpecOf(elementTypeId)!; // isPrimeReference already made sure, that this is a node
+    const primeReference = spec.primeReference!;
+    return {
+        primeElementTypeId: spec.elementTypeId,
+        label: primeReference.name,
+        elementTypeIds: [primeReference.type]
+    };
 }
 
 export function getEdgePalettes(): string[] {
@@ -1107,7 +1144,9 @@ export function getEdgePalettes(): string[] {
 }
 
 export function getAllPaletteCategories(primePalettes = true): string[] {
-    return getNodePalettes().concat(getEdgePalettes().concat(primePalettes ? getPrimeNodePalettes() : []));
+    return getNodePalettes().concat(
+        getEdgePalettes().concat(primePalettes ? Array.from(new Set(getPrimeNodePaletteCategories().map(e => e.label))) : [])
+    );
 }
 
 export function getAllPaletteAnnotations(): Annotation[] {
@@ -1358,7 +1397,11 @@ function getCompositionSpecification(): CompositionSpecification {
  * Prime
  */
 
-export function hasPrimeReference(elementTypeId: string): boolean {
+export function isPrime(elementTypeId: string): boolean {
+    return isPrimeReference(elementTypeId);
+}
+
+export function isPrimeReference(elementTypeId: string): boolean {
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
     if (NodeType.is(elementSpec)) {
         if (elementSpec.primeReference !== undefined && elementSpec.primeReference.name && elementSpec.primeReference.type) {

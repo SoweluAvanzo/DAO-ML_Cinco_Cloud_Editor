@@ -101,14 +101,14 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
             if (!this.graphModel._sourceUri) {
                 throw new Error('SourceModel has no sourceUri.');
             }
-            const graphModel = this.fixMissingProperties(sourceModel, this.graphModel._sourceUri);
+            const graphModel = GraphModelState.fixMissingProperties(sourceModel, this.graphModel._sourceUri);
             this.graphModel = graphModel;
         } else {
             throw new Error('SourceModel update is no valid GraphModel!');
         }
     }
 
-    fixMissingProperties(graphModel: GraphModel, sourceUri: string): GraphModel {
+    static fixMissingProperties(graphModel: GraphModel, sourceUri: string): GraphModel {
         if (!graphModel.type) {
             graphModel.type = getGraphModelOfFileType(getFileExtension(sourceUri))?.elementTypeId ?? 'graphmodel';
         }

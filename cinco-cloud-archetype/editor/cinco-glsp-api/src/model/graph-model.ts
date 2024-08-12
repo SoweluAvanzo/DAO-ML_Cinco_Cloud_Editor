@@ -70,9 +70,42 @@ export interface ModelElementContainer {
     _containments: Node[];
 }
 
+export interface PrimeReference {
+    instanceId: string;
+    instanceType: string;
+    modelId: string;
+    modelType: string;
+    filePath: string;
+}
+
+export namespace PrimeReference {
+    export function is(object: any): object is PrimeReference {
+        return (
+            AnyObject.is(object) &&
+            hasStringProp(object, 'instanceId') &&
+            hasStringProp(object, 'instanceType') &&
+            hasStringProp(object, 'modelId') &&
+            hasStringProp(object, 'modelType') &&
+            hasStringProp(object, 'filePath')
+        );
+    }
+}
+
 export namespace ModelElementContainer {
     export function is(object: any): object is ModelElementContainer {
         return AnyObject.is(object) && hasArrayProp(object, '_containments');
+    }
+
+    // TODO: UserdefinedType currently not included
+    export function getAllContainments(host: ModelElementContainer): IdentifiableElement[] {
+        let allElements: IdentifiableElement[] = [];
+        allElements = allElements.concat(host._containments);
+        for (const e of allElements) {
+            if (ModelElementContainer.is(e)) {
+                allElements = allElements.concat(ModelElementContainer.getAllContainments(e));
+            }
+        }
+        return allElements;
     }
 }
 
@@ -366,6 +399,8 @@ export namespace ModelElement {
 }
 
 export class Node extends ModelElement {
+    _primeReference?: PrimeReference;
+
     get parent(): ModelElementContainer | undefined {
         return this.index!.findContainment(this);
     }
@@ -438,6 +473,19 @@ export class Node extends ModelElement {
 
     canBeContainmentOf(c: Container): boolean {
         return c.canContain(this.type);
+    }
+
+    override initializeProperties(primeReference?: PrimeReference): void {
+        super.initializeProperties();
+        this._primeReference = primeReference;
+    }
+
+    get isPrime(): boolean {
+        return this._primeReference !== undefined;
+    }
+
+    get primeReference(): PrimeReference | undefined {
+        return this._primeReference;
     }
 
     override get size(): Size {
@@ -530,6 +578,10 @@ export class Container extends Node implements ModelElementContainer {
         const constraints: Constraint[] = spec.containments;
         const elements = this.containments;
         return this.checkViolations(type, elements, constraints).length <= 0;
+    }
+
+    getAllContainments(): IdentifiableElement[] {
+        return ModelElementContainer.getAllContainments(this);
     }
 }
 
@@ -660,6 +712,10 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
 
     override getSpec(): GraphType {
         return super.getSpec() as GraphType;
+    }
+
+    getAllContainments(): IdentifiableElement[] {
+        return ModelElementContainer.getAllContainments(this).concat(this.edges);
     }
 }
 

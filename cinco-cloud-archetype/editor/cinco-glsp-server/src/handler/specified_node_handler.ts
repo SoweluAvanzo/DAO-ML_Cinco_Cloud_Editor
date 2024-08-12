@@ -13,9 +13,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Container, GraphModel, GraphModelIndex, Node, HookManager } from '@cinco-glsp/cinco-glsp-api';
+import { Container, GraphModel, GraphModelIndex, Node, HookManager, PrimeReference } from '@cinco-glsp/cinco-glsp-api';
 import { ModelElementContainer, getNodeSpecOf, getNodeTypes, NodeType, CreateNodeArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
-import { CreateNodeOperation, Point } from '@eclipse-glsp/server';
+import { Args, CreateNodeOperation, Point } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { AbstractSpecifiedNodeElementHandler } from './specified_element_handler';
 
@@ -36,25 +36,49 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
         };
         const inConstraint = this.canBeContained(container, operation.elementTypeId);
         const canCreate = (): boolean =>
-            HookManager.executeHook(parameters, HookType.CAN_CREATE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(
+                parameters,
+                HookType.CAN_CREATE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
         if (inConstraint && canCreate()) {
             // PRE
-            HookManager.executeHook(parameters, HookType.PRE_CREATE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(
+                parameters,
+                HookType.PRE_CREATE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
             // creation
             const elementTypeId = operation.elementTypeId;
             const relativeLocation = this.getRelativeLocation(operation) ?? Point.ORIGIN;
-            const node = this.createNode(relativeLocation, elementTypeId);
+            const node = this.createNode(relativeLocation, elementTypeId, operation.args);
             node.index = container!.index;
             container!.containments.push(node);
             this.modelState.refresh();
             // POST
             parameters.modelElementId = node.id;
-            HookManager.executeHook(parameters, HookType.POST_CREATE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(
+                parameters,
+                HookType.POST_CREATE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
             this.saveAndUpdate();
         }
     }
 
-    protected createNode(position: Point, elementTypeId: string): Node {
+    protected createNode(position: Point, elementTypeId: string, args?: Args): Node {
         const specification = getNodeSpecOf(elementTypeId);
         let node;
         if (ModelElementContainer.is(specification)) {
@@ -69,7 +93,7 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
             height: node.size.height ?? specification?.height ?? 100
         };
         node.position = position;
-        node.initializeProperties();
+        node.initializeProperties(PrimeReference.is(args) ? args : undefined);
         return node;
     }
 

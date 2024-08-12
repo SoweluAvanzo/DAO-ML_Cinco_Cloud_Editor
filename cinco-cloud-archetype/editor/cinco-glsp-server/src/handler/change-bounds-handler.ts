@@ -57,9 +57,25 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
             newPosition: newPosition
         };
         if (newPosition && this.canMove(moveParameters)) {
-            HookManager.executeHook(moveParameters, HookType.PRE_MOVE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(
+                moveParameters,
+                HookType.PRE_MOVE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
             node.position = newPosition;
-            HookManager.executeHook(moveParameters, HookType.POST_MOVE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(
+                moveParameters,
+                HookType.POST_MOVE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
         }
     }
 
@@ -75,12 +91,28 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
                 oldSize: node.size,
                 newSize: newSize,
                 oldPosition: node.position,
-                newPosition: node.position // TODO: This needs to change (For @Jochel)
+                newPosition: node.position // TODO-SAMI: This needs to change (For @Jochel)
             };
             if (this.canResize(newSize, parameters)) {
-                HookManager.executeHook(parameters, HookType.PRE_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+                HookManager.executeHook(
+                    parameters,
+                    HookType.PRE_RESIZE,
+                    this.modelState,
+                    this.logger,
+                    this.actionDispatcher,
+                    this.sourceModelStorage,
+                    this.submissionHandler
+                );
                 node.size = newSize;
-                HookManager.executeHook(parameters, HookType.POST_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+                HookManager.executeHook(
+                    parameters,
+                    HookType.POST_RESIZE,
+                    this.modelState,
+                    this.logger,
+                    this.actionDispatcher,
+                    this.sourceModelStorage,
+                    this.submissionHandler
+                );
             }
         }
     }
@@ -94,10 +126,26 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
     }
 
     private canMove(parameters: MoveArgument): boolean {
-        return HookManager.executeHook(parameters, HookType.CAN_MOVE, this.modelState, this.logger, this.actionDispatcher);
+        return HookManager.executeHook(
+            parameters,
+            HookType.CAN_MOVE,
+            this.modelState,
+            this.logger,
+            this.actionDispatcher,
+            this.sourceModelStorage,
+            this.submissionHandler
+        );
     }
 
     private canResize(newSize: Dimension, parameters: ResizeArgument): boolean {
-        return HookManager.executeHook(parameters, HookType.CAN_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+        return HookManager.executeHook(
+            parameters,
+            HookType.CAN_RESIZE,
+            this.modelState,
+            this.logger,
+            this.actionDispatcher,
+            this.sourceModelStorage,
+            this.submissionHandler
+        );
     }
 }
