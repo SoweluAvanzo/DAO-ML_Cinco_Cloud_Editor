@@ -255,7 +255,7 @@
         "height": 50
       },
       "_position": {
-        "x": 791.8832648335219,
+        "x": 695.7219013543021,
         "y": 57.59497620899935
       }
     },
@@ -272,8 +272,8 @@
         "height": 50
       },
       "_position": {
-        "x": 769.0007801277366,
-        "y": 244.46860130624583
+        "x": 682.8302076593448,
+        "y": 403.0724086031409
       }
     }
   ],
@@ -367,6 +367,6 @@
     }
   ],
   "type": "metamodel:model",
-  "_sourceUri": "/Users/sami/Desktop/rebase/cinco-cloud/cinco-cloud-archetype/editor/workspace/example.mm",
+  "_sourceUri": "/Users/sami/Desktop/rebase/cinco-cloud/cinco-cloud-archetype/editor/workspace/example-models/example.mm",
   "_attributes": {}
 }
