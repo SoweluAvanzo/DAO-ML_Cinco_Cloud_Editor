@@ -64,6 +64,61 @@
         "panel": "new"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "freePort3000",
+      "type": "shell",
+      "group": "build",
+      "command": "echo $(kill -9 $(lsof -t -i :3000 | tail -n 1))",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "freePort3003",
+      "type": "shell",
+      "group": "build",
+      "command": "echo $(kill -9 $(lsof -t -i :3003 | tail -n 1))",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "freePort5007",
+      "type": "shell",
+      "group": "build",
+      "command": "echo $(kill -9 $(lsof -t -i :5007 | tail -n 1))",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "freePort3003 && freePort5007",
+      "type": "shell",
+      "group": "build",
+      "command": "echo $(kill -9 $(lsof -t -i :3003 | tail -n 1)) && echo $(kill -9 $(lsof -t -i :5007 | tail -n 1))",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "freePort3000 && freePort3003 && freePort5007",
+      "type": "shell",
+      "group": "build",
+      "command": "echo $(kill -9 $(lsof -t -i :3000 | tail -n 1)) && echo $(kill -9 $(lsof -t -i :3003 | tail -n 1)) && echo $(kill -9 $(lsof -t -i :5007 | tail -n 1))",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
     }
   ]
 }
