@@ -19,7 +19,7 @@
         "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
-      "preLaunchTask": "freePort3000 && freePort3003 && freePort5007",
+      "killBehavior": "forceful",
       "args": [
         "start",
         "--port=3000",
@@ -60,7 +60,7 @@
         "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
-      "preLaunchTask": "freePort3000 && freePort3003 && freePort5007",
+      "killBehavior": "forceful",
       "args": [
         "start",
         "--port=3000",
@@ -103,7 +103,7 @@
         "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
-      "preLaunchTask": "freePort3000 && freePort3003 && freePort5007",
+      "killBehavior": "forceful",
       "args": [
         "start",
         "--port=3000",
@@ -148,7 +148,7 @@
         "USE_SSL": "false",
         "SERVER_EXTERNAL": "true"
       },
-      "preLaunchTask": "freePort3000",
+      "killBehavior": "forceful",
       "args": [
         "start:external",
         "--port=3000",
@@ -191,7 +191,7 @@
         "USE_SSL": "false",
         "SERVER_EXTERNAL": "true"
       },
-      "preLaunchTask": "freePort3000",
+      "killBehavior": "forceful",
       "args": [
         "start:external",
         "--port=3000",
@@ -230,7 +230,7 @@
         "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
-      "preLaunchTask": "freePort3003 && freePort5007",
+      "killBehavior": "forceful",
       "args": [
         "-p",
         "5007",
@@ -263,7 +263,7 @@
         "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
-      "preLaunchTask": "freePort3003 && freePort5007",
+      "killBehavior": "forceful",
       "args": [
         "-p",
         "5007",
@@ -296,7 +296,7 @@
         "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
-      "preLaunchTask": "freePort3003 && freePort5007",
+      "killBehavior": "forceful",
       "args": [
         "-p",
         "5007",
@@ -330,7 +330,7 @@
         "EDITOR_TYPE": "LANGUAGE_EDITOR",
         "USE_SSL": "false"
       },
-      "preLaunchTask": "freePort3003 && freePort5007",
+      "killBehavior": "forceful",
       "args": [
         "-p",
         "5007",
