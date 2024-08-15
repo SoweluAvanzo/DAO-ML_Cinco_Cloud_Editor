@@ -59,7 +59,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@32"
+                    "$ref": "#/rules@33"
                   },
                   "arguments": []
                 }
@@ -78,7 +78,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@28"
+                "$ref": "#/rules@29"
               },
               "arguments": []
             }
@@ -101,7 +101,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@28"
+                    "$ref": "#/rules@29"
                   },
                   "arguments": []
                 }
@@ -120,7 +120,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@28"
+                        "$ref": "#/rules@29"
                       },
                       "arguments": []
                     }
@@ -173,7 +173,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -195,7 +195,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@28"
+                        "$ref": "#/rules@29"
                       },
                       "arguments": []
                     }
@@ -207,7 +207,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@33"
+                        "$ref": "#/rules@34"
                       },
                       "arguments": []
                     }
@@ -231,7 +231,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         "terminal": {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@28"
+                            "$ref": "#/rules@29"
                           },
                           "arguments": []
                         }
@@ -243,7 +243,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         "terminal": {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@33"
+                            "$ref": "#/rules@34"
                           },
                           "arguments": []
                         }
@@ -363,7 +363,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@33"
+                  "$ref": "#/rules@34"
                 },
                 "arguments": []
               },
@@ -381,7 +381,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -400,7 +400,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@30"
+                    "$ref": "#/rules@31"
                   },
                   "arguments": []
                 }
@@ -426,7 +426,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@30"
+                            "$ref": "#/rules@31"
                           },
                           "arguments": []
                         }
@@ -462,7 +462,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@28"
+                    "$ref": "#/rules@29"
                   },
                   "arguments": []
                 }
@@ -569,7 +569,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -608,7 +608,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@33"
+                          "$ref": "#/rules@34"
                         },
                         "arguments": []
                       },
@@ -641,7 +641,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@33"
+                        "$ref": "#/rules@34"
                       },
                       "arguments": []
                     }
@@ -660,7 +660,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         "terminal": {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@28"
+                            "$ref": "#/rules@29"
                           },
                           "arguments": []
                         }
@@ -679,7 +679,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                             "terminal": {
                               "$type": "RuleCall",
                               "rule": {
-                                "$ref": "#/rules@28"
+                                "$ref": "#/rules@29"
                               },
                               "arguments": []
                             }
@@ -776,7 +776,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@33"
+                      "$ref": "#/rules@34"
                     },
                     "arguments": []
                   },
@@ -802,7 +802,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@33"
+                          "$ref": "#/rules@34"
                         },
                         "arguments": []
                       },
@@ -828,7 +828,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                           "terminal": {
                             "$type": "RuleCall",
                             "rule": {
-                              "$ref": "#/rules@33"
+                              "$ref": "#/rules@34"
                             },
                             "arguments": []
                           },
@@ -860,7 +860,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@30"
+                    "$ref": "#/rules@31"
                   },
                   "arguments": []
                 }
@@ -883,7 +883,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@30"
+                        "$ref": "#/rules@31"
                       },
                       "arguments": []
                     }
@@ -936,7 +936,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -955,7 +955,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@28"
+                    "$ref": "#/rules@29"
                   },
                   "arguments": []
                 }
@@ -967,7 +967,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@33"
+                    "$ref": "#/rules@34"
                   },
                   "arguments": []
                 }
@@ -1020,7 +1020,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@33"
+                    "$ref": "#/rules@34"
                   },
                   "arguments": []
                 }
@@ -1039,7 +1039,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@33"
+                        "$ref": "#/rules@34"
                       },
                       "arguments": []
                     }
@@ -1058,7 +1058,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         "terminal": {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@33"
+                            "$ref": "#/rules@34"
                           },
                           "arguments": []
                         }
@@ -1100,7 +1100,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -1124,7 +1124,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@26"
+                    "$ref": "#/rules@25"
                   },
                   "arguments": []
                 }
@@ -1174,7 +1174,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@33"
+                      "$ref": "#/rules@34"
                     },
                     "arguments": []
                   },
@@ -1200,7 +1200,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@33"
+                          "$ref": "#/rules@34"
                         },
                         "arguments": []
                       },
@@ -1226,7 +1226,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                           "terminal": {
                             "$type": "RuleCall",
                             "rule": {
-                              "$ref": "#/rules@33"
+                              "$ref": "#/rules@34"
                             },
                             "arguments": []
                           },
@@ -1258,7 +1258,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@30"
+                    "$ref": "#/rules@31"
                   },
                   "arguments": []
                 }
@@ -1281,7 +1281,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@30"
+                        "$ref": "#/rules@31"
                       },
                       "arguments": []
                     }
@@ -1344,7 +1344,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -1383,7 +1383,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@33"
+                          "$ref": "#/rules@34"
                         },
                         "arguments": []
                       },
@@ -1416,7 +1416,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@28"
+                        "$ref": "#/rules@29"
                       },
                       "arguments": []
                     }
@@ -1438,7 +1438,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@28"
+                        "$ref": "#/rules@29"
                       },
                       "arguments": []
                     }
@@ -1619,7 +1619,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@28"
+                "$ref": "#/rules@29"
               },
               "arguments": []
             }
@@ -1635,7 +1635,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -1761,7 +1761,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -1800,7 +1800,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@33"
+                          "$ref": "#/rules@34"
                         },
                         "arguments": []
                       },
@@ -1836,7 +1836,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         "terminal": {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@33"
+                            "$ref": "#/rules@34"
                           },
                           "arguments": []
                         }
@@ -1855,7 +1855,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                             "terminal": {
                               "$type": "RuleCall",
                               "rule": {
-                                "$ref": "#/rules@28"
+                                "$ref": "#/rules@29"
                               },
                               "arguments": []
                             }
@@ -1874,7 +1874,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                 "terminal": {
                                   "$type": "RuleCall",
                                   "rule": {
-                                    "$ref": "#/rules@28"
+                                    "$ref": "#/rules@29"
                                   },
                                   "arguments": []
                                 }
@@ -2177,7 +2177,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -2216,7 +2216,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@33"
+                          "$ref": "#/rules@34"
                         },
                         "arguments": []
                       },
@@ -2252,7 +2252,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         "terminal": {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@33"
+                            "$ref": "#/rules@34"
                           },
                           "arguments": []
                         }
@@ -2271,7 +2271,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                             "terminal": {
                               "$type": "RuleCall",
                               "rule": {
-                                "$ref": "#/rules@28"
+                                "$ref": "#/rules@29"
                               },
                               "arguments": []
                             }
@@ -2290,7 +2290,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                 "terminal": {
                                   "$type": "RuleCall",
                                   "rule": {
-                                    "$ref": "#/rules@28"
+                                    "$ref": "#/rules@29"
                                   },
                                   "arguments": []
                                 }
@@ -2723,7 +2723,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@25"
+                "$ref": "#/rules@26"
               },
               "arguments": []
             }
@@ -2739,7 +2739,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -2758,7 +2758,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@30"
+                    "$ref": "#/rules@31"
                   },
                   "arguments": []
                 }
@@ -2784,7 +2784,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         {
                           "$type": "RuleCall",
                           "rule": {
-                            "$ref": "#/rules@30"
+                            "$ref": "#/rules@31"
                           },
                           "arguments": []
                         }
@@ -2820,7 +2820,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@26"
+                    "$ref": "#/rules@25"
                   },
                   "arguments": []
                 }
@@ -2872,7 +2872,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@33"
+                  "$ref": "#/rules@34"
                 },
                 "arguments": []
               },
@@ -2890,7 +2890,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -2906,7 +2906,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -2964,7 +2964,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@32"
+                "$ref": "#/rules@33"
               },
               "arguments": []
             }
@@ -2980,7 +2980,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -3016,7 +3016,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
               "terminal": {
                 "$type": "RuleCall",
                 "rule": {
-                  "$ref": "#/rules@33"
+                  "$ref": "#/rules@34"
                 },
                 "arguments": []
               },
@@ -3034,7 +3034,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -3105,7 +3105,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@33"
+                        "$ref": "#/rules@34"
                       },
                       "arguments": []
                     }
@@ -3135,7 +3135,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@33"
+                          "$ref": "#/rules@34"
                         },
                         "arguments": []
                       },
@@ -3143,6 +3143,18 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     }
                   }
                 ]
+              },
+              {
+                "$type": "Assignment",
+                "feature": "modelElementBaseType",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@27"
+                  },
+                  "arguments": []
+                }
               }
             ]
           },
@@ -3157,7 +3169,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -3224,7 +3236,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@33"
+                "$ref": "#/rules@34"
               },
               "arguments": []
             }
@@ -3263,7 +3275,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                       "terminal": {
                         "$type": "RuleCall",
                         "rule": {
-                          "$ref": "#/rules@33"
+                          "$ref": "#/rules@34"
                         },
                         "arguments": []
                       },
@@ -3387,7 +3399,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@30"
+                    "$ref": "#/rules@31"
                   },
                   "arguments": []
                 }
@@ -3410,7 +3422,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@30"
+                        "$ref": "#/rules@31"
                       },
                       "arguments": []
                     }
@@ -3423,6 +3435,50 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
               }
             ],
             "cardinality": "?"
+          }
+        ]
+      },
+      "definesHiddenTokens": false,
+      "entry": false,
+      "fragment": false,
+      "hiddenTokens": [],
+      "parameters": [],
+      "wildcard": false
+    },
+    {
+      "$type": "ParserRule",
+      "name": "PrimitiveDefaultValue",
+      "dataType": "string",
+      "definition": {
+        "$type": "Alternatives",
+        "elements": [
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@31"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@30"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@29"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@28"
+            },
+            "arguments": []
           }
         ]
       },
@@ -3467,38 +3523,34 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
     },
     {
       "$type": "ParserRule",
-      "name": "PrimitiveDefaultValue",
+      "name": "ModelElementBaseTypes",
       "dataType": "string",
       "definition": {
         "$type": "Alternatives",
         "elements": [
           {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@30"
-            },
-            "arguments": []
+            "$type": "Keyword",
+            "value": "GraphModel"
           },
           {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@29"
-            },
-            "arguments": []
+            "$type": "Keyword",
+            "value": "Node"
           },
           {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@28"
-            },
-            "arguments": []
+            "$type": "Keyword",
+            "value": "Edge"
           },
           {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@27"
-            },
-            "arguments": []
+            "$type": "Keyword",
+            "value": "Container"
+          },
+          {
+            "$type": "Keyword",
+            "value": "ModelElement"
+          },
+          {
+            "$type": "Keyword",
+            "value": "ModelElementContainer"
           }
         ]
       },
@@ -3514,7 +3566,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
       "name": "BOOL",
       "definition": {
         "$type": "RegexToken",
-        "regex": "/true|false|TRUE|FALSE|True|False/"
+        "regex": "/\\\\b(true|false|TRUE|FALSE|True|False)\\\\b/"
       },
       "fragment": false,
       "hidden": false
@@ -3542,7 +3594,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
           {
             "$type": "TerminalRuleCall",
             "rule": {
-              "$ref": "#/rules@30"
+              "$ref": "#/rules@31"
             }
           },
           {
@@ -3555,7 +3607,7 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
           {
             "$type": "TerminalRuleCall",
             "rule": {
-              "$ref": "#/rules@30"
+              "$ref": "#/rules@31"
             }
           }
         ]

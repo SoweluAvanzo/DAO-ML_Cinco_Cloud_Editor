@@ -136,7 +136,11 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
     }
 
     static readModelFromFile(sourceUri: string): GraphModel | undefined {
-        return this.loadFromFile(sourceUri).graphModel;
+        const model = this.loadFromFile(sourceUri).graphModel;
+        if (!model) {
+            return undefined;
+        }
+        return GraphModelState.resolveGraphmodel(model, new GraphModel(), undefined); // TODO: merged index?
     }
 
     protected static loadFromFile(

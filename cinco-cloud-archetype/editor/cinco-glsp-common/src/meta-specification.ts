@@ -541,6 +541,7 @@ export namespace Type {
 export interface ElementType extends Type {
     icon?: string;
     view?: View;
+    superTypes: string[];
     annotations?: Annotation[];
     attributes?: Attribute[];
 }
@@ -669,6 +670,15 @@ export namespace PrimeNodePaletteCategory {
 /**
  * Functions
  */
+
+/**
+ * Polymorphie
+ */
+
+export function isInstanceOf(type: string, superType: string): boolean {
+    const spec = getSpecOf(type);
+    return type === superType || (spec !== undefined && (spec!.superTypes ?? []).includes(superType));
+}
 
 /**
  * Properties and Types

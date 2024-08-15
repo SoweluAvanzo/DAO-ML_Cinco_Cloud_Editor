@@ -4,7 +4,17 @@ stylePath "primeRef.style"
 
 graphModel PrimeRefModel {
     diagramExtension "prime"
-    containableElements (Type, Type2, PrimeNode, PrimeEdge, PrimeModel, PrimeNode2, PrimeReflection, ExternalPrimeModel)
+    containableElements (Type, Type2, 
+        PrimeNode, PrimeEdge, PrimeModel, PrimeNode2, 
+        PrimeReflection, ExternalPrimeModel,
+        PrimeBaseGraphModel,
+        PrimeBaseContainer,
+        PrimeBaseNode,
+        PrimeBaseEdge,
+        PrimeBaseModelElement,
+        PrimeBaseModelElementContainer
+    )
+    attr string as name
 }
 
 container Type {
@@ -45,7 +55,7 @@ node PrimeNode {
     incomingEdges(Relation)
     outgoingEdges(Relation)
 
-    prime this::Type as Z_LIBRARY_Node
+    prime this::Type as Z_LIBRARY_Type
     attr string as name
 }
 
@@ -55,7 +65,7 @@ node PrimeNode2 {
     incomingEdges(Relation)
     outgoingEdges(Relation)
 
-    prime this::Type2 as Z_LIBRARY_Node
+    prime this::Type2 as Z_LIBRARY_Type2
     attr string as name
 }
 
@@ -65,7 +75,7 @@ node PrimeReflection {
     incomingEdges(Relation)
     outgoingEdges(Relation)
 
-    prime this::PrimeNode as Z_LIBRARY_Reflection
+    prime this::PrimeNode as Z_LIBRARY_PrimeNode
     attr string as name
 }
 
@@ -75,7 +85,7 @@ node PrimeEdge {
     incomingEdges(Relation)
     outgoingEdges(Relation)
 
-    prime this::Relation as Z_LIBRARY_Edges
+    prime this::Relation as Z_LIBRARY_Relation
     attr string as name
 }
 
@@ -85,7 +95,7 @@ node PrimeModel {
     incomingEdges(Relation)
     outgoingEdges(Relation)
 
-    prime this::PrimeRefModel as Z_LIBRARY_Model
+    prime this::PrimeRefModel as Z_LIBRARY_PrimeRefModel
     attr string as name
 }
 
@@ -96,6 +106,66 @@ node ExternalPrimeModel {
     outgoingEdges(Relation)
 
     prime example::Model as Z_LIBRARY_External_Model
+    attr string as name
+}
+
+@Hook(PrimeHooks, PostDoubleClick, CanDoubleClick)
+node PrimeBaseGraphModel { 
+	style typeStyle("GraphModel Prime ${name}")
+    incomingEdges(Relation)
+    outgoingEdges(Relation)
+
+    prime GraphModel as Z_LIBRARY_GraphModels
+    attr string as name
+}
+
+@Hook(PrimeHooks, PostDoubleClick, CanDoubleClick)
+node PrimeBaseNode { 
+	style typeStyle("Node Prime ${name}")
+    incomingEdges(Relation)
+    outgoingEdges(Relation)
+
+    prime Node as Z_LIBRARY_Nodes
+    attr string as name
+}
+
+@Hook(PrimeHooks, PostDoubleClick, CanDoubleClick)
+node PrimeBaseContainer { 
+	style typeStyle("Edge Prime ${name}")
+    incomingEdges(Relation)
+    outgoingEdges(Relation)
+
+    prime Container as Z_LIBRARY_Containers
+    attr string as name
+}
+
+@Hook(PrimeHooks, PostDoubleClick, CanDoubleClick)
+node PrimeBaseEdge { 
+	style typeStyle("Edge Prime ${name}")
+    incomingEdges(Relation)
+    outgoingEdges(Relation)
+
+    prime Edge as Z_LIBRARY_Edges
+    attr string as name
+}
+
+@Hook(PrimeHooks, PostDoubleClick, CanDoubleClick)
+node PrimeBaseModelElement { 
+	style typeStyle("ModelElement Prime ${name}")
+    incomingEdges(Relation)
+    outgoingEdges(Relation)
+
+    prime ModelElement as Z_LIBRARY_ModelElement
+    attr string as name
+}
+
+@Hook(PrimeHooks, PostDoubleClick, CanDoubleClick)
+node PrimeBaseModelElementContainer { 
+	style typeStyle("ModelElementContainer Prime ${name}")
+    incomingEdges(Relation)
+    outgoingEdges(Relation)
+  
+    prime ModelElementContainer as Z_LIBRARY_ModelElementContainer
     attr string as name
 }
 

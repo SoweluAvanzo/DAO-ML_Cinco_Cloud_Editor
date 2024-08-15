@@ -40,6 +40,7 @@ import { inject, injectable } from 'inversify';
 import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
 import { CreateOperationHandler, SpecifiedElementHandler } from '../handler/specified_element_handler';
 import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
+import * as path from 'path';
 
 @injectable()
 export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
@@ -290,8 +291,9 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                 iconClass = getIconClass(handler.specification?.elementTypeId);
             }
         }
+        const id = `palette-item-${this.counter}`;
         const result = {
-            id: `palette-item-${this.counter}`,
+            id: id,
             label,
             sortString: label.charAt(0),
             actions: [action],
@@ -307,8 +309,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         elementTypeId: string,
         primeArgs: PrimeReferencedEntry
     ): PaletteItem {
-        const primeType = getNodeSpecOf(elementTypeId)?.primeReference?.type;
-        const elementSpecOfPrimedType = getSpecOf(primeType!) as ElementType;
+        const elementSpecOfPrimedType = getSpecOf(primeArgs.instanceType!) as ElementType;
         const label = elementSpecOfPrimedType.label + '\n[' + primeArgs.instanceId + ']\n' + ' (' + primeArgs.filePath + ')';
 
         let iconClass: string | undefined = undefined;
@@ -316,18 +317,20 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             iconClass = getIconClass(elementTypeId);
         }
         // add prime information to action of palette element
-        action.args = {};
-        (action.args as any)['instanceId'] = primeArgs.instanceId;
-        (action.args as any)['instanceType'] = primeArgs.instanceType;
-        (action.args as any)['modelId'] = primeArgs.modelId;
-        (action.args as any)['modelType'] = primeArgs.modelType;
-        (action.args as any)['filePath'] = primeArgs.filePath;
+        const primeAction = { ...action };
+        primeAction.args = {};
+        (primeAction.args as any)['instanceId'] = primeArgs.instanceId;
+        (primeAction.args as any)['instanceType'] = primeArgs.instanceType;
+        (primeAction.args as any)['modelId'] = primeArgs.modelId;
+        (primeAction.args as any)['modelType'] = primeArgs.modelType;
+        (primeAction.args as any)['filePath'] = primeArgs.filePath;
 
+        const id = `palette-item-${primeArgs.primeNodeType}-${this.counter}`;
         const result = {
-            id: `palette-item-${this.counter}`,
+            id: id,
             label,
             sortString: label.charAt(0),
-            actions: [action],
+            actions: [primeAction],
             icon: iconClass ?? 'codicon-circle-filled'
         };
         this.counter++;
@@ -342,13 +345,18 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             .map(e => {
                 const primeReferencableElements = modelFiles
                     .map(file => {
-                        const filePath = `${getWorkspaceRootUri()}/${file}`;
+                        const filePath = path.join(getWorkspaceRootUri(), file);
                         const model = GraphModelStorage.readModelFromFile(filePath);
                         if (model) {
                             const allSupportedModelElementsOfModel = model
                                 ?.getAllContainments()
                                 .concat(model)
-                                .filter(element => ModelElement.is(element) && e.elementTypeIds.includes(element.type)) as ModelElement[];
+                                .filter(
+                                    element =>
+                                        ModelElement.is(element) &&
+                                        // polymorphic check
+                                        e.elementTypeIds.find(primeType => element.instanceOf(primeType))
+                                ) as ModelElement[];
                             return allSupportedModelElementsOfModel.map(
                                 element =>
                                     ({

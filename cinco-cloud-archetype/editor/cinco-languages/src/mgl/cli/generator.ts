@@ -184,10 +184,29 @@ export class MGLGenerator {
             }
             // Copy the parent deeply
             if (foundParent) {
-                return JSON.parse(JSON.stringify(foundParent));
+                const result = JSON.parse(JSON.stringify(foundParent));
+                result.superTypes = (result.superTypes as string[]).concat([foundParent.elementTypeId]);
+                return result;
             }
         }
-        return {};
+        return {
+            superTypes: this.getBaseTypes(modelElement)
+        };
+    }
+
+    getBaseTypes(modelElement: ComplexModelElement): string[] {
+        switch (modelElement.$type) {
+            case 'GraphModel':
+                return ['graphmodel', 'modelelementcontainer', 'modelelement'];
+            case 'Node':
+                return ['node', 'modelelement'];
+            case 'NodeContainer':
+                return ['container', 'modelelementcontainer', 'node', 'modelelement'];
+            case 'Edge':
+                return ['edge', 'modelelement'];
+            case 'UserDefinedType':
+                return ['userdefinedtype'];
+        }
     }
 
     // Constructs the modelElementSpec and returns the resulting elementTypeId
@@ -337,6 +356,9 @@ export class MGLGenerator {
                             const referencedId = getElementTypeId(referencedElement);
                             modelElementSpec.primeReference.type = referencedId;
                         }
+                    } else if (reference.modelElementBaseType) {
+                        // base type reference: GraphModel, Node, Container, Edge, UserDefinedType
+                        modelElementSpec.primeReference.type = reference.modelElementBaseType.toLowerCase();
                     }
                 }
             }
