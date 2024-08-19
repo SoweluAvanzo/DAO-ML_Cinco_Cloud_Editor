@@ -221,7 +221,6 @@ function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[],
                 }
                 const instantiableTypeDefinition: UserDefinedType = typeOptions[0] as UserDefinedType;
 
-
                 const newAncestorTypes = ancestorTypes.concat([instantiableTypeDefinition.elementTypeId]);
                 const defaultObject: any = { _type: instantiableTypeDefinition.elementTypeId, _value: {} };
                 for (const child of instantiableTypeDefinition.attributes) {

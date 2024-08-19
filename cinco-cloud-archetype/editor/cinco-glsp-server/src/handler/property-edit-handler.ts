@@ -110,11 +110,21 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
                     break;
                 }
                 case 'changeType': {
-                    if (object[attributeDefinition.name]._type === undefined) {
-                        throw new Error(`Value of specified object does not fit UserDefinedType (no _type-property)`);
+                    const { index, newValue, newType } = change;
+                    if (index !== undefined) {
+                        if (object[name][index]._type === undefined) {
+                            throw new Error(`Value of specified object does not fit UserDefinedType (no _type-property)`);
+                        }
+                        object[name][index]._value = newValue;
+                        object[name][index]._type = newType;
+                    } else {
+                        if (object[name]._type === undefined) {
+                            throw new Error(`Value of specified object does not fit UserDefinedType (no _type-property)`);
+                        }
+                        object[name]._value = newValue;
+                        object[name]._type = newType;
                     }
-                    object[attributeDefinition.name]._type = change.newType;
-                    object[attributeDefinition.name]._value = change.newValue;
+                    break;
                 }
             }
         }
@@ -144,7 +154,8 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             case 'deleteValue': {
                 return canDelete(listLength - 1, bounds);
             }
-            case 'assignValue': {
+            case 'assignValue':
+            case 'changeType': {
                 // limitation: only let elements change, if the index are in the bounds of constraints
                 let index = change.index;
                 if (index === undefined) {
