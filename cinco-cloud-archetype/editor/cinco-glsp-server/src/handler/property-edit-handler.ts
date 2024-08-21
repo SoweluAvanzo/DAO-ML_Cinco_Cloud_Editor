@@ -182,7 +182,13 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
 
             // For UserDefinedTypes the type stored in the metaspecification might not be the one instantiated
             // -> Potentially select type from model element instead
-            const type = object[segment.attribute]._type ?? findAttribute(attributes, segment.attribute).type;
+
+            object =
+                segment.index !== undefined ?
+                    object[segment.attribute][segment.index] :
+                    object[segment.attribute];
+
+            const type = object._type ?? findAttribute(attributes, segment.attribute).type;
             const userDefinedType = getUserDefinedType(type);
 
             if (userDefinedType === undefined) {
@@ -190,11 +196,6 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             }
 
             attributes = userDefinedType.attributes;
-
-            object =
-                segment.index !== undefined ?
-                    object[segment.attribute][segment.index] :
-                    object[segment.attribute];
         }
 
         return { attributes: attributes, object: object._value ?? object };

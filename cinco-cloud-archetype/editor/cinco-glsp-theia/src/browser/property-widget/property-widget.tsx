@@ -633,7 +633,13 @@ export class CincoPropertyEntry extends React.Component<
                     return (
                         <table className='attribute-table'>
                             <tbody>
-                                {isPolymorphic && typeSelection!}
+                                {isPolymorphic &&
+                                    <tr>
+                                        <td colSpan={3}>
+                                            {typeSelection!}
+                                        </td>
+                                    </tr>
+                                }
                                 {
                                     // userdefined type
                                     currentType.attributes.map(childDefinition => (
