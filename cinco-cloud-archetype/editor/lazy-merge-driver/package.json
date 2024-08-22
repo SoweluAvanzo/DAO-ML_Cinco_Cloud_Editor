@@ -1,0 +1,31 @@
+{
+  "name": "@cinco-glsp/lazy-merge-driver",
+  "version": "1.0.0",
+  "license": "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
+  "dependencies": {
+    "@cinco-glsp/cinco-glsp-api": "1.0.0"
+  },
+  "author": {
+    "name": "Cinco Cloud"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/scce/cinco-cloud.git"
+  },
+  "homepage": "https://gitlab.com/scce/cinco-cloud",
+  "bugs": "https://gitlab.com/scce/cinco-cloud/issues",
+  "contributors": [
+    {
+      "name": "Cinco Cloud",
+      "url": "https://gitlab.com/scce/cinco-cloud"
+    }
+  ],
+  "devDependencies": {
+    "@eclipse-glsp/config": "2.0.0",
+    "typescript": "5.2.2"
+  },
+  "scripts": {
+    "install:only": "yarn install --ignore-scripts",
+    "build": "yarn install:only && tsc"
+  }
+}
