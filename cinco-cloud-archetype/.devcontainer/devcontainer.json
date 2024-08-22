@@ -7,10 +7,14 @@
         "dockerfile": "Dockerfile"
     },
 
+	"runArgs": [
+		"--network", "host" // Optional: Use this if you need to share the network namespace with the host
+	],
+	
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
-	"forwardPorts": [3000],
+	"forwardPorts": [3000, 3003, 5007],
 
 	"mounts": [
 		"source=${localWorkspaceFolder},target=/home/node/cinco-cloud-archetype,type=bind,consistency=cached"

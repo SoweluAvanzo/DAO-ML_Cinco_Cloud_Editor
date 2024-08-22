@@ -5,6 +5,7 @@ import {
   Alignment,
   Annotation,
   Color,
+  ComplexModelElement,
   ContainerShape,
   Edge,
   EdgeElementConnection,
@@ -66,7 +67,7 @@ import { createMslServices } from "../../msl/language-server/msl-module";
 import { extractAstNode } from "../../msl/cli/cli-util";
 import { Styles } from "../../generated/ast";
 import { NodeFileSystem } from "langium/node";
-import { ContainerType, Specification } from "../model/specification-types";
+import { Attribute, ContainerType, Specification } from "../model/specification-types";
 import { isWebView } from "../../generated/ast";
 import { WebView } from "../../generated/ast";
 import path from "path";
@@ -135,7 +136,9 @@ export class MGLGenerator {
     // Handle all model elements; abstract definitions are handled separately
     const localSortedModelElements = sortedModelElements.filter(
       (e) => e.$container === model
-    ); // only generate for local, not external modelElements
+    );
+    
+    // only generate for local, not external modelElements
     for (const modelElement of localSortedModelElements) {
       let elementTypeId = "";
       if (!isEnum(modelElement) && modelElement.isAbstract) {
@@ -165,48 +168,50 @@ export class MGLGenerator {
     return JSON.stringify(this.specification, null, 4);
   }
 
+  // If extendable and parent exists, first copy its entire specifications and overwrite customizations afterwards
+  resolveParentProperties(modelElement: ComplexModelElement): any {
+    const parentName = modelElement.localExtension?.ref
+      ? getElementTypeId(modelElement.localExtension?.ref)
+      : undefined;
+
+    if (parentName) {
+      let foundParent = undefined;
+      if (isGraphModel(modelElement)) {
+        foundParent = [
+          ...this.specification.graphTypes,
+          ...this.abstractModelElements.graphTypes,
+        ].find((type) => type.elementTypeId === parentName);
+      } else if (isNode(modelElement) || isNodeContainer(modelElement)) {
+        foundParent = [
+          ...this.specification.nodeTypes,
+          ...this.abstractModelElements.nodeTypes,
+        ].find((type) => type.elementTypeId === parentName);
+      } else if (isEdge(modelElement)) {
+        foundParent = [
+          ...this.specification.edgeTypes,
+          ...this.abstractModelElements.edgeTypes,
+        ].find((type) => type.elementTypeId === parentName);
+      } else if (isUserDefinedType(modelElement)) {
+        foundParent = [
+          ...this.specification.customTypes,
+          ...this.abstractModelElements.customTypes,
+        ].find((type) => type.elementTypeId === parentName);
+      }
+      // Copy the parent deeply
+      if (foundParent) {
+        return JSON.parse(JSON.stringify(foundParent));
+      }
+    }
+    return {};
+  }
+
   // Constructs the modelElementSpec and returns the resulting elementTypeId
   handleModelElement(
     modelElement: ModelElement,
     specification: Specification,
     importedModels: MglModel[]
   ): string {
-    var modelElementSpec: any = {};
-
-    // If parent exists, first copy its entire specifications and overwrite customizations afterwards
-    if (!isEnum(modelElement)) {
-      const parentName = modelElement.localExtension?.ref
-        ? getElementTypeId(modelElement.localExtension?.ref)
-        : undefined;
-      if (parentName) {
-        let foundParent = undefined;
-        if (isGraphModel(modelElement)) {
-          foundParent = [
-            ...this.specification.graphTypes,
-            ...this.abstractModelElements.graphTypes,
-          ].find((type) => type.elementTypeId === parentName);
-        } else if (isNode(modelElement) || isNodeContainer(modelElement)) {
-          foundParent = [
-            ...this.specification.nodeTypes,
-            ...this.abstractModelElements.nodeTypes,
-          ].find((type) => type.elementTypeId === parentName);
-        } else if (isEdge(modelElement)) {
-          foundParent = [
-            ...this.specification.edgeTypes,
-            ...this.abstractModelElements.edgeTypes,
-          ].find((type) => type.elementTypeId === parentName);
-        } else if (isUserDefinedType(modelElement)) {
-          foundParent = [
-            ...this.specification.customTypes,
-            ...this.abstractModelElements.customTypes,
-          ].find((type) => type.elementTypeId === parentName);
-        }
-        // Copy the parent deeply
-        if (foundParent) {
-          modelElementSpec = JSON.parse(JSON.stringify(foundParent));
-        }
-      }
-    }
+    var modelElementSpec: any = !isEnum(modelElement) ? this.resolveParentProperties(modelElement) : {};
 
     modelElementSpec.elementTypeId = getElementTypeId(modelElement);
     modelElementSpec.label = modelElement.name;
@@ -221,6 +226,21 @@ export class MGLGenerator {
 
     if (!isEnum(modelElement)) {
       // Attributes
+      // check inherited attributes for override
+      if(modelElementSpec.attributes && modelElement.defaultValueOverrides) {
+        modelElementSpec.attributes = modelElementSpec.attributes.map((attribute: Attribute) => {
+          const overrides = modelElement.defaultValueOverrides.filter(o => o.attribute === attribute.name);
+          if(overrides.length > 0) {
+            // is overriden
+            const overridenAttribute = attribute;
+            overridenAttribute.defaultValue = ""+overrides[0].defaultValue;
+            return overridenAttribute;
+          } else {
+            return attribute;
+          }
+        });
+      }
+      // add new
       modelElementSpec.attributes = mergeArrays(
         modelElementSpec.attributes,
         modelElement.attributes.map((attribute) => {
@@ -249,11 +269,17 @@ export class MGLGenerator {
             }
             result.type = getElementTypeId(type);
           }
-
           return result;
         }),
         "name"
       );
+      // normalize (e.g. boolean 'True' -> 'true')
+      modelElementSpec.attributes = modelElementSpec.attributes.map((attribute: any) => {
+        if(attribute.type === 'boolean' && attribute.defaultValue && typeof(attribute.defaultValue) == 'string') {
+          attribute.defaultValue = attribute.defaultValue.toLowerCase();
+        }
+        return attribute;
+      })
     }
 
     // handle containment constraints

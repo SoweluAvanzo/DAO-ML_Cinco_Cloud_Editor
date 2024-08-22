@@ -5,12 +5,32 @@ import { AstNode, LangiumDocument, LangiumServices } from 'langium';
 import { URI } from 'vscode-uri';
 import { Appearance, MglModel, ModelElement, Style, isEnum } from '../../generated/ast';
 
+function getSuperTypes(id: string, inheritanceList: [string, ModelElement[]][]): [string, ModelElement[]][] {
+    return inheritanceList.filter(e => 
+        e[1].filter(
+            inheritingType => getElementTypeId(inheritingType) === id
+        ).length > 0
+    );
+}
+
+function calculateDegree(elementId: string, inheritanceList: [string, ModelElement[]][]): number {
+    let superTypes = getSuperTypes(elementId, inheritanceList);
+    let degree = 0;
+    let currentTypeId = elementId;
+    while(superTypes.length > 0) {
+        currentTypeId = superTypes[0][0];
+        degree ++;
+        superTypes = getSuperTypes(currentTypeId, inheritanceList);
+    }
+    return degree;
+}
+
 export function topologicalSortWithDescendants(model: MglModel, importedModels: MglModel[]): {
     sortedModelElements: ModelElement[],
     descendantsMap: Record<string, Set<string>>
 } {
-    const graph: Record<string, ModelElement[]> = {};
-    const inDegree: Record<string, number> = {};
+    const inheritanceGraph: Record<string, ModelElement[]> = {}; // <superclass Id, subtype>
+    let inDegree: Record<string, number> = {};
     const descendantsMap: Record<string, Set<string>> = {};
     const importedModelElements = importedModels.map(model => model.modelElements).flat();
     const allModelElements = model.modelElements.concat(importedModelElements);
@@ -19,23 +39,22 @@ export function topologicalSortWithDescendants(model: MglModel, importedModels: 
     // Initialize the graph, in-degree maps, and descendants map
     for (const element of allModelElements) {
         const id = getElementTypeId(element);
-        graph[id] = [];
+        inheritanceGraph[id] = [];
         inDegree[id] = 0;
         descendantsMap[id] = new Set();
     }
 
     // Build the graph.
-    for (const element of allModelElements) {
+    for (const element of allModelElements.filter(e => !isEnum(e))) {
         if (!isEnum(element)) {
             if (element.localExtension) {
                 if (element.localExtension.ref) {
                     const localExtensionId = getElementTypeId(element.localExtension.ref);
-                    if (!graph[localExtensionId]) {
+                    if (!inheritanceGraph[localExtensionId]) {
                         throw new Error(`Element ${element.localExtension} not found.`);
                     }
-                    graph[localExtensionId].push(element);
-                    inDegree[element.name]++;
-                } 
+                    inheritanceGraph[localExtensionId].push(element);
+                }
             }  else if(element.externalExtension) {
                 if(!element.externalExtension.import.ref) {
                     throw new Error("External reference can not be resolved!");
@@ -46,8 +65,8 @@ export function topologicalSortWithDescendants(model: MglModel, importedModels: 
                 for(const extendedElement of element.externalExtension.elements) {
                     allModelElements.forEach(externalElement => {
                         if(getElementTypeId(externalElement) === constructElementTypeId(extendedElement, externalPath)) {
-                            const id = getElementTypeId(externalElement);
-                            graph[id].push(element);
+                            const externalId = getElementTypeId(externalElement);
+                            inheritanceGraph[externalId].push(element);
                         }
                     });
                 }
@@ -55,30 +74,21 @@ export function topologicalSortWithDescendants(model: MglModel, importedModels: 
         }
     }
 
+    // distributing degree values
+    const inheritanceList = Object.entries(inheritanceGraph);
+    for(const elementId of Object.keys(inDegree)) {
+        inDegree[elementId] = calculateDegree(elementId, inheritanceList);
+    }
+
     // Array for order of elements.
     const sortedElements: ModelElement[] = [];
 
-    // Array for elements with in-degree = 0.
-    const queue: ModelElement[] = allModelElements.filter(element => inDegree[getElementTypeId(element)] === 0);
-
-    while (queue.length) {
-        const node = queue.pop()!;
-        sortedElements.push(node);
-
-        const id = getElementTypeId(node);
-        for (const child of graph[id]) {
-            const childId = getElementTypeId(child);
-            inDegree[childId]--;
-            
-            // Update descendants map
-            descendantsMap[id].add(childId);
-            descendantsMap[childId].forEach(descendant => {
-                descendantsMap[id].add(descendant);
-            });
-            
-            if (inDegree[childId] === 0) {
-                queue.push(child);
-            }
+    // sort by degree
+    const sortedRecords = Object.entries(inDegree).sort((a, b) => a[1] - b[1])
+    for(const entry of Object.entries(sortedRecords)) {
+        const element = allModelElements.find((e: ModelElement) => getElementTypeId(e) === entry[1][0]);
+        if(element) {
+            sortedElements.push(element);
         }
     }
 

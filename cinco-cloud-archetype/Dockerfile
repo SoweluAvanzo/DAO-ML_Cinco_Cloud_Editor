@@ -64,6 +64,7 @@ COPY --chown=theia:theia ./cinco-cloud-archetype/editor /editor
 RUN mkdir -p /editor/browser-app/plugins
 RUN rm -f ./cinco-cloud-archetype/editor/browser-app/plugins/*
 COPY --from=cinco-languages-extension-builder /cinco-languages-extension/cinco-langium-0.0.1.vsix /editor/browser-app/plugins
+COPY --from=cinco-cloud-project-initializer-builder /cinco-cloud-project-initializer/cinco-cloud-project-initializer-0.0.1.vsix /editor/browser-app/plugins
 
 # build minio-client
 RUN cd minio-client && yarn && cd ../
@@ -96,4 +97,4 @@ CMD cd minio-client && node bundle/cinco-minio-client --metaFolder ../cinco-glsp
     WORKSPACE_PATH="${WORKSPACE_PATH}" \
     EDITOR_TYPE="${EDITOR_TYPE}" \
     ENVIRONMENT="${ENVIRONMENT}" \
-    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0 --app-project-path=/editor/ --META_DEV_MODE --META_LANGUAGES_FOLDER="${META_LANGUAGES_FOLDER}"
+    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0 --META_DEV_MODE --META_LANGUAGES_FOLDER="${META_LANGUAGES_FOLDER}"

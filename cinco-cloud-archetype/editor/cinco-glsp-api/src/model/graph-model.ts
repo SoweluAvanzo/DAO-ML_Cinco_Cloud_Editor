@@ -298,7 +298,7 @@ export class ModelElement implements IdentifiableElement {
                 if (isList(definition)) {
                     this._attributes[definition.name] = [];
                 } else {
-                    this._attributes[definition.name] = getDefaultValue(this.type, definition.name);
+                    this._attributes[definition.name] = getDefaultValue(this.type, definition.name, definition.annotations ?? []);
                 }
             }
         }
@@ -324,7 +324,9 @@ export class ModelElement implements IdentifiableElement {
             } else {
                 this.setProperty(
                     definition.name,
-                    properties[definition.name] ?? definition.defaultValue ?? getFallbackDefaultValue(definition.type)
+                    properties[definition.name] ??
+                        definition.defaultValue ??
+                        getFallbackDefaultValue(definition.type, definition.annotations ?? [])
                 );
             }
         }

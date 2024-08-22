@@ -34,7 +34,14 @@ import {
     ObjectPointer,
     PrimitivePropertyType,
     PropertyChange,
-    PropertyViewMessage
+    PropertyViewMessage,
+    isMultiline,
+    isFile,
+    isColor,
+    isDate,
+    parseColorValueToHex,
+    parseColorValueFromHex,
+    cleanDate
 } from '@cinco-glsp/cinco-glsp-common/lib/protocol/property-model';
 import { DiagramConfiguration } from '@eclipse-glsp/theia-integration';
 import { CommandService } from '@theia/core';
@@ -135,7 +142,7 @@ export class CincoPropertiesView extends React.Component<
         commandService: CommandService | Readonly<CommandService>;
         propertyDataHandler: PropertyDataHandler;
         diagramConfiguration: DiagramConfiguration;
-        }) {
+    }) {
         super(props);
         this.state = this.props.parentState();
     }
@@ -161,7 +168,7 @@ export class CincoPropertiesView extends React.Component<
 
         // filter out all attributes, that are hidden
         const isHidden: (attributeDefinition: any) => boolean = attributeDefinition =>
-            (attributeDefinition.annotations ?? []).filter((annotation: any) => annotation.name === 'hidden').length <= 0;
+            attributeDefinition.annotations.filter((annotation: any) => annotation.name === 'hidden').length <= 0;
         const attributeDefinitions = this.state.attributeDefinitions.filter(a => isHidden(a));
 
         return (
@@ -261,10 +268,16 @@ export class CincoPropertyView extends React.Component<
                     className='action-button'
                     onClick={() =>
                         addPropertyValue(
-                        this.props.parent, (newState: PropertyWidgetState) => { this.setState(newState); }, this.state,
-                        pointer, attributeDefinition.name
-                    )
-                }>
+                            this.props.parent,
+                            (newState: PropertyWidgetState) => {
+                                this.setState(newState);
+                            },
+                            this.state,
+                            pointer,
+                            attributeDefinition.name
+                        )
+                    }
+                >
                     <span className='codicon codicon-add'></span>
                 </button>
             </td>
@@ -300,9 +313,10 @@ export class CincoPropertyView extends React.Component<
                                             type='button'
                                             className='action-button'
                                             onClick={() =>
-                                                 deletePropertyValue(
-                                                        this.props.parent,
-                                                        (newState: PropertyWidgetState) => { this.setState(newState);
+                                                deletePropertyValue(
+                                                    this.props.parent,
+                                                    (newState: PropertyWidgetState) => {
+                                                        this.setState(newState);
                                                     },
                                                     this.state,
                                                     pointer,
@@ -411,7 +425,8 @@ export class CincoPropertyEntry extends React.Component<
         const objectValue = locateObjectValue(this.state, pointer);
         const value = this.getValueAttribute(
             attributeDefinition.type as PrimitivePropertyType,
-            isList ? objectValue[valueName][index] : objectValue[valueName]
+            isList ? objectValue[valueName][index] : objectValue[valueName],
+            attributeDefinition.annotations
         );
 
         // check annotations
@@ -420,8 +435,14 @@ export class CincoPropertyEntry extends React.Component<
         switch (attributeDefinition.type) {
             case 'string':
             case 'number':
-            case 'boolean': {
-                const inputType = this.getInputType(attributeDefinition.type, annotations ?? []);
+            case 'boolean':
+            case 'date':
+            case 'Date':
+            case 'file':
+            case 'File':
+            case 'color':
+            case 'Color': {
+                const inputType = this.getInputType(attributeDefinition.type, annotations);
                 const isDisabled = isReadOnly && ['checkbox', 'color', 'date', 'file'].includes(inputType);
                 if (inputType === 'textarea') {
                     return (
@@ -452,7 +473,10 @@ export class CincoPropertyEntry extends React.Component<
                     );
                 } else if (inputType === 'file') {
                     const fileDialogService = this.props.parent.fileDialogService;
-                    const fileTypes = (attributeDefinition.annotations ?? []).map(a => a.values).flat();
+                    const fileTypes = annotations
+                        .filter(a => a.name === 'file')
+                        .map(a => a.values)
+                        .flat();
                     const directorySelectable = fileTypes.filter(t => t === FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD).length > 0;
                     const nonDirectoryFileTypesDefined = fileTypes.filter(t => t !== FILE_PICKER_DIRECTORY_ALLOWED_KEYWORD).length > 0;
                     const onlyDirectory = !nonDirectoryFileTypesDefined && directorySelectable;
@@ -461,7 +485,7 @@ export class CincoPropertyEntry extends React.Component<
                             <input
                                 type={'button'}
                                 value={'Select'}
-                                onClick={event => {
+                                onClick={_ => {
                                     fileDialogService
                                         .showOpenDialog({
                                             title: `Select a file for ${attributeDefinition.name}`,
@@ -506,20 +530,25 @@ export class CincoPropertyEntry extends React.Component<
                         </span>
                     );
                 } else {
-                return (
-                    <input
-                        type={inputType}
-                        {...value}
-                        onChange={event => {
-                            const newValue = attributeDefinition.type === 'boolean'
-                                ? event.currentTarget.checked : event.currentTarget.value;
-                            // propagate
-                            assignPropertyValue(
-                                this.props.parent, (newState: PropertyWidgetState) => this.setState(newState), this.state,
-                                pointer, attributeDefinition, isList ? index : undefined, newValue
-                            );
-                        }}
-                        readOnly={isReadOnly}
+                    return (
+                        <input
+                            type={inputType}
+                            {...value}
+                            onChange={event => {
+                                const newValue =
+                                    attributeDefinition.type === 'boolean' ? event.currentTarget.checked : event.currentTarget.value;
+                                // propagate
+                                assignPropertyValue(
+                                    this.props.parent,
+                                    (newState: PropertyWidgetState) => this.setState(newState),
+                                    this.state,
+                                    pointer,
+                                    attributeDefinition,
+                                    isList ? index : undefined,
+                                    newValue
+                                );
+                            }}
+                            readOnly={isReadOnly}
                             disabled={isDisabled}
                             id={inputId}
                             className={`property-input property-input-${inputType}`}
@@ -600,8 +629,8 @@ export class CincoPropertyEntry extends React.Component<
                                 // ModelElementReference identifier specified in the following fallback order:
                                 // name => label => attributeDefinitionType
                                 <option value={id} key={id}>
-                                    {name ? name : label ? label : attributeDefinition.type}
-                                    ({name ? label + ', ' : ''}{id})
+                                    {name ? name : label ? label : attributeDefinition.type}({name ? label + ', ' : ''}
+                                    {id})
                                 </option>
                             ))}
                         </select>
@@ -611,20 +640,17 @@ export class CincoPropertyEntry extends React.Component<
         }
     }
 
-    protected getInputType(type: PrimitivePropertyType, annotations: Annotation[]): React.HTMLInputTypeAttribute {
-        const isColor = annotations.filter(a => a.name === 'color').length > 0;
-        const isFile = annotations.filter(a => a.name === 'file').length > 0;
-        const isDate = annotations.filter(a => a.name === 'date').length > 0;
-        const isMultiLine = annotations.filter(a => a.name === 'multiline').length > 0;
+    protected getInputType(type: PrimitivePropertyType, annotations: Annotation[] | undefined): React.HTMLInputTypeAttribute {
+        // determine type
         switch (type) {
             case 'string':
-                if (isMultiLine) {
+                if (isMultiline(type, annotations)) {
                     return 'textarea';
-                } else if (isFile) {
+                } else if (isFile(type, annotations)) {
                     return 'file';
-                } else if (isDate) {
+                } else if (isDate(type, annotations)) {
                     return 'date';
-                } else if (isColor) {
+                } else if (isColor(type, annotations)) {
                     return 'color';
                 }
                 return 'text';
@@ -632,15 +658,22 @@ export class CincoPropertyEntry extends React.Component<
                 return 'number';
             case 'boolean':
                 return 'checkbox';
+            case 'date':
+            case 'Date':
+            case 'file':
+            case 'File':
+            case 'color':
+            case 'Color':
+                return type.toLowerCase();
         }
     }
 
     protected getValueAttribute(
         type: PrimitivePropertyType,
-        value: any
+        value: any,
+        annotations: Annotation[] | undefined
     ): Partial<React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>> {
         switch (type) {
-            case 'string':
             case 'number': {
                 return { value: value as string | number };
             }
@@ -648,8 +681,28 @@ export class CincoPropertyEntry extends React.Component<
                 const parsedValue = typeof value === 'string' ? (value === 'false' ? false : true) : value;
                 return { checked: parsedValue as boolean };
             }
+            case 'color':
+            case 'Color':
+            case 'date':
+            case 'Date':
+            case 'file':
+            case 'File':
+            case 'string': // string can be other types by annotation
+                if (isColor(type, annotations)) {
+                    const v = (value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('color', annotations);
+                    const parsedValue = parseColorValueToHex(v, annotations);
+                    return { value: parsedValue };
+                } else if (isFile(type, annotations)) {
+                    return { value: (value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('file', annotations) };
+                } else if (isDate(type, annotations)) {
+                    return {
+                        value: cleanDate(value && value.length > 0 ? value : undefined) ?? getFallbackDefaultValue('date', annotations)
+                    };
+                } else {
+                    return { value: value ?? getFallbackDefaultValue(type, annotations) };
+                }
             default: {
-                return { value: value };
+                return { value: value ?? getFallbackDefaultValue(type, annotations) };
             }
         }
     }
@@ -668,7 +721,7 @@ function addPropertyValue(
 ): void {
     const attributeDefinition = locateAttributeDefinition(state, pointer, name);
     const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
-    const defaultValue = getFallbackDefaultValue(attributeDefinition.type);
+    const defaultValue = getFallbackDefaultValue(attributeDefinition.type, attributeDefinition.annotations);
     const isList = isListAttribute(bounds.upperBound);
 
     // TODO: The follwoing code mutates the state, the shallow copy in the next
@@ -723,6 +776,10 @@ function assignPropertyValue(
     }
     if (!canAssign(index ?? 0.0, attributeDefinition.bounds ?? { lowerBound: 1.0, upperBound: 1.0 })) {
         return;
+    }
+
+    if (isColor(type, attributeDefinition.annotations)) {
+        value = parseColorValueFromHex(value, attributeDefinition.annotations ?? []);
     }
 
     // update state
@@ -827,7 +884,7 @@ function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): 
         if (!nextValue) {
             const attributeDefinition = state.attributeDefinitions.find(a => a.name === step.attribute);
             if (attributeDefinition) {
-                const defaultValue = getFallbackDefaultValue(attributeDefinition.type);
+                const defaultValue = getFallbackDefaultValue(attributeDefinition.type, attributeDefinition.annotations);
                 nextValue = defaultValue;
                 if (step.index !== undefined) {
                     objectValue[step.attribute][step.index] = nextValue;
