@@ -4,6 +4,7 @@ lib
 *.log
 *-app/*
 !*-app/package.json
+!*-app/plugins
 .idea/
 .DS_Store
 .yalc
