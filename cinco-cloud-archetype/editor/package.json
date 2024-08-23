@@ -45,7 +45,7 @@
     "cinco-glsp-theia",
     "browser-app",
     "cinco-glsp-standalone",
-    "lazy-merge-driver"
+    "cinco-lazy-merge-driver"
   ],
   "resolutions": {
     "inversify": "6.0.1",

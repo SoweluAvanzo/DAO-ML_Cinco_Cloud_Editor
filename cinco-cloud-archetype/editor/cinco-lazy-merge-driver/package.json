@@ -1,5 +1,5 @@
 {
-  "name": "@cinco-glsp/lazy-merge-driver",
+  "name": "@cinco-glsp/cinco-lazy-merge-driver",
   "version": "1.0.0",
   "license": "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
   "dependencies": {
