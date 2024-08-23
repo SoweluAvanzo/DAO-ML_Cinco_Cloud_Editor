@@ -22,10 +22,14 @@
   ],
   "devDependencies": {
     "@eclipse-glsp/config": "2.0.0",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "jest": "29.7.0",
+    "ts-jest": "29.2.5",
+    "@jest/globals": "29.7.0"
   },
   "scripts": {
     "install:only": "yarn install --ignore-scripts",
-    "build": "yarn install:only && tsc"
+    "build": "yarn install:only && tsc",
+    "test": "jest"
   }
 }
