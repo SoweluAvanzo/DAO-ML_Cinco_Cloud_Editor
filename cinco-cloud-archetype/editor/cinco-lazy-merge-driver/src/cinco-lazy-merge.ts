@@ -13,8 +13,98 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { Assignments, Sortable } from '@cinco-glsp/cinco-glsp-api';
 import { argv } from 'process';
 
 console.log('ancestor', argv[2]);
 console.log('version a', argv[3]);
 console.log('version b', argv[4]);
+
+function mergeAssignments<T extends Sortable>(
+    ancestor: Assignments<T>,
+    versionA: Assignments<T>,
+    versionB: Assignments<T>
+): Assignments<T> {
+    return assignmentsUnion(
+        // Ancestor assignments not killed
+        assignmentsIntersection(ancestor, versionA, versionB),
+        // Newly brought in assignments
+        assignmentsDifference(assignmentsUnion(versionA, versionB), ancestor)
+    );
+}
+
+function assignmentsUnion<T extends Sortable>(...assignmentsList: Assignments<T>[]): Assignments<T> {
+    const union: Assignments<T> = {};
+    for (const assignments of assignmentsList) {
+        for (const [key, value] of Object.entries(assignments)) {
+            if (!(key in union)) {
+                union[key] = value;
+            } else {
+                assertEqualAssignmentValues(key, union[key], value);
+            }
+        }
+    }
+    return union;
+}
+
+function assignmentsIntersection<T extends Sortable>(
+    firstAssignments: Assignments<T>,
+    ...remainingAssignmentsList: Assignments<T>[]
+): Assignments<T> {
+    const intersection: Assignments<T> = {...firstAssignments};
+    for (const assignments of remainingAssignmentsList) {
+        const assignemtsKeys = Object.keys(assignments);
+        for (const [key, value] of Object.entries(intersection)) {
+            if (!(key in assignemtsKeys)) {
+                delete intersection[key];
+            } else {
+                assertEqualAssignmentValues(key, value, assignments[key]);
+            }
+        }
+    }
+    return intersection;
+}
+
+function assignmentsDifference<T extends Sortable>(a: Assignments<T>, b: Assignments<T>): Assignments<T> {
+    const difference = {...a};
+    for (const [key, value] of Object.entries(b)) {
+        if (key in difference) {
+            assertEqualAssignmentValues(key, difference[key], value);
+            delete difference[key];
+        }
+    }
+    return difference;
+}
+
+/**
+ * The values of assignments must not change over time. New values require new assignments.
+ */
+function assertEqualAssignmentValues(key: string, valueA: any, valueB: any): void {
+    if (!jsonValuesEqual(valueA, valueB)) {
+        throw new Error(`Assignment ${key} has at least two different values, ${valueA} and ${valueB}.`);
+    }
+}
+
+function jsonValuesEqual(a: any, b: any): boolean {
+    if (typeof a !== typeof b) {
+        return false;
+    }
+    switch (typeof a) {
+        case 'undefined':
+        case 'boolean':
+        case 'number':
+        case 'string':
+            return a === b;
+        case 'object':
+            // eslint-disable-next-line no-null/no-null
+            if (a === null && b === null) {
+                return true;
+            } else if (Array.isArray(a) && Array.isArray(b)) {
+                return a.length === b.length && a.every((value, index) => jsonValuesEqual(value, b[index]));
+            } else {
+                return jsonValuesEqual(Object.entries(a), Object.entries(b));
+            }
+        default:
+            return false;
+    }
+}
