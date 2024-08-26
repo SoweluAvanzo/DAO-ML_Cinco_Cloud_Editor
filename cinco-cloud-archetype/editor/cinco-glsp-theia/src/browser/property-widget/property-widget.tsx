@@ -589,13 +589,9 @@ export class CincoPropertyEntry extends React.Component<
                         </select>
                     );
                 } else if (UserDefinedType.is(typeDefinition)) {
-
                     // Allow potential subtype selection for polymorphic types
                     const typeOptions = getNonAbstractTypeOptions(typeDefinition);
                     const isPolymorphic: boolean = typeOptions.length > 1;
-
-                    // copy attributeDefinition, replace type with selected type and pass into PropertyView so that correct attributes are rendered (state should remain unaffected)
-                    const selectedAttributeDefinition = { ...attributeDefinition };
 
                     let typeSelection: React.JSX.Element;
                     let currentType: UserDefinedType = typeDefinition;
@@ -606,8 +602,7 @@ export class CincoPropertyEntry extends React.Component<
                         }
                         const selectedTypeId: string = objectValue._type;
                         currentType = getUserDefinedType(selectedTypeId)!;
-                        // Change attributeDefinition type so that properties of actual type are displayed in PropertiesView
-                        selectedAttributeDefinition.type = currentType.elementTypeId;
+
                         typeSelection = (
                             <select
                                 value={currentType.elementTypeId}
@@ -770,15 +765,36 @@ function addPropertyValue(
     pointer: ObjectPointer,
     name: string
 ): void {
-    const attributeDefinition = locateAttributeDefinition(state, pointer, name);
+    // TODO: The following code mutates the state, the shallow copy in the next
+    // line does not prevent that.
+    const newState = { ...state };
+    let objectValue = locateObjectValueWrapped(newState, pointer);
+
+    let attributeDefinition: Attribute | undefined;
+    // list attribute might be only defined on subtype of type specified in meta-specification
+    // check if instantiated type differs from meta-specification
+    if (objectValue._type !== undefined) {
+        const instantiatedType = getUserDefinedType(objectValue._type);
+        if (instantiatedType === undefined) {
+            throw new Error(`Invalid _type specified in model file: ${objectValue._type}`);
+        } else {
+            attributeDefinition = instantiatedType!.attributes.find(attr => attr.name === name);
+        }
+
+        if (attributeDefinition === undefined) {
+            throw new Error(`Invalid attribute name ${name} on type ${objectValue._type}.`);
+        }
+    } else {
+        // use type from meta-specification
+        attributeDefinition = locateAttributeDefinition(state, pointer, name);
+    }
+
+    objectValue = objectValue._value ?? objectValue;
+
     const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
     const defaultValue = getFallbackDefaultValue(attributeDefinition.type, attributeDefinition.annotations);
     const isList = isListAttribute(bounds.upperBound);
 
-    // TODO: The follwoing code mutates the state, the shallow copy in the next
-    // line does not prevent that.
-    const newState = { ...state };
-    const objectValue = locateObjectValue(newState, pointer);
     if (isList) {
         if (!objectValue[name]) {
             objectValue[name] = [];
@@ -804,22 +820,22 @@ function assignPropertyType(
     pointer: ObjectPointer,
     index: number | undefined,
     attributeDefinition: Attribute,
-    value: string
+    newType: string
 ) {
     const newState = { ...state }
     let propertyRef = locateObjectValue(newState, pointer)[attributeDefinition.name];
     if (index !== undefined) {
         propertyRef = propertyRef[index];
     }
-    propertyRef._type = value;
-    // value has to be reset, because types don't necessarily have compatible attributes
-    const defaultVal = getFallbackDefaultValue(value, attributeDefinition.annotations);
+    propertyRef._type = newType;
+
+    const defaultVal = getFallbackDefaultValue(newType, attributeDefinition.annotations);
     propertyRef._value = defaultVal._value;
-    // TODO Try assigning compatible values from before into new type?
+    // TODO Try assigning compatible values from before to new type
     setState(newState);
 
     // persist data 
-    postPropertyChange(state.modelElementId, pointer, attributeDefinition.name, { kind: 'changeType', index: index, newType: value, newValue: defaultVal._value });
+    postPropertyChange(state.modelElementId, pointer, attributeDefinition.name, { kind: 'changeType', index: index, newType: newType, newValue: defaultVal._value });
 
     // update
     widget.update();
@@ -864,7 +880,7 @@ function assignPropertyValue(
     // update state
     const newState = { ...state };
     let objectValue = locateObjectValue(newState, pointer);
-    objectValue = objectValue._value ?? objectValue;
+
     if (index !== undefined) {
         objectValue[name][index] = value;
     } else {
@@ -953,6 +969,7 @@ function checkEnum(type: string, value: any): boolean {
 function locateObjectValueWrapped(state: PropertyWidgetState, pointer: ObjectPointer): any {
     let objectValue: any = state.values; // these are the attributes of the modelElement
     for (const step of pointer) {
+        // UserDefinedType-values are wrapped inside _type-_value-object
         if (objectValue._value !== undefined) {
             objectValue = objectValue._value;
         }
@@ -978,7 +995,7 @@ function locateObjectValueWrapped(state: PropertyWidgetState, pointer: ObjectPoi
         }
         objectValue = nextValue;
     }
-    // For UserDefinedTypes, unwrap actual value
+
     return objectValue;
 }
 
