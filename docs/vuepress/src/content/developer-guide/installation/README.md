@@ -116,7 +116,7 @@ Install the following software:
 
    * **Windows**
 
-      `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath="{.data.tls.crt}" | ForEach-Object {[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_))} > cinco-cloud-local-rootCA.pem`
+      `kubectl get secret cinco-cloud-local-ca-cert-secret -o jsonpath="{.data['tls\.crt']}" | ForEach-Object {[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_))} > cinco-cloud-local-rootCA.pem`
 
    * **Linux/MacOS**
 
