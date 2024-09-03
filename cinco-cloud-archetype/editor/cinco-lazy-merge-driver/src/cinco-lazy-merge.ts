@@ -80,33 +80,49 @@ function assignmentsDifference<T extends Sortable>(a: Assignments<T>, b: Assignm
  * The values of assignments must not change over time. New values require new assignments.
  */
 function assertEqualAssignmentValues(key: string, valueA: any, valueB: any): void {
-    if (!equal(valueA, valueB)) {
+    if (!jsonEqual(valueA, valueB)) {
         throw new Error(`Assignment ${key} has at least two different values, ${valueA} and ${valueB}.`);
     }
 }
 
-export function equal(a: any, b: any): boolean {
-    if (typeof a !== typeof b) {
-        throw new TypeError(`Equality between ${typeof a} and ${typeof b} is undefined.`);
+export function jsonEqual(a: any, b: any): boolean {
+    const jsonTypeA = jsonType(a);
+    const jsonTypeB = jsonType(b);
+    if (jsonTypeA !== jsonTypeB) {
+        throw new TypeError(`Equality between ${jsonTypeA} and ${jsonTypeB} is undefined.`);
     }
-    switch (typeof a) {
-        case 'undefined':
+    switch (jsonTypeA) {
+        case 'null':
         case 'boolean':
         case 'number':
-        case 'bigint':
         case 'string':
-        case 'symbol':
             return a === b;
+        case 'array':
+            return a.length === b.length && (a as any[]).every((value, index) => jsonEqual(value, b[index]));
+        case 'record':
+            return jsonEqual(Object.entries(a), Object.entries(b));
+    }
+}
+
+function jsonType(value: any): 'null' | 'boolean' | 'number' | 'string' | 'array' | 'record' {
+    switch (typeof value) {
+        case 'boolean':
+            return 'boolean';
+        case 'number':
+            return 'number';
+        case 'string':
+            return 'string';
         case 'object':
             // eslint-disable-next-line no-null/no-null
-            if (a === null && b === null) {
-                return true;
-            } else if (Array.isArray(a) && Array.isArray(b)) {
-                return a.length === b.length && a.every((value, index) => equal(value, b[index]));
+            if (value === null) {
+                return 'null';
+            } else if (Array.isArray(value)) {
+                return 'array';
             } else {
-                return equal(Object.entries(a), Object.entries(b));
+                // Actually checking if it's a record seems impossible.
+                return 'record';
             }
-        case 'function':
-            throw new TypeError('Function equality is undefined.');
+        default:
+            throw new TypeError(`${typeof value} is not a JSON value.`);
     }
 }
