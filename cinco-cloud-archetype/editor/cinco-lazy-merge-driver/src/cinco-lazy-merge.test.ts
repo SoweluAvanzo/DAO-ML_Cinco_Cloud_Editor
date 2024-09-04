@@ -13,8 +13,58 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { assignmentsUnion, jsonEqual } from './cinco-lazy-merge';
+import { assignmentsDifference, assignmentsIntersection, assignmentsUnion, jsonEqual } from './cinco-lazy-merge';
 import { describe, test, expect } from '@jest/globals';
+
+describe('assignmentsUnion', () => {
+    test('disjoint assignment sets', () => {
+        expect(assignmentsUnion({ a: ['foo'] }, { b: ['bar'] })).toStrictEqual({ a: ['foo'], b: ['bar'] });
+    });
+    test('overlapping assignment sets', () => {
+        expect(assignmentsUnion({ a: ['foo'], b: ['bar'] }, { a: ['foo'], c: ['baz'] })).toStrictEqual({
+            a: ['foo'],
+            b: ['bar'],
+            c: ['baz']
+        });
+    });
+    test('mutated assignment sets', () => {
+        expect(() => assignmentsUnion({ a: ['foo'] }, { a: ['bar'] })).toThrow(
+            new Error('Assignment a has at least two different values, foo and bar.')
+        );
+    });
+});
+
+describe('assignmentsIntersection', () => {
+    test('disjoint assignment sets', () => {
+        expect(assignmentsIntersection({ a: ['foo'] }, { b: ['bar'] })).toStrictEqual({});
+    });
+    test('overlapping assignment sets', () => {
+        expect(assignmentsIntersection({ a: ['foo'], b: ['bar'] }, { a: ['foo'], c: ['baz'] })).toStrictEqual({
+            a: ['foo']
+        });
+    });
+    test('mutated assignment sets', () => {
+        expect(() => assignmentsIntersection({ a: ['foo'] }, { a: ['bar'] })).toThrow(
+            new Error('Assignment a has at least two different values, foo and bar.')
+        );
+    });
+});
+
+describe('assignmentsDifference', () => {
+    test('disjoint assignment sets', () => {
+        expect(assignmentsDifference({ a: ['foo'] }, { b: ['bar'] })).toStrictEqual({ a: ['foo'] });
+    });
+    test('overlapping assignment sets', () => {
+        expect(assignmentsDifference({ a: ['foo'], b: ['bar'] }, { a: ['foo'], c: ['baz'] })).toStrictEqual({
+            b: ['bar']
+        });
+    });
+    test('mutated assignment sets', () => {
+        expect(() => assignmentsDifference({ a: ['foo'] }, { a: ['bar'] })).toThrow(
+            new Error('Assignment a has at least two different values, foo and bar.')
+        );
+    });
+});
 
 describe('jsonValuesEqual', () => {
     test('different types', () => {

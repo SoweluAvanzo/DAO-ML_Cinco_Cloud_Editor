@@ -33,7 +33,7 @@ export function mergeAssignments<T extends Sortable>(
     );
 }
 
-function assignmentsUnion<T extends Sortable>(...assignmentsList: Assignments<T>[]): Assignments<T> {
+export function assignmentsUnion<T extends Sortable>(...assignmentsList: Assignments<T>[]): Assignments<T> {
     const union: Assignments<T> = {};
     for (const assignments of assignmentsList) {
         for (const [key, value] of Object.entries(assignments)) {
@@ -47,7 +47,7 @@ function assignmentsUnion<T extends Sortable>(...assignmentsList: Assignments<T>
     return union;
 }
 
-function assignmentsIntersection<T extends Sortable>(
+export function assignmentsIntersection<T extends Sortable>(
     firstAssignments: Assignments<T>,
     ...remainingAssignmentsList: Assignments<T>[]
 ): Assignments<T> {
@@ -55,7 +55,7 @@ function assignmentsIntersection<T extends Sortable>(
     for (const assignments of remainingAssignmentsList) {
         const assignemtsKeys = Object.keys(assignments);
         for (const [key, value] of Object.entries(intersection)) {
-            if (!(key in assignemtsKeys)) {
+            if (!assignemtsKeys.includes(key)) {
                 delete intersection[key];
             } else {
                 assertEqualAssignmentValues(key, value, assignments[key]);
@@ -65,7 +65,7 @@ function assignmentsIntersection<T extends Sortable>(
     return intersection;
 }
 
-function assignmentsDifference<T extends Sortable>(a: Assignments<T>, b: Assignments<T>): Assignments<T> {
+export function assignmentsDifference<T extends Sortable>(a: Assignments<T>, b: Assignments<T>): Assignments<T> {
     const difference = { ...a };
     for (const [key, value] of Object.entries(b)) {
         if (key in difference) {
