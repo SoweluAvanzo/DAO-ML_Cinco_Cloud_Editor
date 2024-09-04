@@ -16,9 +16,11 @@
 import { Assignments, Sortable } from '@cinco-glsp/cinco-glsp-api';
 import { argv } from 'process';
 
-console.log('ancestor', argv[2]);
-console.log('version a', argv[3]);
-console.log('version b', argv[4]);
+if (require.main === module) {
+    console.log('ancestor', argv[2]);
+    console.log('version a', argv[3]);
+    console.log('version b', argv[4]);
+}
 
 export function mergeAssignments<T extends Sortable>(
     ancestor: Assignments<T>,
