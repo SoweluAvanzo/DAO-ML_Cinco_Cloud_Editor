@@ -16,6 +16,8 @@
 import { assignmentsDifference, assignmentsIntersection, assignmentsUnion } from './assignments';
 import { describe, test, expect } from '@jest/globals';
 
+// TODO: Test mergeAssignments
+
 describe('assignmentsUnion', () => {
     test('disjoint assignment sets', () => {
         expect(assignmentsUnion({ a: ['foo'] }, { b: ['bar'] })).toStrictEqual({ a: ['foo'], b: ['bar'] });

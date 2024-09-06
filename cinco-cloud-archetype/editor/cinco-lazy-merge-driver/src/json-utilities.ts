@@ -59,3 +59,18 @@ function jsonType(value: any): 'null' | 'boolean' | 'number' | 'string' | 'array
 export function mapRecord<A, B>(record: Record<string, A>, f: (value: A, key: string) => B): Record<string, B> {
     return Object.fromEntries(Object.entries(record).map(([key, value]) => [key, f(value, key)]));
 }
+
+export function mapFromEntityArray(entities: ReadonlyArray<any>): Record<string, any> {
+    const result: any = {};
+    for (const entity of entities) {
+        const { id } = entity;
+        if (id === undefined) {
+            throw new TypeError('Entity has no id field.');
+        }
+        if (id in result) {
+            throw new Error(`Duplicate ID ${id}.`);
+        }
+        result[id] = entity;
+    }
+    return result;
+}

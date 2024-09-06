@@ -26,25 +26,33 @@ describe('mergeRecord', () => {
                 { x: { e: ['baz'] }, y: { f: ['daz'] } }
             )
         ).toStrictEqual({
-            x: { c: ['bar'], e: ['baz'] },
-            y: { d: ['dar'], f: ['daz'] }
+            value: {
+                x: { c: ['bar'], e: ['baz'] },
+                y: { d: ['dar'], f: ['daz'] }
+            },
+            newEagerConflicts: false,
+            newLazyConflicts: true
         });
     });
 });
 
 describe('mergeEager', () => {
     test('unchanged value', () => {
-        expect(mergeEager('foo', 'foo', 'foo')).toBe('foo');
+        expect(mergeEager()('foo', 'foo', 'foo')).toStrictEqual({ value: 'foo', newEagerConflicts: false, newLazyConflicts: false });
     });
     test('changed to the same value', () => {
-        expect(mergeEager('foo', 'bar', 'bar')).toBe('bar');
+        expect(mergeEager()('foo', 'bar', 'bar')).toStrictEqual({ value: 'bar', newEagerConflicts: false, newLazyConflicts: false });
     });
     test('changed to different values', () => {
-        expect(mergeEager('foo', 'bar', 'baz')).toStrictEqual({
-            tag: 'eager-merge-conflict',
-            ancestor: 'foo',
-            versionA: 'bar',
-            versionB: 'baz'
+        expect(mergeEager()('foo', 'bar', 'baz')).toStrictEqual({
+            value: {
+                tag: 'eager-merge-conflict',
+                ancestor: 'foo',
+                versionA: 'bar',
+                versionB: 'baz'
+            },
+            newEagerConflicts: true,
+            newLazyConflicts: false
         });
     });
 });

@@ -23,14 +23,33 @@ type Conflict = Readonly<{
     versionB: any;
 }>;
 
-export type Merger = (ancestor: any, versionA: any, versionB: any) => any;
+export interface MergeResult {
+    value: any;
+    newEagerConflicts: boolean;
+    newLazyConflicts: boolean;
+}
+
+export type Merger = (ancestor: any, versionA: any, versionB: any) => MergeResult;
 
 export function mergeRecord(mergers: Record<string, Merger>): Merger {
     return (ancestor, versionA, versionB) => {
         validateNoUnknownKeysForRecordMerger(mergers, ancestor);
         validateNoUnknownKeysForRecordMerger(mergers, versionA);
         validateNoUnknownKeysForRecordMerger(mergers, versionB);
-        return mapRecord(mergers, (merger, key) => merger(ancestor[key], versionA[key], versionB[key]));
+        return traverseMergeResultsMap(mergers, (merger, key) => merger(ancestor[key], versionA[key], versionB[key]));
+    };
+}
+
+export function traverseMergeResultsMap(inputMap: Record<string, any>, f: (value: any, key: string) => MergeResult): MergeResult {
+    const mergeResults = mapRecord(inputMap, f);
+    return {
+        value: mapRecord(mergeResults, ({ value }) => value),
+        newEagerConflicts: Object.values(mergeResults)
+            .map(({ newEagerConflicts }) => newEagerConflicts)
+            .some(x => x),
+        newLazyConflicts: Object.values(mergeResults)
+            .map(({ newLazyConflicts }) => newLazyConflicts)
+            .some(x => x)
     };
 }
 
@@ -42,16 +61,26 @@ function validateNoUnknownKeysForRecordMerger(mergers: Record<string, Merger>, r
     }
 }
 
-export function mergeEager(ancestor: any, versionA: any, versionB: any): any {
-    if (jsonEqual(versionA, versionB)) {
-        return versionA;
-    } else {
-        const conflict: Conflict = {
-            tag: 'eager-merge-conflict',
-            ancestor,
-            versionA,
-            versionB
-        };
-        return conflict;
-    }
+export function mergeEager(): Merger {
+    return (ancestor, versionA, versionB) => {
+        if (jsonEqual(versionA, versionB)) {
+            return {
+                value: versionA,
+                newEagerConflicts: false,
+                newLazyConflicts: false
+            };
+        } else {
+            const conflict: Conflict = {
+                tag: 'eager-merge-conflict',
+                ancestor,
+                versionA,
+                versionB
+            };
+            return {
+                value: conflict,
+                newEagerConflicts: true,
+                newLazyConflicts: false
+            };
+        }
+    };
 }

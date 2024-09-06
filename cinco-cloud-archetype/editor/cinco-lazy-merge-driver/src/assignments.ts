@@ -18,13 +18,19 @@ import { jsonEqual } from './json-utilities';
 import { Merger } from './combinators';
 
 export function mergeAssignments<T extends Sortable>(): Merger {
-    return (ancestor: Assignments<T>, versionA: Assignments<T>, versionB: Assignments<T>) =>
-        assignmentsUnion(
+    return (ancestor: Assignments<T>, versionA: Assignments<T>, versionB: Assignments<T>) => {
+        const mergedAssignments = assignmentsUnion(
             // Ancestor assignments not killed
             assignmentsIntersection(ancestor, versionA, versionB),
             // Newly brought in assignments
             assignmentsDifference(assignmentsUnion(versionA, versionB), ancestor)
         );
+        return {
+            value: mergedAssignments,
+            newEagerConflicts: false,
+            newLazyConflicts: Object.entries(mergedAssignments).length > 1 && !jsonEqual(mergedAssignments, ancestor)
+        };
+    };
 }
 
 export function assignmentsUnion<T extends Sortable>(...assignmentsList: Assignments<T>[]): Assignments<T> {

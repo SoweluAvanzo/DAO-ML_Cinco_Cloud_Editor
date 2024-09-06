@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { jsonEqual } from './json-utilities';
+import { jsonEqual, mapRecord, mapFromEntityArray } from './json-utilities';
 import { describe, test, expect } from '@jest/globals';
 
 describe('jsonValuesEqual', () => {
@@ -59,5 +59,34 @@ describe('jsonValuesEqual', () => {
                 () => {}
             )
         ).toThrow('function is not a JSON value.');
+    });
+});
+
+describe('mapRecord', () => {
+    test('map empty record', () => {
+        expect(mapRecord({}, () => {})).toStrictEqual({});
+    });
+    test('map several values', () => {
+        expect(mapRecord({ a: 1, b: 2, c: 3 }, n => n + 2)).toStrictEqual({ a: 3, b: 4, c: 5 });
+    });
+});
+
+describe('recordFromEntityArray', () => {
+    test('empty entity list', () => {
+        expect(mapFromEntityArray([])).toStrictEqual({});
+    });
+    test('several entities', () => {
+        expect(
+            mapFromEntityArray([
+                { id: 'x', a: 1 },
+                { id: 'y', a: 2 }
+            ])
+        ).toStrictEqual({ x: { id: 'x', a: 1 }, y: { id: 'y', a: 2 } });
+    });
+    test('missing id field', () => {
+        expect(() => mapFromEntityArray([{ foo: 'bar' }])).toThrow(new TypeError('Entity has no id field.'));
+    });
+    test('duplicate ids', () => {
+        expect(() => mapFromEntityArray([{ id: 'x' }, { id: 'x' }])).toThrow('Duplicate ID x.');
     });
 });
