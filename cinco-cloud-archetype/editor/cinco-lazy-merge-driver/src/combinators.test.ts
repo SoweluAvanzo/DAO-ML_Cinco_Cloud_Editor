@@ -36,7 +36,10 @@ describe('mergeEager', () => {
     test('unchanged value', () => {
         expect(mergeEager('foo', 'foo', 'foo')).toBe('foo');
     });
-    test('different values', () => {
+    test('changed to the same value', () => {
+        expect(mergeEager('foo', 'bar', 'bar')).toBe('bar');
+    });
+    test('changed to different values', () => {
         expect(mergeEager('foo', 'bar', 'baz')).toStrictEqual({
             tag: 'eager-merge-conflict',
             ancestor: 'foo',
