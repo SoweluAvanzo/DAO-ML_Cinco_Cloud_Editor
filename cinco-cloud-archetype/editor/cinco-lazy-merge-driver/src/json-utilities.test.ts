@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { jsonEqual, mapRecord, mapFromEntityArray } from './json-utilities';
+import { jsonEqual, mapMap, mapFromEntityArray } from './json-utilities';
 import { describe, test, expect } from '@jest/globals';
 
 describe('jsonValuesEqual', () => {
@@ -64,10 +64,10 @@ describe('jsonValuesEqual', () => {
 
 describe('mapRecord', () => {
     test('map empty record', () => {
-        expect(mapRecord({}, () => {})).toStrictEqual({});
+        expect(mapMap({}, () => {})).toStrictEqual({});
     });
     test('map several values', () => {
-        expect(mapRecord({ a: 1, b: 2, c: 3 }, n => n + 2)).toStrictEqual({ a: 3, b: 4, c: 5 });
+        expect(mapMap({ a: 1, b: 2, c: 3 }, n => n + 2)).toStrictEqual({ a: 3, b: 4, c: 5 });
     });
 });
 

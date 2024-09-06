@@ -56,7 +56,7 @@ function jsonType(value: any): 'null' | 'boolean' | 'number' | 'string' | 'array
     }
 }
 
-export function mapRecord<A, B>(record: Record<string, A>, f: (value: A, key: string) => B): Record<string, B> {
+export function mapMap<A, B>(record: Record<string, A>, f: (value: A, key: string) => B): Record<string, B> {
     return Object.fromEntries(Object.entries(record).map(([key, value]) => [key, f(value, key)]));
 }
 

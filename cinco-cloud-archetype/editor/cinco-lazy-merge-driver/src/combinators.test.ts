@@ -14,17 +14,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { describe, test, expect } from '@jest/globals';
-import { mergeEager, mergeRecord } from './combinators';
-import { mergeAssignments } from './assignments';
+import { eagerMergeCell, mergeRecord } from './combinators';
+import { lazyMergeCell } from './assignments';
 
 describe('mergeRecord', () => {
     test('merge record of assignments', () => {
         expect(
-            mergeRecord({ x: mergeAssignments(), y: mergeAssignments() })(
-                { x: { a: ['foo'] }, y: { b: ['zoo'] } },
-                { x: { c: ['bar'] }, y: { d: ['dar'] } },
-                { x: { e: ['baz'] }, y: { f: ['daz'] } }
-            )
+            mergeRecord({ x: lazyMergeCell(), y: lazyMergeCell() })({
+                ancestor: { x: { a: ['foo'] }, y: { b: ['zoo'] } },
+                versionA: { x: { c: ['bar'] }, y: { d: ['dar'] } },
+                versionB: { x: { e: ['baz'] }, y: { f: ['daz'] } }
+            })
         ).toStrictEqual({
             value: {
                 x: { c: ['bar'], e: ['baz'] },
@@ -36,20 +36,26 @@ describe('mergeRecord', () => {
     });
 });
 
-describe('mergeEager', () => {
+describe('eagerMergeCell', () => {
     test('unchanged value', () => {
-        expect(mergeEager()('foo', 'foo', 'foo')).toStrictEqual({ value: 'foo', newEagerConflicts: false, newLazyConflicts: false });
+        expect(eagerMergeCell()({ ancestor: 'foo', versionA: 'foo', versionB: 'foo' })).toStrictEqual({
+            value: 'foo',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
     });
     test('changed to the same value', () => {
-        expect(mergeEager()('foo', 'bar', 'bar')).toStrictEqual({ value: 'bar', newEagerConflicts: false, newLazyConflicts: false });
+        expect(eagerMergeCell()({ ancestor: 'foo', versionA: 'bar', versionB: 'bar' })).toStrictEqual({
+            value: 'bar',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
     });
     test('changed to different values', () => {
-        expect(mergeEager()('foo', 'bar', 'baz')).toStrictEqual({
+        expect(eagerMergeCell()({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
             value: {
                 tag: 'eager-merge-conflict',
-                ancestor: 'foo',
-                versionA: 'bar',
-                versionB: 'baz'
+                versions: { ancestor: 'foo', versionA: 'bar', versionB: 'baz' }
             },
             newEagerConflicts: true,
             newLazyConflicts: false

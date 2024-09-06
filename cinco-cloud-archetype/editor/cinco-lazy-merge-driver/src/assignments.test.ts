@@ -16,7 +16,7 @@
 import { assignmentsDifference, assignmentsIntersection, assignmentsUnion } from './assignments';
 import { describe, test, expect } from '@jest/globals';
 
-// TODO: Test mergeAssignments
+// TODO: Test lazyMergeCell
 
 describe('assignmentsUnion', () => {
     test('disjoint assignment sets', () => {

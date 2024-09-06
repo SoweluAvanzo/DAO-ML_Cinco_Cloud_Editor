@@ -14,36 +14,59 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { jsonEqual, mapRecord } from './json-utilities';
+import { jsonEqual, mapMap, mapFromEntityArray } from './json-utilities';
 
-type Conflict = Readonly<{
-    tag: 'eager-merge-conflict';
-    ancestor: any;
-    versionA: any;
-    versionB: any;
+type Versions<T = any> = Readonly<{
+    ancestor: T | undefined;
+    versionA: T;
+    versionB: T;
 }>;
 
-export interface MergeResult {
-    value: any;
+type EagerMergeConflict<T = any> = Readonly<{
+    tag: 'eager-merge-conflict';
+    versions: Versions<T>;
+}>;
+
+export interface MergeResult<T = any> {
+    value: T;
     newEagerConflicts: boolean;
     newLazyConflicts: boolean;
 }
 
-export type Merger = (ancestor: any, versionA: any, versionB: any) => MergeResult;
+export function mergeOk<T = any>(value: T): MergeResult<T> {
+    return { value, newEagerConflicts: false, newLazyConflicts: false };
+}
 
-export function mergeRecord(mergers: Record<string, Merger>): Merger {
-    return (ancestor, versionA, versionB) => {
-        validateNoUnknownKeysForRecordMerger(mergers, ancestor);
-        validateNoUnknownKeysForRecordMerger(mergers, versionA);
-        validateNoUnknownKeysForRecordMerger(mergers, versionB);
-        return traverseMergeResultsMap(mergers, (merger, key) => merger(ancestor[key], versionA[key], versionB[key]));
+export function mapMergeResult<A, B>({ value, newEagerConflicts, newLazyConflicts }: MergeResult<A>, f: (a: A) => B): MergeResult<B> {
+    return {
+        value: f(value),
+        newEagerConflicts,
+        newLazyConflicts
     };
 }
 
-export function traverseMergeResultsMap(inputMap: Record<string, any>, f: (value: any, key: string) => MergeResult): MergeResult {
-    const mergeResults = mapRecord(inputMap, f);
+export type Merger = (versions: Versions) => MergeResult;
+
+export function mergeRecord(mergers: Record<string, Merger>): Merger {
+    return ({ ancestor, versionA, versionB }) => {
+        ancestor !== undefined && validateNoUnknownKeysForRecordMerger(mergers, ancestor);
+        validateNoUnknownKeysForRecordMerger(mergers, versionA);
+        validateNoUnknownKeysForRecordMerger(mergers, versionB);
+        return sequenceMergeResultsMap(
+            mapMap(mergers, (merger, key) =>
+                merger({
+                    ancestor: (ancestor ?? {})[key],
+                    versionA: versionA[key],
+                    versionB: versionB[key]
+                })
+            )
+        );
+    };
+}
+
+export function sequenceMergeResultsMap(mergeResults: Record<string, MergeResult>): MergeResult {
     return {
-        value: mapRecord(mergeResults, ({ value }) => value),
+        value: mapMap(mergeResults, ({ value }) => value),
         newEagerConflicts: Object.values(mergeResults)
             .map(({ newEagerConflicts }) => newEagerConflicts)
             .some(x => x),
@@ -61,20 +84,64 @@ function validateNoUnknownKeysForRecordMerger(mergers: Record<string, Merger>, r
     }
 }
 
-export function mergeEager(): Merger {
-    return (ancestor, versionA, versionB) => {
+export function lazyMergeEntityList(merger: Merger): Merger {
+    return ({ ancestor, versionA, versionB }) =>
+        mapMergeResult(
+            lazyMergeMap(merger)({
+                ancestor: mapFromEntityArray(ancestor ?? []),
+                versionA: mapFromEntityArray(versionA),
+                versionB: mapFromEntityArray(versionB)
+            }),
+            Object.values
+        );
+}
+
+export function lazyMergeMap(merger: Merger): Merger {
+    return ({ ancestor, versionA, versionB }) => {
+        if (ancestor !== undefined) {
+            for (const ancestorKey of Object.keys(ancestor)) {
+                // Entries may never be removed from a map, to keep being able to merge old branches.
+                if (!(ancestor in versionA) || !(ancestorKey in versionB)) {
+                    throw new Error(`Entity with key ${ancestorKey} has been removed from map.`);
+                }
+            }
+        }
+        const keys = new Set<string>();
+        Object.keys(versionA).forEach(key => keys.add(key));
+        Object.keys(versionB).forEach(key => keys.add(key));
+        return sequenceMergeResultsMap(
+            Object.fromEntries(
+                [...keys].map(key => {
+                    if (key in versionA && key in versionB) {
+                        return [
+                            key,
+                            merger({
+                                ancestor: (ancestor ?? {})[key],
+                                versionA: versionA[key],
+                                versionB: versionB[key]
+                            })
+                        ];
+                    } else if (key in versionA) {
+                        return [key, mergeOk(versionA[key])];
+                    } else if (key in versionB) {
+                        return [key, mergeOk(versionB[key])];
+                    } else {
+                        throw new Error(`Impossible state: Key ${key} neither in versionA nor in versionB.`);
+                    }
+                })
+            )
+        );
+    };
+}
+
+export function eagerMergeCell(): Merger {
+    return ({ ancestor, versionA, versionB }) => {
         if (jsonEqual(versionA, versionB)) {
-            return {
-                value: versionA,
-                newEagerConflicts: false,
-                newLazyConflicts: false
-            };
+            return mergeOk(versionA);
         } else {
-            const conflict: Conflict = {
+            const conflict: EagerMergeConflict = {
                 tag: 'eager-merge-conflict',
-                ancestor,
-                versionA,
-                versionB
+                versions: { ancestor, versionA, versionB }
             };
             return {
                 value: conflict,
