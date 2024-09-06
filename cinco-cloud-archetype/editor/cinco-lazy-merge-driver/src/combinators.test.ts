@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { describe, test, expect } from '@jest/globals';
-import { mergeFixedValue, mergeRecord } from './combinators';
+import { mergeEager, mergeRecord } from './combinators';
 import { mergeAssignments } from './assignments';
 
 describe('mergeRecord', () => {
@@ -32,12 +32,12 @@ describe('mergeRecord', () => {
     });
 });
 
-describe('mergeFixedValue', () => {
+describe('mergeEager', () => {
     test('unchanged value', () => {
-        expect(mergeFixedValue('foo', 'foo', 'foo')).toBe('foo');
+        expect(mergeEager('foo', 'foo', 'foo')).toBe('foo');
     });
     test('different values', () => {
-        expect(mergeFixedValue('foo', 'bar', 'baz')).toStrictEqual({
+        expect(mergeEager('foo', 'bar', 'baz')).toStrictEqual({
             tag: 'eager-merge-conflict',
             ancestor: 'foo',
             versionA: 'bar',

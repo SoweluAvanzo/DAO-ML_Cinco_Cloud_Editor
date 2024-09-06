@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { jsonEqual } from './json-utilities';
+import { jsonEqual, mapRecord } from './json-utilities';
 
 type Conflict = Readonly<{
     tag: 'eager-merge-conflict';
@@ -42,11 +42,7 @@ function validateNoUnknownKeysForRecordMerger(mergers: Record<string, Merger>, r
     }
 }
 
-export function mapRecord<A, B>(record: Record<string, A>, f: (value: A, key: string) => B): Record<string, B> {
-    return Object.fromEntries(Object.entries(record).map(([key, value]) => [key, f(value, key)]));
-}
-
-export function mergeFixedValue(ancestor: any, versionA: any, versionB: any): any {
+export function mergeEager(ancestor: any, versionA: any, versionB: any): any {
     if (jsonEqual(versionA, versionB)) {
         return versionA;
     } else {

@@ -55,3 +55,7 @@ function jsonType(value: any): 'null' | 'boolean' | 'number' | 'string' | 'array
             throw new TypeError(`${typeof value} is not a JSON value.`);
     }
 }
+
+export function mapRecord<A, B>(record: Record<string, A>, f: (value: A, key: string) => B): Record<string, B> {
+    return Object.fromEntries(Object.entries(record).map(([key, value]) => [key, f(value, key)]));
+}
