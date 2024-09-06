@@ -19,7 +19,7 @@
   },
   "include": [
     "src"
-, "src/cinco-lazy-merge.test.ts"  ],
+  ],
   "exclude": [
     "**/*.spec.ts",
     "node_modules",

@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { assignmentsDifference, assignmentsIntersection, assignmentsUnion, jsonEqual } from './cinco-lazy-merge';
+import { assignmentsDifference, assignmentsIntersection, assignmentsUnion } from './assignments';
 import { describe, test, expect } from '@jest/globals';
 
 describe('assignmentsUnion', () => {
@@ -63,51 +63,5 @@ describe('assignmentsDifference', () => {
         expect(() => assignmentsDifference({ a: ['foo'] }, { a: ['bar'] })).toThrow(
             new Error('Assignment a has at least two different values, foo and bar.')
         );
-    });
-});
-
-describe('jsonValuesEqual', () => {
-    test('different types', () => {
-        expect(() => jsonEqual(2, 'two')).toThrow(new TypeError('Equality between number and string is undefined.'));
-    });
-    test('different types but equal typeof', () => {
-        // eslint-disable-next-line no-null/no-null
-        expect(() => jsonEqual(null, [])).toThrow(new TypeError('Equality between null and array is undefined.'));
-    });
-    test('null', () => {
-        // eslint-disable-next-line no-null/no-null
-        expect(jsonEqual(null, null)).toBe(true);
-    });
-    test('same booleans', () => {
-        expect(jsonEqual(true, true)).toBe(true);
-    });
-    test('different booleans', () => {
-        expect(jsonEqual(false, true)).toBe(false);
-    });
-    test('same integers', () => {
-        expect(jsonEqual(4, 4)).toBe(true);
-    });
-    test('different integers', () => {
-        expect(jsonEqual(2, 4)).toBe(false);
-    });
-    test('same floats', () => {
-        expect(jsonEqual(0.1, 0.1)).toBe(true);
-    });
-    test('different floats', () => {
-        expect(jsonEqual(0.1, 0.2)).toBe(false);
-    });
-    test('same strings', () => {
-        expect(jsonEqual('foo', 'foo')).toBe(true);
-    });
-    test('different strings', () => {
-        expect(jsonEqual('foo', 'bar')).toBe(false);
-    });
-    test('cannot compare functions', () => {
-        expect(() =>
-            jsonEqual(
-                () => {},
-                () => {}
-            )
-        ).toThrow('function is not a JSON value.');
     });
 });
