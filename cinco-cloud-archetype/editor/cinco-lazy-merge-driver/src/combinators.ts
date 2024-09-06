@@ -138,6 +138,10 @@ export function eagerMergeCell(): Merger {
     return ({ ancestor, versionA, versionB }) => {
         if (jsonEqual(versionA, versionB)) {
             return mergeOk(versionA);
+        } else if (jsonEqual(versionB, ancestor)) {
+            return mergeOk(versionA);
+        } else if (jsonEqual(versionA, ancestor)) {
+            return mergeOk(versionB);
         } else {
             const conflict: EagerMergeConflict = {
                 tag: 'eager-merge-conflict',

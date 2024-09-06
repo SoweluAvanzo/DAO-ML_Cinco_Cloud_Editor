@@ -44,6 +44,20 @@ describe('eagerMergeCell', () => {
             newLazyConflicts: false
         });
     });
+    test('a changed', () => {
+        expect(eagerMergeCell()({ ancestor: 'foo', versionA: 'bar', versionB: 'foo' })).toStrictEqual({
+            value: 'bar',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
+    test('b changed', () => {
+        expect(eagerMergeCell()({ ancestor: 'foo', versionA: 'foo', versionB: 'bar' })).toStrictEqual({
+            value: 'bar',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
     test('changed to the same value', () => {
         expect(eagerMergeCell()({ ancestor: 'foo', versionA: 'bar', versionB: 'bar' })).toStrictEqual({
             value: 'bar',
