@@ -21,7 +21,7 @@ describe('mergeRecord', () => {
     test('merge record of assignments', () => {
         expect(
             mergeRecord({ x: lazyMergeCell(), y: lazyMergeCell() })({
-                ancestor: { x: { a: ['foo'] }, y: { b: ['zoo'] } },
+                ancestor: { x: { a: ['foo'] }, y: { b: ['doo'] } },
                 versionA: { x: { c: ['bar'] }, y: { d: ['dar'] } },
                 versionB: { x: { e: ['baz'] }, y: { f: ['daz'] } }
             })
@@ -33,6 +33,33 @@ describe('mergeRecord', () => {
             newEagerConflicts: false,
             newLazyConflicts: true
         });
+    });
+    test('unknown key in ancestor', () => {
+        expect(() =>
+            mergeRecord({ x: lazyMergeCell() })({
+                ancestor: { x: { a: ['foo'] }, y: { b: ['doo'] } },
+                versionA: { x: { c: ['bar'] } },
+                versionB: { x: { d: ['baz'] } }
+            })
+        ).toThrow(new Error('Key y has no merger defined.'));
+    });
+    test('unknown key in version A', () => {
+        expect(() =>
+            mergeRecord({ x: lazyMergeCell() })({
+                ancestor: { x: { a: ['foo'] } },
+                versionA: { x: { b: ['bar'] }, y: { c: ['doo'] } },
+                versionB: { x: { d: ['baz'] } }
+            })
+        ).toThrow(new Error('Key y has no merger defined.'));
+    });
+    test('unknown key in version B', () => {
+        expect(() =>
+            mergeRecord({ x: lazyMergeCell() })({
+                ancestor: { x: { a: ['foo'] } },
+                versionA: { x: { b: ['bar'] } },
+                versionB: { x: { c: ['baz'] }, y: { d: ['doo'] } }
+            })
+        ).toThrow(new Error('Key y has no merger defined.'));
     });
 });
 
