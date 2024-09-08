@@ -76,3 +76,7 @@ export function mapFromEntityArray(entities: ReadonlyArray<any>): Record<string,
     }
     return result;
 }
+
+export function entityArrayFromMap(map: Record<string, any>): ReadonlyArray<any> {
+    return Object.entries(map).map(([id, entity]) => ({ id, ...entity }));
+}

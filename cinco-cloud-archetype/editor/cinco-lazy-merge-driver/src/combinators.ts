@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { jsonEqual, mapMap, mapFromEntityArray } from './json-utilities';
+import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap } from './json-utilities';
 
 type Versions<T = any> = Readonly<{
     ancestor: T;
@@ -92,7 +92,7 @@ export function lazyMergeEntityList(merger: Merger): Merger {
                 versionA: mapFromEntityArray(versionA),
                 versionB: mapFromEntityArray(versionB)
             }),
-            map => Object.values(mapMap(map, (entity: object, id: string) => ({ id, ...entity })))
+            entityArrayFromMap
         );
 }
 

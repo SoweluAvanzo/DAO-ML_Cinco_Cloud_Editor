@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { jsonEqual, mapMap, mapFromEntityArray } from './json-utilities';
+import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap } from './json-utilities';
 import { describe, test, expect } from '@jest/globals';
 
 describe('jsonValuesEqual', () => {
@@ -88,5 +88,18 @@ describe('recordFromEntityArray', () => {
     });
     test('duplicate ids', () => {
         expect(() => mapFromEntityArray([{ id: 'x' }, { id: 'x' }])).toThrow('Duplicate ID x.');
+    });
+});
+
+describe('entityArrayFromMap', () => {
+    test('empty map', () => {
+        expect(entityArrayFromMap({})).toStrictEqual([]);
+    });
+    test('several entities', () => {
+        expect(entityArrayFromMap({ x: { value: 'foo' }, y: { value: 'doo' }, z: { value: 'roo' } })).toStrictEqual([
+            { id: 'x', value: 'foo' },
+            { id: 'y', value: 'doo' },
+            { id: 'z', value: 'roo' }
+        ]);
     });
 });
