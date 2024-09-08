@@ -17,7 +17,7 @@
 import { jsonEqual, mapMap, mapFromEntityArray } from './json-utilities';
 
 type Versions<T = any> = Readonly<{
-    ancestor: T | undefined;
+    ancestor: T;
     versionA: T;
     versionB: T;
 }>;
@@ -49,13 +49,13 @@ export type Merger = (versions: Versions) => MergeResult;
 
 export function mergeRecord(mergers: Record<string, Merger>): Merger {
     return ({ ancestor, versionA, versionB }) => {
-        ancestor !== undefined && validateNoUnknownKeysForRecordMerger(mergers, ancestor);
+        validateNoUnknownKeysForRecordMerger(mergers, ancestor);
         validateNoUnknownKeysForRecordMerger(mergers, versionA);
         validateNoUnknownKeysForRecordMerger(mergers, versionB);
         return sequenceMergeResultsMap(
             mapMap(mergers, (merger, key) =>
                 merger({
-                    ancestor: (ancestor ?? {})[key],
+                    ancestor: ancestor[key],
                     versionA: versionA[key],
                     versionB: versionB[key]
                 })
@@ -88,7 +88,7 @@ export function lazyMergeEntityList(merger: Merger): Merger {
     return ({ ancestor, versionA, versionB }) =>
         mapMergeResult(
             lazyMergeMap(merger)({
-                ancestor: mapFromEntityArray(ancestor ?? []),
+                ancestor: mapFromEntityArray(ancestor),
                 versionA: mapFromEntityArray(versionA),
                 versionB: mapFromEntityArray(versionB)
             }),
@@ -98,12 +98,10 @@ export function lazyMergeEntityList(merger: Merger): Merger {
 
 export function lazyMergeMap(merger: Merger): Merger {
     return ({ ancestor, versionA, versionB }) => {
-        if (ancestor !== undefined) {
-            for (const ancestorKey of Object.keys(ancestor)) {
-                // Entries may never be removed from a map, to keep being able to merge old branches.
-                if (!(ancestor in versionA) || !(ancestorKey in versionB)) {
-                    throw new Error(`Entity with key ${ancestorKey} has been removed from map.`);
-                }
+        for (const ancestorKey of Object.keys(ancestor)) {
+            // Entries may never be removed from a map, to keep being able to merge old branches.
+            if (!(ancestor in versionA) || !(ancestorKey in versionB)) {
+                throw new Error(`Entity with key ${ancestorKey} has been removed from map.`);
             }
         }
         const keys = new Set<string>();
@@ -116,7 +114,7 @@ export function lazyMergeMap(merger: Merger): Merger {
                         return [
                             key,
                             merger({
-                                ancestor: (ancestor ?? {})[key],
+                                ancestor: ancestor[key],
                                 versionA: versionA[key],
                                 versionB: versionB[key]
                             })

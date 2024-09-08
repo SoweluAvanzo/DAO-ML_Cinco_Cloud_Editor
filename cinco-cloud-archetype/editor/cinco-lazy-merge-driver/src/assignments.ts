@@ -18,24 +18,13 @@ import { jsonEqual } from './json-utilities';
 import { Merger } from './combinators';
 
 export function lazyMergeCell<T extends Sortable>(): Merger {
-    return ({
-        ancestor,
-        versionA,
-        versionB
-    }: {
-        ancestor: Assignments<T> | undefined;
-        versionA: Assignments<T>;
-        versionB: Assignments<T>;
-    }) => {
-        const mergedAssignments =
-            ancestor !== undefined
-                ? assignmentsUnion(
-                      // Ancestor assignments not killed
-                      assignmentsIntersection(ancestor, versionA, versionB),
-                      // Newly brought in assignments
-                      assignmentsDifference(assignmentsUnion(versionA, versionB), ancestor)
-                  )
-                : assignmentsUnion(versionA, versionB);
+    return ({ ancestor, versionA, versionB }: { ancestor: Assignments<T>; versionA: Assignments<T>; versionB: Assignments<T> }) => {
+        const mergedAssignments = assignmentsUnion(
+            // Ancestor assignments not killed
+            assignmentsIntersection(ancestor, versionA, versionB),
+            // Newly brought in assignments
+            assignmentsDifference(assignmentsUnion(versionA, versionB), ancestor)
+        );
         return {
             value: mergedAssignments,
             newEagerConflicts: false,
