@@ -92,7 +92,7 @@ export function lazyMergeEntityList(merger: Merger): Merger {
                 versionA: mapFromEntityArray(versionA),
                 versionB: mapFromEntityArray(versionB)
             }),
-            Object.values
+            map => Object.values(mapMap(map, (entity: object, id: string) => ({ id, ...entity })))
         );
 }
 
@@ -100,8 +100,8 @@ export function lazyMergeMap(merger: Merger): Merger {
     return ({ ancestor, versionA, versionB }) => {
         for (const ancestorKey of Object.keys(ancestor)) {
             // Entries may never be removed from a map, to keep being able to merge old branches.
-            if (!(ancestor in versionA) || !(ancestorKey in versionB)) {
-                throw new Error(`Entity with key ${ancestorKey} has been removed from map.`);
+            if (!(ancestorKey in versionA) || !(ancestorKey in versionB)) {
+                throw new Error(`Key ${ancestorKey} has been removed from map.`);
             }
         }
         const keys = new Set<string>();
@@ -121,10 +121,13 @@ export function lazyMergeMap(merger: Merger): Merger {
                         ];
                     } else if (key in versionA) {
                         return [key, mergeOk(versionA[key])];
-                    } else if (key in versionB) {
-                        return [key, mergeOk(versionB[key])];
                     } else {
-                        throw new Error(`Impossible state: Key ${key} neither in versionA nor in versionB.`);
+                        /* istanbul ignore else */
+                        if (key in versionB) {
+                            return [key, mergeOk(versionB[key])];
+                        } else {
+                            throw new Error(`Impossible state: Key ${key} neither in versionA nor in versionB.`);
+                        }
                     }
                 })
             )

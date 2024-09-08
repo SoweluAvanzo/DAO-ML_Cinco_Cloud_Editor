@@ -81,7 +81,7 @@ describe('recordFromEntityArray', () => {
                 { id: 'x', a: 1 },
                 { id: 'y', a: 2 }
             ])
-        ).toStrictEqual({ x: { id: 'x', a: 1 }, y: { id: 'y', a: 2 } });
+        ).toStrictEqual({ x: { a: 1 }, y: { a: 2 } });
     });
     test('missing id field', () => {
         expect(() => mapFromEntityArray([{ foo: 'bar' }])).toThrow(new TypeError('Entity has no id field.'));

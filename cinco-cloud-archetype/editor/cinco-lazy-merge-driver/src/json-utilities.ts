@@ -70,7 +70,9 @@ export function mapFromEntityArray(entities: ReadonlyArray<any>): Record<string,
         if (id in result) {
             throw new Error(`Duplicate ID ${id}.`);
         }
-        result[id] = entity;
+        const entityCopy = { ...entity };
+        delete entityCopy.id;
+        result[id] = entityCopy;
     }
     return result;
 }

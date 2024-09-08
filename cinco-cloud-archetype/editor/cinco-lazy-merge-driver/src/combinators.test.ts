@@ -14,8 +14,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { describe, test, expect } from '@jest/globals';
-import { eagerMergeCell, mergeRecord } from './combinators';
+import { eagerMergeCell, lazyMergeEntityList, lazyMergeMap, mapMergeResult, mergeRecord } from './combinators';
 import { lazyMergeCell } from './assignments';
+
+describe('mapMergeResult', () => {
+    expect(mapMergeResult({ value: 2, newEagerConflicts: false, newLazyConflicts: true }, n => n + 2)).toStrictEqual({
+        value: 4,
+        newEagerConflicts: false,
+        newLazyConflicts: true
+    });
+});
 
 describe('mergeRecord', () => {
     test('merge record of assignments', () => {
@@ -60,6 +68,85 @@ describe('mergeRecord', () => {
                 versionB: { x: { c: ['baz'] }, y: { d: ['doo'] } }
             })
         ).toThrow(new Error('Key y has no merger defined.'));
+    });
+});
+
+describe('lazyMergeEntityMap', () => {
+    test('update and addition', () => {
+        expect(
+            lazyMergeEntityList(mergeRecord({ value: lazyMergeCell() }))({
+                ancestor: [{ id: 'x', value: { a: ['foo'] } }],
+                versionA: [
+                    { id: 'x', value: { b: ['bar'] } },
+                    { id: 'y', value: { c: ['dar'] } }
+                ],
+                versionB: [
+                    { id: 'x', value: { d: ['baz'] } },
+                    { id: 'z', value: { e: ['faz'] } }
+                ]
+            })
+        ).toStrictEqual({
+            value: [
+                { id: 'x', value: { b: ['bar'], d: ['baz'] } },
+                { id: 'y', value: { c: ['dar'] } },
+                { id: 'z', value: { e: ['faz'] } }
+            ],
+            newEagerConflicts: false,
+            newLazyConflicts: true
+        });
+    });
+});
+
+describe('lazyMergeMap', () => {
+    test('updates', () => {
+        expect(
+            lazyMergeMap(lazyMergeCell())({
+                ancestor: { x: { a: ['foo'] }, y: { b: ['doo'] } },
+                versionA: { x: { c: ['bar'] }, y: { d: ['dar'] } },
+                versionB: { x: { e: ['baz'] }, y: { f: ['daz'] } }
+            })
+        ).toStrictEqual({
+            value: {
+                x: { c: ['bar'], e: ['baz'] },
+                y: { d: ['dar'], f: ['daz'] }
+            },
+            newEagerConflicts: false,
+            newLazyConflicts: true
+        });
+    });
+    test('additions', () => {
+        expect(
+            lazyMergeMap(lazyMergeCell())({
+                ancestor: {},
+                versionA: { x: { a: ['bar'] } },
+                versionB: { y: { b: ['daz'] } }
+            })
+        ).toStrictEqual({
+            value: {
+                x: { a: ['bar'] },
+                y: { b: ['daz'] }
+            },
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
+    test('key removed in version A', () => {
+        expect(() =>
+            lazyMergeMap(lazyMergeCell())({
+                ancestor: { x: { a: ['foo'] } },
+                versionA: {},
+                versionB: { x: { a: ['foo'] } }
+            })
+        ).toThrow('Key x has been removed from map.');
+    });
+    test('key removed in version B', () => {
+        expect(() =>
+            lazyMergeMap(lazyMergeCell())({
+                ancestor: { x: { a: ['foo'] } },
+                versionA: { x: { a: ['foo'] } },
+                versionB: {}
+            })
+        ).toThrow('Key x has been removed from map.');
     });
 });
 
