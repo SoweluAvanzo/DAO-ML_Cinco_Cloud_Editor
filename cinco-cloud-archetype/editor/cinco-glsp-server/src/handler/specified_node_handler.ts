@@ -13,33 +13,45 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Container, GraphModel, GraphModelIndex, Node } from '@cinco-glsp/cinco-glsp-api';
-import { ModelElementContainer, getNodeSpecOf, getNodeTypes, NodeType } from '@cinco-glsp/cinco-glsp-common';
+import { Container, GraphModel, GraphModelIndex, Node, HookManager } from '@cinco-glsp/cinco-glsp-api';
+import { ModelElementContainer, getNodeSpecOf, getNodeTypes, NodeType, CreateNodeArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
 import { CreateNodeOperation, Point } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { AbstractSpecifiedNodeElementHandler } from './specified_element_handler';
 
 @injectable()
 export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
-    override BLACK_LIST: string[] = [];
-
     override executeOperation(operation: CreateNodeOperation): void {
         // find container
-        const container: Container | GraphModel | undefined = this.getValidConstrainedContainer(operation);
-        if (container === undefined) {
-            return;
+        const container: Container | GraphModel | undefined = this.findContainer(operation);
+
+        // CAN
+        const parameters: CreateNodeArgument = {
+            kind: 'Create',
+            modelElementId: '<NONE>',
+            elementKind: 'Node',
+            containerElementId: container ? container.id : '<NONE>',
+            elementTypeId: operation.elementTypeId,
+            position: operation.location
+        };
+        const inConstraint = this.canBeContained(container, operation.elementTypeId);
+        const canCreate = (): boolean =>
+            HookManager.executeHook(parameters, HookType.CAN_CREATE, this.modelState, this.logger, this.actionDispatcher);
+        if (inConstraint && canCreate()) {
+            // PRE
+            HookManager.executeHook(parameters, HookType.PRE_CREATE, this.modelState, this.logger, this.actionDispatcher);
+            // creation
+            const elementTypeId = operation.elementTypeId;
+            const relativeLocation = this.getRelativeLocation(operation) ?? Point.ORIGIN;
+            const node = this.createNode(relativeLocation, elementTypeId);
+            node.index = container!.index;
+            container!.containments.push(node);
+            this.modelState.refresh();
+            // POST
+            parameters.modelElementId = node.id;
+            HookManager.executeHook(parameters, HookType.POST_CREATE, this.modelState, this.logger, this.actionDispatcher);
+            this.saveAndUpdate();
         }
-        // pre hook
-        this.preCreateHook(operation.elementTypeId, container.id, operation.location);
-        // creation
-        const elementTypeId = operation.elementTypeId;
-        const relativeLocation = this.getRelativeLocation(operation) ?? Point.ORIGIN;
-        const node = this.createNode(relativeLocation, elementTypeId);
-        node.index = container.index;
-        container.containments.push(node);
-        // post hook
-        this.postCreateHook(node);
-        this.saveAndUpdate();
     }
 
     protected createNode(position: Point, elementTypeId: string): Node {
@@ -61,20 +73,12 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
         return node;
     }
 
-    getValidConstrainedContainer(operation: CreateNodeOperation): Container | GraphModel | undefined {
-        // find container
-        const container: Container | GraphModel | undefined = this.findContainer(operation);
-        if (container === undefined) {
-            return undefined;
+    canBeContained(container: Container | GraphModel | undefined, nodeTypeId: string): boolean {
+        const specification = getNodeSpecOf(nodeTypeId);
+        if (!specification || !container) {
+            return false;
         }
-        // check constraint
-        const specification = getNodeSpecOf(operation.elementTypeId);
-        if (!specification) {
-            return undefined;
-        }
-        const canBeContained = container.canContain(specification.elementTypeId);
-        // if constraint is met, return container
-        return canBeContained ? container : undefined;
+        return container.canContain(specification.elementTypeId);
     }
 
     findContainer(operation: CreateNodeOperation): Container | GraphModel | undefined {
@@ -87,38 +91,5 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
             .map((e: NodeType) => e.elementTypeId)
             .filter((e: string) => this.BLACK_LIST.indexOf(e) < 0);
         return result;
-    }
-
-    protected preCreateHook(elementTypeId: string, containerId: string, location: Point | undefined): void {
-        // TODO: preCreate
-        return;
-    }
-
-    protected postCreateHook(node: Node): void {
-        // TODO: generalize postCreate
-        if (node.type !== 'flowgraph:activity') {
-            return;
-        }
-        const activityNames = [
-            'Close',
-            'Fix',
-            'Give',
-            'Look at',
-            'Open',
-            'Pick up',
-            'Pull',
-            'Push',
-            'Put on',
-            'Read',
-            'Take off',
-            'Talk to',
-            'Turn off',
-            'Turn on',
-            'Unlock',
-            'Use',
-            'Walk to'
-        ];
-        const randomActivityName = activityNames[Math.trunc((Math.random() * 10000) % activityNames.length)];
-        node.setProperty('name', randomActivityName);
     }
 }

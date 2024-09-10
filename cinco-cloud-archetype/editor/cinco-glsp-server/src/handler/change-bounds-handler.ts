@@ -14,17 +14,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
 import { ChangeBoundsOperation, Dimension, GNode, Point } from '@eclipse-glsp/server';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
+import { ResizeArgument, HookType, MoveArgument } from '@cinco-glsp/cinco-glsp-common';
+import { Node } from '@cinco-glsp/cinco-glsp-api/lib/model/graph-model';
+import { HookManager } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class ChangeBoundsHandler extends CincoJsonOperationHandler {
-    readonly operationType = ChangeBoundsOperation.KIND;
 
-    @inject(GraphModelState)
-    override readonly modelState: GraphModelState;
+    readonly operationType = ChangeBoundsOperation.KIND;
 
     override executeOperation(operation: ChangeBoundsOperation): void {
         for (const element of operation.newBounds) {
@@ -32,15 +32,59 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
         }
     }
 
-    protected changeElementBounds(elementId: string, newSize: Dimension, newPosition?: Point): void {
+    protected changeElementBounds(elementId: string, newSize?: Dimension, newPosition?: Point): void {
         const index = this.modelState.index;
         const node = index.findByClass(elementId, GNode);
         const nodeObj = node ? index.findNode(node.id) : undefined;
         if (nodeObj) {
-            nodeObj.size = newSize;
-            if (newPosition) {
-                nodeObj.position = newPosition;
+            const oldSize = nodeObj.size;
+            const oldPosition = nodeObj.position;
+            const isResize = oldSize && newSize && (oldSize.width !== newSize.width || oldSize.height !== newSize.height);
+            const isMove = !isResize && oldPosition && newPosition && !Point.equals(oldPosition, newPosition);
+            if (isResize) {
+                this.handleResize(nodeObj, newSize, newPosition);
+            } else if (isMove) {
+                this.handleMove(nodeObj, newPosition);
             }
         }
     }
+
+    private handleResize(node: Node, newSize: Dimension, newPosition: Point | undefined): void {
+        const oldSize = node.size;
+        const oldPosition = node.position;
+        const parameters: ResizeArgument = {
+            kind: 'Resize',
+            modelElementId: node.id,
+            oldSize: oldSize,
+            newSize: newSize,
+            oldPosition: oldPosition,
+            newPosition: newPosition ?? oldPosition
+        };
+        const canResize = HookManager.executeHook(parameters, HookType.CAN_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+        if (canResize) {
+            HookManager.executeHook(parameters, HookType.PRE_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+            if (newPosition) {
+                node.position = newPosition;
+            }
+            node.size = newSize;
+            HookManager.executeHook(parameters, HookType.POST_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+        }
+    }
+
+    private handleMove(node: Node, newPosition: Point): void {
+        const oldPosition = node.position;
+        const parameters: MoveArgument = {
+            kind: 'Move',
+            modelElementId: node.id,
+            oldPosition: oldPosition,
+            newPosition: newPosition
+        };
+        const canMove = HookManager.executeHook(parameters, HookType.CAN_MOVE, this.modelState, this.logger, this.actionDispatcher);
+        if (canMove) {
+            HookManager.executeHook(parameters, HookType.PRE_MOVE, this.modelState, this.logger, this.actionDispatcher);
+            node.position = newPosition;
+            HookManager.executeHook(parameters, HookType.POST_MOVE, this.modelState, this.logger, this.actionDispatcher);
+        }
+    }
+
 }

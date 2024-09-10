@@ -14,10 +14,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { HookType } from './protocol/hooks/hook-type';
 import { hasArrayProp, hasBooleanProp, hasNumberProp, hasObjectProp, hasStringProp } from './protocol/type-utils';
 
 /**
- * Datamodell
+ * Data model
  */
 
 export namespace MetaSpecification {
@@ -801,6 +802,17 @@ function resolveAppearance(app: string | Appearance | undefined): Appearance | u
  * Annotation
  */
 
+const handlerAnnotations = [
+    'Hook',
+    'CustomAction',
+    'AppearanceProvider',
+    'Validation',
+    'GeneratorAction',
+    'Interpreter',
+    'DoubleClickAction',
+    'SelectAction'
+];
+
 export function hasAppearanceProvider(type: string): boolean {
     return getAppearanceProvider(type).length > 0;
 }
@@ -849,6 +861,14 @@ export function getDoubleClickActions(elementTypeId: string): string[][] {
     return getAnnotationValues(elementTypeId, 'DoubleClickAction');
 }
 
+export function hasSelectAction(type: string): boolean {
+    return hasAnnotation(type, 'SelectAction');
+}
+
+export function getSelectActions(elementTypeId: string): string[][] {
+    return getAnnotationValues(elementTypeId, 'SelectAction');
+}
+
 export function hasValidator(graphElementTypeId: string): boolean {
     return hasAnnotation(graphElementTypeId, 'Validation');
 }
@@ -889,18 +909,59 @@ export function getAllHandlerNames(): string[] {
 
         // get mgl annotations
         const annotations = getAllAnnotations(element.elementTypeId);
-        for (const ann of annotations) {
-            const values = ann.values;
-            // handlerClassNames have to be the first value of annotations
-            if (values.length > 0) {
-                const handlerName = values[0];
-                if (!handlerNames.includes(handlerName)) {
-                    handlerNames.push(handlerName);
-                }
+        for (const ann of annotations.filter(a => handlerAnnotations.includes(a.name))) {
+            switch (ann.name) {
+                default:
+                    {
+                        const values = ann.values;
+                        // handlerClassNames have to be the first value of annotations
+                        if (values.length > 0) {
+                            const handlerName = values[0];
+                            if (!handlerNames.includes(handlerName)) {
+                                handlerNames.push(handlerName);
+                            }
+                        }
+                    }
+                    break;
             }
         }
     }
     return handlerNames;
+}
+
+export function hasHooks(elementTypeId: string): boolean {
+    return hasAnnotation(elementTypeId, 'Hook');
+}
+
+export function hasHooksOfTypes(elementTypeId: string, hookTypes: HookType[]): boolean {
+    return getHooksOfTypes(elementTypeId, hookTypes).length > 0;
+}
+
+export function getHooksOfTypes(elementTypeId: string, hookTypes: HookType[]): string[][] {
+    return getAllHooks(elementTypeId).filter(values => {
+        for (const h of hookTypes) {
+            if (values.includes(h.valueOf())) {
+                return true;
+            }
+        }
+        return false;
+    });
+}
+
+export function getHookTypes(elementTypeId: string, hookClassName: string): string[] {
+    const hook = getAllHooks(elementTypeId).filter(values => values.length > 0 && values.at(0) === hookClassName);
+    if (hook.length > 0) {
+        return Array.from(new Set(hook.flat().filter(values => values !== hookClassName)));
+    }
+    return [];
+}
+
+export function getHooksOfType(elementTypeId: string, hookType: HookType): string[][] {
+    return getAllHooks(elementTypeId).filter(values => values.includes(hookType.valueOf()));
+}
+
+export function getAllHooks(elementTypeId: string): string[][] {
+    return getAnnotationValues(elementTypeId, 'Hook');
 }
 
 export function isResizeable(type: string): boolean {
@@ -1168,6 +1229,10 @@ export function getDiagramExtension(elementTypeId: string): string | undefined {
 
 export function getGraphModelOfFileType(diagramExtension: string): GraphType | undefined {
     return getGraphSpecByFilterOf(e => e.diagramExtension === diagramExtension);
+}
+
+export function getDiagramExtensions(): string[] {
+    return Array.from(new Set(getGraphTypes().map(g => g.diagramExtension)));
 }
 
 export function getModelElementSpecifications(): ElementType[] {

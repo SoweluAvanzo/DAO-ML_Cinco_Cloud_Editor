@@ -112,8 +112,8 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     // change edge handling
     unbind(EdgeEditTool);
-    bind(TYPES.IDefaultTool).to(RoutingPointAwareEdgeEditTool);
-    bind(EdgeEditTool).to(RoutingPointAwareEdgeEditTool);
+    bind(TYPES.IDefaultTool).to(RoutingPointAwareEdgeEditTool).inSingletonScope();
+    bind(EdgeEditTool).to(RoutingPointAwareEdgeEditTool).inSingletonScope();
     bind(RoutingPointAwareEdgeEditTool).toSelf().inSingletonScope();
 
     // bind FrontendValidatingTypeHintProvider

@@ -16,6 +16,8 @@
 import { META_DEV_MODE, META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, hasArg } from '@cinco-glsp/cinco-glsp-common';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
+import { fileURLToPath } from 'url';
 
 export const FOLDER_TYPE = ':FOLDER';
 
@@ -161,15 +163,16 @@ export function isAbsolute(dir: string): boolean {
     return dir.startsWith('/');
 }
 
-export function readJson(filePath: string, encoding?: string): object | undefined {
+export function readJson(filePath: string, options?: { hideError?: boolean; encoding?: string }): object | undefined {
     const content = readFile(filePath);
     if (content) {
         try {
             return JSON.parse(content);
-            // Do something with the parsed data
         } catch (err) {
-            console.error('Error parsing json-file: ' + filePath);
-            console.error(err);
+            if (!options || !options.hideError) {
+                console.error('Error parsing json-file: ' + filePath);
+                console.error(err);
+            }
         }
     }
     return undefined;
@@ -250,6 +253,15 @@ export function copyDirectory(
             copyFile(entry, targetPath, overwriteExistingFiles);
         }
     }
+}
+
+export function toPath(sourceUri: string): string {
+    let sourcePath = sourceUri.startsWith('file://') ? fileURLToPath(sourceUri) : sourceUri;
+    if (os.platform() === 'win32') {
+        // Remove the leading slash if it exists (Windows paths don't have it)
+        sourcePath = sourcePath.replace(/^\//, '');
+    }
+    return sourcePath;
 }
 
 /**

@@ -1,0 +1,293 @@
+{
+  "graphTypes": [
+    {
+      "elementTypeId": "hooksandactions:hooksandactions",
+      "label": "HooksAndActions",
+      "diagramExtension": "hooks",
+      "containments": [
+        {
+          "lowerBound": 0,
+          "upperBound": -1,
+          "elements": ["hooksandactions:activity"]
+        }
+      ],
+      "annotations": [
+        {
+          "name": "Validation",
+          "values": ["HooksAndActionsValidator"]
+        },
+        {
+          "name": "GeneratorAction",
+          "values": ["HooksAndActionsGenerator"]
+        },
+        {
+          "name": "Hook",
+          "values": [
+            "HooksAndActionsHook",
+            "CanCreate",
+            "PreCreate",
+            "PostCreate",
+            "PostDelete",
+            "PostPathChange",
+            "PostContentChange",
+            "CanAttributeChange",
+            "PreAttributeChange",
+            "PostAttributeChange",
+            "CanSelect",
+            "PostSelect",
+            "CanDoubleClick",
+            "PostDoubleClick",
+            "CanSave",
+            "PostSave"
+          ]
+        }
+      ],
+      "attributes": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "",
+          "final": false
+        }
+      ]
+    }
+  ],
+  "nodeTypes": [
+    {
+      "elementTypeId": "hooksandactions:activity",
+      "label": "HooksNode",
+      "deletable": true,
+      "reparentable": true,
+      "repositionable": true,
+      "resizable": true,
+      "outgoingEdges": [
+        {
+          "lowerBound": 1,
+          "upperBound": -1,
+          "elements": ["hooksandactions:transition"]
+        }
+      ],
+      "incomingEdges": [
+        {
+          "lowerBound": 1,
+          "upperBound": -1,
+          "elements": ["hooksandactions:transition"]
+        }
+      ],
+      "width": 92,
+      "height": 36,
+      "palettes": [],
+      "view": {
+        "style": "hooksandactions:blueTextRectangle",
+        "styleParameter": ["${name}"]
+      },
+      "attributes": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "Test",
+          "final": false
+        }
+      ],
+      "annotations": [
+        {
+          "name": "CustomAction",
+          "values": ["ShortestPathAction", "Calculate Shortest Path"]
+        },
+        {
+          "name": "CustomAction",
+          "values": ["LongestPathAction", "Calculate Longest Path"]
+        },
+        {
+          "name": "AppearanceProvider",
+          "values": ["HooksAndActionsAppearanceProvider"]
+        },
+        {
+          "name": "Hook",
+          "values": [
+            "ActivityHook",
+            "CanCreate",
+            "PreCreate",
+            "PostCreate",
+            "CanDelete",
+            "PreDelete",
+            "PostDelete",
+            "CanAttributeChange",
+            "PostAttributeChange",
+            "PreAttributeChange",
+            "CanMove",
+            "PreMove",
+            "PostMove",
+            "CanResize",
+            "PreResize",
+            "PostResize",
+            "CanSelect",
+            "PostSelect",
+            "CanDoubleClick",
+            "PostDoubleClick"
+          ]
+        },
+        {
+          "name": "Hook",
+          "values": [
+            "ActivityHook2",
+            "CanCreate",
+            "PostCreate"
+          ]
+        },
+        {
+          "name": "SelectAction",
+          "values": [
+            "HooksAndActionsSelectHandler"
+          ]
+        },
+        {
+          "name": "DoubleClickAction",
+          "values": [
+            "HooksAndActionsDoubleClickHandler"
+          ]
+        },
+        {
+          "name": "palette",
+          "values": ["Interactive", "msl-example/icons/icon_flowgraph_activity.png"]
+        },
+        {
+          "name": "icon",
+          "values": ["msl-example/icons/icon_flowgraph_activity.png"]
+        }
+      ]
+    }
+  ],
+  "edgeTypes": [
+    {
+      "elementTypeId": "hooksandactions:transition",
+      "label": "Transition",
+      "deletable": true,
+      "repositionable": true,
+      "routable": true,
+      "view": {
+        "style": "hooksandactions:simpleArrow"
+      },
+      "attributes": [
+        {
+          "name": "name",
+          "type": "string",
+          "defaultValue": "",
+          "final": false
+        }
+      ],
+      "annotations": [
+        {
+            "name": "Hook",
+            "values": [
+                "TransitionHooks", 
+                "PreCreate",
+                "PostCreate",
+                "CanDelete",
+                "PreDelete",
+                "PostDelete",
+                "CanAttributeChange",
+                "PostAttributeChange",
+                "PreAttributeChange",
+                "CanSelect",
+                "PostSelect",
+                "CanDoubleClick",
+                "PostDoubleClick",
+                "CanReconnect",
+                "PreReconnect",
+                "PostReconnect"
+            ]
+        },
+        {
+          "name": "SelectAction",
+          "values": [
+            "HooksAndActionsSelectHandler"
+          ]
+        },
+        {
+          "name": "DoubleClickAction",
+          "values": [
+            "HooksAndActionsDoubleClickHandler"
+          ]
+        }
+      ]
+    }
+  ],
+  "customTypes": [
+  ],
+  "appearances": [
+    {
+      "name": "default",
+      "lineWidth": 5,
+      "background": {
+        "r": 144,
+        "g": 207,
+        "b": 238
+      }
+    },
+    {
+      "name": "defaultDecorator",
+      "lineStyle": "SOLID",
+      "lineWidth": 10,
+      "background": {
+        "r": 144,
+        "g": 207,
+        "b": 238
+      },
+      "foreground": {
+        "r": 200,
+        "g": 207,
+        "b": 238
+      }
+    }
+  ],
+  "styles": [
+    {
+      "name": "hooksandactions:simpleArrow",
+      "styleType": "EdgeStyle",
+      "appearance": {
+        "lineStyle": "SOLID"
+      },
+      "decorator": [
+        {
+          "location": 1.0,
+          "predefinedDecorator": {
+            "shape": "ARROW",
+            "appearance": "defaultDecorator"
+          }
+        }
+      ]
+    },
+    {
+      "name": "hooksandactions:blueTextRectangle",
+      "styleType": "NodeStyle",
+      "appearanceProvider": "ExampleAppearanceProvider",
+      "parameterCount": 1,
+      "shape": {
+        "type": "ROUNDEDRECTANGLE",
+        "appearance": "default",
+        "position": {
+          "xPos": 0,
+          "yPos": 0
+        },
+        "size": {
+          "width": 96,
+          "height": 32
+        },
+        "cornerWidth": 8,
+        "cornerHeight": 8,
+        "children": [
+          {
+            "type": "TEXT",
+            "position": {
+              "horizontal": "CENTER",
+              "vertical": "MIDDLE"
+            },
+            "editable": false,
+            "value": "%s"
+          }
+        ]
+      }
+    }
+  ]
+}

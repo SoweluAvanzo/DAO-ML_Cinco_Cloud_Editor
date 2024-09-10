@@ -28,6 +28,10 @@ export class DoubleClickManager extends BaseHandlerManager<DoubleClickAction, Do
     baseHandlerName = 'DoubleClickHandler';
     actionKinds: string[] = [DoubleClickAction.KIND];
 
+    override async execute(action: DoubleClickAction, ...args: unknown[]): Promise<Action[]> {
+        return super.execute(action, args);
+    }
+
     hasHandlerProperty(element: ModelElement): boolean {
         return hasDoubleClickAction(element.type);
     }

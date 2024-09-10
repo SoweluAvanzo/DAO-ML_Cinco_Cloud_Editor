@@ -125,7 +125,7 @@ export class CincoNode extends GNode implements CincoModelElement {
         }
         // 2. Persisted View
         const args = this['args'] as any;
-        if (args !== undefined && args.persistedView && (args.persistedView.style || args.persistedView.cssClass)) {
+        if (args !== undefined && args.persistedView) {
             const persistedView = JSON.parse(args.persistedView) as View;
             this._view = persistedView;
             return this._view;
@@ -150,8 +150,8 @@ export class CincoNode extends GNode implements CincoModelElement {
     }
 
     set style(style: Style | undefined) {
-        if (this._view) {
-            this._view = { ...this._view } as View;
+        if (this.view) {
+            this._view = { ...this.view } as View;
             this._view.style = { ...style } as Style;
         }
     }
@@ -478,6 +478,10 @@ export class CincoGraphModel extends GGraph implements CincoModelElement {
     override isContainableElement(input: string | GModelElement | GModelElementSchema): boolean {
         const targetType = input instanceof GModelElement ? input.type : isGModelElementSchema(input) ? input.type : input;
         return canContain(this, targetType);
+    }
+
+    override add(child: GChildElement, index?: number): void {
+        super.add(child, index);
     }
 
     override move(child: GChildElement, newIndex: number): void {

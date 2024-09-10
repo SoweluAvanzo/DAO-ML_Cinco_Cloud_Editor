@@ -13,20 +13,24 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { ClientSession, ClientSessionListener } from '@eclipse-glsp/server';
+import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
+import { ActionDispatcher, ClientSession, ClientSessionListener } from '@eclipse-glsp/server';
 
 export class CincoClientSessionListener implements ClientSessionListener {
-    static disposedCallback: Map<string, () => void> = new Map();
-    static createdCallback: (clientId: string) => void;
+    static disposedCallback: Map<string, (() => void)[]> = new Map();
+    static createdCallback: (clientId: string, modelState: GraphModelState, actionDispatcher: ActionDispatcher) => void;
     static initialized = false;
 
-    constructor(createdCallback: (clientId: string) => void) {
+    constructor(createdCallback: (clientId: string, modelState: GraphModelState, actionDispatcher: ActionDispatcher) => void) {
         CincoClientSessionListener.initialized = true;
         CincoClientSessionListener.createdCallback = createdCallback;
     }
 
     static addDisposeCallback(id: string, cb: () => void): void {
-        this.disposedCallback.set(id, cb);
+        if (!this.disposedCallback.has(id)) {
+            this.disposedCallback.set(id, []);
+        }
+        this.disposedCallback.get(id)?.push(cb);
     }
 
     static removeDisposeCallback(clientId: string): void {
@@ -36,15 +40,23 @@ export class CincoClientSessionListener implements ClientSessionListener {
     }
 
     sessionCreated(clientSession: ClientSession): void {
-        CincoClientSessionListener.createdCallback(clientSession.id);
+        const graphModelState = clientSession.container.get(GraphModelState);
+        const actionDispatcher = clientSession.container.get(ActionDispatcher) as ActionDispatcher;
+        CincoClientSessionListener.createdCallback(clientSession.id, graphModelState, actionDispatcher);
     }
 
     sessionDisposed(client: ClientSession): void {
         for (const entry of CincoClientSessionListener.disposedCallback.entries()) {
             const clientId = entry[0];
-            const cb = entry[1];
+            const cbs = entry[1];
             if (client.id === clientId) {
-                cb();
+                for (const cb of cbs) {
+                    try {
+                        cb();
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
             }
         }
     }

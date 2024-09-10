@@ -13,33 +13,46 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Container, Edge, IdentifiableElement, Node } from '@cinco-glsp/cinco-glsp-api';
+import { Container, Edge, Node, ModelElement, HookManager } from '@cinco-glsp/cinco-glsp-api';
 import { DeleteElementOperation, SaveModelAction, remove } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
+import { DeleteArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class DeleteHandler extends CincoJsonOperationHandler {
     readonly operationType = DeleteElementOperation.KIND;
 
     executeOperation(operation: DeleteElementOperation): void {
-        operation.elementIds.forEach(elementId => this.deleteElementById(elementId));
+        operation.elementIds.forEach(elementId => this.deleteElementById(elementId, operation));
         this.saveAndUpdate();
     }
 
-    protected deleteElementById(elementId: string): void {
+    protected deleteElementById(elementId: string, operation: DeleteElementOperation): void {
         const index = this.modelState.index;
-        const element: IdentifiableElement | undefined = index.findElement(elementId);
+        const element: ModelElement | undefined = index.findModelElement(elementId);
         if (!element) {
             return;
         }
-        this.deleteElement(element);
+        this.deleteElement(element, operation);
     }
 
-    protected deleteElement(element: IdentifiableElement): void {
+    protected deleteElement(element: ModelElement, operation: DeleteElementOperation): void {
+        const parameters: DeleteArgument = {
+            kind: 'Delete',
+            modelElementId: element.id,
+            deleted: undefined
+        };
+        // CAN
+        if (!HookManager.executeHook(parameters, HookType.CAN_DELETE, this.modelState, this.logger, this.actionDispatcher)) {
+            return;
+        }
+        // PRE
+        HookManager.executeHook(parameters, HookType.PRE_DELETE, this.modelState, this.logger, this.actionDispatcher);
+        parameters.deleted = element;
         if (Container.is(element)) {
             const containments = element.containments ?? [];
-            containments.forEach((c: Node) => this.deleteElement(c));
+            containments.forEach((c: Node) => this.deleteElement(c, operation));
         }
         if (Node.is(element)) {
             // disjunct from container
@@ -58,6 +71,8 @@ export class DeleteHandler extends CincoJsonOperationHandler {
         } else if (Edge.is(element)) {
             remove(this.modelState.graphModel.edges, element);
         }
+        // POST
+        HookManager.executeHook(parameters, HookType.POST_DELETE, this.modelState, this.logger, this.actionDispatcher);
     }
 
     saveAndUpdate(): void {
