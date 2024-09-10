@@ -47,8 +47,6 @@ import {
     GraphicalElementHook,
     AbstractNodeHook,
     AbstractEdgeHook,
-    AbstractUserDefinedTypeHook,
-    AbstractGraphModelHook,
     ModelFileHook,
     GraphModelElementHook
 } from '../api/hook-handler';
@@ -474,7 +472,7 @@ export class HookManager {
         switch (parameters.elementKind) {
             case 'Node': {
                 const container = modelState.index.findModelElement(parameters.containerElementId);
-                if (hook instanceof AbstractNodeHook && ModelElementContainer.is(container)) {
+                if (NodeElementHook.is(hook) && ModelElementContainer.is(container)) {
                     return hook.canCreate(parameters.elementTypeId, container, parameters.position);
                 }
                 return false;
@@ -482,21 +480,21 @@ export class HookManager {
             case 'Edge': {
                 const source = modelState.index.findNode(parameters.sourceElementId);
                 const target = modelState.index.findNode(parameters.targetElementId);
-                if (hook instanceof AbstractEdgeHook && source && target) {
+                if (EdgeElementHook.is(hook) && source && target) {
                     return hook.canCreate(parameters.elementTypeId, source, target);
                 }
                 return false;
             }
             case 'UserDefinedType': {
                 const host = modelState.index.findModelElement(parameters.elementTypeId);
-                if (host && hook instanceof AbstractUserDefinedTypeHook) {
+                if (ModelElementHook.is(host)) {
                     return hook.canCreate(host);
                 }
                 return false;
             }
             case 'GraphModel': {
-                if (hook instanceof AbstractGraphModelHook) {
-                    return (hook as AbstractGraphModelHook).canCreate(parameters.elementTypeId, parameters.path);
+                if (GraphModelElementHook.is(hook)) {
+                    return hook.canCreate(parameters.elementTypeId, parameters.path);
                 }
                 return false;
             }
@@ -512,7 +510,7 @@ export class HookManager {
             case 'Node':
                 {
                     const container = modelState.index.findModelElement(parameters.containerElementId);
-                    if (hook instanceof AbstractNodeHook && ModelElementContainer.is(container)) {
+                    if (NodeElementHook.is(hook) && ModelElementContainer.is(container)) {
                         hook.preCreate(parameters.elementTypeId, container, parameters.position);
                     } else {
                         throw Error('Can not PreCreate node.');
@@ -523,7 +521,7 @@ export class HookManager {
                 {
                     const source = modelState.index.findNode(parameters.sourceElementId);
                     const target = modelState.index.findNode(parameters.targetElementId);
-                    if (hook instanceof AbstractEdgeHook && source && target) {
+                    if (EdgeElementHook.is(hook) && source && target) {
                         hook.preCreate(parameters.elementTypeId, source, target);
                     }
                 }
@@ -531,14 +529,14 @@ export class HookManager {
             case 'UserDefinedType':
                 {
                     const host = modelState.index.findModelElement(parameters.elementTypeId);
-                    if (host && hook instanceof AbstractUserDefinedTypeHook) {
+                    if (host && ModelElementHook.is(hook)) {
                         hook.preCreate(host);
                     }
                 }
                 break;
             case 'GraphModel':
                 {
-                    if (hook instanceof AbstractGraphModelHook) {
+                    if (GraphModelElementHook.is(hook)) {
                         hook.preCreate(parameters.elementTypeId, parameters.path);
                     }
                 }
