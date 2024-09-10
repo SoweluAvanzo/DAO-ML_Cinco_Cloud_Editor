@@ -25,7 +25,8 @@ import {
     FeatureSet,
     moveFeature,
     GModelElement,
-    isGModelElementSchema
+    isGModelElementSchema,
+    GEdge
 } from '@eclipse-glsp/client';
 import { injectable, inject } from 'inversify';
 import { CincoGraphModel } from '../../model/model';
@@ -55,19 +56,20 @@ export class ApplyConstrainedTypeHintsCommand extends ApplyTypeHintsCommand {
             // add edges feature
             if (!(element instanceof CincoGraphModel)) {
                 addOrRemove(element.features, connectableFeature, true);
-                const validSourceEdges = this.typeHintProvider.getValidEdgeElementTypes(element, 'source');
-                const validTargetEdges = this.typeHintProvider.getValidEdgeElementTypes(element, 'target');
-                const connectable = createConnectable(validSourceEdges, validTargetEdges);
+                const connectable = createConnectable(element, this.typeHintProvider);
                 Object.assign(element, connectable);
             }
         }
     }
 }
 
-function createConnectable(validSourceEdges: string[], validTargetEdges: string[]): Connectable {
+function createConnectable(element: GModelElement, typeHintProvider: FrontendValidatingTypeHintProvider): Connectable {
     return {
-        canConnect: (routable, role) =>
-            role === 'source' ? validSourceEdges.includes(routable.type) : validTargetEdges.includes(routable.type)
+        canConnect: (routable: GEdge, role: 'source' | 'target'): boolean => {
+            const validSourceEdges = typeHintProvider.getValidEdgeElementTypes(element, 'source');
+            const validTargetEdges = typeHintProvider.getValidEdgeElementTypes(element, 'target');
+            return role === 'source' ? validSourceEdges.includes(routable.type) : validTargetEdges.includes(routable.type);
+        }
     };
 }
 

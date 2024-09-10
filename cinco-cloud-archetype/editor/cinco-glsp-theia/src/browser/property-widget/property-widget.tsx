@@ -168,7 +168,7 @@ export class CincoPropertiesView extends React.Component<
 
         // filter out all attributes, that are hidden
         const isHidden: (attributeDefinition: any) => boolean = attributeDefinition =>
-            attributeDefinition.annotations.filter((annotation: any) => annotation.name === 'hidden').length <= 0;
+            (attributeDefinition.annotations ?? []).filter((annotation: any) => annotation.name === 'hidden').length <= 0;
         const attributeDefinitions = this.state.attributeDefinitions.filter(a => isHidden(a));
 
         return (

@@ -1,0 +1,63 @@
+{
+  "private": "true",
+  "name": "@cinco-glsp/cinco-languages",
+  "version": "1.0.0",
+  "description": "langium based parser for the meta dsls of cinco",
+  "license": "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
+  "keywords": [
+    "modeling",
+    "langium",
+    "graphics",
+    "diagram",
+    "minimal",
+    "diagram",
+    "Cinco",
+    "Cinco Cloud",
+    "mgl",
+    "msl"
+  ],
+  "author": {
+    "name": "Cinco Cloud"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/scce/cinco-cloud.git"
+  },
+  "homepage": "https://gitlab.com/scce/cinco-cloud",
+  "bugs": "https://gitlab.com/scce/cinco-cloud/issues",
+  "contributors": [
+    {
+      "name": "Cinco Cloud",
+      "url": "https://gitlab.com/scce/cinco-cloud"
+    }
+  ],
+  "files": [
+    "lib",
+    "src"
+  ],
+  "dependencies": {
+      "langium": "1.3.1",
+      "chalk": "~5.3.0"
+  },
+  "devDependencies": {
+      "circular-dependency-plugin": "^5.2.2",
+      "eslint": "~8.47.0",
+      "langium-cli": "~2.1.0",
+      "rimraf": "5.0.5"
+  },
+  "scripts": {
+    "prepare": "yarn clean && yarn build",
+    "install:only": "yarn install --ignore-scripts",
+    "clean": "rimraf tsconfig.tsbuildinfo lib bundle",
+    "build": "tsc -b tsconfig.json && yarn bundle",
+    "bundle": "webpack",
+    "watch": "tsc -b tsconfig.json --watch",
+    "langium:generate": "langium generate",
+    "langium:watch": "langium generate --watch"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "lib/index",
+  "types": "lib/index"
+}

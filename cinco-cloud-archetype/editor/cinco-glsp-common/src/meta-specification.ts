@@ -869,12 +869,12 @@ export function hasAnnotation(type: string, annotation: string): boolean {
 
 export function getAnnotations(type: string, annotation: string): Annotation[] {
     const elementSpec = getSpecOf(type) as ElementType;
-    return (elementSpec.annotations ?? []).filter(a => a.name === annotation);
+    return (elementSpec?.annotations ?? []).filter(a => a.name === annotation);
 }
 
 export function getAllAnnotations(type: string): Annotation[] {
     const elementSpec = getSpecOf(type) as ElementType;
-    return elementSpec.annotations ?? [];
+    return elementSpec?.annotations ?? [];
 }
 
 export function getAllHandlerNames(): string[] {
@@ -989,10 +989,8 @@ export function getPaletteIconPath(paletteCategory: string | undefined): string 
     return undefined;
 }
 
-function getPaletteFromAnnotation(elementTypeId: string): string[] {
-    return getAnnotations(elementTypeId, 'palette')
-        .map(a => a.values)
-        .flat();
+function getPalettesFromAnnotation(elementTypeId: string): string[][] {
+    return getAnnotations(elementTypeId, 'palette').map(a => a.values);
 }
 
 export function hasPalette(elementTypeId: string, palette: string): boolean {
@@ -1012,7 +1010,8 @@ export function getPalettes(elementTypeId: string | undefined): string[] {
     }
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
     if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
-        return (elementSpec.palettes ?? []).concat(getPaletteFromAnnotation(elementTypeId));
+        const paletteNamesOfAnnotations = getPalettesFromAnnotation(elementTypeId).map(a => a[0]);
+        return (elementSpec.palettes ?? []).concat(paletteNamesOfAnnotations);
     }
     return [];
 }
@@ -1080,7 +1079,7 @@ export function getContainerNodes(): NodeType[] {
 }
 
 export function getContainmentsOf(e: ModelElementContainer): NodeType[] {
-    if (e.containments !== undefined) {
+    if (e?.containments !== undefined) {
         const containmentTypesIds = e.containments.map((c: Constraint) => c.elements ?? []).flat();
         return containmentTypesIds.map(id => getNodeSpecOf(id)).filter((n: NodeType | undefined) => n !== undefined) as NodeType[];
     }

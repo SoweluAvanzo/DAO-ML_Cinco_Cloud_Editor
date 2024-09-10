@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Args, PaletteItem } from '@eclipse-glsp/protocol';
-import { GraphModelState, getFilesFromFolder, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
+import { GraphModelState, getFiles, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
 import {
     ElementType,
     getEdgePalettes,
@@ -92,7 +92,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         // add prime node label into palettes
         const workspacePath = getWorkspaceRootUri();
         const modelFileExtensions = getGraphTypes().map(gT => '.' + gT.diagramExtension);
-        const modelFiles = getFilesFromFolder(workspacePath, './', modelFileExtensions);
+        const modelFiles = getFiles(workspacePath, modelFileExtensions);
         const primeNodePaletteItems = getPrimeNodePalettes();
         primeNodePaletteItems
             .filter((e: string) => e !== 'Edges' && e !== 'Nodes')
@@ -131,13 +131,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
 
     protected getSpecifiedHandlers(handlers: CreateOperationHandler[], type: string): SpecifiedElementHandler[] {
         if (type === 'nodes') {
-            const specifiedNodeHandlers = Array.from(
-                new Set(
-                    handlers
-                        .filter(h => h instanceof SpecifiedNodeHandler) // all specified handlers
-                        .map(h => h as SpecifiedNodeHandler)
-                )
-            );
+            const specifiedNodeHandlers = this.getAllSpecifiedHandler(handlers, SpecifiedNodeHandler);
             return specifiedNodeHandlers.filter(h => {
                 const specs = h.elementTypeIds.map(e => getNodeSpecOf(e));
                 const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
@@ -151,13 +145,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                 return isNoPalette.indexOf(true) >= 0;
             });
         } else if (type === 'edges') {
-            const specifiedEdgeHandler = Array.from(
-                new Set(
-                    handlers
-                        .filter(h => h instanceof SpecifiedEdgeHandler) // all specified handlers
-                        .map(h => h as SpecifiedEdgeHandler)
-                )
-            );
+            const specifiedEdgeHandler = this.getAllSpecifiedHandler(handlers, SpecifiedEdgeHandler);
             return specifiedEdgeHandler.filter(h => {
                 const specs = h.elementTypeIds.map(e => getEdgeSpecOf(e));
                 const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
@@ -172,6 +160,16 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             });
         }
         return [];
+    }
+
+    getAllSpecifiedHandler(handlers: CreateOperationHandler[], T: any): SpecifiedElementHandler[] {
+        const specifiedHandler = Array.from([] as SpecifiedElementHandler[]);
+        for (const handler of handlers) {
+            if (handler instanceof T && specifiedHandler.filter(h => handler.constructor.name === h.constructor.name).length <= 0) {
+                specifiedHandler.push(handler as SpecifiedElementHandler);
+            }
+        }
+        return specifiedHandler;
     }
 
     createCustomItem(

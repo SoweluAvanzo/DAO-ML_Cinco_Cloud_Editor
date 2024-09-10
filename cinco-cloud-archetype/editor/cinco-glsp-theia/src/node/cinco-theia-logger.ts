@@ -54,7 +54,7 @@ export class CincoLogger extends Logger {
     }
 
     toLoggedString(logLevel: number, log: string): string {
-        return `${LogLevel.toString(logLevel)?.toUpperCase()} ` + this.cleanANSI(log);
+        return `${LogLevel.toString(logLevel)?.toUpperCase()} ` + this.cleanANSI(log ?? '');
     }
 
     addListener(listener: (log: string, type: string) => void): void {
@@ -62,7 +62,8 @@ export class CincoLogger extends Logger {
     }
 
     private cleanANSI(msg: string): string {
+        const message: string = msg as string;
         // eslint-disable-next-line no-control-regex
-        return msg.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+        return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
     }
 }

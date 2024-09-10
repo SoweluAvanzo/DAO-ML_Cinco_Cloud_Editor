@@ -13,8 +13,17 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action, EnableToolPaletteAction, GLSPActionDispatcher, IActionHandler, ICommand, ToolPalette } from '@eclipse-glsp/client';
-import { inject, injectable } from 'inversify';
+import {
+    Action,
+    EnableToolPaletteAction,
+    GLSPActionDispatcher,
+    IActionHandler,
+    ICommand,
+    TYPES,
+    ToolPalette,
+    UIExtensionRegistry
+} from '@eclipse-glsp/client';
+import { inject, injectable, postConstruct } from 'inversify';
 import { CincoToolPalette } from './cinco-tool-palette';
 
 @injectable()
@@ -23,6 +32,15 @@ export class CincoToolPaletteUpdateHandler implements IActionHandler {
     protected actionDispatcher: GLSPActionDispatcher;
     @inject(ToolPalette)
     protected cincoToolPalette: CincoToolPalette;
+    @inject(TYPES.UIExtensionRegistry)
+    protected readonly uiExtensionRegistry: UIExtensionRegistry;
+
+    @postConstruct()
+    postConstruct(): void {
+        if (!this.uiExtensionRegistry.hasKey('tool-palette')) {
+            this.uiExtensionRegistry.register('tool-palette', this.cincoToolPalette);
+        }
+    }
 
     handle(action: Action): void | Action | ICommand {
         if (action.kind === EnableToolPaletteAction.KIND) {

@@ -31,13 +31,13 @@ import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server';
 import { processPort } from '@eclipse-glsp/server/lib/node/launch/socket-cli-parser';
 import { injectable } from 'inversify';
 import {
-    LanguageFilesRegistry,
     getPortArg,
     getLanguageFolderArg,
     getRoot,
     getWorkspaceFolderArg,
     getWebsocketPathArg,
-    getWebServerPortArg
+    getWebServerPortArg,
+    isMetaDevMode
 } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
@@ -46,7 +46,7 @@ export class ServerArgsRequestHandler implements ActionHandler {
 
     execute(action: ServerArgsRequest, ...args: unknown[]): MaybePromise<Action[]> {
         const serverArgs = ServerArgs.create(
-            LanguageFilesRegistry.isMetaDevMode,
+            isMetaDevMode(),
             getRoot(),
             getLanguageFolderArg() ?? WORKSPACE_FOLDER,
             getWorkspaceFolderArg() ?? META_LANGUAGES_FOLDER,

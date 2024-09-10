@@ -183,7 +183,7 @@ PrimitiveDefaultValue returns string:
 	INT | DOUBLE | STRING | BOOL
 ;
 
-terminal BOOL: /true|false|TRUE|FALSE|True|False/;
+terminal BOOL: /\b(true|false|TRUE|FALSE|True|False)\b/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
 terminal DOUBLE returns number: INT '.' INT;
 terminal INT returns number: /[0-9]+/;

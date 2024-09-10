@@ -140,13 +140,16 @@ export class FrontendResourceLoader {
         for (const icon of iconMap.entries()) {
             const iconType = icon[0];
             const iconPath = icon[1];
-            const url = await workspaceFileService.serveFileInRoot(iconFolder, iconPath);
+            let url = undefined;
+            if (iconPath && iconPath.length > 0) {
+                url = await workspaceFileService.serveFileInRoot(iconFolder, iconPath);
+            }
             if (url) {
                 css.push(`
                     .codicon-${iconType} {
                         width: 16px;
                         height: 16px;
-                        background-image: url('${url}');
+                        background-image: ${url ? `url('${url}')` : 'none'};
                         background-repeat: no-repeat;
                         background-position: center;
                     }
