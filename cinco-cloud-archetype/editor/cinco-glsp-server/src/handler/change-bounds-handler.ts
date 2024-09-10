@@ -36,29 +36,84 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
         const node = index.findByClass(elementId, GNode);
         const nodeObj = node ? index.findNode(node.id) : undefined;
         if (nodeObj) {
-            if (newPosition && this.isMove(nodeObj.position, newPosition)) {
+            const oldSize = nodeObj.size;
+            const oldPosition = nodeObj.position;
+            const isResize = oldSize && newSize && (oldSize.width !== newSize.width || oldSize.height !== newSize.height);
+            const isMove = !isResize && oldPosition && newPosition && !Point.equals(oldPosition, newPosition);
+            if (isResize) {
+                this.handleResize(nodeObj, newSize, newPosition);
+            } else if (isMove) {
                 this.handleMove(nodeObj, newPosition);
-            }
-            if (newSize && this.isResize(nodeObj.size, newSize)) {
-                this.handleResize(nodeObj, newSize);
             }
         }
     }
 
-    private handleMove(node: Node, newPosition: Point | undefined): void {
+    private handleResize(node: Node, newSize: Dimension, newPosition: Point | undefined): void {
+        const oldSize = node.size;
         const oldPosition = node.position;
-        if (!newPosition || !this.isMove(oldPosition, newPosition)) {
-            return;
+        const parameters: ResizeArgument = {
+            kind: 'Resize',
+            modelElementId: node.id,
+            oldSize: oldSize,
+            newSize: newSize,
+            oldPosition: oldPosition,
+            newPosition: newPosition ?? oldPosition
+        };
+        const canResize = HookManager.executeHook(
+            parameters,
+            HookType.CAN_RESIZE,
+            this.modelState,
+            this.logger,
+            this.actionDispatcher,
+            this.sourceModelStorage,
+            this.submissionHandler
+        );
+        if (canResize) {
+            HookManager.executeHook(
+                parameters,
+                HookType.PRE_RESIZE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
+            if (newPosition) {
+                node.position = newPosition;
+            }
+            node.size = newSize;
+            HookManager.executeHook(
+                parameters,
+                HookType.POST_RESIZE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
         }
-        const moveParameters: MoveArgument = {
+    }
+
+    private handleMove(node: Node, newPosition: Point): void {
+        const oldPosition = node.position;
+        const parameters: MoveArgument = {
             kind: 'Move',
             modelElementId: node.id,
-            oldPosition: node.position,
+            oldPosition: oldPosition,
             newPosition: newPosition
         };
-        if (newPosition && this.canMove(moveParameters)) {
+        const canMove = HookManager.executeHook(
+            parameters,
+            HookType.CAN_MOVE,
+            this.modelState,
+            this.logger,
+            this.actionDispatcher,
+            this.sourceModelStorage,
+            this.submissionHandler
+        );
+        if (canMove) {
             HookManager.executeHook(
-                moveParameters,
+                parameters,
                 HookType.PRE_MOVE,
                 this.modelState,
                 this.logger,
@@ -68,7 +123,7 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
             );
             node.position = newPosition;
             HookManager.executeHook(
-                moveParameters,
+                parameters,
                 HookType.POST_MOVE,
                 this.modelState,
                 this.logger,
@@ -77,75 +132,5 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
                 this.submissionHandler
             );
         }
-    }
-
-    private handleResize(node: Node, newSize: Dimension | undefined): void {
-        const oldSize = node.size;
-        if (!newSize || !oldSize || !this.isResize(oldSize, newSize)) {
-            return;
-        }
-        if (newSize !== node.size) {
-            const parameters: ResizeArgument = {
-                kind: 'Resize',
-                modelElementId: node.id,
-                oldSize: node.size,
-                newSize: newSize,
-                oldPosition: node.position,
-                newPosition: node.position // TODO-SAMI: This needs to change (For @Jochel)
-            };
-            if (this.canResize(newSize, parameters)) {
-                HookManager.executeHook(
-                    parameters,
-                    HookType.PRE_RESIZE,
-                    this.modelState,
-                    this.logger,
-                    this.actionDispatcher,
-                    this.sourceModelStorage,
-                    this.submissionHandler
-                );
-                node.size = newSize;
-                HookManager.executeHook(
-                    parameters,
-                    HookType.POST_RESIZE,
-                    this.modelState,
-                    this.logger,
-                    this.actionDispatcher,
-                    this.sourceModelStorage,
-                    this.submissionHandler
-                );
-            }
-        }
-    }
-
-    private isMove(oldPosition: Point, newPosition: Point): boolean {
-        return !Point.equals(oldPosition, newPosition);
-    }
-
-    private isResize(oldDimension: Dimension, newDimension: Dimension): boolean {
-        return oldDimension.width !== newDimension.width || oldDimension.height !== newDimension.height;
-    }
-
-    private canMove(parameters: MoveArgument): boolean {
-        return HookManager.executeHook(
-            parameters,
-            HookType.CAN_MOVE,
-            this.modelState,
-            this.logger,
-            this.actionDispatcher,
-            this.sourceModelStorage,
-            this.submissionHandler
-        );
-    }
-
-    private canResize(newSize: Dimension, parameters: ResizeArgument): boolean {
-        return HookManager.executeHook(
-            parameters,
-            HookType.CAN_RESIZE,
-            this.modelState,
-            this.logger,
-            this.actionDispatcher,
-            this.sourceModelStorage,
-            this.submissionHandler
-        );
     }
 }

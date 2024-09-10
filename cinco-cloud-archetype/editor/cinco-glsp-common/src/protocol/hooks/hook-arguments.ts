@@ -67,7 +67,7 @@ interface CreateArgumentInterface extends Argument {
 export interface CreateNodeArgument extends CreateArgumentInterface {
     elementKind: 'Node';
     containerElementId: string;
-    location?: Point;
+    position?: Point;
 }
 
 export interface CreateEdgeArgument extends CreateArgumentInterface {

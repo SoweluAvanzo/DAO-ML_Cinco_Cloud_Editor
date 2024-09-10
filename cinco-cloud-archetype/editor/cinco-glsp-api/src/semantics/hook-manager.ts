@@ -56,6 +56,7 @@ import { LanguageFilesRegistry } from './language-files-registry';
 import { ModelElement, Edge, Node, ModelElementContainer, GraphModel } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 import { APIBaseHandler } from '../api/api-base-handler';
+import { ResizeBounds } from '../api/resize-bounds';
 
 export class HookManager {
     static executeHook(
@@ -474,7 +475,7 @@ export class HookManager {
             case 'Node': {
                 const container = modelState.index.findModelElement(parameters.containerElementId);
                 if (hook instanceof AbstractNodeHook && ModelElementContainer.is(container)) {
-                    return hook.canCreate(parameters.elementTypeId, container, parameters.location);
+                    return hook.canCreate(parameters.elementTypeId, container, parameters.position);
                 }
                 return false;
             }
@@ -500,6 +501,7 @@ export class HookManager {
                 return false;
             }
         }
+        return false;
     }
 
     private static preCreateHook(hook: ModelElementHook<any>, parameters: CreateArgument, modelState: GraphModelState): void {
@@ -511,7 +513,7 @@ export class HookManager {
                 {
                     const container = modelState.index.findModelElement(parameters.containerElementId);
                     if (hook instanceof AbstractNodeHook && ModelElementContainer.is(container)) {
-                        hook.preCreate(parameters.elementTypeId, container, parameters.location);
+                        hook.preCreate(parameters.elementTypeId, container, parameters.position);
                     } else {
                         throw Error('Can not PreCreate node.');
                     }
@@ -644,6 +646,10 @@ export class HookManager {
         }
     }
 
+    /**
+     * Move
+     */
+
     private static canMoveHook(hook: AbstractNodeHook, parameters: MoveArgument, modelElement: ModelElement): boolean {
         return !hook.canMove || (Node.is(modelElement) && hook.canMove(modelElement, parameters.newPosition));
     }
@@ -660,23 +666,31 @@ export class HookManager {
         }
     }
 
+    /**
+     * Resize
+     */
+
     private static canResizeHook(hook: AbstractNodeHook, parameters: ResizeArgument, modelElement: ModelElement | undefined): boolean {
         return (
-            !hook.canAttributeChange || (Node.is(modelElement) && hook.canResize(modelElement, parameters.newSize, parameters.newPosition))
+            !hook.canAttributeChange || (Node.is(modelElement) && hook.canResize(modelElement, ResizeBounds.fromResizeArgument(parameters)))
         );
     }
 
     private static preResizeHook(hook: AbstractNodeHook, parameters: ResizeArgument, modelElement: ModelElement | undefined): void {
         if (hook.preResize && Node.is(modelElement)) {
-            hook.preResize(modelElement, parameters.newSize, parameters.newPosition);
+            hook.preResize(modelElement, ResizeBounds.fromResizeArgument(parameters));
         }
     }
 
     private static postResizeHook(hook: AbstractNodeHook, parameters: ResizeArgument, modelElement: ModelElement | undefined): void {
         if (hook.postResize && Node.is(modelElement)) {
-            hook.postResize(modelElement, parameters.oldSize, parameters.oldPosition);
+            hook.postResize(modelElement, ResizeBounds.fromResizeArgument(parameters));
         }
     }
+
+    /**
+     * Select
+     */
 
     private static canSelectHook(
         hook: GraphicalElementHook<any>,
@@ -695,6 +709,10 @@ export class HookManager {
             hook.postSelect(modelElement, parameters.isSelected);
         }
     }
+
+    /**
+     * DoubleClick
+     */
 
     private static canDoubleClickHook(
         hook: GraphicalElementHook<any>,

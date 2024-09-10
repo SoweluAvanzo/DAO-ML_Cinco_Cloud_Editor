@@ -46,6 +46,11 @@ ENV WORKSPACE_PATH="/editor/workspace"
 ENV EDITOR_TYPE="LANGUAGE_EDITOR"
 ENV META_LANGUAGES_FOLDER="workspace/languages"
 ENV NODE_ENV="development"
+
+# disable chromium install for puppeteer, because of arm64 incompatibility
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 # make readable for root only
 RUN chmod -R 750 /var/run/
 

@@ -14,9 +14,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { Dimension, hasFunctionProp, Point } from '@eclipse-glsp/server';
+import { hasFunctionProp, Point } from '@eclipse-glsp/server';
 import { PropertyEditOperation } from '@cinco-glsp/cinco-glsp-common/src/protocol/property-protocol';
-import { APIBaseHandler } from '../api/api-base-handler';
+import { APIBaseHandler } from './api-base-handler';
+import { ResizeBounds } from './resize-bounds';
 import { Edge, GraphModel, ModelElement, Node, ModelElementContainer } from '../model/graph-model';
 import { AnyObject, UserDefinedType } from '@cinco-glsp/cinco-glsp-common';
 
@@ -24,10 +25,10 @@ export abstract class AbstractHook extends APIBaseHandler {}
 
 export abstract class AbstractNodeHook extends AbstractHook implements NodeHook {
     // Create
-    canCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): boolean {
+    canCreate(elementTypeId: string, container: ModelElementContainer, position?: Point): boolean {
         return true;
     }
-    preCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): void {}
+    preCreate(elementTypeId: string, container: ModelElementContainer, position?: Point): void {}
     postCreate(node: Node): void {}
     // Delete
     canDelete(node: Node): boolean {
@@ -36,10 +37,10 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
     preDelete(node: Node): void {}
     postDelete(node: Node): void {}
     // Attribute Change
-    canAttributeChange(modelElement: Node, operation: PropertyEditOperation): boolean {
+    canAttributeChange(node: Node, operation: PropertyEditOperation): boolean {
         return true;
     }
-    preAttributeChange(modelElement: Node, operation: PropertyEditOperation): void {}
+    preAttributeChange(node: Node, operation: PropertyEditOperation): void {}
     postAttributeChange(node: Node, attributeName: string, oldValue: any): void {}
     // Select
     canSelect(node: Node, isSelected: boolean): boolean {
@@ -58,11 +59,11 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
     preMove(node: Node, newPosition?: Point): void {}
     postMove(node: Node, oldPosition?: Point): void {}
     // Resize
-    canResize(node: Node, newSize: Dimension, newPosition: Point): boolean {
+    canResize(node: Node, resizeBounds: ResizeBounds): boolean {
         return true;
     }
-    preResize(node: Node, newSize: Dimension, newPosition: Point): void {}
-    postResize(node: Node, oldSize: Dimension, oldPosition: Point): void {}
+    preResize(node: Node, resizeBounds: ResizeBounds): void {}
+    postResize(node: Node, resizeBounds: ResizeBounds): void {}
 }
 
 export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook {
@@ -79,10 +80,10 @@ export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook 
     preDelete(edge: Edge): void {}
     postDelete(edge: Edge): void {}
     // Attribute Change
-    canAttributeChange(modelElement: Edge, operation: PropertyEditOperation): boolean {
+    canAttributeChange(edge: Edge, operation: PropertyEditOperation): boolean {
         return true;
     }
-    preAttributeChange(modelElement: Edge, operation: PropertyEditOperation): void {}
+    preAttributeChange(edge: Edge, operation: PropertyEditOperation): void {}
     postAttributeChange(edge: Edge, attributeName: string, oldValue: any): void {}
     // Select
     canSelect(edge: Edge, isSelected: boolean): boolean {
@@ -169,14 +170,14 @@ export abstract class AbstractUserDefinedTypeHook extends AbstractHook implement
  */
 
 interface NodeElementHook<T extends Node> extends GraphicalElementHook<T>, ModelElementHook<T>, AttributeHook<T> {
-    canCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): boolean;
-    preCreate(elementTypeId: string, container: ModelElementContainer, location?: Point): void;
+    canCreate(elementTypeId: string, container: ModelElementContainer, position?: Point): boolean;
+    preCreate(elementTypeId: string, container: ModelElementContainer, position?: Point): void;
     canMove(node: T, newPosition?: Point): boolean;
     preMove(node: T, newPosition?: Point): void;
     postMove(node: T, oldPosition?: Point): void;
-    canResize(node: T, newSize: Dimension, newPosition: Point): boolean;
-    preResize(node: T, newSize: Dimension, newPosition: Point): void;
-    postResize(node: T, oldSize: Dimension, oldPosition: Point): void;
+    canResize(node: T, resizeBounds: ResizeBounds): boolean;
+    preResize(node: T, resizeBounds: ResizeBounds): void;
+    postResize(node: T, resizeBounds: ResizeBounds): void;
 }
 
 export namespace NodeElementHook {
