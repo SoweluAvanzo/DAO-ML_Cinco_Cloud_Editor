@@ -1,0 +1,38 @@
+stylePath "example.style" 
+
+graphModel Model {
+    diagramExtension "example"
+    containableElements (Clickable, A, B)  
+}
+ 
+node A { 
+	style typeStyle1("A")
+    incomingEdges(t1, t2)
+    outgoingEdges(t1, t2) 
+    attr string as name 
+}
+
+node B {
+	style typeStyle2("B") 
+    incomingEdges(t1, t2)
+    outgoingEdges(t1, t2)
+    attr string as name   
+}
+
+@DoubleClickAction("ExampleDoubleClickHandler")
+container Clickable {
+	style typeStyle3("Clickable")
+    incomingEdges(t1, t2)
+    outgoingEdges(t1, t2)
+    attr string as name
+}
+
+edge t1 {
+	style eStyle1("t1")
+    attr string as name
+}
+
+edge t2 {
+	style eStyle2("t2")
+    attr string as name
+}

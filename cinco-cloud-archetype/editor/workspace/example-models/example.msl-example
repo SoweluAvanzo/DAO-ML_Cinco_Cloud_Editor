@@ -1,0 +1,702 @@
+{
+  "id": "c52860ba-bca7-4166-95c6-b467d55ff58e",
+  "_containments": [
+    {
+      "id": "b1b7dee0-ce52-4e45-bf18-bd79de093914",
+      "type": "node:swimlane",
+      "_attributes": {
+        "name": ""
+      },
+      "_containments": [
+        {
+          "id": "925a36d0-8e66-434f-af3b-af5e4ae44a41",
+          "type": "node:start",
+          "_attributes": {
+            "name": ""
+          },
+          "_size": {
+            "width": 36,
+            "height": 36
+          },
+          "_position": {
+            "x": 37.60207489631086,
+            "y": 62.847535362117284
+          },
+          "_view": {
+            "style": "greenCircle"
+          }
+        },
+        {
+          "id": "73ebe683-c7a4-4acc-b6b5-9cdab4ffc70b",
+          "type": "node:cssnode",
+          "_attributes": {
+            "name": ""
+          },
+          "_size": {
+            "width": 100,
+            "height": 100
+          },
+          "_position": {
+            "x": 544.1753262942874,
+            "y": 58.87608376079143
+          },
+          "name": "",
+          "_view": {
+            "cssClass": [
+              "cssnodestyle"
+            ]
+          }
+        },
+        {
+          "id": "f2bcfab9-be0c-464c-bafd-5efd090ecd1e",
+          "type": "node:imagenode",
+          "_attributes": {
+            "name": ""
+          },
+          "_size": {
+            "width": 100,
+            "height": 100
+          },
+          "_position": {
+            "x": 407.2013907830302,
+            "y": 59.27166654166541
+          }
+        },
+        {
+          "id": "11ef293f-bf5b-4ce6-a2a7-f011b626d425",
+          "type": "node:imagenode2",
+          "_attributes": {
+            "name": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png"
+          },
+          "_size": {
+            "width": 100,
+            "height": 100
+          },
+          "_position": {
+            "x": 280.6896086906537,
+            "y": 80.25429100235604
+          },
+          "_view": {
+            "style": "imageTest2",
+            "styleParameter": [
+              "${name}"
+            ]
+          }
+        }
+      ],
+      "_size": {
+        "width": 673.643372747256,
+        "height": 199.71117803046258
+      },
+      "_position": {
+        "x": 856.5043384455829,
+        "y": -135.73680823406858
+      },
+      "_view": {
+        "style": "swimlane",
+        "styleParameter": [
+          "${name}"
+        ]
+      },
+      "name": "qwe32122asd"
+    },
+    {
+      "id": "b8cb1d84-d757-42e4-8a98-3e42bcddd8d3",
+      "type": "node:multitextnode",
+      "_attributes": {
+        "name": "Newnode:activity",
+        "description": ""
+      },
+      "_size": {
+        "width": 130.42118211560617,
+        "height": 72.82522668042226
+      },
+      "_position": {
+        "x": 692.1461380516519,
+        "y": -219.8845798385592
+      },
+      "_view": {
+        "style": "multiTextTest",
+        "styleParameter": [
+          "${name}"
+        ]
+      },
+      "name": "aasddddsdsadasdasdsaasddddsdsadasdasdsaasddddsdsadasdasdsaasddddsdsadasdasdsaasddddsdsadasdasdsaasddddsdsadasdasds"
+    },
+    {
+      "id": "c60121e1-da5f-49d4-84ce-7e01e89d4391",
+      "type": "node:polygon",
+      "_attributes": {
+        "name": ""
+      },
+      "_size": {
+        "width": 118.20129917369208,
+        "height": 68.54261828480227
+      },
+      "_position": {
+        "x": 1237.1238631937683,
+        "y": -217.0143265338986
+      },
+      "_view": {
+        "style": "embeddedStyle",
+        "styleParameter": [
+          "${name}"
+        ]
+      },
+      "name": "leftsd"
+    },
+    {
+      "id": "d98690f3-0729-4921-a1d7-9dd49694365a",
+      "type": "node:end",
+      "_attributes": {
+        "name": ""
+      },
+      "_size": {
+        "width": 36,
+        "height": 36
+      },
+      "_position": {
+        "x": 1301.6741505049922,
+        "y": -319.1346360600778
+      },
+      "_view": {
+        "style": "redCircle"
+      }
+    },
+    {
+      "id": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "type": "node:start",
+      "_attributes": {
+        "name": ""
+      },
+      "_size": {
+        "width": 36,
+        "height": 36
+      },
+      "_position": {
+        "x": 918.1460270600236,
+        "y": -407.76156193319054
+      },
+      "_view": {
+        "style": "greenCircle"
+      }
+    },
+    {
+      "id": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "type": "node:end",
+      "_attributes": {
+        "name": ""
+      },
+      "_size": {
+        "width": 36,
+        "height": 36
+      },
+      "_position": {
+        "x": 523.7397811209582,
+        "y": -565.1626024893849
+      },
+      "_view": {
+        "style": "redCircle"
+      }
+    },
+    {
+      "id": "1efd93f5-ac37-4170-8612-f08bba6edad9",
+      "type": "node:end",
+      "_attributes": {
+        "name": ""
+      },
+      "_size": {
+        "width": 36,
+        "height": 36
+      },
+      "_position": {
+        "x": 590.1398500373781,
+        "y": -41.394721695938486
+      },
+      "_view": {
+        "style": "redCircle"
+      }
+    },
+    {
+      "id": "70179033-6ebf-44c5-97ec-15e239d8dde7",
+      "type": "node:consttext",
+      "_attributes": {
+        "name": "Newnode:activity"
+      },
+      "_size": {
+        "width": 92,
+        "height": 36
+      },
+      "_position": {
+        "x": 746.4715132332035,
+        "y": 19.14893603527048
+      },
+      "_view": {
+        "style": "blueTextRectangle",
+        "styleParameter": [
+          "constant text"
+        ]
+      }
+    },
+    {
+      "id": "0184fc71-e1e1-4adf-9c37-aa8976458de7",
+      "type": "node:activity",
+      "_attributes": {
+        "name": "Pull",
+        "description": "...",
+        "number": 0,
+        "boolean": false,
+        "optional": "",
+        "limit": [],
+        "list": [],
+        "nonemptyList": [],
+        "byte": [],
+        "fiveOrMore": [],
+        "enum": "Green",
+        "tree": {},
+        "activities": []
+      },
+      "_size": {
+        "width": 92,
+        "height": 36
+      },
+      "_position": {
+        "x": 909.226955926851,
+        "y": -220.7264112264291
+      },
+      "_view": {
+        "style": {
+          "name": "blueTextRectangle",
+          "styleType": "NodeStyle",
+          "appearanceProvider": "ExampleAppearanceProvider",
+          "parameterCount": 1,
+          "shape": {
+            "type": "ROUNDEDRECTANGLE",
+            "appearance": {
+              "name": "default",
+              "lineWidth": 5,
+              "background": {
+                "r": 144,
+                "g": 207,
+                "b": 238
+              },
+              "transparency": 1
+            },
+            "position": {
+              "xPos": 0,
+              "yPos": 0
+            },
+            "size": {
+              "width": 96,
+              "height": 32
+            },
+            "cornerWidth": 8,
+            "cornerHeight": 8,
+            "children": [
+              {
+                "type": "TEXT",
+                "position": {
+                  "horizontal": "CENTER",
+                  "vertical": "MIDDLE"
+                },
+                "editable": false,
+                "value": "%s"
+              }
+            ]
+          }
+        },
+        "styleParameter": [
+          "${name}"
+        ]
+      }
+    },
+    {
+      "id": "1b958395-404f-424a-ad2f-b6776c038293",
+      "type": "node:activity",
+      "_attributes": {
+        "name": "Read",
+        "description": "...",
+        "number": 0,
+        "boolean": false,
+        "optional": "",
+        "limit": [],
+        "list": [],
+        "nonemptyList": [],
+        "byte": [],
+        "fiveOrMore": [],
+        "enum": "Green",
+        "tree": {},
+        "activities": []
+      },
+      "_size": {
+        "width": 92,
+        "height": 36
+      },
+      "_position": {
+        "x": 1057.0059518484434,
+        "y": -223.03171740560578
+      },
+      "_view": {
+        "style": {
+          "name": "blueTextRectangle",
+          "styleType": "NodeStyle",
+          "appearanceProvider": "ExampleAppearanceProvider",
+          "parameterCount": 1,
+          "shape": {
+            "type": "ROUNDEDRECTANGLE",
+            "appearance": {
+              "name": "default",
+              "lineWidth": 5,
+              "background": {
+                "r": 144,
+                "g": 207,
+                "b": 238
+              },
+              "transparency": 1
+            },
+            "position": {
+              "xPos": 0,
+              "yPos": 0
+            },
+            "size": {
+              "width": 96,
+              "height": 32
+            },
+            "cornerWidth": 8,
+            "cornerHeight": 8,
+            "children": [
+              {
+                "type": "TEXT",
+                "position": {
+                  "horizontal": "CENTER",
+                  "vertical": "MIDDLE"
+                },
+                "editable": false,
+                "value": "%s"
+              }
+            ]
+          }
+        },
+        "styleParameter": [
+          "${name}"
+        ]
+      }
+    },
+    {
+      "id": "64047480-7935-4cfd-ba28-8ad1a54ddd83",
+      "type": "node:injectedParameterText",
+      "_attributes": {
+        "name": "Newnode:activity"
+      },
+      "_size": {
+        "width": 96,
+        "height": 32
+      },
+      "_position": {
+        "x": 732.5913288591562,
+        "y": 94.14423272795318
+      }
+    },
+    {
+      "id": "8dbf9f23-64ec-4389-80a3-e07ecfe122ae",
+      "type": "node:polyline",
+      "_attributes": {
+        "name": ""
+      },
+      "_size": {
+        "width": 100,
+        "height": 65
+      },
+      "_position": {
+        "x": 533.794318665002,
+        "y": -269.3279127762841
+      }
+    },
+    {
+      "id": "d53b66f9-9351-401e-90db-10f642399422",
+      "type": "node:stylelessnode",
+      "_attributes": {
+        "name": ""
+      },
+      "_size": {
+        "width": 100,
+        "height": 100
+      },
+      "_position": {
+        "x": 1559.3416370845725,
+        "y": -66.75045631077813
+      }
+    },
+    {
+      "id": "776c6c43-a087-4760-9766-b71434bc0737",
+      "type": "node:imagenode2",
+      "_attributes": {
+        "name": "msl-example/images/cinco-logo-square.png"
+      },
+      "_size": {
+        "width": 139.49963269242582,
+        "height": 101.83719221825237
+      },
+      "_position": {
+        "x": 951.5758134857889,
+        "y": -95.81185114878849,
+        "width": 139.49963269242582,
+        "height": 101.83719221825237
+      },
+      "name": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
+      "_view": {
+        "style": "imageTest2",
+        "styleParameter": [
+          "${name}"
+        ]
+      }
+    }
+  ],
+  "_edges": [
+    {
+      "id": "fb6a5b31-b7d6-4cb1-847c-f07eb9d96f14",
+      "type": "edge:arrow",
+      "_attributes": {
+        "name": ""
+      },
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "d98690f3-0729-4921-a1d7-9dd49694365a",
+      "_routingPoints": [
+        {
+          "x": 1179.8200231740595,
+          "y": -378.46163632278103
+        },
+        {
+          "x": 1368.215365285547,
+          "y": -322.497918353806
+        },
+        {
+          "x": 1344.0684829393947,
+          "y": -317.60385793598
+        }
+      ],
+      "_view": {
+        "style": "simpleArrowDashDotBlue"
+      }
+    },
+    {
+      "id": "e35a06ac-c1d9-4402-8eb1-eef519373095",
+      "type": "edge:circle",
+      "_attributes": {
+        "name": ""
+      },
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "d98690f3-0729-4921-a1d7-9dd49694365a",
+      "_routingPoints": [
+        {
+          "x": 1071.5633485017502,
+          "y": -449.80547550943436
+        },
+        {
+          "x": 1246.117414533599,
+          "y": -395.4146901658801
+        }
+      ],
+      "_view": {
+        "style": "simpleCircleDashDefault"
+      }
+    },
+    {
+      "id": "8a41e99e-1d42-4951-b863-30216cb64dd0",
+      "type": "edge:diamond",
+      "_attributes": {
+        "name": ""
+      },
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "d98690f3-0729-4921-a1d7-9dd49694365a",
+      "_routingPoints": [],
+      "_view": {
+        "style": "simpleDiamondDotRed"
+      }
+    },
+    {
+      "id": "2aae8536-725a-4426-91ba-24612d450e4d",
+      "type": "edge:triangle",
+      "_attributes": {
+        "name": ""
+      },
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "d98690f3-0729-4921-a1d7-9dd49694365a",
+      "_routingPoints": [
+        {
+          "x": 1203.1492517470786,
+          "y": -285.934165805705
+        }
+      ],
+      "_view": {
+        "style": "simpleTriangleDashDotDotGreen"
+      }
+    },
+    {
+      "id": "1a9cbf09-75e1-4b88-8bee-26ef2aa56246",
+      "type": "edge:text",
+      "_attributes": {
+        "name": ""
+      },
+      "name": "asdyxcyxcyxcxcx",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 805.2950662349708,
+          "y": -550.1781930913228
+        },
+        {
+          "x": 776.6394898772412,
+          "y": -617.314114843718
+        }
+      ],
+      "_view": {
+        "style": "simpleText",
+        "styleParameter": [
+          "${name}"
+        ]
+      }
+    },
+    {
+      "id": "a17cd691-29b4-4e90-ae51-c270ea62c90b",
+      "type": "edge:ellipse",
+      "_attributes": {
+        "name": ""
+      },
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 750.4401057787454,
+          "y": -573.1026541775066
+        }
+      ],
+      "_view": {
+        "style": "simpleEllipse"
+      }
+    },
+    {
+      "id": "96545fb5-dae6-4e82-bbd9-d79f136c2537",
+      "type": "edge:multitext",
+      "_attributes": {
+        "name": ""
+      },
+      "name": "sdfasdasdasdmlcmklacmsmclsalmksamcklsmc",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 653.9097669676169,
+          "y": -437.2071169909083
+        }
+      ],
+      "_view": {
+        "style": "simpleMultiText",
+        "styleParameter": [
+          "${name}"
+        ]
+      }
+    },
+    {
+      "id": "46f93492-13bd-46a5-a789-fd78d88b8d71",
+      "type": "edge:polygon",
+      "_attributes": {
+        "name": ""
+      },
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 857.3133128638757,
+          "y": -387.02371848558636
+        },
+        {
+          "x": 624.4223833733963,
+          "y": -380.2659624641373
+        }
+      ],
+      "_view": {
+        "style": "simplePolygon"
+      }
+    },
+    {
+      "id": "a7aa1946-9447-45d8-a024-02639d086ce9",
+      "type": "edge:polyline",
+      "_attributes": {
+        "name": ""
+      },
+      "name": "",
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 842.5041927979289,
+          "y": -772.3393560522085
+        }
+      ],
+      "_view": {
+        "style": "simplePolyline"
+      }
+    },
+    {
+      "id": "0e5ef3d1-e435-4bd5-9de4-e851ffbc082e",
+      "type": "edge:labeledtransition",
+      "_attributes": {
+        "name": "Test"
+      },
+      "name": "asdasdsd",
+      "sourceID": "925a36d0-8e66-434f-af3b-af5e4ae44a41",
+      "targetID": "1efd93f5-ac37-4170-8612-f08bba6edad9",
+      "_routingPoints": [],
+      "_view": {
+        "style": "labeledArrow",
+        "styleParameter": [
+          "${name}"
+        ]
+      }
+    },
+    {
+      "id": "1a780337-1441-4246-a1dd-a895de93a00e",
+      "type": "edge:image",
+      "_attributes": {
+        "name": "cinco-logo-square.png"
+      },
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 791.9260232711484,
+          "y": -670.7287050862099
+        }
+      ]
+    },
+    {
+      "id": "3b42ad32-05b9-4a9c-a74f-55df29290d47",
+      "type": "edge:container",
+      "_attributes": {
+        "name": ""
+      },
+      "sourceID": "32b16ec6-b4ca-4796-b400-67f298568ab3",
+      "targetID": "ee4f370b-4487-4ea8-a43d-dbf1002cc81b",
+      "_routingPoints": [
+        {
+          "x": 702.7164708477062,
+          "y": -496.18188417934954
+        }
+      ]
+    }
+  ],
+  "_attributes": {
+    "name": ""
+  },
+  "type": "graphmodel:msl-example",
+  "name": "qwe32122sasd",
+  "_sourceUri": "/Users/sami/Desktop/rebase/cinco-cloud/cinco-cloud-archetype/editor/workspace/example.msl-example"
+}
