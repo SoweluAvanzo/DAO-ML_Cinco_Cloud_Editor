@@ -13,28 +13,36 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import * as crypto from 'crypto';
 
 export type Sortable = string | number | boolean;
 
-export type Assignments<T extends Sortable> = Record<string, T[]>;
+export type Cell<T extends Sortable> = T | Choice<T>;
 
-export function assignValues<T extends Sortable>(values: T[]): Assignments<T> {
-    const sortedValues = [...values];
-    sortedValues.sort();
-    return { [crypto.randomUUID()]: sortedValues };
+export type Choice<T extends Sortable> = Readonly<{
+    tag: 'choice';
+    options: ReadonlyArray<T>;
+}>;
+
+type CellMatcher<T extends Sortable, R> = Readonly<{
+    single: (x: T) => R;
+    choice: (xs: ReadonlyArray<T>) => R;
+}>;
+
+export function cellHasChoice<T extends Sortable>(cell: Cell<T>): cell is Choice<T> {
+    return typeof cell === 'object' && cell.tag === 'choice';
 }
 
-export function assignValue<T extends Sortable>(value: T): Assignments<T> {
-    return assignValues([value]);
+export function matchCell<T extends Sortable, R>(cell: Cell<T>, { single, choice }: CellMatcher<T, R>): R {
+    if (cellHasChoice(cell)) {
+        return choice(cell.options);
+    } else {
+        return single(cell);
+    }
 }
 
-export function cellValues<T extends Sortable>(assignments: Assignments<T>): T[] {
-    const values = Object.values(assignments).flat();
-    values.sort();
-    return removeDuplicatesFromSortedArray(values);
-}
-
-function removeDuplicatesFromSortedArray<T>(array: T[]): T[] {
-    return array.filter((value, index) => index === 0 || array[index - 1] !== value);
+export function cellValues<T extends Sortable>(cell: Cell<T>): ReadonlyArray<T> {
+    return matchCell(cell, {
+        single: value => [value],
+        choice: options => options
+    });
 }

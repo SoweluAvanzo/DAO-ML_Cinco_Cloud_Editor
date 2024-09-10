@@ -18,6 +18,7 @@ import { GEdge, GGraph, GModelElement, GModelFactory, GNode, GNodeBuilder } from
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
 import { GraphModelState } from './graph-model-state';
+import { cellHasChoice } from './cell';
 
 @injectable()
 export class GraphGModelFactory implements GModelFactory {
@@ -87,20 +88,15 @@ export class GraphGModelFactory implements GModelFactory {
     }
 
     protected createEdge<T extends Edge>(edge: T): GModelElement[] {
-        if (edge.sourceIDs().length === 1) {
-            const sourceID = edge.sourceIDs()[0];
-            return [this.buildEdgeSegment(edge, edge.id, sourceID, edge.targetID)];
-        } else {
-            const sourceSegments = edge
-                .sourceIDs()
-                .map(sourceID =>
-                    this.buildEdgeSegment(
-                        edge,
-                        this.edgeSourceSegmentID(edge.id, sourceID),
-                        sourceID,
-                        this.markerEdgeSourceTargetConflictID(edge.id)
-                    )
-                );
+        if (cellHasChoice(edge.sourceID)) {
+            const sourceSegments = edge.sourceID.options.map(sourceID =>
+                this.buildEdgeSegment(
+                    edge,
+                    this.edgeSourceSegmentID(edge.id, sourceID),
+                    sourceID,
+                    this.markerEdgeSourceTargetConflictID(edge.id)
+                )
+            );
             const conflictMarker = this.buildConflictMarker(edge);
             const targetSegment = this.buildEdgeSegment(
                 edge,
@@ -109,6 +105,8 @@ export class GraphGModelFactory implements GModelFactory {
                 edge.targetID
             );
             return [...sourceSegments, conflictMarker, targetSegment];
+        } else {
+            return [this.buildEdgeSegment(edge, edge.id, edge.sourceID, edge.targetID)];
         }
     }
 

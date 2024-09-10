@@ -53,8 +53,8 @@ import {
     View
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
-import { Assignments, assignValue, assignValues, cellValues } from './cell-assignments';
 import { GraphModelIndex } from './graph-model-index';
+import { Cell, cellValues } from './cell';
 
 export interface IdentifiableElement {
     id: string;
@@ -84,19 +84,6 @@ export class ModelElement implements IdentifiableElement {
     _size?: Size;
     protected _attributes: Record<string, any>;
     protected _view?: View;
-    protected deletedAssignments: Assignments<boolean>;
-
-    markEdited(): void {
-        this.deletedAssignments = assignValue(false);
-    }
-
-    delete(): void {
-        this.deletedAssignments = assignValue(true);
-    }
-
-    restore(): void {
-        this.deletedAssignments = assignValue(false);
-    }
 
     get index(): GraphModelIndex {
         if (!this._index) {
@@ -551,34 +538,23 @@ export namespace Container {
 }
 
 export class Edge extends ModelElement {
-    sourceIDAssignments: Assignments<string>;
+    sourceID: Cell<string>;
     targetID: string;
     _routingPoints: RoutingPoint[];
 
     initialize({ type, sourceID, targetID }: { type: string; sourceID: string; targetID: string }): void {
         this.type = type;
-        this.sourceIDAssignments = assignValue(sourceID);
+        this.sourceID = sourceID;
         this.targetID = targetID;
         this.initializeProperties();
-        this.deletedAssignments = assignValue(false);
     }
 
-    sourceIDs(): string[] {
-        return cellValues(this.sourceIDAssignments);
-    }
-
-    assignSourceID(sourceID: string): void {
-        this.sourceIDAssignments = assignValue(sourceID);
-        this.markEdited();
-    }
-
-    assignSourceIDs(sourceIDs: string[]): void {
-        this.sourceIDAssignments = assignValues(sourceIDs);
-        this.markEdited();
+    sourceIDs(): ReadonlyArray<string> {
+        return cellValues(this.sourceID);
     }
 
     sources(): Node[] {
-        return cellValues(this.sourceIDAssignments).map(sourceID => {
+        return cellValues(this.sourceID).map(sourceID => {
             const node = this.index!.findNode(sourceID);
             if (!node) {
                 throw new Error(`Edge with id ${this.id} has an undefined sourceID ${sourceID}.`);
