@@ -15,7 +15,16 @@
  ********************************************************************************/
 
 import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
-import { ActionDispatcher, Command, JsonOperationHandler, Logger, MaybePromise, Operation } from '@eclipse-glsp/server';
+import {
+    ActionDispatcher,
+    Command,
+    JsonOperationHandler,
+    Logger,
+    MaybePromise,
+    ModelSubmissionHandler,
+    Operation,
+    SourceModelStorage
+} from '@eclipse-glsp/server';
 import { injectable, inject } from 'inversify';
 
 @injectable()
@@ -26,6 +35,10 @@ export abstract class CincoJsonOperationHandler extends JsonOperationHandler {
     override readonly modelState: GraphModelState;
     @inject(Logger)
     protected readonly logger: Logger;
+    @inject(SourceModelStorage)
+    protected sourceModelStorage: SourceModelStorage;
+    @inject(ModelSubmissionHandler)
+    protected submissionHandler: ModelSubmissionHandler;
 
     createCommand(operation: Operation): MaybePromise<Command | undefined> {
         return this.commandOf(() => {

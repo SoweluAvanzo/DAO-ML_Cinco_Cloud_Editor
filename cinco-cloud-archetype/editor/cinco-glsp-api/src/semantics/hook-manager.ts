@@ -29,7 +29,15 @@ import {
     getHooksOfType,
     SaveModelFileArgument
 } from '@cinco-glsp/cinco-glsp-common';
-import { ActionDispatcher, hasStringProp, Logger, MessageAction, SeverityLevel } from '@eclipse-glsp/server';
+import {
+    ActionDispatcher,
+    hasStringProp,
+    Logger,
+    MessageAction,
+    ModelSubmissionHandler,
+    SeverityLevel,
+    SourceModelStorage
+} from '@eclipse-glsp/server';
 import {
     AbstractHook,
     AttributeHook,
@@ -47,6 +55,7 @@ import {
 import { LanguageFilesRegistry } from './language-files-registry';
 import { ModelElement, Edge, Node, ModelElementContainer, GraphModel } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
+import { APIBaseHandler } from '../api/api-base-handler';
 import { ResizeBounds } from '../api/resize-bounds';
 
 export class HookManager {
@@ -55,7 +64,9 @@ export class HookManager {
         type: HookType,
         modelState: GraphModelState,
         logger: Logger,
-        actionDispatcher: ActionDispatcher
+        actionDispatcher: ActionDispatcher,
+        sourceModelStorage: SourceModelStorage,
+        submissionHandler: ModelSubmissionHandler
     ): boolean {
         let elementTypeId = '';
         if (hasStringProp(parameters, 'elementTypeId')) {
@@ -77,7 +88,7 @@ export class HookManager {
         for (const hookClassName of hookClassNames) {
             const hookClass = this.loadHookClasses(hookClassName, elementTypeId, type);
             try {
-                const hook = new hookClass(logger, modelState, actionDispatcher);
+                const hook = new hookClass(logger, modelState, actionDispatcher, sourceModelStorage, submissionHandler) as APIBaseHandler;
                 const result = this.dispatchHook(hook, parameters, type, modelState, logger, actionDispatcher);
                 hookResults.push(result);
             } catch (error: any) {
@@ -490,6 +501,7 @@ export class HookManager {
                 return false;
             }
         }
+        return false;
     }
 
     private static preCreateHook(hook: ModelElementHook<any>, parameters: CreateArgument, modelState: GraphModelState): void {

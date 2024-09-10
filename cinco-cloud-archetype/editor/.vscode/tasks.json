@@ -68,55 +68,64 @@
     {
       "label": "freePort3000",
       "type": "shell",
-      "group": "build",
-      "command": "echo $(kill -9 $(lsof -t -i :3000 | tail -n 1))",
+      "group": "none",
+      "command": "test -x ./.vscode/freeport.sh && ./.vscode/freeport.sh 3000",
       "presentation": {
-        "reveal": "always",
-        "panel": "new"
+        "reveal": "silent",
+        "panel": "shared"
       },
       "problemMatcher": []
     },
     {
       "label": "freePort3003",
       "type": "shell",
-      "group": "build",
-      "command": "echo $(kill -9 $(lsof -t -i :3003 | tail -n 1))",
+      "group": "none",
+      "command": "test -x ./.vscode/freeport.sh && ./.vscode/freeport.sh 3003",
       "presentation": {
-        "reveal": "always",
-        "panel": "new"
+        "reveal": "silent",
+        "panel": "shared"
       },
       "problemMatcher": []
     },
     {
       "label": "freePort5007",
       "type": "shell",
-      "group": "build",
-      "command": "echo $(kill -9 $(lsof -t -i :5007 | tail -n 1))",
+      "group": "none",
+      "command": "test -x ./.vscode/freeport.sh && ./.vscode/freeport.sh 5007",
       "presentation": {
-        "reveal": "always",
-        "panel": "new"
+        "reveal": "silent",
+        "panel": "shared"
       },
       "problemMatcher": []
     },
     {
       "label": "freePort3003 && freePort5007",
       "type": "shell",
-      "group": "build",
-      "command": "echo $(kill -9 $(lsof -t -i :3003 | tail -n 1)) && echo $(kill -9 $(lsof -t -i :5007 | tail -n 1))",
+      "group": "none",
+      "dependsOn": [
+        "freePort3003",
+        "freePort5007"
+      ],
+      "command": "",
       "presentation": {
-        "reveal": "always",
-        "panel": "new"
+        "reveal": "silent",
+        "panel": "shared"
       },
       "problemMatcher": []
     },
     {
       "label": "freePort3000 && freePort3003 && freePort5007",
       "type": "shell",
-      "group": "build",
-      "command": "echo $(kill -9 $(lsof -t -i :3000 | tail -n 1)) && echo $(kill -9 $(lsof -t -i :3003 | tail -n 1)) && echo $(kill -9 $(lsof -t -i :5007 | tail -n 1))",
+      "group": "none",
+      "dependsOn": [
+        "freePort3000",
+        "freePort3003",
+        "freePort5007"
+      ],
+      "command": "",
       "presentation": {
-        "reveal": "always",
-        "panel": "new"
+        "reveal": "silent",
+        "panel": "shared"
       },
       "problemMatcher": []
     }

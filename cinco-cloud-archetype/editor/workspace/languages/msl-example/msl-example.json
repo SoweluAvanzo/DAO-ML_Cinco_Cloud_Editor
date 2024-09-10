@@ -1283,7 +1283,7 @@
       "repositionable": true,
       "resizable": true,
       "primeReference": {
-        "name": "SubFlowgraph",
+        "name": "ReferencedFlowgraph",
         "type": "graphmodel:flowgraph"
       },
       "outgoingEdges": [
@@ -1380,7 +1380,7 @@
       "repositionable": true,
       "resizable": true,
       "primeReference": {
-        "name": "SubStart",
+        "name": "ReferencedStart",
         "type": "node:start"
       },
       "outgoingEdges": [

@@ -143,7 +143,7 @@ export abstract class AbstractGraphModelHook extends AbstractHook implements Gra
     postSave(graphModel: GraphModel, path: string): void {}
 }
 
-// TODO-SAMI
+// TODO-SAMI: This is not yet further implemented
 export abstract class AbstractUserDefinedTypeHook extends AbstractHook implements UserdefinedTypeHook {
     // Create
     canCreate(host: ModelElement): boolean {
@@ -334,7 +334,7 @@ interface NodeHook extends NodeElementHook<Node> {}
 interface EdgeHook extends EdgeElementHook<Edge> {}
 interface GraphModelHook extends GraphModelElementHook<GraphModel> {}
 
-// TODO:
+// TODO-SAMI: This is not yet further implemented
 interface UserdefinedTypeHook extends ModelElementHook<any> {
     canCreate(host: ModelElement): boolean;
     preCreate(host: ModelElement): void;

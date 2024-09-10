@@ -15,7 +15,15 @@
  ********************************************************************************/
 import { DoubleClickAction, DoubleClickArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
 import { inject, injectable } from 'inversify';
-import { Action, ActionDispatcher, ActionHandler, Logger, MaybePromise } from '@eclipse-glsp/server';
+import {
+    Action,
+    ActionDispatcher,
+    ActionHandler,
+    Logger,
+    MaybePromise,
+    ModelSubmissionHandler,
+    SourceModelStorage
+} from '@eclipse-glsp/server';
 import { GraphModelState, HookManager } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
@@ -26,6 +34,10 @@ export class DoubleClickHookHandler implements ActionHandler {
     readonly modelState: GraphModelState;
     @inject(ActionDispatcher)
     readonly actionDispatcher: ActionDispatcher;
+    @inject(SourceModelStorage)
+    protected sourceModelStorage: SourceModelStorage;
+    @inject(ModelSubmissionHandler)
+    protected submissionHandler: ModelSubmissionHandler;
 
     actionKinds: string[] = [DoubleClickAction.KIND];
 
@@ -38,10 +50,20 @@ export class DoubleClickHookHandler implements ActionHandler {
             HookType.CAN_DOUBLE_CLICK,
             this.modelState,
             this.logger,
-            this.actionDispatcher
+            this.actionDispatcher,
+            this.sourceModelStorage,
+            this.submissionHandler
         );
         if (canDoubleClick) {
-            HookManager.executeHook(parameters, HookType.POST_DOUBLE_CLICK, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(
+                parameters,
+                HookType.POST_DOUBLE_CLICK,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
         }
         return [];
     }

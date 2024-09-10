@@ -23,7 +23,6 @@ import { HookManager } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class ChangeBoundsHandler extends CincoJsonOperationHandler {
-
     readonly operationType = ChangeBoundsOperation.KIND;
 
     override executeOperation(operation: ChangeBoundsOperation): void {
@@ -60,14 +59,38 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
             oldPosition: oldPosition,
             newPosition: newPosition ?? oldPosition
         };
-        const canResize = HookManager.executeHook(parameters, HookType.CAN_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+        const canResize = HookManager.executeHook(
+            parameters,
+            HookType.CAN_RESIZE,
+            this.modelState,
+            this.logger,
+            this.actionDispatcher,
+            this.sourceModelStorage,
+            this.submissionHandler
+        );
         if (canResize) {
-            HookManager.executeHook(parameters, HookType.PRE_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(
+                parameters,
+                HookType.PRE_RESIZE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
             if (newPosition) {
                 node.position = newPosition;
             }
             node.size = newSize;
-            HookManager.executeHook(parameters, HookType.POST_RESIZE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(
+                parameters,
+                HookType.POST_RESIZE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
         }
     }
 
@@ -79,12 +102,35 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
             oldPosition: oldPosition,
             newPosition: newPosition
         };
-        const canMove = HookManager.executeHook(parameters, HookType.CAN_MOVE, this.modelState, this.logger, this.actionDispatcher);
+        const canMove = HookManager.executeHook(
+            parameters,
+            HookType.CAN_MOVE,
+            this.modelState,
+            this.logger,
+            this.actionDispatcher,
+            this.sourceModelStorage,
+            this.submissionHandler
+        );
         if (canMove) {
-            HookManager.executeHook(parameters, HookType.PRE_MOVE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(
+                parameters,
+                HookType.PRE_MOVE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
             node.position = newPosition;
-            HookManager.executeHook(parameters, HookType.POST_MOVE, this.modelState, this.logger, this.actionDispatcher);
+            HookManager.executeHook(
+                parameters,
+                HookType.POST_MOVE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
         }
     }
-
 }

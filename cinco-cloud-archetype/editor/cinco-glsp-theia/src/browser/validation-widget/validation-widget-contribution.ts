@@ -46,7 +46,7 @@ export class CincoCloudModelValidationWidgetContribution extends AbstractViewCon
     }
 }
 
-// TODO: Is this deprecated?
+// TODO-SAMI: Is this deprecated?
 export class CincoCloudProjectValidationWidgetContribution extends AbstractViewContribution<CincoCloudProjectValidationWidget> {
     override toggleCommand: Command = CincoCloudProjectValidationWidgetCommand;
 

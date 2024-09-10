@@ -33,10 +33,11 @@ import {
     ModelSubmissionHandler
 } from '@eclipse-glsp/server';
 import { RootPath } from './root-path';
-import { ModelElement } from '../model/graph-model';
+import { GraphModel, ModelElement } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
 import * as fileHelper from '../utils/file-helper';
+import { GraphModelStorage } from '../model/graph-storage';
 
 export abstract class APIBaseHandler {
     protected readonly logger: Logger;
@@ -47,6 +48,7 @@ export abstract class APIBaseHandler {
     CHANNEL_NAME: string | undefined;
 
     constructor(
+        // TODO-Sami: Bundle these Clases together
         logger: Logger,
         modelState: GraphModelState,
         actionDispatcher: ActionDispatcher,
@@ -240,6 +242,11 @@ export abstract class APIBaseHandler {
     readFile(relativePath: string, root = RootPath.WORKSPACE, encoding = 'utf-8'): string | undefined {
         const targetPath = root.join(relativePath);
         return fileHelper.readFile(targetPath, encoding);
+    }
+
+    readModelFromFile(relativePath: string, root = RootPath.WORKSPACE): GraphModel | undefined {
+        const targetPath = root.join(relativePath);
+        return (this.sourceModelStorage as GraphModelStorage).readModelFromURI(targetPath);
     }
 
     readDirectory(relativePath: string, root = RootPath.WORKSPACE): string[] {

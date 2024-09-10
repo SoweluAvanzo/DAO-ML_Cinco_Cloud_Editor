@@ -60,7 +60,7 @@ export interface AttributeChangeArgument extends Argument {
 export type CreateArgument = CreateEdgeArgument | CreateNodeArgument | CreateGraphModelArgument | CreateUserDefinedTypeArgument;
 interface CreateArgumentInterface extends Argument {
     kind: 'Create';
-    elementKind: 'Node' | 'Edge' | 'GraphModel' | 'UserDefinedType'; // TODO:
+    elementKind: 'Node' | 'Edge' | 'GraphModel' | 'UserDefinedType'; // TODO-SAMI: This is currently not further implemented
     elementTypeId: string;
 }
 

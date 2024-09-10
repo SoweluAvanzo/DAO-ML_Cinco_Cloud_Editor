@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { META_DEV_MODE, META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, hasArg } from '@cinco-glsp/cinco-glsp-common';
+import { META_DEV_MODE, META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, getGraphTypes, hasArg } from '@cinco-glsp/cinco-glsp-common';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -157,6 +157,12 @@ export function readFilesFromDirectories(directories: string[], filterTypes: str
         }
     }
     return result;
+}
+
+export function getModelFiles(): string[] {
+    const workspacePath = getWorkspaceRootUri();
+    const modelFileExtensions = getGraphTypes().map(gT => '.' + gT.diagramExtension);
+    return getFiles(workspacePath, modelFileExtensions);
 }
 
 export function isAbsolute(dir: string): boolean {

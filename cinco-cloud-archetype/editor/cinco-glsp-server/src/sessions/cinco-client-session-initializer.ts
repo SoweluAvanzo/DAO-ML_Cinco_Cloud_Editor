@@ -21,7 +21,10 @@ import {
     ClientSessionInitializer,
     ClientSessionManager,
     InjectionContainer,
-    Logger
+    Logger,
+    ModelSubmissionHandler,
+    RequestContextActions,
+    SourceModelStorage
 } from '@eclipse-glsp/server';
 import { Container, inject, injectable } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
@@ -52,6 +55,10 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
     @inject(ClientSessionManager) protected sessions: ClientSessionManager;
     @inject(ActionDispatcher) protected actionDispatcher: ActionDispatcher;
     @inject(Logger) protected logger: Logger;
+    @inject(SourceModelStorage)
+    protected sourceModelStorage: SourceModelStorage;
+    @inject(ModelSubmissionHandler)
+    protected submissionHandler: ModelSubmissionHandler;
 
     protected graphModelWatcherCallback: string;
 
@@ -103,7 +110,15 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         throw new Error('File extension has no graphmodeltype: ' + fileExtension);
                     }
                     deleteArgument.elementTypeId = graphModelType?.elementTypeId;
-                    HookManager.executeHook(deleteArgument, HookType.POST_DELETE, modelState, this.logger, actionDispatcher);
+                    HookManager.executeHook(
+                        deleteArgument,
+                        HookType.POST_DELETE,
+                        modelState,
+                        this.logger,
+                        actionDispatcher,
+                        this.sourceModelStorage,
+                        this.submissionHandler
+                    );
                 } else {
                     const model = readJson(dirtyFile.path, { hideError: true }) as any | undefined;
                     if (!model || !model.id) {
@@ -111,7 +126,14 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         return;
                     }
                     if (!modelState.root) {
-                        await GraphModelStorage.loadSourceModel(dirtyFile.path, modelState, this.logger, actionDispatcher);
+                        await GraphModelStorage.loadSourceModel(
+                            dirtyFile.path,
+                            modelState,
+                            this.logger,
+                            actionDispatcher,
+                            this.sourceModelStorage,
+                            this.submissionHandler
+                        );
                     }
                     if (!modelState.index.getRoot()) {
                         throw new Error('Model could not been loaded: ' + dirtyFile.path);
@@ -123,7 +145,9 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                             HookType.POST_PATH_CHANGE,
                             modelState,
                             this.logger,
-                            actionDispatcher
+                            actionDispatcher,
+                            this.sourceModelStorage,
+                            this.submissionHandler
                         );
                     } else if (wasChanged) {
                         // trigger changedContent Hook
@@ -132,9 +156,21 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                             HookType.POST_CONTENT_CHANGE,
                             modelState,
                             this.logger,
-                            actionDispatcher
+                            actionDispatcher,
+                            this.sourceModelStorage,
+                            this.submissionHandler
                         );
                     }
+
+                    // update palettes as PrimeReferences could have
+                    const paletteResponse = RequestContextActions.create({
+                        contextId: 'tool-palette',
+                        editorContext: {
+                            selectedElementIds: []
+                        }
+                    });
+                    this.actionDispatcher.dispatch(paletteResponse);
+                    this.sendToAllOtherClients(paletteResponse);
                 }
             }
         });

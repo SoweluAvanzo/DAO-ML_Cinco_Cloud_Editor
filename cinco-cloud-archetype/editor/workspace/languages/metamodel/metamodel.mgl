@@ -2,10 +2,10 @@ stylePath "metamodel.style"
 
 graphModel Model {
     diagramExtension "mm"
-    containableElements (Type, Type)
+    containableElements (Type)
 }
 
-container Type { 
+container Type {
 	style typeStyle("${name}")  
     incomingEdges(Relation)
     outgoingEdges(Relation) 
@@ -13,15 +13,15 @@ container Type {
 
     attr string as name
 
-    @multiline 
+    @multiline
     attr string as documentation
 }
 
-edge Relation { 
+edge Relation {
 	style eStyle("${Type}")
     attr RelationsType as Type
 
-    @multiline 
+    @multiline
     attr string as documentation
 }
 

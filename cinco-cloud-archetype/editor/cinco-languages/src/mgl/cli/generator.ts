@@ -65,6 +65,7 @@ import {
     isPolyline,
     isPrimitiveAttribute,
     isRectangle,
+    isReferencedEClass,
     isRoundedRectangle,
     isShape,
     isText,
@@ -183,10 +184,29 @@ export class MGLGenerator {
             }
             // Copy the parent deeply
             if (foundParent) {
-                return JSON.parse(JSON.stringify(foundParent));
+                const result = JSON.parse(JSON.stringify(foundParent));
+                result.superTypes = (result.superTypes as string[]).concat([foundParent.elementTypeId]);
+                return result;
             }
         }
-        return {};
+        return {
+            superTypes: this.getBaseTypes(modelElement)
+        };
+    }
+
+    getBaseTypes(modelElement: ComplexModelElement): string[] {
+        switch (modelElement.$type) {
+            case 'GraphModel':
+                return ['graphmodel', 'modelelementcontainer', 'modelelement'];
+            case 'Node':
+                return ['node', 'modelelement'];
+            case 'NodeContainer':
+                return ['container', 'modelelementcontainer', 'node', 'modelelement'];
+            case 'Edge':
+                return ['edge', 'modelelement'];
+            case 'UserDefinedType':
+                return ['userdefinedtype'];
+        }
     }
 
     // Constructs the modelElementSpec and returns the resulting elementTypeId
@@ -294,7 +314,6 @@ export class MGLGenerator {
             const usedStyle = this.specification.styles.find(style => style.name === usedStyleName);
             const mainShape = usedStyle?.shape;
 
-            // TODO Check for disable annotation for these
             modelElementSpec.deletable =
                 modelElementSpec.reparentable =
                 modelElementSpec.repositionable =
@@ -308,6 +327,40 @@ export class MGLGenerator {
             {
                 modelElementSpec.incomingEdges = handleEdgeConstraints(modelElement, modelElementSpec.incomingEdges, importedModels, true);
                 modelElementSpec.outgoingEdges = handleEdgeConstraints(modelElement, modelElementSpec.outgoingEdges, importedModels, false);
+            }
+            if (modelElement.primeReference) {
+                modelElementSpec.primeReference = {};
+                modelElementSpec.primeReference.name = modelElement.primeReference.name;
+                if (isReferencedEClass(modelElement.primeReference)) {
+                    throw new Error(
+                        'EClass are currently not supported as prime Refernce. Go to gitlab.com/scce/cinco-cloud and contribute!'
+                    );
+                } else {
+                    const reference = modelElement.primeReference;
+                    if (reference.import && reference.referencedModelElement && reference.import.ref && node.$container.$document) {
+                        const importedElement = reference.import.ref;
+                        const mglPath = path.parse(node.$container.$document!.uri.fsPath);
+                        const externalModelElements = getReferencedModelElements(
+                            mglPath.dir,
+                            importedElement.importURI,
+                            importedModels,
+                            m => m.name === reference.referencedModelElement
+                        );
+                        if (externalModelElements.length > 0) {
+                            const referencedId = getElementTypeId(externalModelElements.at(0)!);
+                            modelElementSpec.primeReference.type = referencedId;
+                        }
+                    } else if (reference.modelElement) {
+                        const referencedElement = reference.modelElement.ref;
+                        if (referencedElement) {
+                            const referencedId = getElementTypeId(referencedElement);
+                            modelElementSpec.primeReference.type = referencedId;
+                        }
+                    } else if (reference.modelElementBaseType) {
+                        // base type reference: GraphModel, Node, Container, Edge, UserDefinedType
+                        modelElementSpec.primeReference.type = reference.modelElementBaseType.toLowerCase();
+                    }
+                }
             }
 
             specification.nodeTypes.push(modelElementSpec);

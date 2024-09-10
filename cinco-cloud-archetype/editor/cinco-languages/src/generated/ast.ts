@@ -8,7 +8,7 @@ import type { AstNode, Reference, ReferenceInfo, TypeMetaData } from 'langium';
 import { AbstractAstReflection } from 'langium';
 
 export const CincoTerminals = {
-    BOOL: /true|false|TRUE|FALSE|True|False/,
+    BOOL: /\b(true|false|TRUE|FALSE|True|False)\b/,
     STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/,
     DOUBLE: /[0-9]*\.[0-9]+/,
     INT: /(-)?[0-9]+/,
@@ -87,6 +87,12 @@ export const ModelElement = 'ModelElement';
 
 export function isModelElement(item: unknown): item is ModelElement {
     return reflection.isInstance(item, ModelElement);
+}
+
+export type ModelElementBaseTypes = 'Container' | 'Edge' | 'GraphModel' | 'ModelElement' | 'ModelElementContainer' | 'Node';
+
+export function isModelElementBaseTypes(item: unknown): item is ModelElementBaseTypes {
+    return item === 'GraphModel' || item === 'Node' || item === 'Edge' || item === 'Container' || item === 'ModelElement' || item === 'ModelElementContainer';
 }
 
 export type NodeType = Node | NodeContainer;
@@ -752,6 +758,7 @@ export interface ReferencedModelElement extends AstNode {
     copiedAttributes: Array<ReferencedMGLAttribute>
     import?: Reference<Import>
     modelElement?: Reference<ModelElement>
+    modelElementBaseType?: ModelElementBaseTypes
     name: string
     referencedModelElement?: string
 }

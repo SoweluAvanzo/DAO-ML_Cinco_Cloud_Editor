@@ -38,6 +38,7 @@ const PALETTE_HEIGHT = '500px';
 export class CincoToolPalette extends KeyboardToolPalette {
     @inject(EnvironmentProvider) readonly environmentProvider: IEnvironmentProvider;
     protected lastFilter = '';
+    CHANGED = false;
 
     static async requestPalette(actionDispatcher: IActionDispatcher): Promise<void> {
         const requestAction = RequestContextActions.create({
@@ -57,7 +58,11 @@ export class CincoToolPalette extends KeyboardToolPalette {
             }
         } else if (SetContextActions.is(action)) {
             // store and backup new palette
-            this.paletteItems = action.actions.map(e => e as PaletteItem);
+            const newPaletteItems = action.actions.map(e => e as PaletteItem);
+            if (this.palettesHaveChanged(this.paletteItems ?? [], newPaletteItems)) {
+                this.CHANGED = true;
+            }
+            this.paletteItems = newPaletteItems;
             this.backupPaletteCopy();
             // make
             this.actionDispatcher.dispatch(
@@ -102,7 +107,29 @@ export class CincoToolPalette extends KeyboardToolPalette {
             }
         }
         this.paletteItems = filteredPaletteItems;
-        this.createBody();
+        if (this.CHANGED) {
+            this.createBody();
+            this.CHANGED = false;
+        }
+    }
+
+    palettesHaveChanged(oldPaletteItems: PaletteItem[], newPaletteItems: PaletteItem[], depth = 0): boolean {
+        let pairs = 0; // detects differences in the ids (too much means there are new, too few means some are gone/changed)
+        for (const n of newPaletteItems) {
+            for (const o of oldPaletteItems) {
+                if (o.id === n.id) {
+                    pairs++;
+                    if (n.label !== o.label || o.children?.length !== n.children?.length || o.actions.length !== n.actions.length) {
+                        return true;
+                    } else {
+                        if (this.palettesHaveChanged(o.children ?? [], n.children ?? [])) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return pairs !== oldPaletteItems.length || oldPaletteItems.length !== newPaletteItems.length;
     }
 
     /**

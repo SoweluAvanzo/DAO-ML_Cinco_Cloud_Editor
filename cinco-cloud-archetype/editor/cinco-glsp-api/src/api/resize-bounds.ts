@@ -71,7 +71,6 @@ import { ResizeArgument } from '@cinco-glsp/cinco-glsp-common';
  * ```
  */
 export class ResizeBounds {
-
     public readonly oldWidth: number;
     public readonly oldHeight: number;
     public readonly oldSize: Dimension;
@@ -136,49 +135,63 @@ export class ResizeBounds {
      */
     public readonly anchor: Direction | undefined;
 
-    public constructor(oldWidth: number, oldHeight: number, oldX: number, oldY: number,
-                       newWidth: number, newHeight: number, newX: number, newY: number) {
+    public constructor(
+        oldWidth: number,
+        oldHeight: number,
+        oldX: number,
+        oldY: number,
+        newWidth: number,
+        newHeight: number,
+        newX: number,
+        newY: number
+    ) {
+        this.oldWidth = oldWidth;
+        this.oldHeight = oldHeight;
+        this.oldSize = { width: oldWidth, height: oldHeight };
 
-        this.oldWidth       = oldWidth;
-        this.oldHeight      = oldHeight;
-        this.oldSize        = { width: oldWidth, height: oldHeight };
+        this.oldX = oldX;
+        this.oldY = oldY;
+        this.oldPosition = { x: oldX, y: oldY };
 
-        this.oldX           = oldX;
-        this.oldY           = oldY;
-        this.oldPosition    = { x: oldX, y: oldY };
+        this.newWidth = newWidth;
+        this.newHeight = newHeight;
+        this.newSize = { width: newWidth, height: newHeight };
 
-        this.newWidth       = newWidth;
-        this.newHeight      = newHeight;
-        this.newSize        = { width: newWidth, height: newHeight };
+        this.newX = newX;
+        this.newY = newY;
+        this.newPosition = { x: newX, y: newY };
 
-        this.newX           = newX;
-        this.newY           = newY;
-        this.newPosition    = { x: newX, y: newY };
+        this.widthDiff = newWidth - oldWidth;
+        this.heightDiff = newHeight - oldHeight;
+        this.sizeDiff = { width: this.widthDiff, height: this.heightDiff };
 
-        this.widthDiff      = newWidth  - oldWidth;
-        this.heightDiff     = newHeight - oldHeight;
-        this.sizeDiff       = {width: this.widthDiff, height: this.heightDiff};
+        this.xDiff = newX - oldX;
+        this.yDiff = newY - oldY;
+        this.positionDiff = { x: this.xDiff, y: this.yDiff };
 
-        this.xDiff          = newX - oldX;
-        this.yDiff          = newY - oldY;
-        this.positionDiff   = {x: this.xDiff, y: this.yDiff};
-
-        this.top            = oldY - newY;
-        this.left           = oldX - newX;
-        this.bottom         = (newHeight - oldHeight) - this.top;
-        this.right          = (newWidth  - oldWidth ) - this.left;
+        this.top = oldY - newY;
+        this.left = oldX - newX;
+        this.bottom = newHeight - oldHeight - this.top;
+        this.right = newWidth - oldWidth - this.left;
 
         this.anchor =
-            ( this.top && !this.right && !this.bottom && !this.left) ? Direction.TOP          :
-            ( this.top &&  this.right && !this.bottom && !this.left) ? Direction.TOP_RIGHT    :
-            (!this.top &&  this.right && !this.bottom && !this.left) ? Direction.RIGHT        :
-            (!this.top &&  this.right &&  this.bottom && !this.left) ? Direction.BOTTOM_RIGHT :
-            (!this.top && !this.right &&  this.bottom && !this.left) ? Direction.BOTTOM       :
-            (!this.top && !this.right &&  this.bottom &&  this.left) ? Direction.BOTTOM_LEFT  :
-            (!this.top && !this.right && !this.bottom &&  this.left) ? Direction.LEFT         :
-            ( this.top && !this.right && !this.bottom &&  this.left) ? Direction.TOP_LEFT     :
-            undefined;
-
+            this.top && !this.right && !this.bottom && !this.left
+                ? Direction.TOP
+                : this.top && this.right && !this.bottom && !this.left
+                  ? Direction.TOP_RIGHT
+                  : !this.top && this.right && !this.bottom && !this.left
+                    ? Direction.RIGHT
+                    : !this.top && this.right && this.bottom && !this.left
+                      ? Direction.BOTTOM_RIGHT
+                      : !this.top && !this.right && this.bottom && !this.left
+                        ? Direction.BOTTOM
+                        : !this.top && !this.right && this.bottom && this.left
+                          ? Direction.BOTTOM_LEFT
+                          : !this.top && !this.right && !this.bottom && this.left
+                            ? Direction.LEFT
+                            : this.top && !this.right && !this.bottom && this.left
+                              ? Direction.TOP_LEFT
+                              : undefined;
     }
 
     public static fromResizeArgument(resizeArgument: ResizeArgument): ResizeBounds {
@@ -195,15 +208,15 @@ export class ResizeBounds {
     }
 
     public toString(): string {
-        const format = (x: number) => (x > 0) ? `+${x}` : (x === 0) ? `±${x}` : `${x}`;
-        const top    = format(this.top);
-        const right  = format(this.right);
+        const format = (x: number): string => (x > 0 ? `+${x}` : x === 0 ? `±${x}` : `${x}`);
+        const top = format(this.top);
+        const right = format(this.right);
         const bottom = format(this.bottom);
-        const left   = format(this.left);
-        const topArrow    = (this.top    > 0) ? ' ↑ ' : (this.top    === 0) ? '───' : ' ↓ ';
-        const rightArrow  = (this.right  > 0) ?  '→'  : (this.right  === 0) ?  '│'  :  '←' ;
-        const bottomArrow = (this.bottom > 0) ? ' ↓ ' : (this.bottom === 0) ? '───' : ' ↑ ';
-        const leftArrow   = (this.left   > 0) ?  '←'  : (this.left   === 0) ?  '│'  :  '→' ;
+        const left = format(this.left);
+        const topArrow = this.top > 0 ? ' ↑ ' : this.top === 0 ? '───' : ' ↓ ';
+        const rightArrow = this.right > 0 ? '→' : this.right === 0 ? '│' : '←';
+        const bottomArrow = this.bottom > 0 ? ' ↓ ' : this.bottom === 0 ? '───' : ' ↑ ';
+        const leftArrow = this.left > 0 ? '←' : this.left === 0 ? '│' : '→';
         const spaces = ' '.repeat(left.length);
         return `
 ${spaces}  ${top}
@@ -213,5 +226,4 @@ ${spaces} └─${bottomArrow}─┘
 ${spaces}  ${bottom}
 `;
     }
-
 }

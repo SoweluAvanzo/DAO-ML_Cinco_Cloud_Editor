@@ -90,65 +90,58 @@ export abstract class CincoFolderWatcher {
             console.log('creating watcher...');
             // start watching
             try {
-                const watcher = fs.watch(
-                    folderToWatch,
-                    {
-                        // TODO: recursive not possible on Linux until Node 20. But theia currently not Node 20 compatible.
-                        // Probable workaround would be a programatical approach, but we should wait for Theia Node 20.
-                    } as WatchOptions,
-                    async (eventType, filename) => {
-                        if (filename) {
-                            if (!this.watchedFolders.has(folderToWatch)) {
-                                return;
-                            }
-                            const path = `${folderToWatch}/${filename}`;
-                            if (existsDirectory(path)) {
-                                // recursive workaround to watch new folders inside watched folders
-                                if (eventType === 'rename') {
-                                    console.log('Identified new Subfolder. Initializing watcher...');
-                                    const watcherCallbacks = this.watchedFolders.get(folderToWatch)!.callbacks;
-                                    for (const cb of watcherCallbacks) {
-                                        this.watch(path, cb.watchedFileTypes, cb.callback);
-                                    }
-                                }
-                            } else {
-                                const currentContent = readFile(path);
-                                if (this.eventAggregationMap.has(path)) {
-                                    const lastContent = this.eventAggregationMap.get(path)!;
-                                    if (currentContent === lastContent) {
-                                        console.log('no change, skipping callbacks');
-                                        this.eventAggregationMap.set(path, currentContent);
-                                        return;
-                                    }
-                                }
-                                this.eventAggregationMap.set(path, currentContent);
+                const watcher = fs.watch(folderToWatch, {} as WatchOptions, async (eventType, filename) => {
+                    if (filename) {
+                        if (!this.watchedFolders.has(folderToWatch)) {
+                            return;
+                        }
+                        const path = `${folderToWatch}/${filename}`;
+                        if (existsDirectory(path)) {
+                            // recursive workaround to watch new folders inside watched folders
+                            if (eventType === 'rename') {
+                                console.log('Identified new Subfolder. Initializing watcher...');
                                 const watcherCallbacks = this.watchedFolders.get(folderToWatch)!.callbacks;
-                                for (const entry of watcherCallbacks) {
-                                    const cb = entry.callback;
-                                    const fileTypes = entry.watchedFileTypes;
-                                    const fileExtension = filename.slice(filename.indexOf('.'));
-                                    if (fileTypes && fileTypes.length > 0 ? !fileTypes.includes(fileExtension) : false) {
-                                        continue;
-                                    }
-                                    let executed = false;
-                                    while (!executed) {
-                                        try {
-                                            await cb(path, eventType)
-                                                .catch(e => {
-                                                    console.log('An error occured executing file watcher callback: ' + e);
-                                                })
-                                                .then(_ => {
-                                                    executed = true;
-                                                });
-                                        } catch (e) {
-                                            console.log('something went wrong executing file watcher callback: ' + e);
-                                        }
+                                for (const cb of watcherCallbacks) {
+                                    this.watch(path, cb.watchedFileTypes, cb.callback);
+                                }
+                            }
+                        } else {
+                            const currentContent = readFile(path);
+                            if (this.eventAggregationMap.has(path)) {
+                                const lastContent = this.eventAggregationMap.get(path)!;
+                                if (currentContent === lastContent) {
+                                    console.log('no change, skipping callbacks');
+                                    this.eventAggregationMap.set(path, currentContent);
+                                    return;
+                                }
+                            }
+                            this.eventAggregationMap.set(path, currentContent);
+                            const watcherCallbacks = this.watchedFolders.get(folderToWatch)!.callbacks;
+                            for (const entry of watcherCallbacks) {
+                                const cb = entry.callback;
+                                const fileTypes = entry.watchedFileTypes;
+                                const fileExtension = filename.slice(filename.indexOf('.'));
+                                if (fileTypes && fileTypes.length > 0 ? !fileTypes.includes(fileExtension) : false) {
+                                    continue;
+                                }
+                                let executed = false;
+                                while (!executed) {
+                                    try {
+                                        await cb(path, eventType)
+                                            .catch(e => {
+                                                console.log('An error occured executing file watcher callback: ' + e);
+                                            })
+                                            .then(_ => {
+                                                executed = true;
+                                            });
+                                    } catch (e) {
+                                        console.log('something went wrong executing file watcher callback: ' + e);
                                     }
                                 }
                             }
                         }
                     }
-                );
+                });
                 watchEntry.watcher = watcher;
                 console.log('watcher created!');
             } catch (e) {

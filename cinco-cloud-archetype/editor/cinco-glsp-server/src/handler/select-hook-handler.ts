@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { HookType, SelectAction, Action, SelectArgument } from '@cinco-glsp/cinco-glsp-common';
 import { inject, injectable } from 'inversify';
-import { ActionDispatcher, ActionHandler, Logger, MaybePromise } from '@eclipse-glsp/server';
+import { ActionDispatcher, ActionHandler, Logger, MaybePromise, ModelSubmissionHandler, SourceModelStorage } from '@eclipse-glsp/server';
 import { GraphModelState, HookManager } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
@@ -26,6 +26,10 @@ export class SelectHookHandler implements ActionHandler {
     readonly modelState: GraphModelState;
     @inject(ActionDispatcher)
     readonly actionDispatcher: ActionDispatcher;
+    @inject(SourceModelStorage)
+    protected sourceModelStorage: SourceModelStorage;
+    @inject(ModelSubmissionHandler)
+    protected submissionHandler: ModelSubmissionHandler;
 
     actionKinds: string[] = [SelectAction.KIND];
 
@@ -50,10 +54,26 @@ export class SelectHookHandler implements ActionHandler {
             param.isSelected = param.selectedElements.includes(param.modelElementId);
 
             // Can Hook
-            const canSelect = HookManager.executeHook(param, HookType.CAN_SELECT, this.modelState, this.logger, this.actionDispatcher);
+            const canSelect = HookManager.executeHook(
+                param,
+                HookType.CAN_SELECT,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
             if (canSelect) {
                 // Post Hook
-                HookManager.executeHook(parameters, HookType.POST_SELECT, this.modelState, this.logger, this.actionDispatcher);
+                HookManager.executeHook(
+                    parameters,
+                    HookType.POST_SELECT,
+                    this.modelState,
+                    this.logger,
+                    this.actionDispatcher,
+                    this.sourceModelStorage,
+                    this.submissionHandler
+                );
             }
         }
         return [];

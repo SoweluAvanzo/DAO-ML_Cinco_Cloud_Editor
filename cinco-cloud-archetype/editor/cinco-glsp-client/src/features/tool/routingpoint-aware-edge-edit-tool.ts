@@ -71,10 +71,6 @@ import { CincoEdge, CincoNode } from '../../model/model';
 import { getCurrentMousePosition, getNodeBehindEdge } from '../../utils/canvas-utils';
 import { canBeEdgeSource, canBeEdgeTarget } from '../../utils/constraint-utils';
 
-/*
- * TODO: This is a fix for a Sprotty/GLSP Bug. Please review when the glsp is updated! This could very well be omitted!
- * GLSP-Client-Version: 1.0.0
- */
 export class CincoFeedbackEdgeSourceMovingMouseListener extends FeedbackEdgeSourceMovingMouseListener {
     override mouseMove(target: GModelElement, event: MouseEvent): Action[] {
         const root = target.root;
@@ -104,10 +100,6 @@ export class CincoFeedbackEdgeSourceMovingMouseListener extends FeedbackEdgeSour
     }
 }
 
-/*
- * TODO: This is a fix for a Sprotty/GLSP Bug. Please review when the glsp is updated! This could very well be omitted!
- * GLSP-Client-Version: 1.0.0
- */
 export class CincoFeedbackEdgeTargetMovingMouseListener extends FeedbackEdgeTargetMovingMouseListener {
     override mouseMove(target: GModelElement, event: MouseEvent): Action[] {
         const root = target.root;
