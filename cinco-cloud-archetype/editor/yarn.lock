@@ -1049,7 +1049,7 @@
     semver "^7.5.1"
     shelljs "^0.8.5"
 
-"@eclipse-glsp/client@2.0.0", "@eclipse-glsp/client@2.1.0-next", "@eclipse-glsp/client@~2.0.0":
+"@eclipse-glsp/client@2.0.0", "@eclipse-glsp/client@2.1.0-next.306", "@eclipse-glsp/client@~2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@eclipse-glsp/client/-/client-2.0.0.tgz#1100d7b2de0b4a92f4397417cc196fe7324af0f5"
   integrity sha512-Bi3Pxv0jgr8uyKTtxivPEfD6nHYPB35a0+eaq5wjxymB3VlX3Fgguy+dAmO9P2FexRN/d4Wh8ZwWhtjC3XP0AQ==
