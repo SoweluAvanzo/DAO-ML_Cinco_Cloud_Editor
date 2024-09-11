@@ -13,20 +13,30 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { argv, exit } from 'process';
-import { readFileSync, writeFileSync } from 'fs';
-import { graphMerger } from './graph-model';
 
-console.log('ancestor', argv[2]);
-console.log('version a', argv[3]);
-console.log('version b', argv[4]);
+import { eagerCellMerger, lazyCellMerger, lazyEntityListMerger, Merger, recordMerger } from './combinators';
 
-const ancestor = JSON.parse(readFileSync(argv[2], 'utf-8'));
-const versionA = JSON.parse(readFileSync(argv[3], 'utf-8'));
-const versionB = JSON.parse(readFileSync(argv[4], 'utf-8'));
+export function graphMerger(): Merger {
+    return recordMerger({
+        id: eagerCellMerger(),
+        _containments: lazyEntityListMerger(nodeMerger()),
+        _edges: lazyEntityListMerger(edgeMerger()),
+        type: eagerCellMerger(),
+        _sourceUri: eagerCellMerger(),
+        _attributes: eagerCellMerger()
+    });
+}
 
-const merger = graphMerger();
-const result = merger({ ancestor, versionA, versionB });
+export function nodeMerger(): Merger {
+    return eagerCellMerger();
+}
 
-writeFileSync(argv[5], JSON.stringify(result.value, undefined, 2));
-exit(result.newEagerConflicts ? 1 : 0);
+export function edgeMerger(): Merger {
+    return recordMerger({
+        type: eagerCellMerger(),
+        _attributes: eagerCellMerger(),
+        sourceID: lazyCellMerger(),
+        targetID: lazyCellMerger(),
+        _routingPoints: eagerCellMerger()
+    });
+}

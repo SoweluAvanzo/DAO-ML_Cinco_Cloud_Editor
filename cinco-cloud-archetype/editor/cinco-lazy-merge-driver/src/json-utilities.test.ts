@@ -13,8 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap } from './json-utilities';
 import { describe, test, expect } from '@jest/globals';
+import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap } from './json-utilities';
 
 describe('jsonValuesEqual', () => {
     test('different types', () => {
