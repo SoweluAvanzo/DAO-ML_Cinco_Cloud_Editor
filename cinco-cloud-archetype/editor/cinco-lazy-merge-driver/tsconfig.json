@@ -1,20 +1,33 @@
 {
   "extends": "@eclipse-glsp/ts-config/tsconfig.json",
   "compilerOptions": {
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "noImplicitOverride": true,
+    "noEmitOnError": false,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "strict": true,
+    "incremental": true,
     "rootDirs": [
       "src"
     ],
     "outDir": "lib",
-    "reactNamespace": "JSX",
     "baseUrl": ".",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "target": "ES2017",
+    "sourceMap": true,
     "types": [
       "node",
-      "mocha",
       "reflect-metadata"
     ],
     "lib": [
-      "ES5",
-      "ES2019"
+      "ESNext"
     ],
   },
   "include": [

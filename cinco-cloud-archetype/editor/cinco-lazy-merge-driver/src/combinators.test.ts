@@ -14,8 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { describe, test, expect } from '@jest/globals';
-import { eagerMergeCell, lazyMergeEntityList, lazyMergeMap, mapMergeResult, mergeRecord } from './combinators';
-import { lazyMergeCell } from './assignments';
+import { eagerMergeCell, lazyMergeCell, lazyMergeEntityList, lazyMergeMap, mapMergeResult, mergeRecord } from './combinators';
 
 describe('mapMergeResult', () => {
     expect(mapMergeResult({ value: 2, newEagerConflicts: false, newLazyConflicts: true }, n => n + 2)).toStrictEqual({
@@ -29,14 +28,14 @@ describe('mergeRecord', () => {
     test('merge record of assignments', () => {
         expect(
             mergeRecord({ x: lazyMergeCell(), y: lazyMergeCell() })({
-                ancestor: { x: { a: ['foo'] }, y: { b: ['doo'] } },
-                versionA: { x: { c: ['bar'] }, y: { d: ['dar'] } },
-                versionB: { x: { e: ['baz'] }, y: { f: ['daz'] } }
+                ancestor: { x: 'foo', y: 'doo' },
+                versionA: { x: 'bar', y: 'dar' },
+                versionB: { x: 'baz', y: 'daz' }
             })
         ).toStrictEqual({
             value: {
-                x: { c: ['bar'], e: ['baz'] },
-                y: { d: ['dar'], f: ['daz'] }
+                x: { tag: 'choice', options: ['bar', 'baz'] },
+                y: { tag: 'choice', options: ['dar', 'daz'] }
             },
             newEagerConflicts: false,
             newLazyConflicts: true
@@ -45,29 +44,65 @@ describe('mergeRecord', () => {
     test('unknown key in ancestor', () => {
         expect(() =>
             mergeRecord({ x: lazyMergeCell() })({
-                ancestor: { x: { a: ['foo'] }, y: { b: ['doo'] } },
-                versionA: { x: { c: ['bar'] } },
-                versionB: { x: { d: ['baz'] } }
+                ancestor: { x: 'foo', y: 'doo' },
+                versionA: { x: 'bar' },
+                versionB: { x: 'baz' }
             })
         ).toThrow(new Error('Key y has no merger defined.'));
     });
     test('unknown key in version A', () => {
         expect(() =>
             mergeRecord({ x: lazyMergeCell() })({
-                ancestor: { x: { a: ['foo'] } },
-                versionA: { x: { b: ['bar'] }, y: { c: ['doo'] } },
-                versionB: { x: { d: ['baz'] } }
+                ancestor: { x: 'foo' },
+                versionA: { x: 'bar', y: 'doo' },
+                versionB: { x: 'baz' }
             })
         ).toThrow(new Error('Key y has no merger defined.'));
     });
     test('unknown key in version B', () => {
         expect(() =>
             mergeRecord({ x: lazyMergeCell() })({
-                ancestor: { x: { a: ['foo'] } },
-                versionA: { x: { b: ['bar'] } },
-                versionB: { x: { c: ['baz'] }, y: { d: ['doo'] } }
+                ancestor: { x: 'foo' },
+                versionA: { x: 'bar' },
+                versionB: { x: 'baz', y: 'doo' }
             })
         ).toThrow(new Error('Key y has no merger defined.'));
+    });
+    test('ghost in ancestor and A', () => {
+        expect(
+            mergeRecord({ x: lazyMergeCell() })({
+                ancestor: { x: 'foo', ghost: true },
+                versionA: { x: 'bar', ghost: true },
+                versionB: { x: 'foo' }
+            })
+        ).toStrictEqual({ value: { x: 'bar' }, newEagerConflicts: false, newLazyConflicts: false });
+    });
+    test('ghost in A', () => {
+        expect(
+            mergeRecord({ x: lazyMergeCell() })({
+                ancestor: { x: 'foo' },
+                versionA: { x: 'bar', ghost: true },
+                versionB: { x: 'foo' }
+            })
+        ).toStrictEqual({ value: { x: 'bar', ghost: true }, newEagerConflicts: false, newLazyConflicts: false });
+    });
+    test('ghost in B', () => {
+        expect(
+            mergeRecord({ x: lazyMergeCell() })({
+                ancestor: { x: 'foo' },
+                versionA: { x: 'bar' },
+                versionB: { x: 'foo', ghost: true }
+            })
+        ).toStrictEqual({ value: { x: 'bar', ghost: true }, newEagerConflicts: false, newLazyConflicts: false });
+    });
+    test('ghost in all', () => {
+        expect(
+            mergeRecord({ x: lazyMergeCell() })({
+                ancestor: { x: 'foo', ghost: true },
+                versionA: { x: 'bar', ghost: true },
+                versionB: { x: 'foo', ghost: true }
+            })
+        ).toStrictEqual({ value: { x: 'bar', ghost: true }, newEagerConflicts: false, newLazyConflicts: false });
     });
 });
 
@@ -75,21 +110,21 @@ describe('lazyMergeEntityMap', () => {
     test('update and addition', () => {
         expect(
             lazyMergeEntityList(mergeRecord({ value: lazyMergeCell() }))({
-                ancestor: [{ id: 'x', value: { a: ['foo'] } }],
+                ancestor: [{ id: 'x', value: 'foo' }],
                 versionA: [
-                    { id: 'x', value: { b: ['bar'] } },
-                    { id: 'y', value: { c: ['dar'] } }
+                    { id: 'x', value: 'bar' },
+                    { id: 'y', value: 'dar' }
                 ],
                 versionB: [
-                    { id: 'x', value: { d: ['baz'] } },
-                    { id: 'z', value: { e: ['faz'] } }
+                    { id: 'x', value: 'baz' },
+                    { id: 'z', value: 'faz' }
                 ]
             })
         ).toStrictEqual({
             value: [
-                { id: 'x', value: { b: ['bar'], d: ['baz'] } },
-                { id: 'y', value: { c: ['dar'] } },
-                { id: 'z', value: { e: ['faz'] } }
+                { id: 'x', value: { tag: 'choice', options: ['bar', 'baz'] } },
+                { id: 'y', value: 'dar' },
+                { id: 'z', value: 'faz' }
             ],
             newEagerConflicts: false,
             newLazyConflicts: true
@@ -101,14 +136,14 @@ describe('lazyMergeMap', () => {
     test('updates', () => {
         expect(
             lazyMergeMap(lazyMergeCell())({
-                ancestor: { x: { a: ['foo'] }, y: { b: ['doo'] } },
-                versionA: { x: { c: ['bar'] }, y: { d: ['dar'] } },
-                versionB: { x: { e: ['baz'] }, y: { f: ['daz'] } }
+                ancestor: { x: 'foo', y: 'doo' },
+                versionA: { x: 'bar', y: 'dar' },
+                versionB: { x: 'baz', y: 'daz' }
             })
         ).toStrictEqual({
             value: {
-                x: { c: ['bar'], e: ['baz'] },
-                y: { d: ['dar'], f: ['daz'] }
+                x: { tag: 'choice', options: ['bar', 'baz'] },
+                y: { tag: 'choice', options: ['dar', 'daz'] }
             },
             newEagerConflicts: false,
             newLazyConflicts: true
@@ -118,35 +153,62 @@ describe('lazyMergeMap', () => {
         expect(
             lazyMergeMap(lazyMergeCell())({
                 ancestor: {},
-                versionA: { x: { a: ['bar'] } },
-                versionB: { y: { b: ['daz'] } }
+                versionA: { x: 'bar' },
+                versionB: { y: 'daz' }
             })
         ).toStrictEqual({
             value: {
-                x: { a: ['bar'] },
-                y: { b: ['daz'] }
+                x: 'bar',
+                y: 'daz'
             },
             newEagerConflicts: false,
             newLazyConflicts: false
         });
     });
-    test('key removed in version A', () => {
-        expect(() =>
+    test('deleted in version A', () => {
+        expect(
             lazyMergeMap(lazyMergeCell())({
-                ancestor: { x: { a: ['foo'] } },
+                ancestor: { x: 'foo' },
                 versionA: {},
-                versionB: { x: { a: ['foo'] } }
+                versionB: { x: 'foo' }
             })
-        ).toThrow('Key x has been removed from map.');
+        ).toStrictEqual({ value: {}, newEagerConflicts: false, newLazyConflicts: false });
     });
-    test('key removed in version B', () => {
-        expect(() =>
+    test('deleted in version B', () => {
+        expect(
             lazyMergeMap(lazyMergeCell())({
-                ancestor: { x: { a: ['foo'] } },
-                versionA: { x: { a: ['foo'] } },
+                ancestor: { x: 'foo' },
+                versionA: { x: 'foo' },
                 versionB: {}
             })
-        ).toThrow('Key x has been removed from map.');
+        ).toStrictEqual({ value: {}, newEagerConflicts: false, newLazyConflicts: false });
+    });
+    test('record deleted', () => {
+        expect(
+            lazyMergeMap(mergeRecord({ y: lazyMergeCell() }))({
+                ancestor: { x: { y: 'foo' } },
+                versionA: { x: { y: 'foo' } },
+                versionB: {}
+            })
+        ).toStrictEqual({ value: {}, newEagerConflicts: false, newLazyConflicts: false });
+    });
+    test('edited in A, deleted in B', () => {
+        expect(
+            lazyMergeMap(mergeRecord({ y: lazyMergeCell() }))({
+                ancestor: { x: { y: 'foo' } },
+                versionA: { x: { y: 'bar' } },
+                versionB: {}
+            })
+        ).toStrictEqual({ value: { x: { y: 'bar', ghost: true } }, newEagerConflicts: false, newLazyConflicts: true });
+    });
+    test('deleted in A, edited in B', () => {
+        expect(
+            lazyMergeMap(mergeRecord({ y: lazyMergeCell() }))({
+                ancestor: { x: { y: 'foo' } },
+                versionA: {},
+                versionB: { x: { y: 'bar' } }
+            })
+        ).toStrictEqual({ value: { x: { y: 'bar', ghost: true } }, newEagerConflicts: false, newLazyConflicts: true });
     });
 });
 
