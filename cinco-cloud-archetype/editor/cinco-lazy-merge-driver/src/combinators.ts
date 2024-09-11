@@ -49,7 +49,7 @@ export function mapMergeResult<A, B>({ value, newEagerConflicts, newLazyConflict
 
 export type Merger = (versions: Versions) => MergeResult;
 
-export function mergeRecord(mergers: Record<string, Merger>): Merger {
+export function recordMerger(mergers: Record<string, Merger>): Merger {
     return ({ ancestor, versionA, versionB }) => {
         validateNoUnknownKeysForRecordMerger(mergers, ancestor);
         validateNoUnknownKeysForRecordMerger(mergers, versionA);
@@ -88,10 +88,10 @@ function validateNoUnknownKeysForRecordMerger(mergers: Record<string, Merger>, r
     }
 }
 
-export function lazyMergeEntityList(merger: Merger): Merger {
+export function lazyEntityListMerger(merger: Merger): Merger {
     return ({ ancestor, versionA, versionB }) =>
         mapMergeResult(
-            lazyMergeMap(merger)({
+            lazyMapMerger(merger)({
                 ancestor: mapFromEntityArray(ancestor),
                 versionA: mapFromEntityArray(versionA),
                 versionB: mapFromEntityArray(versionB)
@@ -100,7 +100,7 @@ export function lazyMergeEntityList(merger: Merger): Merger {
         );
 }
 
-export function lazyMergeMap(merger: Merger): Merger {
+export function lazyMapMerger(merger: Merger): Merger {
     return ({ ancestor, versionA, versionB }) => {
         const keys = new Set<string>(Object.keys(ancestor).concat(Object.keys(versionA).concat(Object.keys(versionB))));
         const mergeResults: Record<string, MergeResult> = {};
@@ -147,7 +147,7 @@ export function lazyMergeMap(merger: Merger): Merger {
     };
 }
 
-export function eagerMergeCell(): Merger {
+export function eagerCellMerger(): Merger {
     return ({ ancestor, versionA, versionB }) => {
         if (jsonEqual(versionA, versionB)) {
             return mergeOk(versionA);
@@ -169,7 +169,7 @@ export function eagerMergeCell(): Merger {
     };
 }
 
-export function lazyMergeCell(): Merger {
+export function lazyCellMerger(): Merger {
     return ({ ancestor, versionA, versionB }) => {
         const ancestorSet = new Set(cellValues(ancestor));
         const versionASet = new Set(cellValues(versionA));
