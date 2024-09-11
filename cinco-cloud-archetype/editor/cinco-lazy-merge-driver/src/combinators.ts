@@ -29,11 +29,11 @@ type EagerMergeConflict<T = any> = Readonly<{
     versions: Versions<T>;
 }>;
 
-export interface MergeResult<T = any> {
+export type MergeResult<T = any> = Readonly<{
     value: T;
     newEagerConflicts: boolean;
     newLazyConflicts: boolean;
-}
+}>;
 
 export function mergeOk<T = any>(value: T): MergeResult<T> {
     return { value, newEagerConflicts: false, newLazyConflicts: false };

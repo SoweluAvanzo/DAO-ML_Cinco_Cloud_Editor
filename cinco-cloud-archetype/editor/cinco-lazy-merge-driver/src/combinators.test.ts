@@ -252,3 +252,54 @@ describe('eagerMergeCell', () => {
         });
     });
 });
+
+describe('lazyMergeCell', () => {
+    test('unchanged value', () => {
+        expect(lazyMergeCell()({ ancestor: 'foo', versionA: 'foo', versionB: 'foo' })).toStrictEqual({
+            value: 'foo',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
+    test('a changed', () => {
+        expect(lazyMergeCell()({ ancestor: 'foo', versionA: 'bar', versionB: 'foo' })).toStrictEqual({
+            value: 'bar',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
+    test('b changed', () => {
+        expect(lazyMergeCell()({ ancestor: 'foo', versionA: 'foo', versionB: 'bar' })).toStrictEqual({
+            value: 'bar',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
+    test('changed to the same value', () => {
+        expect(lazyMergeCell()({ ancestor: 'foo', versionA: 'bar', versionB: 'bar' })).toStrictEqual({
+            value: 'bar',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
+    test('changed to different values', () => {
+        expect(lazyMergeCell()({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+            value: {
+                tag: 'choice',
+                options: ['bar', 'baz']
+            },
+            newEagerConflicts: false,
+            newLazyConflicts: true
+        });
+    });
+    test('a changed, b option added', () => {
+        expect(lazyMergeCell()({ ancestor: 'foo', versionA: { tag: 'choice', options: ['foo', 'bar'] }, versionB: 'baz' })).toStrictEqual({
+            value: {
+                tag: 'choice',
+                options: ['bar', 'baz']
+            },
+            newEagerConflicts: false,
+            newLazyConflicts: true
+        });
+    });
+});
