@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { describe, test, expect } from '@jest/globals';
 import { readdirSync, readFileSync } from 'fs';
-import { graphMerger } from './graph-model';
+import { graphMerger } from './graph-merger';
 
 describe('examples', () => {
     const examples = readdirSync('examples', { withFileTypes: true })

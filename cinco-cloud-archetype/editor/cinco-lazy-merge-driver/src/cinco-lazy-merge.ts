@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { argv, exit } from 'process';
 import { readFileSync, writeFileSync } from 'fs';
-import { graphMerger } from './graph-model';
+import { graphMerger } from './graph-merger';
 
 console.log('ancestor', argv[2]);
 console.log('version a', argv[3]);
