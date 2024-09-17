@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Node, AbstractNodeHook, LanguageFilesRegistry, Container, GraphModel } from '@cinco-glsp/cinco-glsp-api';
+import { Node, AbstractNodeHook, LanguageFilesRegistry, Container, GraphModel, ResizeBounds } from '@cinco-glsp/cinco-glsp-api';
 import { PropertyEditOperation, AssignValue } from '@cinco-glsp/cinco-glsp-common';
 import { Dimension, Point } from '@eclipse-glsp/server';
 
@@ -158,27 +158,27 @@ export class ActivityHook extends AbstractNodeHook {
      * Resize
      */
 
-    override canResize(node: Node, newSize: Dimension, newPosition: Point): boolean {
+    override canResize(node: Node, resizeBounds: ResizeBounds): boolean {
         this.log('Triggered canResize on node (' + node.id + ')');
         this.log('can Resize from size?: ' + node.size);
         this.log('can Resize from position?: ' + node.position);
-        this.log('New Size: ' + newSize);
-        this.log('New Position: ' + newPosition);
+        this.log('New Size: ' + resizeBounds.newSize);
+        this.log('New Position: ' + resizeBounds.newPosition);
         return true;
     }
 
-    override preResize(node: Node, newSize: Dimension, newPosition: Point): void {
+    override preResize(node: Node, resizeBounds: ResizeBounds): void {
         this.log('Triggered preResize on node (' + node.id + ')');
         this.log('Resizing from: ' + node.size);
         this.log('Resizing from position: ' + node.position);
-        this.log('Resizing to: ' + newSize);
-        this.log('Resizing to position: ' + newPosition);
+        this.log('Resizing to: ' + resizeBounds.newSize);
+        this.log('Resizing to position: ' + resizeBounds.newPosition);
     }
 
-    override postResize(node: Node, oldSize: Dimension, oldPosition: Point): void {
+    override postResize(node: Node, resizeBounds: ResizeBounds): void {
         this.log('Triggered postResize on node (' + node.id + ')');
-        this.log('Resized from: ' + oldSize);
-        this.log('Resized from position: ' + oldPosition);
+        this.log('Resized from: ' + resizeBounds.oldSize);
+        this.log('Resized from position: ' + resizeBounds.oldPosition);
         this.log('Resized to: ' + node.size);
         this.log('Resized to position: ' + node.position);
     }
