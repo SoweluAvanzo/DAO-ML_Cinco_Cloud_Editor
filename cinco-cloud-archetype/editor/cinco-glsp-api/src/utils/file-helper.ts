@@ -330,6 +330,11 @@ export function getWebsocketPathArg(): string | undefined {
     return getArgs(argsKey);
 }
 
+export function getTranspilationModeArg(): string | undefined {
+    const argsKey = '--transpilationMode';
+    return getArgs(argsKey);
+}
+
 export function getWebServerPortArg(): number | undefined {
     const argsKey = '--webServerPort';
     if (hasArg(argsKey)) {

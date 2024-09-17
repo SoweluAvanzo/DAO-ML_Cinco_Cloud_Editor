@@ -26,9 +26,40 @@ export interface ServerArgs {
     port: number;
     websocketPath: string;
     webServerPort: number;
-    useSSL: boolean,
+    useSSL: boolean;
+    startUpTranspilation: TranspilationMode;
     webServerHostMapping?: string;
     websocketHostMapping?: string;
+}
+
+export enum TranspilationMode {
+    NONE,
+    ONCE,
+    WATCH
+}
+
+export namespace TranspilationMode {
+    export function fromString(value: string | undefined): TranspilationMode | undefined {
+        if (value === 'NONE') {
+            return TranspilationMode.NONE;
+        } else if (value === 'ONCE') {
+            return TranspilationMode.ONCE;
+        } else if (value === 'WATCH') {
+            return TranspilationMode.WATCH;
+        }
+        return undefined;
+    }
+
+    export function toString(value: TranspilationMode | undefined): string | undefined {
+        if (value === TranspilationMode.NONE) {
+            return 'NONE';
+        } else if (value === TranspilationMode.ONCE) {
+            return 'ONCE';
+        } else if (value === TranspilationMode.WATCH) {
+            return 'WATCH';
+        }
+        return undefined;
+    }
 }
 
 export namespace ServerArgs {
@@ -41,6 +72,7 @@ export namespace ServerArgs {
         websocketPath: string,
         webServerPort: number,
         useSSL: boolean,
+        startUpTranspilation: TranspilationMode,
         webServerHostMapping?: string,
         websocketHostMapping?: string
     ): ServerArgs {
@@ -54,7 +86,8 @@ export namespace ServerArgs {
             webServerPort: webServerPort,
             useSSL: useSSL,
             webServerHostMapping: webServerHostMapping,
-            websocketHostMapping: websocketHostMapping
+            websocketHostMapping: websocketHostMapping,
+            startUpTranspilation: startUpTranspilation ?? TranspilationMode.NONE
         };
     }
 }

@@ -46,6 +46,7 @@ ENV EXTERNAL_USE_SSL="false"
 ENV WORKSPACE_PATH="/editor/workspace"
 ENV EDITOR_TYPE="LANGUAGE_EDITOR"
 ENV META_LANGUAGES_FOLDER="workspace/languages"
+ENV TRANSPILATION_MODE="WATCH"
 ENV NODE_ENV="development"
 
 # disable chromium install for puppeteer, because of arm64 incompatibility
@@ -97,6 +98,7 @@ CMD cd minio-client && node bundle/cinco-minio-client --metaFolder ../cinco-glsp
     INTERNAL_USE_SSL="${INTERNAL_USE_SSL}" \
     EXTERNAL_USE_SSL="${EXTERNAL_USE_SSL}" \
     WORKSPACE_PATH="${WORKSPACE_PATH}" \
+    TRANSPILATION_MODE="${TRANSPILATION_MODE}" \
     EDITOR_TYPE="${EDITOR_TYPE}" \
     ENVIRONMENT="${ENVIRONMENT}" \
     yarn run theia start --port=3000 --CINCO_GLSP=5007 -WEB_SERVER_PORT=3003 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0 --META_DEV_MODE --META_LANGUAGES_FOLDER="${META_LANGUAGES_FOLDER}"

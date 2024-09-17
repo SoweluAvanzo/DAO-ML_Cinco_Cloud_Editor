@@ -180,6 +180,10 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                             new EnvVarBuilder()
                                 .withName("WEBSERVER_HOST_MAPPING")
                                 .withValue("workspaces/"+getProjectName()+"/web")
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("TRANSPILATION_MODE")
+                                .withValue(projectType == EditorType.LANGUAGE_EDITOR.name() ? "WATCH" : "ONCE")
                                 .build()
                                 
                         )
