@@ -25,18 +25,12 @@ export class CustomContextMenuItemProvider extends ContextMenuItemProvider {
     protected readonly modelState: GraphModelState;
 
     getItems(selectedElementIds: string[], position: Point, args?: Args | undefined): MenuItem[] {
-        const menuItems: MenuItem[] = [];
-        // create menuItem for action
-        const customMenuItems = this.getCustomMenuItems(selectedElementIds);
         // custom action
-        if (selectedElementIds.length <= 0) {
-            // graphmodell was clicked
-            menuItems.push(...customMenuItems);
-        } else {
-            // element was clicked
-            menuItems.push(...customMenuItems);
-        }
-        return menuItems;
+        return selectedElementIds.length <= 0
+            ? // graphmodell was clicked
+              this.getCustomMenuItems([this.modelState.graphModel.id])
+            : // element was clicked
+              this.getCustomMenuItems(selectedElementIds);
     }
 
     getCustomMenuItems(selectedElementIds: string[]): MenuItem[] {
