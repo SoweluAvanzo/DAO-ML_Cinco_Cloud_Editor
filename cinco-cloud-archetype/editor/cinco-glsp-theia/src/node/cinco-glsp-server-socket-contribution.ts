@@ -22,6 +22,7 @@ import { Disposable, LogLevel } from '@theia/core';
 import * as fs from 'fs';
 import { RawProcess } from '@theia/process/lib/node/raw-process';
 import { CincoLogger } from './cinco-theia-logger';
+import { TranspilationMode } from '@cinco-glsp/cinco-glsp-common';
 
 export const LOG_DIR = path.join(__dirname, '..', '..', 'logs');
 const MODULE_PATH = path.join(__dirname, '..', '..', '..', 'cinco-glsp-server', 'bundle', 'cinco-glsp-server-packed.js');
@@ -57,7 +58,8 @@ export class CincoGLSPSocketServerContribution extends GLSPSocketServerContribut
                 `--workspaceFolder='${args.workspacePath}'`,
                 '--webSocket',
                 `--webServerPort=${args.webServerPort}`,
-                '--host=0.0.0.0'
+                '--host=0.0.0.0',
+                `--transpilationMode=${TranspilationMode.toString(args.startUpTranspilation)}`
             ],
             socketConnectionOptions: {
                 port: args.port,

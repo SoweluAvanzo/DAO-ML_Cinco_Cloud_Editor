@@ -25,7 +25,9 @@ import {
     USE_SSL,
     WORKSPACE_FOLDER,
     WEBSOCKET_HOST_MAPPING,
-    WEBSERVER_HOST_MAPPING
+    WEBSERVER_HOST_MAPPING,
+    DEFAULT_TRANSPILATION_MODE,
+    TranspilationMode
 } from '@cinco-glsp/cinco-glsp-common';
 import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server';
 import { processPort } from '@eclipse-glsp/server/lib/node/launch/socket-cli-parser';
@@ -37,6 +39,7 @@ import {
     getWorkspaceFolderArg,
     getWebsocketPathArg,
     getWebServerPortArg,
+    getTranspilationModeArg,
     isMetaDevMode
 } from '@cinco-glsp/cinco-glsp-api';
 
@@ -54,6 +57,8 @@ export class ServerArgsRequestHandler implements ActionHandler {
             getWebsocketPathArg() ?? DEFAULT_WEBSOCKET_PATH,
             getWebServerPortArg() ?? DEFAULT_WEB_SERVER_PORT,
             process.env[USE_SSL] === 'true',
+            // TODO: Currently, the value of transpilationMode has no functionality inside this Server
+            TranspilationMode.fromString(getTranspilationModeArg()) ?? DEFAULT_TRANSPILATION_MODE,
             process.env[WEBSERVER_HOST_MAPPING],
             process.env[WEBSOCKET_HOST_MAPPING]
         );
