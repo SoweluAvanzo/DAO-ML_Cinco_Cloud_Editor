@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
-function openProjectInitializationWebview(context: vscode.ExtensionContext) {
+async function openProjectInitializationWebview(context: vscode.ExtensionContext) {
 	const panel = vscode.window.createWebviewPanel(
 		'cincoCloudProjectInitializerWebview',
 		'Project Initializer',
@@ -29,7 +29,7 @@ function openProjectInitializationWebview(context: vscode.ExtensionContext) {
 		}
 	);
 
-	panel.webview.html = getWebviewContent(context, panel);
+	panel.webview.html = await getWebviewContent(context, panel);
 
 	panel.webview.onDidReceiveMessage(
 		message => {
