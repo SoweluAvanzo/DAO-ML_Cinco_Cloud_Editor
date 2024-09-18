@@ -1,0 +1,36 @@
+// A launch configuration that compiles the extension and then opens it inside a new window
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "extensionHost",
+			"request": "launch",
+			"name": "Launch Extension (Language Editor)",
+			"runtimeExecutable": "${execPath}",
+			"args": ["--extensionDevelopmentPath=${workspaceRoot}"],
+			"outFiles": ["${workspaceRoot}/out/**/*.js"],
+			"preLaunchTask": {
+				"type": "npm",
+				"script": "watch"
+			},
+			"env": {
+				"EDITOR_TYPE": "LANGUAGE_EDITOR"
+			}
+		},
+		{
+			"type": "extensionHost",
+			"request": "launch",
+			"name": "Launch Extension (Model Editor)",
+			"runtimeExecutable": "${execPath}",
+			"args": ["--extensionDevelopmentPath=${workspaceRoot}"],
+			"outFiles": ["${workspaceRoot}/out/**/*.js"],
+			"preLaunchTask": {
+				"type": "npm",
+				"script": "watch"
+			},
+			"env": {
+				"EDITOR_TYPE": "MODEL_EDITOR"
+			}
+		}
+	]
+}

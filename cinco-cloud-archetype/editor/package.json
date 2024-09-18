@@ -75,6 +75,7 @@
     "**/@theia/process": "1.46.1",
     "**/@theia/property-view": "1.46.1",
     "**/@theia/scm": "1.46.1",
+    "**/@theia/scm-extra": "1.46.1",
     "**/@theia/search-in-workspace": "1.46.1",
     "**/@theia/task": "1.46.1",
     "**/@theia/terminal": "1.46.1",
