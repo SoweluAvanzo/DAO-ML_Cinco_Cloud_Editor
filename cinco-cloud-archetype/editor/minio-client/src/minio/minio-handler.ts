@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2023 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -20,7 +20,9 @@ import { createClient } from './minio-client';
 import { MINIO_RESOURCE_ID } from './minio_values';
 import AdmZip = require('adm-zip');
 
+// Special folder
 const WORKSPACE_INITIALIZATION_DIRECTORY = 'workspace';
+const PLUGIN_INITIALIZATION_DIRECTORY = 'plugins';
 
 export function fetchMetaSpecification(targetFolder: string): void {
     if (MINIO_RESOURCE_ID !== '') {
@@ -28,33 +30,50 @@ export function fetchMetaSpecification(targetFolder: string): void {
         console.log('targetFolder: ' + targetFolder);
         const targetPath = path.join(targetFolder, 'meta.zip');
         console.log('targetPath: ' + targetPath);
-        minioClient.fGetObject('projects', `${MINIO_RESOURCE_ID}.zip`, targetPath).then((_) => {
-            const zip = new AdmZip(targetPath);
-            zip.extractAllTo(targetFolder, true);
-            console.log('Fetched meta specification successfully');
-            
-            // Check if WORKSPACE_INITIALIZATION_DIRECTORY exists
-            const workspacePath = path.join(targetFolder, WORKSPACE_INITIALIZATION_DIRECTORY);
-            const editorWorkspacePath = process.env.WORKSPACE_PATH;
-
-            if (fs.existsSync(workspacePath)) {
-                if (isDirectoryEmpty(editorWorkspacePath)) {
-                    copyFolderRecursiveSync(workspacePath, editorWorkspacePath);
-                    console.log(`Files from ${workspacePath} copied to ${editorWorkspacePath}`);
-
-                    // Delete the workspacePath folder
-                    fs.rmdirSync(workspacePath, { recursive: true });
-                } else {
-                    console.log(`${editorWorkspacePath} is not empty. Skipping initialization.`);
-                }
-            } else {
-                console.log(`${workspacePath} does not exist. Skipping initialization.`);
-            }
-        }).catch(e => {
-            console.log('error fetching fetching meta-specification!');
-        });
+        minioClient
+            .fGetObject('projects', `${MINIO_RESOURCE_ID}.zip`, targetPath)
+            .then(_ => {
+                console.log('Fetched meta specification successfully');
+                unzipArtifact(targetFolder, 'meta.zip');
+            })
+            .catch((e: any) => {
+                console.log('error fetching fetching meta-specification:\n' + e);
+            });
     } else {
         console.log('MINIO_RESOURCE_ID not set!');
+        unzipArtifact(targetFolder, 'meta.zip');
+    }
+}
+
+function unzipArtifact(folder: string, file: string) {
+    const zip = new AdmZip(path.join(folder, file));
+    zip.extractAllTo(folder, true);
+
+    // Handle SpecialFolders
+    const editorWorkspacePath = process.env.WORKSPACE_PATH ?? path.join(__dirname, '../../workspace');
+    const editorPluginsPath = process.env.PLUGINS_PATH ?? path.join(__dirname, '../../browser-app/plugins');
+    const workspacePath = path.join(folder, WORKSPACE_INITIALIZATION_DIRECTORY);
+    const pluginsPath = path.join(folder, PLUGIN_INITIALIZATION_DIRECTORY);
+    console.log('workspacePath: ' + workspacePath);
+    console.log('editorWorkspacePath: ' + editorWorkspacePath);
+    console.log('pluginsPath: ' + pluginsPath);
+    console.log('editorPluginsPath: ' + editorPluginsPath);
+    copySpecialFolder(workspacePath, editorWorkspacePath);
+    copySpecialFolder(pluginsPath, editorPluginsPath, false);
+}
+
+function copySpecialFolder(sourceFolder: string, targetFolder: string, emptyCheck = true) {
+    if (fs.existsSync(sourceFolder)) {
+        if (!emptyCheck || isDirectoryEmpty(targetFolder)) {
+            copyFolderRecursiveSync(sourceFolder, targetFolder);
+            console.log(`Files from ${sourceFolder} copied to ${targetFolder}`);
+            // Delete the workspacePath folder
+            fs.rmdirSync(sourceFolder, { recursive: true });
+        } else {
+            console.log(`${targetFolder} is not empty. Skipping initialization.`);
+        }
+    } else {
+        console.log(`${sourceFolder} does not exist. Skipping initialization.`);
     }
 }
 
