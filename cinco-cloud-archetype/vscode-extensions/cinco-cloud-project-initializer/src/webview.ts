@@ -1,7 +1,14 @@
 import path = require('path');
 import * as vscode from 'vscode';
+import * as process from 'process';
+
+const EDITOR_TYPE_KEY = 'EDITOR_TYPE';
+const LANGUAGE_EDITOR = 'LANGUAGE_EDITOR';
 
 export function getWebviewContent(context: vscode.ExtensionContext, panel: vscode.WebviewPanel): string {
+    const editorType = process.env[EDITOR_TYPE_KEY];
+    const isLanguageEditor = editorType === LANGUAGE_EDITOR;
+
     const currentTheme = vscode.workspace.getConfiguration('workbench').get('colorTheme') as string;
     const isDarkTheme = currentTheme.toLowerCase().includes('dark');
     const backgroundColor = isDarkTheme ? '#1E1E1E' : '#FFFFFF';
@@ -10,7 +17,7 @@ export function getWebviewContent(context: vscode.ExtensionContext, panel: vscod
     const onDiskPath = vscode.Uri.joinPath(context.extensionUri, 'images', 'cinco-cloud-logo.png');
     const logoSrc = panel.webview.asWebviewUri(onDiskPath);
 
-    const exampleProjects = [
+    const exampleProjects = isLanguageEditor ? [
         {
             name: 'Flowgraph',
             repoUrl: 'https://ls5gitlab.cs.tu-dortmund.de/cinco-cloud-examples/flowgraph.git',
@@ -20,8 +27,10 @@ export function getWebviewContent(context: vscode.ExtensionContext, panel: vscod
             name: 'Webstory',
             repoUrl: 'https://ls5gitlab.cs.tu-dortmund.de/cinco-cloud-examples/webstory.git',
             branch: 'main'
-        },
-    ];
+        }
+    ] : [];
+
+    const modelTypes = [ { diagramExtension: 'flowgraph', label: 'Flowgraph' }, { diagramExtension: 'empty', label: 'Empty' } ];
 
     return `
         <html>
@@ -73,23 +82,71 @@ export function getWebviewContent(context: vscode.ExtensionContext, panel: vscod
                         border-radius: 3px;
                         margin-right: 4px;
                     }
+        
+                    select[type="text"] {
+                        padding: 8px;
+                        border: 1px solid #333;
+                        background-color: #3C3C3C;
+                        color: #D4D4D4;
+                        border-radius: 3px;
+                        margin-right: 4px;
+                    }
                 </style>
             </head>
             <body>
                 <!-- Initial buttons -->
+
+                <img src="${logoSrc}" alt="Cinco Cloud Logo">
                 <div id="initialView">
-                    <img src="${logoSrc}" alt="Cinco Cloud Logo">
                     <h1>Welcome to Cinco Cloud!</h1>
-                    <button onclick="showInitializeProject()">Initialize Project</button>
-                    <button onclick="showCreateExampleProject()">Create Example Project</button>
+                    ${
+                        isLanguageEditor ?
+                        '<button onclick="showInitializeProject()">Initialize Project</button>'
+                        : ''
+                    }
+                    ${
+                        modelTypes.length > 0 ?
+                        `<button onclick="showInitializeModels()">Create Model</button>`
+                        : ''
+                    }
+                    ${exampleProjects.length > 0 ? 
+                        `<button onclick="showCreateExampleProject()">Create Example Project</button>`
+                        : ``
+                    }
+                    ${
+                        modelTypes.length <= 0 && exampleProjects.length <= 0 && !isLanguageEditor ?
+                        `This editor has no registered model types.`
+                        : ''
+                    }
                 </div>
 
                 <!-- Input for project name -->
-                <div id="nameInputView" style="display: none;">
+                <div id="projectNameInputView" style="display: none;">                        
+                    <h1>Create a Project</h1>
                     <input type="text" pattern="^[A-Za-z]+$" id="projectName" placeholder="Enter project name">
                     <div>
                         <button onclick="showInitialView()">Back</button>
                         <button onclick="initializeProject()">Confirm</button>
+                    </div>
+                </div>
+
+                <!-- Input for model name -->
+                <div id="modelNameInputView" style="display: none;">
+                    <h1>Create a Model</h1>
+                    <input type="text" pattern="^[A-Za-z]+$" id="modelName" placeholder="Enter model name">
+                    <span>
+                    <label for="modelType">Chose model type:</label>
+                    <select type="text" name="modelType" id="modelType">
+                        ${
+                            modelTypes.map(type =>
+                                `<option value="${type.diagramExtension}">${type.label}</option>`
+                            ).join(`\n`)
+                        }
+                    </select>
+                    </span>
+                    <div>
+                        <button onclick="showInitialView()">Back</button>
+                        <button onclick="initializeModels()">Confirm</button>
                     </div>
                 </div>
 
@@ -104,19 +161,51 @@ export function getWebviewContent(context: vscode.ExtensionContext, panel: vscod
                 <script>
                     const vscode = acquireVsCodeApi();
 
-                    function showInitializeProject() {
+                    function showInitialView() {
+                        const exampleProjectsView = document.getElementById('exampleProjectsView');
                         const initialView = document.getElementById('initialView');
-                        const nameInputView = document.getElementById('nameInputView');
+                        const modelNameInputView = document.getElementById('modelNameInputView');
+                        const projectNameInputView = document.getElementById('projectNameInputView');
+                    
+                        exampleProjectsView.style.display = 'none';
+                        modelNameInputView.style.display = 'none';
+                        projectNameInputView.style.display = 'none';
+                        initialView.style.display = 'flex';
+                    }
 
+                    function showInitializeProject() {
+                        const exampleProjectsView = document.getElementById('exampleProjectsView');
+                        const initialView = document.getElementById('initialView');
+                        const modelNameInputView = document.getElementById('modelNameInputView');
+                        const projectNameInputView = document.getElementById('projectNameInputView');
+
+                        exampleProjectsView.style.display = 'none';
                         initialView.style.display = 'none';
-                        nameInputView.style.display = 'flex';
+                        modelNameInputView.style.display = 'none';
+                        projectNameInputView.style.display = 'flex';
+                    }
+
+                    function showInitializeModels() {
+                        const exampleProjectsView = document.getElementById('exampleProjectsView');
+                        const initialView = document.getElementById('initialView');
+                        const modelNameInputView = document.getElementById('modelNameInputView');
+                        const projectNameInputView = document.getElementById('projectNameInputView');
+
+                        exampleProjectsView.style.display = 'none';
+                        initialView.style.display = 'none';
+                        projectNameInputView.style.display = 'none';
+                        modelNameInputView.style.display = 'flex';
                     }
 
                     function showCreateExampleProject() {
-                        const initialView = document.getElementById('initialView');
                         const exampleProjectsView = document.getElementById('exampleProjectsView');
+                        const initialView = document.getElementById('initialView');
+                        const modelNameInputView = document.getElementById('modelNameInputView');
+                        const projectNameInputView = document.getElementById('projectNameInputView');
 
                         initialView.style.display = 'none';
+                        modelNameInputView.style.display = 'none';
+                        projectNameInputView.style.display = 'none';
                         exampleProjectsView.style.display = 'flex';
                     }
 
@@ -125,18 +214,14 @@ export function getWebviewContent(context: vscode.ExtensionContext, panel: vscod
                         vscode.postMessage({ command: 'initializeProject', projectName: projectName });
                     }
 
-                    function createExampleProject(repoUrl, branch) {
-                        vscode.postMessage({ command: 'createExampleProject', repoUrl: repoUrl, branch: branch });
+                    function initializeModels() {
+                        const modelName = document.getElementById('modelName').value;
+                        const modelType = document.getElementById('modelType').value;
+                        vscode.postMessage({ command: 'initializeModelFile', modelName: modelName, modelType: modelType });
                     }
 
-                    function showInitialView() {
-                        const initialView = document.getElementById('initialView');
-                        const nameInputView = document.getElementById('nameInputView');
-                        const exampleProjectsView = document.getElementById('exampleProjectsView');
-                    
-                        initialView.style.display = 'flex';
-                        nameInputView.style.display = 'none';
-                        exampleProjectsView.style.display = 'none';
+                    function createExampleProject(repoUrl, branch) {
+                        vscode.postMessage({ command: 'createExampleProject', repoUrl: repoUrl, branch: branch });
                     }
                 </script>
             </body>

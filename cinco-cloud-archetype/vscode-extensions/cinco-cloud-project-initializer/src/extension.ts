@@ -3,7 +3,7 @@ import { getWebviewContent } from './webview';
 import * as simplegit from 'simple-git';
 import * as rimraf from 'rimraf';
 import path = require('path');
-import { generateMGL, generateMSL,PROJECT_NAME_REGEXP } from './initialize-project';
+import { generateMGL, generateMSL, PROJECT_NAME_REGEXP } from './initialize-project';
 
 export function activate(context: vscode.ExtensionContext) {
 	isWorkspaceEmpty().then(isEmpty => {
@@ -38,36 +38,50 @@ function openProjectInitializationWebview(context: vscode.ExtensionContext) {
 					pullRepoIntoWorkspace(message.repoUrl, message.branch, panel);
 					break;
 				case 'initializeProject':
-					const projectName = message.projectName;
-
-					const workspaceFolder = vscode.workspace.workspaceFolders;
-					if(!workspaceFolder || workspaceFolder.length < 1) {
-						vscode.window.showErrorMessage('Workspace could not be found!');
-						return;
+					{
+						const projectName = message.projectName;
+						const mglContent = generateMGL(projectName, `${projectName}.msl`);
+						const mslContent = generateMSL();
+						createFile(projectName, 'mgl', mglContent);
+						createFile(projectName, 'msl', mslContent);
+						vscode.window.showInformationMessage('Project successfully initialized!');
+						panel.dispose();
 					}
-					const regexp = new RegExp(PROJECT_NAME_REGEXP);
-					if(!projectName.match(regexp)){
-						vscode.window.showErrorMessage(`Illegal name project name "${projectName}"`);
-						return;
+					break;
+				case 'initializeModelFile':
+					{
+						const fileName = message.modelName;
+						const fileType = message.modelType;
+						createFile(fileName, fileType, '');
+						vscode.window.showInformationMessage('Modelfile successfully initialized!');
+						panel.dispose();
 					}
-
-					const workspaceRoot = workspaceFolder[0].uri.fsPath;
-					const mglFilePath = path.join(workspaceRoot, `${projectName.toLowerCase()}.mgl`);
-					const mglFileUri = vscode.Uri.file(mglFilePath);
-					const mslFileName = `${projectName.toLowerCase()}.style`
-					const mslFilePath = path.join(workspaceRoot, mslFileName);
-					const mslFileUri = vscode.Uri.file(mslFilePath);
-					const utf8Encoder = new TextEncoder();
-					vscode.workspace.fs.writeFile(mglFileUri, utf8Encoder.encode(generateMGL(projectName, mslFileName)));
-					vscode.workspace.fs.writeFile(mslFileUri, utf8Encoder.encode(generateMSL()));
-					vscode.window.showInformationMessage('Project successfully initialized!');
-					panel.dispose();
 					break;
 			}
 		},
 		undefined,
 		context.subscriptions
 	);
+}
+
+function createFile(fileName: string, fileType: string, fileContent: string) {
+	const workspaceFolder = vscode.workspace.workspaceFolders;
+	if(!workspaceFolder || workspaceFolder.length < 1) {
+		vscode.window.showErrorMessage('Workspace could not be found!');
+		return;
+	}
+	const regexp = new RegExp(PROJECT_NAME_REGEXP);
+	if(!fileName.match(regexp)){
+		vscode.window.showErrorMessage(`Illegal file name: "${fileName}"`);
+		return;
+	}
+
+	const workspaceRoot = workspaceFolder[0].uri.fsPath;
+	const filePath = path.join(workspaceRoot, `${fileName}.${fileType}`);
+	const fileUri = vscode.Uri.file(filePath);
+
+	const utf8Encoder = new TextEncoder();
+	vscode.workspace.fs.writeFile(fileUri, utf8Encoder.encode(fileContent));
 }
 
 async function isWorkspaceEmpty() {
