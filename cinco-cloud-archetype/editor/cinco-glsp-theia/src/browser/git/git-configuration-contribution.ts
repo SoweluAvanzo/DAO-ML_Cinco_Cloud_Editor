@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,20 +13,27 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-
-import { CommandRegistry, MaybePromise } from '@theia/core';
-import { FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
+import { FrontendApplication, FrontendApplicationContribution, WidgetManager } from '@theia/core/lib/browser';
 import { inject, injectable } from '@theia/core/shared/inversify';
+import { ScmHistoryContribution } from '@theia/scm-extra/lib/browser/history/scm-history-contribution';
+import { ScmContribution } from '@theia/scm/lib/browser/scm-contribution';
+import { FileNavigatorContribution } from '@theia/navigator/lib/browser/navigator-contribution';
+import { MaybePromise } from '@theia/core';
 
 @injectable()
 export class GitConfigurationContribution implements FrontendApplicationContribution {
-    @inject(CommandRegistry)
-    protected commands: CommandRegistry;
+    @inject(WidgetManager) protected readonly widgetManager: WidgetManager;
+    @inject(ScmHistoryContribution)
+    protected scmHistory: ScmHistoryContribution;
+    @inject(ScmContribution)
+    protected scmContribution: ScmContribution;
+    @inject(FileNavigatorContribution)
+    protected fileNavigatorContribution: FileNavigatorContribution;
 
     onStart?(app: FrontendApplication): MaybePromise<void> {
-        this.commands.executeCommand('scmView:toggle').then(_a => {
-            this.commands.executeCommand('scm-history:open-branch-history').then(_b => {
-                this.commands.executeCommand('fileNavigator:toggle');
+        this.scmContribution.openView({ toggle: false, activate: false }).then(_ => {
+            this.scmHistory.openView({ toggle: false, activate: false }).then(_ => {
+                this.fileNavigatorContribution.openView({ toggle: false, activate: false });
             });
         });
     }
