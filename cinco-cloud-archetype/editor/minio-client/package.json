@@ -38,7 +38,8 @@
     "@types/node": "18.16.1"
   },
   "scripts": {
-    "exec": "node bundle/cinco-minio-client.js",
+    "exec": "node bundle/cinco-minio-client.js --metaFolder ./example",
+    "cleanExample": "rimraf ./example/*",
     "prepare": "yarn clean && yarn build",
     "clean": "rimraf lib tsconfig.tsbuildinfo",
     "build": "tsc && yarn bundle",
