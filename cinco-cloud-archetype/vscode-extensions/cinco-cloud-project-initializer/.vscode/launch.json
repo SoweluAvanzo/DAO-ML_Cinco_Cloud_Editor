@@ -5,7 +5,7 @@
 		{
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Launch Extension",
+			"name": "Launch Extension (Language Editor)",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}"],
 			"outFiles": ["${workspaceRoot}/out/**/*.js"],
@@ -15,6 +15,21 @@
 			},
 			"env": {
 				"EDITOR_TYPE": "LANGUAGE_EDITOR"
+			}
+		},
+		{
+			"type": "extensionHost",
+			"request": "launch",
+			"name": "Launch Extension (Model Editor)",
+			"runtimeExecutable": "${execPath}",
+			"args": ["--extensionDevelopmentPath=${workspaceRoot}"],
+			"outFiles": ["${workspaceRoot}/out/**/*.js"],
+			"preLaunchTask": {
+				"type": "npm",
+				"script": "watch"
+			},
+			"env": {
+				"EDITOR_TYPE": "MODEL_EDITOR"
 			}
 		}
 	]
