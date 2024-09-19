@@ -1,0 +1,6 @@
+id info.scce.cinco.product.empty
+stylePath "./Empty.style"
+
+graphModel Empty {
+	diagramExtension "empty"
+}
