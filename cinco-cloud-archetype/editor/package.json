@@ -19,7 +19,8 @@
     }
   ],
   "scripts": {
-    "prepare": "lerna run prepare",
+    "prepare": "lerna run prepare && yarn run installVscodeExtension",
+    "installVscodeExtension": "cd cinco-project-initializer && yarn && cd ../",
     "watch": "lerna run --parallel watch",
     "build": "yarn install:only && lerna run build",
     "lint": "lerna run lint --",
@@ -37,7 +38,6 @@
   "workspaces": [
     "cinco-languages",
     "cinco-branding",
-    "cinco-project-initializer",
     "cinco-glsp-common",
     "cinco-glsp-api",
     "cinco-glsp-server",
