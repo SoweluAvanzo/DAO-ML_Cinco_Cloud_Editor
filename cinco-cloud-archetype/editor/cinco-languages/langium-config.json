@@ -3,12 +3,18 @@
     "languages": [{
         "id": "mgl",
         "grammar": "src/mgl/language/mgl.langium",
-        "fileExtensions": [".mgl"]
+        "fileExtensions": [".mgl"],
+        "textMate": {
+            "out": "syntaxes/mgl.tmLanguage.json"
+        }
     },
     {
         "id": "msl",
         "grammar": "src/msl/language/msl.langium",
-        "fileExtensions": [".style", ".msl"]
+        "fileExtensions": [".style", ".msl"],
+        "textMate": {
+            "out": "syntaxes/msl.tmLanguage.json"
+        }
     }],
     "out": "src/generated"
 }
