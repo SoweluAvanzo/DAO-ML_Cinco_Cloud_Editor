@@ -2,7 +2,8 @@
   "name": "msl",
   "scopeName": "source.msl",
   "fileTypes": [
-    ".style"
+    ".style",
+    ".msl"
   ],
   "patterns": [
     {
