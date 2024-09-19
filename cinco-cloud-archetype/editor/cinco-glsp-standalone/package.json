@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@cinco-glsp/cinco-glsp-client": "1.0.0",
-    "@eclipse-glsp/client": "2.1.0-next.306",
+    "@eclipse-glsp/client": "2.1.0",
     "crypto-browserify": "3.12.0",
     "os-browserify": "0.3.0",
     "stream-browserify": "^3.0.0",
@@ -41,6 +41,7 @@
     "vscode-languageserver-protocol": "^3.17.0"
   },
   "devDependencies": {
+    "@types/node": "~18.16",
     "circular-dependency-plugin": "^5.2.2",
     "css-loader": "^6.7.1",
     "inversify": "^6.0.1",

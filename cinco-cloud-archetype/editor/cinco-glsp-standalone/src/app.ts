@@ -15,10 +15,17 @@
  ********************************************************************************/
 import 'reflect-metadata';
 
-import { DiagramLoader, GLSPActionDispatcher, GLSPClient, GLSPWebSocketProvider, MessageAction, StatusAction } from '@eclipse-glsp/client';
+import {
+    DiagramLoader,
+    GLSPActionDispatcher,
+    GLSPClient,
+    GLSPWebSocketProvider,
+    MaybePromise,
+    MessageAction,
+    StatusAction
+} from '@eclipse-glsp/client';
 import { Container } from 'inversify';
 import { join, resolve } from 'path';
-import { MessageConnection } from 'vscode-jsonrpc';
 import createContainer from './di.config';
 import { DIAGRAM_TYPE, DEFAULT_WEBSOCKET_PATH, DEFAULT_SERVER_PORT, CincoGLSPClient } from '@cinco-glsp/cinco-glsp-common';
 import { getParameters } from './url-parameters';
@@ -42,7 +49,7 @@ const webSocketUrl = `${protocol}://${host}${port ? ':' + port : ''}/${endpoint_
 const wsProvider = new GLSPWebSocketProvider(webSocketUrl);
 wsProvider.listen({ onConnection: initialize, onReconnect: reconnect, logger: console });
 
-async function initialize(connectionProvider: MessageConnection, isReconnecting = false): Promise<void> {
+function initialize(connectionProvider: any, isReconnecting = false): MaybePromise<void> {
     glspClient = new CincoGLSPClient({ id: endpoint_id, connectionProvider });
     container = createContainer({ clientId, diagramType, glspClientProvider: async () => glspClient, sourceUri: filePath });
 
@@ -58,17 +65,21 @@ async function initialize(connectionProvider: MessageConnection, isReconnecting 
 
     const actionDispatcher = container.get(GLSPActionDispatcher);
     const diagramLoader = container.get(DiagramLoader);
-    await diagramLoader.load({ requestModelOptions: { isReconnecting } });
-    if (isReconnecting) {
-        const message = `Connection to the ${endpoint_id} glsp server got closed. Connection was successfully re-established.`;
-        const timeout = 5000;
-        const severity = 'WARNING';
-        actionDispatcher.dispatchAll([StatusAction.create(message, { severity, timeout }), MessageAction.create(message, { severity })]);
-        return;
-    }
+    return diagramLoader.load({ requestModelOptions: { isReconnecting } }).then(_ => {
+        if (isReconnecting) {
+            const message = `Connection to the ${endpoint_id} glsp server got closed. Connection was successfully re-established.`;
+            const timeout = 5000;
+            const severity = 'WARNING';
+            actionDispatcher.dispatchAll([
+                StatusAction.create(message, { severity, timeout }),
+                MessageAction.create(message, { severity })
+            ]);
+            return;
+        }
+    });
 }
 
-async function reconnect(connectionProvider: MessageConnection): Promise<void> {
+async function reconnect(connectionProvider: any): Promise<void> {
     glspClient.stop();
-    initialize(connectionProvider, true /* isReconnecting */);
+    return initialize(connectionProvider, true /* isReconnecting */);
 }
