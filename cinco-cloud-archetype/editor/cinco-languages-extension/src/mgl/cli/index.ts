@@ -1,6 +1,20 @@
+/********************************************************************************
+ * Copyright (c) 2024 Cinco Cloud.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * This Source Code may also be made available under the following Secondary
+ * Licenses when the conditions for such availability set forth in the Eclipse
+ * Public License v. 2.0 are satisfied: GNU General Public License, version 2
+ * with the GNU Classpath Exception which is available at
+ * https://www.gnu.org/software/classpath/license.html.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+ ********************************************************************************/
 import { Command } from 'commander';
-import { LanguageMetaData } from '@cinco-glsp/cinco-languages';
-import { mglLoader } from '@cinco-glsp/cinco-languages';
+import { LanguageMetaData , mglLoader } from '@cinco-glsp/cinco-languages';
 import { getLanguageFolder, saveToFolder, uploadToMinio } from './persistence_handler';
 import * as vscode from 'vscode';
 
@@ -19,7 +33,7 @@ export const languageHandlingAction = async (filePath: string, opts: GenerateOpt
               : mode === LanguageJobMode.UPLOAD_AND_GENERATE
                 ? 'Generate and Upload'
                 : undefined;
-    console.log(`Starting generation for currently opened MGL...`);
+    console.log('Starting generation for currently opened MGL...');
 
     const languageJobs: LanguageJob[] = [];
     if (mode === LanguageJobMode.GENERATE || mode === LanguageJobMode.UPLOAD_AND_GENERATE) {
@@ -56,10 +70,10 @@ export const languageHandlingAction = async (filePath: string, opts: GenerateOpt
     generationProgress('Generating', languageJobs, prefix + ' successful!', prefix + ' ended with errors!', prefix + ' canceled!');
 };
 
-export type LanguageJob = {
+export interface LanguageJob {
     message: string;
     callable: (errorDisplay: (message: string) => void) => Promise<void> | void;
-};
+}
 export async function generationProgress(
     title: string,
     jobs: LanguageJob[],
@@ -92,7 +106,7 @@ export async function generationProgress(
 
             let leftJobs = jobs.length;
             for (const job of jobs) {
-                let message = job.message;
+                const message = job.message;
                 progress.report({ increment: 100 / leftJobs - 1, message: message });
                 try {
                     await job.callable(errorDisplay);
@@ -136,9 +150,9 @@ function getFileName(filePath: string): string {
     return fileName;
 }
 
-export type GenerateOptions = {
+export interface GenerateOptions {
     destination?: string;
-};
+}
 
 export default function (): void {
     const program = new Command();
