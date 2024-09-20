@@ -199,37 +199,10 @@ deploy-testing-manual:
       changes:
         - cinco-cloud-archetype/**/*
 
-.archetype-theia-extension-build-job:
-  image: node:16-bookworm-slim
-  cache:
-    paths:
-      - ./cinco-cloud-archetype/vscode-extensions/$EXTENSION_DIR/node_modules
-  script:
-    - cd ./cinco-cloud-archetype/vscode-extensions/$EXTENSION_DIR
-    - npm install -g vsce --unsafe-perm
-    - yarn
-
-archetype-test-build-cinco-cloud-project-initializer-extension:
-  extends:
-    - .archetype-default-job-main-or-mr
-    - .archetype-theia-extension-build-job
-  variables:
-    EXTENSION_DIR: cinco-cloud-project-initializer
-
-archetype-test-build-cinco-languages-extension:
-  extends:
-    - .archetype-default-job-main-or-mr
-    - .archetype-theia-extension-build-job
-  variables:
-    EXTENSION_DIR: cinco-languages-extension
-
 archetype-build:
   extends:
     - .archetype-default-job-main
     - .docker-build-job
-  needs:
-    - archetype-test-build-cinco-cloud-project-initializer-extension
-    - archetype-test-build-cinco-languages-extension
   variables:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
