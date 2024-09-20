@@ -1,7 +1,6 @@
 .vscode/**
 .vscode-test/**
 .gitignore
-langium-quickstart.md
 cinco-cloud.proto
 examples
 ../

@@ -120,6 +120,9 @@ export class MGLGenerator {
     }
 
     async generateMetaSpecification(model: MglModel, mglPathString: string, services: MglServices): Promise<string> {
+        if(!model.stylePath) {
+            throw new Error("No stylePath defined!");
+        }
         const mglPath = path.parse(mglPathString);
         const mslPathString = path.join(mglPath.dir, model.stylePath);
         const importPaths = model.imports.map(imprt => path.join(mglPath.dir, imprt.importURI));
@@ -290,7 +293,7 @@ export class MGLGenerator {
                 modelElementSpec.view = { style: undefined };
             }
             if (graphicalElement.usedStyle) {
-                modelElementSpec.view.style = constructElementTypeId(graphicalElement.usedStyle, modelElement.$container.stylePath);
+                modelElementSpec.view.style = constructElementTypeId(graphicalElement.usedStyle, modelElement.$container.stylePath!);
                 modelElementSpec.view.styleParameter = graphicalElement.styleParameters;
             }
             // Deprecated: modelElementSpec.palettes = []; // This is now handled lazy by annotations

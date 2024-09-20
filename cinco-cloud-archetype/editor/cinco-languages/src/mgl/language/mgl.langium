@@ -1,16 +1,20 @@
 grammar Mgl
 
 entry MglModel:
-    (imports+=Import)*
-    (annotations+=Annotation)*
-    ('id' package=QNAME)?
-    'stylePath' stylePath=STRING
-	('includeResources' '(' includeResources+=STRING (',' includeResources+=STRING)* ')')?
+    (
+        ('id' package=QNAME)
+        & ('stylePath' stylePath=STRING)
+        & (imports+=Import (imports+=Import)*)
+        & (annotations+=Annotation (annotations+=Annotation)*)
+    )
     modelElements+=(ModelElement)*
 ;
 
 Annotation:
 	'@' name=ID ('(' (value+=STRING | value+=ID) (',' (value+=STRING | value+=ID))* ')')?;
+
+Import:
+    (stealth?='stealth')? 'import' (external?='external')? importURI=STRING 'as' name=ID;
 
 Attribute:
 	PrimitiveAttribute
@@ -84,9 +88,6 @@ GraphModel:
         (attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride)*
 	'}')
 ;
-
-Import:
-    (stealth?='stealth')? 'import' (external?='external')? importURI=STRING 'as' name=ID;
 
 ModelElement:
 	ComplexModelElement
