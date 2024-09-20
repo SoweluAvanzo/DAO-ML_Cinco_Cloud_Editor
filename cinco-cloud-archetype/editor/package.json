@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "prepare": "lerna run prepare && yarn run installVscodeExtensions",
-    "installVscodeExtensions": "cd cinco-languages-extension && yarn run build && cd ../cinco-project-initializer && yarn && cd ../",
+    "installVscodeExtensions": "cd cinco-languages-extension && yarn && yarn run build && cd ../cinco-project-initializer && yarn && cd ../",
     "watch": "lerna run --parallel watch",
     "build": "yarn install:only && lerna run build",
     "lint": "lerna run lint --",
