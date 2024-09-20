@@ -199,10 +199,26 @@ deploy-testing-manual:
       changes:
         - cinco-cloud-archetype/**/*
 
+.archetype-test-build-job:
+  image: node:18-bookworm-slim
+  cache:
+    paths:
+      - ./cinco-cloud-archetype/editor/
+  script:
+    - cd ./cinco-cloud-archetype/editor
+    - yarn
+
+archetype-test-build:
+  extends:
+    - .archetype-default-job-main-or-mr
+    - .archetype-test-build-job
+
 archetype-build:
   extends:
     - .archetype-default-job-main
     - .docker-build-job
+  needs:
+    - archetype-test-build
   variables:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
