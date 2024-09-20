@@ -105,7 +105,6 @@
     "main": "./out/extension.js",
     "private": true,
     "scripts": {
-        "prepare": "yarn build",
         "build": "yarn run grpc:generate && yarn run copyGrammar && yarn run compile && yarn run bundle && yarn run vsce",
         "copyGrammar": "cp -r ../cinco-languages/syntaxes/* ./syntaxes",
         "compile": "tsc -b tsconfig.json",
