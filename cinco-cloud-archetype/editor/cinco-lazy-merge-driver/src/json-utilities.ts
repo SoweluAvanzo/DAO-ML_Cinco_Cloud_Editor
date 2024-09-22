@@ -18,9 +18,10 @@ export function jsonEqual(a: any, b: any): boolean {
     const jsonTypeA = jsonType(a);
     const jsonTypeB = jsonType(b);
     if (jsonTypeA !== jsonTypeB) {
-        throw new TypeError(`Equality between ${jsonTypeA} and ${jsonTypeB} is undefined.`);
+        return false;
     }
     switch (jsonTypeA) {
+        case 'undefined':
         case 'null':
         case 'boolean':
         case 'number':
@@ -33,8 +34,10 @@ export function jsonEqual(a: any, b: any): boolean {
     }
 }
 
-function jsonType(value: any): 'null' | 'boolean' | 'number' | 'string' | 'array' | 'record' {
+function jsonType(value: any): 'undefined' | 'null' | 'boolean' | 'number' | 'string' | 'array' | 'record' {
     switch (typeof value) {
+        case 'undefined':
+            return 'undefined';
         case 'boolean':
             return 'boolean';
         case 'number':

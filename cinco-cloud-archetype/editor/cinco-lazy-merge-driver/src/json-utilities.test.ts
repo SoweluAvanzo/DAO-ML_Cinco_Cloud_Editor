@@ -18,11 +18,14 @@ import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap } from './jso
 
 describe('jsonValuesEqual', () => {
     test('different types', () => {
-        expect(() => jsonEqual(2, 'two')).toThrow(new TypeError('Equality between number and string is undefined.'));
+        expect(jsonEqual(2, 'two')).toBe(false);
     });
     test('different types but equal typeof', () => {
         // eslint-disable-next-line no-null/no-null
-        expect(() => jsonEqual(null, [])).toThrow(new TypeError('Equality between null and array is undefined.'));
+        expect(jsonEqual(null, [])).toBe(false);
+    });
+    test('undefined', () => {
+        expect(jsonEqual(undefined, undefined)).toBe(true);
     });
     test('null', () => {
         // eslint-disable-next-line no-null/no-null

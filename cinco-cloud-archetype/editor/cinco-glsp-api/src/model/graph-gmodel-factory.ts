@@ -18,7 +18,7 @@ import { GEdge, GGraph, GModelElement, GModelFactory, GNode, GNodeBuilder } from
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
 import { GraphModelState } from './graph-model-state';
-import { cellHasChoice } from './cell';
+import { isChoice } from './cell';
 
 @injectable()
 export class GraphGModelFactory implements GModelFactory {
@@ -88,7 +88,7 @@ export class GraphGModelFactory implements GModelFactory {
     }
 
     protected createEdge<T extends Edge>(edge: T): GModelElement[] {
-        if (cellHasChoice(edge.sourceID)) {
+        if (isChoice(edge.sourceID)) {
             const sourceSegments = edge.sourceID.options.map(sourceID =>
                 this.buildEdgeSegment(
                     edge,

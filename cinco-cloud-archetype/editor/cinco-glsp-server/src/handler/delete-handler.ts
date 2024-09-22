@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { cellHasChoice, Container, Edge, IdentifiableElement, Node } from '@cinco-glsp/cinco-glsp-api';
+import { isChoice, Container, Edge, IdentifiableElement, Node } from '@cinco-glsp/cinco-glsp-api';
 import { DeleteElementOperation, SaveModelAction, remove } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
@@ -55,7 +55,7 @@ export class DeleteHandler extends CincoJsonOperationHandler {
                     remove(this.modelState.graphModel._edges, edge);
                     return;
                 }
-                if (cellHasChoice(edge.sourceID) && edge.sourceID.options.includes(element.id)) {
+                if (isChoice(edge.sourceID) && edge.sourceID.options.includes(element.id)) {
                     edge.sourceID = {
                         tag: 'choice',
                         options: edge.sourceID.options.filter(sourceID => sourceID !== element.id)

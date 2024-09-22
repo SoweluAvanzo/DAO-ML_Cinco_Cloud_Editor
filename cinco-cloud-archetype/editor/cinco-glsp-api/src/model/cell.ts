@@ -16,6 +16,22 @@
 
 export type Sortable = string | number | boolean;
 
+export type Optional<T> = undefined | T | Ghost<T>;
+
+export type Ghost<T> = Readonly<{
+    tag: 'ghost';
+    value: T;
+}>;
+
+export function isGhost<T>(optional: Optional<T>): optional is Ghost<T> {
+    // eslint-disable-next-line no-null/no-null
+    return typeof optional === 'object' && optional !== null && 'tag' in optional && optional.tag === 'ghost';
+}
+
+export function optionalValue<T>(optional: Optional<T>): T | undefined {
+    return isGhost(optional) ? optional.value : optional;
+}
+
 export type Cell<T extends Sortable> = T | Choice<T>;
 
 export type Choice<T extends Sortable> = Readonly<{
@@ -25,15 +41,15 @@ export type Choice<T extends Sortable> = Readonly<{
 
 type CellMatcher<T extends Sortable, R> = Readonly<{
     single: (x: T) => R;
-    choice: (xs: ReadonlyArray<T>) => R;
+    choice: (options: ReadonlyArray<T>) => R;
 }>;
 
-export function cellHasChoice<T extends Sortable>(cell: Cell<T>): cell is Choice<T> {
+export function isChoice<T extends Sortable>(cell: Cell<T>): cell is Choice<T> {
     return typeof cell === 'object' && cell.tag === 'choice';
 }
 
 export function matchCell<T extends Sortable, R>(cell: Cell<T>, { single, choice }: CellMatcher<T, R>): R {
-    if (cellHasChoice(cell)) {
+    if (isChoice(cell)) {
         return choice(cell.options);
     } else {
         return single(cell);
