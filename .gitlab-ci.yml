@@ -37,7 +37,7 @@
     VERSION: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
   script:
     - mkdir "$IMAGE-$VERSION"
-    - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" -t "$CI_REGISTRY_IMAGE/$IMAGE:$TAG" -f "$DOCKERFILE" "$CONTEXT"
+    - docker build -f "$DOCKERFILE" "$CONTEXT"
 
 cache:
   key:
@@ -238,8 +238,6 @@ archetype-test-build-image:
   extends:
     - .archetype-default-job-mr
     - .docker-build-only-job
-  needs:
-    - archetype-test-build-local
   variables:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
