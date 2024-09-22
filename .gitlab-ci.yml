@@ -36,7 +36,6 @@
   variables:
     VERSION: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
   script:
-    - mkdir "$IMAGE-$VERSION"
     - docker build -f "$DOCKERFILE" "$CONTEXT"
 
 cache:
