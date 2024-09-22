@@ -191,10 +191,20 @@ describe('optionalMerger', () => {
         }
     ];
     for (const [i, { ancestor, versionA, versionB, result }] of scenarios.entries()) {
-        test(`Chunk merging scenario ${i + 1}`, () => {
+        test(`optional merging scenario ${i + 1}`, () => {
             expect(optionalMerger(cellMerger())({ ancestor, versionA, versionB })).toStrictEqual(result);
         });
     }
+    test('ghost of equal value anomaly', () => {
+        expect(
+            optionalMerger(cellMerger())({
+                ancestor: { tag: 'ghost', value: 'foo' },
+                versionA: 'foo',
+                versionB: 'baz'
+            })
+        ).toStrictEqual(mergeOk('baz'));
+        // Is this actually what we want? A's decision for 'foo' is lost.
+    });
 });
 
 describe('recordMerger', () => {
