@@ -30,6 +30,15 @@
     - docker push "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION"
     - docker push "$CI_REGISTRY_IMAGE/$IMAGE:$TAG"
 
+# build without pushing to registry
+.docker-build-only-job:
+  extends: .docker-job
+  variables:
+    VERSION: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+  script:
+    - mkdir "$IMAGE-$VERSION"
+    - docker build -t "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION" -t "$CI_REGISTRY_IMAGE/$IMAGE:$TAG" -f "$DOCKERFILE" "$CONTEXT"
+
 cache:
   key:
     files:
@@ -44,6 +53,12 @@ cache:
 .cinco-cloud-default-job-main:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - cinco-cloud/**/*
+
+.cinco-cloud-default-job-mr:
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:
         - cinco-cloud/**/*
 
@@ -199,7 +214,7 @@ deploy-testing-manual:
       changes:
         - cinco-cloud-archetype/**/*
 
-.archetype-test-build-job:
+.archetype-test-build-local-job:
   image: node:18-bookworm-slim
   cache:
     paths:
@@ -214,17 +229,28 @@ deploy-testing-manual:
     - cd ./cinco-cloud-archetype/editor
     - yarn
 
-archetype-test-build:
+archetype-test-build-local:
   extends:
     - .archetype-default-job-main-or-mr
-    - .archetype-test-build-job
+    - .archetype-test-build-local-job
 
-archetype-build:
+archetype-test-build-image:
+  extends:
+    - .archetype-default-job-mr
+    - .docker-build-only-job
+  needs:
+    - archetype-test-build-local
+  variables:
+    CONTEXT: .
+    DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
+
+# creates new latest archetype
+archetype-build-push-latest:
   extends:
     - .archetype-default-job-main
     - .docker-build-job
   needs:
-    - archetype-test-build
+    - archetype-test-build-local
   variables:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
@@ -232,7 +258,7 @@ archetype-build:
     TAG: latest
 
 # feature-branch pipeline
-archetype-build-dev:
+archetype-build-push-dev:
   extends:
     - .archetype-default-job-feature
     - .docker-build-job
