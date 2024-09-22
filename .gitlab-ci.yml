@@ -56,12 +56,6 @@ cache:
       changes:
         - cinco-cloud/**/*
 
-.cinco-cloud-default-job-mr:
-  rules:
-    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
-      changes:
-        - cinco-cloud/**/*
-
 .cinco-cloud-default-job-main-or-mr:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
@@ -207,6 +201,12 @@ deploy-testing-manual:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
       changes:
         - cinco-cloud-archetype/**/*
+
+.archetype-default-job-mr:
+  rules:
+      - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+            changes:
+                    - cinco-cloud-archetype/**/*
 
 .archetype-default-job-feature:
   rules:
