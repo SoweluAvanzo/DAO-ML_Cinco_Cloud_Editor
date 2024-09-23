@@ -165,16 +165,16 @@ export function isAnnotation(item: unknown): item is Annotation {
 export interface Appearance extends AstNode {
     readonly $container: Styles;
     readonly $type: 'Appearance';
-    background?: Color
-    filled?: Boolean
-    font?: Font
-    foreground?: Color
-    imagePath?: string
-    lineStyle?: LineStyle
-    lineWidth?: number
+    background: Color
+    filled: Boolean
+    font: Font
+    foreground: Color
+    imagePath: string
+    lineStyle: LineStyle
+    lineWidth: number
     name: string
     parent?: Reference<Appearance>
-    transparency?: number
+    transparency: number
 }
 
 export const Appearance = 'Appearance';
@@ -320,8 +320,8 @@ export function isEdgeElementConnection(item: unknown): item is EdgeElementConne
 export interface EdgeStyle extends AstNode {
     readonly $container: Styles;
     readonly $type: 'EdgeStyle';
-    appearanceProvider?: string
-    connectionType?: ConnectionType
+    appearanceProvider: string
+    connectionType: ConnectionType
     decorator: Array<ConnectionDecorator>
     inlineAppearance?: InlineAppearance
     name: string
@@ -342,9 +342,9 @@ export interface Ellipse extends AstNode {
     children: Array<AbstractShape>
     inlineAppearance?: InlineAppearance
     name?: string
-    position?: AbstractPosition
+    position: AbstractPosition
     referencedAppearance?: Reference<Appearance>
-    size?: Size
+    size: Size
 }
 
 export const Ellipse = 'Ellipse';
@@ -386,7 +386,7 @@ export interface Font extends AstNode {
     fontName: string
     isBold: boolean
     isItalic: boolean
-    size: number
+    size?: number
 }
 
 export const Font = 'Font';
@@ -450,7 +450,7 @@ export interface Image extends AstNode {
     anchorShape: boolean
     name?: string
     path: string
-    position?: AbstractPosition
+    position: AbstractPosition
     size: Size
 }
 
@@ -478,15 +478,15 @@ export function isImport(item: unknown): item is Import {
 export interface InlineAppearance extends AstNode {
     readonly $container: EdgeStyle | Ellipse | MultiText | Polygon | Polyline | PredefinedDecorator | Rectangle | RoundedRectangle | Text;
     readonly $type: 'InlineAppearance';
-    background?: Color
-    filled?: Boolean
-    font?: Font
-    foreground?: Color
-    imagePath?: string
-    lineStyle?: LineStyle
-    lineWidth?: number
+    background: Color
+    filled: Boolean
+    font: Font
+    foreground: Color
+    imagePath: string
+    lineStyle: LineStyle
+    lineWidth: number
     parent?: Reference<Appearance>
-    transparency?: number
+    transparency: number
 }
 
 export const InlineAppearance = 'InlineAppearance';
@@ -511,9 +511,8 @@ export interface MglModel extends AstNode {
     readonly $type: 'MglModel';
     annotations: Array<Annotation>
     imports: Array<Import>
-    includeResources: Array<string>
     modelElements: Array<ModelElement>
-    package?: string
+    package: string
     stylePath: string
 }
 
@@ -529,7 +528,7 @@ export interface MultiText extends AstNode {
     anchorShape: boolean
     inlineAppearance?: InlineAppearance
     name?: string
-    position?: AbstractPosition
+    position: AbstractPosition
     referencedAppearance?: Reference<Appearance>
     value: string
 }
@@ -595,7 +594,7 @@ export function isNodeContainer(item: unknown): item is NodeContainer {
 export interface NodeStyle extends AstNode {
     readonly $container: Styles;
     readonly $type: 'NodeStyle';
-    appearanceProvider?: string
+    appearanceProvider: string
     fixed: boolean
     mainShape: AbstractShape
     name: string
@@ -629,9 +628,9 @@ export interface Polygon extends AstNode {
     inlineAppearance?: InlineAppearance
     name?: string
     points: Array<Point>
-    position?: AbstractPosition
+    position: AbstractPosition
     referencedAppearance?: Reference<Appearance>
-    size?: Size
+    size: Size
 }
 
 export const Polygon = 'Polygon';
@@ -648,7 +647,7 @@ export interface Polyline extends AstNode {
     name?: string
     points: Array<Point>
     referencedAppearance?: Reference<Appearance>
-    size?: Size
+    size: Size
 }
 
 export const Polyline = 'Polyline';
@@ -697,9 +696,9 @@ export interface Rectangle extends AstNode {
     children: Array<AbstractShape>
     inlineAppearance?: InlineAppearance
     name?: string
-    position?: AbstractPosition
+    position: AbstractPosition
     referencedAppearance?: Reference<Appearance>
-    size?: Size
+    size: Size
 }
 
 export const Rectangle = 'Rectangle';
@@ -778,7 +777,7 @@ export interface RoundedRectangle extends AstNode {
     cornerWidth: number
     inlineAppearance?: InlineAppearance
     name?: string
-    position?: AbstractPosition
+    position: AbstractPosition
     referencedAppearance?: Reference<Appearance>
     size: Size
 }
@@ -822,9 +821,9 @@ export interface Text extends AstNode {
     anchorShape: boolean
     inlineAppearance?: InlineAppearance
     name?: string
-    position?: AbstractPosition
+    position: AbstractPosition
     referencedAppearance?: Reference<Appearance>
-    value?: string
+    value: string
 }
 
 export const Text = 'Text';
@@ -869,10 +868,10 @@ export interface WebView extends AstNode {
     anchorShape: boolean
     content: string
     name?: string
-    padding?: number
-    position?: AbstractPosition
-    scrollable?: Boolean
-    size?: Size
+    padding: number
+    position: AbstractPosition
+    scrollable: Boolean
+    size: Size
 }
 
 export const WebView = 'WebView';
@@ -1209,7 +1208,6 @@ export class CincoAstReflection extends AbstractAstReflection {
                     mandatory: [
                         { name: 'annotations', type: 'array' },
                         { name: 'imports', type: 'array' },
-                        { name: 'includeResources', type: 'array' },
                         { name: 'modelElements', type: 'array' }
                     ]
                 };
