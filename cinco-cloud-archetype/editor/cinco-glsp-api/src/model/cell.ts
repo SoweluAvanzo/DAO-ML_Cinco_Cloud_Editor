@@ -14,6 +14,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { JsonAny } from "@eclipse-glsp/server";
+
 export type Sortable = string | number | boolean;
 
 export type Optional<T> = undefined | T | Ghost<T>;
@@ -61,4 +63,33 @@ export function cellValues<T extends Sortable>(cell: Cell<T>): ReadonlyArray<T> 
         single: value => [value],
         choice: options => options
     });
+}
+
+export function isConflictFree(value: JsonAny | undefined): boolean {
+    switch (typeof value) {
+        case 'function':
+        case 'symbol':
+            throw new TypeError(`Expected JSON data, got ${typeof value}.`);
+    }
+
+    if (isChoice<any>(value) || isGhost<any>(value)) {
+        return false;
+    }
+
+    if (Array.isArray(value)) {
+        return value.every(isConflictFree);
+    }
+
+    // eslint-disable-next-line no-null/no-null
+    if (typeof value === 'object' && value !== null) {
+        for (const key in value) {
+            if (!isConflictFree(value[key])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Primitive types
+    return true;
 }

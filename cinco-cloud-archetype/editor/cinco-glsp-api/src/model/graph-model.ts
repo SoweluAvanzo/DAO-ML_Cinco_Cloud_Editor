@@ -57,7 +57,7 @@ import {
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { GraphModelIndex } from './graph-model-index';
-import { Cell, cellValues } from './cell';
+import { Cell, cellValues, isConflictFree } from './cell';
 import { GraphModelStorage } from './graph-storage';
 import { getModelFiles, getWorkspaceRootUri } from '../utils/file-helper';
 import * as path from 'path';
@@ -116,7 +116,6 @@ export namespace ModelElementContainer {
 }
 
 export class ModelElement implements IdentifiableElement {
-    // isConflictFree
     protected _index?: GraphModelIndex;
     id: string = crypto.randomUUID();
     type: string;
@@ -420,6 +419,16 @@ export class ModelElement implements IdentifiableElement {
             console.log(e);
         }
         return false;
+    }
+
+    toJSON(): any {
+        const serialization = { ...this };
+        delete serialization._index;
+        return serialization;
+    }
+
+    isConflictFree(): boolean {
+        return isConflictFree(this.toJSON());
     }
 }
 
@@ -805,8 +814,8 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
             .map(e => (ModelElement.is(e) && !(e instanceof ModelElement) ? Object.assign(new ModelElement(), e) : e));
     }
 
-    toJSON(): any {
-        const serialization = { ...this };
+    override toJSON(): any {
+        const serialization = { ...super.toJSON() };
         delete serialization._sourceUri;
         return serialization;
     }
