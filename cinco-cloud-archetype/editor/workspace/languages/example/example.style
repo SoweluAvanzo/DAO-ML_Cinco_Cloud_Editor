@@ -1,0 +1,132 @@
+appearance default {
+	background (255,255,255)
+	foreground (0,255,0)
+    lineStyle SOLID
+    lineWidth 2
+}
+
+appearance type1 {
+    background (132, 94, 23)
+    foreground (0, 0, 2)
+    lineWidth 2
+}
+
+appearance type2 {
+    background (23, 132, 94)
+    foreground (0, 0, 2)
+    lineWidth 2
+}
+
+appearance type3 {
+    background (23, 94, 132)
+    foreground (0, 0, 2)
+    lineWidth 2
+}
+
+nodeStyle typeStyle1(1) {
+	rectangle {
+		appearance type1
+        size(100,50)
+        text {
+            appearance {
+                background (255, 255, 255)
+                foreground (255, 255, 255)
+                font ("ARIAL", 12)
+            }
+            position (CENTER, TOP 12)
+            value "%s"
+        }
+	}
+}
+
+nodeStyle typeStyle2(1) {
+	rectangle {
+		appearance type2
+        size(100,50)
+        text {
+            appearance {
+                background (255, 255, 255)
+                foreground (255, 255, 255)
+                font ("ARIAL", 12)
+            }
+            position (CENTER, TOP 12)
+            value "%s"
+        }
+	}
+}
+
+nodeStyle typeStyle3(1) {
+	rectangle {
+		appearance type3
+        size(100,50)
+        text {
+            appearance {
+                background (255, 255, 255)
+                foreground (255, 255, 255)
+                font ("ARIAL", 12)
+            }
+            position (CENTER, TOP 12)
+            value "%s"
+        }
+	}
+}
+
+edgeStyle eStyle1(1) {
+    decorator {
+        location (1.0) // at the end of the edge
+        TRIANGLE
+        appearance {
+            background (0,98,127)
+            foreground (0,98,127)
+            lineStyle SOLID
+            lineWidth 7
+            filled true
+        }
+    }
+    decorator {
+        location (0.5) // at the end of the edge  
+        ellipse {
+            appearance type1
+            size(100,50)
+            text {
+                appearance {
+                    background (255, 255, 255)
+                    foreground (255, 255, 255)
+                    font ("ARIAL", 12)
+                }
+                position (CENTER, MIDDLE)
+                value "%s"
+            }
+        }   
+    }
+}
+
+edgeStyle eStyle2(1) {
+    decorator {
+        location (1.0) // at the end of the edge
+        TRIANGLE
+        appearance {
+            background (0,98,127)
+            foreground (0,98,127)
+            lineStyle SOLID
+            lineWidth 7
+            filled true
+        }
+    }
+    decorator {
+        location (0.5) // at the end of the edge  
+        ellipse {
+            appearance type2
+            size(100,50)
+            text {
+                appearance {
+                    background (255, 255, 255)
+                    foreground (255, 255, 255)
+                    font ("ARIAL", 12)
+                }
+                position (CENTER, MIDDLE)
+                value "%s"
+            }
+        }   
+    }
+}

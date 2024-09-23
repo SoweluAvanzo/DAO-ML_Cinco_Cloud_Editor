@@ -39,8 +39,7 @@ import {
     ContainerConfiguration,
     bindOrRebind,
     SetContextActions,
-    configureModelElement,
-    GNode
+    configureModelElement
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -67,6 +66,7 @@ import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibi
 import { EnvironmentProvider } from './api/environment-provider';
 import { CincoToolPaletteUpdateHandler } from './glsp/cinco-tool-palette-update-handler';
 import { MarkerEdgeSourceTargetConflictView } from './views/marker-edge-source-target-conflict-view';
+import { CincoMarker } from './model/model';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -115,8 +115,8 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     // change edge handling
     unbind(EdgeEditTool);
-    bind(TYPES.IDefaultTool).to(RoutingPointAwareEdgeEditTool);
-    bind(EdgeEditTool).to(RoutingPointAwareEdgeEditTool);
+    bind(TYPES.IDefaultTool).to(RoutingPointAwareEdgeEditTool).inSingletonScope();
+    bind(EdgeEditTool).to(RoutingPointAwareEdgeEditTool).inSingletonScope();
     bind(RoutingPointAwareEdgeEditTool).toSelf().inSingletonScope();
 
     // bind FrontendValidatingTypeHintProvider
@@ -156,7 +156,7 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureActionHandler(context, ServerArgsResponse.KIND, ServerArgsProvider);
 
     configureDefaultModelElements(context);
-    configureModelElement(context, 'marker:edge-source-target-conflict', GNode, MarkerEdgeSourceTargetConflictView);
+    configureModelElement(context, 'marker:edge-source-target-conflict', CincoMarker, MarkerEdgeSourceTargetConflictView);
 
     bind(TYPES.IDiagramStartup).toService(EnvironmentProvider);
 });

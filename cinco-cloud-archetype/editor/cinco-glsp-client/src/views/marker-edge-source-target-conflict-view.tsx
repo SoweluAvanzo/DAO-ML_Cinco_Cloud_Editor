@@ -27,8 +27,8 @@ export class MarkerEdgeSourceTargetConflictView extends ShapeView {
         }
         return (
             <g>
-                <rect x={0} y={0} width={40} height={40} fill='white' stroke='black' stroke-width={2} />
-                <image href={'images/potential-marker.svg'} width={40} height={40} />
+                <rect x={0} y={0} width={node.size.width} height={node.size.height} fill='white' stroke='black' stroke-width={2} />
+                <image href={'images/potential-marker.svg'} width={node.size.width} height={node.size.height} />
             </g>
         ) as unknown as VNode;
     }

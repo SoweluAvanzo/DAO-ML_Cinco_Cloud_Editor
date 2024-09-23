@@ -1,0 +1,13 @@
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+node_modules/
+lib/
+src/language/generated/
+static/bundle/
+static/monaco-editor-workers/
+static/worker/
+syntaxes/
+bundle/*.js
+bundle/cinco-languages.js

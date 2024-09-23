@@ -13,8 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Edge, GraphModelIndex } from '@cinco-glsp/cinco-glsp-api';
-import { getEdgeSpecOf, getEdgeTypes, EdgeType } from '@cinco-glsp/cinco-glsp-common';
+import { Edge, GraphModelIndex, HookManager } from '@cinco-glsp/cinco-glsp-api';
+import { getEdgeSpecOf, getEdgeTypes, EdgeType, CreateEdgeArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
 import { CreateEdgeOperation } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { AbstractSpecifiedEdgeElementHandler } from './specified_element_handler';
@@ -29,12 +29,52 @@ export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
     }
 
     override executeOperation(operation: CreateEdgeOperation): void {
-        // if constraint is met, create element
-        if (this.checkConstraints(operation)) {
+        // CAN
+        const parameters: CreateEdgeArgument = {
+            kind: 'Create',
+            elementKind: 'Edge',
+            elementTypeId: operation.elementTypeId,
+            modelElementId: '<NONE>',
+            sourceElementId: operation.sourceElementId,
+            targetElementId: operation.targetElementId
+        };
+        const canCreate = (): boolean =>
+            HookManager.executeHook(
+                parameters,
+                HookType.CAN_CREATE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
+        if (this.checkConstraints(operation) && canCreate()) {
+            // PRE
+            HookManager.executeHook(
+                parameters,
+                HookType.PRE_CREATE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
             const edge = this.createEdge(operation.sourceElementId, operation.targetElementId, operation.elementTypeId);
             edge.index = this.modelState.index;
             const graphmodel = this.modelState.index.getRoot();
             graphmodel.edges.push(edge);
+            this.modelState.refresh();
+            // POST
+            parameters.modelElementId = edge.id;
+            HookManager.executeHook(
+                parameters,
+                HookType.POST_CREATE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
             this.saveAndUpdate();
         }
     }

@@ -154,7 +154,7 @@ ReferencedMGLAttribute:
 
 ReferencedModelElement:
 	(annotations+=Annotation)*
-	'prime' ((import=[Import] '::') referencedModelElement=ID | 'this' '::' modelElement=[ModelElement:ID]) 'as' name=ID
+	'prime' ((import=[Import] '::') referencedModelElement=ID | 'this' '::' ( modelElement=[ModelElement:ID] ) | (modelElementBaseType=ModelElementBaseTypes) ) 'as' name=ID
 	(copiedAttributes+=ReferencedMGLAttribute)*
 ;
 
@@ -172,6 +172,10 @@ Wildcard:
 	('[' lowerBound=INT ',' upperBound=('*'|INT) ']')?
 ;
 
+PrimitiveDefaultValue returns string:
+	INT | DOUBLE | STRING | BOOL
+;
+
 DataType returns string:
     'string'
     | 'boolean'
@@ -179,11 +183,11 @@ DataType returns string:
     | 'Date'
 ;
 
-PrimitiveDefaultValue returns string:
-	INT | DOUBLE | STRING | BOOL
+ModelElementBaseTypes returns string:
+    'GraphModel' | 'Node' | 'Edge' | 'Container' | 'ModelElement' | 'ModelElementContainer' // | 'UserDefinedType'
 ;
 
-terminal BOOL: /true|false|TRUE|FALSE|True|False/;
+terminal BOOL: /\b(true|false|TRUE|FALSE|True|False)\b/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
 terminal DOUBLE returns number: INT '.' INT;
 terminal INT returns number: /[0-9]+/;

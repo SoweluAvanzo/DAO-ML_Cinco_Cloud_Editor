@@ -50,11 +50,17 @@ import {
     Size,
     Style,
     Text,
-    View
+    View,
+    WebView,
+    isInstanceOf,
+    UserDefinedType
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { GraphModelIndex } from './graph-model-index';
 import { Cell, cellValues } from './cell';
+import { GraphModelStorage } from './graph-storage';
+import { getModelFiles, getWorkspaceRootUri } from '../utils/file-helper';
+import * as path from 'path';
 
 export interface IdentifiableElement {
     id: string;
@@ -70,13 +76,47 @@ export interface ModelElementContainer {
     _containments: Node[];
 }
 
+export interface PrimeReference {
+    instanceId: string;
+    instanceType: string;
+    modelId: string;
+    modelType: string;
+    filePath: string;
+}
+
+export namespace PrimeReference {
+    export function is(object: any): object is PrimeReference {
+        return (
+            AnyObject.is(object) &&
+            hasStringProp(object, 'instanceId') &&
+            hasStringProp(object, 'instanceType') &&
+            hasStringProp(object, 'modelId') &&
+            hasStringProp(object, 'modelType') &&
+            hasStringProp(object, 'filePath')
+        );
+    }
+}
+
 export namespace ModelElementContainer {
     export function is(object: any): object is ModelElementContainer {
         return AnyObject.is(object) && hasArrayProp(object, '_containments');
     }
+
+    // TODO: UserdefinedType currently not included
+    export function getAllContainments(host: ModelElementContainer): IdentifiableElement[] {
+        let allElements: IdentifiableElement[] = [];
+        allElements = allElements.concat(host._containments);
+        for (const e of allElements) {
+            if (ModelElementContainer.is(e)) {
+                allElements = allElements.concat(ModelElementContainer.getAllContainments(e));
+            }
+        }
+        return allElements;
+    }
 }
 
 export class ModelElement implements IdentifiableElement {
+    // isConflictFree
     protected _index?: GraphModelIndex;
     id: string = crypto.randomUUID();
     type: string;
@@ -357,6 +397,30 @@ export class ModelElement implements IdentifiableElement {
             }
         }
     }
+
+    instanceOf(superType: string | ModelElement | ElementType): boolean {
+        try {
+            if (typeof superType == 'string') {
+                return (
+                    (superType === 'graphmodel' && GraphModel.is(this)) ||
+                    (superType === 'container' && ModelElementContainer.is(this) && Node.is(this)) ||
+                    (superType === 'node' && Node.is(this)) ||
+                    (superType === 'edge' && Edge.is(this)) ||
+                    (superType === 'userdefinedtype' && UserDefinedType.is(this)) ||
+                    (superType === 'modelelementcontainer' && ModelElementContainer.is(this)) ||
+                    (superType === 'modelelement' && ModelElement.is(this)) ||
+                    isInstanceOf(this.getSpec().elementTypeId, superType)
+                );
+            } else if (ElementType.is(superType)) {
+                return isInstanceOf(this.getSpec().elementTypeId, superType.elementTypeId);
+            } else if (ModelElement.is(superType)) {
+                return isInstanceOf(this.getSpec().elementTypeId, superType.type);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+        return false;
+    }
 }
 
 export namespace ModelElement {
@@ -366,6 +430,8 @@ export namespace ModelElement {
 }
 
 export class Node extends ModelElement {
+    _primeReference?: PrimeReference;
+
     get parent(): ModelElementContainer | undefined {
         return this.index!.findContainment(this);
     }
@@ -440,6 +506,61 @@ export class Node extends ModelElement {
         return c.canContain(this.type);
     }
 
+    override initializeProperties(primeReference?: PrimeReference): void {
+        super.initializeProperties();
+        this._primeReference = primeReference;
+    }
+
+    get isPrime(): boolean {
+        return this._primeReference !== undefined;
+    }
+
+    get primeReferenceInfo(): PrimeReference | undefined {
+        return this._primeReference;
+    }
+
+    get primeReference(): ModelElement | undefined {
+        if (!this.isPrime) {
+            return undefined;
+        }
+        const filePath = this.primeReferenceInfo!.filePath;
+        const workspace = path.join(getWorkspaceRootUri(), filePath);
+        let model = GraphModelStorage.readModelFromFile(workspace);
+        const primeReference = this.primeReferenceInfo!;
+        if (!model || model.id !== primeReference.modelId) {
+            // if model is not readable as it is gone or corrupted,
+            // or the id is not correct => find correct model
+            console.log('Model was not found. Path or Id does not match. Searching in workspace...');
+            const modelFiles = getModelFiles();
+            for (const modelPath of modelFiles) {
+                const absPath = path.join(getWorkspaceRootUri(), modelPath);
+                const potentialModel = GraphModelStorage.readModelFromFile(absPath);
+                if (potentialModel && potentialModel.id === primeReference.modelId) {
+                    // model found => update modelPath
+                    this.primeReferenceInfo!.filePath = modelPath;
+                    model = potentialModel;
+                    console.log('Model was found. Updated path!');
+                    break;
+                }
+            }
+        }
+        if (model) {
+            if (model.id === primeReference.instanceId) {
+                // model is referenced instance
+                return model;
+            } else {
+                // find element in model
+                const potentialRefs = model
+                    .getAllContainments()
+                    .filter(i => ModelElement.is(i))
+                    .filter(e => e.id === primeReference.instanceId) as ModelElement[];
+                return potentialRefs.length > 0 ? potentialRefs[0] : undefined;
+            }
+        }
+        console.log('Model of referenced element not found. Make sure it is in the workspace.');
+        return undefined;
+    }
+
     override get size(): Size {
         if (this._size) {
             return this._size;
@@ -456,6 +577,8 @@ export class Node extends ModelElement {
         } else if (Polyline.is(shape)) {
             return shape.size ?? { width: 10, height: 10 };
         } else if (Image.is(shape)) {
+            return shape.size ?? { width: 10, height: 10 };
+        } else if (WebView.is(shape)) {
             return shape.size ?? { width: 10, height: 10 };
         }
         return { width: 10, height: 10 };
@@ -528,6 +651,10 @@ export class Container extends Node implements ModelElementContainer {
         const constraints: Constraint[] = spec.containments;
         const elements = this.containments;
         return this.checkViolations(type, elements, constraints).length <= 0;
+    }
+
+    getAllContainments(): IdentifiableElement[] {
+        return ModelElementContainer.getAllContainments(this);
     }
 }
 
@@ -671,10 +798,16 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
     override getSpec(): GraphType {
         return super.getSpec() as GraphType;
     }
+
+    getAllContainments(): IdentifiableElement[] {
+        return ModelElementContainer.getAllContainments(this)
+            .concat(this.edges)
+            .map(e => (ModelElement.is(e) && !(e instanceof ModelElement) ? Object.assign(new ModelElement(), e) : e));
+    }
 }
 
 export namespace GraphModel {
     export function is(object: any): object is GraphModel {
-        return AnyObject.is(object) || ModelElement.is(object);
+        return ModelElement.is(object) && ModelElementContainer.is(object) && hasArrayProp(object, '_edges');
     }
 }

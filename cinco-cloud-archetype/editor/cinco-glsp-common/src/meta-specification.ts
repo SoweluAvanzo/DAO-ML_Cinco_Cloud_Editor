@@ -14,10 +14,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { HookType } from './protocol/hooks/hook-type';
 import { hasArrayProp, hasBooleanProp, hasNumberProp, hasObjectProp, hasStringProp } from './protocol/type-utils';
 
 /**
- * Datamodell
+ * Data model
  */
 
 export namespace MetaSpecification {
@@ -540,6 +541,7 @@ export namespace Type {
 export interface ElementType extends Type {
     icon?: string;
     view?: View;
+    superTypes: string[];
     annotations?: Annotation[];
     attributes?: Attribute[];
 }
@@ -550,8 +552,7 @@ export namespace ElementType {
     }
 }
 
-export interface GraphType extends ElementType {
-    containments: Constraint[];
+export interface GraphType extends ModelElementContainer, ElementType {
     view?: GraphModelView;
     diagramExtension: string;
 }
@@ -559,7 +560,7 @@ export interface GraphType extends ElementType {
 export namespace GraphType {
     export function is(object: any): object is GraphType {
         const isSpecified = (MetaSpecification.get().graphTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
-        return ElementType.is(object) && (isSpecified || hasArrayProp(object, 'containments'));
+        return ElementType.is(object) && (isSpecified || ModelElementContainer.is(object));
     }
 }
 
@@ -580,14 +581,14 @@ export interface ReferencedModelElement {
     name: string;
     type: string;
 }
-export interface ModelElementContainer extends NodeType {}
+
+export interface ModelElementContainer {
+    containments?: Constraint[];
+}
 
 export namespace ModelElementContainer {
     export function is(object: any): object is ModelElementContainer {
-        return (
-            GraphType.is(object) ||
-            (NodeType.is(object) && hasArrayProp(object, 'containments') && (object.containments?.length ?? 0.0) > 0)
-        );
+        return hasArrayProp(object, 'containments') && (!NodeType.is(object) || (object.containments?.length ?? 0.0) > 0);
     }
 }
 
@@ -654,9 +655,30 @@ export namespace UserDefinedType {
     }
 }
 
+export interface PrimeNodePaletteCategory {
+    primeElementTypeId: string;
+    label: string;
+    elementTypeIds: string[];
+}
+
+export namespace PrimeNodePaletteCategory {
+    export function is(object: any): object is PrimeNodePaletteCategory {
+        return hasStringProp(object, 'elementTypeId') && hasStringProp(object, 'label') && hasArrayProp(object, 'elementTypeIds');
+    }
+}
+
 /**
  * Functions
  */
+
+/**
+ * Polymorphie
+ */
+
+export function isInstanceOf(type: string, superType: string): boolean {
+    const spec = getSpecOf(type);
+    return type === superType || (spec !== undefined && (spec!.superTypes ?? []).includes(superType));
+}
 
 /**
  * Properties and Types
@@ -801,6 +823,17 @@ function resolveAppearance(app: string | Appearance | undefined): Appearance | u
  * Annotation
  */
 
+const handlerAnnotations = [
+    'Hook',
+    'CustomAction',
+    'AppearanceProvider',
+    'Validation',
+    'GeneratorAction',
+    'Interpreter',
+    'DoubleClickAction',
+    'SelectAction'
+];
+
 export function hasAppearanceProvider(type: string): boolean {
     return getAppearanceProvider(type).length > 0;
 }
@@ -849,6 +882,14 @@ export function getDoubleClickActions(elementTypeId: string): string[][] {
     return getAnnotationValues(elementTypeId, 'DoubleClickAction');
 }
 
+export function hasSelectAction(type: string): boolean {
+    return hasAnnotation(type, 'SelectAction');
+}
+
+export function getSelectActions(elementTypeId: string): string[][] {
+    return getAnnotationValues(elementTypeId, 'SelectAction');
+}
+
 export function hasValidator(graphElementTypeId: string): boolean {
     return hasAnnotation(graphElementTypeId, 'Validation');
 }
@@ -869,12 +910,12 @@ export function hasAnnotation(type: string, annotation: string): boolean {
 
 export function getAnnotations(type: string, annotation: string): Annotation[] {
     const elementSpec = getSpecOf(type) as ElementType;
-    return (elementSpec.annotations ?? []).filter(a => a.name === annotation);
+    return (elementSpec?.annotations ?? []).filter(a => a.name === annotation);
 }
 
 export function getAllAnnotations(type: string): Annotation[] {
     const elementSpec = getSpecOf(type) as ElementType;
-    return elementSpec.annotations ?? [];
+    return elementSpec?.annotations ?? [];
 }
 
 export function getAllHandlerNames(): string[] {
@@ -889,18 +930,59 @@ export function getAllHandlerNames(): string[] {
 
         // get mgl annotations
         const annotations = getAllAnnotations(element.elementTypeId);
-        for (const ann of annotations) {
-            const values = ann.values;
-            // handlerClassNames have to be the first value of annotations
-            if (values.length > 0) {
-                const handlerName = values[0];
-                if (!handlerNames.includes(handlerName)) {
-                    handlerNames.push(handlerName);
-                }
+        for (const ann of annotations.filter(a => handlerAnnotations.includes(a.name))) {
+            switch (ann.name) {
+                default:
+                    {
+                        const values = ann.values;
+                        // handlerClassNames have to be the first value of annotations
+                        if (values.length > 0) {
+                            const handlerName = values[0];
+                            if (!handlerNames.includes(handlerName)) {
+                                handlerNames.push(handlerName);
+                            }
+                        }
+                    }
+                    break;
             }
         }
     }
     return handlerNames;
+}
+
+export function hasHooks(elementTypeId: string): boolean {
+    return hasAnnotation(elementTypeId, 'Hook');
+}
+
+export function hasHooksOfTypes(elementTypeId: string, hookTypes: HookType[]): boolean {
+    return getHooksOfTypes(elementTypeId, hookTypes).length > 0;
+}
+
+export function getHooksOfTypes(elementTypeId: string, hookTypes: HookType[]): string[][] {
+    return getAllHooks(elementTypeId).filter(values => {
+        for (const h of hookTypes) {
+            if (values.includes(h.valueOf())) {
+                return true;
+            }
+        }
+        return false;
+    });
+}
+
+export function getHookTypes(elementTypeId: string, hookClassName: string): string[] {
+    const hook = getAllHooks(elementTypeId).filter(values => values.length > 0 && values.at(0) === hookClassName);
+    if (hook.length > 0) {
+        return Array.from(new Set(hook.flat().filter(values => values !== hookClassName)));
+    }
+    return [];
+}
+
+export function getHooksOfType(elementTypeId: string, hookType: HookType): string[][] {
+    return getAllHooks(elementTypeId).filter(values => values.includes(hookType.valueOf()));
+}
+
+export function getAllHooks(elementTypeId: string): string[][] {
+    return getAnnotationValues(elementTypeId, 'Hook');
 }
 
 export function isResizeable(type: string): boolean {
@@ -989,10 +1071,8 @@ export function getPaletteIconPath(paletteCategory: string | undefined): string 
     return undefined;
 }
 
-function getPaletteFromAnnotation(elementTypeId: string): string[] {
-    return getAnnotations(elementTypeId, 'palette')
-        .map(a => a.values)
-        .flat();
+function getPalettesFromAnnotation(elementTypeId: string): string[][] {
+    return getAnnotations(elementTypeId, 'palette').map(a => a.values);
 }
 
 export function hasPalette(elementTypeId: string, palette: string): boolean {
@@ -1011,10 +1091,15 @@ export function getPalettes(elementTypeId: string | undefined): string[] {
         return [];
     }
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
+    let result: string[] = [];
     if (NodeType.is(elementSpec) || EdgeType.is(elementSpec)) {
-        return (elementSpec.palettes ?? []).concat(getPaletteFromAnnotation(elementTypeId));
+        const paletteNamesOfAnnotations = getPalettesFromAnnotation(elementTypeId).map(a => a[0]);
+        result = (elementSpec.palettes ?? []).concat(paletteNamesOfAnnotations);
+        if (result.length <= 0 && isPrime(elementTypeId)) {
+            result.push((elementSpec as NodeType).primeReference!.name);
+        }
     }
-    return [];
+    return result;
 }
 
 export function getNodePalettes(): string[] {
@@ -1026,13 +1111,35 @@ export function getNodePalettes(): string[] {
     return palettes;
 }
 
-export function getPrimeNodePalettes(): string[] {
-    const palettes: string[] = [];
-    getNodeTypes((e: NodeType) => e.primeReference !== undefined)
-        .map((e, i, a) => e.label)
-        .flat()
-        .forEach((paletteElement: string) => (palettes.indexOf(paletteElement) < 0 ? palettes.push(paletteElement) : undefined));
-    return palettes;
+export function getPrimeNodePaletteCategories(): PrimeNodePaletteCategory[] {
+    return getNodeTypes((e: NodeType) => isPrimeReference(e.elementTypeId))
+        .map(e => getPrimeNodePaletteCategoryOf(e.elementTypeId))
+        .filter(e => e !== undefined) as PrimeNodePaletteCategory[];
+}
+
+export function getPrimeNodePaletteCategoriesOf(elementTypeId: string): PrimeNodePaletteCategory[] {
+    const graphType = getGraphSpecOf(elementTypeId);
+    if (!graphType) {
+        return [];
+    }
+    return getContainmentsOf(graphType)
+        .filter(e => NodeType.is(e))
+        .filter((e: NodeType) => isPrimeReference(e.elementTypeId))
+        .map(e => getPrimeNodePaletteCategoryOf(e.elementTypeId))
+        .filter(e => e !== undefined) as PrimeNodePaletteCategory[];
+}
+
+export function getPrimeNodePaletteCategoryOf(elementTypeId: string): PrimeNodePaletteCategory | undefined {
+    if (!isPrimeReference(elementTypeId)) {
+        return undefined;
+    }
+    const spec = getNodeSpecOf(elementTypeId)!; // isPrimeReference already made sure, that this is a node
+    const primeReference = spec.primeReference!;
+    return {
+        primeElementTypeId: spec.elementTypeId,
+        label: primeReference.name,
+        elementTypeIds: [primeReference.type]
+    };
 }
 
 export function getEdgePalettes(): string[] {
@@ -1047,7 +1154,9 @@ export function getEdgePalettes(): string[] {
 }
 
 export function getAllPaletteCategories(primePalettes = true): string[] {
-    return getNodePalettes().concat(getEdgePalettes().concat(primePalettes ? getPrimeNodePalettes() : []));
+    return getNodePalettes().concat(
+        getEdgePalettes().concat(primePalettes ? Array.from(new Set(getPrimeNodePaletteCategories().map(e => e.label))) : [])
+    );
 }
 
 export function getAllPaletteAnnotations(): Annotation[] {
@@ -1080,7 +1189,7 @@ export function getContainerNodes(): NodeType[] {
 }
 
 export function getContainmentsOf(e: ModelElementContainer): NodeType[] {
-    if (e.containments !== undefined) {
+    if (e?.containments !== undefined) {
         const containmentTypesIds = e.containments.map((c: Constraint) => c.elements ?? []).flat();
         return containmentTypesIds.map(id => getNodeSpecOf(id)).filter((n: NodeType | undefined) => n !== undefined) as NodeType[];
     }
@@ -1169,6 +1278,10 @@ export function getDiagramExtension(elementTypeId: string): string | undefined {
 
 export function getGraphModelOfFileType(diagramExtension: string): GraphType | undefined {
     return getGraphSpecByFilterOf(e => e.diagramExtension === diagramExtension);
+}
+
+export function getDiagramExtensions(): string[] {
+    return Array.from(new Set(getGraphTypes().map(g => g.diagramExtension)));
 }
 
 export function getModelElementSpecifications(): ElementType[] {
@@ -1294,7 +1407,11 @@ function getCompositionSpecification(): CompositionSpecification {
  * Prime
  */
 
-export function hasPrimeReference(elementTypeId: string): boolean {
+export function isPrime(elementTypeId: string): boolean {
+    return isPrimeReference(elementTypeId);
+}
+
+export function isPrimeReference(elementTypeId: string): boolean {
     const elementSpec = getSpecOf(elementTypeId) as ElementType;
     if (NodeType.is(elementSpec)) {
         if (elementSpec.primeReference !== undefined && elementSpec.primeReference.name && elementSpec.primeReference.type) {

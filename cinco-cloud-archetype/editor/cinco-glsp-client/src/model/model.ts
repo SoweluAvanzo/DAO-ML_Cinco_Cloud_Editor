@@ -37,6 +37,8 @@ import {
     editFeature,
     ELLIPTIC_ANCHOR_KIND,
     fadeFeature,
+    GChildElement,
+    GConnectableElement,
     GEdge,
     GGraph,
     GGraphIndex,
@@ -118,7 +120,7 @@ export class CincoNode extends GNode implements CincoModelElement {
 
     get view(): View | undefined {
         // 1. Runtime View
-        if (this._view) {
+        if (this._view && (this._view.style || this._view?.cssClass)) {
             return this._view;
         }
         // 2. Persisted View
@@ -148,8 +150,8 @@ export class CincoNode extends GNode implements CincoModelElement {
     }
 
     set style(style: Style | undefined) {
-        if (this._view) {
-            this._view = { ...this._view } as View;
+        if (this.view) {
+            this._view = { ...this.view } as View;
             this._view.style = { ...style } as Style;
         }
     }
@@ -298,12 +300,12 @@ export class CincoEdge extends GEdge implements CincoModelElement {
 
     get view(): View | undefined {
         // 1. Runtime View
-        if (this._view) {
+        if (this._view && (this._view.style || this._view?.cssClass)) {
             return this._view;
         }
         // 2. Persisted View
         const args = this['args'] as any;
-        if (args !== undefined && args.persistedView) {
+        if (args !== undefined && args.persistedView && (args.persistedView.style || args.persistedView.cssClass)) {
             const persistedView = JSON.parse(args.persistedView) as View;
             this._view = persistedView;
             return this._view;
@@ -452,11 +454,65 @@ export class CincoEdge extends GEdge implements CincoModelElement {
         );
         console.log('--------------------------------------');
     }
+
+    override get source(): GConnectableElement | undefined {
+        const element = this.index.getById(this.sourceId);
+        if (!element) {
+            return undefined;
+        }
+        const result = fixNode(element);
+        return result as GConnectableElement | undefined;
+    }
+
+    override get target(): GConnectableElement | undefined {
+        const element = this.index.getById(this.targetId);
+        if (!element) {
+            return undefined;
+        }
+        const result = fixNode(element);
+        return result as GConnectableElement | undefined;
+    }
 }
+
+export class CincoMarker extends GNode {}
 
 export class CincoGraphModel extends GGraph implements CincoModelElement {
     override isContainableElement(input: string | GModelElement | GModelElementSchema): boolean {
         const targetType = input instanceof GModelElement ? input.type : isGModelElementSchema(input) ? input.type : input;
         return canContain(this, targetType);
     }
+
+    override add(child: GChildElement, index?: number): void {
+        super.add(child, index);
+    }
+
+    override move(child: GChildElement, newIndex: number): void {
+        const children = this.children as GChildElement[];
+        const childInModel = children.filter(c => c.id === child.id);
+        const isContained = childInModel.length > 0;
+        if (!isContained) {
+            throw new Error(`No such child ${child.id}`);
+        } else {
+            if (newIndex < 0 || newIndex > children.length - 1) {
+                throw new Error(`Child index ${newIndex} out of bounds (0..${children.length})`);
+            }
+            const i = children.indexOf(childInModel[0]);
+            children.splice(i, 1);
+            children.splice(newIndex, 0, child);
+        }
+    }
+}
+
+function fixNode(element: GModelElement): GModelElement {
+    // fix procedure, if element is not identified as a CincoNode
+    const result = element as any;
+    if (!result.bounds) {
+        result.bounds = {
+            x: result.position.x,
+            y: result.position.y,
+            width: result.layoutOptions ? (result.layoutOptions.prefWidth as number) : 1.0,
+            height: result.layoutOptions ? (result.layoutOptions.prefHeight as number) : 1.0
+        };
+    }
+    return result as GModelElement;
 }

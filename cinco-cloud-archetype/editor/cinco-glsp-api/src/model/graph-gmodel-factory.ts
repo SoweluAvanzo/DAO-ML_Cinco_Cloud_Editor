@@ -135,8 +135,10 @@ export class GraphGModelFactory implements GModelFactory {
             .type('marker:edge-source-target-conflict')
             .id(this.markerEdgeSourceTargetConflictID(edge.id))
             .position(this.calculateConflictMarkerPosition(edge.sources(), [edge.target]))
+            .size(40, 40)
             .build();
     }
+
     protected calculateConflictMarkerPosition(sources: Node[], targets: Node[]): Point {
         const sourcePositions: Point[] = this.nodeCenterPoints(sources);
         const targetPositions: Point[] = this.nodeCenterPoints(targets);

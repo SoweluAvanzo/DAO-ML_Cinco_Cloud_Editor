@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { HookManager, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import {
     Attribute,
     ObjectPointer,
@@ -24,7 +24,9 @@ import {
     canDelete,
     findAttribute,
     getUserDefinedType,
-    isList
+    isList,
+    AttributeChangeArgument,
+    HookType
 } from '@cinco-glsp/cinco-glsp-common';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
@@ -42,10 +44,38 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
         }
         const { attributes, object } = this.locateObject(element, pointer);
         const attributeDefinition: Attribute = findAttribute(attributes, name);
-        if (!this.checkConstraint(object, attributeDefinition, change)) {
-            throw new Error('Property can not be changed. It violates a constraint!');
-        }
-        if (element !== undefined) {
+
+        // CAN
+        const inConstraint = this.checkConstraint(object, attributeDefinition, change);
+        const parameters: AttributeChangeArgument = {
+            kind: 'AttributeChange',
+            modelElementId: modelElementId,
+            oldValue: element.getProperty(name),
+            operation: operation
+        };
+        const canSetValue = (): boolean =>
+            HookManager.executeHook(
+                parameters,
+                HookType.CAN_ATTRIBUTE_CHANGE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
+        if (inConstraint && canSetValue() && element !== undefined) {
+            // PRE
+            HookManager.executeHook(
+                parameters,
+                HookType.PRE_ATTRIBUTE_CHANGE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
+
+            // Change
             switch (change.kind) {
                 case 'addValue': {
                     const { defaultValue } = change;
@@ -110,6 +140,17 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
                     break;
                 }
             }
+
+            // POST
+            HookManager.executeHook(
+                parameters,
+                HookType.POST_ATTRIBUTE_CHANGE,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
         }
     }
 
@@ -150,7 +191,7 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
         return false;
     }
 
-    protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[], object: any } {
+    protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[]; object: any } {
         let attributes: Attribute[] = element.propertyDefinitions;
         let object: Record<string, any> = element.properties;
 
@@ -164,10 +205,7 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
 
             attributes = userDefinedType.attributes;
 
-            object =
-                segment.index !== undefined ?
-                    object[segment.attribute][segment.index] :
-                    object[segment.attribute];
+            object = segment.index !== undefined ? object[segment.attribute][segment.index] : object[segment.attribute];
         }
 
         return { attributes, object };

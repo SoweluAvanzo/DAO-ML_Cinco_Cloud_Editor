@@ -2,10 +2,10 @@ stylePath "disable.style"
 
 graphModel Disable {
 	diagramExtension "disable"
-	containableElements(Node, NotResizeableNode, NotCreateableNode, NotSelectableNode, NotDeletableNode, NotMovableNode)
+	containableElements(Node1, NotResizeableNode, NotCreateableNode, NotSelectableNode, NotDeletableNode, NotMovableNode)
 }
 
-node Node {
+node Node1 {
     style blueTextRectangle("Node")
 	incomingEdges ({Transition, NotDeletableTransition, NotSelectableTransition, NotMovableTransition, NotCreatableTransition}[1,*])
 	outgoingEdges ({Transition, NotDeletableTransition, NotSelectableTransition, NotMovableTransition, NotCreatableTransition}[1,*])
