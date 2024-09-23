@@ -4,8 +4,8 @@ appearance default {
 }
 
 appearance redBorder extends default {
-			background (255,255,255)
-			foreground (164,29,29)
+	foreground (164,29,29)
+	background (255,255,255)
 } 
 
 nodeStyle redCircle {
