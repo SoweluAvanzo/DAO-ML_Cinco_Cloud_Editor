@@ -22,7 +22,6 @@ export function graphMerger(): Merger {
         _containments: entityListMerger(nodeMerger()),
         _edges: entityListMerger(edgeMerger()),
         type: eagerMerger(),
-        _sourceUri: eagerMerger(),
         _attributes: eagerMerger()
     });
 }

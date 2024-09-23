@@ -286,17 +286,14 @@ export class MGLGenerator {
         // handle GraphicalModelElement specific
         if (isNode(modelElement) || isEdge(modelElement) || isNodeContainer(modelElement)) {
             const graphicalElement: Node | Edge | NodeContainer = modelElement;
-
-            modelElementSpec.view = { style: undefined };
-            modelElementSpec.view.style = graphicalElement.usedStyle
-                ? constructElementTypeId(graphicalElement.usedStyle, modelElement.$container.stylePath)
-                : undefined;
-            if (graphicalElement.styleParameters) {
+            if (!modelElementSpec.view) {
+                modelElementSpec.view = { style: undefined };
+            }
+            if (graphicalElement.usedStyle) {
+                modelElementSpec.view.style = constructElementTypeId(graphicalElement.usedStyle, modelElement.$container.stylePath);
                 modelElementSpec.view.styleParameter = graphicalElement.styleParameters;
             }
-
-            // TODO check annotations for this
-            modelElementSpec.palettes = [];
+            // Deprecated: modelElementSpec.palettes = []; // This is now handled lazy by annotations
         }
 
         // handle graphModel

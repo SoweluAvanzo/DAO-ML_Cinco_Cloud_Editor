@@ -804,6 +804,12 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
             .concat(this.edges)
             .map(e => (ModelElement.is(e) && !(e instanceof ModelElement) ? Object.assign(new ModelElement(), e) : e));
     }
+
+    toJSON(): any {
+        const serialization = { ...this };
+        delete serialization._sourceUri;
+        return serialization;
+    }
 }
 
 export namespace GraphModel {

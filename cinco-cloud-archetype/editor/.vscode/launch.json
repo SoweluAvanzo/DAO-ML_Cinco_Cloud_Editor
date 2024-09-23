@@ -27,6 +27,7 @@
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
+        "--TRANSPILATION_MODE=NONE"
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -69,7 +70,8 @@
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
-        "--META_DEV_MODE"
+        "--META_DEV_MODE",
+        "--TRANSPILATION_MODE=WATCH"
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -113,7 +115,8 @@
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
         "--META_DEV_MODE",
-        "--META_LANGUAGES_FOLDER=workspace/languages"
+        "--META_LANGUAGES_FOLDER=workspace/languages",
+        "--TRANSPILATION_MODE=WATCH"
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -157,6 +160,7 @@
         "--no-cluster",
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
+        "--TRANSPILATION_MODE=NONE"
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -201,6 +205,7 @@
         "--loglevel=debug",
         "--root-dir=${workspaceRoot}/workspace",
         "--META_LANGUAGES_FOLDER=workspace/languages",
+        "--TRANSPILATION_MODE=WATCH"
       ],
       "skipFiles": [
         "<node_internals>/**"
@@ -238,7 +243,8 @@
         "--metaLanguagesFolder='cinco-glsp-server/languages'",
         "--rootFolder='${workspaceRoot}'",
         "--workspaceFolder='workspace",
-        "--webSocket"
+        "--webSocket",
+        "--transpilationMode=NONE"
       ],
       "sourceMaps": true,
       "outFiles": [
@@ -271,7 +277,8 @@
         "--metaLanguagesFolder='workspace/languages'",
         "--rootFolder='${workspaceRoot}'",
         "--workspaceFolder='workspace",
-        "--webSocket"
+        "--webSocket",
+        "--transpilationMode=ONCE"
       ],
       "sourceMaps": true,
       "outFiles": [
@@ -305,7 +312,8 @@
         "--metaLanguagesFolder='cinco-glsp-server/languages'",
         "--rootFolder='${workspaceRoot}'",
         "--workspaceFolder='workspace",
-        "--webSocket"
+        "--webSocket",
+        "--transpilationMode=WATCH"
       ],
       "sourceMaps": true,
       "outFiles": [
@@ -339,7 +347,8 @@
         "--metaLanguagesFolder='workspace/languages'",
         "--rootFolder='${workspaceRoot}'",
         "--workspaceFolder='workspace",
-        "--webSocket"
+        "--webSocket",
+        "--transpilationMode=WATCH"
       ],
       "sourceMaps": true,
       "outFiles": [
@@ -365,6 +374,24 @@
     {
       "name": "Launch Standalone Client",
       "type": "chrome",
+      "request": "launch",
+      "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=msl-example.flowgraph",
+      "sourceMaps": true,
+      "cleanUp": "wholeBrowser",
+      "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
+    },
+    {
+      "name": "Launch Theia Frontend (PWA)",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:3000/?jwt=test&projectId=1#${workspaceRoot}/workspace",
+      "sourceMaps": true,
+      "cleanUp": "wholeBrowser",
+      "webRoot": "${workspaceRoot}/browser-app"
+    },
+    {
+      "name": "Launch Standalone Client (PWA)",
+      "type": "pwa-chrome",
       "request": "launch",
       "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=msl-example.flowgraph",
       "sourceMaps": true,

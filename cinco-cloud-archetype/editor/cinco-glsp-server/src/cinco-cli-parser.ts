@@ -23,6 +23,7 @@ export interface CincoLaunchOptions extends SocketLaunchOptions {
     metaDevMode: boolean;
     webServerPort: number | undefined;
     webSocket: boolean;
+    transpilationMode: string;
 }
 
 export function createCincoCliParser<O extends CincoLaunchOptions = CincoLaunchOptions>(
@@ -33,6 +34,7 @@ export function createCincoCliParser<O extends CincoLaunchOptions = CincoLaunchO
         webSocket: false,
         webServerPort: undefined,
         metaDevMode: false,
+        transpilationMode: 'NONE',
         ...defaultSocketLaunchOptions
     }
 ): CliParser<O> {
@@ -43,6 +45,11 @@ export function createCincoCliParser<O extends CincoLaunchOptions = CincoLaunchO
     argParser.command.option('--workspaceFolder <workspaceFolder>', 'Set path to workspace folder, relative to root.', undefined);
     argParser.command.option('--metaDevMode', 'Activate dev mode for language designing.', false);
     argParser.command.option('--webServerPort <webServerPort>', 'Port where web content is served', undefined);
+    argParser.command.option(
+        '--transpilationMode <transpilationMode>',
+        'Mode of transpilation of semantic source files [WATCH, ONCE, NONE]',
+        undefined
+    );
     argParser.command.option('-w , --webSocket', 'Flag to use websocket launcher instead of default launcher', false);
     return argParser;
 }

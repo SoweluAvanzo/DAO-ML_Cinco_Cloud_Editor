@@ -29,7 +29,9 @@ import {
     WEBSOCKET_PORT_KEY,
     CincoGLSPClient,
     SYSTEM_ID,
-    WEBSOCKET_HOST_MAPPING
+    WEBSOCKET_HOST_MAPPING,
+    META_SPEC_PROVIDER_COMMAND,
+    MetaSpecification
 } from '@cinco-glsp/cinco-glsp-common';
 import { CommandRegistry } from '@theia/core';
 import { InitializeClientSessionParameters } from '@eclipse-glsp/protocol';
@@ -60,8 +62,10 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
             path: DEFAULT_WEBSOCKET_PATH,
             port: webSocketPort ?? DEFAULT_SERVER_PORT,
             protocol: ssl && ssl.value === 'true' ? 'wss' : 'ws',
-            host: websocketHostMapping && websocketHostMapping.value && websocketHostMapping.value?.length > 0 ?
-                `${host}/${websocketHostMapping.value}` : undefined
+            host:
+                websocketHostMapping && websocketHostMapping.value && websocketHostMapping.value?.length > 0
+                    ? `${host}/${websocketHostMapping.value}`
+                    : undefined
         };
     }
 
@@ -92,7 +96,7 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     getWebSocketAddress(info: Partial<WebSocketConnectionInfo>): string | undefined {
         if ('path' in info && info.path !== undefined) {
             const protocol = info.protocol ?? 'ws';
-            if(info.host) {
+            if (info.host) {
                 return `${protocol}://${info.host}/${info.path}`;
             }
             const host = window.location.hostname ?? '0.0.0.0';
@@ -122,6 +126,12 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
                                 this.commandRegistry.executeCommand(LANGUAGE_UPDATE_COMMAND.id, {
                                     metaSpecification: (m.action as MetaSpecificationResponseAction).metaSpecification
                                 } as LanguageUpdateMessage);
+                                // register command to fetch current meta-spec by other vscode/theia extensions
+                                if (this.commandRegistry.commands.filter(c => c.id === META_SPEC_PROVIDER_COMMAND.id).length <= 0) {
+                                    this.commandRegistry.registerCommand(META_SPEC_PROVIDER_COMMAND, {
+                                        execute: _ => MetaSpecification.get()
+                                    });
+                                }
                             }
                         }, SYSTEM_ID);
                         this.commandRegistry.registerCommand(
