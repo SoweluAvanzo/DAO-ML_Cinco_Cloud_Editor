@@ -5,6 +5,19 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "extensionHost",
+      "request": "launch",
+      "name": "Launch Cinco Language Extension",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/cinco-languages-extension",
+        "${workspaceRoot}/workspace"
+      ],
+      "outFiles": [
+        "${workspaceRoot}/cinco-languages-extension/out/**/*.js"
+      ],
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Launch Cinco Theia Backend (Embedded GLSP Server)",
