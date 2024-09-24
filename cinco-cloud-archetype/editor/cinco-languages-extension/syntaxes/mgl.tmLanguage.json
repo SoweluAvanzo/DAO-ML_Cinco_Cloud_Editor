@@ -7,129 +7,88 @@
   ],
   "patterns": [
     {
+      "include": "#languagePrecedence"
+    },
+    {
       "include": "#annotation"
-    },
-    {
-      "include": "#keywords"
-    },
-    {
-      "include": "#storagemodifier"
     },
     {
       "include": "#attributeDeclaration"
     },
     {
-      "include": "#properties"
+      "include": "#relationSets"
     },
     {
-      "include": "#propertiesSet"
+      "include": "#styleRef"
     },
     {
-      "include": "#dataType"
-    },
-    {
-      "include": "#comments"
-    },
-    {
-      "include": "#strings"
+      "include": "#keywordPrecedence"
     }
   ],
   "repository": {
-    "storagemodifier": {
-      "patterns": [
-        {
-          "name": "storage.modifier.mgl",
-          "match": "\\b(\\s)*(final|unique|override)(\\s)*\\b"
-        }
-      ]
-    },
-    "keywords": {
-      "patterns": [
-        {
-          "name": "keyword.control.mgl",
-          "match": "\\b(\\s)*(abstract|node|edge|container|graphModel|enum)(\\s)*\\b"
-        }
-      ]
-    },
-    "properties": {
-      "patterns": [
-        {
-          "name": "support.function.mgl",
-          "match": "\\b(\\s)*(extends|external|this|type|prime|primeattr|primeparam|stealth|diagramExtension|stylePath|style|iconPath|id|import)(\\s)*\\b"
-        }
-      ]
-    },
-    "propertiesSet": {
-      "name": "support.function.mgl",
-      "begin": "\\b(\\s)*(containableElements|outgoingEdges|incomingEdges)(\\s)*\\b",
+    "styleRef": {
+      "name": "support.function.style.cinco",
+      "begin": "\\b\\s*(style)\\s*\\b([A-Za-z_][A-Za-z0-9_]*)?\\s*\\b",
       "beginCaptures": {
         "1": {
-          "name": "support.function.mgl"
+          "name": "support.function.cinco"
+        },
+        "2": {
+          "name": "entity.name.type"
         }
       },
-      "end": "(?=\\}|style|containableElements|incomingEdges|outgoingEdges|@|prime|final|unique|override|attr|diagramExtension|iconPath)",
+      "end": "(?=\\}|containableElements|incomingEdges|outgoingEdges|style|@|prime|final|unique|override|attr|diagramExtension|iconPath)",
       "patterns": [
         {
-          "include": "#dataType"
+          "include": "#languagePrecedence"
         },
         {
-          "name": "constant.language.boolean",
-          "match": "\\b(true|false|TRUE|FALSE|True|False)\\b"
+          "include": "#variableName"
         },
         {
-          "name": "punctuation.definition.array",
-          "match": "\\((\\s*\\b\\d+\\b\\s*,\\s*\\b\\d+\\b\\s*)?\\)"
-        },
-        {
-          "include": "#keywords"
-        },
-        {
-          "include": "#strings"
-        },
-        {
-          "name": "constant.numeric",
-          "match": "\\b\\d+\\b"
-        },
-        {
-          "name": "variable.name",
-          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b"
-        },
-        {
-          "include": "#comments"
+          "include": "#keywordPrecedence"
         }
       ]
     },
-    "dataType": {
+    "relationSets": {
+      "name": "support.function.relation.cinco",
+      "begin": "\\b(\\s)*(containableElements|incomingEdges|outgoingEdges)(\\s)*\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.cinco"
+        }
+      },
+      "end": "(?=\\}|containableElements|incomingEdges|outgoingEdges|style|@|prime|final|unique|override|attr|diagramExtension|iconPath)",
       "patterns": [
         {
-          "name": "entity.name.type.mgl",
-          "match": "\\b(\\s)*(boolean|date|Date|number|string|Node|ModelElementContainer|ModelElement|GraphModel|Edge|Container)(\\s)*\\b"
+          "include": "#languagePrecedence"
+        },
+        {
+          "include": "#variableName"
+        },
+        {
+          "include": "#keywordPrecedence"
         }
       ]
     },
     "annotation": {
-      "name": "annotation",
+      "name": "support.function.annotation.cinco",
       "begin": "@([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": {
-          "name": "entity.name.function.annotation.mgl"
+          "name": "entity.name.function.annotation.cinco"
         }
       },
       "end": "(\\)|\\s)",
       "patterns": [
         {
-          "include": "#comments"
+          "include": "#languagePrecedence"
         },
         {
-          "name": "variable.parameter.mgl",
-          "match": "[A-Za-z_][A-Za-z0-9_]*"
+          "include": "#parameterName"
         },
         {
-          "include": "#strings"
-        },
-        {
-          "name": "punctuation.definition.separator",
-          "match": ","
+          "include": "#keywordPrecedence"
         }
       ]
     },
@@ -144,43 +103,131 @@
       "end": "(?=\\}|style|containableElements|incomingEdges|outgoingEdges|@|prime|final|unique|override|attr|diagramExtension|iconPath)",
       "patterns": [
         {
+          "include": "#languagePrecedence"
+        },
+        {
           "include": "#dataType"
         },
         {
-          "name": "keyword.control",
-          "match": "\\b(\\s)*(as)(\\s)*\\b"
+          "include": "#keywordPrecedence"
         },
         {
-          "include": "#storagemodifier"
-        },
+          "include": "#variableName"
+        }
+      ]
+    },
+    "variableName": {
+      "patterns": [
         {
-          "name": "constant.language.boolean",
-          "match": "\\b(true|false|TRUE|FALSE|True|False)\\b"
-        },
+          "name": "variable.name.cinco",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b"
+        }
+      ]
+    },
+    "parameterName": {
+      "patterns": [
         {
-          "name": "punctuation.definition.array",
-          "match": "\\((\\s*\\b\\d+\\b\\s*,\\s*\\b\\d+\\b\\s*)?\\)"
-        },
+          "name": "variable.parameter.cinco",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b"
+        }
+      ]
+    },
+    "dataType": {
+      "patterns": [
         {
-          "name": "keyword.operator.assignment",
-          "match": "(=|:=)"
-        },
+          "name": "support.type.cinco",
+          "match": "\\b(\\s)*(boolean|date|Date|number|string|Node|ModelElementContainer|ModelElement|GraphModel|Edge|Container)(\\s)*\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.cinco",
+          "match": "\\b(\\s)*(abstract|node|edge|container|graphModel|enum)(\\s)*\\b"
+        }
+      ]
+    },
+    "keywords2": {
+      "patterns": [
+        {
+          "name": "support.function.cinco",
+          "match": "\\b(\\s)*(as|extends|external|this|type|prime|primeattr|primeparam|stealth|diagramExtension|stylePath|iconPath|id|import)(\\s)*\\b"
+        }
+      ]
+    },
+    "keywords3": {
+      "patterns": [
+        {
+          "name": "storage.modifier.cinco",
+          "match": "\\b(\\s)*(final|unique|override)(\\s)*\\b"
+        }
+      ]
+    },
+    "keywordPrecedence": {
+      "patterns": [
         {
           "include": "#keywords"
+        },
+        {
+          "include": "#keywords2"
+        },
+        {
+          "include": "#keywords3"
+        }
+      ]
+    },
+    "languagePrecedence": {
+      "patterns": [
+        {
+          "include": "#comments"
         },
         {
           "include": "#strings"
         },
         {
-          "name": "constant.numeric",
+          "include": "#assignmentOperator"
+        },
+        {
+          "include": "#punctuationComma"
+        },
+        {
+          "include": "#booleanConstant"
+        },
+        {
+          "include": "#numericConstant"
+        }
+      ]
+    },
+    "numericConstant": {
+      "patterns": [
+        {
+          "name": "constant.numeric.cinco",
           "match": "\\b\\d+\\b"
-        },
+        }
+      ]
+    },
+    "booleanConstant": {
+      "patterns": [
         {
-          "name": "variable.name",
-          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b"
-        },
+          "name": "constant.character.escape.boolean.cinco",
+          "match": "\\b(true|false|TRUE|FALSE|True|False)\\b"
+        }
+      ]
+    },
+    "punctuationComma": {
+      "patterns": [
         {
-          "include": "#comments"
+          "name": "punctuation.definition.array.cinco",
+          "match": "\\((\\s*\\b\\d+\\b\\s*,\\s*\\b\\d+\\b\\s*)?\\)"
+        }
+      ]
+    },
+    "assignmentOperator": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.cinco",
+          "match": "(=|:=)"
         }
       ]
     },
@@ -200,7 +247,7 @@
       "end": "(\")",
       "patterns": [
         {
-          "name": "constant.character.escape.mgl",
+          "name": "constant.character.escape",
           "match": "\\\\."
         },
         {
@@ -214,7 +261,7 @@
       "end": "(')",
       "patterns": [
         {
-          "name": "constant.character.escape.bnf",
+          "name": "constant.character.escape",
           "match": "\\\\."
         },
         {
