@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "mgl",
   "scopeName": "source.mgl",
   "fileTypes": [
@@ -6,66 +7,258 @@
   ],
   "patterns": [
     {
+      "include": "#annotation"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#storagemodifier"
+    },
+    {
+      "include": "#attributeDeclaration"
+    },
+    {
+      "include": "#properties"
+    },
+    {
+      "include": "#propertiesSet"
+    },
+    {
+      "include": "#dataType"
+    },
+    {
       "include": "#comments"
     },
     {
-      "name": "keyword.control.mgl",
-      "match": "\\b(Container|Date|Edge|GraphModel|ModelElement|ModelElementContainer|Node|abstract|as|attr|boolean|containableElements|container|diagramExtension|edge|enum|extends|external|final|graphModel|iconPath|id|import|incomingEdges|node|number|outgoingEdges|override|prime|primeattr|primeparam|stealth|string|style|stylePath|this|type|unique)\\b"
-    },
-    {
-      "name": "string.quoted.double.mgl",
-      "begin": "\"",
-      "end": "\"",
-      "patterns": [
-        {
-          "include": "#string-character-escape"
-        }
-      ]
-    },
-    {
-      "name": "string.quoted.single.mgl",
-      "begin": "'",
-      "end": "'",
-      "patterns": [
-        {
-          "include": "#string-character-escape"
-        }
-      ]
+      "include": "#strings"
     }
   ],
   "repository": {
-    "comments": {
+    "storagemodifier": {
       "patterns": [
         {
-          "name": "comment.block.mgl",
-          "begin": "/\\*",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.definition.comment.mgl"
-            }
-          },
-          "end": "\\*/",
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.definition.comment.mgl"
-            }
-          }
-        },
-        {
-          "begin": "//",
-          "beginCaptures": {
-            "1": {
-              "name": "punctuation.whitespace.comment.leading.mgl"
-            }
-          },
-          "end": "(?=$)",
-          "name": "comment.line.mgl"
+          "name": "storage.modifier.mgl",
+          "match": "\\b(\\s)*(final|unique|override)(\\s)*\\b"
         }
       ]
     },
-    "string-character-escape": {
-      "name": "constant.character.escape.mgl",
-      "match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)"
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.mgl",
+          "match": "\\b(\\s)*(abstract|node|edge|container|graphModel|enum)(\\s)*\\b"
+        }
+      ]
+    },
+    "properties": {
+      "patterns": [
+        {
+          "name": "support.function.mgl",
+          "match": "\\b(\\s)*(extends|external|this|type|prime|primeattr|primeparam|stealth|diagramExtension|stylePath|style|iconPath|id|import)(\\s)*\\b"
+        }
+      ]
+    },
+    "propertiesSet": {
+      "name": "support.function.mgl",
+      "begin": "\\b(\\s)*(containableElements|outgoingEdges|incomingEdges)(\\s)*\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.mgl"
+        }
+      },
+      "end": "(?=\\}|style|containableElements|incomingEdges|outgoingEdges|@|prime|final|unique|override|attr|diagramExtension|iconPath)",
+      "patterns": [
+        {
+          "include": "#dataType"
+        },
+        {
+          "name": "constant.language.boolean",
+          "match": "\\b(true|false|TRUE|FALSE|True|False)\\b"
+        },
+        {
+          "name": "punctuation.definition.array",
+          "match": "\\((\\s*\\b\\d+\\b\\s*,\\s*\\b\\d+\\b\\s*)?\\)"
+        },
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "name": "constant.numeric",
+          "match": "\\b\\d+\\b"
+        },
+        {
+          "name": "variable.name",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b"
+        },
+        {
+          "include": "#comments"
+        }
+      ]
+    },
+    "dataType": {
+      "patterns": [
+        {
+          "name": "entity.name.type.mgl",
+          "match": "\\b(\\s)*(boolean|date|Date|number|string|Node|ModelElementContainer|ModelElement|GraphModel|Edge|Container)(\\s)*\\b"
+        }
+      ]
+    },
+    "annotation": {
+      "name": "annotation",
+      "begin": "@([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.name.function.annotation.mgl"
+        }
+      },
+      "end": "(\\)|\\s)",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "name": "variable.parameter.mgl",
+          "match": "[A-Za-z_][A-Za-z0-9_]*"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "name": "punctuation.definition.separator",
+          "match": ","
+        }
+      ]
+    },
+    "attributeDeclaration": {
+      "name": "attribute.declaration",
+      "begin": "\\b(attr)\\b\\s*",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.declaration.attribute"
+        }
+      },
+      "end": "(?=\\}|style|containableElements|incomingEdges|outgoingEdges|@|prime|final|unique|override|attr|diagramExtension|iconPath)",
+      "patterns": [
+        {
+          "include": "#dataType"
+        },
+        {
+          "name": "keyword.control",
+          "match": "\\b(\\s)*(as)(\\s)*\\b"
+        },
+        {
+          "include": "#storagemodifier"
+        },
+        {
+          "name": "constant.language.boolean",
+          "match": "\\b(true|false|TRUE|FALSE|True|False)\\b"
+        },
+        {
+          "name": "punctuation.definition.array",
+          "match": "\\((\\s*\\b\\d+\\b\\s*,\\s*\\b\\d+\\b\\s*)?\\)"
+        },
+        {
+          "name": "keyword.operator.assignment",
+          "match": "(=|:=)"
+        },
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "name": "constant.numeric",
+          "match": "\\b\\d+\\b"
+        },
+        {
+          "name": "variable.name",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b"
+        },
+        {
+          "include": "#comments"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "include": "#doubleQuotedString"
+        },
+        {
+          "include": "#singleQuotedString"
+        }
+      ]
+    },
+    "doubleQuotedString": {
+      "name": "string.quoted.double",
+      "begin": "(\")",
+      "end": "(\")",
+      "patterns": [
+        {
+          "name": "constant.character.escape.mgl",
+          "match": "\\\\."
+        },
+        {
+          "include": "#singleQuotedString"
+        }
+      ]
+    },
+    "singleQuotedString": {
+      "name": "string.quoted.double",
+      "begin": "(')",
+      "end": "(')",
+      "patterns": [
+        {
+          "name": "constant.character.escape.bnf",
+          "match": "\\\\."
+        },
+        {
+          "include": "#doubleQuotedString"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "include": "#commentBlock"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "commentBlock": {
+      "begin": "\\/\\*",
+      "end": "\\*\\/",
+      "beginCaptures": {
+        "0": {
+          "name": "comment.block"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "comment.block"
+        }
+      },
+      "patterns": [
+        {
+          "name": "comment.block",
+          "match": "."
+        }
+      ]
+    },
+    "comment": {
+      "patterns": [
+        {
+          "name": "comment.block",
+          "match": "\\/\\/(.)*"
+        }
+      ]
     }
   }
 }
