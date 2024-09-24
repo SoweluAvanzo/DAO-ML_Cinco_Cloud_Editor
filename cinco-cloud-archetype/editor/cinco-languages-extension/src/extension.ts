@@ -1,3 +1,18 @@
+/********************************************************************************
+ * Copyright (c) 2024 Cinco Cloud.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * This Source Code may also be made available under the following Secondary
+ * Licenses when the conditions for such availability set forth in the Eclipse
+ * Public License v. 2.0 are satisfied: GNU General Public License, version 2
+ * with the GNU Classpath Exception which is available at
+ * https://www.gnu.org/software/classpath/license.html.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+ ********************************************************************************/
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
@@ -17,8 +32,8 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.commands.registerCommand('cincoCloud.generateCincoProduct', () => {
             // Retrieve active editor and check if its an MGL
-            let activeEditor = vscode.window.activeTextEditor;
-            let filePath = activeEditor?.document.uri.fsPath;
+            const activeEditor = vscode.window.activeTextEditor;
+            const filePath = activeEditor?.document.uri.fsPath;
             if (filePath && filePath.endsWith('mgl')) {
                 languageHandlingAction(filePath, {}, LanguageJobMode.GENERATE);
             } else {
@@ -31,8 +46,8 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.commands.registerCommand('cincoCloud.uploadCincoProduct', () => {
             // Retrieve active editor and check if its an MGL
-            let activeEditor = vscode.window.activeTextEditor;
-            let filePath = activeEditor?.document.uri.fsPath;
+            const activeEditor = vscode.window.activeTextEditor;
+            const filePath = activeEditor?.document.uri.fsPath;
             if (filePath && filePath.endsWith('mgl')) {
                 languageHandlingAction(filePath, {}, LanguageJobMode.UPLOAD);
             } else {
@@ -95,7 +110,7 @@ function startMSLClient(context: vscode.ExtensionContext): LanguageClient {
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging.
     // By setting `process.env.DEBUG_BREAK` to a truthy value, the language server will wait until a debugger is attached.
     const debugOptions = {
-        execArgv: ['--nolazy', `--inspect${process.env.DEBUG_BREAK ? '-brk' : ''}=${process.env.DEBUG_SOCKET || '6009'}`]
+        execArgv: ['--nolazy', `--inspect${process.env.DEBUG_BREAK ? '-brk' : ''}=${process.env.DEBUG_SOCKET || '6010'}`]
     };
 
     // If the extension is launched in debug mode then the debug server options are used

@@ -18,6 +18,34 @@
       ],
     },
     {
+      "name": "Attach to MGL language server",
+      "port": 6009,
+      "request": "attach",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/cinco-languages-extension/out/**/*.js",
+        "${workspaceFolder}/cinco-languages/lib/**/*.js",
+      ],
+      "type": "node"
+    },
+    {
+      "name": "Attach to MSL language server",
+      "port": 6010,
+      "request": "attach",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/cinco-languages-extension/out/**/*.js",
+        "${workspaceFolder}/cinco-languages/lib/**/*.js",
+      ],
+      "type": "node"
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Launch Cinco Theia Backend (Embedded GLSP Server)",
