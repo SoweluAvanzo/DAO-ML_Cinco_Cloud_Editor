@@ -20,13 +20,37 @@ import { graphMerger } from './graph-merger';
 console.log('ancestor', argv[2]);
 console.log('version a', argv[3]);
 console.log('version b', argv[4]);
+console.log('conflict marker length', argv[5]);
 
-const ancestor = JSON.parse(readFileSync(argv[2], 'utf-8'));
-const versionA = JSON.parse(readFileSync(argv[3], 'utf-8'));
-const versionB = JSON.parse(readFileSync(argv[4], 'utf-8'));
+const ancestorInput = readFileSync(argv[2], 'utf-8');
+const versionAInput = readFileSync(argv[3], 'utf-8');
+const versionBInput = readFileSync(argv[4], 'utf-8');
 
-const merger = graphMerger();
-const result = merger({ ancestor, versionA, versionB });
+let output: string;
+let exitCode: number;
 
-writeFileSync(argv[5], JSON.stringify(result.value, undefined, 2));
-exit(result.newEagerConflicts ? 1 : 0);
+try {
+    const ancestor = JSON.parse(ancestorInput);
+    const versionA = JSON.parse(versionAInput);
+    const versionB = JSON.parse(versionBInput);
+
+    const merger = graphMerger();
+    const result = merger({ ancestor, versionA, versionB });
+
+    output = JSON.stringify(result.value, undefined, 2);
+    exitCode = result.newEagerConflicts ? 1 : 0;
+} catch (error) {
+    const markerSize = Number(argv[5]);
+    output =
+        'Unable to merge files:\n' +
+        `${error}\n` +
+        `${'<'.repeat(markerSize)}\n` +
+        `${versionAInput}\n` +
+        `${'='.repeat(markerSize)}\n` +
+        `${versionBInput}\n` +
+        `${'>'.repeat(markerSize)}\n`;
+    exitCode = 2;
+}
+
+writeFileSync(argv[6], output);
+exit(exitCode);
