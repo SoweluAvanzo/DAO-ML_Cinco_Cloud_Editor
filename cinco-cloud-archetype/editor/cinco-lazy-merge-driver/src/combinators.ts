@@ -160,7 +160,7 @@ export function entityListMerger(merger: Merger): Merger {
 }
 
 export function mapMerger(merger: Merger): Merger {
-    return objectMerger(_ => optionalMerger(merger));
+    return objectMerger(_ => merger);
 }
 
 export function objectMerger(mergers: (key: string) => Merger): Merger {
@@ -168,7 +168,7 @@ export function objectMerger(mergers: (key: string) => Merger): Merger {
         const keys = new Set<string>(Object.keys(ancestor).concat(Object.keys(versionA).concat(Object.keys(versionB))));
         const mergeResults: Record<string, MergeResult> = {};
         for (const key of keys) {
-            const merger = mergers(key);
+            const merger = optionalMerger(mergers(key));
             const entityMerge = merger({
                 ancestor: ancestor[key],
                 versionA: versionA[key],
@@ -193,11 +193,7 @@ export function eagerMerger(): Merger {
         } else {
             const conflict: EagerMergeConflict = {
                 tag: 'eager-merge-conflict',
-                versions: {
-                    ancestor: strigifyUndefined(ancestor),
-                    versionA: strigifyUndefined(versionA),
-                    versionB: strigifyUndefined(versionB)
-                }
+                versions: { ancestor, versionA, versionB }
             };
             return {
                 value: conflict,
@@ -206,10 +202,6 @@ export function eagerMerger(): Merger {
             };
         }
     };
-}
-
-function strigifyUndefined(value: any): any {
-    return value !== undefined ? value : 'undefined';
 }
 
 export function cellMerger(): Merger {

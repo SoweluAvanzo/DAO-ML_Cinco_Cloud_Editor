@@ -230,7 +230,7 @@ describe('recordMerger', () => {
             recordMerger({})({
                 ancestor: { x: 'foo' },
                 versionA: { x: 'bar' },
-                versionB: {}
+                versionB: { x: 'baz' }
             })
         ).toStrictEqual({
             value: {
@@ -239,12 +239,30 @@ describe('recordMerger', () => {
                     versions: {
                         ancestor: 'foo',
                         versionA: 'bar',
-                        versionB: 'undefined'
+                        versionB: 'baz'
                     }
                 }
             },
             newEagerConflicts: true,
             newLazyConflicts: false
+        });
+    });
+    test('optional merging for missing keys', () => {
+        expect(
+            recordMerger({ x: cellMerger() })({
+                ancestor: { x: 'foo' },
+                versionA: { x: 'bar' },
+                versionB: {}
+            })
+        ).toStrictEqual({
+            value: {
+                x: {
+                    tag: 'ghost',
+                    value: 'bar'
+                }
+            },
+            newEagerConflicts: false,
+            newLazyConflicts: true
         });
     });
 });
@@ -394,16 +412,6 @@ describe('eagerMerger', () => {
             newLazyConflicts: false
         });
     });
-    test('stringify undefined', () => {
-        expect(eagerMerger()({ ancestor: undefined, versionA: 'bar', versionB: 'baz' })).toStrictEqual({
-            value: {
-                tag: 'eager-merge-conflict',
-                versions: { ancestor: 'undefined', versionA: 'bar', versionB: 'baz' }
-            },
-            newEagerConflicts: true,
-            newLazyConflicts: false
-        });
-    });
 });
 
 describe('cellMerger', () => {
@@ -479,7 +487,7 @@ describe('recursiveMerger', () => {
     test('merge recursive record', () => {
         const merger = recordMerger({
             x: cellMerger(),
-            child: optionalMerger(recursiveMerger(() => merger))
+            child: recursiveMerger(() => merger)
         });
         expect(
             merger({
