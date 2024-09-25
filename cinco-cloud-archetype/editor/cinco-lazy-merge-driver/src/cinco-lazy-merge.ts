@@ -45,11 +45,17 @@ try {
         'Unable to merge files:\n' +
         `${error}\n` +
         `${'<'.repeat(markerSize)}\n` +
-        `${versionAInput}\n` +
+        assureEndsWithNewline(versionAInput) +
         `${'='.repeat(markerSize)}\n` +
-        `${versionBInput}\n` +
+        assureEndsWithNewline(ancestorInput) +
+        `${'='.repeat(markerSize)}\n` +
+        assureEndsWithNewline(versionBInput) +
         `${'>'.repeat(markerSize)}\n`;
     exitCode = 2;
+}
+
+function assureEndsWithNewline(value: string): string {
+    return value.endsWith('\n') ? value : `${value}\n`;
 }
 
 writeFileSync(argv[6], output);
