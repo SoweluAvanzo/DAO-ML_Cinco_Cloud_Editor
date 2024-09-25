@@ -224,32 +224,27 @@ describe('recordMerger', () => {
             newLazyConflicts: true
         });
     });
-    test('unknown key in ancestor', () => {
-        expect(() =>
-            recordMerger({ x: cellMerger() })({
-                ancestor: { x: 'foo', y: 'doo' },
-                versionA: { x: 'bar' },
-                versionB: { x: 'baz' }
-            })
-        ).toThrow(new Error('Key y has no merger defined.'));
-    });
-    test('unknown key in version A', () => {
-        expect(() =>
-            recordMerger({ x: cellMerger() })({
-                ancestor: { x: 'foo' },
-                versionA: { x: 'bar', y: 'doo' },
-                versionB: { x: 'baz' }
-            })
-        ).toThrow(new Error('Key y has no merger defined.'));
-    });
-    test('unknown key in version B', () => {
-        expect(() =>
-            recordMerger({ x: cellMerger() })({
+    test('merge unknown keys eagerly', () => {
+        expect(
+            recordMerger({})({
                 ancestor: { x: 'foo' },
                 versionA: { x: 'bar' },
-                versionB: { x: 'baz', y: 'doo' }
+                versionB: {}
             })
-        ).toThrow(new Error('Key y has no merger defined.'));
+        ).toStrictEqual({
+            value: {
+                x: {
+                    tag: 'eager-merge-conflict',
+                    versions: {
+                        ancestor: 'foo',
+                        versionA: 'bar',
+                        versionB: 'undefined'
+                    }
+                }
+            },
+            newEagerConflicts: true,
+            newLazyConflicts: false
+        });
     });
 });
 
@@ -393,6 +388,16 @@ describe('eagerMerger', () => {
             value: {
                 tag: 'eager-merge-conflict',
                 versions: { ancestor: 'foo', versionA: 'bar', versionB: 'baz' }
+            },
+            newEagerConflicts: true,
+            newLazyConflicts: false
+        });
+    });
+    test('stringify undefined', () => {
+        expect(eagerMerger()({ ancestor: undefined, versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+            value: {
+                tag: 'eager-merge-conflict',
+                versions: { ancestor: 'undefined', versionA: 'bar', versionB: 'baz' }
             },
             newEagerConflicts: true,
             newLazyConflicts: false
