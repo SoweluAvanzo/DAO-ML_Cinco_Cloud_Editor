@@ -37,7 +37,7 @@ try {
     const merger = graphMerger();
     const result = merger({ ancestor, versionA, versionB });
 
-    output = JSON.stringify(result.value, undefined, 2);
+    output = JSON.stringify(result.value);
     exitCode = result.newEagerConflicts ? 1 : 0;
 } catch (error) {
     const markerSize = Number(argv[5]);
