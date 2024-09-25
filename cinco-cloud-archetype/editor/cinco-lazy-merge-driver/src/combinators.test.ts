@@ -24,7 +24,8 @@ import {
     optionalMerger,
     MergeResult,
     mergeOk,
-    mergeLazyConflict
+    mergeLazyConflict,
+    recursiveMerger
 } from './combinators';
 
 describe('mapMergeResult', () => {
@@ -467,6 +468,52 @@ describe('cellMerger', () => {
             value: {
                 tag: 'choice',
                 options: ['bar', 'baz']
+            },
+            newEagerConflicts: false,
+            newLazyConflicts: true
+        });
+    });
+});
+
+describe('recursiveMerger', () => {
+    test('merge recursive record', () => {
+        const merger = recordMerger({
+            x: cellMerger(),
+            child: optionalMerger(recursiveMerger(() => merger))
+        });
+        expect(
+            merger({
+                ancestor: {
+                    x: 'foo',
+                    child: {
+                        x: 'doo'
+                    }
+                },
+                versionA: {
+                    x: 'bar',
+                    child: {
+                        x: 'dar'
+                    }
+                },
+                versionB: {
+                    x: 'baz',
+                    child: {
+                        x: 'daz'
+                    }
+                }
+            })
+        ).toStrictEqual({
+            value: {
+                x: {
+                    tag: 'choice',
+                    options: ['bar', 'baz']
+                },
+                child: {
+                    x: {
+                        tag: 'choice',
+                        options: ['dar', 'daz']
+                    }
+                }
             },
             newEagerConflicts: false,
             newLazyConflicts: true

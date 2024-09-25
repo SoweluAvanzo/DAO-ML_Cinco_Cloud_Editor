@@ -227,3 +227,7 @@ export function cellMerger(): Merger {
         };
     };
 }
+
+export function recursiveMerger(mergerConstructor: () => Merger): Merger {
+    return versions => mergerConstructor()(versions);
+}
