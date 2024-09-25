@@ -22,6 +22,7 @@ import { RequestAction, ResponseAction } from '@eclipse-glsp/protocol';
 export const ALLOWED_IMAGE_FILE_TYPES = ['.png', '.svg', '.jpg', '.bmp', '.PNG', '.SVG', '.JPG', '.BMP', '.html', '.HTML'];
 
 export const LANGUAGE_UPDATE_COMMAND = { id: 'cinco.language_update' };
+export const META_SPEC_PROVIDER_COMMAND = { id: 'cinco.meta_spec' };
 
 export interface LanguageUpdateMessage {
     metaSpecification: CompositionSpecification;
@@ -102,13 +103,11 @@ export namespace MetaSpecificationReloadAction {
 
 export interface MetaSpecificationReloadItem {
     folderPaths: string[];
-    supportedFileTypes: string[];
 }
 export namespace MetaSpecificationReloadItem {
-    export function create(folderPaths: string[], supportedFileTypes: string[]): MetaSpecificationReloadItem {
+    export function create(folderPaths: string[]): MetaSpecificationReloadItem {
         return {
-            folderPaths,
-            supportedFileTypes
+            folderPaths
         };
     }
 }

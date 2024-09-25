@@ -13,19 +13,22 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { META_FILE_TYPES, SUPPORTED_DYNAMIC_FILE_TYPES } from '@cinco-glsp/cinco-glsp-common';
+import { SUPPORTED_DYNAMIC_FILE_TYPES } from '@cinco-glsp/cinco-glsp-common';
 import 'reflect-metadata';
 import { launch } from './app';
 import { MetaSpecificationLoader } from './meta/meta-specification-loader';
+import { LanguageFilesRegistry } from '@cinco-glsp/cinco-glsp-api';
 
-function loadMetaFiles(): void {
+async function loadLanguageFiles(): Promise<void> {
     /**
      * Load meta specification if available
      * Load all files from language-folder.
      * These files contain the language-designer defined hooks, actions, generators, etc.
      */
-    MetaSpecificationLoader.load(META_FILE_TYPES);
+    await MetaSpecificationLoader.load();
+    LanguageFilesRegistry.init();
     MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
 }
-loadMetaFiles();
-launch(process.argv).catch((error: any): void => console.error('Error in cinco server launcher:', error));
+loadLanguageFiles().then(_ => {
+    launch(process.argv).catch((error: any): void => console.error('Error in cinco server launcher:', error));
+});

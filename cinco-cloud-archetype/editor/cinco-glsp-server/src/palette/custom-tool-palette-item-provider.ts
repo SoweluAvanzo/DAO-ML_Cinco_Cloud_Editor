@@ -14,22 +14,21 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Args, PaletteItem } from '@eclipse-glsp/protocol';
-import { GraphModelState, getFilesFromFolder, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
+import { GraphModelState, GraphModelStorage, ModelElement, getModelFiles, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
 import {
     ElementType,
     getEdgePalettes,
     getEdgeSpecOf,
-    getGraphTypes,
     getIconClass,
     getNodePalettes,
     getNodeSpecOf,
     getPaletteIconClass,
     getPalettes,
-    getPrimeNodePalettes,
+    getPrimeNodePaletteCategoriesOf,
     getSpecOf,
     hasPalette,
-    hasPrimeReference,
-    isCreateable
+    isCreateable,
+    isPrimeReference
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     OperationHandlerRegistry,
@@ -41,6 +40,7 @@ import { inject, injectable } from 'inversify';
 import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
 import { CreateOperationHandler, SpecifiedElementHandler } from '../handler/specified_element_handler';
 import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
+import * as path from 'path';
 
 @injectable()
 export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
@@ -74,7 +74,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         customNodePaletteItems
             .filter((e: string) => e !== 'Edges' && e !== 'Nodes')
             .forEach((e: string) => {
-                const p = this.createCustomItem(handlers, e, e.toLowerCase(), e, 'node');
+                const p = this.createCustomItem(handlers, e, e, 'node');
                 if (p) {
                     paletteItems.push(p);
                 }
@@ -83,25 +83,21 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         customEdgePaletteItems
             .filter((e: string) => e !== 'Edges' && e !== 'Nodes')
             .forEach((e: string) => {
-                const p = this.createCustomItem(handlers, e, e.toLowerCase(), e, 'edge');
+                const p = this.createCustomItem(handlers, e, e, 'edge');
                 if (p) {
                     paletteItems.push(p);
                 }
             });
 
         // add prime node label into palettes
-        const workspacePath = getWorkspaceRootUri();
-        const modelFileExtensions = getGraphTypes().map(gT => '.' + gT.diagramExtension);
-        const modelFiles = getFilesFromFolder(workspacePath, './', modelFileExtensions);
-        const primeNodePaletteItems = getPrimeNodePalettes();
-        primeNodePaletteItems
-            .filter((e: string) => e !== 'Edges' && e !== 'Nodes')
-            .forEach((e: string) => {
-                const p = this.createCustomItem(handlers, e, e.toLowerCase(), e, 'node', modelFiles);
-                if (p) {
-                    paletteItems.push(p);
-                }
-            });
+        const primePalettes = this.getPrimePalettes();
+        primePalettes.forEach(entry => {
+            const label = entry.categoryLabelId;
+            const p = this.createCustomItem(handlers, label, label, 'node', entry.referenceableElements);
+            if (p) {
+                paletteItems.push(p);
+            }
+        });
 
         // return palettes
         return paletteItems;
@@ -131,13 +127,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
 
     protected getSpecifiedHandlers(handlers: CreateOperationHandler[], type: string): SpecifiedElementHandler[] {
         if (type === 'nodes') {
-            const specifiedNodeHandlers = Array.from(
-                new Set(
-                    handlers
-                        .filter(h => h instanceof SpecifiedNodeHandler) // all specified handlers
-                        .map(h => h as SpecifiedNodeHandler)
-                )
-            );
+            const specifiedNodeHandlers = this.getAllSpecifiedHandler(handlers, SpecifiedNodeHandler);
             return specifiedNodeHandlers.filter(h => {
                 const specs = h.elementTypeIds.map(e => getNodeSpecOf(e));
                 const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
@@ -151,13 +141,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                 return isNoPalette.indexOf(true) >= 0;
             });
         } else if (type === 'edges') {
-            const specifiedEdgeHandler = Array.from(
-                new Set(
-                    handlers
-                        .filter(h => h instanceof SpecifiedEdgeHandler) // all specified handlers
-                        .map(h => h as SpecifiedEdgeHandler)
-                )
-            );
+            const specifiedEdgeHandler = this.getAllSpecifiedHandler(handlers, SpecifiedEdgeHandler);
             return specifiedEdgeHandler.filter(h => {
                 const specs = h.elementTypeIds.map(e => getEdgeSpecOf(e));
                 const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
@@ -174,17 +158,26 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         return [];
     }
 
+    getAllSpecifiedHandler(handlers: CreateOperationHandler[], T: any): SpecifiedElementHandler[] {
+        const specifiedHandler = Array.from([] as SpecifiedElementHandler[]);
+        for (const handler of handlers) {
+            if (handler instanceof T && specifiedHandler.filter(h => handler.constructor.name === h.constructor.name).length <= 0) {
+                specifiedHandler.push(handler as SpecifiedElementHandler);
+            }
+        }
+        return specifiedHandler;
+    }
+
     createCustomItem(
         handlers: CreateOperationHandler[], // the set of all handlers
-        categoryId: string, // value inside @palette-annotation, usally the label
-        id: string, // usually just lowercase and without whitespaces
+        categoryId: string, // the label, specifiable via the value inside @palette-annotation or the name of the prime reference
         label: string, // readable GUI name
         type: string, // 'node' or 'edge'
-        fileList?: string[] // is prime node ?
+        primeReferencedEntries?: PrimeReferencedEntry[]
     ): PaletteItem | undefined {
         let handlerItemsOfLabel: PaletteItem[] = [];
         if (type === 'node') {
-            handlerItemsOfLabel = this.createCustomNodePaletteItems(handlers, categoryId, fileList);
+            handlerItemsOfLabel = this.createCustomNodePaletteItems(handlers, categoryId, primeReferencedEntries);
         } else if (type === 'edge') {
             handlerItemsOfLabel = this.createCustomEdgePaletteItems(handlers, categoryId);
         }
@@ -193,7 +186,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         }
         const paletteIconClass = getPaletteIconClass(categoryId) ?? 'symbol-property';
         const p = {
-            id: id,
+            id: categoryId.toLowerCase(),
             label: label,
             actions: [],
             children: handlerItemsOfLabel,
@@ -203,23 +196,21 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         return p;
     }
 
-    createCustomNodePaletteItems(handlers: CreateOperationHandler[], categoryId: string, fileList?: string[]): PaletteItem[] {
+    createCustomNodePaletteItems(
+        handlers: CreateOperationHandler[],
+        categoryId: string,
+        primeReferencedEntries?: PrimeReferencedEntry[]
+    ): PaletteItem[] {
         const filteredHandlers = handlers
             .filter(h => h instanceof SpecifiedNodeHandler)
             .map(h => h as SpecifiedNodeHandler)
             .filter(nh => {
                 const specs = nh.elementTypeIds.map(e => getNodeSpecOf(e));
-                specs.forEach(s => {
-                    if (hasPrimeReference(s!.elementTypeId) && s!.palettes === undefined) {
-                        const labelName = getNodeSpecOf(s!.elementTypeId)!.primeReference!.name;
-                        s!.palettes = [labelName];
-                    }
-                });
                 const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
                 const isPaletteOfCategory = palettesPerSpec.map(palettes => palettes !== undefined && palettes.indexOf(categoryId) >= 0);
                 return isPaletteOfCategory.indexOf(true) >= 0;
             });
-        return this.createSortedPaletteItems(filteredHandlers, categoryId, fileList);
+        return this.createSortedPaletteItems(filteredHandlers, categoryId, primeReferencedEntries);
     }
 
     createCustomEdgePaletteItems(handlers: CreateOperationHandler[], categoryId: string): PaletteItem[] {
@@ -235,7 +226,11 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         return this.createSortedPaletteItems(filteredHandlers, categoryId);
     }
 
-    createSortedPaletteItems(handlers: CreateOperationHandler[], categoryId: string, fileList?: string[]): PaletteItem[] {
+    createSortedPaletteItems(
+        handlers: CreateOperationHandler[],
+        categoryId: string,
+        primeReferencedEntries?: PrimeReferencedEntry[]
+    ): PaletteItem[] {
         const paletteItems: PaletteItem[] = [];
         handlers.forEach(handler => {
             if (handler instanceof SpecifiedElementHandler) {
@@ -252,10 +247,12 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                             (hasPalette(elementTypeId, categoryId) ||
                                 (getPalettes(elementTypeId).length <= 0 && this.WHITE_LIST.includes(categoryId)))
                         ) {
-                            if (hasPrimeReference(elementTypeId)) {
-                                if (fileList && fileList.length > 0) {
-                                    fileList.forEach(file => {
-                                        paletteItems.push(this.createPaletteItem(action, handler, elementTypeId, file));
+                            if (isPrimeReference(elementTypeId)) {
+                                if (primeReferencedEntries && primeReferencedEntries.length > 0) {
+                                    primeReferencedEntries.forEach(entry => {
+                                        if (entry.primeNodeType === elementTypeId) {
+                                            paletteItems.push(this.createPaletteItem(action, handler, elementTypeId, entry));
+                                        }
                                     });
                                 }
                             } else {
@@ -276,10 +273,10 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         action: PaletteItem.TriggerElementCreationAction,
         handler: CreateOperationHandler,
         elementTypeId?: string,
-        fileName?: string
+        primeArgs?: PrimeReferencedEntry
     ): PaletteItem {
-        if (elementTypeId && hasPrimeReference(elementTypeId) && fileName) {
-            return this.createPrimePaletteIten(action, handler, elementTypeId, fileName);
+        if (elementTypeId && isPrimeReference(elementTypeId) && primeArgs) {
+            return this.createPrimePaletteIten(action, handler, elementTypeId, primeArgs);
         }
         const label = elementTypeId && handler instanceof SpecifiedElementHandler ? handler.getLabelFor(elementTypeId) : handler.label;
         let iconClass: string | undefined = undefined;
@@ -294,35 +291,165 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                 iconClass = getIconClass(handler.specification?.elementTypeId);
             }
         }
-        return {
-            id: `palette-item-${this.counter}`,
+        const id = `palette-item-${this.counter}`;
+        const result = {
+            id: id,
             label,
             sortString: label.charAt(0),
             actions: [action],
             icon: iconClass ?? 'circle-filled'
         };
+        this.counter++;
+        return result;
     }
 
     createPrimePaletteIten(
         action: PaletteItem.TriggerElementCreationAction,
         handler: CreateOperationHandler,
         elementTypeId: string,
-        fileName: string
+        primeArgs: PrimeReferencedEntry
     ): PaletteItem {
-        const primeType = getNodeSpecOf(elementTypeId)?.primeReference?.type;
-        const elementSpecOfPrimedType = getSpecOf(primeType!) as ElementType;
-        const label = elementSpecOfPrimedType.label + '(' + fileName + ')';
+        const elementSpecOfPrimedType = getSpecOf(primeArgs.instanceType!) as ElementType;
+        const label = elementSpecOfPrimedType.label + '\n[' + primeArgs.instanceId + ']\n' + ' (' + primeArgs.filePath + ')';
 
         let iconClass: string | undefined = undefined;
         if (handler instanceof SpecifiedElementHandler) {
             iconClass = getIconClass(elementTypeId);
         }
-        return {
-            id: `palette-item-${this.counter}`,
+        // add prime information to action of palette element
+        const primeAction = { ...action };
+        primeAction.args = {};
+        (primeAction.args as any)['instanceId'] = primeArgs.instanceId;
+        (primeAction.args as any)['instanceType'] = primeArgs.instanceType;
+        (primeAction.args as any)['modelId'] = primeArgs.modelId;
+        (primeAction.args as any)['modelType'] = primeArgs.modelType;
+        (primeAction.args as any)['filePath'] = primeArgs.filePath;
+
+        const id = `palette-item-${primeArgs.primeNodeType}-${this.counter}`;
+        const result = {
+            id: id,
             label,
             sortString: label.charAt(0),
-            actions: [action],
+            actions: [primeAction],
             icon: iconClass ?? 'codicon-circle-filled'
+        };
+        this.counter++;
+        return result;
+    }
+
+    getPrimePalettes(): PrimePaletteCategoryEntry[] {
+        const modelFiles = getModelFiles();
+        const primeNodePaletteCategories = getPrimeNodePaletteCategoriesOf(this.state.graphModel.type);
+        const primePalettes: PrimePaletteCategoryEntry[] = primeNodePaletteCategories
+            .filter(e => e.label !== 'Edges' && e.label !== 'Nodes')
+            .map(e => {
+                const primeReferencableElements = modelFiles
+                    .map(file => {
+                        const filePath = path.join(getWorkspaceRootUri(), file);
+                        const model = GraphModelStorage.readModelFromFile(filePath);
+                        if (model) {
+                            const allSupportedModelElementsOfModel = model
+                                ?.getAllContainments()
+                                .concat(model)
+                                .filter(
+                                    element =>
+                                        ModelElement.is(element) &&
+                                        // polymorphic check
+                                        e.elementTypeIds.find(primeType => element.instanceOf(primeType))
+                                ) as ModelElement[];
+                            return allSupportedModelElementsOfModel.map(
+                                element =>
+                                    ({
+                                        primeNodeType: e.primeElementTypeId,
+                                        instanceId: element.id,
+                                        instanceType: element.type,
+                                        modelId: model.id,
+                                        modelType: model.type,
+                                        filePath: file
+                                    }) as PrimeReferencedEntry
+                            );
+                        }
+                        return undefined;
+                    })
+                    .flat()
+                    .filter(entry => entry !== undefined) as PrimeReferencedEntry[];
+                return {
+                    categoryLabelId: e.label,
+                    referenceableElements: primeReferencableElements
+                } as PrimePaletteCategoryEntry;
+            });
+        // merge palettes
+        const mergedPrimePallettes = new Map<string, PrimePaletteCategoryEntry>();
+        for (const newEntry of primePalettes) {
+            const categoryLabelId = newEntry.categoryLabelId;
+            if (!mergedPrimePallettes.has(categoryLabelId)) {
+                // set
+                mergedPrimePallettes.set(categoryLabelId, newEntry);
+            } else {
+                // merge
+                const oldEntry = mergedPrimePallettes.get(categoryLabelId)!;
+                mergedPrimePallettes.set(categoryLabelId, PrimePaletteCategoryEntry.merge(oldEntry, newEntry));
+            }
+        }
+        return Array.from(mergedPrimePallettes.values());
+    }
+}
+
+/** PrimeReference helper-interfaces */
+
+interface PrimeReferencedEntry {
+    primeNodeType: string;
+    instanceId: string;
+    instanceType: string;
+    modelId: string;
+    modelType: string;
+    filePath: string;
+}
+
+namespace PrimeReferencedEntry {
+    export function equals(object1: PrimeReferencedEntry, object2: PrimeReferencedEntry): boolean {
+        return (
+            object1.filePath === object2.filePath &&
+            object1.primeNodeType === object2.primeNodeType &&
+            object1.instanceId === object2.instanceId &&
+            object1.instanceType === object2.instanceType
+        );
+    }
+}
+
+interface PrimePaletteCategoryEntry {
+    categoryLabelId: string;
+    referenceableElements: PrimeReferencedEntry[];
+}
+
+namespace PrimePaletteCategoryEntry {
+    export function merge(object1: PrimePaletteCategoryEntry, object2: PrimePaletteCategoryEntry): PrimePaletteCategoryEntry {
+        if (object1.categoryLabelId !== object2.categoryLabelId) {
+            return object1;
+        }
+        let currentElements = object1.referenceableElements;
+        const incomingElements = object2.referenceableElements;
+
+        // update all new
+        const newElements: PrimeReferencedEntry[] = [];
+        incomingElements.forEach(n => {
+            let exists = false;
+            for (const c of currentElements) {
+                if (PrimeReferencedEntry.equals(c, n)) {
+                    // if exists
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                // if not exists
+                newElements.push(n);
+            }
+        });
+        currentElements = newElements.concat(currentElements);
+        return {
+            categoryLabelId: object1.categoryLabelId,
+            referenceableElements: currentElements
         };
     }
 }

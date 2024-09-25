@@ -33,10 +33,11 @@ import {
     ModelSubmissionHandler
 } from '@eclipse-glsp/server';
 import { RootPath } from './root-path';
-import { ModelElement } from '../model/graph-model';
+import { GraphModel, ModelElement } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
 import * as fileHelper from '../utils/file-helper';
+import { GraphModelStorage } from '../model/graph-storage';
 
 export abstract class APIBaseHandler {
     protected readonly logger: Logger;
@@ -47,6 +48,7 @@ export abstract class APIBaseHandler {
     CHANNEL_NAME: string | undefined;
 
     constructor(
+        // TODO-Sami: Bundle these Clases together
         logger: Logger,
         modelState: GraphModelState,
         actionDispatcher: ActionDispatcher,
@@ -77,7 +79,7 @@ export abstract class APIBaseHandler {
      * @param message
      * @param options
      */
-    log(message: string, options?: { channelName?: string; show?: boolean; logLevel?: LogLevel }): void {
+    async log(message: string, options?: { channelName?: string; show?: boolean; logLevel?: LogLevel }): Promise<void> {
         switch (options?.logLevel) {
             case LogLevel.debug:
                 this.logger.debug(message);
@@ -101,7 +103,11 @@ export abstract class APIBaseHandler {
             logLevel: options?.logLevel?.toString() ?? LogLevel.info.toString()
         };
         const serverOutputAction = ServerOutputAction.create(channelName, message, o);
-        this.actionDispatcher.dispatch(serverOutputAction);
+        try {
+            await this.actionDispatcher.dispatch(serverOutputAction);
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     /**
@@ -112,7 +118,12 @@ export abstract class APIBaseHandler {
      */
     executeCommand(commandId: string, args: any[]): Promise<void> {
         const commandAction = CommandAction.create(commandId, args);
-        return this.actionDispatcher.dispatch(commandAction);
+        try {
+            return this.actionDispatcher.dispatch(commandAction);
+        } catch (e) {
+            console.log(e);
+            return new Promise<void>(resolve => resolve());
+        }
     }
 
     debug(message: Error | string | undefined): void {
@@ -150,12 +161,16 @@ export abstract class APIBaseHandler {
      * @param severity "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
      * @returns
      */
-    notify(message: string, severity?: SeverityLevel, details?: string, timeout?: number): void {
+    async notify(message: string, severity?: SeverityLevel, details?: string, timeout?: number): Promise<void> {
         const messageAction = MessageAction.create(message, {
             severity: severity ?? 'INFO',
             details: details ?? ''
         });
-        this.actionDispatcher.dispatch(messageAction);
+        try {
+            await this.actionDispatcher.dispatch(messageAction);
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     dialog(title: string, message: string): Promise<string> {
@@ -163,7 +178,11 @@ export abstract class APIBaseHandler {
             const callback: (response: any) => void = (response: ServerDialogResponse) => resolve(response.result);
             const messageId = ServerResponseHandler.registerResponseHandling(callback);
             const serverDialog = ServerDialogAction.create(messageId, title, message);
-            this.actionDispatcher.dispatch(serverDialog);
+            try {
+                this.actionDispatcher.dispatch(serverDialog);
+            } catch (e) {
+                console.log(e);
+            }
         });
     }
 
@@ -223,6 +242,11 @@ export abstract class APIBaseHandler {
     readFile(relativePath: string, root = RootPath.WORKSPACE, encoding = 'utf-8'): string | undefined {
         const targetPath = root.join(relativePath);
         return fileHelper.readFile(targetPath, encoding);
+    }
+
+    readModelFromFile(relativePath: string, root = RootPath.WORKSPACE): GraphModel | undefined {
+        const targetPath = root.join(relativePath);
+        return (this.sourceModelStorage as GraphModelStorage).readModelFromURI(targetPath);
     }
 
     readDirectory(relativePath: string, root = RootPath.WORKSPACE): string[] {

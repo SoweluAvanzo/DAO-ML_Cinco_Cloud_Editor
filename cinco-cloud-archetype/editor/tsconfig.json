@@ -1,10 +1,10 @@
 {
   "extends": "./configs/base.tsconfig",
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": "./"
   },
   "include": [
-    "cinco-authenticator/src",
+    "cinco-languages/src",
     "cinco-branding/src",
     "cinco-glsp-common/src",
     "cinco-glsp-api/src",

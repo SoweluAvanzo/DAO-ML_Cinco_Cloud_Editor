@@ -13,6 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { HookType, ReconnectArgument } from '@cinco-glsp/cinco-glsp-common';
+import { HookManager } from '@cinco-glsp/cinco-glsp-api';
 import { GEdge, GLSPServerError, GNode, ReconnectEdgeOperation } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
@@ -25,37 +27,76 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
         if (!operation.edgeElementId || !operation.sourceElementId || !operation.targetElementId) {
             throw new GLSPServerError('Incomplete reconnect connection action');
         }
-
         const index = this.modelState.index;
-
         const gEdge = index.findByClass(operation.edgeElementId, GEdge);
         const gSource = index.findByClass(operation.sourceElementId, GNode);
         const gTarget = index.findByClass(operation.targetElementId, GNode);
-
         if (!gEdge) {
             throw new Error(`Invalid edge in graph model: edge ID ${operation.edgeElementId}`);
         }
-
         const edge = index.findEdge(gEdge.id);
-
         if (!edge) {
             throw new Error(`Invalid edge in source model: edge ID ${gEdge.id}`);
-        }
-        if (!gSource) {
+        } else if (!gSource) {
             throw new Error(`Invalid source in graph model: source ID ${operation.sourceElementId}`);
-        }
-        if (!gTarget) {
+        } else if (!gTarget) {
             throw new Error(`Invalid target in graph model: target ID ${operation.targetElementId}`);
         }
-
         const source = index.findNode(gSource.id);
         const target = index.findNode(gTarget.id);
-        if (source && target && edge.canConnectToSource(source, _ => false) && edge.canConnectToTarget(target, _ => false)) {
+        if (!source || !target) {
+            throw new Error(`Could not change source and target of edge: ${edge.id}`);
+        }
+
+        // CAN
+        const inConstraint = edge.canConnectToSource(source, _ => false) && edge.canConnectToTarget(target, _ => false);
+        const reconnectArguments: ReconnectArgument = {
+            kind: 'Reconnect',
+            operation: operation,
+            sourceId: operation.sourceElementId,
+            targetId: operation.targetElementId,
+            modelElementId: operation.edgeElementId
+        };
+        const canConnect = (): boolean =>
+            HookManager.executeHook(
+                reconnectArguments,
+                HookType.CAN_RECONNECT,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
+        if (inConstraint && canConnect()) {
+            // PRE
+            HookManager.executeHook(
+                reconnectArguments,
+                HookType.PRE_RECONNECT,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
+            reconnectArguments.sourceId = edge.sourceID;
+            reconnectArguments.targetId = edge.targetID;
             edge.sourceID = gSource.id;
             edge.targetID = gTarget.id;
             edge.routingPoints = [];
+            this.modelState.refresh();
+            // POST
+            HookManager.executeHook(
+                reconnectArguments,
+                HookType.POST_RECONNECT,
+                this.modelState,
+                this.logger,
+                this.actionDispatcher,
+                this.sourceModelStorage,
+                this.submissionHandler
+            );
         } else {
-            throw new Error(`Could not change source and target of edge: ${edge.id}`);
+            this.logger.info(`Could not change source and target of edge: ${edge.id}`);
+            this.modelState.refresh();
         }
     }
 }

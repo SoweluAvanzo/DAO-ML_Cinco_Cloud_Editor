@@ -23,7 +23,6 @@ import { GLSPServerUtilServer } from '../common/glsp-server-util-protocol';
 export class GLSPServerUtilsProvider implements CommandContribution {
     @inject(MessageService) messageService: MessageService;
     @inject(GLSPServerUtilServer) glspServerUtilServer: GLSPServerUtilServer;
-    static WATCHMODE_RUNNING = false;
 
     registerCommands(commands: CommandRegistry): void {
         // intialize connection
@@ -64,11 +63,11 @@ export class GLSPServerUtilsProvider implements CommandContribution {
             .catch(error => console.log('*** Failed to start server utils: "' + error + '" ***'));
     }
 
-    registerWatchMode(commands: CommandRegistry): void {
+    async registerWatchMode(commands: CommandRegistry): Promise<void> {
         const id = 'cinco-cloud.glsp.transpile-watch';
+        const watchModeIsRunning = await this.glspServerUtilServer.transpilationIsRunning();
         const getLabel = (): string =>
-            'toggle watchmode transpilation on languages-folder' +
-            (GLSPServerUtilsProvider.WATCHMODE_RUNNING ? ' (Running)' : ' (Stopped)');
+            'toggle watchmode transpilation on languages-folder' + (watchModeIsRunning ? ' (Running)' : ' (Stopped)');
         commands.registerCommand(
             {
                 id: id,
@@ -82,14 +81,12 @@ export class GLSPServerUtilsProvider implements CommandContribution {
                     result.then(starting => {
                         if (starting) {
                             this.messageService.info('started transpilation');
-                            GLSPServerUtilsProvider.WATCHMODE_RUNNING = true;
                         } else {
                             if (starting !== undefined) {
                                 this.messageService.info('stopped transpilation');
                             } else {
                                 this.messageService.info('something went wrong');
                             }
-                            GLSPServerUtilsProvider.WATCHMODE_RUNNING = false;
                         }
                         // commands.unregisterCommand(commands.getCommand(id)!);
                         // this.registerCommands(commands);

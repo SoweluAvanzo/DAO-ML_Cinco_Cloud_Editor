@@ -34,19 +34,25 @@ FROM base
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV CINCO_CLOUD_HOST=cinco-cloud
 ENV CINCO_CLOUD_PORT=80
-ENV CINCO_CLOUD_DEBUG=false
 ENV MINIO_HOST='minio-service'
 ENV MINIO_PORT=9000
 ENV MINIO_ACCESS_KEY=''
 ENV MINIO_SECRET_KEY=''
+ENV THEIA_WEBVIEW_ENDPOINT_PATTERN={{hostname}}
 ENV THEIA_WEBVIEW_EXTERNAL_ENDPOINT={{hostname}}
 ENV THEIA_MINI_BROWSER_HOST_PATTERN={{hostname}}
 ENV INTERNAL_USE_SSL="false"
 ENV EXTERNAL_USE_SSL="false"
 ENV WORKSPACE_PATH="/editor/workspace"
 ENV EDITOR_TYPE="LANGUAGE_EDITOR"
-ENV ENVIRONMENT="local"
+ENV META_LANGUAGES_FOLDER="workspace/languages"
+ENV TRANSPILATION_MODE="WATCH"
 ENV NODE_ENV="development"
+
+# disable chromium install for puppeteer, because of arm64 incompatibility
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 # make readable for root only
 RUN chmod -R 750 /var/run/
 
@@ -77,13 +83,9 @@ RUN yarn
 
 # runtime configuration
 VOLUME /editor/workspace
-EXPOSE 3000 8000 9000
+EXPOSE 3000 3003 5007 9000 9222
 CMD cd minio-client && node bundle/cinco-minio-client --metaFolder ../cinco-glsp-server/languages && cd ../ && \
     cd /editor/browser-app && \
-    DATABASE_URL="${DATABASE_URL}" \
-    DATABASE_USER="${DATABASE_USER}" \
-    DATABASE_PASSWORD="${DATABASE_PASSWORD}" \
-    CINCO_CLOUD_DEBUG="${CINCO_CLOUD_DEBUG}" \
     CINCO_CLOUD_HOST="${CINCO_CLOUD_HOST}" \
     CINCO_CLOUD_PORT="${CINCO_CLOUD_PORT}" \
     MINIO_HOST="${MINIO_HOST}" \
@@ -91,10 +93,12 @@ CMD cd minio-client && node bundle/cinco-minio-client --metaFolder ../cinco-glsp
     MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY}" \
     MINIO_SECRET_KEY="${MINIO_SECRET_KEY}" \
     THEIA_WEBVIEW_EXTERNAL_ENDPOINT="${THEIA_WEBVIEW_EXTERNAL_ENDPOINT}" \
+    THEIA_WEBVIEW_ENDPOINT_PATTERN="${THEIA_WEBVIEW_ENDPOINT_PATTERN}" \
     THEIA_MINI_BROWSER_HOST_PATTERN="${THEIA_MINI_BROWSER_HOST_PATTERN}" \
     INTERNAL_USE_SSL="${INTERNAL_USE_SSL}" \
     EXTERNAL_USE_SSL="${EXTERNAL_USE_SSL}" \
     WORKSPACE_PATH="${WORKSPACE_PATH}" \
+    TRANSPILATION_MODE="${TRANSPILATION_MODE}" \
     EDITOR_TYPE="${EDITOR_TYPE}" \
     ENVIRONMENT="${ENVIRONMENT}" \
-    yarn run theia start --port=3000 --CINCO_GLSP=5007 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0 --META_DEV_MODE --META_LANGUAGES_FOLDER="${META_LANGUAGES_FOLDER}"
+    yarn run theia start --port=3000 --CINCO_GLSP=5007 -WEB_SERVER_PORT=3003 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0 --META_DEV_MODE --META_LANGUAGES_FOLDER="${META_LANGUAGES_FOLDER}"

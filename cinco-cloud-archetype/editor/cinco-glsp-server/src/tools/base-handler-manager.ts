@@ -92,7 +92,6 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                             leftToHandle = leftToHandle - 1;
                             if (leftToHandle <= 0) {
                                 // save model action
-                                results.push(SaveModelAction.create());
                                 resolve(results);
                             }
                         }

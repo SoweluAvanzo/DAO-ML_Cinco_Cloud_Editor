@@ -154,6 +154,10 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                                 .withValue(projectType == EditorType.LANGUAGE_EDITOR.name() ? "workspace/languages" : "cinco-glsp-server/languages")
                                 .build(),
                             new EnvVarBuilder()
+                                .withName("THEIA_WEBVIEW_EXTERNAL_ENDPOINT")
+                                .withValue("{{hostname}}")
+                                .build(),
+                            new EnvVarBuilder()
                                 .withName("THEIA_WEBVIEW_ENDPOINT_PATTERN")
                                 .withValue("{{hostname}}")
                                 .build(),
@@ -176,6 +180,10 @@ public class TheiaK8SDeployment extends TheiaK8SResource<StatefulSet> {
                             new EnvVarBuilder()
                                 .withName("WEBSERVER_HOST_MAPPING")
                                 .withValue("workspaces/"+getProjectName()+"/web")
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("TRANSPILATION_MODE")
+                                .withValue(projectType == EditorType.LANGUAGE_EDITOR.name() ? "WATCH" : "ONCE")
                                 .build()
                                 
                         )

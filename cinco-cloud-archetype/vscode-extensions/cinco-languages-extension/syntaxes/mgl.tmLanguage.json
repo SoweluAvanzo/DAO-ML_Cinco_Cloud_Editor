@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.mgl",
-      "match": "\\b(Date|abstract|as|attr|boolean|containableElements|container|diagramExtension|edge|enum|extends|external|final|graphModel|iconPath|id|import|includeResources|incomingEdges|node|number|outgoingEdges|override|prime|primeattr|primeparam|stealth|string|style|stylePath|this|type|unique)\\b"
+      "match": "\\b(Container|Date|Edge|GraphModel|ModelElement|ModelElementContainer|Node|abstract|as|attr|boolean|containableElements|container|diagramExtension|edge|enum|extends|external|final|graphModel|iconPath|id|import|includeResources|incomingEdges|node|number|outgoingEdges|override|prime|primeattr|primeparam|stealth|string|style|stylePath|this|type|unique)\\b"
     },
     {
       "name": "string.quoted.double.mgl",

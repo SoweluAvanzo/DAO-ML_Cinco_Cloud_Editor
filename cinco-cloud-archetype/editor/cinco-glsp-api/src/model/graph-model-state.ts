@@ -27,7 +27,7 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
     protected _graphModel: GraphModel;
 
     get sourceModel(): object {
-        return this.resolveGraphmodel(this.graphModel, new GraphModel(), undefined);
+        return GraphModelState.resolveGraphmodel(this.graphModel, new GraphModel(), undefined);
     }
 
     get graphModel(): GraphModel {
@@ -35,7 +35,7 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
     }
 
     set graphModel(graphModel: GraphModel) {
-        this._graphModel = this.resolveGraphmodel(graphModel, new GraphModel(), this.index);
+        this._graphModel = GraphModelState.resolveGraphmodel(graphModel, new GraphModel(), this.index);
         this.index.indexGraphModel(this._graphModel);
     }
 
@@ -43,7 +43,7 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
         this.graphModel = this._graphModel;
     }
 
-    resolveGraphmodel(source: GraphModel, target: GraphModel, index: GraphModelIndex | undefined): GraphModel {
+    static resolveGraphmodel(source: GraphModel, target: GraphModel, index: GraphModelIndex | undefined): GraphModel {
         target = Object.assign(target, source);
         target.index = index;
         target.containments = this.resolveContainments(source, index);
@@ -51,11 +51,11 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
         return target;
     }
 
-    resolveEdges(graphmodel: GraphModel, index: GraphModelIndex | undefined): Edge[] {
+    static resolveEdges(graphmodel: GraphModel, index: GraphModelIndex | undefined): Edge[] {
         return graphmodel._edges.map(el => this.cleanModelElementInstance(el, index) as Edge);
     }
 
-    resolveContainments(el: ModelElementContainer, index: GraphModelIndex | undefined): Node[] {
+    static resolveContainments(el: ModelElementContainer, index: GraphModelIndex | undefined): Node[] {
         let containments = el._containments;
         if (containments === undefined) {
             return [];
@@ -66,7 +66,7 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
         return containments;
     }
 
-    cleanModelElementInstance(el: ModelElement, index: GraphModelIndex | undefined): ModelElement | undefined {
+    static cleanModelElementInstance(el: ModelElement, index: GraphModelIndex | undefined): ModelElement | undefined {
         let element: ModelElement | undefined;
         const spec = getSpecOf(el.type);
         if (NodeType.is(spec)) {
@@ -87,7 +87,7 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
         return element;
     }
 
-    copyModelElementProperties<T extends ModelElement>(source: T, index: GraphModelIndex | undefined, target: T): T {
+    static copyModelElementProperties<T extends ModelElement>(source: T, index: GraphModelIndex | undefined, target: T): T {
         target.type = source.type;
         target.initializeProperties();
         target = Object.assign(target, source);
@@ -101,14 +101,14 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
             if (!this.graphModel._sourceUri) {
                 throw new Error('SourceModel has no sourceUri.');
             }
-            const graphModel = this.fixMissingProperties(sourceModel, this.graphModel._sourceUri);
+            const graphModel = GraphModelState.fixMissingProperties(sourceModel, this.graphModel._sourceUri);
             this.graphModel = graphModel;
         } else {
             throw new Error('SourceModel update is no valid GraphModel!');
         }
     }
 
-    fixMissingProperties(graphModel: GraphModel, sourceUri: string): GraphModel {
+    static fixMissingProperties(graphModel: GraphModel, sourceUri: string): GraphModel {
         if (!graphModel.type) {
             graphModel.type = getGraphModelOfFileType(getFileExtension(sourceUri))?.elementTypeId ?? 'graphmodel';
         }

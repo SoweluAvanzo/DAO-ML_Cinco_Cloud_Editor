@@ -15,6 +15,7 @@
  ********************************************************************************/
 
 import { Annotation, Attribute, Enum, UserDefinedType, getAttribute, getCustomType, getNonAbstractTypeOptions } from '../meta-specification';
+import { hasStringProp } from './type-utils';
 
 export interface ModelElementIndex {
     [type: string]: LabeledModelElementReference[];
@@ -297,15 +298,33 @@ export interface AddValue {
     defaultValue: any;
 }
 
+export namespace AddValue {
+    export function is(object: any): object is AddValue {
+        return hasStringProp(object, 'kind') && object.kind === 'addValue';
+    }
+}
+
 export interface AssignValue {
     kind: 'assignValue';
     value: any;
     index?: number;
 }
 
+export namespace AssignValue {
+    export function is(object: any): object is AssignValue {
+        return hasStringProp(object, 'kind') && object.kind === 'assignValue';
+    }
+}
+
 export interface DeleteValue {
     kind: 'deleteValue';
     index?: number;
+}
+
+export namespace DeleteValue {
+    export function is(object: any): object is DeleteValue {
+        return hasStringProp(object, 'kind') && object.kind === 'deleteValue';
+    }
 }
 
 export interface ChangeType {
@@ -314,3 +333,4 @@ export interface ChangeType {
     newType: string;
     newValue: any;
 }
+

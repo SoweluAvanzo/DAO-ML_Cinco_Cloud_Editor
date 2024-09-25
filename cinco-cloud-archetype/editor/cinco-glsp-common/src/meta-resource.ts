@@ -14,15 +14,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { TranspilationMode } from './protocol/args-protocol';
+
 export const META_LANGUAGES_FRONTEND_FOLDER = 'languages';
 export const META_LANGUAGES_FOLDER = 'cinco-glsp-server/languages';
 export const WORKSPACE_FOLDER = 'workspace';
 export const SERVER_LANGUAGES_FOLDER = 'cinco-glsp-server/lib/languages'; // @deprecated: this should not be used anymore
-export const META_FILE_TYPES = ['.json'];
+export const META_FILE_TYPES = ['.json', '.mgl', '.msl', '.style'];
 export const RESOURCE_TYPES = ['.css'];
 export const SUPPORTED_DYNAMIC_FILE_TYPES = ['.js'];
 export const DIAGRAM_TYPE = 'cinco-diagram';
-export const DEVELOPMENT_MODE = false;
 
 // environment and args keys
 export const META_DEV_MODE = 'META_DEV_MODE';
@@ -35,8 +36,10 @@ export const WEBSOCKET_PORT_KEY = 'WEBSOCKET_PORT';
 export const WEB_SERVER_PORT_KEY = 'WEB_SERVER_PORT';
 export const WEBSOCKET_HOST_MAPPING = 'WEBSOCKET_HOST_MAPPING';
 export const WEBSERVER_HOST_MAPPING = 'WEBSERVER_HOST_MAPPING';
+export const TRANSPILATION_MODE_KEY = 'TRANSPILATION_MODE';
 export const USE_SSL = 'USE_SSL';
 export const DEFAULT_WEBSOCKET_PATH = DIAGRAM_TYPE;
 export const DEFAULT_THEIA_PORT = 3000;
 export const DEFAULT_WEB_SERVER_PORT = 3003;
 export const DEFAULT_SERVER_PORT = 5007;
+export const DEFAULT_TRANSPILATION_MODE = TranspilationMode.NONE;

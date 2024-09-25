@@ -13,9 +13,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, hasArg } from '@cinco-glsp/cinco-glsp-common';
+import { META_DEV_MODE, META_LANGUAGES_FOLDER, SERVER_LANGUAGES_FOLDER, getGraphTypes, hasArg } from '@cinco-glsp/cinco-glsp-common';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
+import { fileURLToPath } from 'url';
+
+export const FOLDER_TYPE = ':FOLDER';
 
 /**
  * @param targetPath
@@ -37,24 +41,39 @@ export function getFilesFromDirectories(directories: string[], filterTypes: stri
     return result;
 }
 
-export function getFiles(absFolderPath: string, filterTypes: string[]): string[] {
+export function getFiles(absFolderPath: string, filterTypes: string[] = []): string[] {
     try {
-        console.log(`loading files from:  ${absFolderPath}`);
-        return getFilesFromFolder(absFolderPath, './', filterTypes);
+        return getFileEntities(absFolderPath, './', filterTypes);
     } catch (e) {
         console.log('failed to access filesystem.');
     }
     return [];
 }
 
-export function getFilesFromFolder(absRoot: string, folderPath: string, filterTypes?: string[]): string[] {
+export function getSubfolder(absFolderPath: string, depth?: number): string[] {
+    if (depth === 0) {
+        return [];
+    }
+    try {
+        let subfolders = getFileEntities(absFolderPath, './', [FOLDER_TYPE]);
+        for (const sf of subfolders) {
+            subfolders = subfolders.concat(getSubfolder(sf, (depth ?? 0) - 1));
+        }
+        return subfolders;
+    } catch (e) {
+        console.log('failed to access filesystem.');
+    }
+    return [];
+}
+
+function getFileEntities(absRoot: string, folderPath: string, filterTypes?: string[]): string[] {
     const absoluteFolderPath = path.join(absRoot, folderPath);
     if (!fs.existsSync(absoluteFolderPath)) {
         return [];
     }
     // file or folder exists
     const found = fs.readdirSync(absoluteFolderPath) as string[]; // all found files and directories
-    let foundFiles = found.filter(file => {
+    let foundEntities = found.filter(file => {
         const absPath = path.join(absoluteFolderPath, file);
         try {
             return fs.readFileSync(absPath); // if file can be read, it is a file
@@ -65,7 +84,7 @@ export function getFilesFromFolder(absRoot: string, folderPath: string, filterTy
     const foundFolders = found.filter(folder => {
         const absPath = path.join(absoluteFolderPath, folder);
         try {
-            return fs.readdirSync(absPath); // if directory can be read, it is a folder} catch (e)
+            return existsDirectory(absPath); // if directory can be read, it is a folder catch (e)
         } catch (e) {
             return false;
         }
@@ -73,19 +92,28 @@ export function getFilesFromFolder(absRoot: string, folderPath: string, filterTy
     const containedFiles: string[] = [];
     foundFolders.forEach((folder: string) => {
         const relativeFolderPath = path.join(folderPath, folder);
-        const filesFromFolder = getFilesFromFolder(absRoot, relativeFolderPath, filterTypes);
+        const filesFromFolder = getFileEntities(absRoot, relativeFolderPath, filterTypes);
         filesFromFolder.forEach(file => {
             const relativeFilePath = path.join(folder, file);
             containedFiles.push(relativeFilePath);
         });
     });
 
-    foundFiles = foundFiles.concat(containedFiles);
+    foundEntities = foundEntities.concat(containedFiles);
     if (filterTypes && filterTypes.length > 0) {
         // filter by filterTypes
-        foundFiles = getFilesByExtensions(foundFiles, filterTypes);
+        foundEntities = getFilesByExtensions(
+            foundEntities,
+            filterTypes.filter(f => f !== FOLDER_TYPE)
+        );
+        if (filterTypes.includes(FOLDER_TYPE)) {
+            if (filterTypes.length === 1) {
+                foundEntities = []; // remove all files, that were previously added...
+            }
+            foundEntities = foundEntities.concat(foundFolders.map(f => `${absRoot}/${f}`)); // ...and add only the folders
+        }
     }
-    return foundFiles;
+    return foundEntities;
 }
 
 export function readFile(filePath: string, encoding = 'utf-8'): string | undefined {
@@ -131,18 +159,26 @@ export function readFilesFromDirectories(directories: string[], filterTypes: str
     return result;
 }
 
+export function getModelFiles(): string[] {
+    const workspacePath = getWorkspaceRootUri();
+    const modelFileExtensions = getGraphTypes().map(gT => '.' + gT.diagramExtension);
+    return getFiles(workspacePath, modelFileExtensions);
+}
+
 export function isAbsolute(dir: string): boolean {
     return dir.startsWith('/');
 }
 
-export function readJson(filePath: string, encoding?: string): object | undefined {
+export function readJson(filePath: string, options?: { hideError?: boolean; encoding?: string }): object | undefined {
     const content = readFile(filePath);
     if (content) {
         try {
             return JSON.parse(content);
-            // Do something with the parsed data
         } catch (err) {
-            console.error(err);
+            if (!options || !options.hideError) {
+                console.error('Error parsing json-file: ' + filePath);
+                console.error(err);
+            }
         }
     }
     return undefined;
@@ -225,6 +261,15 @@ export function copyDirectory(
     }
 }
 
+export function toPath(sourceUri: string): string {
+    let sourcePath = sourceUri.startsWith('file://') ? fileURLToPath(sourceUri) : sourceUri;
+    if (os.platform() === 'win32') {
+        // Remove the leading slash if it exists (Windows paths don't have it)
+        sourcePath = sourcePath.replace(/^\//, '');
+    }
+    return sourcePath;
+}
+
 /**
  * Bundled file is per convention in the folder 'bundle' inside servers root-folder
  */
@@ -285,6 +330,11 @@ export function getWebsocketPathArg(): string | undefined {
     return getArgs(argsKey);
 }
 
+export function getTranspilationModeArg(): string | undefined {
+    const argsKey = '--transpilationMode';
+    return getArgs(argsKey);
+}
+
 export function getWebServerPortArg(): number | undefined {
     const argsKey = '--webServerPort';
     if (hasArg(argsKey)) {
@@ -294,7 +344,7 @@ export function getWebServerPortArg(): number | undefined {
     }
 }
 
-export function isDevModeArg(): boolean {
+export function isMetaDevModeArg(): boolean {
     const argsKey = '--metaDevMode';
     const args = process.argv.filter(a => a.startsWith(argsKey));
     if (args.length > 0) {
@@ -317,4 +367,16 @@ export function getArgs(argsKey: string): string | undefined {
         }
     }
     return undefined;
+}
+
+export function isMetaDevMode(): boolean {
+    if (isMetaDevModeArg()) {
+        return true;
+    }
+    const metaDevModeString = process.env[META_DEV_MODE];
+    if (!metaDevModeString) {
+        console.log('ENV VAR META_DEV_MODE - not set');
+    }
+    const metaDevMode = metaDevModeString === 'true' || metaDevModeString === 'True';
+    return metaDevMode;
 }

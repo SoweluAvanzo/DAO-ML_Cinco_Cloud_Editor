@@ -18,9 +18,8 @@ import { getWorkspaceRootUri, getLanguageFolder } from '../utils/file-helper';
 import * as path from 'path';
 
 export class RootPath {
-
     static readonly WORKSPACE = new RootPath('WORKSPACE', getWorkspaceRootUri);
-    static readonly LANGUGAES = new RootPath('LANGUGAES', getLanguageFolder);
+    static readonly LANGUAGES = new RootPath('LANGUAGES', getLanguageFolder);
 
     readonly name: string;
     private readonly pathFunction: () => string;
@@ -37,5 +36,4 @@ export class RootPath {
     join(relativePath: string): string {
         return path.join(this.path, relativePath);
     }
-
 }

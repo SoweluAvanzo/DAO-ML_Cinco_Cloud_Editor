@@ -22,7 +22,9 @@ import {
     getFileExtension,
     WEBSERVER_HOST_MAPPING,
     WEBSOCKET_HOST_MAPPING,
-    USE_SSL
+    USE_SSL,
+    TranspilationMode,
+    DEFAULT_TRANSPILATION_MODE
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     DEFAULT_META_DEV_MODE,
@@ -53,6 +55,7 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
                 DEFAULT_WEBSOCKET_PATH,
                 DEFAULT_WEB_SERVER_PORT,
                 process.env[USE_SSL] === 'true' ?? false,
+                DEFAULT_TRANSPILATION_MODE,
                 process.env[WEBSERVER_HOST_MAPPING],
                 process.env[WEBSOCKET_HOST_MAPPING]
             );
@@ -91,6 +94,7 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
         websocketPath: string,
         webServerPort: number,
         useSSL: boolean,
+        startUpTranspilation: TranspilationMode,
         webserverHostMapping?: string,
         websocketHostMapping?: string
     ): void {
@@ -104,6 +108,7 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
             websocketPath: websocketPath,
             webServerPort: webServerPort,
             useSSL: useSSL,
+            startUpTranspilation: startUpTranspilation,
             webserverHostMapping: webserverHostMapping,
             websocketHostMapping: websocketHostMapping
         } as ServerArgs;
@@ -159,6 +164,30 @@ export class GLSPServerUtilServerNode implements GLSPServerUtilServer {
                 }
             });
         }
+    }
+
+    handleInitialTranspilation(): void {
+        const transpilationMode = GLSPServerUtilServerNode.SERVER_ARGS.startUpTranspilation;
+        switch (transpilationMode) {
+            case TranspilationMode.WATCH:
+                this.transpileWatchLanguagesFolder().then(e => {
+                    console.log('Startup Watchmode Transpilation of TypeScript files was executed!');
+                });
+                break;
+            case TranspilationMode.ONCE:
+                this.transpileLanguagesFolder()?.then(_ => {
+                    console.log('Startup Transpilation of TypeScript files was executed!');
+                });
+                break;
+            case TranspilationMode.NONE:
+                break;
+        }
+    }
+
+    transpilationIsRunning(): Promise<boolean> {
+        return new Promise(resolve =>
+            resolve(GLSPServerUtilServerNode.watchModeProcess ? !GLSPServerUtilServerNode.watchModeProcess.killed : false)
+        );
     }
 }
 
