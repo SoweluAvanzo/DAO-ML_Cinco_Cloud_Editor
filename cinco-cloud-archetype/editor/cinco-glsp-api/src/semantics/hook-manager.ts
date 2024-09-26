@@ -27,7 +27,9 @@ import {
     hasHooks,
     DoubleClickArgument,
     getHooksOfType,
-    SaveModelFileArgument
+    SaveModelFileArgument,
+    mapCell,
+    Cell
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     ActionDispatcher,
@@ -615,9 +617,23 @@ export class HookManager {
      */
 
     private static canReconnectHook(hook: AbstractEdgeHook, parameters: ReconnectArgument, modelElement: ModelElement): boolean {
-        const newSource = modelElement.index.findNode(parameters.sourceId);
-        const newTarget = modelElement.index.findNode(parameters.targetId);
-        if (Edge.is(modelElement) && newSource && newTarget) {
+        const newSource: Cell<Node> = mapCell(parameters.sourceId, sourceID => {
+            const source = modelElement.index.findNode(sourceID);
+            if (source !== undefined) {
+                return source;
+            } else {
+                throw new Error(`Undefined source ID in canReconnectHook parameters: ${sourceID}`);
+            }
+        });
+        const newTarget = mapCell(parameters.targetId, targetID => {
+            const target = modelElement.index.findNode(targetID);
+            if (target !== undefined) {
+                return target;
+            } else {
+                throw new Error(`Undefined target ID in canReconnectHook parameters: ${targetID}`);
+            }
+        });
+        if (Edge.is(modelElement)) {
             return !hook.canAttributeChange || hook.canReconnect(modelElement, newSource, newTarget);
         } else {
             throw new Error('Could not execute canReconnectHook.');
@@ -625,9 +641,23 @@ export class HookManager {
     }
 
     private static preReconnectHook(hook: AbstractEdgeHook, parameters: ReconnectArgument, modelElement: ModelElement): void {
-        const newSource = modelElement.index.findNode(parameters.sourceId);
-        const newTarget = modelElement.index.findNode(parameters.targetId);
-        if (hook.preReconnect && Edge.is(modelElement) && newSource && newTarget) {
+        const newSource: Cell<Node> = mapCell(parameters.sourceId, sourceID => {
+            const source = modelElement.index.findNode(sourceID);
+            if (source !== undefined) {
+                return source;
+            } else {
+                throw new Error(`Undefined source ID in preReconnectHook parameters: ${sourceID}`);
+            }
+        });
+        const newTarget = mapCell(parameters.targetId, targetID => {
+            const target = modelElement.index.findNode(targetID);
+            if (target !== undefined) {
+                return target;
+            } else {
+                throw new Error(`Undefined target ID in preReconnectHook parameters: ${targetID}`);
+            }
+        });
+        if (hook.preReconnect && Edge.is(modelElement)) {
             hook.preReconnect(modelElement, newSource, newTarget);
         } else {
             throw new Error('Could execute preReconnectHook.');
@@ -635,9 +665,23 @@ export class HookManager {
     }
 
     private static postReconnectHook(hook: AbstractEdgeHook, parameters: ReconnectArgument, modelElement: ModelElement): void {
-        const oldSource = modelElement.index.findNode(parameters.sourceId);
-        const oldTarget = modelElement.index.findNode(parameters.targetId);
-        if (hook.postReconnect && Edge.is(modelElement) && oldSource && oldTarget) {
+        const oldSource: Cell<Node> = mapCell(parameters.sourceId, sourceID => {
+            const source = modelElement.index.findNode(sourceID);
+            if (source !== undefined) {
+                return source;
+            } else {
+                throw new Error(`Undefined source ID in postReconnectHook parameters: ${sourceID}`);
+            }
+        });
+        const oldTarget = mapCell(parameters.targetId, targetID => {
+            const target = modelElement.index.findNode(targetID);
+            if (target !== undefined) {
+                return target;
+            } else {
+                throw new Error(`Undefined target ID in canReconnectHook parameters: ${targetID}`);
+            }
+        });
+        if (hook.postReconnect && Edge.is(modelElement)) {
             hook.postReconnect(modelElement, oldSource, oldTarget);
         } else {
             throw new Error('Could execute postReconnectHook.');

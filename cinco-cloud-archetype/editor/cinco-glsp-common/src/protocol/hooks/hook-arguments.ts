@@ -17,7 +17,7 @@ import { Dimension, ReconnectEdgeOperation } from '@eclipse-glsp/server';
 import { ManagedBaseAction, Operation } from '../shared-protocol';
 import { PropertyEditOperation } from '../property-protocol';
 import { Point } from '../../meta-specification';
-import { Cell } from '@cinco-glsp/cinco-glsp-api';
+import { Cell } from '../../model/cell';
 
 export type OperationArgument = Argument &
     (

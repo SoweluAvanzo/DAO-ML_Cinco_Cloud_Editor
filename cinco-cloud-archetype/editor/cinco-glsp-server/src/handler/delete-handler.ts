@@ -13,11 +13,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { isChoice, Container, Edge, Node, ModelElement, HookManager } from '@cinco-glsp/cinco-glsp-api';
+import { Container, Edge, Node, ModelElement, HookManager } from '@cinco-glsp/cinco-glsp-api';
 import { DeleteElementOperation, SaveModelAction, remove } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import { DeleteArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
+import { isChoice, DeleteArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class DeleteHandler extends CincoJsonOperationHandler {
@@ -84,9 +84,7 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             this.modelState.graphModel.edges.forEach((edge: Edge) => {
                 if (edge.sourceID === element.id || edge.targetID === element.id) {
                     remove(this.modelState.graphModel._edges, edge);
-                    return;
-                }
-                if (isChoice(edge.sourceID) && edge.sourceID.options.includes(element.id)) {
+                } else if (isChoice(edge.sourceID) && edge.sourceID.options.includes(element.id)) {
                     edge.sourceID = {
                         tag: 'choice',
                         options: edge.sourceID.options.filter(sourceID => sourceID !== element.id)

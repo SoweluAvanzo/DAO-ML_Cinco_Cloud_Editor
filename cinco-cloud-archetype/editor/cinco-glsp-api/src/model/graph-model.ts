@@ -53,11 +53,14 @@ import {
     View,
     WebView,
     isInstanceOf,
-    UserDefinedType
+    UserDefinedType,
+    Cell,
+    cellValues,
+    isConflictFree,
+    mapCell
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { GraphModelIndex } from './graph-model-index';
-import { Cell, cellValues, isConflictFree } from './cell';
 import { GraphModelStorage } from './graph-storage';
 import { getModelFiles, getWorkspaceRootUri } from '../utils/file-helper';
 import * as path from 'path';
@@ -683,8 +686,8 @@ export class Edge extends ModelElement {
         return cellValues(this.sourceID);
     }
 
-    sources(): Node[] {
-        return this.sourceIDs().map(sourceID => {
+    source(): Cell<Node> {
+        return mapCell(this.sourceID, sourceID => {
             const node = this.index!.findNode(sourceID);
             if (!node) {
                 throw new Error(`Edge with id ${this.id} has an undefined sourceID ${sourceID}.`);
@@ -693,18 +696,26 @@ export class Edge extends ModelElement {
         });
     }
 
+    sources(): ReadonlyArray<Node> {
+        return cellValues(this.source());
+    }
+
     targetIDs(): ReadonlyArray<string> {
         return cellValues(this.targetID);
     }
 
-    targets(): Node[] {
-        return this.targetIDs().map(targetID => {
+    target(): Cell<Node> {
+        return mapCell(this.targetID, targetID => {
             const node = this.index!.findNode(targetID);
             if (!node) {
-                throw new Error(`Edge with id ${this.id} has an undefined targetID ${targetID}.`);
+                throw new Error(`Edge with id ${this.id} has an undefined sourceID ${targetID}.`);
             }
             return node;
         });
+    }
+
+    targets(): ReadonlyArray<Node> {
+        return cellValues(this.target());
     }
 
     canConnectToTarget(node: Node, filter?: (e: Edge) => boolean): boolean {

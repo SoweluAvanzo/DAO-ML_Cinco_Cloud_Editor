@@ -9,5 +9,5 @@
     "skipLibCheck": true,
     "types": []
   },
-  "include": ["src", "../cinco-glsp-api/src/model/model-element-types.ts"]
+  "include": ["src"]
 }
