@@ -703,7 +703,7 @@ export class Edge extends ModelElement {
         const id = this.targetID;
         const node = this.index!.findNode(id);
         if (!node) {
-            throw new Error("Edge with id '" + this.id + "' has an undefined target.");
+            throw new Error(`Edge with id ${this.id} has an undefined targetID ${this.targetID}.`);
         }
         return node;
     }

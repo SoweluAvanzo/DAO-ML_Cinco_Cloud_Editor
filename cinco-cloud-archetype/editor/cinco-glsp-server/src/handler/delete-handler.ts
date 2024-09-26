@@ -84,9 +84,7 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             this.modelState.graphModel.edges.forEach((edge: Edge) => {
                 if (edge.sourceID === element.id || edge.targetID === element.id) {
                     remove(this.modelState.graphModel._edges, edge);
-                    return;
-                }
-                if (isChoice(edge.sourceID) && edge.sourceID.options.includes(element.id)) {
+                } else if (isChoice(edge.sourceID) && edge.sourceID.options.includes(element.id)) {
                     edge.sourceID = {
                         tag: 'choice',
                         options: edge.sourceID.options.filter(sourceID => sourceID !== element.id)
