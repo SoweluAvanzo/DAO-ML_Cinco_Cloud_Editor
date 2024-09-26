@@ -15,7 +15,7 @@
       ],
       "outFiles": [
         "${workspaceRoot}/cinco-languages-extension/out/**/*.js"
-      ],
+      ]
     },
     {
       "name": "Attach to MGL language server",
@@ -24,6 +24,7 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
+      "restart": true,
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/cinco-languages-extension/out/**/*.js",
@@ -38,6 +39,7 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
+      "restart": true,
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/cinco-languages-extension/out/**/*.js",
