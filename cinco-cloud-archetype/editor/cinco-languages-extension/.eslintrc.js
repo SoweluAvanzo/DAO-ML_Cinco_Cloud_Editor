@@ -11,7 +11,7 @@ module.exports = {
         '@typescript-eslint/no-shadow': 'warn',
         // eslint-plugin-header
         'header/header': [
-            2,
+            4,
             'block',
             [
                 {
