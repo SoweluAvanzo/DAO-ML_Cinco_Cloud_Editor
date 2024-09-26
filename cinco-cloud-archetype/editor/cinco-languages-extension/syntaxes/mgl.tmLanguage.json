@@ -73,28 +73,25 @@
     },
     "annotation": {
       "name": "support.function.annotation.cinco",
-      "begin": "@([A-Za-z_][A-Za-z0-9_]*)",
+      "begin": "@\\s*\\b([A-Za-z_][A-Za-z0-9_]*)\\b\\s*(\\()?",
       "beginCaptures": {
         "1": {
           "name": "entity.name.function.annotation.cinco"
         }
       },
-      "end": "(\\)|\\s)",
+      "end": "(?=\\)|node|edge|graphModel|type|container|attr|id|stylePath|@|import|prime)",
       "patterns": [
         {
           "include": "#languagePrecedence"
         },
         {
           "include": "#parameterName"
-        },
-        {
-          "include": "#keywordPrecedence"
         }
       ]
     },
     "attributeDeclaration": {
       "name": "attribute.declaration",
-      "begin": "\\b(attr)\\b\\s*",
+      "begin": "\\b(attr|prime)\\b\\s*",
       "beginCaptures": {
         "1": {
           "name": "keyword.declaration.attribute"
@@ -144,7 +141,7 @@
       "patterns": [
         {
           "name": "keyword.control.cinco",
-          "match": "\\b(\\s)*(abstract|node|edge|container|graphModel|enum)(\\s)*\\b"
+          "match": "\\b(\\s)*(abstract|node|edge|container|graphModel|enum|type)(\\s)*\\b"
         }
       ]
     },
@@ -152,7 +149,7 @@
       "patterns": [
         {
           "name": "support.function.cinco",
-          "match": "\\b(\\s)*(as|extends|external|this|type|prime|primeattr|primeparam|stealth|diagramExtension|stylePath|iconPath|id|import)(\\s)*\\b"
+          "match": "\\b(\\s)*(as|extends|external|this|type|primeattr|primeparam|stealth|diagramExtension|stylePath|iconPath|id|import)(\\s)*\\b"
         }
       ]
     },

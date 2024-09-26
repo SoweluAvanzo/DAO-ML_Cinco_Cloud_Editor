@@ -1,229 +1,229 @@
 {
-    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-    "name": "msl",
-    "scopeName": "source.msl",
-    "fileTypes": [
-        ".style",
-        ".msl"
-    ],
-    "patterns": [
-        {
-            "include": "#root"
-        }
-    ],
-    "repository": {
-        "root": {
-            "patterns": [
-                {
-                    "include": "#languagePrecedence"
-                },
-                {
-                    "include": "#appearance"
-                },
-                {
-                    "include": "#style"
-                },
-                {
-                    "include": "#struct"
-                },
-                {
-                    "include": "#property"
-                },
-                {
-                    "include": "#predefinedConstant"
-                }
-            ]
-        },
-        "appearance": {
-            "name": "appearance.msl",
-            "begin": "\\b\\s*(appearance)\\s*\\b",
-            "end": "}",
-            "beginCaptures": {
-                "0": {
-                    "name": "keyword.control.msl"
-                }
-            },
-            "patterns": [
-                {
-                    "include": "#root"
-                }
-            ]
-        },
-        "style": {
-            "name": "entityStyle.msl",
-            "begin": "\\b\\s*(nodeStyle|edgeStyle)\\s*\\b",
-            "end": "}",
-            "beginCaptures": {
-                "0": {
-                    "name": "keyword.control.msl"
-                }
-            },
-            "patterns": [
-                {
-                    "include": "#root"
-                }
-            ]
-        },
-        "struct": {
-            "name": "entity.struct.msl",
-            "begin": "\\b\\s*(ellipse|polygon|rectangle|roundedRectangle|decorator|text|multiText|polyline|image|appearance)\\s*\\b",
-            "end": "}",
-            "beginCaptures": {
-                "0": {
-                    "name": "keyword.other.msl"
-                }
-            },
-            "patterns": [
-                {
-                    "include": "#root"
-                }
-            ]
-        },
-        "property": {
-            "patterns": [
-                {
-                    "name": "support.function.msl",
-                    "match": "\\b\\s*(extends|background|foreground|font|lineStyle|lineWidth|transparency|filled|imagePath|appearanceProvider|fixed|type|anchor|position|size|corner|value|path|points|location|fix|movable|transparency)\\s*\\b"
-                }
-            ]
-        },
-        "predefinedConstant": {
-            "patterns": [
-                {
-                    "name": "constant.character.escape.predefined.cinco",
-                    "match": "\\b\\s*(freeform|manhatten|curved|composite|ARROW|BOLD|BOTTOM|CENTER|CIRCLE|DASH|DASHDOT|DASHDOTDOT|DIAMOND|DOT|ITALIC|LEFT|MIDDLE|RIGHT|SOLID|TOP|TRIANGLE)\\s*\\b"
-                }
-            ]
-        },
-        "languagePrecedence": {
-            "patterns": [
-                {
-                    "include": "#comments"
-                },
-                {
-                    "include": "#strings"
-                },
-                {
-                    "include": "#assignmentOperator"
-                },
-                {
-                    "include": "#punctuationComma"
-                },
-                {
-                    "include": "#booleanConstant"
-                },
-                {
-                    "include": "#numericConstant"
-                }
-            ]
-        },
-        "numericConstant": {
-            "patterns": [
-                {
-                    "name": "constant.numeric.cinco",
-                    "match": "\\b\\d+\\b"
-                }
-            ]
-        },
-        "booleanConstant": {
-            "patterns": [
-                {
-                    "name": "constant.character.escape.boolean.cinco",
-                    "match": "\\b(true|false|TRUE|FALSE|True|False)\\b"
-                }
-            ]
-        },
-        "punctuationComma": {
-            "patterns": [
-                {
-                    "name": "punctuation.definition.array.cinco",
-                    "match": "\\((\\s*\\b\\d+\\b\\s*,\\s*\\b\\d+\\b\\s*)?\\)"
-                }
-            ]
-        },
-        "assignmentOperator": {
-            "patterns": [
-                {
-                    "name": "keyword.operator.assignment.cinco",
-                    "match": "(=|:=)"
-                }
-            ]
-        },
-        "strings": {
-            "patterns": [
-                {
-                    "include": "#doubleQuotedString"
-                },
-                {
-                    "include": "#singleQuotedString"
-                }
-            ]
-        },
-        "doubleQuotedString": {
-            "name": "string.quoted.double",
-            "begin": "(\")",
-            "end": "(\")",
-            "patterns": [
-                {
-                    "name": "constant.character.escape",
-                    "match": "\\\\."
-                },
-                {
-                    "include": "#singleQuotedString"
-                }
-            ]
-        },
-        "singleQuotedString": {
-            "name": "string.quoted.double",
-            "begin": "(')",
-            "end": "(')",
-            "patterns": [
-                {
-                    "name": "constant.character.escape",
-                    "match": "\\\\."
-                },
-                {
-                    "include": "#doubleQuotedString"
-                }
-            ]
-        },
-        "comments": {
-            "patterns": [
-                {
-                    "include": "#commentBlock"
-                },
-                {
-                    "include": "#comment"
-                }
-            ]
-        },
-        "commentBlock": {
-            "begin": "\\/\\*",
-            "end": "\\*\\/",
-            "beginCaptures": {
-                "0": {
-                    "name": "comment.block"
-                }
-            },
-            "endCaptures": {
-                "0": {
-                    "name": "comment.block"
-                }
-            },
-            "patterns": [
-                {
-                    "name": "comment.block",
-                    "match": "."
-                }
-            ]
-        },
-        "comment": {
-            "patterns": [
-                {
-                    "name": "comment.block",
-                    "match": "\\/\\/(.)*"
-                }
-            ]
-        }
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "msl",
+  "scopeName": "source.msl",
+  "fileTypes": [
+    ".style",
+    ".msl"
+  ],
+  "patterns": [
+    {
+      "include": "#root"
     }
+  ],
+  "repository": {
+    "root": {
+      "patterns": [
+        {
+          "include": "#languagePrecedence"
+        },
+        {
+          "include": "#appearance"
+        },
+        {
+          "include": "#style"
+        },
+        {
+          "include": "#struct"
+        },
+        {
+          "include": "#property"
+        },
+        {
+          "include": "#predefinedConstant"
+        }
+      ]
+    },
+    "appearance": {
+      "name": "appearance.msl",
+      "begin": "\\b\\s*(appearance)\\s*\\b",
+      "end": "}",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.control.msl"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#root"
+        }
+      ]
+    },
+    "style": {
+      "name": "entityStyle.msl",
+      "begin": "\\b\\s*(nodeStyle|edgeStyle)\\s*\\b",
+      "end": "}",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.control.msl"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#root"
+        }
+      ]
+    },
+    "struct": {
+      "name": "entity.struct.msl",
+      "begin": "\\b\\s*(ellipse|polygon|rectangle|roundedRectangle|decorator|text|multiText|polyline|image|webView|appearance)\\s*\\b",
+      "end": "}",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.other.msl"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#root"
+        }
+      ]
+    },
+    "property": {
+      "patterns": [
+        {
+          "name": "support.function.msl",
+          "match": "\\b\\s*(extends|background|foreground|font|lineStyle|lineWidth|transparency|filled|imagePath|appearanceProvider|fixed|type|anchor|position|size|corner|value|path|points|location|fix|movable|transparency|scrollable|padding|content)\\s*\\b"
+        }
+      ]
+    },
+    "predefinedConstant": {
+      "patterns": [
+        {
+          "name": "constant.character.escape.predefined.cinco",
+          "match": "\\b\\s*(freeform|manhatten|curved|composite|ARROW|BOLD|BOTTOM|CENTER|CIRCLE|DASH|DASHDOT|DASHDOTDOT|DIAMOND|DOT|ITALIC|LEFT|MIDDLE|RIGHT|SOLID|TOP|TRIANGLE)\\s*\\b"
+        }
+      ]
+    },
+    "languagePrecedence": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#assignmentOperator"
+        },
+        {
+          "include": "#punctuationComma"
+        },
+        {
+          "include": "#booleanConstant"
+        },
+        {
+          "include": "#numericConstant"
+        }
+      ]
+    },
+    "numericConstant": {
+      "patterns": [
+        {
+          "name": "constant.numeric.cinco",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "booleanConstant": {
+      "patterns": [
+        {
+          "name": "constant.character.escape.boolean.cinco",
+          "match": "\\b(true|false|TRUE|FALSE|True|False)\\b"
+        }
+      ]
+    },
+    "punctuationComma": {
+      "patterns": [
+        {
+          "name": "punctuation.definition.array.cinco",
+          "match": "\\((\\s*\\b\\d+\\b\\s*,\\s*\\b\\d+\\b\\s*)?\\)"
+        }
+      ]
+    },
+    "assignmentOperator": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.cinco",
+          "match": "(=|:=)"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "include": "#doubleQuotedString"
+        },
+        {
+          "include": "#singleQuotedString"
+        }
+      ]
+    },
+    "doubleQuotedString": {
+      "name": "string.quoted.double",
+      "begin": "(\")",
+      "end": "(\")",
+      "patterns": [
+        {
+          "name": "constant.character.escape",
+          "match": "\\\\."
+        },
+        {
+          "include": "#singleQuotedString"
+        }
+      ]
+    },
+    "singleQuotedString": {
+      "name": "string.quoted.double",
+      "begin": "(')",
+      "end": "(')",
+      "patterns": [
+        {
+          "name": "constant.character.escape",
+          "match": "\\\\."
+        },
+        {
+          "include": "#doubleQuotedString"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "include": "#commentBlock"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "commentBlock": {
+      "begin": "\\/\\*",
+      "end": "\\*\\/",
+      "beginCaptures": {
+        "0": {
+          "name": "comment.block"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "comment.block"
+        }
+      },
+      "patterns": [
+        {
+          "name": "comment.block",
+          "match": "."
+        }
+      ]
+    },
+    "comment": {
+      "patterns": [
+        {
+          "name": "comment.block",
+          "match": "\\/\\/(.)*"
+        }
+      ]
+    }
+  }
 }

@@ -17,12 +17,14 @@ import { startLanguageServer } from 'langium';
 import { NodeFileSystem } from 'langium/node';
 import { createConnection, ProposedFeatures } from 'vscode-languageserver/node';
 import { MslModule } from '@cinco-glsp/cinco-languages';
+import { MslCompletionProvider } from './msl-completion-provider';
 
 // Create a connection to the client
 const connection = createConnection(ProposedFeatures.all);
 
 // Inject the shared services and language-specific services
-const { shared } = MslModule.createMslServices({ connection, ...NodeFileSystem });
+const { shared, Msl } = MslModule.createMslServices({ connection, ...NodeFileSystem });
+Msl.lsp.CompletionProvider = new MslCompletionProvider(Msl);
 
 // Start the language server with the shared services
 startLanguageServer(shared);

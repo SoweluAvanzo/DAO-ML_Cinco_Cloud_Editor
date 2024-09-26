@@ -10,7 +10,7 @@ Style:
 	NodeStyle | EdgeStyle;
 
 NodeStyle:
-	'nodeStyle' name=ID ('(' parameterCount=INT ')')? '{'
+	'nodeStyle' name=ID ('(' (parameterCount=INT)? ')')? '{'
         (
             ('appearanceProvider' '('appearanceProvider=STRING')')
             & (fixed?='fixed')
@@ -19,7 +19,7 @@ NodeStyle:
 	'}';
 
 EdgeStyle:
-	'edgeStyle' name=ID ('(' parameterCount=INT ')')? '{'
+	'edgeStyle' name=ID ('(' (parameterCount=INT)? ')')? '{'
         (
             ('appearanceProvider' '('appearanceProvider=STRING')')
             & ( ('appearance' referencedAppearance=[Appearance]) | (inlineAppearance=InlineAppearance) )
@@ -162,7 +162,7 @@ ConnectionDecorator:
 	'decorator' (name=ID)? '{'
         (
             ('location' '(' location=DOUBLE ')'
-            & (movable?='movable')
+            & (movable?='movable') // TODO: currently not implemented
             & (decoratorShape=GraphicsAlgorithm | predefinedDecorator=PredefinedDecorator))
         )
 	'}';

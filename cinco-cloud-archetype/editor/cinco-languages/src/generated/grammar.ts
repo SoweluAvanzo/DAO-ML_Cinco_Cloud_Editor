@@ -169,7 +169,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                       "arguments": []
                     }
                   }
-                ]
+                ],
+                "cardinality": "?"
               },
               {
                 "$type": "Group",
@@ -205,7 +206,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                           "arguments": []
                         }
                       }
-                    ]
+                    ],
+                    "cardinality": "?"
                   }
                 ],
                 "cardinality": "*"
@@ -404,13 +406,17 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "$type": "Group",
             "elements": [
               {
-                "$type": "Keyword",
-                "value": ":",
-                "cardinality": "?"
-              },
-              {
-                "$type": "Keyword",
-                "value": "="
+                "$type": "Alternatives",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": ":="
+                  },
+                  {
+                    "$type": "Keyword",
+                    "value": "="
+                  }
+                ]
               },
               {
                 "$type": "Assignment",
@@ -587,13 +593,17 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "$type": "Group",
             "elements": [
               {
-                "$type": "Keyword",
-                "value": ":",
-                "cardinality": "?"
-              },
-              {
-                "$type": "Keyword",
-                "value": "="
+                "$type": "Alternatives",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": ":="
+                  },
+                  {
+                    "$type": "Keyword",
+                    "value": "="
+                  }
+                ]
               },
               {
                 "$type": "Assignment",
@@ -747,24 +757,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                             "value": "("
                           },
                           {
-                            "$type": "Assignment",
-                            "feature": "styleParameters",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@29"
-                              },
-                              "arguments": []
-                            }
-                          },
-                          {
                             "$type": "Group",
                             "elements": [
-                              {
-                                "$type": "Keyword",
-                                "value": ","
-                              },
                               {
                                 "$type": "Assignment",
                                 "feature": "styleParameters",
@@ -776,9 +770,32 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                   },
                                   "arguments": []
                                 }
+                              },
+                              {
+                                "$type": "Group",
+                                "elements": [
+                                  {
+                                    "$type": "Keyword",
+                                    "value": ","
+                                  },
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "styleParameters",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@29"
+                                      },
+                                      "arguments": []
+                                    },
+                                    "cardinality": "?"
+                                  }
+                                ],
+                                "cardinality": "*"
                               }
                             ],
-                            "cardinality": "*"
+                            "cardinality": "?"
                           },
                           {
                             "$type": "Keyword",
@@ -885,31 +902,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "value": "{"
                   },
                   {
-                    "$type": "Assignment",
-                    "feature": "localConnection",
-                    "operator": "+=",
-                    "terminal": {
-                      "$type": "CrossReference",
-                      "type": {
-                        "$ref": "#/rules@8"
-                      },
-                      "terminal": {
-                        "$type": "RuleCall",
-                        "rule": {
-                          "$ref": "#/rules@34"
-                        },
-                        "arguments": []
-                      },
-                      "deprecatedSyntax": false
-                    }
-                  },
-                  {
                     "$type": "Group",
                     "elements": [
-                      {
-                        "$type": "Keyword",
-                        "value": ","
-                      },
                       {
                         "$type": "Assignment",
                         "feature": "localConnection",
@@ -928,9 +922,39 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                           },
                           "deprecatedSyntax": false
                         }
+                      },
+                      {
+                        "$type": "Group",
+                        "elements": [
+                          {
+                            "$type": "Keyword",
+                            "value": ","
+                          },
+                          {
+                            "$type": "Assignment",
+                            "feature": "localConnection",
+                            "operator": "+=",
+                            "terminal": {
+                              "$type": "CrossReference",
+                              "type": {
+                                "$ref": "#/rules@8"
+                              },
+                              "terminal": {
+                                "$type": "RuleCall",
+                                "rule": {
+                                  "$ref": "#/rules@34"
+                                },
+                                "arguments": []
+                              },
+                              "deprecatedSyntax": false
+                            },
+                            "cardinality": "?"
+                          }
+                        ],
+                        "cardinality": "*"
                       }
                     ],
-                    "cardinality": "*"
+                    "cardinality": "?"
                   },
                   {
                     "$type": "Keyword",
@@ -1127,24 +1151,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "value": "{"
                   },
                   {
-                    "$type": "Assignment",
-                    "feature": "elements",
-                    "operator": "+=",
-                    "terminal": {
-                      "$type": "RuleCall",
-                      "rule": {
-                        "$ref": "#/rules@34"
-                      },
-                      "arguments": []
-                    }
-                  },
-                  {
                     "$type": "Group",
                     "elements": [
-                      {
-                        "$type": "Keyword",
-                        "value": ","
-                      },
                       {
                         "$type": "Assignment",
                         "feature": "elements",
@@ -1156,9 +1164,32 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                           },
                           "arguments": []
                         }
+                      },
+                      {
+                        "$type": "Group",
+                        "elements": [
+                          {
+                            "$type": "Keyword",
+                            "value": ","
+                          },
+                          {
+                            "$type": "Assignment",
+                            "feature": "elements",
+                            "operator": "+=",
+                            "terminal": {
+                              "$type": "RuleCall",
+                              "rule": {
+                                "$ref": "#/rules@34"
+                              },
+                              "arguments": []
+                            },
+                            "cardinality": "?"
+                          }
+                        ],
+                        "cardinality": "*"
                       }
                     ],
-                    "cardinality": "*"
+                    "cardinality": "?"
                   },
                   {
                     "$type": "Keyword",
@@ -1225,31 +1256,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                     "value": "{"
                   },
                   {
-                    "$type": "Assignment",
-                    "feature": "localContainments",
-                    "operator": "+=",
-                    "terminal": {
-                      "$type": "CrossReference",
-                      "type": {
-                        "$ref": "#/rules@19"
-                      },
-                      "terminal": {
-                        "$type": "RuleCall",
-                        "rule": {
-                          "$ref": "#/rules@34"
-                        },
-                        "arguments": []
-                      },
-                      "deprecatedSyntax": false
-                    }
-                  },
-                  {
                     "$type": "Group",
                     "elements": [
-                      {
-                        "$type": "Keyword",
-                        "value": ","
-                      },
                       {
                         "$type": "Assignment",
                         "feature": "localContainments",
@@ -1268,9 +1276,39 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                           },
                           "deprecatedSyntax": false
                         }
+                      },
+                      {
+                        "$type": "Group",
+                        "elements": [
+                          {
+                            "$type": "Keyword",
+                            "value": ","
+                          },
+                          {
+                            "$type": "Assignment",
+                            "feature": "localContainments",
+                            "operator": "+=",
+                            "terminal": {
+                              "$type": "CrossReference",
+                              "type": {
+                                "$ref": "#/rules@19"
+                              },
+                              "terminal": {
+                                "$type": "RuleCall",
+                                "rule": {
+                                  "$ref": "#/rules@34"
+                                },
+                                "arguments": []
+                              },
+                              "deprecatedSyntax": false
+                            },
+                            "cardinality": "?"
+                          }
+                        ],
+                        "cardinality": "*"
                       }
                     ],
-                    "cardinality": "*"
+                    "cardinality": "?"
                   },
                   {
                     "$type": "Keyword",
@@ -1560,12 +1598,14 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                       "arguments": []
                                     }
                                   }
-                                ]
+                                ],
+                                "cardinality": "?"
                               }
                             ],
                             "cardinality": "*"
                           }
-                        ]
+                        ],
+                        "cardinality": "?"
                       },
                       {
                         "$type": "Keyword",
@@ -1885,24 +1925,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                             "value": "("
                           },
                           {
-                            "$type": "Assignment",
-                            "feature": "styleParameters",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@29"
-                              },
-                              "arguments": []
-                            }
-                          },
-                          {
                             "$type": "Group",
                             "elements": [
-                              {
-                                "$type": "Keyword",
-                                "value": ","
-                              },
                               {
                                 "$type": "Assignment",
                                 "feature": "styleParameters",
@@ -1914,9 +1938,32 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                   },
                                   "arguments": []
                                 }
+                              },
+                              {
+                                "$type": "Group",
+                                "elements": [
+                                  {
+                                    "$type": "Keyword",
+                                    "value": ","
+                                  },
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "styleParameters",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@29"
+                                      },
+                                      "arguments": []
+                                    },
+                                    "cardinality": "?"
+                                  }
+                                ],
+                                "cardinality": "*"
                               }
                             ],
-                            "cardinality": "*"
+                            "cardinality": "?"
                           },
                           {
                             "$type": "Keyword",
@@ -1939,41 +1986,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         "value": "("
                       },
                       {
-                        "$type": "Alternatives",
-                        "elements": [
-                          {
-                            "$type": "Assignment",
-                            "feature": "incomingEdgeConnections",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@9"
-                              },
-                              "arguments": []
-                            }
-                          },
-                          {
-                            "$type": "Assignment",
-                            "feature": "incomingWildcards",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@27"
-                              },
-                              "arguments": []
-                            }
-                          }
-                        ]
-                      },
-                      {
                         "$type": "Group",
                         "elements": [
-                          {
-                            "$type": "Keyword",
-                            "value": ","
-                          },
                           {
                             "$type": "Alternatives",
                             "elements": [
@@ -2002,9 +2016,49 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                 }
                               }
                             ]
+                          },
+                          {
+                            "$type": "Group",
+                            "elements": [
+                              {
+                                "$type": "Keyword",
+                                "value": ","
+                              },
+                              {
+                                "$type": "Alternatives",
+                                "elements": [
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "incomingEdgeConnections",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@9"
+                                      },
+                                      "arguments": []
+                                    }
+                                  },
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "incomingWildcards",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@27"
+                                      },
+                                      "arguments": []
+                                    }
+                                  }
+                                ],
+                                "cardinality": "?"
+                              }
+                            ],
+                            "cardinality": "*"
                           }
                         ],
-                        "cardinality": "*"
+                        "cardinality": "?"
                       },
                       {
                         "$type": "Keyword",
@@ -2024,41 +2078,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         "value": "("
                       },
                       {
-                        "$type": "Alternatives",
-                        "elements": [
-                          {
-                            "$type": "Assignment",
-                            "feature": "outgoingEdgeConnections",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@9"
-                              },
-                              "arguments": []
-                            }
-                          },
-                          {
-                            "$type": "Assignment",
-                            "feature": "outgoingWildcards",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@27"
-                              },
-                              "arguments": []
-                            }
-                          }
-                        ]
-                      },
-                      {
                         "$type": "Group",
                         "elements": [
-                          {
-                            "$type": "Keyword",
-                            "value": ","
-                          },
                           {
                             "$type": "Alternatives",
                             "elements": [
@@ -2087,39 +2108,55 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                 }
                               }
                             ]
+                          },
+                          {
+                            "$type": "Group",
+                            "elements": [
+                              {
+                                "$type": "Keyword",
+                                "value": ","
+                              },
+                              {
+                                "$type": "Alternatives",
+                                "elements": [
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "outgoingEdgeConnections",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@9"
+                                      },
+                                      "arguments": []
+                                    }
+                                  },
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "outgoingWildcards",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@27"
+                                      },
+                                      "arguments": []
+                                    }
+                                  }
+                                ],
+                                "cardinality": "?"
+                              }
+                            ],
+                            "cardinality": "*"
                           }
                         ],
-                        "cardinality": "*"
+                        "cardinality": "?"
                       },
                       {
                         "$type": "Keyword",
                         "value": ")"
                       }
                     ]
-                  },
-                  {
-                    "$type": "Assignment",
-                    "feature": "primeReference",
-                    "operator": "=",
-                    "terminal": {
-                      "$type": "Alternatives",
-                      "elements": [
-                        {
-                          "$type": "RuleCall",
-                          "rule": {
-                            "$ref": "#/rules@22"
-                          },
-                          "arguments": []
-                        },
-                        {
-                          "$type": "RuleCall",
-                          "rule": {
-                            "$ref": "#/rules@25"
-                          },
-                          "arguments": []
-                        }
-                      ]
-                    }
                   },
                   {
                     "$type": "Alternatives",
@@ -2144,6 +2181,30 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                           "$type": "RuleCall",
                           "rule": {
                             "$ref": "#/rules@7"
+                          },
+                          "arguments": []
+                        }
+                      },
+                      {
+                        "$type": "Assignment",
+                        "feature": "primeReference",
+                        "operator": "=",
+                        "terminal": {
+                          "$type": "RuleCall",
+                          "rule": {
+                            "$ref": "#/rules@22"
+                          },
+                          "arguments": []
+                        }
+                      },
+                      {
+                        "$type": "Assignment",
+                        "feature": "primeReference",
+                        "operator": "=",
+                        "terminal": {
+                          "$type": "RuleCall",
+                          "rule": {
+                            "$ref": "#/rules@25"
                           },
                           "arguments": []
                         }
@@ -2297,24 +2358,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                             "value": "("
                           },
                           {
-                            "$type": "Assignment",
-                            "feature": "styleParameters",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@29"
-                              },
-                              "arguments": []
-                            }
-                          },
-                          {
                             "$type": "Group",
                             "elements": [
-                              {
-                                "$type": "Keyword",
-                                "value": ","
-                              },
                               {
                                 "$type": "Assignment",
                                 "feature": "styleParameters",
@@ -2326,9 +2371,32 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                   },
                                   "arguments": []
                                 }
+                              },
+                              {
+                                "$type": "Group",
+                                "elements": [
+                                  {
+                                    "$type": "Keyword",
+                                    "value": ","
+                                  },
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "styleParameters",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@29"
+                                      },
+                                      "arguments": []
+                                    },
+                                    "cardinality": "?"
+                                  }
+                                ],
+                                "cardinality": "*"
                               }
                             ],
-                            "cardinality": "*"
+                            "cardinality": "?"
                           },
                           {
                             "$type": "Keyword",
@@ -2351,41 +2419,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         "value": "("
                       },
                       {
-                        "$type": "Alternatives",
-                        "elements": [
-                          {
-                            "$type": "Assignment",
-                            "feature": "incomingEdgeConnections",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@9"
-                              },
-                              "arguments": []
-                            }
-                          },
-                          {
-                            "$type": "Assignment",
-                            "feature": "incomingWildcards",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@27"
-                              },
-                              "arguments": []
-                            }
-                          }
-                        ]
-                      },
-                      {
                         "$type": "Group",
                         "elements": [
-                          {
-                            "$type": "Keyword",
-                            "value": ","
-                          },
                           {
                             "$type": "Alternatives",
                             "elements": [
@@ -2414,9 +2449,49 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                 }
                               }
                             ]
+                          },
+                          {
+                            "$type": "Group",
+                            "elements": [
+                              {
+                                "$type": "Keyword",
+                                "value": ","
+                              },
+                              {
+                                "$type": "Alternatives",
+                                "elements": [
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "incomingEdgeConnections",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@9"
+                                      },
+                                      "arguments": []
+                                    }
+                                  },
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "incomingWildcards",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@27"
+                                      },
+                                      "arguments": []
+                                    }
+                                  }
+                                ],
+                                "cardinality": "?"
+                              }
+                            ],
+                            "cardinality": "*"
                           }
                         ],
-                        "cardinality": "*"
+                        "cardinality": "?"
                       },
                       {
                         "$type": "Keyword",
@@ -2436,41 +2511,8 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                         "value": "("
                       },
                       {
-                        "$type": "Alternatives",
-                        "elements": [
-                          {
-                            "$type": "Assignment",
-                            "feature": "outgoingEdgeConnections",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@9"
-                              },
-                              "arguments": []
-                            }
-                          },
-                          {
-                            "$type": "Assignment",
-                            "feature": "outgoingWildcards",
-                            "operator": "+=",
-                            "terminal": {
-                              "$type": "RuleCall",
-                              "rule": {
-                                "$ref": "#/rules@27"
-                              },
-                              "arguments": []
-                            }
-                          }
-                        ]
-                      },
-                      {
                         "$type": "Group",
                         "elements": [
-                          {
-                            "$type": "Keyword",
-                            "value": ","
-                          },
                           {
                             "$type": "Alternatives",
                             "elements": [
@@ -2499,9 +2541,49 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                 }
                               }
                             ]
+                          },
+                          {
+                            "$type": "Group",
+                            "elements": [
+                              {
+                                "$type": "Keyword",
+                                "value": ","
+                              },
+                              {
+                                "$type": "Alternatives",
+                                "elements": [
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "outgoingEdgeConnections",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@9"
+                                      },
+                                      "arguments": []
+                                    }
+                                  },
+                                  {
+                                    "$type": "Assignment",
+                                    "feature": "outgoingWildcards",
+                                    "operator": "+=",
+                                    "terminal": {
+                                      "$type": "RuleCall",
+                                      "rule": {
+                                        "$ref": "#/rules@27"
+                                      },
+                                      "arguments": []
+                                    }
+                                  }
+                                ],
+                                "cardinality": "?"
+                              }
+                            ],
+                            "cardinality": "*"
                           }
                         ],
-                        "cardinality": "*"
+                        "cardinality": "?"
                       },
                       {
                         "$type": "Keyword",
@@ -2586,42 +2668,20 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                                       "arguments": []
                                     }
                                   }
-                                ]
+                                ],
+                                "cardinality": "?"
                               }
                             ],
                             "cardinality": "*"
                           }
-                        ]
+                        ],
+                        "cardinality": "?"
                       },
                       {
                         "$type": "Keyword",
                         "value": ")"
                       }
                     ]
-                  },
-                  {
-                    "$type": "Assignment",
-                    "feature": "primeReference",
-                    "operator": "=",
-                    "terminal": {
-                      "$type": "Alternatives",
-                      "elements": [
-                        {
-                          "$type": "RuleCall",
-                          "rule": {
-                            "$ref": "#/rules@22"
-                          },
-                          "arguments": []
-                        },
-                        {
-                          "$type": "RuleCall",
-                          "rule": {
-                            "$ref": "#/rules@25"
-                          },
-                          "arguments": []
-                        }
-                      ]
-                    }
                   },
                   {
                     "$type": "Alternatives",
@@ -2646,6 +2706,30 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                           "$type": "RuleCall",
                           "rule": {
                             "$ref": "#/rules@7"
+                          },
+                          "arguments": []
+                        }
+                      },
+                      {
+                        "$type": "Assignment",
+                        "feature": "primeReference",
+                        "operator": "=",
+                        "terminal": {
+                          "$type": "RuleCall",
+                          "rule": {
+                            "$ref": "#/rules@22"
+                          },
+                          "arguments": []
+                        }
+                      },
+                      {
+                        "$type": "Assignment",
+                        "feature": "primeReference",
+                        "operator": "=",
+                        "terminal": {
+                          "$type": "RuleCall",
+                          "rule": {
+                            "$ref": "#/rules@25"
                           },
                           "arguments": []
                         }
@@ -2832,13 +2916,17 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
             "$type": "Group",
             "elements": [
               {
-                "$type": "Keyword",
-                "value": ":",
-                "cardinality": "?"
-              },
-              {
-                "$type": "Keyword",
-                "value": "="
+                "$type": "Alternatives",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": ":="
+                  },
+                  {
+                    "$type": "Keyword",
+                    "value": "="
+                  }
+                ]
               },
               {
                 "$type": "Assignment",
@@ -3757,7 +3845,8 @@ export const MslGrammar = (): Grammar => loadedMslGrammar ?? (loadedMslGrammar =
                     "$ref": "#/rules@39"
                   },
                   "arguments": []
-                }
+                },
+                "cardinality": "?"
               },
               {
                 "$type": "Keyword",
@@ -3877,7 +3966,8 @@ export const MslGrammar = (): Grammar => loadedMslGrammar ?? (loadedMslGrammar =
                     "$ref": "#/rules@39"
                   },
                   "arguments": []
-                }
+                },
+                "cardinality": "?"
               },
               {
                 "$type": "Keyword",
