@@ -62,12 +62,6 @@ RUN cd minio-client && yarn && cd ../
 # build theia-editor
 RUN yarn
 
-# setup vscode-extensions (delete symlinks)
-RUN rm -f ./browser-app/plugins/cinco-project-initializer-1.0.0.vsix
-RUN rm -f ./browser-app/plugins/cinco-languages-extension-1.0.0.vsix
-RUN cp ./cinco-project-initializer/cinco-project-initializer-1.0.0.vsix ./browser-app/plugins
-RUN cp ./cinco-languages-extension/cinco-languages-extension-1.0.0.vsix ./browser-app/plugins
-
 # runtime configuration
 VOLUME /editor/workspace
 EXPOSE 3000 3003 5007 9000 9222
