@@ -133,8 +133,12 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
                 const cstNodes = this.getCstNodes(context);
                 for(const cstNode of cstNodes)
                 {
-                    if(com.gate(cstNode)) {
-                        items.push(com.completion);
+                    try {
+                        if(com.gate(cstNode)) {
+                            items.push(com.completion);
+                        }
+                    } catch(e) {
+                        console.log(e);
                     }
                 }
             }
@@ -147,7 +151,7 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
                         if(com.gate(cstNode)) {
                             items.push(com.completion);
                         }
-                    }catch(e) {
+                    } catch(e) {
                         console.log(e);
                     }
                 }
