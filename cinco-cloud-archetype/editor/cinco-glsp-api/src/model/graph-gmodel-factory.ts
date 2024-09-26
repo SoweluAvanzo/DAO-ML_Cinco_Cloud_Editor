@@ -88,23 +88,29 @@ export class GraphGModelFactory implements GModelFactory {
     }
 
     protected createEdge<T extends Edge>(edge: T): GModelElement[] {
-        if (isChoice(edge.sourceID)) {
-            const sourceSegments = edge.sourceID.options.map(sourceID =>
-                this.buildEdgeSegment(
-                    edge,
-                    this.edgeSourceSegmentID(edge.id, sourceID),
-                    sourceID,
-                    this.markerEdgeSourceTargetConflictID(edge.id)
-                )
-            );
+        if (isChoice(edge.sourceID) || isChoice(edge.targetID)) {
+            const sourceSegments = edge
+                .sourceIDs()
+                .map(sourceID =>
+                    this.buildEdgeSegment(
+                        edge,
+                        this.edgeSourceSegmentID(edge.id, sourceID),
+                        sourceID,
+                        this.markerEdgeSourceTargetConflictID(edge.id)
+                    )
+                );
             const conflictMarker = this.buildConflictMarker(edge);
-            const targetSegment = this.buildEdgeSegment(
-                edge,
-                this.edgeTargetSegmentID(edge.id, edge.targetID),
-                this.markerEdgeSourceTargetConflictID(edge.id),
-                edge.targetID
-            );
-            return [...sourceSegments, conflictMarker, targetSegment];
+            const targetSegments = edge
+                .targetIDs()
+                .map(targetID =>
+                    this.buildEdgeSegment(
+                        edge,
+                        this.edgeTargetSegmentID(edge.id, targetID),
+                        targetID,
+                        this.markerEdgeSourceTargetConflictID(edge.id)
+                    )
+                );
+            return [...sourceSegments, conflictMarker, ...targetSegments];
         } else {
             return [this.buildEdgeSegment(edge, edge.id, edge.sourceID, edge.targetID)];
         }
@@ -134,7 +140,7 @@ export class GraphGModelFactory implements GModelFactory {
         return GNode.builder()
             .type('marker:edge-source-target-conflict')
             .id(this.markerEdgeSourceTargetConflictID(edge.id))
-            .position(this.calculateConflictMarkerPosition(edge.sources(), [edge.target]))
+            .position(this.calculateConflictMarkerPosition(edge.sources(), edge.targets()))
             .size(40, 40)
             .build();
     }

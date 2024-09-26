@@ -3368,7 +3368,7 @@
     http-proxy-agent "^5.0.0"
     https-proxy-agent "^5.0.0"
 
-"@theia/scm-extra@1.46.1":
+"@theia/scm-extra@1.40.0", "@theia/scm-extra@1.46.1":
   version "1.46.1"
   resolved "https://registry.yarnpkg.com/@theia/scm-extra/-/scm-extra-1.46.1.tgz#11e721515730f4e37c61ec741c5ccd04d118ef4f"
   integrity sha512-SB7lW6JM/eR52DoGsqwi6N2JWLDA+daGF0yBO1kpRoksnNps6hSDrQrFMqgAT2pXwmooOstOzKPlYlbItlElLw==

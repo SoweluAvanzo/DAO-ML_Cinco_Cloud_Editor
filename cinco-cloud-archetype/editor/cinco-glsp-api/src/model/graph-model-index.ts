@@ -91,4 +91,30 @@ export class GraphModelIndex extends GModelIndex {
     getGRoot(): GModelRoot {
         return this.findGElement(this.graphmodel.id)! as GModelRoot;
     }
+
+    getAllEdgeElements(): Edge[] {
+        return Array.from(this.edgesIndex.values());
+    }
+
+    /**
+     * Returns all incoming edges for a node.
+     *
+     * @param node The node where the edges are connected.
+     *
+     * @returns All incoming edges.
+     */
+    getIncomingEdgeElements(node: Node): Edge[] {
+        return this.getAllEdgeElements().filter(edge => edge.targetIDs().includes(node.id));
+    }
+
+    /**
+     * Returns all outgoing edges for a node.
+     *
+     * @param node The node where the edges are connected.
+     *
+     * @returns All outgoing edges.
+     */
+    getOutgoingEdgeElements(node: ModelElement): Edge[] {
+        return this.getAllEdgeElements().filter(edge => edge.sourceIDs().includes(node.id));
+    }
 }

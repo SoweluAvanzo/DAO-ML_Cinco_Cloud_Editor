@@ -55,7 +55,7 @@ import {
     isInstanceOf,
     UserDefinedType
 } from '@cinco-glsp/cinco-glsp-common';
-import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
+import { AnyObject, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { GraphModelIndex } from './graph-model-index';
 import { Cell, cellValues, isConflictFree } from './cell';
 import { GraphModelStorage } from './graph-storage';
@@ -447,7 +447,7 @@ export class Node extends ModelElement {
 
     get successors(): Node[] {
         const edges = this.outgoingEdges;
-        return edges.map(e => e.target);
+        return [...new Set(edges.flatMap(edge => edge.targets()))];
     }
 
     get predecessors(): Node[] {
@@ -456,23 +456,17 @@ export class Node extends ModelElement {
     }
 
     get outgoingEdges(): Edge[] {
-        const gNode = this.index!.findGElement(this.id) as GNode | undefined;
-        if (gNode !== undefined) {
-            const gEdges: GEdge[] | undefined = this.index!.getOutgoingEdges(gNode);
-            if (gEdges) {
-                return gEdges.map(e => this.index!.findElement(e.id)).filter(e => Edge.is(e)) as Edge[];
-            }
+        const node = this.index!.findNode(this.id);
+        if (node !== undefined) {
+            return this.index!.getOutgoingEdgeElements(node);
         }
         return [];
     }
 
     get incomingEdges(): Edge[] {
-        const gNode = this.index!.findGElement(this.id) as GNode | undefined;
-        if (gNode !== undefined) {
-            const gEdges: GEdge[] | undefined = this.index!.getIncomingEdges(gNode);
-            if (gEdges) {
-                return gEdges.map(e => this.index!.findElement(e.id)).filter(e => Edge.is(e)) as Edge[];
-            }
+        const node = this.index!.findNode(this.id);
+        if (node !== undefined) {
+            return this.index!.getIncomingEdgeElements(node);
         }
         return [];
     }
@@ -675,7 +669,7 @@ export namespace Container {
 
 export class Edge extends ModelElement {
     sourceID: Cell<string>;
-    targetID: string;
+    targetID: Cell<string>;
     _routingPoints: RoutingPoint[];
 
     initialize({ type, sourceID, targetID }: { type: string; sourceID: string; targetID: string }): void {
@@ -690,7 +684,7 @@ export class Edge extends ModelElement {
     }
 
     sources(): Node[] {
-        return cellValues(this.sourceID).map(sourceID => {
+        return this.sourceIDs().map(sourceID => {
             const node = this.index!.findNode(sourceID);
             if (!node) {
                 throw new Error(`Edge with id ${this.id} has an undefined sourceID ${sourceID}.`);
@@ -699,13 +693,18 @@ export class Edge extends ModelElement {
         });
     }
 
-    get target(): Node {
-        const id = this.targetID;
-        const node = this.index!.findNode(id);
-        if (!node) {
-            throw new Error("Edge with id '" + this.id + "' has an undefined target.");
-        }
-        return node;
+    targetIDs(): ReadonlyArray<string> {
+        return cellValues(this.targetID);
+    }
+
+    targets(): Node[] {
+        return this.targetIDs().map(targetID => {
+            const node = this.index!.findNode(targetID);
+            if (!node) {
+                throw new Error(`Edge with id ${this.id} has an undefined targetID ${targetID}.`);
+            }
+            return node;
+        });
     }
 
     canConnectToTarget(node: Node, filter?: (e: Edge) => boolean): boolean {
