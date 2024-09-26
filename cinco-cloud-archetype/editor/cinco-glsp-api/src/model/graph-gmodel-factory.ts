@@ -13,12 +13,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { EdgeType, NodeType, Point, Size, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
+import { EdgeType, NodeType, Point, Size, isChoice, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
 import { GEdge, GGraph, GModelElement, GModelFactory, GNode, GNodeBuilder } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
 import { GraphModelState } from './graph-model-state';
-import { isChoice } from './cell';
 
 @injectable()
 export class GraphGModelFactory implements GModelFactory {
@@ -139,9 +138,9 @@ export class GraphGModelFactory implements GModelFactory {
             .build();
     }
 
-    protected calculateConflictMarkerPosition(sources: Node[], targets: Node[]): Point {
-        const sourcePositions: Point[] = this.nodeCenterPoints(sources);
-        const targetPositions: Point[] = this.nodeCenterPoints(targets);
+    protected calculateConflictMarkerPosition(sources: ReadonlyArray<Node>, targets: ReadonlyArray<Node>): Point {
+        const sourcePositions = this.nodeCenterPoints(sources);
+        const targetPositions = this.nodeCenterPoints(targets);
         const markerCenter = this.positionAverage([this.positionAverage(sourcePositions), this.positionAverage(targetPositions)]);
 
         return {
@@ -150,7 +149,7 @@ export class GraphGModelFactory implements GModelFactory {
         };
     }
 
-    protected nodeCenterPoints(nodes: Node[]): Point[] {
+    protected nodeCenterPoints(nodes: ReadonlyArray<Node>): ReadonlyArray<Point> {
         return Array.from(nodes).map(node => this.centerPoint(node.position, node._size ?? { width: 0, height: 0 }));
     }
 
@@ -161,7 +160,7 @@ export class GraphGModelFactory implements GModelFactory {
         };
     }
 
-    protected positionAverage(points: Point[]): Point {
+    protected positionAverage(points: ReadonlyArray<Point>): Point {
         return {
             x: this.average(points.map(point => point.x)),
             y: this.average(points.map(point => point.y))
