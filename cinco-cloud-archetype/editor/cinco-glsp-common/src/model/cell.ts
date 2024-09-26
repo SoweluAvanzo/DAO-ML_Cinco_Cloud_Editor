@@ -14,9 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { JsonAny } from "@eclipse-glsp/server";
-
-export type Sortable = string | number | boolean;
+import { JsonAny } from '@eclipse-glsp/server';
 
 export type Optional<T> = undefined | T | Ghost<T>;
 
@@ -34,23 +32,24 @@ export function optionalValue<T>(optional: Optional<T>): T | undefined {
     return isGhost(optional) ? optional.value : optional;
 }
 
-export type Cell<T extends Sortable> = T | Choice<T>;
+export type Cell<T> = T | Choice<T>;
 
-export type Choice<T extends Sortable> = Readonly<{
+export type Choice<T> = Readonly<{
     tag: 'choice';
     options: ReadonlyArray<T>;
 }>;
 
-type CellMatcher<T extends Sortable, R> = Readonly<{
+type CellMatcher<T, R> = Readonly<{
     single: (x: T) => R;
     choice: (options: ReadonlyArray<T>) => R;
 }>;
 
-export function isChoice<T extends Sortable>(cell: Cell<T>): cell is Choice<T> {
-    return typeof cell === 'object' && cell.tag === 'choice';
+export function isChoice<T>(cell: Cell<T>): cell is Choice<T> {
+    // eslint-disable-next-line no-null/no-null
+    return typeof cell === 'object' && cell !== null && 'tag' in cell && cell.tag === 'choice';
 }
 
-export function matchCell<T extends Sortable, R>(cell: Cell<T>, { single, choice }: CellMatcher<T, R>): R {
+export function matchCell<T, R>(cell: Cell<T>, { single, choice }: CellMatcher<T, R>): R {
     if (isChoice(cell)) {
         return choice(cell.options);
     } else {
@@ -58,10 +57,17 @@ export function matchCell<T extends Sortable, R>(cell: Cell<T>, { single, choice
     }
 }
 
-export function cellValues<T extends Sortable>(cell: Cell<T>): ReadonlyArray<T> {
+export function cellValues<T>(cell: Cell<T>): ReadonlyArray<T> {
     return matchCell(cell, {
         single: value => [value],
         choice: options => options
+    });
+}
+
+export function mapCell<A, B>(cell: Cell<A>, f: (a: A) => B): Cell<B> {
+    return matchCell<A, Cell<B>>(cell, {
+        single: value => f(value),
+        choice: options => ({ tag: 'choice', options: options.map(f) })
     });
 }
 

@@ -30,7 +30,6 @@ export * from './api/validation-handler';
 export * from './api/watcher/cinco-folder-watcher';
 export * from './api/watcher/dirty-file-watcher';
 export * from './api/watcher/graph-model-watcher';
-export * from './model/cell';
 export * from './model/graph-gmodel-factory';
 export * from './model/graph-model';
 export * from './model/graph-model-index';

@@ -53,11 +53,14 @@ import {
     View,
     WebView,
     isInstanceOf,
-    UserDefinedType
+    UserDefinedType,
+    Cell,
+    cellValues,
+    isConflictFree,
+    mapCell
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { GraphModelIndex } from './graph-model-index';
-import { Cell, cellValues, isConflictFree } from './cell';
 import { GraphModelStorage } from './graph-storage';
 import { getModelFiles, getWorkspaceRootUri } from '../utils/file-helper';
 import * as path from 'path';
@@ -689,14 +692,18 @@ export class Edge extends ModelElement {
         return cellValues(this.sourceID);
     }
 
-    sources(): Node[] {
-        return cellValues(this.sourceID).map(sourceID => {
+    source(): Cell<Node> {
+        return mapCell(this.sourceID, sourceID => {
             const node = this.index!.findNode(sourceID);
             if (!node) {
                 throw new Error(`Edge with id ${this.id} has an undefined sourceID ${sourceID}.`);
             }
             return node;
         });
+    }
+
+    sources(): ReadonlyArray<Node> {
+        return cellValues(this.source());
     }
 
     get target(): Node {
