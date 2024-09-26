@@ -44,7 +44,7 @@
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
     "postinstall": "vsce package",
-    "vsce": "vsce package"
+    "vsce": "vsce package --out '../browser-app/plugins'"
   },
   "devDependencies": {
     "@types/node": "~16.18.11",
