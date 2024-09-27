@@ -13,16 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { EdgeType, NodeType, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
-import {
-    GEdge,
-    GEdgeBuilder,
-    GGraph,
-    GModelElement,
-    GModelFactory,
-    GNode,
-    GNodeBuilder
-} from '@eclipse-glsp/server';
+import { EdgeType, NodeType, Point, Size, isChoice, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
+import { GEdge, GGraph, GModelElement, GModelFactory, GNode, GNodeBuilder } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
 import { GraphModelState } from './graph-model-state';
@@ -53,7 +45,7 @@ export class GraphGModelFactory implements GModelFactory {
             }
         });
         if (container instanceof GraphModel) {
-            container._edges.forEach(e => children.push(this.createEdge(e)));
+            container._edges.forEach(e => children.push(...this.createEdge(e)));
         }
         return children;
     }
@@ -94,32 +86,100 @@ export class GraphGModelFactory implements GModelFactory {
         return builder.build();
     }
 
-    protected createEdge<T extends Edge>(edge: T, add?: (preBuild: GEdgeBuilder, t: T) => GEdgeBuilder): GEdge {
+    protected createEdge<T extends Edge>(edge: T): GModelElement[] {
+        if (isChoice(edge.sourceID)) {
+            const sourceSegments = edge.sourceID.options.map(sourceID =>
+                this.buildEdgeSegment(
+                    edge,
+                    this.edgeSourceSegmentID(edge.id, sourceID),
+                    sourceID,
+                    this.markerEdgeSourceTargetConflictID(edge.id)
+                )
+            );
+            const conflictMarker = this.buildConflictMarker(edge);
+            const targetSegment = this.buildEdgeSegment(
+                edge,
+                this.edgeTargetSegmentID(edge.id, edge.targetID),
+                this.markerEdgeSourceTargetConflictID(edge.id),
+                edge.targetID
+            );
+            return [...sourceSegments, conflictMarker, targetSegment];
+        } else {
+            return [this.buildEdgeSegment(edge, edge.id, edge.sourceID, edge.targetID)];
+        }
+    }
+
+    protected buildEdgeSegment<T extends Edge>(edge: T, id: string, sourceID: string, targetID: string): GEdge {
         const spec = getSpecOf(edge.type) as EdgeType | undefined;
-
-        // css
-        const cssClasses: string[] = edge.cssClasses ?? [];
-
+        const cssClasses = edge.cssClasses ?? [];
         const routerKind = spec?.view?.routerKind;
+
         const builder = GEdge.builder() //
             .type(edge.type)
-            .id(edge.id)
-            .sourceId(edge.sourceID)
-            .targetId(edge.targetID);
-        if (cssClasses !== undefined) {
-            cssClasses?.forEach((css: string) => builder.addCssClass(css));
-        }
+            .id(id)
+            .sourceId(sourceID)
+            .targetId(targetID);
+        cssClasses.forEach((css: string) => builder.addCssClass(css));
         if (routerKind !== undefined) {
             builder.routerKind(routerKind);
         }
-        if (add !== undefined) {
-            add(builder, edge);
-        }
-
-        // add routingPoints-, view- and property-information
         builder.addArg('routingPoints', JSON.stringify(edge.routingPoints));
         builder.addArg('persistedView', JSON.stringify(edge.view));
         builder.addArg('properties', JSON.stringify(edge.properties));
         return builder.build();
+    }
+
+    protected buildConflictMarker(edge: Edge): GNode {
+        return GNode.builder()
+            .type('marker:edge-source-target-conflict')
+            .id(this.markerEdgeSourceTargetConflictID(edge.id))
+            .position(this.calculateConflictMarkerPosition(edge.sources, [edge.target]))
+            .size(40, 40)
+            .build();
+    }
+
+    protected calculateConflictMarkerPosition(sources: ReadonlyArray<Node>, targets: ReadonlyArray<Node>): Point {
+        const sourcePositions = this.nodeCenterPoints(sources);
+        const targetPositions = this.nodeCenterPoints(targets);
+        const markerCenter = this.positionAverage([this.positionAverage(sourcePositions), this.positionAverage(targetPositions)]);
+
+        return {
+            x: markerCenter.x - 40 / 2, // TODO: Replace 40 with global constant
+            y: markerCenter.y - 40 / 2 // TODO: Replace 40 with global constant
+        };
+    }
+
+    protected nodeCenterPoints(nodes: ReadonlyArray<Node>): ReadonlyArray<Point> {
+        return Array.from(nodes).map(node => this.centerPoint(node.position, node._size ?? { width: 0, height: 0 }));
+    }
+
+    protected centerPoint(position: Point, size: Size): Point {
+        return {
+            x: position.x + size.width / 2,
+            y: position.y + size.height / 2
+        };
+    }
+
+    protected positionAverage(points: ReadonlyArray<Point>): Point {
+        return {
+            x: this.average(points.map(point => point.x)),
+            y: this.average(points.map(point => point.y))
+        };
+    }
+
+    protected average(values: number[]): number {
+        return values.reduce((a, b) => a + b, 0) / values.length;
+    }
+
+    protected edgeSourceSegmentID(edgeID: string, nodeID: string): string {
+        return `edge-source-segement-${edgeID}-${nodeID}`;
+    }
+
+    protected edgeTargetSegmentID(edgeID: string, nodeID: string): string {
+        return `edge-target-segement-${edgeID}-${nodeID}`;
+    }
+
+    protected markerEdgeSourceTargetConflictID(edgeID: string): string {
+        return `conflict-marker-${edgeID}`;
     }
 }

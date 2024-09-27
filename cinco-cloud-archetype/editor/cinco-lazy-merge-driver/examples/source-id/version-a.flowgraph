@@ -1,0 +1,85 @@
+{
+  "id": "79997fb9-a2b9-4c96-9bb1-b9ec6c9fba08",
+  "_containments": [
+    {
+      "id": "90d9a8fc-90d4-4410-9a7c-f1c1992b3a87",
+      "type": "flowgraph:activity",
+      "_attributes": {
+        "name": "Give",
+        "description": ""
+      },
+      "_size": {
+        "width": 96,
+        "height": 32
+      },
+      "_position": {
+        "x": 349,
+        "y": 143
+      }
+    },
+    {
+      "id": "4756470d-2769-4b8f-8b06-5ea5715dcbcc",
+      "type": "flowgraph:activity",
+      "_attributes": {
+        "name": "Put on",
+        "description": ""
+      },
+      "_size": {
+        "width": 96,
+        "height": 32
+      },
+      "_position": {
+        "x": 581,
+        "y": 142
+      }
+    },
+    {
+      "id": "b9777d3a-a2fb-4185-8664-83786e99fbe9",
+      "type": "flowgraph:activity",
+      "_attributes": {
+        "name": "Pick up",
+        "description": ""
+      },
+      "_size": {
+        "width": 96,
+        "height": 32
+      },
+      "_position": {
+        "x": 351,
+        "y": 231
+      }
+    },
+    {
+      "id": "8b7bdc5f-4130-4e75-a0f7-74a3cfebac85",
+      "type": "flowgraph:activity",
+      "_attributes": {
+        "name": "Turn on",
+        "description": ""
+      },
+      "_size": {
+        "width": 96,
+        "height": 32
+      },
+      "_position": {
+        "x": 349,
+        "y": 303
+      }
+    }
+  ],
+  "_edges": [
+    {
+      "id": "27242507-0532-482c-82d9-64ea2a70686b",
+      "type": "flowgraph:labeledtransition",
+      "_attributes": {
+        "label": ""
+      },
+      "sourceID": "b9777d3a-a2fb-4185-8664-83786e99fbe9",
+      "targetID": "4756470d-2769-4b8f-8b06-5ea5715dcbcc",
+      "_routingPoints": []
+    }
+  ],
+  "type": "flowgraph:flowgraphdiagram",
+  "_attributes": {
+    "modelName": ""
+  }
+}

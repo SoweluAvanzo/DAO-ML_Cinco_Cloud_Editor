@@ -45,6 +45,7 @@
     "cinco-glsp-theia",
     "browser-app",
     "cinco-glsp-standalone",
+    "cinco-lazy-merge-driver",
     "cinco-languages-extension"
   ],
   "resolutions": {
