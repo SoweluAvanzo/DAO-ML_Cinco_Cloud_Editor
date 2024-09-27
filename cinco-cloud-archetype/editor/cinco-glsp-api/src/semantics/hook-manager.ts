@@ -625,7 +625,7 @@ export class HookManager {
                 throw new Error(`Undefined source ID in canReconnectHook parameters: ${sourceID}`);
             }
         });
-        const newTarget = mapCell(parameters.targetId, targetID => {
+        const newTarget: Cell<Node> = mapCell(parameters.targetId, targetID => {
             const target = modelElement.index.findNode(targetID);
             if (target !== undefined) {
                 return target;
@@ -649,7 +649,7 @@ export class HookManager {
                 throw new Error(`Undefined source ID in preReconnectHook parameters: ${sourceID}`);
             }
         });
-        const newTarget = mapCell(parameters.targetId, targetID => {
+        const newTarget: Cell<Node> = mapCell(parameters.targetId, targetID => {
             const target = modelElement.index.findNode(targetID);
             if (target !== undefined) {
                 return target;
@@ -673,7 +673,7 @@ export class HookManager {
                 throw new Error(`Undefined source ID in postReconnectHook parameters: ${sourceID}`);
             }
         });
-        const oldTarget = mapCell(parameters.targetId, targetID => {
+        const oldTarget: Cell<Node> = mapCell(parameters.targetId, targetID => {
             const target = modelElement.index.findNode(targetID);
             if (target !== undefined) {
                 return target;

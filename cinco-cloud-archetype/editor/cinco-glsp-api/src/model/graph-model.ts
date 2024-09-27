@@ -455,7 +455,7 @@ export class Node extends ModelElement {
 
     get predecessors(): Node[] {
         const edges = this.incomingEdges;
-        return [...new Set(edges.flatMap(edge => edge.sources()))];
+        return [...new Set(edges.flatMap(edge => edge.sources))];
     }
 
     get outgoingEdges(): Edge[] {
@@ -682,11 +682,11 @@ export class Edge extends ModelElement {
         this.initializeProperties();
     }
 
-    sourceIDs(): ReadonlyArray<string> {
+    get sourceIDs(): ReadonlyArray<string> {
         return cellValues(this.sourceID);
     }
 
-    source(): Cell<Node> {
+    get source(): Cell<Node> {
         return mapCell(this.sourceID, sourceID => {
             const node = this.index!.findNode(sourceID);
             if (!node) {
@@ -696,15 +696,15 @@ export class Edge extends ModelElement {
         });
     }
 
-    sources(): ReadonlyArray<Node> {
-        return cellValues(this.source());
+    get sources(): ReadonlyArray<Node> {
+        return cellValues(this.source);
     }
 
-    targetIDs(): ReadonlyArray<string> {
+    get targetIDs(): ReadonlyArray<string> {
         return cellValues(this.targetID);
     }
 
-    target(): Cell<Node> {
+    get target(): Cell<Node> {
         return mapCell(this.targetID, targetID => {
             const node = this.index!.findNode(targetID);
             if (!node) {
@@ -715,7 +715,7 @@ export class Edge extends ModelElement {
     }
 
     targets(): ReadonlyArray<Node> {
-        return cellValues(this.target());
+        return cellValues(this.target);
     }
 
     canConnectToTarget(node: Node, filter?: (e: Edge) => boolean): boolean {

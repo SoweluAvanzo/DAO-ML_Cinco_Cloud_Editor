@@ -79,7 +79,6 @@
     }
   ],
   "type": "flowgraph:flowgraphdiagram",
-  "_sourceUri": "source-id.flowgraph",
   "_attributes": {
     "modelName": ""
   }

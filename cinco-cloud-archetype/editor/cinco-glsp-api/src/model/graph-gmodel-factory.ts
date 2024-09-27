@@ -89,7 +89,7 @@ export class GraphGModelFactory implements GModelFactory {
     protected createEdge<T extends Edge>(edge: T): GModelElement[] {
         if (isChoice(edge.sourceID) || isChoice(edge.targetID)) {
             const sourceSegments = edge
-                .sourceIDs()
+                .sourceIDs
                 .map(sourceID =>
                     this.buildEdgeSegment(
                         edge,
@@ -100,7 +100,7 @@ export class GraphGModelFactory implements GModelFactory {
                 );
             const conflictMarker = this.buildConflictMarker(edge);
             const targetSegments = edge
-                .targetIDs()
+                .targetIDs
                 .map(targetID =>
                     this.buildEdgeSegment(
                         edge,
@@ -139,7 +139,7 @@ export class GraphGModelFactory implements GModelFactory {
         return GNode.builder()
             .type('marker:edge-source-target-conflict')
             .id(this.markerEdgeSourceTargetConflictID(edge.id))
-            .position(this.calculateConflictMarkerPosition(edge.sources(), edge.targets()))
+            .position(this.calculateConflictMarkerPosition(edge.sources, edge.targets))
             .size(40, 40)
             .build();
     }
