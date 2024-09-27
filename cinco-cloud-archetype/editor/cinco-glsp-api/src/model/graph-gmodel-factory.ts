@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { EdgeType, NodeType, Point, Size, isChoice, getSpecOf, EdgeConflictSegment } from '@cinco-glsp/cinco-glsp-common';
+import { EdgeType, NodeType, Point, Size, isChoice, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
 import { GEdge, GGraph, GModelElement, GModelFactory, GNode, GNodeBuilder } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
@@ -93,8 +93,7 @@ export class GraphGModelFactory implements GModelFactory {
                     edge,
                     this.edgeSourceSegmentID(edge.id, sourceID),
                     sourceID,
-                    this.markerEdgeSourceTargetConflictID(edge.id),
-                    { type: 'Source', edgeID: edge.id, nodeID: sourceID, choice: isChoice(edge.sourceID) }
+                    this.markerEdgeSourceTargetConflictID(edge.id)
                 )
             );
             const conflictMarker = this.buildConflictMarker(edge);
@@ -103,23 +102,16 @@ export class GraphGModelFactory implements GModelFactory {
                     edge,
                     this.edgeTargetSegmentID(edge.id, targetID),
                     targetID,
-                    this.markerEdgeSourceTargetConflictID(edge.id),
-                    { type: 'Target', edgeID: edge.id, nodeID: targetID, choice: isChoice(edge.targetID) }
+                    this.markerEdgeSourceTargetConflictID(edge.id)
                 )
             );
             return [...sourceSegments, conflictMarker, ...targetSegments];
         } else {
-            return [this.buildEdgeSegment(edge, edge.id, edge.sourceID, edge.targetID, false)];
+            return [this.buildEdgeSegment(edge, edge.id, edge.sourceID, edge.targetID)];
         }
     }
 
-    protected buildEdgeSegment<T extends Edge>(
-        edge: T,
-        id: string,
-        sourceID: string,
-        targetID: string,
-        conflictSegment: EdgeConflictSegment
-    ): GEdge {
+    protected buildEdgeSegment<T extends Edge>(edge: T, id: string, sourceID: string, targetID: string): GEdge {
         const spec = getSpecOf(edge.type) as EdgeType | undefined;
         const cssClasses = edge.cssClasses ?? [];
         const routerKind = spec?.view?.routerKind;
@@ -136,9 +128,7 @@ export class GraphGModelFactory implements GModelFactory {
         builder.addArg('routingPoints', JSON.stringify(edge.routingPoints));
         builder.addArg('persistedView', JSON.stringify(edge.view));
         builder.addArg('properties', JSON.stringify(edge.properties));
-        builder.addArg('conflictSegment', JSON.stringify(conflictSegment));
-        const result = builder.build();
-        return result;
+        return builder.build();
     }
 
     protected buildConflictMarker(edge: Edge): GNode {

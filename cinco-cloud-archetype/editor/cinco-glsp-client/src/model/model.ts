@@ -15,7 +15,6 @@
  ********************************************************************************/
 import {
     AbstractShape,
-    EdgeConflictSegment,
     ElementType,
     getSpecOf,
     getStyleByNameOf,
@@ -214,7 +213,6 @@ export class CincoEdge extends GEdge implements CincoModelElement {
     protected _creatingBendPoint = false;
     protected _view?: View; // runtime view
     protected _properties?: Record<string, any>;
-    protected _conflictSegment: EdgeConflictSegment;
 
     get elementType(): string | undefined {
         return this.type;
@@ -284,31 +282,20 @@ export class CincoEdge extends GEdge implements CincoModelElement {
     }
 
     get properties(): Record<string, any> | undefined {
-        // 1. Runtime properties
+        // 1. Runtime View
         if (!this._properties) {
-            // 2. Persisted properties
+            // 2. Persisted View
             const args = this['args'] as any;
             if (args !== undefined && args.properties) {
                 const properties = JSON.parse(args.properties);
                 this._properties = properties;
+                return this._properties;
             } else {
-                // 3. fallback to empty property object
-                this._properties = {};
+                // 3. fallback to new runtime array
+                this._properties = [];
             }
         }
         return this._properties;
-    }
-
-    get conflictSegment(): EdgeConflictSegment {
-        if (!this._conflictSegment) {
-            const args = this['args'] as any;
-            if (args !== undefined && args.conflictSegment) {
-                this._conflictSegment = JSON.parse(args.conflictSegment);
-            } else {
-                this._conflictSegment = false;
-            }
-        }
-        return this._conflictSegment;
     }
 
     get view(): View | undefined {

@@ -121,24 +121,14 @@ abstract class MergedGLSPEdgeRenderingView extends RoutableView {
         context: RenderingContext,
         args?: IViewArgs
     ): VNode[] {
-        const additionals: VNode[] = [];
-        if (!(edge.conflictSegment && edge.conflictSegment.type === 'Source')) {
-            switch (lineType) {
-                case LINE_TYPE.BEZIER:
-                    additionals.concat(this.renderAdditionalsBezier(edge, segments, context));
-                    break;
-                case LINE_TYPE.POLYLINE:
-                    additionals.concat(this.renderAdditionalsPolyline(edge, segments, context));
-                    break;
-                default:
-                    additionals.concat(this.renderAdditionalsPolyline(edge, segments, context));
-                    break;
-            }
+        switch (lineType) {
+            case LINE_TYPE.BEZIER:
+                return this.renderAdditionalsBezier(edge, segments, context);
+            case LINE_TYPE.POLYLINE:
+                return this.renderAdditionalsPolyline(edge, segments, context);
+            default:
+                return this.renderAdditionalsPolyline(edge, segments, context);
         }
-        if (edge.conflictSegment && edge.conflictSegment.choice) {
-            // TODO: Render choice selection additional
-        }
-        return additionals;
     }
 
     protected renderDanglingEdge(message: string): VNode {
