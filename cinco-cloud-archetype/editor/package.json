@@ -45,7 +45,8 @@
     "cinco-glsp-theia",
     "browser-app",
     "cinco-glsp-standalone",
-    "cinco-languages-extension"
+    "cinco-languages-extension",
+    "cinco-lazy-merge-driver"
   ],
   "resolutions": {
     "**/@babel/core": "7.10.0",
