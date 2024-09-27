@@ -42,6 +42,7 @@ import {
     GEdge,
     GGraph,
     GGraphIndex,
+    GLabel,
     GModelElement,
     GModelElementSchema,
     GNode,
@@ -475,6 +476,24 @@ export class CincoEdge extends GEdge implements CincoModelElement {
 }
 
 export class CincoMarker extends GNode {}
+
+export abstract class CincoEdgeButton extends GLabel {
+    get edgeID(): string {
+        return (this as any).args.edgeID;
+    }
+}
+
+export class CincoEdgeButtonSourceChoice extends CincoEdgeButton {
+    get sourceID(): string {
+        return (this as any).args.sourceID;
+    }
+}
+
+export class CincoEdgeButtonTargetChoice extends CincoEdgeButton {
+    get targetID(): string {
+        return (this as any).args.targetID;
+    }
+}
 
 export class CincoGraphModel extends GGraph implements CincoModelElement {
     override isContainableElement(input: string | GModelElement | GModelElementSchema): boolean {
