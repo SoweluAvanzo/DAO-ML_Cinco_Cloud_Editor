@@ -133,7 +133,7 @@ export class GraphGModelFactory implements GModelFactory {
         return GNode.builder()
             .type('marker:edge-source-target-conflict')
             .id(this.markerEdgeSourceTargetConflictID(edge.id))
-            .position(this.calculateConflictMarkerPosition(edge.sources(), [edge.target]))
+            .position(this.calculateConflictMarkerPosition(edge.sources, [edge.target]))
             .size(40, 40)
             .build();
     }

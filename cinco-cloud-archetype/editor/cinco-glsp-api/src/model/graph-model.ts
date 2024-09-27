@@ -455,7 +455,7 @@ export class Node extends ModelElement {
 
     get predecessors(): Node[] {
         const edges = this.incomingEdges;
-        return [...new Set(edges.flatMap(edge => edge.sources()))];
+        return [...new Set(edges.flatMap(edge => edge.sources))];
     }
 
     get outgoingEdges(): Edge[] {
@@ -688,11 +688,11 @@ export class Edge extends ModelElement {
         this.initializeProperties();
     }
 
-    sourceIDs(): ReadonlyArray<string> {
+    get sourceIDs(): ReadonlyArray<string> {
         return cellValues(this.sourceID);
     }
 
-    source(): Cell<Node> {
+    get source(): Cell<Node> {
         return mapCell(this.sourceID, sourceID => {
             const node = this.index!.findNode(sourceID);
             if (!node) {
@@ -702,8 +702,8 @@ export class Edge extends ModelElement {
         });
     }
 
-    sources(): ReadonlyArray<Node> {
-        return cellValues(this.source());
+    get sources(): ReadonlyArray<Node> {
+        return cellValues(this.source);
     }
 
     get target(): Node {
