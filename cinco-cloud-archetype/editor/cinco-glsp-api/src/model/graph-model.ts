@@ -450,7 +450,7 @@ export class Node extends ModelElement {
 
     get successors(): Node[] {
         const edges = this.outgoingEdges;
-        return [...new Set(edges.flatMap(edge => edge.targets()))];
+        return [...new Set(edges.flatMap(edge => edge.targets))];
     }
 
     get predecessors(): Node[] {
@@ -714,7 +714,7 @@ export class Edge extends ModelElement {
         });
     }
 
-    targets(): ReadonlyArray<Node> {
+    get targets(): ReadonlyArray<Node> {
         return cellValues(this.target);
     }
 

@@ -104,7 +104,7 @@ export class GraphModelIndex extends GModelIndex {
      * @returns All incoming edges.
      */
     getIncomingEdgeElements(node: Node): Edge[] {
-        return this.getAllEdgeElements().filter(edge => edge.targetIDs().includes(node.id));
+        return this.getAllEdgeElements().filter(edge => edge.targetIDs.includes(node.id));
     }
 
     /**
@@ -115,6 +115,6 @@ export class GraphModelIndex extends GModelIndex {
      * @returns All outgoing edges.
      */
     getOutgoingEdgeElements(node: ModelElement): Edge[] {
-        return this.getAllEdgeElements().filter(edge => edge.sourceIDs().includes(node.id));
+        return this.getAllEdgeElements().filter(edge => edge.sourceIDs.includes(node.id));
     }
 }
