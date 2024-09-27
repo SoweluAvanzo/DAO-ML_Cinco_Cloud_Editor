@@ -16,7 +16,7 @@
 
 import 'core-js/actual/set';
 import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap } from './json-utilities';
-import { cellValues, Choice, Optional, isGhost, optionalValue } from '@cinco-glsp/cinco-glsp-api';
+import { cellValues, Choice, Optional, isGhost, optionalValue } from '@cinco-glsp/cinco-glsp-common';
 
 type Versions<T = any> = Readonly<{
     ancestor: T;
