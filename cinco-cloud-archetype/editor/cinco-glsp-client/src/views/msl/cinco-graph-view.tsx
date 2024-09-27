@@ -13,10 +13,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import { SChildElementImpl } from 'sprotty';
 import { RenderingContext, GGraph, GGraphView, svg, Bounds } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
-import { CincoEdge, CincoGraphModel, CincoNode } from '../../model/model';
+import { CincoEdge, CincoGraphModel, CincoMarker, CincoNode } from '../../model/model';
 import { isEdgeType, isNodeType, isUnknownEdgeType, isUnknownNodeType } from './cinco-view-helper';
 import { CincoNodeView } from './cinco-node-view';
 import { CincoEdgeView } from './cinco-edge-view';
@@ -46,13 +47,14 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
         let nodes = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && !e.isContainer);
         let containers = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && e.isContainer);
         let edges = model.children.filter(e => e instanceof CincoEdge && !isUnknownEdgeType(e));
+        const markers = model.children.filter(e => e instanceof CincoMarker) as SChildElementImpl[];
 
         // identify unknowns
         let unknownNodes = model.children.filter(e => isUnknownNodeType(e));
         const unknownEdges = model.children.filter(e => isUnknownEdgeType(e));
         // get knownNodes that are no CincoNodes/CincoEdges
         const knownUnidentifiedNodes = model.children.filter(
-            e => !isUnknownNodeType(e) && isNodeType(e) && !nodes.includes(e) && !containers.includes(e)
+            e => !isUnknownNodeType(e) && isNodeType(e) && !nodes.includes(e) && !containers.includes(e) && !markers.includes(e)
         );
         const mappedKnownNodes = knownUnidentifiedNodes.map(kn => Object.assign(new CincoNode(), kn));
         const knownUnidentifiedEdges = model.children.filter(e => !isUnknownEdgeType(e) && isEdgeType(e) && !edges.includes(e));
@@ -76,13 +78,14 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
             }
             return anyUn;
         });
-        Object.assign(model.children, unknownNodes.concat(unknownEdges).concat(containers).concat(edges).concat(nodes));
+        Object.assign(model.children, unknownNodes.concat(unknownEdges).concat(containers).concat(edges).concat(nodes).concat(markers));
 
         const edgeRouting = this.edgeRouterRegistry.routeAllChildren(model);
         const elements = context.renderChildren(model, { edgeRouting, edgeRouterRegistry: this.edgeRouterRegistry });
         const gNodes = elements.filter(gElement => nodes.find(n => n.id === gElement.key));
         const gContainers = elements.filter(gElement => containers.find(n => n.id === gElement.key));
         const gEdges = elements.filter(gElement => edges.find(n => n.id === gElement.key));
+        const gMarkers = elements.filter(gElement => markers.find(n => n.id === gElement.key));
 
         // handle unknowns
         const unknownNodeTypes = Array.from(new Set(unknownNodes.map(e => e.type)));
@@ -106,7 +109,8 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
                 !gContainers.includes(gElement) &&
                 !gNodes.includes(gElement) &&
                 !unknownGNodes.includes(gElement) &&
-                !unknownGEdges.includes(gElement)
+                !unknownGEdges.includes(gElement) &&
+                !gMarkers.includes(gElement)
         );
 
         return (
@@ -117,6 +121,7 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
                     {gEdges as Iterable<React.ReactNode>}
                     {unknownGNodes as Iterable<React.ReactNode>}
                     {unknownGEdges as Iterable<React.ReactNode>}
+                    {gMarkers as Iterable<React.ReactNode>}
                     {rest as Iterable<React.ReactNode>}
                 </g>
             </svg>

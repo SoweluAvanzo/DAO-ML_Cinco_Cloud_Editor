@@ -13,6 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
+import * as crypto from 'crypto';
 import {
     AbsolutePosition,
     Appearance,
@@ -52,10 +53,13 @@ import {
     View,
     WebView,
     isInstanceOf,
-    UserDefinedType
+    UserDefinedType,
+    Cell,
+    cellValues,
+    isConflictFree,
+    mapCell
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
-import * as uuid from 'uuid';
 import { GraphModelIndex } from './graph-model-index';
 import { GraphModelStorage } from './graph-storage';
 import { getModelFiles, getWorkspaceRootUri } from '../utils/file-helper';
@@ -116,7 +120,7 @@ export namespace ModelElementContainer {
 
 export class ModelElement implements IdentifiableElement {
     protected _index?: GraphModelIndex;
-    id: string = uuid.v4();
+    id: string = crypto.randomUUID();
     type: string;
     _position: Point;
     _size?: Size;
@@ -419,6 +423,16 @@ export class ModelElement implements IdentifiableElement {
         }
         return false;
     }
+
+    toJSON(): any {
+        const serialization = { ...this };
+        delete serialization._index;
+        return serialization;
+    }
+
+    isConflictFree(): boolean {
+        return isConflictFree(this.toJSON());
+    }
 }
 
 export namespace ModelElement {
@@ -441,7 +455,7 @@ export class Node extends ModelElement {
 
     get predecessors(): Node[] {
         const edges = this.incomingEdges;
-        return edges.map(e => e.source);
+        return [...new Set(edges.flatMap(edge => edge.sources))];
     }
 
     get outgoingEdges(): Edge[] {
@@ -663,24 +677,40 @@ export namespace Container {
 }
 
 export class Edge extends ModelElement {
-    sourceID: string;
+    sourceID: Cell<string>;
     targetID: string;
     _routingPoints: RoutingPoint[];
 
-    get source(): Node {
-        const id = this.sourceID;
-        const node = this.index!.findNode(id);
-        if (!node) {
-            throw new Error("Edge with id '" + this.id + "' has an undefined source!");
-        }
-        return node;
+    initialize({ type, sourceID, targetID }: { type: string; sourceID: string; targetID: string }): void {
+        this.type = type;
+        this.sourceID = sourceID;
+        this.targetID = targetID;
+        this.initializeProperties();
+    }
+
+    get sourceIDs(): ReadonlyArray<string> {
+        return cellValues(this.sourceID);
+    }
+
+    get source(): Cell<Node> {
+        return mapCell(this.sourceID, sourceID => {
+            const node = this.index!.findNode(sourceID);
+            if (!node) {
+                throw new Error(`Edge with id ${this.id} has an undefined sourceID ${sourceID}.`);
+            }
+            return node;
+        });
+    }
+
+    get sources(): ReadonlyArray<Node> {
+        return cellValues(this.source);
     }
 
     get target(): Node {
         const id = this.targetID;
         const node = this.index!.findNode(id);
         if (!node) {
-            throw new Error("Edge with id '" + this.id + "' has an undefined target!");
+            throw new Error(`Edge with id ${this.id} has an undefined targetID ${this.targetID}.`);
         }
         return node;
     }
@@ -791,8 +821,8 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
             .map(e => (ModelElement.is(e) && !(e instanceof ModelElement) ? Object.assign(new ModelElement(), e) : e));
     }
 
-    toJSON(): any {
-        const serialization = { ...this };
+    override toJSON(): any {
+        const serialization = { ...super.toJSON() };
         delete serialization._sourceUri;
         return serialization;
     }

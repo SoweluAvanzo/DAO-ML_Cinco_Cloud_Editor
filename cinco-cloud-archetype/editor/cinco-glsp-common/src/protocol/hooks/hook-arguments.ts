@@ -17,6 +17,7 @@ import { Dimension, ReconnectEdgeOperation } from '@eclipse-glsp/server';
 import { ManagedBaseAction, Operation } from '../shared-protocol';
 import { PropertyEditOperation } from '../property-protocol';
 import { Point } from '../../meta-specification';
+import { Cell } from '../../model/cell';
 
 export type OperationArgument = Argument &
     (
@@ -97,7 +98,7 @@ export interface MoveArgument extends Argument {
     kind: 'Move';
 }
 export interface ReconnectArgument extends Argument {
-    sourceId: string;
+    sourceId: Cell<string>;
     targetId: string;
     operation: ReconnectEdgeOperation;
     kind: 'Reconnect';

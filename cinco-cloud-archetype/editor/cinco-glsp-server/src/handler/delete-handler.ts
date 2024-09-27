@@ -17,7 +17,7 @@ import { Container, Edge, Node, ModelElement, HookManager } from '@cinco-glsp/ci
 import { DeleteElementOperation, SaveModelAction, remove } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import { DeleteArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
+import { isChoice, DeleteArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class DeleteHandler extends CincoJsonOperationHandler {
@@ -81,9 +81,14 @@ export class DeleteHandler extends CincoJsonOperationHandler {
                 remove(this.modelState.graphModel._containments, element);
             }
             // remove associated edges
-            this.modelState.graphModel.edges.forEach((e: Edge) => {
-                if (e.sourceID === element.id || e.targetID === element.id) {
-                    remove(this.modelState.graphModel._edges, e);
+            this.modelState.graphModel.edges.forEach((edge: Edge) => {
+                if (edge.sourceID === element.id || edge.targetID === element.id) {
+                    remove(this.modelState.graphModel._edges, edge);
+                } else if (isChoice(edge.sourceID) && edge.sourceID.options.includes(element.id)) {
+                    edge.sourceID = {
+                        tag: 'choice',
+                        options: edge.sourceID.options.filter(sourceID => sourceID !== element.id)
+                    };
                 }
             });
         } else if (Edge.is(element)) {
