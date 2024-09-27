@@ -1,0 +1,308 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "mgl",
+  "scopeName": "source.mgl",
+  "fileTypes": [
+    ".mgl"
+  ],
+  "patterns": [
+    {
+      "include": "#languagePrecedence"
+    },
+    {
+      "include": "#annotation"
+    },
+    {
+      "include": "#attributeDeclaration"
+    },
+    {
+      "include": "#relationSets"
+    },
+    {
+      "include": "#styleRef"
+    },
+    {
+      "include": "#keywordPrecedence"
+    }
+  ],
+  "repository": {
+    "styleRef": {
+      "name": "support.function.style.cinco",
+      "begin": "\\b\\s*(style)\\s*\\b([A-Za-z_][A-Za-z0-9_]*)?\\s*\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.cinco"
+        },
+        "2": {
+          "name": "entity.name.type"
+        }
+      },
+      "end": "(?=\\}|containableElements|incomingEdges|outgoingEdges|style|@|prime|final|unique|override|attr|diagramExtension|iconPath)",
+      "patterns": [
+        {
+          "include": "#languagePrecedence"
+        },
+        {
+          "include": "#variableName"
+        },
+        {
+          "include": "#keywordPrecedence"
+        }
+      ]
+    },
+    "relationSets": {
+      "name": "support.function.relation.cinco",
+      "begin": "\\b(\\s)*(containableElements|incomingEdges|outgoingEdges)(\\s)*\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.cinco"
+        }
+      },
+      "end": "(?=\\}|containableElements|incomingEdges|outgoingEdges|style|@|prime|final|unique|override|attr|diagramExtension|iconPath)",
+      "patterns": [
+        {
+          "include": "#languagePrecedence"
+        },
+        {
+          "include": "#variableName"
+        },
+        {
+          "include": "#keywordPrecedence"
+        }
+      ]
+    },
+    "annotation": {
+      "name": "support.function.annotation.cinco",
+      "begin": "@\\s*\\b([A-Za-z_][A-Za-z0-9_]*)\\b\\s*(\\()?",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.name.function.annotation.cinco"
+        }
+      },
+      "end": "(?=\\)|node|edge|graphModel|type|container|attr|id|stylePath|@|import|prime)",
+      "patterns": [
+        {
+          "include": "#languagePrecedence"
+        },
+        {
+          "include": "#parameterName"
+        }
+      ]
+    },
+    "attributeDeclaration": {
+      "name": "attribute.declaration",
+      "begin": "\\b(attr|prime)\\b\\s*",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.declaration.attribute"
+        }
+      },
+      "end": "(?=\\}|style|containableElements|incomingEdges|outgoingEdges|@|prime|final|unique|override|attr|diagramExtension|iconPath)",
+      "patterns": [
+        {
+          "include": "#languagePrecedence"
+        },
+        {
+          "include": "#dataType"
+        },
+        {
+          "include": "#keywordPrecedence"
+        },
+        {
+          "include": "#variableName"
+        }
+      ]
+    },
+    "variableName": {
+      "patterns": [
+        {
+          "name": "variable.name.cinco",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b"
+        }
+      ]
+    },
+    "parameterName": {
+      "patterns": [
+        {
+          "name": "variable.parameter.cinco",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b"
+        }
+      ]
+    },
+    "dataType": {
+      "patterns": [
+        {
+          "name": "support.type.cinco",
+          "match": "\\b(\\s)*(boolean|date|Date|number|string|Node|ModelElementContainer|ModelElement|GraphModel|Edge|Container)(\\s)*\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.cinco",
+          "match": "\\b(\\s)*(abstract|node|edge|container|graphModel|enum|type)(\\s)*\\b"
+        }
+      ]
+    },
+    "keywords2": {
+      "patterns": [
+        {
+          "name": "support.function.cinco",
+          "match": "\\b(\\s)*(as|extends|external|this|type|primeattr|primeparam|stealth|diagramExtension|stylePath|iconPath|id|import)(\\s)*\\b"
+        }
+      ]
+    },
+    "keywords3": {
+      "patterns": [
+        {
+          "name": "storage.modifier.cinco",
+          "match": "\\b(\\s)*(final|unique|override)(\\s)*\\b"
+        }
+      ]
+    },
+    "keywordPrecedence": {
+      "patterns": [
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "#keywords2"
+        },
+        {
+          "include": "#keywords3"
+        }
+      ]
+    },
+    "languagePrecedence": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#assignmentOperator"
+        },
+        {
+          "include": "#punctuationComma"
+        },
+        {
+          "include": "#booleanConstant"
+        },
+        {
+          "include": "#numericConstant"
+        }
+      ]
+    },
+    "numericConstant": {
+      "patterns": [
+        {
+          "name": "constant.numeric.cinco",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "booleanConstant": {
+      "patterns": [
+        {
+          "name": "constant.character.escape.boolean.cinco",
+          "match": "\\b(true|false|TRUE|FALSE|True|False)\\b"
+        }
+      ]
+    },
+    "punctuationComma": {
+      "patterns": [
+        {
+          "name": "punctuation.definition.array.cinco",
+          "match": "\\((\\s*\\b\\d+\\b\\s*,\\s*\\b\\d+\\b\\s*)?\\)"
+        }
+      ]
+    },
+    "assignmentOperator": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.cinco",
+          "match": "(=|:=)"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "include": "#doubleQuotedString"
+        },
+        {
+          "include": "#singleQuotedString"
+        }
+      ]
+    },
+    "doubleQuotedString": {
+      "name": "string.quoted.double",
+      "begin": "(\")",
+      "end": "(\")",
+      "patterns": [
+        {
+          "name": "constant.character.escape",
+          "match": "\\\\."
+        },
+        {
+          "include": "#singleQuotedString"
+        }
+      ]
+    },
+    "singleQuotedString": {
+      "name": "string.quoted.double",
+      "begin": "(')",
+      "end": "(')",
+      "patterns": [
+        {
+          "name": "constant.character.escape",
+          "match": "\\\\."
+        },
+        {
+          "include": "#doubleQuotedString"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "include": "#commentBlock"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "commentBlock": {
+      "begin": "\\/\\*",
+      "end": "\\*\\/",
+      "beginCaptures": {
+        "0": {
+          "name": "comment.block"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "comment.block"
+        }
+      },
+      "patterns": [
+        {
+          "name": "comment.block",
+          "match": "."
+        }
+      ]
+    },
+    "comment": {
+      "patterns": [
+        {
+          "name": "comment.block",
+          "match": "\\/\\/(.)*"
+        }
+      ]
+    }
+  }
+}

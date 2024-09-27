@@ -12,6 +12,7 @@
     "cinco-glsp-server/src",
     "cinco-glsp-theia/src",
     "cinco-glsp-standalone/src",
+    "cinco-languages-extension/src",
     "cinco-project-initializer/src"
   ],
   "exclude": [

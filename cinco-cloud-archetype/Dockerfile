@@ -1,27 +1,11 @@
-# build cinco languages extension
+# build the base image with Python 3.9
 # --------------------------------
-FROM docker.io/library/node:16-bookworm-slim as cinco-languages-extension-builder
-WORKDIR /cinco-languages-extension
-COPY ./cinco-cloud-archetype/vscode-extensions/cinco-languages-extension /cinco-languages-extension
-# outputs extension to /cinco-languages-extension/cinco-langium-0.0.1.vsix
-RUN yarn
-
-# build cinco-cloud-project-initializer
-# --------------------------------
-FROM docker.io/library/node:18-bookworm-slim as cinco-cloud-project-initializer-builder
-WORKDIR /cinco-cloud-project-initializer
-COPY ./cinco-cloud-archetype/vscode-extensions/cinco-cloud-project-initializer /cinco-cloud-project-initializer
-# outputs extension to /cinco-cloud-project-initializer/cinco-cloud-project-initializer-0.0.1.vsix
-RUN yarn
-
-# build the base image with Python 3.8
-# --------------------------------
-FROM docker.io/library/node:16-bookworm-slim as base
+FROM docker.io/library/node:18-bookworm-slim as base
 RUN apt update
 RUN apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev liblzma-dev libx11-dev libxkbfile-dev libsecret-1-dev git
-RUN curl -O https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tar.xz
-RUN tar -xf Python-3.8.2.tar.xz
-RUN cd Python-3.8.2 \
+RUN curl -O https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tar.xz
+RUN tar -xf Python-3.9.6.tar.xz
+RUN cd Python-3.9.6 \
     && ./configure --enable-optimizations --enable-loadable-sqlite-extensions \
     && make -j 4 \
     && make install
@@ -66,17 +50,14 @@ WORKDIR /editor
 RUN useradd -ms /bin/bash theia
 COPY --chown=theia:theia ./cinco-cloud-archetype/editor /editor
 
-# copy vscode-extensions into plugins; remove symlink before that
+# clean plugins
 RUN mkdir -p /editor/browser-app/plugins
-RUN rm -f ./cinco-cloud-archetype/editor/browser-app/plugins/*
-COPY --from=cinco-languages-extension-builder /cinco-languages-extension/cinco-langium-0.0.1.vsix /editor/browser-app/plugins
-COPY --from=cinco-cloud-project-initializer-builder /cinco-cloud-project-initializer/cinco-cloud-project-initializer-0.0.1.vsix /editor/browser-app/plugins
-
-# build minio-client
-RUN cd minio-client && yarn && cd ../
 
 # clean languages folder
 RUN cd /editor/cinco-glsp-server && rm -r languages && node clean-languages.js
+
+# build minio-client
+RUN cd minio-client && yarn && cd ../
 
 # build theia-editor
 RUN yarn

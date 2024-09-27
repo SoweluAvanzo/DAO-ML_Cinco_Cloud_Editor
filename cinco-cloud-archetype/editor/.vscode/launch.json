@@ -5,6 +5,49 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "extensionHost",
+      "request": "launch",
+      "name": "Launch Cinco Language Extension",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/cinco-languages-extension",
+        "${workspaceRoot}/workspace"
+      ],
+      "outFiles": [
+        "${workspaceRoot}/cinco-languages-extension/out/**/*.js"
+      ]
+    },
+    {
+      "name": "Attach to MGL language server",
+      "port": 6009,
+      "request": "attach",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "restart": true,
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/cinco-languages-extension/out/**/*.js",
+        "${workspaceFolder}/cinco-languages/lib/**/*.js",
+      ],
+      "type": "node"
+    },
+    {
+      "name": "Attach to MSL language server",
+      "port": 6010,
+      "request": "attach",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "restart": true,
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/cinco-languages-extension/out/**/*.js",
+        "${workspaceFolder}/cinco-languages/lib/**/*.js",
+      ],
+      "type": "node"
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Launch Cinco Theia Backend (Embedded GLSP Server)",
