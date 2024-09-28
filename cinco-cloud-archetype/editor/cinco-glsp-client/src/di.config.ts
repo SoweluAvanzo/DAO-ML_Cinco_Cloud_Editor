@@ -39,8 +39,7 @@ import {
     ContainerConfiguration,
     bindOrRebind,
     SetContextActions,
-    configureModelElement,
-    GLabelView
+    configureModelElement
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -68,6 +67,7 @@ import { EnvironmentProvider } from './api/environment-provider';
 import { CincoToolPaletteUpdateHandler } from './glsp/cinco-tool-palette-update-handler';
 import { MarkerEdgeSourceTargetConflictView } from './views/marker-edge-source-target-conflict-view';
 import { CincoEdgeButtonSourceChoice, CincoEdgeButtonTargetChoice, CincoMarker } from './model/model';
+import { ButtonSelectChoiceView } from './views/button-select-choice';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -158,8 +158,8 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     configureDefaultModelElements(context);
     configureModelElement(context, 'marker:edge-source-target-conflict', CincoMarker, MarkerEdgeSourceTargetConflictView);
-    configureModelElement(context, 'button:edge-source-choice', CincoEdgeButtonSourceChoice, GLabelView);
-    configureModelElement(context, 'button:edge-target-choice', CincoEdgeButtonTargetChoice, GLabelView);
+    configureModelElement(context, 'button:edge-source-choice', CincoEdgeButtonSourceChoice, ButtonSelectChoiceView);
+    configureModelElement(context, 'button:edge-target-choice', CincoEdgeButtonTargetChoice, ButtonSelectChoiceView);
 
     bind(TYPES.IDiagramStartup).toService(EnvironmentProvider);
 });

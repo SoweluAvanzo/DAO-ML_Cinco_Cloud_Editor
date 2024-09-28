@@ -42,10 +42,10 @@ import {
     GEdge,
     GGraph,
     GGraphIndex,
-    GLabel,
     GModelElement,
     GModelElementSchema,
     GNode,
+    GShapeElement,
     hoverFeedbackFeature,
     isGModelElementSchema,
     layoutContainerFeature,
@@ -53,7 +53,10 @@ import {
     Point,
     popupFeature,
     RECTANGULAR_ANCHOR_KIND,
-    selectFeature
+    selectFeature,
+    layoutableChildFeature,
+    edgeLayoutFeature,
+    EdgePlacement
 } from '@eclipse-glsp/client';
 import { FluentIterable } from 'sprotty/lib/utils/iterable';
 import { canContain } from '../utils/constraint-utils';
@@ -477,7 +480,13 @@ export class CincoEdge extends GEdge implements CincoModelElement {
 
 export class CincoMarker extends GNode {}
 
-export abstract class CincoEdgeButton extends GLabel {
+export class CincoButtonSelectChoice extends GShapeElement {
+    static readonly DEFAULT_FEATURES = [boundsFeature, layoutableChildFeature, edgeLayoutFeature, fadeFeature];
+
+    edgePlacement?: EdgePlacement;
+}
+
+export abstract class CincoEdgeButton extends CincoButtonSelectChoice {
     get edgeID(): string {
         return (this as any).args.edgeID;
     }
