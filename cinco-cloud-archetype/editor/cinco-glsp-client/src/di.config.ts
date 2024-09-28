@@ -68,6 +68,7 @@ import { CincoToolPaletteUpdateHandler } from './glsp/cinco-tool-palette-update-
 import { MarkerEdgeSourceTargetConflictView } from './views/marker-edge-source-target-conflict-view';
 import { CincoEdgeButtonSourceChoice, CincoEdgeButtonTargetChoice, CincoMarker } from './model/model';
 import { ButtonSelectChoiceView } from './views/button-select-choice';
+import { ChoiceSelectionTool } from './features/tool/choice-selection-tool';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -144,6 +145,9 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     // bind the propertyViewTool, that will fire the PropertyViewActions to the backend and the handler processing the responses
     bind(TYPES.IDefaultTool).to(PropertyViewTool).inSingletonScope();
     configureActionHandler(context, PropertyViewResponseAction.KIND, PropertyViewResponseActionHandler);
+
+    // bind the ChoiceSelectionTool
+    bind(TYPES.IDefaultTool).to(ChoiceSelectionTool).inSingletonScope();
 
     // GLSPToolManager
     rebind(TYPES.IToolManager).to(CincoToolManager).inSingletonScope();
