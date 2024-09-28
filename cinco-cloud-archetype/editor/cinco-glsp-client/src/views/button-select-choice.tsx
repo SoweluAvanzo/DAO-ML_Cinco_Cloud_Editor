@@ -43,7 +43,7 @@ export class ButtonSelectChoiceView extends ShapeView {
                 />
                 <text
                     x={-button.size.width / 2}
-                    y={-button.size.height / 2 + 5}
+                    y={-button.size.height / 2 + 4}
                     text-anchor='middle'
                     font-size={12}
                     fill='#333'
