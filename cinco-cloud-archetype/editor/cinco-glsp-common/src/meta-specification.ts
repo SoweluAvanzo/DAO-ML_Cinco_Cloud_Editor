@@ -543,7 +543,7 @@ export namespace Type {
 export interface ElementType extends Type {
     icon?: string;
     view?: View;
-    superTypes: string[];
+    superTypes?: string[];
     annotations?: Annotation[];
     attributes?: Attribute[];
 }
@@ -646,14 +646,22 @@ export namespace Enum {
     }
 }
 
-export interface UserDefinedType extends CustomType {
+export class UserDefinedType implements ElementType, CustomType {
+    icon?: string | undefined;
+    view?: View | undefined;
+    superTypes?: string[];
+    annotations?: Annotation[] | undefined;
+    elementTypeId: string;
+    label: string;
     attributes: Attribute[];
 }
 
 export namespace UserDefinedType {
     export function is(object: any): object is UserDefinedType {
         const isSpecified = (MetaSpecification.get().customTypes?.filter(e => e.elementTypeId === object?.elementTypeId).length ?? -1) > 0;
-        return Type.is(object) && (isSpecified || hasArrayProp(object, 'attributes'));
+        return ElementType.is(object) && (
+            (isSpecified && !Enum.is(object)) ||
+            (hasStringProp(object, 'label') && hasArrayProp(object, 'attributes')));
     }
 }
 

@@ -1,4 +1,4 @@
-# build the base image with Python 3.8
+# build the base image with Python 3.9.6
 # --------------------------------
 FROM docker.io/library/node:18-bookworm-slim as base
 RUN apt update

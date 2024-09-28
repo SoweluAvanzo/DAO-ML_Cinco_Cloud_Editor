@@ -20,3 +20,5 @@ export * as MglModule from './mgl/language/mgl-module';
 export * as MglValidator from './mgl/language/mgl-validator';
 export * as MslModule from './msl/language/msl-module';
 export * as MslValidator from './msl/language/msl-validator';
+export * as mglLoader from './mgl/cli/index';
+export * as LanguageMetaData from './generated/module';

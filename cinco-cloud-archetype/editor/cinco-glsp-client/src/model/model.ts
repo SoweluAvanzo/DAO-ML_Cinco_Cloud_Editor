@@ -474,6 +474,8 @@ export class CincoEdge extends GEdge implements CincoModelElement {
     }
 }
 
+export class CincoMarker extends GNode {}
+
 export class CincoGraphModel extends GGraph implements CincoModelElement {
     override isContainableElement(input: string | GModelElement | GModelElementSchema): boolean {
         const targetType = input instanceof GModelElement ? input.type : isGModelElementSchema(input) ? input.type : input;

@@ -69,7 +69,10 @@ import {
     isRoundedRectangle,
     isShape,
     isText,
-    isUserDefinedType
+    isUserDefinedType,
+    Styles,
+    isWebView,
+    WebView
 } from '../../generated/ast';
 import {
     constructElementTypeId,
@@ -81,11 +84,8 @@ import {
 } from './cli-util';
 import { createMslServices } from '../../msl/language/msl-module';
 import { extractAstNode } from '../../msl/cli/cli-util';
-import { Styles } from '../../generated/ast';
 import { NodeFileSystem } from 'langium/node';
 import { Attribute, ContainerType, Specification } from '../model/specification-types';
-import { isWebView } from '../../generated/ast';
-import { WebView } from '../../generated/ast';
 import * as path from 'path';
 import { MglServices } from '../language/mgl-module';
 
@@ -120,6 +120,9 @@ export class MGLGenerator {
     }
 
     async generateMetaSpecification(model: MglModel, mglPathString: string, services: MglServices): Promise<string> {
+        if(!model.stylePath) {
+            throw new Error('No stylePath defined!');
+        }
         const mglPath = path.parse(mglPathString);
         const mslPathString = path.join(mglPath.dir, model.stylePath);
         const importPaths = model.imports.map(imprt => path.join(mglPath.dir, imprt.importURI));
@@ -290,7 +293,7 @@ export class MGLGenerator {
                 modelElementSpec.view = { style: undefined };
             }
             if (graphicalElement.usedStyle) {
-                modelElementSpec.view.style = constructElementTypeId(graphicalElement.usedStyle, modelElement.$container.stylePath);
+                modelElementSpec.view.style = constructElementTypeId(graphicalElement.usedStyle, modelElement.$container.stylePath!);
                 modelElementSpec.view.styleParameter = graphicalElement.styleParameters;
             }
             // Deprecated: modelElementSpec.palettes = []; // This is now handled lazy by annotations

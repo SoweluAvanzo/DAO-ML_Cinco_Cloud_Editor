@@ -18,13 +18,13 @@ Indepth Documentation is under construction and will be found as part of our [we
 
 ### Dependencies
 
-- NodeJS (version 18.9.0)
+- NodeJS (version 18.17.1)
 - Yarn
 
-NOTE: we recommend using [nvm](https://github.com/creationix/nvm#install-script) to use NodeJS 18.9.0 for development use.
+NOTE: we recommend using [nvm](https://github.com/creationix/nvm#install-script) to use NodeJS 18.17.1 for development use.
 
-    nvm install 18.9.0
-    nvm use 18.9.0
+    nvm install 18.17.1
+    nvm use 18.17.1
     npm install -g yarn
 
 #### Common Pitfall
@@ -41,7 +41,7 @@ update the node version using nvm.
 
 Please check the installation description [here](https://github.com/nodejs/node-gyp#installation).
 
-(On Windows run: ```npm config set msvs_version 2019```)
+(On Windows run: ```npm config set msvs_version 2022```)
 
 ### Developing with the browser example (untested)
 

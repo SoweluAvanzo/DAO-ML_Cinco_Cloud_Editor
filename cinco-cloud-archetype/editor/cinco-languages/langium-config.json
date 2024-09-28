@@ -1,14 +1,21 @@
 {
-    "projectName": "Cinco",
-    "languages": [{
-        "id": "mgl",
-        "grammar": "src/mgl/language/mgl.langium",
-        "fileExtensions": [".mgl"]
+  "projectName": "Cinco",
+  "languages": [
+    {
+      "id": "mgl",
+      "grammar": "src/mgl/language/mgl.langium",
+      "fileExtensions": [
+        ".mgl"
+      ]
     },
     {
-        "id": "msl",
-        "grammar": "src/msl/language/msl.langium",
-        "fileExtensions": [".style", ".msl"]
-    }],
-    "out": "src/generated"
+      "id": "msl",
+      "grammar": "src/msl/language/msl.langium",
+      "fileExtensions": [
+        ".style",
+        ".msl"
+      ]
+    }
+  ],
+  "out": "src/generated"
 }

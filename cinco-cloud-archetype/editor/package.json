@@ -19,7 +19,8 @@
     }
   ],
   "scripts": {
-    "prepare": "lerna run prepare",
+    "prepare": "lerna run prepare && yarn run installVscodeExtensions",
+    "installVscodeExtensions": "cd cinco-languages-extension && yarn && yarn run build && cd ../cinco-project-initializer && yarn && cd ../",
     "watch": "lerna run --parallel watch",
     "build": "yarn install:only && lerna run build",
     "lint": "lerna run lint --",
@@ -37,14 +38,15 @@
   "workspaces": [
     "cinco-languages",
     "cinco-branding",
-    "cinco-project-initializer",
     "cinco-glsp-common",
     "cinco-glsp-api",
     "cinco-glsp-server",
     "cinco-glsp-client",
     "cinco-glsp-theia",
     "browser-app",
-    "cinco-glsp-standalone"
+    "cinco-glsp-standalone",
+    "cinco-languages-extension",
+    "cinco-lazy-merge-driver"
   ],
   "resolutions": {
     "**/@babel/core": "7.10.0",
@@ -93,7 +95,8 @@
     "@eclipse-glsp/theia-integration": "2.0.0"
   },
   "engines": {
-    "node": ">=16.11.0",
+    "node": ">=18.17.0",
     "yarn": ">=1.7.0 <2.x.x"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

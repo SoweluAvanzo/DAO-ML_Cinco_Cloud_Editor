@@ -41,7 +41,11 @@ export function fetchMetaSpecification(targetFolder: string): void {
             });
     } else {
         console.log('MINIO_RESOURCE_ID not set!');
-        unzipArtifact(targetFolder, 'meta.zip');
+        try {
+            unzipArtifact(targetFolder, 'meta.zip');
+        } catch(e) {
+            console.log("Ignore this error if you test the DockerFile: "+e);
+        }
     }
 }
 

@@ -1,16 +1,17 @@
 grammar Mgl
 
 entry MglModel:
-    (imports+=Import)*
-    (annotations+=Annotation)*
-    ('id' package=QNAME)?
-    'stylePath' stylePath=STRING
-	('includeResources' '(' includeResources+=STRING (',' includeResources+=STRING)* ')')?
+    (
+        ('id' package=QNAME)
+        & ('stylePath' stylePath=STRING)
+        & (imports+=Import)+
+        & (annotations+=Annotation)+
+    )
     modelElements+=(ModelElement)*
 ;
 
 Annotation:
-	'@' name=ID ('(' (value+=STRING | value+=ID) (',' (value+=STRING | value+=ID))* ')')?;
+	'@' (name=ID) ('(' (value+=STRING | value+=ID)? (',' (value+=STRING | value+=ID)?)* ')')?;
 
 Attribute:
 	PrimitiveAttribute
@@ -19,7 +20,14 @@ Attribute:
 
 ComplexAttribute:
 	(annotations+=Annotation)*
-	(notChangeable?='final')? (unique?='unique')? (override?='override')? 'attr' type=[CustomDataType:ID] 'as' name=ID ('[' lowerBound=INT (',' upperBound=('*'|INT))? ']')? (':'? '=' defaultValue=STRING)?
+	(notChangeable?='final')? (unique?='unique')? (override?='override')? 'attr' type=[CustomDataType:ID] 'as' name=ID ('[' lowerBound=INT (',' upperBound=('*'|INT))? ']')? ( (':=' | '=') defaultValue=STRING)?
+;
+
+ComplexModelElement:
+    NodeType
+    | Edge
+    | UserDefinedType
+	| GraphModel
 ;
 
 CustomDataType:
@@ -30,13 +38,26 @@ CustomDataType:
 	| GraphModel
 ;
 
+DataType returns string:
+    'string'
+    | 'boolean'
+    | 'number'
+    | 'Date'
+; 
+
+DefaultValueOverride:
+	'override' attribute=ID ( (':=' | '=') defaultValue=PrimitiveDefaultValue)?
+;
+
 Edge:
 	(annotations+=Annotation)*
 	(isAbstract?='abstract')?
 	'edge' name=ID ('extends' (externalExtension=ExternalReference | localExtension=[Edge:ID]))?
 	('{'
-		('style' usedStyle=ID ('(' styleParameters+=STRING (',' styleParameters+=STRING)* ')')? )?
-		(attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride)*
+		(
+            ('style' usedStyle=ID ('(' (styleParameters+=STRING (',' (styleParameters+=STRING)? )*)? ')')? )
+		    & (attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride)+
+        )
 	'}')?
 ;
 
@@ -44,7 +65,7 @@ EdgeElementConnection:
 	(
 		externalConnection=ExternalReference
 		| localConnection+=[Edge:ID]
-        | '{' localConnection+=[Edge:ID] (',' localConnection+=[Edge:ID])* '}'
+        | '{' (localConnection+=[Edge:ID] (',' (localConnection+=[Edge:ID])?)*)? '}'
 	)
 	('[' lowerBound=INT ',' upperBound=('*'|INT) ']')?
 ;
@@ -58,17 +79,13 @@ Enum:
 ;
 
 ExternalReference:
-    import=[Import] '::' (elements+=ID | '{' elements+=ID (',' elements+=ID)* '}');
-
-DefaultValueOverride:
-	'override' attribute=ID (':'? '=' defaultValue=PrimitiveDefaultValue)?
-;
+    import=[Import] '::' (elements+=ID | '{' (elements+=ID (',' (elements+=ID)?)*)? '}');
 
 GraphicalElementContainment:
 	(
 		externalContainment=ExternalReference
 		| localContainments+=[NodeType:ID]
-        | ('{' localContainments+=[NodeType:ID] (',' localContainments+=[NodeType:ID])* '}')
+        | ('{' (localContainments+=[NodeType:ID] (',' (localContainments+=[NodeType:ID])?)*)? '}')
 	)
 	('[' lowerBound=INT ',' upperBound=('*'|INT) ']')?
 ;
@@ -78,11 +95,20 @@ GraphModel:
 	(isAbstract?='abstract')?
 	'graphModel' name=ID ('extends' (externalExtension=ExternalReference | localExtension=[GraphModel:ID]))?
 	('{'
-		('iconPath' iconPath=STRING)?
-		('diagramExtension' fileExtension=STRING)?
-		('containableElements' '('( (containableElements+=GraphicalElementContainment | containmentWildcards+=Wildcard) (',' (containableElements+=GraphicalElementContainment | containmentWildcards+=Wildcard))* )')')?
-        (attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride)*
-	'}')
+		(
+            ('iconPath' iconPath=STRING) // TODO currently not supported (no urgent use-case)
+            & ('diagramExtension' fileExtension=STRING)
+            & ('containableElements'
+                '('
+                    ( 
+                        (containableElements+=GraphicalElementContainment | containmentWildcards+=Wildcard)
+                        (',' (containableElements+=GraphicalElementContainment | containmentWildcards+=Wildcard)? )*
+                    )?
+                ')'
+            )
+            & (attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride)+
+        )
+	'}')?
 ;
 
 Import:
@@ -93,38 +119,72 @@ ModelElement:
 	| Enum
 ;
 
-ComplexModelElement:
-    NodeType
-    | Edge
-    | UserDefinedType
-	| GraphModel
+ModelElementBaseTypes returns string:
+    'GraphModel' | 'Node' | 'Edge' | 'Container' | 'ModelElement' | 'ModelElementContainer' // | 'UserDefinedType'
 ;
 
 Node:
 	(annotations+=Annotation)*
 	(isAbstract?='abstract')?
 	'node' name=ID ('extends' (externalExtension=ExternalReference | localExtension=[Node:ID]))?
-	('{'(
-	    ('style' usedStyle=ID ('(' styleParameters+=STRING (',' styleParameters+=STRING)* ')')? )?
-	    ('incomingEdges' '(' (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard) (',' (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard))* ')')?
-	 	('outgoingEdges' '(' (outgoingEdgeConnections+=EdgeElementConnection | outgoingWildcards+=Wildcard) (',' (outgoingEdgeConnections+=EdgeElementConnection | outgoingWildcards+=Wildcard))* ')')?
-	 	(primeReference=(ReferencedEClass|ReferencedModelElement))?
-	 	(attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride)*
-	)'}')?
+	('{'
+        (
+            ('style' usedStyle=ID ('(' (styleParameters+=STRING (',' (styleParameters+=STRING)? )*)? ')')? )
+            & ('incomingEdges'
+                '(' 
+                    (
+                        (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard) 
+                        (',' (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard)? )*
+                    )?
+                ')'
+            )
+            & ('outgoingEdges'
+                '(' 
+                    (
+                        (outgoingEdgeConnections+=EdgeElementConnection | outgoingWildcards+=Wildcard)
+                        (',' (outgoingEdgeConnections+=EdgeElementConnection | outgoingWildcards+=Wildcard)? )*
+                    )?
+                ')'
+            )
+            & (attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride | primeReference=ReferencedEClass | primeReference=ReferencedModelElement)+
+        )
+    '}')?
 ;
 
 NodeContainer:
 	(annotations+=Annotation)*
 	(isAbstract?='abstract')?
 	'container' name=ID ('extends' (externalExtension=ExternalReference | localExtension=[NodeType:ID]))?
-	('{'(
-	    ('style' usedStyle=ID ('(' styleParameters+=STRING (',' styleParameters+=STRING)* ')')? )?
-	    ('incomingEdges' '(' (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard) (',' (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard))* ')')?
-	 	('outgoingEdges' '(' (outgoingEdgeConnections+=EdgeElementConnection | outgoingWildcards+=Wildcard) (',' (outgoingEdgeConnections+=EdgeElementConnection | outgoingWildcards+=Wildcard))* ')')?
-		('containableElements' '('( (containableElements+=GraphicalElementContainment | containmentWildcards+=Wildcard) (',' (containableElements+=GraphicalElementContainment | containmentWildcards+=Wildcard))* )')')?
-	 	(primeReference=(ReferencedEClass|ReferencedModelElement))?
-	 	(attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride)*
-	)'}')?
+	('{'
+        (
+            ('style' usedStyle=ID ('(' (styleParameters+=STRING (',' (styleParameters+=STRING)? )*)? ')')? )
+            & ('incomingEdges'
+                '(' 
+                    (
+                        (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard) 
+                        (',' (incomingEdgeConnections+=EdgeElementConnection | incomingWildcards+=Wildcard)? )*
+                    )?
+                ')'
+            )
+            & ('outgoingEdges'
+                '(' 
+                    (
+                        (outgoingEdgeConnections+=EdgeElementConnection | outgoingWildcards+=Wildcard)
+                        (',' (outgoingEdgeConnections+=EdgeElementConnection | outgoingWildcards+=Wildcard)? )*
+                    )?
+                ')'
+            )
+            & ('containableElements'
+                '('
+                    ( 
+                        (containableElements+=GraphicalElementContainment | containmentWildcards+=Wildcard)
+                        (',' (containableElements+=GraphicalElementContainment | containmentWildcards+=Wildcard)? )*
+                    )?
+                ')'
+            )
+            & (attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride | primeReference=ReferencedEClass | primeReference=ReferencedModelElement)+
+	    )
+    '}')?
 ;
 
 NodeType:
@@ -133,7 +193,11 @@ NodeType:
 
 PrimitiveAttribute:
 	(annotations+=Annotation)*
-	(notChangeable?='final')? (unique?='unique')? 'attr' dataType=DataType 'as' name=ID ('[' lowerBound=INT (',' upperBound=('*'|INT))? ']')? (':'? '=' defaultValue=PrimitiveDefaultValue)?
+	(notChangeable?='final')? (unique?='unique')? 'attr' dataType=DataType 'as' name=ID ('[' lowerBound=INT (',' upperBound=('*'|INT))? ']')? ( (':=' | '=') defaultValue=PrimitiveDefaultValue)?
+;
+
+PrimitiveDefaultValue returns string:
+	INT | DOUBLE | STRING | BOOL
 ;
 
 // TODO Review this if Ecore is ever being removing
@@ -144,10 +208,12 @@ ReferencedEClass:
 	(copiedAttributes+=ReferencedEStructuralFeature)*
 ;
 
+// TODO currently not supported (no urgent use-case)
 ReferencedEStructuralFeature:
 	(parameter?='primeparam' | 'primeattr') feature=QNAME 'as' name=ID
 ;
 
+// TODO currently not supported (no urgent use-case)
 ReferencedMGLAttribute:
 	'primeattr' feature=[Attribute:ID] 'as' name=ID
 ;
@@ -162,29 +228,18 @@ UserDefinedType:
 	(annotations+=Annotation)*
 	(isAbstract?='abstract')?
 	'type' name=ID ('extends' (externalExtension=ExternalReference | localExtension=[UserDefinedType:ID]))?
-	('{'(
-		(attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride)*
-	)'}')?
+    (
+        '{'
+            (
+                (attributes+=Attribute | defaultValueOverrides+=DefaultValueOverride)*
+            )
+        '}'
+    )?
 ;
 
 Wildcard:
 	(selfWildcard?='*' | (referencedImport=[Import] '::' '*'))
 	('[' lowerBound=INT ',' upperBound=('*'|INT) ']')?
-;
-
-PrimitiveDefaultValue returns string:
-	INT | DOUBLE | STRING | BOOL
-;
-
-DataType returns string:
-    'string'
-    | 'boolean'
-    | 'number'
-    | 'Date'
-;
-
-ModelElementBaseTypes returns string:
-    'GraphModel' | 'Node' | 'Edge' | 'Container' | 'ModelElement' | 'ModelElementContainer' // | 'UserDefinedType'
 ;
 
 terminal BOOL: /\b(true|false|TRUE|FALSE|True|False)\b/;

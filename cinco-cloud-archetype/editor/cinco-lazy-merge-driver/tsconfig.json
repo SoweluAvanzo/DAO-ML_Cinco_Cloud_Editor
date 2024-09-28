@@ -1,0 +1,43 @@
+{
+  "extends": "@eclipse-glsp/ts-config/tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "noImplicitOverride": true,
+    "noEmitOnError": false,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "strict": true,
+    "incremental": true,
+    "rootDirs": [
+      "src"
+    ],
+    "outDir": "lib",
+    "baseUrl": ".",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "target": "ES2017",
+    "sourceMap": true,
+    "types": [
+      "node",
+      "reflect-metadata"
+    ],
+    "lib": [
+      "ESNext"
+    ],
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "**/*.spec.ts",
+    "node_modules",
+    "lib",
+    "bundle",
+    ".vscode"
+  ]
+}

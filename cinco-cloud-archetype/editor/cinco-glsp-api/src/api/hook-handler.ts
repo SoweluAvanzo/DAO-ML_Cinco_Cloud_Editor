@@ -15,11 +15,10 @@
  ********************************************************************************/
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { hasFunctionProp, Point } from '@eclipse-glsp/server';
-import { PropertyEditOperation } from '@cinco-glsp/cinco-glsp-common/src/protocol/property-protocol';
+import { PropertyEditOperation, AnyObject, UserDefinedType, Cell } from '@cinco-glsp/cinco-glsp-common';
 import { APIBaseHandler } from './api-base-handler';
 import { ResizeBounds } from './resize-bounds';
 import { Edge, GraphModel, ModelElement, Node, ModelElementContainer } from '../model/graph-model';
-import { AnyObject, UserDefinedType } from '@cinco-glsp/cinco-glsp-common';
 
 export abstract class AbstractHook extends APIBaseHandler {}
 
@@ -96,11 +95,11 @@ export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook 
     }
     postDoubleClick(edge: Edge): void {}
     // Reconnect
-    canReconnect(edge: Edge, newSource: Node, newTarget: Node): boolean {
+    canReconnect(edge: Edge, newSource: Cell<Node>, newTarget: Node): boolean {
         return true;
     }
-    preReconnect(edge: Edge, newSource: Node, newTarget: Node): void {}
-    postReconnect(edge: Edge, oldSource: Node, oldTarget: Node): void {}
+    preReconnect(edge: Edge, newSource: Cell<Node>, newTarget: Node): void {}
+    postReconnect(edge: Edge, oldSource: Cell<Node>, oldTarget: Node): void {}
 }
 
 export abstract class AbstractGraphModelHook extends AbstractHook implements GraphModelHook {
