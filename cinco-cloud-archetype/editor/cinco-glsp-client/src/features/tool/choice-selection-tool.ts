@@ -17,6 +17,7 @@
 import { Action, GModelElement, MouseListener, MouseTool, Tool } from '@eclipse-glsp/client';
 import { inject, injectable } from 'inversify';
 import { CincoEdgeButtonSourceChoice, CincoEdgeButtonTargetChoice } from '../../model/model';
+import { ChoiceSelectionEdgeSourceOperation, ChoiceSelectionEdgeTargetOperation } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class ChoiceSelectionTool implements Tool {
@@ -43,10 +44,10 @@ export class ChoiceSelectionTool implements Tool {
 export class ChoiceSelectionMouseListener extends MouseListener {
     override mouseDown(target: GModelElement, _event: MouseEvent): (Action | Promise<Action>)[] {
         if (target instanceof CincoEdgeButtonSourceChoice) {
-            console.log('foo');
+            return [ChoiceSelectionEdgeSourceOperation.create(target.edgeID, target.sourceID)];
         }
         if (target instanceof CincoEdgeButtonTargetChoice) {
-            console.log('bar');
+            return [ChoiceSelectionEdgeTargetOperation.create(target.edgeID, target.targetID)];
         }
         return [];
     }

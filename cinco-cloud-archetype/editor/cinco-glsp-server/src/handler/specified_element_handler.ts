@@ -22,7 +22,6 @@ import {
     Point,
     TriggerEdgeCreationAction,
     TriggerNodeCreationAction,
-    SaveModelAction,
     CreateNodeOperationHandler,
     CreateEdgeOperationHandler,
     getRelativeLocation
@@ -87,13 +86,6 @@ export class SpecifiedElementHandler extends CincoJsonOperationHandler {
         const container = this.getContainer(operation) ?? this.modelState.root;
         const absoluteLocation = this.getLocation(operation) ?? Point.ORIGIN;
         return getRelativeLocation(absoluteLocation, container);
-    }
-
-    saveAndUpdate(): void {
-        // save model
-        const graphmodel = this.modelState.index.getRoot();
-        const fileUri = graphmodel._sourceUri;
-        this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
     }
 }
 
