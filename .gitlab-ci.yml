@@ -30,6 +30,14 @@
     - docker push "$CI_REGISTRY_IMAGE/$IMAGE:$VERSION"
     - docker push "$CI_REGISTRY_IMAGE/$IMAGE:$TAG"
 
+# build without pushing to registry
+.docker-build-only-job:
+  extends: .docker-job
+  variables:
+    VERSION: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHA
+  script:
+    - docker build -f "$DOCKERFILE" "$CONTEXT"
+
 cache:
   key:
     files:
@@ -187,6 +195,12 @@ deploy-testing-manual:
       changes:
         - cinco-cloud-archetype/**/*
 
+.archetype-default-job-mr:
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+      changes:
+        - cinco-cloud-archetype/**/*
+
 .archetype-default-job-main-or-mr:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
@@ -199,37 +213,41 @@ deploy-testing-manual:
       changes:
         - cinco-cloud-archetype/**/*
 
-.archetype-theia-extension-build-job:
-  image: node:16-bookworm-slim
+.archetype-test-build-local-job:
+  image: node:18-bookworm-slim
   cache:
     paths:
-      - ./cinco-cloud-archetype/vscode-extensions/$EXTENSION_DIR/node_modules
+      - ./cinco-cloud-archetype/editor/
   script:
-    - cd ./cinco-cloud-archetype/vscode-extensions/$EXTENSION_DIR
-    - npm install -g vsce --unsafe-perm
+    - apt update
+    - apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev liblzma-dev libx11-dev libxkbfile-dev libsecret-1-dev git
+    - curl -O https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tar.xz
+    - tar -xf Python-3.9.6.tar.xz
+    - cd Python-3.9.6 && ./configure --enable-optimizations --enable-loadable-sqlite-extensions && make -j 4 && make install && cd ../
+    - corepack enable
+    - cd ./cinco-cloud-archetype/editor
     - yarn
 
-archetype-test-build-cinco-cloud-project-initializer-extension:
+archetype-test-build-local:
   extends:
     - .archetype-default-job-main-or-mr
-    - .archetype-theia-extension-build-job
-  variables:
-    EXTENSION_DIR: cinco-cloud-project-initializer
+    - .archetype-test-build-local-job
 
-archetype-test-build-cinco-languages-extension:
+archetype-test-build-image:
   extends:
-    - .archetype-default-job-main-or-mr
-    - .archetype-theia-extension-build-job
+    - .archetype-default-job-mr
+    - .docker-build-only-job
   variables:
-    EXTENSION_DIR: cinco-languages-extension
+    CONTEXT: .
+    DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
 
-archetype-build:
+# creates new latest archetype
+archetype-build-push-latest:
   extends:
     - .archetype-default-job-main
     - .docker-build-job
   needs:
-    - archetype-test-build-cinco-cloud-project-initializer-extension
-    - archetype-test-build-cinco-languages-extension
+    - archetype-test-build-local
   variables:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
@@ -237,7 +255,7 @@ archetype-build:
     TAG: latest
 
 # feature-branch pipeline
-archetype-build-dev:
+archetype-build-push-dev:
   extends:
     - .archetype-default-job-feature
     - .docker-build-job

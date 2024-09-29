@@ -13,12 +13,18 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import 'reflect-metadata';
+import { startLanguageServer } from 'langium';
+import { NodeFileSystem } from 'langium/node';
+import { createConnection, ProposedFeatures } from 'vscode-languageserver/node';
+import { MglModule } from '@cinco-glsp/cinco-languages';
+import { MglCompletionProvider } from './mgl-completion-provider';
 
-export * from './mgl/cli';
-export * as MglModule from './mgl/language/mgl-module';
-export * as MglValidator from './mgl/language/mgl-validator';
-export * as MslModule from './msl/language/msl-module';
-export * as MslValidator from './msl/language/msl-validator';
-export * as mglLoader from './mgl/cli/index';
-export * as LanguageMetaData from './generated/module';
+// Create a connection to the client
+const connection = createConnection(ProposedFeatures.all);
+
+// Inject the shared services and language-specific services
+const { shared, Mgl } = MglModule.createMglServices({ connection, ...NodeFileSystem });
+Mgl.lsp.CompletionProvider = new MglCompletionProvider(Mgl);
+
+// Start the language server with the shared services
+startLanguageServer(shared);
