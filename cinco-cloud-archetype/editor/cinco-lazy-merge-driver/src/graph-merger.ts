@@ -35,7 +35,7 @@ export function edgeMerger(): Merger {
         type: eagerMerger(),
         _attributes: eagerMerger(),
         sourceID: cellMerger(),
-        targetID: eagerMerger(),
+        targetID: cellMerger(),
         _routingPoints: eagerMerger()
     });
 }
