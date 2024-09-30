@@ -720,27 +720,20 @@ export function getUserDefinedType(elementTypeId: string): UserDefinedType | und
     return getUserDefinedTypes().filter(t => t.elementTypeId === elementTypeId)[0] ?? undefined;
 }
 
-export function getNonAbstractTypeOptions(parentType: Type): Type[] {
-    let relevantTypes: Type[] = [];
+export function getNonAbstractTypeOptions(parentType: ElementType): ElementType[] {
+    let relevantTypes: ElementType[] = [];
     if (NodeType.is(parentType)) {
         relevantTypes = getNodeTypes();
     } else if (EdgeType.is(parentType)) {
         relevantTypes = getEdgeTypes();
     } else if (GraphType.is(parentType)) {
         relevantTypes = getGraphTypes();
-    } else if (Enum.is(parentType)) {
-        relevantTypes = getEnums();
     } else if (UserDefinedType.is(parentType)) {
         relevantTypes = getUserDefinedTypes();
     }
 
-    return [parentType].concat(getNonAbstractTypeOptionsRecursive(parentType, relevantTypes)).filter(type => !type.abstract);
-}
-
-export function getNonAbstractTypeOptionsRecursive(parentType: Type, relevantTypes: Type[]): Type[] {
-    const subTypes = relevantTypes.filter(type => type.parent === parentType.elementTypeId);
-    subTypes.forEach(subType => subTypes.concat(getNonAbstractTypeOptionsRecursive(subType, relevantTypes)));
-    return [...new Set(subTypes)]; // remove duplicates
+    const subTypes: ElementType[] = relevantTypes.filter(type => type.superTypes?.includes(parentType.elementTypeId));
+    return [parentType].concat(subTypes);
 }
 
 export function getAttributesOf(elementTypeId: string): Attribute[] {

@@ -560,7 +560,7 @@ export class CincoPropertyEntry extends React.Component<
                 }
             }
             default: {
-                const typeDefinition = getCustomType(attributeDefinition.type);
+                const typeDefinition = getCustomType(attributeDefinition.type); // undefined if specified type is abstract
                 if (Enum.is(typeDefinition)) {
                     return (
                         <select
