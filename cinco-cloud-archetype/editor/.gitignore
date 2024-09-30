@@ -5,6 +5,8 @@ lib
 *-app/*
 !*-app/package.json
 !*-app/plugins
+cinco-project-initializer-*.vsix
+cinco-languages-extension-*.vsix
 .idea/
 .DS_Store
 .yalc
@@ -13,4 +15,7 @@ languages/dummy.ts
 bundle.js
 bundle.js.map
 *.ttf
+
+# Ignore Yarn v1 lockfile because it is generated differently on
+# Linux/macOS/Windows which creates incompatibilities.
 yarn.lock
