@@ -16,6 +16,7 @@
 import { GNode, RenderingContext, ShapeView, svg } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
+import * as conflictMarker from '../../images/conflict-marker.svg';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
 
@@ -28,7 +29,7 @@ export class MarkerEdgeSourceTargetConflictView extends ShapeView {
         return (
             <g>
                 <rect x={0} y={0} width={node.size.width} height={node.size.height} fill='white' stroke='black' stroke-width={2} />
-                <image href={'images/potential-marker.svg'} width={node.size.width} height={node.size.height} />
+                <image href={conflictMarker as any} width={node.size.width} height={node.size.height} />
             </g>
         ) as unknown as VNode;
     }

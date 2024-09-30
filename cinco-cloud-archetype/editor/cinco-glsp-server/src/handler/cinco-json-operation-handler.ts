@@ -23,6 +23,7 @@ import {
     MaybePromise,
     ModelSubmissionHandler,
     Operation,
+    SaveModelAction,
     SourceModelStorage
 } from '@eclipse-glsp/server';
 import { injectable, inject } from 'inversify';
@@ -47,4 +48,10 @@ export abstract class CincoJsonOperationHandler extends JsonOperationHandler {
     }
 
     abstract executeOperation(operation: Operation): void;
+
+    saveAndUpdate(): void {
+        const graphmodel = this.modelState.index.getRoot();
+        const fileUri = graphmodel._sourceUri;
+        this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
+    }
 }

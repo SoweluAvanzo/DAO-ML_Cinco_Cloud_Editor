@@ -66,7 +66,9 @@ import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibi
 import { EnvironmentProvider } from './api/environment-provider';
 import { CincoToolPaletteUpdateHandler } from './glsp/cinco-tool-palette-update-handler';
 import { MarkerEdgeSourceTargetConflictView } from './views/marker-edge-source-target-conflict-view';
-import { CincoMarker } from './model/model';
+import { CincoEdgeButtonSourceChoice, CincoEdgeButtonTargetChoice, CincoMarker } from './model/model';
+import { ButtonSelectChoiceView } from './views/button-select-choice';
+import { ChoiceSelectionTool } from './features/tool/choice-selection-tool';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -144,6 +146,9 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     bind(TYPES.IDefaultTool).to(PropertyViewTool).inSingletonScope();
     configureActionHandler(context, PropertyViewResponseAction.KIND, PropertyViewResponseActionHandler);
 
+    // bind the ChoiceSelectionTool
+    bind(TYPES.IDefaultTool).to(ChoiceSelectionTool).inSingletonScope();
+
     // GLSPToolManager
     rebind(TYPES.IToolManager).to(CincoToolManager).inSingletonScope();
     bind(CincoToolManager).toSelf().inSingletonScope();
@@ -157,6 +162,8 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     configureDefaultModelElements(context);
     configureModelElement(context, 'marker:edge-source-target-conflict', CincoMarker, MarkerEdgeSourceTargetConflictView);
+    configureModelElement(context, 'button:edge-source-choice', CincoEdgeButtonSourceChoice, ButtonSelectChoiceView);
+    configureModelElement(context, 'button:edge-target-choice', CincoEdgeButtonTargetChoice, ButtonSelectChoiceView);
 
     bind(TYPES.IDiagramStartup).toService(EnvironmentProvider);
 });

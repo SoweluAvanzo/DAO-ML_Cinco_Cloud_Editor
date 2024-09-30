@@ -95,11 +95,11 @@ export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook 
     }
     postDoubleClick(edge: Edge): void {}
     // Reconnect
-    canReconnect(edge: Edge, newSource: Cell<Node>, newTarget: Node): boolean {
+    canReconnect(edge: Edge, newSource: Cell<Node>, newTarget: Cell<Node>): boolean {
         return true;
     }
-    preReconnect(edge: Edge, newSource: Cell<Node>, newTarget: Node): void {}
-    postReconnect(edge: Edge, oldSource: Cell<Node>, oldTarget: Node): void {}
+    preReconnect(edge: Edge, newSource: Cell<Node>, newTarget: Cell<Node>): void {}
+    postReconnect(edge: Edge, oldSource: Cell<Node>, oldTarget: Cell<Node>): void {}
 }
 
 export abstract class AbstractGraphModelHook extends AbstractHook implements GraphModelHook {
