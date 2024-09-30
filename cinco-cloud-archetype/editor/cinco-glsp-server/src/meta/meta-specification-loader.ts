@@ -83,6 +83,7 @@ export class MetaSpecificationLoader {
                 }
                 countdown -= 1;
                 if (countdown <= 0) {
+                    MetaSpecification.prepareCache();
                     resolve();
                 }
             });

@@ -23,18 +23,37 @@ import { hasArrayProp, hasBooleanProp, hasNumberProp, hasObjectProp, hasStringPr
 
 export namespace MetaSpecification {
     let META_SPECIFICATION: CompositionSpecification = {};
+    const CACHED_CONTAINMENTS: Map<ModelElementContainer, NodeType[]> = new Map();
 
     export function get(): CompositionSpecification {
         return META_SPECIFICATION;
     }
 
     export function merge(metaSpecification: CompositionSpecification): void {
+        CACHED_CONTAINMENTS.clear();
         addGraphTypes(metaSpecification.graphTypes ?? []);
         addNodeTypes(metaSpecification.nodeTypes ?? []);
         addEdgeTypes(metaSpecification.edgeTypes ?? []);
         addCustomTypes(metaSpecification.customTypes ?? []);
         addAppearances(metaSpecification.appearances ?? []);
         addStyles(metaSpecification.styles ?? []);
+    }
+
+    export function prepareCache(): void {
+        cacheContainments();
+    }
+
+    function cacheContainments(): void {
+        // pre resolve container
+        const containers = (getGraphTypes() as ModelElementContainer[]).concat(getContainerNodes());
+        for(const container of containers) {
+            const containments = getDeepContainmentsOf(container);
+            CACHED_CONTAINMENTS.set(container, containments);
+        }
+    }
+
+    export function getCachedContainments(containerType: ModelElementContainer): NodeType[] {
+        return CACHED_CONTAINMENTS.get(containerType) ?? [];
     }
 
     export function addTypes(types: any[], typeAccessor: string, idAccessor: string): void {
@@ -1192,7 +1211,7 @@ export function getContainersOf(e: NodeType): NodeType[] {
     );
 }
 
-export function getContainerNodes(): NodeType[] {
+export function getContainerNodes(): ModelElementContainer[] {
     return getNodeTypes((n: NodeType) => isContainer(n.elementTypeId));
 }
 
@@ -1204,12 +1223,26 @@ export function getContainmentsOf(e: ModelElementContainer): NodeType[] {
     return [];
 }
 
+export function getDeepContainmentsOf(e: ModelElementContainer, seenContainments: NodeType[] = []): NodeType[] {
+    let containments = getContainmentsOf(e);
+    // containments of containments
+    containments = Array.from(new Set(
+            containments.concat(
+                containments.filter(c => ModelElementContainer.is(c) && !seenContainments.includes(c)).map(c =>
+                    getDeepContainmentsOf(c, containments)
+                ).flat()
+            )
+        )
+    );
+    return containments;
+}
+
 export function canBeCreated(containerType: string, containmentType: string, seenContainments: NodeType[] = []): boolean {
     const containerSpec = getSpecOf(containerType);
     if (containerSpec === undefined || !ModelElementContainer.is(containerSpec)) {
         return false;
     }
-    const containments = getContainmentsOf(containerSpec);
+    const containments = MetaSpecification.getCachedContainments(containerSpec);
     const nodeSpec = getNodeSpecOf(containmentType);
     const edgeSpec = getEdgeSpecOf(containmentType);
     if (nodeSpec) {
@@ -1217,15 +1250,7 @@ export function canBeCreated(containerType: string, containmentType: string, see
         return (
             containments.length > 0 &&
             // tested type is either is a defined containment, or ...
-            (containments.filter((e: NodeType) => e.elementTypeId === containmentType).length > 0 ||
-                containments.filter(
-                    c =>
-                        // ... there is a containable container c that is not a containment of container above (prevent recursion)...
-                        seenContainments.filter(s => s.elementTypeId === c.elementTypeId).length <= 0 &&
-                        // then for c holds, if that containment (with type containmentType) is containable by the containble container c,
-                        // then containmentType is also defined as a creatable containment of this container
-                        canBeCreated(c.elementTypeId, containmentType, seenContainments.concat(containments))
-                ).length > 0) // ... not creatable
+            containments.filter((e: NodeType) => e.elementTypeId === containmentType).length > 0
         );
     } else if (edgeSpec) {
         // is EdgeType
