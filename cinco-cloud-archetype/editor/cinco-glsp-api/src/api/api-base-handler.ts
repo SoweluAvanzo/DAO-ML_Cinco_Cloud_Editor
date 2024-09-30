@@ -18,6 +18,7 @@ import {
     CommandAction,
     ElementType,
     getSpecOf,
+    Point,
     ServerDialogAction,
     ServerDialogResponse,
     ServerOutputAction
@@ -30,10 +31,12 @@ import {
     MessageAction,
     SourceModelStorage,
     SaveModelAction,
-    ModelSubmissionHandler
+    ModelSubmissionHandler,
+    CreateNodeOperation,
+    CreateEdgeOperation
 } from '@eclipse-glsp/server';
 import { RootPath } from './root-path';
-import { GraphModel, ModelElement } from '../model/graph-model';
+import { Container, GraphModel, ModelElement, Node } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
 import * as fileHelper from '../utils/file-helper';
@@ -206,6 +209,29 @@ export abstract class APIBaseHandler {
                 resolve();
             }
         });
+    }
+
+    createNode(type: string, location: Point, container?: Container | string): Promise<void> {
+        const operation: CreateNodeOperation = {
+            kind: CreateNodeOperation.KIND,
+            elementTypeId: type,
+            isOperation: true,
+            containerId: typeof(container) == 'string' ? container
+                : (container?.id ?? this.modelState.index.getRoot().id),
+            location: location
+        };
+        return this.actionDispatcher.dispatch(operation);
+    }
+
+    createEdge(type: string, source: Node | string, target: Node | string): Promise<void> {
+        const operation: CreateEdgeOperation = {
+            kind: CreateEdgeOperation.KIND,
+            elementTypeId: type,
+            isOperation: true,
+            sourceElementId: typeof(source) === 'string' ? source: source.id,
+            targetElementId: typeof(target) === 'string' ? target : target.id
+        };
+        return this.actionDispatcher.dispatch(operation);
     }
 
     getParentDirectory(fileOrDirPath: string): string {
