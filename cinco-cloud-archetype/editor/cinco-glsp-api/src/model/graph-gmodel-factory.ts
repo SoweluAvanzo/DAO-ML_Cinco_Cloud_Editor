@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { EdgeType, NodeType, Point, Size, isChoice, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
-import { GEdge, GGraph, GModelElement, GModelFactory, GNode, GNodeBuilder } from '@eclipse-glsp/server';
+import { GEdge, GGraph, GLabel, GModelElement, GModelFactory, GNode, GNodeBuilder } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
 import { GraphModelState } from './graph-model-state';
@@ -87,29 +87,67 @@ export class GraphGModelFactory implements GModelFactory {
     }
 
     protected createEdge<T extends Edge>(edge: T): GModelElement[] {
-        if (isChoice(edge.sourceID)) {
-            const sourceSegments = edge.sourceID.options.map(sourceID =>
+        if (isChoice(edge.sourceID) || isChoice(edge.targetID)) {
+            const sourceSegments = edge.sourceIDs.map(sourceID =>
                 this.buildEdgeSegment(
                     edge,
                     this.edgeSourceSegmentID(edge.id, sourceID),
                     sourceID,
-                    this.markerEdgeSourceTargetConflictID(edge.id)
+                    this.markerEdgeSourceTargetConflictID(edge.id),
+                    isChoice(edge.sourceID)
+                        ? [
+                              GLabel.builder()
+                                  .type('button:edge-source-choice')
+                                  .id(`button-edge-source-choice-${edge.id}-${sourceID}`)
+                                  .size(20, 20)
+                                  .text('foobar')
+                                  .edgePlacement({
+                                      position: 0.5,
+                                      rotate: false,
+                                      side: 'on',
+                                      offset: 0
+                                  })
+                                  .addArg('edgeID', edge.id)
+                                  .addArg('sourceID', sourceID)
+                                  .build()
+                          ]
+                        : []
                 )
             );
             const conflictMarker = this.buildConflictMarker(edge);
-            const targetSegment = this.buildEdgeSegment(
-                edge,
-                this.edgeTargetSegmentID(edge.id, edge.targetID),
-                this.markerEdgeSourceTargetConflictID(edge.id),
-                edge.targetID
+            const targetSegments = edge.targetIDs.map(targetID =>
+                this.buildEdgeSegment(
+                    edge,
+                    this.edgeTargetSegmentID(edge.id, targetID),
+                    targetID,
+                    this.markerEdgeSourceTargetConflictID(edge.id),
+                    isChoice(edge.targetID)
+                        ? [
+                              GLabel.builder()
+                                  .type('button:edge-target-choice')
+                                  .id(`button-edge-target-choice-${edge.id}-${targetID}`)
+                                  .size(20, 20)
+                                  .text('foobar')
+                                  .edgePlacement({
+                                      position: 0.5,
+                                      rotate: false,
+                                      side: 'on',
+                                      offset: 0
+                                  })
+                                  .addArg('edgeID', edge.id)
+                                  .addArg('targetID', targetID)
+                                  .build()
+                          ]
+                        : []
+                )
             );
-            return [...sourceSegments, conflictMarker, targetSegment];
+            return [...sourceSegments, conflictMarker, ...targetSegments];
         } else {
-            return [this.buildEdgeSegment(edge, edge.id, edge.sourceID, edge.targetID)];
+            return [this.buildEdgeSegment(edge, edge.id, edge.sourceID, edge.targetID, [])];
         }
     }
 
-    protected buildEdgeSegment<T extends Edge>(edge: T, id: string, sourceID: string, targetID: string): GEdge {
+    protected buildEdgeSegment<T extends Edge>(edge: T, id: string, sourceID: string, targetID: string, childen: GModelElement[]): GEdge {
         const spec = getSpecOf(edge.type) as EdgeType | undefined;
         const cssClasses = edge.cssClasses ?? [];
         const routerKind = spec?.view?.routerKind;
@@ -118,7 +156,8 @@ export class GraphGModelFactory implements GModelFactory {
             .type(edge.type)
             .id(id)
             .sourceId(sourceID)
-            .targetId(targetID);
+            .targetId(targetID)
+            .addChildren(childen);
         cssClasses.forEach((css: string) => builder.addCssClass(css));
         if (routerKind !== undefined) {
             builder.routerKind(routerKind);
@@ -133,8 +172,8 @@ export class GraphGModelFactory implements GModelFactory {
         return GNode.builder()
             .type('marker:edge-source-target-conflict')
             .id(this.markerEdgeSourceTargetConflictID(edge.id))
-            .position(this.calculateConflictMarkerPosition(edge.sources, [edge.target]))
-            .size(40, 40)
+            .position(this.calculateConflictMarkerPosition(edge.sources, edge.targets))
+            .size(conflictMarkerSize, conflictMarkerSize)
             .build();
     }
 
@@ -144,8 +183,8 @@ export class GraphGModelFactory implements GModelFactory {
         const markerCenter = this.positionAverage([this.positionAverage(sourcePositions), this.positionAverage(targetPositions)]);
 
         return {
-            x: markerCenter.x - 40 / 2, // TODO: Replace 40 with global constant
-            y: markerCenter.y - 40 / 2 // TODO: Replace 40 with global constant
+            x: markerCenter.x - conflictMarkerSize / 2,
+            y: markerCenter.y - conflictMarkerSize / 2
         };
     }
 
@@ -183,3 +222,5 @@ export class GraphGModelFactory implements GModelFactory {
         return `conflict-marker-${edgeID}`;
     }
 }
+
+const conflictMarkerSize = 40;

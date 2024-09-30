@@ -59,6 +59,10 @@ module.exports = {
             {
                 test: /\.(ttf)$/,
                 type: 'asset/resource'
+            },
+            {
+                test: /\.(svg)$/,
+                type: 'asset'
             }
         ]
     },

@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Container, Edge, Node, ModelElement, HookManager } from '@cinco-glsp/cinco-glsp-api';
-import { DeleteElementOperation, SaveModelAction, remove } from '@eclipse-glsp/server';
+import { DeleteElementOperation, remove } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 import { isChoice, DeleteArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
@@ -104,12 +104,5 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             this.sourceModelStorage,
             this.submissionHandler
         );
-    }
-
-    saveAndUpdate(): void {
-        // save model
-        const graphmodel = this.modelState.index.getRoot();
-        const fileUri = graphmodel._sourceUri;
-        this.actionDispatcher.dispatch(SaveModelAction.create({ fileUri }));
     }
 }

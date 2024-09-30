@@ -132,23 +132,10 @@ export function optionalMerger(valueMerger: Merger<any>): Merger<Optional<any>> 
 }
 
 export function recordMerger(mergers: Record<string, Merger>): Merger {
-    return ({ ancestor, versionA, versionB }) => {
-        validateNoUnknownKeysForRecordMerger(mergers, ancestor);
-        validateNoUnknownKeysForRecordMerger(mergers, versionA);
-        validateNoUnknownKeysForRecordMerger(mergers, versionB);
-        return sequenceMergeResultsMap(
-            mapMap(mergers, (merger, key) =>
-                merger({
-                    ancestor: ancestor[key],
-                    versionA: versionA[key],
-                    versionB: versionB[key]
-                })
-            )
-        );
-    };
+    return objectMerger(key => mergers[key] ?? eagerMerger());
 }
 
-export function sequenceMergeResultsMap(mergeResults: Record<string, MergeResult>): MergeResult {
+export function sequenceMergeResultsObject(mergeResults: Record<string, MergeResult>): MergeResult {
     return {
         value: mapMap(mergeResults, ({ value }) => value),
         newEagerConflicts: Object.values(mergeResults)
@@ -158,14 +145,6 @@ export function sequenceMergeResultsMap(mergeResults: Record<string, MergeResult
             .map(({ newLazyConflicts }) => newLazyConflicts)
             .some(x => x)
     };
-}
-
-function validateNoUnknownKeysForRecordMerger(mergers: Record<string, Merger>, record: Record<string, any>): void {
-    for (const key of Object.keys(record)) {
-        if (!(key in mergers)) {
-            throw new Error(`Key ${key} has no merger defined.`);
-        }
-    }
 }
 
 export function entityListMerger(merger: Merger): Merger {
@@ -181,16 +160,25 @@ export function entityListMerger(merger: Merger): Merger {
 }
 
 export function mapMerger(merger: Merger): Merger {
+    return objectMerger(_ => merger);
+}
+
+export function objectMerger(mergers: (key: string) => Merger): Merger {
     return ({ ancestor, versionA, versionB }) => {
         const keys = new Set<string>(Object.keys(ancestor).concat(Object.keys(versionA).concat(Object.keys(versionB))));
         const mergeResults: Record<string, MergeResult> = {};
         for (const key of keys) {
-            const entityMerge = optionalMerger(merger)({ ancestor: ancestor[key], versionA: versionA[key], versionB: versionB[key] });
+            const merger = optionalMerger(mergers(key));
+            const entityMerge = merger({
+                ancestor: ancestor[key],
+                versionA: versionA[key],
+                versionB: versionB[key]
+            });
             if (entityMerge.value !== undefined) {
                 mergeResults[key] = entityMerge;
             }
         }
-        return sequenceMergeResultsMap(mergeResults);
+        return sequenceMergeResultsObject(mergeResults);
     };
 }
 
@@ -230,4 +218,8 @@ export function cellMerger(): Merger {
             newLazyConflicts: mergedSet.size > 1 && mergedSet.difference(ancestorSet).size > 0
         };
     };
+}
+
+export function recursiveMerger(mergerConstructor: () => Merger): Merger {
+    return versions => mergerConstructor()(versions);
 }

@@ -99,7 +99,7 @@ export interface MoveArgument extends Argument {
 }
 export interface ReconnectArgument extends Argument {
     sourceId: Cell<string>;
-    targetId: string;
+    targetId: Cell<string>;
     operation: ReconnectEdgeOperation;
     kind: 'Reconnect';
 }

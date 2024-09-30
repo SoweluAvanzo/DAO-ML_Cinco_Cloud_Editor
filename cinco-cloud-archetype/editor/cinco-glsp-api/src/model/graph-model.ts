@@ -59,7 +59,7 @@ import {
     isConflictFree,
     mapCell
 } from '@cinco-glsp/cinco-glsp-common';
-import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
+import { AnyObject, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { GraphModelIndex } from './graph-model-index';
 import { GraphModelStorage } from './graph-storage';
 import { getModelFiles, getWorkspaceRootUri } from '../utils/file-helper';
@@ -450,7 +450,7 @@ export class Node extends ModelElement {
 
     get successors(): Node[] {
         const edges = this.outgoingEdges;
-        return edges.map(e => e.target);
+        return [...new Set(edges.flatMap(edge => edge.targets))];
     }
 
     get predecessors(): Node[] {
@@ -459,23 +459,17 @@ export class Node extends ModelElement {
     }
 
     get outgoingEdges(): Edge[] {
-        const gNode = this.index!.findGElement(this.id) as GNode | undefined;
-        if (gNode !== undefined) {
-            const gEdges: GEdge[] | undefined = this.index!.getOutgoingEdges(gNode);
-            if (gEdges) {
-                return gEdges.map(e => this.index!.findElement(e.id)).filter(e => Edge.is(e)) as Edge[];
-            }
+        const node = this.index!.findNode(this.id);
+        if (node !== undefined) {
+            return this.index!.getOutgoingEdgeElements(node);
         }
         return [];
     }
 
     get incomingEdges(): Edge[] {
-        const gNode = this.index!.findGElement(this.id) as GNode | undefined;
-        if (gNode !== undefined) {
-            const gEdges: GEdge[] | undefined = this.index!.getIncomingEdges(gNode);
-            if (gEdges) {
-                return gEdges.map(e => this.index!.findElement(e.id)).filter(e => Edge.is(e)) as Edge[];
-            }
+        const node = this.index!.findNode(this.id);
+        if (node !== undefined) {
+            return this.index!.getIncomingEdgeElements(node);
         }
         return [];
     }
@@ -678,7 +672,7 @@ export namespace Container {
 
 export class Edge extends ModelElement {
     sourceID: Cell<string>;
-    targetID: string;
+    targetID: Cell<string>;
     _routingPoints: RoutingPoint[];
 
     initialize({ type, sourceID, targetID }: { type: string; sourceID: string; targetID: string }): void {
@@ -706,13 +700,22 @@ export class Edge extends ModelElement {
         return cellValues(this.source);
     }
 
-    get target(): Node {
-        const id = this.targetID;
-        const node = this.index!.findNode(id);
-        if (!node) {
-            throw new Error(`Edge with id ${this.id} has an undefined targetID ${this.targetID}.`);
-        }
-        return node;
+    get targetIDs(): ReadonlyArray<string> {
+        return cellValues(this.targetID);
+    }
+
+    get target(): Cell<Node> {
+        return mapCell(this.targetID, targetID => {
+            const node = this.index!.findNode(targetID);
+            if (!node) {
+                throw new Error(`Edge with id ${this.id} has an undefined targetID ${targetID}.`);
+            }
+            return node;
+        });
+    }
+
+    get targets(): ReadonlyArray<Node> {
+        return cellValues(this.target);
     }
 
     canConnectToTarget(node: Node, filter?: (e: Edge) => boolean): boolean {

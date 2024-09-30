@@ -45,6 +45,7 @@ import {
     GModelElement,
     GModelElementSchema,
     GNode,
+    GShapeElement,
     hoverFeedbackFeature,
     isGModelElementSchema,
     layoutContainerFeature,
@@ -52,7 +53,10 @@ import {
     Point,
     popupFeature,
     RECTANGULAR_ANCHOR_KIND,
-    selectFeature
+    selectFeature,
+    layoutableChildFeature,
+    edgeLayoutFeature,
+    EdgePlacement
 } from '@eclipse-glsp/client';
 import { FluentIterable } from 'sprotty/lib/utils/iterable';
 import { canContain } from '../utils/constraint-utils';
@@ -475,6 +479,30 @@ export class CincoEdge extends GEdge implements CincoModelElement {
 }
 
 export class CincoMarker extends GNode {}
+
+export class CincoButtonSelectChoice extends GShapeElement {
+    static readonly DEFAULT_FEATURES = [boundsFeature, layoutableChildFeature, edgeLayoutFeature, fadeFeature];
+
+    edgePlacement?: EdgePlacement;
+}
+
+export abstract class CincoEdgeButton extends CincoButtonSelectChoice {
+    get edgeID(): string {
+        return (this as any).args.edgeID;
+    }
+}
+
+export class CincoEdgeButtonSourceChoice extends CincoEdgeButton {
+    get sourceID(): string {
+        return (this as any).args.sourceID;
+    }
+}
+
+export class CincoEdgeButtonTargetChoice extends CincoEdgeButton {
+    get targetID(): string {
+        return (this as any).args.targetID;
+    }
+}
 
 export class CincoGraphModel extends GGraph implements CincoModelElement {
     override isContainableElement(input: string | GModelElement | GModelElementSchema): boolean {
