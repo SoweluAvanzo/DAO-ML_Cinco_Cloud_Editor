@@ -21,52 +21,80 @@ import { fileURLToPath } from 'url';
 
 export const FOLDER_TYPE = ':FOLDER';
 
-/**
- * @param targetPath
- * @param content
- * @param encoding | 'ascii', 'utf8', 'utf-8', 'utf16le', 'ucs2', 'ucs-2', 'base64', 'base64url', 'latin1', 'binary', 'hex'
- */
-export function writeFile(targetPath: string, content: string, overwriteExistingFile = true, encoding = 'utf-8'): void {
-    if (overwriteExistingFile || !exists(targetPath)) {
-        fs.writeFileSync(targetPath, content, { encoding: encoding as BufferEncoding });
-    }
-}
-
-export function getFilesFromDirectories(directories: string[], filterTypes: string[]): string[] {
+export async function getFilesFromDirectories(directories: string[], filterTypes: string[]): Promise<string[]> {
     let result: string[] = [];
     for (const dir of directories) {
-        const fileUris = getFiles(dir, filterTypes);
+        let fileUris = await getFiles(dir, filterTypes);
+        fileUris = fileUris.map(f => path.join(dir, f));
         result = result.concat(fileUris);
     }
-    return result;
+    return Array.from(new Set(result));
 }
 
-export function getFiles(absFolderPath: string, filterTypes: string[] = []): string[] {
-    try {
-        return getFileEntities(absFolderPath, './', filterTypes);
-    } catch (e) {
-        console.log('failed to access filesystem.');
+export function getFilesFromDirectoriesSync(directories: string[], filterTypes: string[]): string[] {
+    let result: string[] = [];
+    for (const dir of directories) {
+        let fileUris = getFilesSync(dir, filterTypes);
+        fileUris = fileUris.map(f => path.join(dir, f));
+        result = result.concat(fileUris);
     }
-    return [];
+    return Array.from(new Set(result));
 }
 
-export function getSubfolder(absFolderPath: string, depth?: number): string[] {
-    if (depth === 0) {
+async function getFileEntities(absRoot: string, folderPath: string, filterTypes?: string[]): Promise<string[]> {
+    const absoluteFolderPath = path.join(absRoot, folderPath);
+    const pathExists = await exists(absoluteFolderPath);
+    if (!pathExists) {
         return [];
     }
-    try {
-        let subfolders = getFileEntities(absFolderPath, './', [FOLDER_TYPE]);
-        for (const sf of subfolders) {
-            subfolders = subfolders.concat(getSubfolder(sf, (depth ?? 0) - 1));
+
+    const found = await readDirectory(absoluteFolderPath); // all found files and directories
+    // search for existing files
+    const foundFileEntities = (await Promise.all(found.map(async potentialFile => {
+        const absPath = path.join(absoluteFolderPath, potentialFile);
+        const isFile = await existsFile(absPath);
+        return { potentialFile, isFile };
+    }))).filter(value => value.isFile).map(value => value.potentialFile);
+
+    // search for existing folders
+    const foundFolders = (await Promise.all(found.map(async potentialFolder => {
+        const absPath = path.join(absoluteFolderPath, potentialFolder);
+        const isFolder = await existsDirectory(absPath);
+        return { potentialFolder, isFolder };
+    }))).filter(value => value.isFolder).map(value => value.potentialFolder);
+
+    const containedFiles: string[] = [];
+    await Promise.all(foundFolders.map(async (folder: string) => {
+        const relativeFolderPath = path.join(folderPath, folder);
+        const filesFromFolder = await getFileEntities(absRoot, relativeFolderPath, filterTypes);
+        filesFromFolder.forEach(file => {
+            const relativeFilePath = path.join(folder, file);
+            containedFiles.push(relativeFilePath);
+        });
+    }));
+
+    let allFoundFileEntities = foundFileEntities.concat(containedFiles);
+    if (filterTypes && filterTypes.length > 0) {
+        // filter by filterTypes
+        allFoundFileEntities = getFilesByExtensions(
+            allFoundFileEntities,
+            filterTypes.filter(f => f !== FOLDER_TYPE)
+        );
+
+        // filter object for folders :FOLDER as a type
+        if (filterTypes.includes(FOLDER_TYPE)) {
+            if (filterTypes.length === 1) {
+                // Only :FOLDER is defined => remove all files, that were previously added...
+                allFoundFileEntities = [];
+            }
+             // ...and add only the folders
+            allFoundFileEntities = allFoundFileEntities.concat(foundFolders.map(f => `${absRoot}/${f}`));
         }
-        return subfolders;
-    } catch (e) {
-        console.log('failed to access filesystem.');
     }
-    return [];
+    return allFoundFileEntities;
 }
 
-function getFileEntities(absRoot: string, folderPath: string, filterTypes?: string[]): string[] {
+function getFileEntitiesSync(absRoot: string, folderPath: string, filterTypes?: string[]): string[] {
     const absoluteFolderPath = path.join(absRoot, folderPath);
     if (!fs.existsSync(absoluteFolderPath)) {
         return [];
@@ -84,7 +112,7 @@ function getFileEntities(absRoot: string, folderPath: string, filterTypes?: stri
     const foundFolders = found.filter(folder => {
         const absPath = path.join(absoluteFolderPath, folder);
         try {
-            return existsDirectory(absPath); // if directory can be read, it is a folder catch (e)
+            return existsDirectorySync(absPath); // if directory can be read, it is a folder catch (e)
         } catch (e) {
             return false;
         }
@@ -92,7 +120,7 @@ function getFileEntities(absRoot: string, folderPath: string, filterTypes?: stri
     const containedFiles: string[] = [];
     foundFolders.forEach((folder: string) => {
         const relativeFolderPath = path.join(folderPath, folder);
-        const filesFromFolder = getFileEntities(absRoot, relativeFolderPath, filterTypes);
+        const filesFromFolder = getFileEntitiesSync(absRoot, relativeFolderPath, filterTypes);
         filesFromFolder.forEach(file => {
             const relativeFilePath = path.join(folder, file);
             containedFiles.push(relativeFilePath);
@@ -116,25 +144,123 @@ function getFileEntities(absRoot: string, folderPath: string, filterTypes?: stri
     return foundEntities;
 }
 
-export function readFile(filePath: string, encoding = 'utf-8'): string | undefined {
+export function getFiles(absFolderPath: string, filterTypes: string[] = []): Promise<string[]> {
+    try {
+        return getFileEntities(absFolderPath, './', filterTypes);
+    } catch (e) {
+        console.log('failed to access filesystem.');
+    }
+    return new Promise<string[]>(resolve=>resolve([]));
+}
+
+export function getFilesSync(absFolderPath: string, filterTypes: string[] = []): string[] {
+    try {
+        return getFileEntitiesSync(absFolderPath, './', filterTypes);
+    } catch (e) {
+        console.log('failed to access filesystem.');
+    }
+    return [];
+}
+
+export async function getSubfolder(absFolderPath: string, depth?: number): Promise<string[]> {
+    if (depth === 0) {
+        return [];
+    }
+    try {
+        let subfolders = await getFileEntities(absFolderPath, './', [FOLDER_TYPE]);
+        for (const sf of subfolders) {
+            subfolders = subfolders.concat(
+                await getSubfolder(sf, (depth ?? 0) - 1)
+            );
+        }
+        return subfolders;
+    } catch (e) {
+        console.log('failed to access filesystem.');
+    }
+    return [];
+}
+
+export function getSubfolderSync(absFolderPath: string, depth?: number): string[] {
+    if (depth === 0) {
+        return [];
+    }
+    try {
+        let subfolders = getFileEntitiesSync(absFolderPath, './', [FOLDER_TYPE]);
+        for (const sf of subfolders) {
+            subfolders = subfolders.concat(getSubfolderSync(sf, (depth ?? 0) - 1));
+        }
+        return subfolders;
+    } catch (e) {
+        console.log('failed to access filesystem.');
+    }
+    return [];
+}
+
+export async function writeFile(
+    targetPath: string, content: string, overwriteExistingFile = true, encoding: NodeJS.BufferEncoding = 'utf-8'
+): Promise<void> {
+    const doesExist = await exists(targetPath);
+    return new Promise<void>(resolve => {
+        if (overwriteExistingFile || !doesExist) {
+            fs.writeFile(targetPath, content, {
+                encoding: encoding
+            } as fs.WriteFileOptions, (err: NodeJS.ErrnoException | null) => {
+                if(err) {
+                    throw new Error('Could not write file: '+targetPath);
+                }
+                resolve();
+            });
+        } else {
+            resolve();
+        }
+    });
+}
+
+export function writeFileSync(targetPath: string, content: string, overwriteExistingFile = true, encoding = 'utf-8'): void {
+    if (overwriteExistingFile || !existsSync(targetPath)) {
+        fs.writeFileSync(targetPath, content, { encoding: encoding as BufferEncoding });
+    }
+}
+
+export async function readFile(filePath: string, encoding: NodeJS.BufferEncoding = 'utf8'): Promise<string | undefined> {
+    return new Promise<string | undefined> ((resolve, reject) => {
+        fs.readFile(
+            filePath,
+            { encoding: encoding },
+            (err: NodeJS.ErrnoException | null, data: string) => {
+                if(err) {
+                    console.log(`failed to read file: ${filePath}`);
+                }
+                resolve( err ? undefined : data);
+        });
+    });
+}
+
+export function readFileSync(filePath: string, encoding: NodeJS.BufferEncoding = 'utf-8'): string | undefined {
     let result: string | undefined;
     try {
-        const buffer = fs.readFileSync(filePath);
-        const content = buffer.toString();
-        result = content;
+        return fs.readFileSync(filePath,
+            { encoding: encoding });
     } catch (e) {
         console.log(`failed to read file: ${filePath}`);
     }
     return result;
 }
 
-export function readFiles(filePaths: string[], encoding?: string): string[] {
+export async function readFiles(filePaths: string[], encoding: NodeJS.BufferEncoding = 'utf-8'): Promise<(string | undefined)[]> {
+    const promises: Promise<string | undefined>[] = [];
+    for (const filePath of filePaths) {
+        promises.push(readFile(filePath, encoding));
+    }
+    return Promise.all(promises);
+}
+
+export function readFilesSync(filePaths: string[], encoding: NodeJS.BufferEncoding = 'utf-8'): string[] {
     const contents: string[] = [];
     for (const filePath of filePaths) {
         try {
             console.log(`reading file:  ${filePaths}`);
-            encoding = encoding ?? 'utf-8';
-            const buffer = fs.readFileSync(filePath);
+            const buffer = fs.readFileSync(filePath, encoding);
             const content = buffer.toString();
             contents.push(content);
         } catch (e) {
@@ -144,12 +270,30 @@ export function readFiles(filePaths: string[], encoding?: string): string[] {
     return contents;
 }
 
-export function readFilesFromDirectories(directories: string[], filterTypes: string[] = [], encoding?: string): Map<string, string> {
+export async function readFilesFromDirectories(
+    directories: string[], filterTypes: string[] = [], encoding: NodeJS.BufferEncoding = 'utf8'
+): Promise<Map<string, string>> {
     const result = new Map<string, string>();
     for (const dir of directories) {
         const absDir = isAbsolute(dir) ? dir : `${getRootUri()}/${dir}`;
-        const fileUris = getFiles(absDir, filterTypes).map(f => `${absDir}/${f}`);
-        const contents = readFiles(fileUris);
+        const fileUris = (await getFiles(absDir, filterTypes)).map(f => `${absDir}/${f}`);
+        const contents = await readFiles(fileUris, encoding);
+        for (let i = 0; i < fileUris.length && contents.length; i++) {
+            const content = contents[i];
+            if (fileUris[i] && content) {
+                result.set(fileUris[i], content);
+            }
+        }
+    }
+    return result;
+}
+
+export function readFilesFromDirectoriesSync(directories: string[], filterTypes: string[] = [], encoding?: string): Map<string, string> {
+    const result = new Map<string, string>();
+    for (const dir of directories) {
+        const absDir = isAbsolute(dir) ? dir : `${getRootUri()}/${dir}`;
+        const fileUris = getFilesSync(absDir, filterTypes).map(f => `${absDir}/${f}`);
+        const contents = readFilesSync(fileUris);
         for (let i = 0; i < fileUris.length && contents.length; i++) {
             if (fileUris[i] && contents[i]) {
                 result.set(fileUris[i], contents[i]);
@@ -159,18 +303,20 @@ export function readFilesFromDirectories(directories: string[], filterTypes: str
     return result;
 }
 
-export function getModelFiles(): string[] {
+export function getModelFiles(): Promise<string[]> {
     const workspacePath = getWorkspaceRootUri();
     const modelFileExtensions = getGraphTypes().map(gT => '.' + gT.diagramExtension);
     return getFiles(workspacePath, modelFileExtensions);
 }
 
-export function isAbsolute(dir: string): boolean {
-    return dir.startsWith('/');
+export function getModelFilesSync(): string[] {
+    const workspacePath = getWorkspaceRootUri();
+    const modelFileExtensions = getGraphTypes().map(gT => '.' + gT.diagramExtension);
+    return getFilesSync(workspacePath, modelFileExtensions);
 }
 
-export function readJson(filePath: string, options?: { hideError?: boolean; encoding?: string }): object | undefined {
-    const content = readFile(filePath);
+export async function readJson(filePath: string, options?: { hideError?: boolean; encoding?: string }): Promise<object | undefined> {
+    const content = await readFile(filePath);
     if (content) {
         try {
             return JSON.parse(content);
@@ -182,6 +328,29 @@ export function readJson(filePath: string, options?: { hideError?: boolean; enco
         }
     }
     return undefined;
+}
+
+export function readJsonSync(filePath: string, options?: { hideError?: boolean; encoding?: string }): object | undefined {
+    const content = readFileSync(filePath);
+    if (content) {
+        try {
+            return JSON.parse(content);
+        } catch (err) {
+            if (!options || !options.hideError) {
+                console.error('Error parsing json-file: ' + filePath);
+                console.error(err);
+            }
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Path helper
+ */
+
+export function isAbsolute(dir: string): boolean {
+    return dir.startsWith('/');
 }
 
 export function getFilesByExtension(files: string[], fileExtension: string): string[] {
@@ -208,59 +377,6 @@ export function getFileExtension(filePath: string): string {
     return path.extname(filePath);
 }
 
-export function exists(fileOrDirPath: string): boolean {
-    return fs.existsSync(fileOrDirPath);
-}
-
-export function existsFile(filePath: string): boolean {
-    return exists(filePath) && fs.lstatSync(filePath).isFile();
-}
-
-export function existsDirectory(dirPath: string): boolean {
-    return exists(dirPath) && fs.lstatSync(dirPath).isDirectory();
-}
-
-export function readDirectory(dirPath: string): string[] {
-    return fs.readdirSync(dirPath);
-}
-
-export function deleteFile(dirPath: string, force = false): void {
-    fs.rmSync(dirPath, { recursive: false, force: force });
-}
-
-export function deleteDirectory(dirPath: string, recursive = false, force = false): void {
-    fs.rmSync(dirPath, { recursive: recursive, force: force });
-}
-
-export function createDirectory(dirPath: string, deleteExistingDirectory = false): void {
-    if (deleteExistingDirectory && exists(dirPath)) {
-        deleteDirectory(dirPath, true);
-    }
-    fs.mkdirSync(dirPath, { recursive: true });
-}
-
-export function copyFile(sourceFilePath: string, targetFilePath: string, overwriteExistingFile = true): void {
-    const mode = overwriteExistingFile ? 0 : fs.constants.COPYFILE_EXCL;
-    fs.copyFileSync(sourceFilePath, targetFilePath, mode);
-}
-
-export function copyDirectory(
-    sourceDirPath: string,
-    targetDirPath: string,
-    deleteExistingDirectories = false,
-    overwriteExistingFiles = true
-): void {
-    createDirectory(targetDirPath, deleteExistingDirectories);
-    for (const entry of readDirectory(sourceDirPath)) {
-        const targetPath = path.join(targetDirPath, getFileName(entry));
-        if (existsDirectory(entry)) {
-            copyDirectory(entry, targetPath, deleteExistingDirectories, overwriteExistingFiles);
-        } else {
-            copyFile(entry, targetPath, overwriteExistingFiles);
-        }
-    }
-}
-
 export function toPath(sourceUri: string): string {
     let sourcePath = sourceUri.startsWith('file://') ? fileURLToPath(sourceUri) : sourceUri;
     if (os.platform() === 'win32') {
@@ -269,6 +385,184 @@ export function toPath(sourceUri: string): string {
     }
     return sourcePath;
 }
+
+/**
+ * File/Folder state
+ */
+
+export async function existsFile(filePath: string): Promise<boolean> {
+    const stat = await fsStats(filePath);
+    return (stat?.isFile() ?? false) && !(stat?.isDirectory() || false);
+}
+
+export function existsFileSync(filePath: string): boolean {
+    return fsStatsSync(filePath).isFile();
+}
+
+export async function existsDirectory(dirPath: string): Promise<boolean> {
+    const stat = await fsStats(dirPath);
+    return stat?.isDirectory() ?? false;
+}
+
+export function existsDirectorySync(dirPath: string): boolean {
+    return fsStatsSync(dirPath).isDirectory();
+}
+
+export async function exists(fileOrDirPath: string): Promise<boolean> {
+    try {
+        await fs.promises.access(fileOrDirPath);
+        return true;
+    } catch(e) {
+        return false;
+    }
+}
+
+export function existsSync(fileOrDirPath: string): boolean {
+    return fs.existsSync(fileOrDirPath);
+}
+
+async function fsStats(fileOrDirPath: string): Promise<fs.Stats> {
+    return new Promise<fs.Stats>(resolve => fs.lstat(fileOrDirPath, (err: NodeJS.ErrnoException | null, stats: fs.Stats) => {
+        if(err) {
+            console.log(err.message);
+        }
+        resolve(stats);
+    }));
+}
+
+function fsStatsSync(fileOrDirPath: string): fs.Stats {
+    return fs.lstatSync(fileOrDirPath);
+}
+
+/**
+ * File/Folder Content
+ */
+
+export async function createDirectory(dirPath: string, deleteExistingDirectory = false): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        exists(dirPath).then(doesExist => {
+            if (deleteExistingDirectory && doesExist) {
+                deleteDirectory(dirPath, true).then(_ => {
+                    fs.mkdir(dirPath, { recursive: true }, __ => resolve());
+                }).catch(e => {
+                    reject(e);
+                });
+            }
+            fs.mkdir(dirPath, { recursive: true },(err: NodeJS.ErrnoException | null, _) => err ? reject(err) : resolve());
+        }).catch(e => reject(e));
+    });
+}
+
+export function createDirectorySync(dirPath: string, deleteExistingDirectory = false): void {
+    if (deleteExistingDirectory && existsSync(dirPath)) {
+        deleteDirectorySync(dirPath, true);
+    }
+    fs.mkdirSync(dirPath, { recursive: true });
+}
+
+export async function readDirectory(dirPath: string): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+        fs.readdir(dirPath, (err: NodeJS.ErrnoException | null, files: string[]) => {
+            if(err) {
+                reject(err);
+            }
+            resolve(files);
+        });
+    });
+}
+
+export function readDirectorySync(dirPath: string): string[] {
+    return fs.readdirSync(dirPath);
+}
+
+export async function deleteFile(dirPath: string, force = false): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        fs.rm(dirPath, { recursive: false, force: force }, (err: NodeJS.ErrnoException | null) => {
+            if(err) {
+                reject(err);
+            }
+            resolve();
+        });
+    });
+}
+
+export function deleteFileSync(dirPath: string, force = false): void {
+    fs.rmSync(dirPath, { recursive: false, force: force });
+}
+
+export async function deleteDirectory(dirPath: string, recursive = false, force = false): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        fs.rm(dirPath, { recursive: recursive, force: force }, (err: NodeJS.ErrnoException | null) => {
+            if(err) {
+                reject(err);
+            }
+            resolve();
+        });
+    });
+}
+
+export function deleteDirectorySync(dirPath: string, recursive = false, force = false): void {
+    fs.rmSync(dirPath, { recursive: recursive, force: force });
+}
+
+export async function copyFile(sourceFilePath: string, targetFilePath: string, overwriteExistingFile = true): Promise<void> {
+    const mode = overwriteExistingFile ? 0 : fs.constants.COPYFILE_EXCL;
+    return new Promise<void>((resolve, reject) => {
+        fs.copyFile(sourceFilePath, targetFilePath, mode, (err: NodeJS.ErrnoException | null) => {
+            err ? reject(err) : resolve();
+        });
+    });
+}
+
+export function copyFileSync(sourceFilePath: string, targetFilePath: string, overwriteExistingFile = true): void {
+    const mode = overwriteExistingFile ? 0 : fs.constants.COPYFILE_EXCL;
+    fs.copyFileSync(sourceFilePath, targetFilePath, mode);
+}
+
+export async function copyDirectory(
+    sourceDirPath: string,
+    targetDirPath: string,
+    deleteExistingDirectories = false,
+    overwriteExistingFiles = true
+): Promise<void> {
+    await createDirectory(targetDirPath, deleteExistingDirectories);
+    const directories = await readDirectory(sourceDirPath);
+    return new Promise<void>((resolve, reject) => {
+        const copyCalls = directories.map(async entry => {
+            const directoryExists = await existsDirectory(entry);
+            const targetPath = path.join(targetDirPath, getFileName(entry));
+            if (directoryExists) {
+                await copyDirectory(entry, targetPath, deleteExistingDirectories, overwriteExistingFiles);
+            } else {
+                await copyFile(entry, targetPath, overwriteExistingFiles);
+            }
+        });
+        Promise.all(copyCalls).then(_ => {
+            resolve();
+        }).catch(reason => reject(reason));
+    });
+}
+
+export function copyDirectorySync(
+    sourceDirPath: string,
+    targetDirPath: string,
+    deleteExistingDirectories = false,
+    overwriteExistingFiles = true
+): void {
+    createDirectorySync(targetDirPath, deleteExistingDirectories);
+    for (const entry of readDirectorySync(sourceDirPath)) {
+        const targetPath = path.join(targetDirPath, getFileName(entry));
+        if (existsDirectorySync(entry)) {
+            copyDirectorySync(entry, targetPath, deleteExistingDirectories, overwriteExistingFiles);
+        } else {
+            copyFileSync(entry, targetPath, overwriteExistingFiles);
+        }
+    }
+}
+
+/**
+ * Special Folder/Paths
+ */
 
 /**
  * Bundled file is per convention in the folder 'bundle' inside servers root-folder
@@ -309,6 +603,10 @@ export function getLibLanguageFolder(): string {
     const root = getRootUri();
     return `${root}/${SERVER_LANGUAGES_FOLDER}`;
 }
+
+/**
+ * Args
+ */
 
 export function getRootFolderArg(): string | undefined {
     const argsKey = '--rootFolder';
