@@ -15,6 +15,7 @@ languages/dummy.ts
 bundle.js
 bundle.js.map
 *.ttf
+workspace/**/*.js
 
 # Ignore Yarn v1 lockfile because it is generated differently on
 # Linux/macOS/Windows which creates incompatibilities.
