@@ -20,6 +20,7 @@ export * from './meta-resource';
 export * from './meta-specification';
 export * from './model/cell';
 export * from './protocol/appearance-provider-protocol';
+export * from './protocol/choice-selection-protocol';
 export * from './protocol/cinco-glsp-lifecycle';
 export * from './protocol/custom-action-protocol';
 export * from './protocol/double-click-protocol';
