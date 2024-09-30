@@ -22,7 +22,7 @@ export class GraphModelIndex extends GModelIndex {
     protected graphmodel: GraphModel;
     protected edgesIndex = new Map<string, Edge>();
     protected nodesIndex = new Map<string, Node>();
-    protected containmentsIndex = new Map<Node, Container | GraphModel>(); // index to get Container-Node by Node
+    protected containmentsIndex = new Map<string, Container | GraphModel>(); // index to get Container-Node by Node
 
     indexGraphModel(graphModel: GraphModel): void {
         this.graphmodel = graphModel;
@@ -37,11 +37,11 @@ export class GraphModelIndex extends GModelIndex {
     }
 
     indexContainments(container: GraphModel | Container): void {
-        container._containments.forEach(n => {
-            this.nodesIndex.set(n.id, n);
-            this.containmentsIndex.set(n, container);
-            if (Container.is(n)) {
-                this.indexContainments(n as Container);
+        container.containedElements.forEach(node => {
+            this.nodesIndex.set(node.id, node);
+            this.containmentsIndex.set(node.id, container);
+            if (Container.is(node)) {
+                this.indexContainments(node as Container);
             }
         });
     }
@@ -57,14 +57,14 @@ export class GraphModelIndex extends GModelIndex {
         if (id === undefined) {
             return undefined;
         }
-        return this.getRoot().id === id ? this.getRoot() : this.findNode(id) ?? this.findEdge(id) ?? undefined;
+        return this.getRoot().id === id ? this.getRoot() : (this.findNode(id) ?? this.findEdge(id) ?? undefined);
     }
 
     findElement(id: string | undefined): IdentifiableElement | undefined {
         if (id === undefined) {
             return undefined;
         }
-        return this.getRoot().id === id ? this.getRoot() : this.findNode(id) ?? this.findEdge(id) ?? undefined;
+        return this.getRoot().id === id ? this.getRoot() : (this.findNode(id) ?? this.findEdge(id) ?? undefined);
     }
 
     findEdge(id: string): Edge | undefined {
@@ -79,8 +79,8 @@ export class GraphModelIndex extends GModelIndex {
         return this.graphmodel;
     }
 
-    findContainment(node: Node): ModelElementContainer | undefined {
-        return this.containmentsIndex.get(node);
+    findContainment(id: string): ModelElementContainer | undefined {
+        return this.containmentsIndex.get(id);
     }
 
     findGElement(id: string): GModelElement | undefined {

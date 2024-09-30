@@ -349,7 +349,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                         const model = GraphModelStorage.readModelFromFile(filePath);
                         if (model) {
                             const allSupportedModelElementsOfModel = model
-                                ?.getAllContainments()
+                                ?.getAllContainedElements()
                                 .concat(model)
                                 .filter(
                                     element =>

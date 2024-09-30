@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { EdgeType, NodeType, Point, Size, isChoice, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
+import { EdgeType, NodeType, Point, Size, isChoice, getSpecOf, deletableValue } from '@cinco-glsp/cinco-glsp-common';
 import { GEdge, GGraph, GLabel, GModelElement, GModelFactory, GNode, GNodeBuilder } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
@@ -34,14 +34,15 @@ export class GraphGModelFactory implements GModelFactory {
 
     protected collectChildren(container: GraphModel | Container): GModelElement[] {
         const children: GModelElement[] = [];
-        container._containments.forEach(n => {
-            if (Container.is(n)) {
-                const containerChildren = this.collectChildren(n as Container);
-                const containerNode = this.createNode(n);
+        container.containments.forEach(containment => {
+            const element = deletableValue(containment);
+            if (Container.is(element)) {
+                const containerChildren = this.collectChildren(element as Container);
+                const containerNode = this.createNode(element);
                 containerNode.children = containerChildren;
                 children.push(containerNode);
-            } else if (Node.is(n)) {
-                children.push(this.createNode(n));
+            } else if (Node.is(element)) {
+                children.push(this.createNode(element));
             }
         });
         if (container instanceof GraphModel) {

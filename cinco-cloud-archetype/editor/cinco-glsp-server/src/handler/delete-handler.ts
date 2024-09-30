@@ -17,7 +17,7 @@ import { Container, Edge, Node, ModelElement, HookManager } from '@cinco-glsp/ci
 import { DeleteElementOperation, remove } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import { isChoice, DeleteArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
+import { isChoice, DeleteArgument, HookType, Deletable, deletableValue, filterOptions } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class DeleteHandler extends CincoJsonOperationHandler {
@@ -37,7 +37,8 @@ export class DeleteHandler extends CincoJsonOperationHandler {
         this.deleteElement(element, operation);
     }
 
-    protected deleteElement(element: ModelElement, operation: DeleteElementOperation): void {
+    protected deleteElement(containment: Deletable<ModelElement>, operation: DeleteElementOperation): void {
+        const element = deletableValue(containment);
         const parameters: DeleteArgument = {
             kind: 'Delete',
             modelElementId: element.id,
@@ -67,32 +68,31 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             this.sourceModelStorage,
             this.submissionHandler
         );
-        parameters.deleted = element;
+        parameters.deleted = containment;
         if (Container.is(element)) {
             const containments = element.containments ?? [];
             containments.forEach((c: Node) => this.deleteElement(c, operation));
         }
         if (Node.is(element)) {
             // disjunct from container
-            const containingNode = this.modelState.index.findContainment(element as Node);
+            const containingNode = this.modelState.index.findContainment(element.id);
             if (containingNode !== undefined) {
-                remove(containingNode._containments, element);
+                remove(containingNode.containments, containment);
             } else {
-                remove(this.modelState.graphModel._containments, element);
+                remove(this.modelState.graphModel.containments, containment);
             }
             // remove associated edges
             this.modelState.graphModel.edges.forEach((edge: Edge) => {
                 if (edge.sourceID === element.id || edge.targetID === element.id) {
                     remove(this.modelState.graphModel._edges, edge);
                 } else if (isChoice(edge.sourceID) && edge.sourceID.options.includes(element.id)) {
-                    edge.sourceID = {
-                        tag: 'choice',
-                        options: edge.sourceID.options.filter(sourceID => sourceID !== element.id)
-                    };
+                    edge.sourceID = filterOptions(edge.sourceID, sourceID => sourceID !== element.id);
+                } else if (isChoice(edge.targetID) && edge.targetID.options.includes(element.id)) {
+                    edge.targetID = filterOptions(edge.targetID, targetID => targetID !== element.id);
                 }
             });
         } else if (Edge.is(element)) {
-            remove(this.modelState.graphModel.edges, element);
+            remove(this.modelState.graphModel.edges, containment);
         }
         // POST
         HookManager.executeHook(
