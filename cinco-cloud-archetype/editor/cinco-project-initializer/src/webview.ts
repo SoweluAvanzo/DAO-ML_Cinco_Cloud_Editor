@@ -1,4 +1,3 @@
-import path = require("path");
 import * as vscode from "vscode";
 import * as process from "process";
 
