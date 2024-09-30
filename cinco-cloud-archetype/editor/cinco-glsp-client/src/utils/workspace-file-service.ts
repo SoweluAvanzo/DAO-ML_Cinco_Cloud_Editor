@@ -126,7 +126,8 @@ export class WorkspaceFileService {
             ALLOWED_IMAGE_FILE_TYPES,
             this.actionDispatcher
         );
-        return response.filter(f => f.path === filePath).length > 0;
+        const absPath = path.join(dir, filePath);
+        return response.filter(f => f.path.endsWith(absPath)).length > 0;
     }
 
     protected async request(uris: URI[]): Promise<Request> {
