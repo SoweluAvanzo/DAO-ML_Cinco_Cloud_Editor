@@ -17,13 +17,13 @@
 import { ShapeView, RenderingContext, isEdgeLayoutable, svg } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
-import { CincoButtonSelectChoice } from '../model/model';
+import { CincoEdgeButtonSelectChoice } from '../model/model';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
 
 @injectable()
 export class ButtonSelectChoiceView extends ShapeView {
-    render(button: Readonly<CincoButtonSelectChoice>, context: RenderingContext): VNode | undefined {
+    render(button: Readonly<CincoEdgeButtonSelectChoice>, context: RenderingContext): VNode | undefined {
         if (!isEdgeLayoutable(button) && !this.isVisible(button, context)) {
             return undefined;
         }
@@ -38,7 +38,6 @@ export class ButtonSelectChoiceView extends ShapeView {
                     fill='white'
                     stroke='black'
                     stroke-width={2}
-                    rx={5}
                     cursor='pointer'
                 />
                 <text

@@ -480,29 +480,37 @@ export class CincoEdge extends GEdge implements CincoModelElement {
 
 export class CincoMarker extends GNode {}
 
-export class CincoButtonSelectChoice extends GShapeElement {
+export class CincoEdgeButtonSelectChoice extends GShapeElement {
     static readonly DEFAULT_FEATURES = [boundsFeature, layoutableChildFeature, edgeLayoutFeature, fadeFeature];
+
+    get edgeID(): string {
+        return (this as any).args.edgeID;
+    }
 
     edgePlacement?: EdgePlacement;
 }
 
-export abstract class CincoEdgeButton extends CincoButtonSelectChoice {
-    get edgeID(): string {
-        return (this as any).args.edgeID;
-    }
-}
-
-export class CincoEdgeButtonSourceChoice extends CincoEdgeButton {
+export class CincoEdgeButtonSourceChoice extends CincoEdgeButtonSelectChoice {
     get sourceID(): string {
         return (this as any).args.sourceID;
     }
 }
 
-export class CincoEdgeButtonTargetChoice extends CincoEdgeButton {
+export class CincoEdgeButtonTargetChoice extends CincoEdgeButtonSelectChoice {
     get targetID(): string {
         return (this as any).args.targetID;
     }
 }
+
+export class CincoModelElementButton extends GNode {
+    get modelElementID(): string {
+        return (this as any).args.modelElementID;
+    }
+}
+
+export class CincoButtonDelete extends CincoModelElementButton {}
+
+export class CincoButtonRestore extends CincoModelElementButton {}
 
 export class CincoGraphModel extends GGraph implements CincoModelElement {
     override isContainableElement(input: string | GModelElement | GModelElementSchema): boolean {
