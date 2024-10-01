@@ -215,9 +215,6 @@ deploy-testing-manual:
 
 .archetype-test-build-local-job:
   image: node:18-bookworm-slim
-  cache:
-    paths:
-      - ./cinco-cloud-archetype/editor/
   script:
     - apt update
     - apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev curl libbz2-dev liblzma-dev libx11-dev libxkbfile-dev libsecret-1-dev git
