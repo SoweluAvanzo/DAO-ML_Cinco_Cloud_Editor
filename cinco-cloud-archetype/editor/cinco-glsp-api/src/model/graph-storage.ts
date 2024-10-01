@@ -19,7 +19,6 @@ import {
     ActionDispatcher,
     GLSPServerError,
     Logger,
-    MaybePromise,
     ModelSubmissionHandler,
     RequestModelAction,
     SaveModelAction,
@@ -31,7 +30,7 @@ import { inject, injectable } from 'inversify';
 import { GraphModel } from './graph-model';
 import { GraphModelState } from './graph-model-state';
 import { HookManager } from '../semantics/hook-manager';
-import { readJson, toPath, writeFile } from '../utils/file-helper';
+import { readJson, readJsonSync, toPath, writeFileSync } from '../utils/file-helper';
 
 @injectable()
 export class GraphModelStorage extends AbstractJsonModelStorage {
@@ -44,25 +43,29 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
     @inject(ModelSubmissionHandler)
     protected submissionHandler: ModelSubmissionHandler;
 
-    override loadSourceModel(action: RequestModelAction): MaybePromise<void> {
+    override async loadSourceModel(action: RequestModelAction): Promise<void> {
         const sourceUri = this.getSourceUri(action);
-        GraphModelStorage.loadSourceModel(sourceUri, this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler);
+        await GraphModelStorage.loadSourceModel(
+            sourceUri, this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler
+        );
     }
 
-    override saveSourceModel(action: SaveModelAction): MaybePromise<void> {
+    override async saveSourceModel(action: SaveModelAction): Promise<void> {
         const fileUri = this.getFileUri(action);
-        GraphModelStorage.saveSourceModel(fileUri, this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler);
+        GraphModelStorage.saveSourceModel(
+            fileUri, this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler
+        );
     }
 
-    static loadSourceModel(
+    static async loadSourceModel(
         sourceUri: string,
         modelState: GraphModelState,
         logger: Logger,
         actionDispatcher: ActionDispatcher,
         sourceModelStorage: SourceModelStorage,
         submissionHandler: ModelSubmissionHandler
-    ): MaybePromise<void> {
-        const { graphModel, initialized } = GraphModelStorage.loadFromFile(sourceUri, modelState, logger, actionDispatcher);
+    ): Promise<void> {
+        const { graphModel, initialized } = await GraphModelStorage.loadFromFile(sourceUri, modelState, logger, actionDispatcher);
         if (graphModel) {
             if (initialized) {
                 const parameters: CreateGraphModelArgument = {
@@ -106,8 +109,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
         actionDispatcher: ActionDispatcher,
         sourceModelStorage: SourceModelStorage,
         submissionHandler: ModelSubmissionHandler
-    ): MaybePromise<void> {
-        const serializableModel = modelState.sourceModel;
+    ): void {
         const canSave = HookManager.executeHook(
             { kind: 'SaveModelFile', modelElementId: modelState.graphModel.id, path: sourceUri } as SaveModelFileArgument,
             HookType.CAN_SAVE,
@@ -118,7 +120,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
             submissionHandler
         );
         if (canSave) {
-            writeFile(sourceUri, JSON.stringify(serializableModel));
+            writeFileSync(sourceUri, JSON.stringify(modelState.sourceModel));
             HookManager.executeHook(
                 { kind: 'SaveModelFile', modelElementId: modelState.graphModel.id, path: sourceUri } as SaveModelFileArgument,
                 HookType.POST_SAVE,
@@ -132,18 +134,26 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
     }
 
     readModelFromURI(sourceUri: string): GraphModel | undefined {
-        return GraphModelStorage.loadFromFile(sourceUri).graphModel;
+        return GraphModelStorage.loadFromFileSync(sourceUri);
     }
 
-    static readModelFromFile(sourceUri: string): GraphModel | undefined {
-        const model = this.loadFromFile(sourceUri).graphModel;
+    static async readModelFromFile(sourceUri: string): Promise<GraphModel | undefined> {
+        const model = (await this.loadFromFile(sourceUri)).graphModel;
         if (!model) {
             return undefined;
         }
         return GraphModelState.resolveGraphmodel(model, new GraphModel(), undefined); // TODO: merged index?
     }
 
-    protected static loadFromFile(
+    static readModelFromFileSync(sourceUri: string): GraphModel | undefined {
+        const model = this.loadFromFileSync(sourceUri);
+        if (!model) {
+            return undefined;
+        }
+        return GraphModelState.resolveGraphmodel(model, new GraphModel(), undefined); // TODO: merged index?
+    }
+
+    protected static async loadFromFile(
         sourceUri: string,
         modelState?: GraphModelState,
         logger?: Logger,
@@ -151,10 +161,10 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
         sourceModelStorage?: SourceModelStorage,
         submissionHandler?: ModelSubmissionHandler,
         executeCanCreateHook: boolean = true
-    ): { graphModel: GraphModel | undefined; initialized: boolean } {
+    ): Promise<{ graphModel: GraphModel | undefined; initialized: boolean }> {
         try {
             const path = toPath(sourceUri);
-            let fileContent: GraphModel | any = readJson(path, { hideError: true });
+            let fileContent: GraphModel | any = await readJson(path, { hideError: true });
             let initialized = false;
             if (!fileContent) {
                 fileContent = this.createModelForEmptyFile(path); // initialized
@@ -193,6 +203,23 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
             console.log(`Could not load model from file: ${sourceUri}`, error);
         }
         return { graphModel: undefined, initialized: false };
+    }
+
+    protected static loadFromFileSync(
+        sourceUri: string
+    ): GraphModel | undefined {
+        try {
+            const path = toPath(sourceUri);
+            let fileContent: GraphModel | any = readJsonSync(path, { hideError: true });
+            if (!GraphModel.is(fileContent)) {
+                throw new Error('The loaded root object is not of the expected type!');
+            }
+            fileContent = GraphModelState.fixMissingProperties(fileContent, sourceUri);
+            return Object.assign(new GraphModel(), fileContent);
+        } catch (error) {
+            console.log(`Could not load model from file: ${sourceUri}`, error);
+        }
+        return undefined;
     }
 
     protected static createModelForEmptyFile(path: string): GraphModel {

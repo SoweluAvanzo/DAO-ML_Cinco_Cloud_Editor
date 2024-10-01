@@ -49,7 +49,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
     protected counter: number;
     protected WHITE_LIST = ['Nodes', 'Edges'];
 
-    getItems(args?: Args): Promise<PaletteItem[]> | PaletteItem[] {
+    async getItems(args?: Args): Promise<PaletteItem[]> {
         if (!this.state.graphModel) {
             return [];
         }
@@ -90,7 +90,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             });
 
         // add prime node label into palettes
-        const primePalettes = this.getPrimePalettes();
+        const primePalettes = await this.getPrimePalettes();
         primePalettes.forEach(entry => {
             const label = entry.categoryLabelId;
             const p = this.createCustomItem(handlers, label, label, 'node', entry.referenceableElements);
@@ -337,47 +337,52 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         return result;
     }
 
-    getPrimePalettes(): PrimePaletteCategoryEntry[] {
-        const modelFiles = getModelFiles();
+    private async getPrimePalettes(): Promise<PrimePaletteCategoryEntry[]> {
+        const modelFiles = await getModelFiles();
         const primeNodePaletteCategories = getPrimeNodePaletteCategoriesOf(this.state.graphModel.type);
-        const primePalettes: PrimePaletteCategoryEntry[] = primeNodePaletteCategories
-            .filter(e => e.label !== 'Edges' && e.label !== 'Nodes')
-            .map(e => {
-                const primeReferencableElements = modelFiles
-                    .map(file => {
-                        const filePath = path.join(getWorkspaceRootUri(), file);
-                        const model = GraphModelStorage.readModelFromFile(filePath);
-                        if (model) {
-                            const allSupportedModelElementsOfModel = model
-                                ?.getAllContainedElements()
-                                .concat(model)
-                                .filter(
-                                    element =>
-                                        ModelElement.is(element) &&
-                                        // polymorphic check
-                                        e.elementTypeIds.find(primeType => element.instanceOf(primeType))
-                                ) as ModelElement[];
-                            return allSupportedModelElementsOfModel.map(
-                                element =>
-                                    ({
-                                        primeNodeType: e.primeElementTypeId,
-                                        instanceId: element.id,
-                                        instanceType: element.type,
-                                        modelId: model.id,
-                                        modelType: model.type,
-                                        filePath: file
-                                    }) as PrimeReferencedEntry
-                            );
-                        }
-                        return undefined;
-                    })
-                    .flat()
-                    .filter(entry => entry !== undefined) as PrimeReferencedEntry[];
-                return {
-                    categoryLabelId: e.label,
-                    referenceableElements: primeReferencableElements
-                } as PrimePaletteCategoryEntry;
-            });
+        const primePalettes: PrimePaletteCategoryEntry[] = await Promise.all(
+            primeNodePaletteCategories
+                .filter(e => e.label !== 'Edges' && e.label !== 'Nodes')
+                .map(async e => {
+                    const primeReferencableElements = (
+                        await Promise.all(
+                            modelFiles.map(async file => {
+                                const filePath = path.join(getWorkspaceRootUri(), file);
+                                const model = await GraphModelStorage.readModelFromFile(filePath);
+                                if (model) {
+                                    const allSupportedModelElementsOfModel = model
+                                        ?.getAllContainedElements()
+                                        .concat(model)
+                                        .filter(
+                                            element =>
+                                                ModelElement.is(element) &&
+                                                // polymorphic check
+                                                e.elementTypeIds.find(primeType => element.instanceOf(primeType))
+                                        ) as ModelElement[];
+                                    return allSupportedModelElementsOfModel.map(
+                                        element =>
+                                            ({
+                                                primeNodeType: e.primeElementTypeId,
+                                                instanceId: element.id,
+                                                instanceType: element.type,
+                                                modelId: model.id,
+                                                modelType: model.type,
+                                                filePath: file
+                                            }) as PrimeReferencedEntry
+                                    );
+                                }
+                                return undefined;
+                            })
+                        )
+                    )
+                        .flat()
+                        .filter(entry => entry !== undefined) as PrimeReferencedEntry[];
+                    return {
+                        categoryLabelId: e.label,
+                        referenceableElements: primeReferencableElements
+                    } as PrimePaletteCategoryEntry;
+                })
+        );
         // merge palettes
         const mergedPrimePallettes = new Map<string, PrimePaletteCategoryEntry>();
         for (const newEntry of primePalettes) {

@@ -29,6 +29,39 @@ export class WorkspaceFileService {
     @inject(TYPES.IActionDispatcher) @optional() actionDispatcher: IActionDispatcher;
     @inject(ServerArgsProvider) @optional() ServerArgsProvider: ServerArgsProvider;
     protected static BLACKLIST = ['http://', 'https://'];
+    protected static CACHED_FILES: Map<string, FileProviderResponseItem[]> = new Map();
+
+    // TODO: SAMI - This polling should be replaced by pushes from the server, who watches the files. But this is currently sufficient
+    protected static RELOAD_DELAY = 2000;
+    protected static FILE_TIMER: NodeJS.Timeout | undefined = undefined;
+
+    static initUpdatePolling(actionDispatcher: IActionDispatcher): void {
+        if(!this.FILE_TIMER) {
+            this.startDirtyCheck(actionDispatcher);
+        }
+    }
+
+    protected static startDirtyCheck(actionDispatcher: IActionDispatcher): void {
+        this.FILE_TIMER = setTimeout(async () => {
+            for(const folder of this.CACHED_FILES.keys()) {
+                this.updateCachedFiles(folder, actionDispatcher);
+            }
+            this.startDirtyCheck(actionDispatcher);
+        }, this.RELOAD_DELAY);
+    }
+
+    protected static async updateCachedFiles(dir: string, actionDispatcher: IActionDispatcher): Promise<void>{
+        WorkspaceFileService.CACHED_FILES.set(dir, await FileProviderHandler.getFiles(
+            dir,
+            false,
+            ALLOWED_IMAGE_FILE_TYPES,
+            actionDispatcher
+        ));
+    }
+
+    protected static dirIsCached(dir: string): boolean {
+        return WorkspaceFileService.CACHED_FILES.get(dir) !== undefined;
+    }
 
     async serveFile(filePath: string): Promise<string | undefined> {
         if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0) {
@@ -79,30 +112,12 @@ export class WorkspaceFileService {
         return result;
     }
 
-    async servedExists(filePath: string, actionDispatcher: IActionDispatcher): Promise<boolean> {
-        if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0) {
-            return true;
-        }
-        const serverArgs = await ServerArgsProvider.getServerArgs();
-        let exists;
-        if (filePath.startsWith('/')) {
-            exists = await this.fileExists('', filePath, actionDispatcher);
-        } else {
-            exists = await this.fileExists(serverArgs?.languagePath, filePath, actionDispatcher);
-            if (!exists) {
-                const workspacePath: string = await this.environmentProvider.getWorkspaceRoot();
-                return this.fileExists(serverArgs?.workspacePath ?? workspacePath, filePath, actionDispatcher);
-            }
-            return true;
-        }
-        return exists;
-    }
-
     async servedExistsIn(filePath: string, actionDispatcher: IActionDispatcher): Promise<string | undefined> {
         if (WorkspaceFileService.BLACKLIST.filter(e => filePath.startsWith(e)).length > 0) {
             return filePath;
         }
         const serverArgs = await ServerArgsProvider.getServerArgs();
+        WorkspaceFileService.initUpdatePolling(this.actionDispatcher);
         let exists;
         if (filePath.startsWith('/')) {
             return (await this.fileExists('', filePath, actionDispatcher)) ? filePath : undefined;
@@ -120,13 +135,12 @@ export class WorkspaceFileService {
     }
 
     protected async fileExists(dir: string, filePath: string, actionDispatcher: IActionDispatcher): Promise<boolean> {
-        const response: FileProviderResponseItem[] = await FileProviderHandler.getFiles(
-            dir,
-            false,
-            ALLOWED_IMAGE_FILE_TYPES,
-            this.actionDispatcher
-        );
-        return response.filter(f => f.path === filePath).length > 0;
+        if(!WorkspaceFileService.dirIsCached(dir)) {
+            await WorkspaceFileService.updateCachedFiles(dir, actionDispatcher);
+        }
+        const files: FileProviderResponseItem[] = WorkspaceFileService.CACHED_FILES.get(dir) ?? [];
+        const folderPath = path.join(dir, filePath);
+        return files.filter(f => f.path.endsWith(folderPath)).length > 0;
     }
 
     protected async request(uris: URI[]): Promise<Request> {
