@@ -115,7 +115,9 @@ export class HookManager {
     }
 
     private static loadHookClasses(hookClassName: string, modelTypeId: string, hookType: HookType): any {
-        const hooks = LanguageFilesRegistry.getRegistered().filter((hook: any) => hook.name === hookClassName);
+        const hooks = (
+            LanguageFilesRegistry.getRegisteredSync()
+        ).filter((hook: any) => hook.name === hookClassName);
         return hooks.length > 0 ? hooks[0] : undefined;
     }
 

@@ -15,7 +15,10 @@
  ********************************************************************************/
 
 import { SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
-import { existsFile, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories } from '../utils/file-helper';
+import {
+    existsFile, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories,
+    readFileSync
+} from '../utils/file-helper';
 import { CincoFolderWatcher } from '../api/watcher/cinco-folder-watcher';
 import * as fs from 'fs';
 
@@ -41,7 +44,7 @@ export abstract class LanguageFilesRegistry {
     private static _dirty: string[] = [];
     private static _registered: LanguageFilesRegistryEntry[] = [];
 
-    static init(): void {
+    static async init(): Promise<void> {
         if (this.initialized) {
             return;
         }
@@ -51,7 +54,7 @@ export abstract class LanguageFilesRegistry {
             languagesFolder,
             SUPPORTED_DYNAMIC_FILE_TYPES,
             async (filename: string, eventType: fs.WatchEventType) => {
-                if (!existsFile(filename)) {
+                if (!await existsFile(filename)) {
                     // a file was deleted -> reload all folders
                     // (no way to identify which file it was by the default filewatcher)
                     this.reloadAllFolders();
@@ -62,28 +65,38 @@ export abstract class LanguageFilesRegistry {
             isMetaDevMode
         );
         const folders = entries.map(e => e.folderPath);
-        this._registered = this.fetchSemanticFiles(folders); // initial fetch
+        this._registered = await this.fetchSemanticFiles(folders); // initial fetch
     }
 
-    static reloadAllFolders(): void {
-        const languagesFolder = getLanguageFolder();
-        const folders = getSubfolder(languagesFolder);
-        folders.push(languagesFolder);
-        this._registered = this.fetchSemanticFiles(folders);
-    }
-
-    static getRegistered(): any[] {
+    static async getRegistered(): Promise<any[]> {
         if (!this.initialized) {
             throw new Error('LanguageFilesRegistry not yet initialized!');
         }
         if (isMetaDevMode()) {
-            this._registered = this.fetchDirtySemanticFiles(); // fetch dirty files (no parameter)
+            this._registered = await this.fetchDirtySemanticFiles(); // fetch dirty files (no parameter)
         }
         return this._registered.map(r => r.cls);
     }
 
-    private static fetchDirtySemanticFiles(): LanguageFilesRegistryEntry[] {
-        const handlerToImport = this.collectDirtyHandlers();
+    static getRegisteredSync(): any[] {
+        if (!this.initialized) {
+            throw new Error('LanguageFilesRegistry not yet initialized!');
+        }
+        if (isMetaDevMode()) {
+            this._registered = this.fetchDirtySemanticFilesSync(); // fetch dirty files (no parameter)
+        }
+        return this._registered.map(r => r.cls);
+    }
+
+    private static async reloadAllFolders(): Promise<void> {
+        const languagesFolder = getLanguageFolder();
+        const folders = await getSubfolder(languagesFolder);
+        folders.push(languagesFolder);
+        this._registered = await this.fetchSemanticFiles(folders);
+    }
+
+    private static async fetchDirtySemanticFiles(): Promise<LanguageFilesRegistryEntry[]> {
+        const handlerToImport = await this.collectDirtyHandlers();
         // register all found
         this.registerFound(handlerToImport);
         // unregister all outdated files
@@ -91,17 +104,49 @@ export abstract class LanguageFilesRegistry {
         return this._registered;
     }
 
-    private static collectDirtyHandlers(): HandlerEntry[] {
+    private static fetchDirtySemanticFilesSync(): LanguageFilesRegistryEntry[] {
+        const handlerToImport = this.collectDirtyHandlersSync();
+        // register all found
+        this.registerFound(handlerToImport);
+        // unregister all outdated files
+        // this.unregisterOutdated(handlerToImport.map(h => h.name));
+        return this._registered;
+    }
+
+    private static async collectDirtyHandlers(): Promise<HandlerEntry[]> {
         const dirtyFiles = this._dirty;
         this._dirty = []; // clear dirty files
-        const files = dirtyFiles.map(df => [df, readFile(df)]).filter(df => df[1] !== undefined) as [string, string][];
+        const files = (await Promise.all(dirtyFiles.map(
+            async df => [
+                df,
+                await readFile(df)
+            ]
+        ))).filter(
+            df => df[1] !== undefined // content of read file is "not undefined"/present
+        ) as [string, string][];
         return this.collectHandlersToImport(files);
     }
 
-    private static fetchSemanticFiles(languagesFolder: string[]): LanguageFilesRegistryEntry[] {
+    private static collectDirtyHandlersSync(): HandlerEntry[] {
+        const dirtyFiles = this._dirty;
+        this._dirty = []; // clear dirty files
+        const files = (dirtyFiles.map(
+            df => [
+                df,
+                readFileSync(df)
+            ]
+        )).filter(
+            df => df[1] !== undefined // content of read file is "not undefined"/present
+        ) as [string, string][];
+        return this.collectHandlersToImport(files);
+    }
+
+    private static async fetchSemanticFiles(languagesFolder: string[]): Promise<LanguageFilesRegistryEntry[]> {
         let handlerToImport = [] as HandlerEntry[];
         for (const lf of languagesFolder) {
-            handlerToImport = handlerToImport.concat(this.collectHandlersFromFolder(lf));
+            handlerToImport = handlerToImport.concat(
+                await this.collectHandlersFromFolder(lf)
+            );
         }
         // register all found
         this.registerFound(handlerToImport);
@@ -110,8 +155,8 @@ export abstract class LanguageFilesRegistry {
         return this._registered;
     }
 
-    private static collectHandlersFromFolder(folder: string): HandlerEntry[] {
-        const fileMap = readFilesFromDirectories([folder], SUPPORTED_DYNAMIC_FILE_TYPES);
+    private static async collectHandlersFromFolder(folder: string): Promise<HandlerEntry[]> {
+        const fileMap = await readFilesFromDirectories([folder], SUPPORTED_DYNAMIC_FILE_TYPES);
         const files = Array.from(fileMap.entries());
         if (files.length <= 0) {
             console.log(`no files found in: ${folder}`);

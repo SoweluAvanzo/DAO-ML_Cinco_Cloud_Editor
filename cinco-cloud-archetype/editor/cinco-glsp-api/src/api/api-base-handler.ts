@@ -18,6 +18,7 @@ import {
     CommandAction,
     ElementType,
     getSpecOf,
+    Point,
     ServerDialogAction,
     ServerDialogResponse,
     ServerOutputAction
@@ -30,10 +31,12 @@ import {
     MessageAction,
     SourceModelStorage,
     SaveModelAction,
-    ModelSubmissionHandler
+    ModelSubmissionHandler,
+    CreateNodeOperation,
+    CreateEdgeOperation
 } from '@eclipse-glsp/server';
 import { RootPath } from './root-path';
-import { GraphModel, ModelElement } from '../model/graph-model';
+import { Container, GraphModel, ModelElement, Node } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
 import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
 import * as fileHelper from '../utils/file-helper';
@@ -208,6 +211,29 @@ export abstract class APIBaseHandler {
         });
     }
 
+    createNode(type: string, location: Point, container?: Container | string): Promise<void> {
+        const operation: CreateNodeOperation = {
+            kind: CreateNodeOperation.KIND,
+            elementTypeId: type,
+            isOperation: true,
+            containerId: typeof(container) == 'string' ? container
+                : (container?.id ?? this.modelState.index.getRoot().id),
+            location: location
+        };
+        return this.actionDispatcher.dispatch(operation);
+    }
+
+    createEdge(type: string, source: Node | string, target: Node | string): Promise<void> {
+        const operation: CreateEdgeOperation = {
+            kind: CreateEdgeOperation.KIND,
+            elementTypeId: type,
+            isOperation: true,
+            sourceElementId: typeof(source) === 'string' ? source: source.id,
+            targetElementId: typeof(target) === 'string' ? target : target.id
+        };
+        return this.actionDispatcher.dispatch(operation);
+    }
+
     getParentDirectory(fileOrDirPath: string): string {
         return fileHelper.getParentDirectory(fileOrDirPath);
     }
@@ -226,22 +252,22 @@ export abstract class APIBaseHandler {
 
     exists(relativePath: string, root = RootPath.WORKSPACE): boolean {
         const targetPath = root.join(relativePath);
-        return fileHelper.exists(targetPath);
+        return fileHelper.existsSync(targetPath);
     }
 
     existsFile(relativePath: string, root = RootPath.WORKSPACE): boolean {
         const targetPath = root.join(relativePath);
-        return fileHelper.existsFile(targetPath);
+        return fileHelper.existsFileSync(targetPath);
     }
 
     existsDirectory(relativePath: string, root = RootPath.WORKSPACE): boolean {
         const targetPath = root.join(relativePath);
-        return fileHelper.existsDirectory(targetPath);
+        return fileHelper.existsDirectorySync(targetPath);
     }
 
-    readFile(relativePath: string, root = RootPath.WORKSPACE, encoding = 'utf-8'): string | undefined {
+    readFile(relativePath: string, root = RootPath.WORKSPACE, encoding: NodeJS.BufferEncoding = 'utf-8'): string | undefined {
         const targetPath = root.join(relativePath);
-        return fileHelper.readFile(targetPath, encoding);
+        return fileHelper.readFileSync(targetPath, encoding);
     }
 
     readModelFromFile(relativePath: string, root = RootPath.WORKSPACE): GraphModel | undefined {
@@ -251,33 +277,33 @@ export abstract class APIBaseHandler {
 
     readDirectory(relativePath: string, root = RootPath.WORKSPACE): string[] {
         const targetPath = root.join(relativePath);
-        return fileHelper.readDirectory(targetPath);
+        return fileHelper.readDirectorySync(targetPath);
     }
 
     deleteFile(relativePath: string, force = false): void {
         const targetPath = RootPath.WORKSPACE.join(relativePath);
-        fileHelper.deleteFile(targetPath, force);
+        fileHelper.deleteFileSync(targetPath, force);
     }
 
     deleteDirectory(relativePath: string, recursive = true, force = false): void {
         const targetPath = RootPath.WORKSPACE.join(relativePath);
-        fileHelper.deleteDirectory(targetPath, recursive, force);
+        fileHelper.deleteDirectorySync(targetPath, recursive, force);
     }
 
     createFile(relativePath: string, content: string, overwriteExistingFile = true, encoding = 'utf-8'): void {
         const targetPath = RootPath.WORKSPACE.join(relativePath);
-        fileHelper.writeFile(targetPath, content, overwriteExistingFile, encoding);
+        fileHelper.writeFileSync(targetPath, content, overwriteExistingFile, encoding);
     }
 
     createDirectory(relativePath: string, deleteExistingDirectory = false): void {
         const targetPath = RootPath.WORKSPACE.join(relativePath);
-        fileHelper.createDirectory(targetPath, deleteExistingDirectory);
+        fileHelper.createDirectorySync(targetPath, deleteExistingDirectory);
     }
 
     copyFile(relativeSourcePath: string, relativeTargetPath: string, overwriteExistingFile = true, sourceRoot = RootPath.WORKSPACE): void {
         const sourcePath = sourceRoot.join(relativeSourcePath);
         const targetPath = RootPath.WORKSPACE.join(relativeTargetPath);
-        fileHelper.copyFile(sourcePath, targetPath, overwriteExistingFile);
+        fileHelper.copyFileSync(sourcePath, targetPath, overwriteExistingFile);
     }
 
     copyDirectory(
@@ -289,6 +315,6 @@ export abstract class APIBaseHandler {
     ): void {
         const sourcePath = sourceRoot.join(relativeSourcePath);
         const targetPath = RootPath.WORKSPACE.join(relativeTargetPath);
-        fileHelper.copyDirectory(sourcePath, targetPath, deleteExistingDirectories, overwriteExistingFiles);
+        fileHelper.copyDirectorySync(sourcePath, targetPath, deleteExistingDirectories, overwriteExistingFiles);
     }
 }

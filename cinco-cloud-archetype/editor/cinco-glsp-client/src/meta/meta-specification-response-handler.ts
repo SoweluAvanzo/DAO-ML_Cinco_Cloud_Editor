@@ -42,6 +42,7 @@ export class MetaSpecificationResponseHandler implements IActionHandler {
         const metaSpec = action.metaSpecification;
         MetaSpecification.clear();
         MetaSpecification.merge(metaSpec);
+        MetaSpecification.prepareCache();
         if (MetaSpecificationResponseHandler._registration_callbacks) {
             for (const client of this._registration_callbacks.keys()) {
                 for (const cb of this._registration_callbacks.get(client)!) {

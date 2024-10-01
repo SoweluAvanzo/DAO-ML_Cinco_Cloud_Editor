@@ -59,6 +59,7 @@ export class LanguageUpdater implements CommandContribution {
     updateLanguage(message: LanguageUpdateMessage): void {
         MetaSpecification.clear();
         MetaSpecification.merge(message.metaSpecification);
+        MetaSpecification.prepareCache();
         this.updateGUIElements();
     }
 

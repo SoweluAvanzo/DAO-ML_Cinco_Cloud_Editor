@@ -116,40 +116,40 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
      * @param args the arguments passed along the associated action
      * @returns an Array of Handlers, that can be executed with the associated action
      */
-    getActiveHandlers(action: A, ...args: unknown[]): Promise<H[]> {
+    async getActiveHandlers(action: A, ...args: unknown[]): Promise<H[]> {
         const element = this.modelState.index.findElement(action.modelElementId) as ModelElement;
-        return new Promise<H[]>((resolve, reject) => {
-            try {
-                if (!this.hasHandlerProperty(element)) {
-                    console.log('This element has no assigned ' + this.baseHandlerName + '!');
-                    return resolve([]);
-                }
-            } catch (e) {
-                console.log(`Error checking handlerProperties: (${element?.type + '|' + element?.id})`);
-                this.notify(`Error checking handlerProperties: (${element?.type + '|' + element?.id})`, 'ERROR');
-                console.log(`${e}`);
-                return resolve([]);
+        try {
+            if (!this.hasHandlerProperty(element)) {
+                console.log('This element has no assigned ' + this.baseHandlerName + '!');
+                return Promise.resolve([]);
             }
-            const applicableHandlerClasses = BaseHandlerManager.getHandlerClasses(
-                this.baseHandlerName,
-                (handlerClassName: string): boolean => {
-                    try {
-                        return this.isApplicableHandler(element, handlerClassName);
-                    } catch (e) {
-                        console.log(`Error checking applicability of: ${handlerClassName}`);
-                        this.notify(`Error checking applicability of: ${handlerClassName}`, 'ERROR');
-                        console.log(`${e}`);
-                        return false;
-                    }
+        } catch (e) {
+            console.log(`Error checking handlerProperties: (${element?.type + '|' + element?.id})`);
+            this.notify(`Error checking handlerProperties: (${element?.type + '|' + element?.id})`, 'ERROR');
+            console.log(`${e}`);
+            return Promise.resolve([]);
+        }
+        const applicableHandlerClasses = await BaseHandlerManager.getHandlerClasses(
+            this.baseHandlerName,
+            (handlerClassName: string): boolean => {
+                try {
+                    return this.isApplicableHandler(element, handlerClassName);
+                } catch (e) {
+                    console.log(`Error checking applicability of: ${handlerClassName}`);
+                    this.notify(`Error checking applicability of: ${handlerClassName}`, 'ERROR');
+                    console.log(`${e}`);
+                    return false;
                 }
+            }
+        );
+        if (applicableHandlerClasses.length <= 0) {
+            this.notify(
+                'No ' + this.baseHandlerName + ' was found! Please make sure that the annotated ' + this.baseHandlerName + ' exists!',
+                'ERROR'
             );
-            if (applicableHandlerClasses.length <= 0) {
-                this.notify(
-                    'No ' + this.baseHandlerName + ' was found! Please make sure that the annotated ' + this.baseHandlerName + ' exists!',
-                    'ERROR'
-                );
-                return resolve([]);
-            }
+            return Promise.resolve([]);
+        }
+        return new Promise<H[]>((resolve, _) => {
             let leftToHandle: number = applicableHandlerClasses.length;
             const actionHandlers: H[] = [];
             console.log('[' + leftToHandle + '] handlers will be tested for execution as a ' + this.baseHandlerName + '!');
@@ -205,9 +205,9 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     /**
      * @returns classes of all registered language-files that are handlers for the associated class-name and fullfill the filter
      */
-    static getHandlerClasses(name: string, filter?: (arg0: string) => boolean): any[] {
+    static async getHandlerClasses(name: string, filter?: (arg0: string) => boolean): Promise<any[]> {
         const result: any[] = [];
-        for (const clss of LanguageFilesRegistry.getRegistered()) {
+        for (const clss of await LanguageFilesRegistry.getRegistered()) {
             if (clss.__proto__.name === name && (filter === undefined || filter(clss.name))) {
                 result.push(clss);
             }

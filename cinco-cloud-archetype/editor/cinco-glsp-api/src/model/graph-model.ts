@@ -62,7 +62,7 @@ import {
 import { AnyObject, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { GraphModelIndex } from './graph-model-index';
 import { GraphModelStorage } from './graph-storage';
-import { getModelFiles, getWorkspaceRootUri } from '../utils/file-helper';
+import { getModelFilesSync, getWorkspaceRootUri } from '../utils/file-helper';
 import * as path from 'path';
 
 export interface IdentifiableElement {
@@ -531,16 +531,16 @@ export class Node extends ModelElement {
         }
         const filePath = this.primeReferenceInfo!.filePath;
         const workspace = path.join(getWorkspaceRootUri(), filePath);
-        let model = GraphModelStorage.readModelFromFile(workspace);
+        let model = GraphModelStorage.readModelFromFileSync(workspace);
         const primeReference = this.primeReferenceInfo!;
         if (!model || model.id !== primeReference.modelId) {
             // if model is not readable as it is gone or corrupted,
             // or the id is not correct => find correct model
             console.log('Model was not found. Path or Id does not match. Searching in workspace...');
-            const modelFiles = getModelFiles();
+            const modelFiles = getModelFilesSync();
             for (const modelPath of modelFiles) {
                 const absPath = path.join(getWorkspaceRootUri(), modelPath);
-                const potentialModel = GraphModelStorage.readModelFromFile(absPath);
+                const potentialModel = GraphModelStorage.readModelFromFileSync(absPath);
                 if (potentialModel && potentialModel.id === primeReference.modelId) {
                     // model found => update modelPath
                     this.primeReferenceInfo!.filePath = modelPath;

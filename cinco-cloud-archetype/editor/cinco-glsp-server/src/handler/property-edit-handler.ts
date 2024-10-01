@@ -188,7 +188,6 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
                 return canAssign(index, bounds);
             }
         }
-        return false;
     }
 
     protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[]; object: any } {

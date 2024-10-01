@@ -69,11 +69,15 @@ export class DirtyFileWatcher {
                     const folder = dirtyCallback.folder;
                     const callback = dirtyCallback.callback;
                     const fileTypes = dirtyCallback.fileTypes;
-                    const relatedFiles = dirtyFiles.filter(
-                        f => fileTypes.includes('.' + getFileExtension(f.path)) && f.path.indexOf(folder) >= 0
-                    );
-                    if (relatedFiles.length > 0) {
-                        await callback(relatedFiles);
+                    if(fileTypes.length <= 0) {
+                        await callback(dirtyFiles);
+                    } else {
+                        const relatedFiles = dirtyFiles.filter(
+                            f => fileTypes.includes('.' + getFileExtension(f.path)) && f.path.indexOf(folder) >= 0
+                        );
+                        if (relatedFiles.length > 0) {
+                            await callback(relatedFiles);
+                        }
                     }
                 }
             }
