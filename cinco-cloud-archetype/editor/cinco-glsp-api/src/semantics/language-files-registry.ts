@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
+import { MetaSpecification, SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
 import {
     existsFile, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories,
     readFileSync
@@ -206,6 +206,11 @@ export abstract class LanguageFilesRegistry {
          */
         // eslint-disable-next-line no-eval
         const cinco_glsp_api = eval("( require('@cinco-glsp/cinco-glsp-api') )");
+
+        // Overload MetaSpecification
+        // eslint-disable-next-line no-eval
+        const cinco_glsp_common = eval("( require('@cinco-glsp/cinco-glsp-common') )");
+        cinco_glsp_common.MetaSpecification.merge(MetaSpecification.get());
 
         // load handler code
         for (const handler of handlerToImport) {

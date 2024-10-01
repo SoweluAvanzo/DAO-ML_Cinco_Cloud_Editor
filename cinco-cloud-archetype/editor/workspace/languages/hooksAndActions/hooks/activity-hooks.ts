@@ -129,6 +129,7 @@ export class ActivityHook extends AbstractNodeHook {
 
     override postDoubleClick(node: Node): void {
         this.log('Triggered postDoubleClick on node (' + node.id + ')');
+        this.log(JSON.stringify(this.getSpecification(node.type)), {show: true});
     }
 
     /**
