@@ -39,7 +39,9 @@ import {
     ContainerConfiguration,
     bindOrRebind,
     SetContextActions,
-    configureModelElement
+    configureModelElement,
+    EnableDefaultToolsOnFocusLossHandler,
+    FocusStateChangedAction
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -69,6 +71,7 @@ import { MarkerEdgeSourceTargetConflictView } from './views/marker-edge-source-t
 import { CincoEdgeButtonSourceChoice, CincoEdgeButtonTargetChoice, CincoMarker } from './model/model';
 import { ButtonSelectChoiceView } from './views/button-select-choice';
 import { ChoiceSelectionTool } from './features/tool/choice-selection-tool';
+import { CincoEnableDefaultToolsOnFocusLossHandler } from './glsp/cinco-focus-fix-handler';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -128,6 +131,11 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     configureActionHandler(context, SetTypeHintsAction.KIND, FrontendValidatingTypeHintProvider);
     rebind(ApplyTypeHintsCommand).to(ApplyConstrainedTypeHintsCommand);
     configureCommand(context, ApplyConstrainedTypeHintsCommand);
+
+    // fix focus
+    unbind(EnableDefaultToolsOnFocusLossHandler);
+    bind(EnableDefaultToolsOnFocusLossHandler).to(CincoEnableDefaultToolsOnFocusLossHandler);
+    configureActionHandler({ bind, isBound }, FocusStateChangedAction.KIND, EnableDefaultToolsOnFocusLossHandler);
 
     // bind custom palette
     if (context.isBound(ToolPalette)) {
