@@ -31,12 +31,28 @@ export class PropertyDataHandler {
     currentAttributeDefinitions: Attribute[] = [];
     currentValues: any = {};
     dataSubscriptions: (() => void)[] = [];
+    currentWidget?: CincoGLSPDiagramWidget;
 
     @postConstruct()
     postConstruct(): void {
         this.shell.onDidChangeActiveWidget(change => {
-            if (change.newValue instanceof CincoGLSPDiagramWidget) {
-                this.currentFileUri = change.newValue.getResourceUri()?.path.fsPath() ?? '';
+            const newWidget = change.newValue;
+            if (newWidget instanceof CincoGLSPDiagramWidget) {
+                const newFileUri = (
+                    newWidget instanceof CincoGLSPDiagramWidget ?
+                        newWidget.getResourceUri()?.path.fsPath()
+                        : this.currentFileUri)
+                        ?? '';
+                if(newFileUri !== this.currentFileUri) { // update Widget
+                    this.currentWidget = newWidget;
+                    this.currentFileUri = newFileUri;
+                    this.dataSubscriptions.forEach(fn => fn());
+                }
+            }
+        });
+        this.shell.onDidRemoveWidget(widget => {
+            console.log('Closed WIdget'+widget.toString());
+            if(widget === this.currentWidget) {
                 this.reset();
                 this.dataSubscriptions.forEach(fn => fn());
             }
