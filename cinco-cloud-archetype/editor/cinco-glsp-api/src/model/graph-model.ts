@@ -708,7 +708,7 @@ export class Edge extends ModelElement {
         return mapCell(this.targetID, targetID => {
             const node = this.index!.findNode(targetID);
             if (!node) {
-                throw new Error(`Edge with id ${this.id} has an undefined sourceID ${targetID}.`);
+                throw new Error(`Edge with id ${this.id} has an undefined targetID ${targetID}.`);
             }
             return node;
         });
