@@ -32,6 +32,9 @@ import { FileProviderHandler } from '../features/action-handler/file-provider-ha
 export class FrontendResourceLoader {
     static _locks: (() => void)[] = [];
     static _locked = false;
+    static currentIconMap = new Map();
+    static currentPaletteIconMap = new Map();
+    static currentCSS: { id: string, css: string }[] = [] ;
 
     static async load(
         actionDispatcher: IActionDispatcher,
@@ -81,7 +84,7 @@ export class FrontendResourceLoader {
                 // only provide if not already loaded
                 return;
             } else {
-                this.bustChild(filePath);
+                this.replaceOrBust(filePath);
             }
         }
         const url = await workspaceFileService.serveFileInRoot('', root + filePath);
@@ -96,11 +99,6 @@ export class FrontendResourceLoader {
     }
 
     static async addIconStyle(iconFolder: string, workspaceFileService: WorkspaceFileService): Promise<void> {
-        const icon_id = 'cinco.icon.style';
-        this.bustChild(icon_id, 'style');
-        const icon_style = document.createElement('style');
-        icon_style.setAttribute('id', icon_id);
-
         // collect distinct icon types
         let types: ElementType[] = Array.from(MetaSpecification.get().nodeTypes ?? []);
         types = types.concat(Array.from(MetaSpecification.get().edgeTypes ?? []));
@@ -122,21 +120,87 @@ export class FrontendResourceLoader {
             }
         }
 
-        let css: string[] = [];
-        css = css.concat(await this.serveIcons(iconMap, iconFolder, workspaceFileService));
-        css = css.concat(await this.serveIcons(paletteIconMap, iconFolder, workspaceFileService));
-        icon_style.innerHTML = `
-            ${css.join('\n')}
-        `;
-        document.getElementsByTagName('head')[0].appendChild(icon_style);
+        const changedIcons = this.hasChanged(this.currentIconMap, iconMap);
+        const changedPaletteIcons = this.hasChanged(this.currentPaletteIconMap, paletteIconMap);
+        if(changedIcons || changedPaletteIcons) {
+            // get changes
+            const { newValues: newValuesIcon, removedKeys: removedKeysIcon } =
+                this.getChanges(this.currentIconMap, iconMap);
+            const { newValues: newValuesPalette, removedKeys: removedKeysPalette } =
+                this.getChanges(this.currentPaletteIconMap, paletteIconMap);
+            this.currentIconMap = iconMap;
+            this.currentPaletteIconMap = paletteIconMap;
+
+            // serve new
+            // remove outdated
+            this.currentCSS =
+                this.currentCSS.filter(iconType =>
+                    !removedKeysIcon.includes(iconType.id)
+                    && !removedKeysPalette.includes(iconType.id)
+                    && !(Array.from(newValuesIcon.keys()).includes(iconType.id))
+                    && !(Array.from(newValuesPalette.keys()).includes(iconType.id))
+            );
+            this.currentCSS = this.currentCSS.concat(await this.serveIcons(newValuesIcon, iconFolder, workspaceFileService));
+            this.currentCSS = this.currentCSS.concat(await this.serveIcons(newValuesPalette, iconFolder, workspaceFileService));
+            // translate
+            const css = this.currentCSS.map(e => e.css).join('\n');
+
+            const icon_id = 'cinco.icon.style';
+            const icon_style = document.createElement('style');
+            // create new
+            icon_style.setAttribute('id', icon_id);
+            icon_style.innerHTML = `
+                ${css}
+            `;
+            this.replaceOrBust(icon_id, icon_style);
+        }
+    }
+
+    static hasChanged(oldMap: Map<string,any>, newMap: Map<string,any>): boolean {
+        if(oldMap.size !== newMap.size) {
+            return true;
+        }
+        for(const entry of oldMap.entries()) {
+            const key = entry[0];
+            const value = entry[1];
+            if(
+                !newMap.has(key) // key was removed in newMap
+                || newMap.get(key) !== value // value has changed in newMap
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static getChanges(oldMap: Map<string,any>, newMap: Map<string,any>): { newValues: Map<string, any>, removedKeys: string[]} {
+        const newValues = new Map();
+        const removedKeys: string[] = [];
+
+        oldMap.forEach((value, key) => {
+            if(!newMap.has(key)) { // removed value
+                removedKeys.push(key);
+            } else if(newMap.get(key) !== value) { // changed Values
+                newValues.set(key, newMap.get(key));
+            }
+        });
+        newMap.forEach((value, key) => {
+            if(!oldMap.has(key)) { // new Values
+                newValues.set(key, newMap.get(key));
+            }
+        });
+        return {
+            newValues,
+            removedKeys
+        };
     }
 
     static async serveIcons(
         iconMap: Map<string, string>,
         iconFolder: string,
         workspaceFileService: WorkspaceFileService
-    ): Promise<string[]> {
-        const css = [];
+    ): Promise<{ id: string, css: string }[]> {
+        const css: { id: string, css: string }[] = [];
         for (const icon of iconMap.entries()) {
             const iconType = icon[0];
             const iconPath = icon[1];
@@ -145,26 +209,37 @@ export class FrontendResourceLoader {
                 url = await workspaceFileService.serveFileInRoot(iconFolder, iconPath);
             }
             if (url) {
-                css.push(`
-                    .codicon-${iconType} {
-                        width: 16px;
-                        height: 16px;
-                        background-image: ${url ? `url('${url}')` : 'none'};
-                        background-repeat: no-repeat;
-                        background-position: center;
-                    }
-                `);
+                css.push(
+                    {
+                        id: iconType,
+                        css:`
+                            .codicon-${iconType} {
+                                width: 16px;
+                                height: 16px;
+                                background-image: ${url ? `url('${url}')` : 'none'};
+                                background-repeat: no-repeat;
+                                background-position: center;
+                            }
+                        `
+                    });
             }
         }
         return css;
     }
 
-    static bustChild(id: string, tagType = 'LINK'): void {
-        const children = Array.from(document.head.getElementsByTagName(tagType));
+    static replaceOrBust(id: string, replacingElement?: HTMLElement): void {
+        const children = Array.from(document.head.getElementsByTagName(replacingElement?.tagName.toLowerCase() ?? 'LINK'));
         for (const current of children) {
             if (current && current.id === id) {
                 document.head.removeChild(current);
+                if(replacingElement) {
+                    document.head.appendChild(replacingElement);
+                }
+                return;
             }
+        }
+        if(replacingElement) {
+            document.head.appendChild(replacingElement);
         }
     }
 
