@@ -14,9 +14,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { MetaSpecification, SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
+import { META_FILE_TYPES, MetaSpecification, SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
 import {
-    existsFile, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories,
+    existsFile, getFileExtension, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories,
     readFileSync
 } from '../utils/file-helper';
 import { CincoFolderWatcher } from '../api/watcher/cinco-folder-watcher';
@@ -52,10 +52,15 @@ export abstract class LanguageFilesRegistry {
         const languagesFolder = getLanguageFolder();
         const entries = CincoFolderWatcher.watchRecursive(
             languagesFolder,
-            SUPPORTED_DYNAMIC_FILE_TYPES,
+            SUPPORTED_DYNAMIC_FILE_TYPES.concat(META_FILE_TYPES),
             async (filename: string, eventType: fs.WatchEventType) => {
-                if (!await existsFile(filename)) {
-                    // a file was deleted -> reload all folders
+                if (
+                    !await existsFile(filename) // a file was deleted -> reload all folders
+                    ||
+                    META_FILE_TYPES.includes( // TODO: this is a little bit dirty and not fine-grained, but suffices
+                        getFileExtension(filename) // Better would be to check the specific file/model for the changed referenced handler
+                    )
+                ) {
                     // (no way to identify which file it was by the default filewatcher)
                     this.reloadAllFolders();
                 } else if (!this._dirty.includes(filename)) {
