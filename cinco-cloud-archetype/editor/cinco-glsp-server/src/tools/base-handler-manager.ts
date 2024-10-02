@@ -207,7 +207,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
      */
     static async getHandlerClasses(name: string, filter?: (arg0: string) => boolean): Promise<any[]> {
         const result: any[] = [];
-        for (const clss of await LanguageFilesRegistry.getRegistered()) {
+        for (const clss of LanguageFilesRegistry.getRegisteredSync()) {
             if (clss.__proto__.name === name && (filter === undefined || filter(clss.name))) {
                 result.push(clss);
             }
