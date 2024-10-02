@@ -15,6 +15,7 @@
  ********************************************************************************/
 
 import { URI as Uri } from 'vscode-uri';
+import * as _path from 'path';
 
 function is(platform: string): boolean {
     if (typeof process !== 'undefined') {
@@ -369,7 +370,15 @@ export class URI {
     }
 
     public static fromFilePath(path: string): URI {
-        return new URI(Uri.file(path));
+        return new URI(Uri.file(this.normalizeFilePath(path)));
+    }
+
+    private static normalizeFilePath(filePath: string): string {
+        // Remove 'file://' scheme if present
+        const withoutScheme = filePath.startsWith('file://') ? filePath.slice(7) : filePath;
+
+        // Resolve the absolute path and normalize it
+        return _path.resolve(withoutScheme);
     }
 
     private readonly codeUri: Uri;
