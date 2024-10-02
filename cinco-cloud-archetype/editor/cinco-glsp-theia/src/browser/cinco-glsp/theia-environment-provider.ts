@@ -106,13 +106,20 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
             ]
         });
 
+        // TODO: SAMI - This generatorButton causes artifacts in the theia GUI and is currently turned off
+        // Also this is deprecated, as the palette should handle the generator button as of GLSP 2.0
         // register generate command
+        /*
         this.registerGeneratorCommand();
         this.themeService.onDidColorThemeChange(e => {
             this.registerGeneratorCommand();
         });
+        */
     }
 
+    /**
+     * @deprecated
+     */
     protected registerGeneratorCommand(): void {
         // register generate command
         const theme = this.themeService.getCurrentTheme();
@@ -254,3 +261,4 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
         return tools;
     }
 }
+
