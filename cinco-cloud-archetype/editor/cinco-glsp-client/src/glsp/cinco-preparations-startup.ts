@@ -82,18 +82,20 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
             throw new Error('Client is no CincoGLSPClient. The API must have change. Please review!');
         }
         const clientId = this.options.clientId;
+
+        await MetaSpecificationLoader.load(this.actionDispatcher, this.environmentProvider);
+        this.prepareAfterMetaSpecification();
         MetaSpecificationResponseHandler.addRegistrationCallback(clientId, () => {
             if (!client.isConnected(clientId) && !client.isConnectingOrRunning()) {
                 MetaSpecificationResponseHandler.removeRegistrationCallback(clientId);
             } else {
-                this.prepareAfterMetaSpecification();
+                this.prepareAfterMetaSpecification(true);
             }
         });
-        await MetaSpecificationLoader.load(this.actionDispatcher, this.environmentProvider);
         await this.environmentProvider.postRequestMetaSpecification();
     }
 
-    prepareAfterMetaSpecification(): void {
+    prepareAfterMetaSpecification(updateCanvas: boolean = false): void {
         // load server args
         ServerArgsProvider.load(this.actionDispatcher);
         // load css language-files
@@ -103,10 +105,12 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
         // dynamic tool palette update
         CincoToolPalette.requestPalette(this.actionDispatcher);
         // update canvas
-        this.graphModelProvider.graphModel.then(g => {
-            this.viewerProvider.modelViewer.update(g);
-        });
-        this.typeHintProvider.postRequestModel();
+        if(updateCanvas) {
+            this.graphModelProvider.graphModel.then(g => {
+                this.viewerProvider.modelViewer.update(g);
+                this.typeHintProvider.postRequestModel();
+            });
+        }
     }
 
     async postRequestModel?(): Promise<void> {

@@ -20,7 +20,7 @@ import {
     DirtyFileWatcher, existsFile, getFilesFromDirectoriesSync, getLanguageFolder, getRootUri, getWorkspaceRootUri, readFilesFromDirectories
 } from '@cinco-glsp/cinco-glsp-api';
 import { WatchEventType } from 'fs-extra';
-
+import * as path from 'path';
 @injectable()
 export class FileProviderHandler implements ActionHandler {
     @inject(Logger)
@@ -88,8 +88,8 @@ export class FileProviderHandler implements ActionHandler {
                     ? getLanguageFolder()
                     : this.isAbsolutePath(dir)
                     ? dir // absolute
-                    : `${getRootUri()}/${dir}` // relative to root
-        );
+                    : path.join(getRootUri(), dir) // relative to root
+        ).map(p => path.normalize(p));
         let items: FileProviderResponseItem[];
         if (readFiles) {
             const fileContents = await readFilesFromDirectories(dirs, action.supportedTypes);
@@ -99,6 +99,7 @@ export class FileProviderHandler implements ActionHandler {
             const files = cachedFiles.filter(f =>
                 // check for directory
                 dirs.filter(d => f.startsWith(d)).length > 0
+                && action.supportedTypes.filter(s => f.endsWith(s)).length > 0
             );
             // files = await getFilesFromDirectories(dirs, action.supportedTypes);
             items = files.map(entry => FileProviderResponseItem.create(entry, undefined));
@@ -111,7 +112,7 @@ export class FileProviderHandler implements ActionHandler {
         return FileProviderHandler.CACHED_FILES;
     }
 
-    isAbsolutePath(path: string): boolean {
-        return path.startsWith('/') || path.startsWith('file://');
+    isAbsolutePath(p: string): boolean {
+        return p.startsWith('/') || p.startsWith('file://');
     }
 }
