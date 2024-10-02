@@ -51,7 +51,7 @@ export class PropertyDataHandler {
             }
         });
         this.shell.onDidRemoveWidget(widget => {
-            console.log('Closed WIdget'+widget.toString());
+            console.log('Closed Widget'+widget.toString());
             if(widget === this.currentWidget) {
                 this.reset();
                 this.dataSubscriptions.forEach(fn => fn());
