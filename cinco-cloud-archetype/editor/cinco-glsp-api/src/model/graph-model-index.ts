@@ -22,11 +22,11 @@ export class GraphModelIndex extends GModelIndex {
     protected graphmodel: GraphModel;
     protected edgesIndex = new Map<string, Edge>();
     protected nodesIndex = new Map<string, Node>();
-    protected containmentsIndex = new Map<string, Container | GraphModel>(); // index to get Container-Node by Node
+    protected reverseContainerIndex = new Map<string, Container | GraphModel>(); // index to get Container-Node by Node
 
     indexGraphModel(graphModel: GraphModel): void {
         this.graphmodel = graphModel;
-        this.indexContainments(this.graphmodel);
+        this.reverseIndexContainers(this.graphmodel);
         this.indexEdges(this.graphmodel);
     }
 
@@ -36,12 +36,12 @@ export class GraphModelIndex extends GModelIndex {
         });
     }
 
-    indexContainments(container: GraphModel | Container): void {
+    reverseIndexContainers(container: GraphModel | Container): void {
         container.containedElements.forEach(node => {
             this.nodesIndex.set(node.id, node);
-            this.containmentsIndex.set(node.id, container);
+            this.reverseContainerIndex.set(node.id, container);
             if (Container.is(node)) {
-                this.indexContainments(node as Container);
+                this.reverseIndexContainers(node as Container);
             }
         });
     }
@@ -79,8 +79,8 @@ export class GraphModelIndex extends GModelIndex {
         return this.graphmodel;
     }
 
-    findContainment(id: string): ModelElementContainer | undefined {
-        return this.containmentsIndex.get(id);
+    findContainerOf(id: string): ModelElementContainer | undefined {
+        return this.reverseContainerIndex.get(id);
     }
 
     findGElement(id: string): GModelElement | undefined {

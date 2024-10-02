@@ -96,11 +96,23 @@ export class GraphGModelFactory implements GModelFactory {
     }
 
     protected createDeleteButton(nodeID: string): GNode {
-        return GNode.builder().type('button:delete').id(this.buttonDeleteID(nodeID)).position({ x: 0, y: -20 }).size(20, 20).build();
+        return GNode.builder()
+            .type('button:delete')
+            .id(this.buttonDeleteID(nodeID))
+            .position({ x: 0, y: -20 })
+            .size(20, 20)
+            .addArg('modelElementID', nodeID)
+            .build();
     }
 
     protected createRestoreButton(nodeID: string): GNode {
-        return GNode.builder().type('button:restore').id(this.buttonRestoreID(nodeID)).position({ x: 20, y: -20 }).size(20, 20).build();
+        return GNode.builder()
+            .type('button:restore')
+            .id(this.buttonRestoreID(nodeID))
+            .position({ x: 20, y: -20 })
+            .size(20, 20)
+            .addArg('modelElementID', nodeID)
+            .build();
     }
 
     protected createEdge<T extends Edge>(edge: T): GModelElement[] {

@@ -110,7 +110,7 @@ export namespace ModelElementContainer {
     }
 
     export function getContainedElements(host: ModelElementContainer): Node[] {
-        return host.containments.map(containment => deletableValue(containment));
+        return host.containments.map(deletableValue);
     }
 
     // TODO: UserdefinedType currently not included
@@ -453,7 +453,7 @@ export class Node extends ModelElement {
     _primeReference?: PrimeReference;
 
     get parent(): ModelElementContainer | undefined {
-        return this.index!.findContainment(this.id);
+        return this.index!.findContainerOf(this.id);
     }
 
     get successors(): Node[] {
@@ -645,9 +645,6 @@ export namespace Node {
 }
 
 export class Container extends Node implements ModelElementContainer {
-    get containedElements(): Node[] {
-        throw new Error('Method not implemented.');
-    }
     _containments: Node[];
 
     get containments(): Node[] {
@@ -658,6 +655,9 @@ export class Container extends Node implements ModelElementContainer {
     }
     set containments(elements: Node[]) {
         this._containments = elements;
+    }
+    get containedElements(): Node[] {
+        return ModelElementContainer.getContainedElements(this);
     }
 
     canContain(type: string): boolean {

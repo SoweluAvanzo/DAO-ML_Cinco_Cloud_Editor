@@ -78,6 +78,7 @@ import { ChoiceSelectionTool } from './features/tool/choice-selection-tool';
 import { MarkerGhostView } from './views/marker-ghost';
 import { ButtonDeleteView } from './views/button-delete';
 import { ButtonRestoreView } from './views/button-restore';
+import { GhostDecisionTool } from './features/tool/ghost-decision-tool';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -155,8 +156,9 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     bind(TYPES.IDefaultTool).to(PropertyViewTool).inSingletonScope();
     configureActionHandler(context, PropertyViewResponseAction.KIND, PropertyViewResponseActionHandler);
 
-    // bind the ChoiceSelectionTool
+    // bind the lazy merging tools
     bind(TYPES.IDefaultTool).to(ChoiceSelectionTool).inSingletonScope();
+    bind(TYPES.IDefaultTool).to(GhostDecisionTool).inSingletonScope();
 
     // GLSPToolManager
     rebind(TYPES.IToolManager).to(CincoToolManager).inSingletonScope();
