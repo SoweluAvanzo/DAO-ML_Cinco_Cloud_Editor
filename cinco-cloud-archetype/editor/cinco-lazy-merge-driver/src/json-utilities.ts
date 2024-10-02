@@ -83,3 +83,9 @@ export function mapFromEntityArray(entities: ReadonlyArray<any>): Record<string,
 export function entityArrayFromMap(map: Record<string, any>): ReadonlyArray<any> {
     return Object.entries(map).map(([id, entity]) => ({ id, ...entity }));
 }
+
+export function deterministicStringify(value: any): string {
+    return JSON.stringify(value, (_key, item) =>
+        item instanceof Object && !(item instanceof Array) ? Object.fromEntries(Object.entries(item).sort()) : item
+    );
+}
