@@ -14,7 +14,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { eagerMerger, cellMerger, entityListMerger, Merger, recordMerger, defaultMerger } from './combinators';
+import {
+    eagerMerger,
+    cellMerger,
+    entityListMerger,
+    Merger,
+    recordMerger,
+    defaultMerger,
+    recursiveMerger,
+    arbitraryMerger
+} from './combinators';
 
 export function graphMerger(): Merger {
     return recordMerger({
@@ -22,12 +31,20 @@ export function graphMerger(): Merger {
         _containments: entityListMerger(nodeMerger()),
         _edges: entityListMerger(edgeMerger()),
         type: eagerMerger(),
-        _attributes: eagerMerger()
+        _attributes: eagerMerger(),
+        _view: eagerMerger()
     });
 }
 
 export function nodeMerger(): Merger {
-    return eagerMerger();
+    return recordMerger({
+        type: eagerMerger(),
+        _position: arbitraryMerger(),
+        _size: arbitraryMerger(),
+        _attributes: eagerMerger(),
+        _primeReference: eagerMerger(),
+        _containments: entityListMerger(recursiveMerger(nodeMerger))
+    });
 }
 
 export function edgeMerger(): Merger {
