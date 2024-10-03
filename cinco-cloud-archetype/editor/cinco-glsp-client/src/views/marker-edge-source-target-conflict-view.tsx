@@ -31,6 +31,7 @@ export class MarkerEdgeSourceTargetConflictView extends ShapeView {
             <g>
                 <rect width={node.size.width} height={node.size.height} fill='white' stroke='black' stroke-width={2} />
                 <image href={conflictMarker as any} width={node.size.width} height={node.size.height} />
+                {context.renderChildren(node) as Iterable<React.ReactNode>}
             </g>
         ) as unknown as VNode;
     }

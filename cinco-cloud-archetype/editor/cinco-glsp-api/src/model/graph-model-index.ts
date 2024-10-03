@@ -30,8 +30,8 @@ export class GraphModelIndex extends GModelIndex {
         this.indexEdges(this.graphmodel);
     }
 
-    indexEdges(container: GraphModel): void {
-        container.edges.forEach(e => {
+    indexEdges(graphModel: GraphModel): void {
+        graphModel.edgeElements.forEach(e => {
             this.edgesIndex.set(e.id, e);
         });
     }

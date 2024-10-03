@@ -46,7 +46,7 @@ export class GraphGModelFactory implements GModelFactory {
             }
         });
         if (container instanceof GraphModel) {
-            container._edges.forEach(e => children.push(...this.createEdge(e)));
+            container.edges.forEach(e => children.push(...this.createEdge(e)));
         }
         return children;
     }
@@ -86,37 +86,51 @@ export class GraphGModelFactory implements GModelFactory {
         builder.addArg('persistedView', JSON.stringify(node.view));
         builder.addArg('properties', JSON.stringify(node.properties));
         if (isGhost(containment)) {
-            builder.addChildren([this.createGhostMarker(node.id), this.createDeleteButton(node.id), this.createRestoreButton(node.id)]);
+            builder.addChildren(this.createGhostNodes(node.id, -40));
         }
         return builder.build();
     }
 
-    protected createGhostMarker(nodeID: string): GNode {
-        return GNode.builder().type('marker:ghost').id(this.markerGhostID(nodeID)).position({ x: 0, y: -40 }).size(40, 20).build();
+    protected createGhostNodes(modelElementID: string, verticalOffset: number): GNode[] {
+        return [
+            this.createGhostMarker(modelElementID, verticalOffset),
+            this.createDeleteButton(modelElementID, verticalOffset),
+            this.createRestoreButton(modelElementID, verticalOffset)
+        ];
     }
 
-    protected createDeleteButton(nodeID: string): GNode {
+    protected createGhostMarker(modelElementID: string, verticalOffset: number): GNode {
+        return GNode.builder()
+            .type('marker:ghost')
+            .id(this.markerGhostID(modelElementID))
+            .position({ x: 0, y: verticalOffset })
+            .size(40, 20)
+            .build();
+    }
+
+    protected createDeleteButton(modelElementID: string, verticalOffset: number): GNode {
         return GNode.builder()
             .type('button:delete')
-            .id(this.buttonDeleteID(nodeID))
-            .position({ x: 0, y: -20 })
+            .id(this.buttonDeleteID(modelElementID))
+            .position({ x: 0, y: verticalOffset + 20 })
             .size(20, 20)
-            .addArg('modelElementID', nodeID)
+            .addArg('modelElementID', modelElementID)
             .build();
     }
 
-    protected createRestoreButton(nodeID: string): GNode {
+    protected createRestoreButton(modelElementID: string, verticalOffset: number): GNode {
         return GNode.builder()
             .type('button:restore')
-            .id(this.buttonRestoreID(nodeID))
-            .position({ x: 20, y: -20 })
+            .id(this.buttonRestoreID(modelElementID))
+            .position({ x: 20, y: verticalOffset + 20 })
             .size(20, 20)
-            .addArg('modelElementID', nodeID)
+            .addArg('modelElementID', modelElementID)
             .build();
     }
 
-    protected createEdge<T extends Edge>(edge: T): GModelElement[] {
-        if (isChoice(edge.sourceID) || isChoice(edge.targetID)) {
+    protected createEdge<T extends Edge>(containment: Deletable<T>): GModelElement[] {
+        const edge = deletableValue(containment);
+        if (isGhost(containment) || isChoice(edge.sourceID) || isChoice(edge.targetID)) {
             const sourceSegments = edge.sourceIDs.map(sourceID =>
                 this.buildEdgeSegment(
                     edge,
@@ -143,7 +157,7 @@ export class GraphGModelFactory implements GModelFactory {
                         : []
                 )
             );
-            const conflictMarker = this.buildConflictMarker(edge);
+            const conflictMarker = this.buildConflictMarker(edge, isGhost(containment) ? this.createGhostNodes(edge.id, 0) : []);
             const targetSegments = edge.targetIDs.map(targetID =>
                 this.buildEdgeSegment(
                     edge,
@@ -197,12 +211,13 @@ export class GraphGModelFactory implements GModelFactory {
         return builder.build();
     }
 
-    protected buildConflictMarker(edge: Edge): GNode {
+    protected buildConflictMarker(edge: Edge, children: GNode[]): GNode {
         return GNode.builder()
             .type('marker:edge-source-target-conflict')
             .id(this.markerEdgeSourceTargetConflictID(edge.id))
             .position(this.calculateConflictMarkerPosition(edge.sources, edge.targets))
             .size(conflictMarkerSize, conflictMarkerSize)
+            .addChildren(children)
             .build();
     }
 

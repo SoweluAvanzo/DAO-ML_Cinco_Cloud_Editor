@@ -60,8 +60,10 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
         return target;
     }
 
-    static resolveEdges(graphmodel: GraphModel, index: GraphModelIndex | undefined): Edge[] {
-        return graphmodel._edges.map(el => this.cleanModelElementInstance(el, index) as Edge);
+    static resolveEdges(graphmodel: GraphModel, index: GraphModelIndex | undefined): Deletable<Edge>[] {
+        return graphmodel.edges.map(containment =>
+            mapDeletable(containment, element => this.cleanModelElementInstance(element, index) as Edge)
+        );
     }
 
     static resolveContainments(el: ModelElementContainer, index: GraphModelIndex | undefined): Deletable<Node>[] {

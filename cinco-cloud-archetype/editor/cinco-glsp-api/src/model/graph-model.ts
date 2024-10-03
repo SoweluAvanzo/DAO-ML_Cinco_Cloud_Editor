@@ -774,14 +774,14 @@ export class Edge extends ModelElement {
 
 export namespace Edge {
     export function is(object: any): object is Edge {
-        return AnyObject.is(object) && hasStringProp(object, 'sourceID') && hasStringProp(object, 'targetID') && ModelElement.is(object);
+        return AnyObject.is(object) && 'sourceID' in object && 'targetID' in object && ModelElement.is(object);
     }
 }
 
 export class GraphModel extends ModelElement implements ModelElementContainer {
     _sourceUri?: string;
     _containments: Deletable<Node>[] = [];
-    _edges: Edge[] = [];
+    _edges: Deletable<Edge>[] = [];
 
     override get index(): GraphModelIndex {
         if (!this._index) {
@@ -804,14 +804,18 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
     set containments(elements: Deletable<Node>[]) {
         this._containments = elements;
     }
-    get edges(): Edge[] {
+    get edges(): Deletable<Edge>[] {
         if (!this._edges!) {
             this._edges = [];
         }
         return this._edges!;
     }
-    set edges(elements: Edge[]) {
+    set edges(elements: Deletable<Edge>[]) {
         this._edges = elements;
+    }
+
+    get edgeElements(): Edge[] {
+        return this.edges.map(deletableValue);
     }
 
     canContain(type: string): boolean {
@@ -833,7 +837,7 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
 
     getAllContainedElements(): IdentifiableElement[] {
         return (ModelElementContainer.getAllContainedElements(this) as IdentifiableElement[])
-            .concat(this.edges)
+            .concat(this.edgeElements)
             .map(e => (ModelElement.is(e) && !(e instanceof ModelElement) ? Object.assign(new ModelElement(), e) : e));
     }
 

@@ -101,9 +101,10 @@ export class DeleteHandler extends CincoJsonOperationHandler {
         remove(container.containments, containment);
 
         // remove associated edges
-        this.modelState.graphModel.edges.forEach((edge: Edge) => {
+        this.modelState.graphModel.edges.forEach((edgeContainment: Deletable<Edge>) => {
+            const edge = deletableValue(edgeContainment);
             if (edge.sourceID === node.id || edge.targetID === node.id) {
-                remove(this.modelState.graphModel._edges, edge);
+                remove(this.modelState.graphModel.edges, edgeContainment);
             } else if (isChoice(edge.sourceID) && edge.sourceID.options.includes(node.id)) {
                 edge.sourceID = filterOptions(edge.sourceID, sourceID => sourceID !== node.id);
             } else if (isChoice(edge.targetID) && edge.targetID.options.includes(node.id)) {

@@ -16,20 +16,29 @@
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
 import { deletableValue, RestoreModelElementOperation } from '@cinco-glsp/cinco-glsp-common';
+import { Edge, Node } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class GhostDecisionHandler extends CincoJsonOperationHandler {
     readonly operationType = RestoreModelElementOperation.KIND;
 
     override executeOperation({ modelElementId }: RestoreModelElementOperation): void {
-        const container = this.modelState.index.findContainerOf(modelElementId);
-        if (container === undefined) {
-            throw new Error(`Could not find container for ID ${modelElementId} while restoring model element.`);
+        const element = this.modelState.index.findModelElement(modelElementId);
+        if (Node.is(element)) {
+            const container = this.modelState.index.findContainerOf(modelElementId);
+            if (container === undefined) {
+                throw new Error(`Could not find container for ID ${modelElementId} while restoring model element.`);
+            }
+            container.containments = container.containments.map(containment => {
+                const node = deletableValue(containment);
+                return node.id === modelElementId ? node : containment;
+            });
+        } else if (Edge.is(element)) {
+            this.modelState.graphModel.edges = this.modelState.graphModel.edges.map(containment => {
+                const edge = deletableValue(containment);
+                return edge.id === modelElementId ? edge : containment;
+            });
         }
-        container.containments = container.containments.map(containment => {
-            const element = deletableValue(containment);
-            return element.id === modelElementId ? element : containment;
-        });
         this.saveAndUpdate();
     }
 }
