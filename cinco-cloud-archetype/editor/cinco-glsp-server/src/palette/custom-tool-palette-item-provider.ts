@@ -19,6 +19,7 @@ import {
     ElementType,
     getEdgePalettes,
     getEdgeSpecOf,
+    getGraphSpecOf,
     getIconClass,
     getNodePalettes,
     getNodeSpecOf,
@@ -28,7 +29,9 @@ import {
     getSpecOf,
     hasPalette,
     isCreateable,
-    isPrimeReference
+    isPrimeReference,
+    NodeType,
+    UPDATING_RACE_CONDITION_INDICATOR
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     OperationHandlerRegistry,
@@ -53,6 +56,18 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         if (!this.state.graphModel) {
             return [];
         }
+        if(!getGraphSpecOf(this.state.graphModel.type)) {
+            // TODO: this can occur if the palette is fetched, while the metaSpecification
+            // is updated, thus, the current type is not present.
+            // If the graphmodel is indeed not present anymore, the window should be closed.
+            // This is currently a sufficient workaround. The clean way would be to identify
+            // the updating of the meta-specification and block this procedure, until the updating
+            // is finished. (The UPDATING_RACE_CONDITION_INDICATOR would not be needed anymore)
+            return [
+                UPDATING_RACE_CONDITION_INDICATOR
+            ];
+        }
+
         const handlers = this.operationHandlerRegistry
             .getAll()
             .filter(handler => handler instanceof SpecifiedElementHandler) as CreateOperationHandler[];
@@ -130,7 +145,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             const specifiedNodeHandlers = this.getAllSpecifiedHandler(handlers, SpecifiedNodeHandler);
             return specifiedNodeHandlers.filter(h => {
                 const specs = h.elementTypeIds.map(e => getNodeSpecOf(e));
-                const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
+                const palettesPerSpec = specs.map(s => getPalettes(s));
                 const isNoPalette = palettesPerSpec.map(
                     palettes =>
                         palettes === undefined || // either no palette-annotation
@@ -144,7 +159,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             const specifiedEdgeHandler = this.getAllSpecifiedHandler(handlers, SpecifiedEdgeHandler);
             return specifiedEdgeHandler.filter(h => {
                 const specs = h.elementTypeIds.map(e => getEdgeSpecOf(e));
-                const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
+                const palettesPerSpec = specs.map(s => getPalettes(s));
                 const isNoPalette = palettesPerSpec.map(
                     palettes =>
                         palettes === undefined || // either no palette-annotation
@@ -205,10 +220,13 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             .filter(h => h instanceof SpecifiedNodeHandler)
             .map(h => h as SpecifiedNodeHandler)
             .filter(nh => {
-                const specs = nh.elementTypeIds.map(e => getNodeSpecOf(e));
-                const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
-                const isPaletteOfCategory = palettesPerSpec.map(palettes => palettes !== undefined && palettes.indexOf(categoryId) >= 0);
-                return isPaletteOfCategory.indexOf(true) >= 0;
+                const relevantElements = nh.elementTypeIds.filter(e => this.state.graphModel.couldContain(e));
+                for(const e of relevantElements) {
+                    if(getPalettes(getNodeSpecOf(e)).includes(categoryId)) {
+                        return true;
+                    }
+                }
+                return false;
             });
         return this.createSortedPaletteItems(filteredHandlers, categoryId, primeReferencedEntries);
     }
@@ -219,7 +237,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             .map(h => h as SpecifiedEdgeHandler)
             .filter(nh => {
                 const specs = nh.elementTypeIds.map(e => getEdgeSpecOf(e));
-                const palettesPerSpec = specs.map(s => getPalettes(s?.elementTypeId));
+                const palettesPerSpec = specs.map(s => getPalettes(s));
                 const isPaletteOfCategory = palettesPerSpec.map(palettes => palettes !== undefined && palettes.indexOf(categoryId) >= 0);
                 return isPaletteOfCategory.indexOf(true) >= 0;
             });
@@ -236,18 +254,17 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             if (handler instanceof SpecifiedElementHandler) {
                 const graphModel = this.state.graphModel;
                 handler.elementTypeIds
-                    .filter(e => isCreateable(e))
+                    .filter(e => graphModel.couldContain(e) && isCreateable(e))
                     .forEach(elementTypeId => {
-                        const isPartOfPalette = graphModel.couldContain(elementTypeId);
-                        const action = getNodeSpecOf(elementTypeId)
+                        const spec = getSpecOf(elementTypeId);
+                        const action = NodeType.is(spec)
                             ? TriggerNodeCreationAction.create(elementTypeId)
                             : TriggerEdgeCreationAction.create(elementTypeId);
                         if (
-                            isPartOfPalette && // filter out only creatable elements
                             (hasPalette(elementTypeId, categoryId) ||
-                                (getPalettes(elementTypeId).length <= 0 && this.WHITE_LIST.includes(categoryId)))
+                                (getPalettes(spec).length <= 0 && this.WHITE_LIST.includes(categoryId)))
                         ) {
-                            if (isPrimeReference(elementTypeId)) {
+                            if (isPrimeReference(spec)) {
                                 if (primeReferencedEntries && primeReferencedEntries.length > 0) {
                                     primeReferencedEntries.forEach(entry => {
                                         if (entry.primeNodeType === elementTypeId) {
@@ -275,14 +292,14 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         elementTypeId?: string,
         primeArgs?: PrimeReferencedEntry
     ): PaletteItem {
-        if (elementTypeId && isPrimeReference(elementTypeId) && primeArgs) {
+        const spec = getSpecOf(elementTypeId);
+        if (elementTypeId && spec && isPrimeReference(spec) && primeArgs) {
             return this.createPrimePaletteIten(action, handler, elementTypeId, primeArgs);
         }
         const label = elementTypeId && handler instanceof SpecifiedElementHandler ? handler.getLabelFor(elementTypeId) : handler.label;
         let iconClass: string | undefined = undefined;
         if (handler instanceof SpecifiedElementHandler) {
             if (elementTypeId !== undefined) {
-                const spec = getSpecOf(elementTypeId);
                 iconClass = getIconClass(spec?.elementTypeId);
                 if (!iconClass && spec) {
                     iconClass = `${spec.elementTypeId.replace(':', '_')}`;

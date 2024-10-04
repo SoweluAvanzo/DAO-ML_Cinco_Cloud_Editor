@@ -247,7 +247,7 @@ export class CincoContextMenuService implements IContextMenuService {
         const commandId = action.commandId.slice(1);
         console.log('Menuaction triggered: ' + commandId);
         const modelElements = this.environmentProvider.selectedElements();
-        const modelElementId = modelElements.length > 0 ? modelElements[0].id : this.environmentProvider.getCurrentModel().id;
+        const modelElementId = modelElements.length > 0 ? modelElements[0].id : this.environmentProvider.getActiveModel()!.id;
         const selectedModelElementIds = modelElements.map(elem => elem.id);
         if (commandId.startsWith('action_graph_custom')) {
             const contextMenuAction = CustomAction.create(
@@ -367,7 +367,7 @@ export class CincoContextMenuService implements IContextMenuService {
                 if (this.contextMenu.initialized()) {
                     this.contextMenu.unhide();
                 } else {
-                    this.contextMenu.show(this.environmentProvider.getCurrentModel());
+                    this.contextMenu.show(this.environmentProvider.getActiveModel()!);
                     addEventListener('mousedown', e => {
                         if (!this.contextMenu.isHidden()) {
                             if (e.target instanceof HTMLElement) {

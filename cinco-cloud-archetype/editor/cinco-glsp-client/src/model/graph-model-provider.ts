@@ -16,6 +16,7 @@
 import { inject, injectable } from 'inversify';
 import { CincoGraphModel } from './model';
 import { GModelRoot, IDiagramOptions, ISModelRootListener, TYPES } from '@eclipse-glsp/client';
+import { URI } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class GraphModelProvider implements ISModelRootListener {
@@ -33,7 +34,7 @@ export class GraphModelProvider implements ISModelRootListener {
 
     get graphModel(): Promise<Readonly<CincoGraphModel>> {
         return new Promise<Readonly<CincoGraphModel>>((resolve, reject) => {
-            const currentSourceUri = this.options.sourceUri;
+            const currentSourceUri = this.getSourceUri();
             if (!currentSourceUri) {
                 return;
             }
@@ -49,12 +50,19 @@ export class GraphModelProvider implements ISModelRootListener {
         });
     }
 
+    getGraphModelFrom(sourceUri: string): Readonly<CincoGraphModel> | undefined {
+        const uri = new URI(sourceUri).path.fsPath();
+        const models = GraphModelProvider._model;
+        const model = models.get(uri);
+        return model;
+    }
+
     get isLoaded(): boolean {
         return GraphModelProvider._model.get(this.options.sourceUri ?? '') !== undefined;
     }
 
     set graphModel(model: Readonly<CincoGraphModel>) {
-        const currentSourceUri = this.options.sourceUri;
+        const currentSourceUri = this.getSourceUri();
         if (!currentSourceUri) {
             throw new Error('No sourceUri to relate given model!');
         }
@@ -63,7 +71,7 @@ export class GraphModelProvider implements ISModelRootListener {
     }
 
     protected unlockAll(graphModel: Readonly<CincoGraphModel>): void {
-        const currentSourceUri = this.options.sourceUri;
+        const currentSourceUri = this.getSourceUri();
         if (!currentSourceUri) {
             return;
         }
@@ -72,5 +80,12 @@ export class GraphModelProvider implements ISModelRootListener {
             unlock(graphModel);
         }
         GraphModelProvider._locked.set(currentSourceUri, []);
+    }
+
+    getSourceUri(): string | undefined {
+        if (!this.options.sourceUri) {
+            return undefined;
+        }
+        return URI.fromFilePath(this.options.sourceUri).path.fsPath();
     }
 }

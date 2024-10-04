@@ -30,28 +30,32 @@ export class FileProviderHandler implements ActionHandler {
 
     static CACHED_FILES: string[] = [];
 
-    static init(): void {
+    static async init(): Promise<void> {
         const workspacePath = getWorkspaceRootUri();
         const languagesPath = getLanguageFolder();
         const cachedFiles = getFilesFromDirectoriesSync([workspacePath, languagesPath], []);
         FileProviderHandler.CACHED_FILES = cachedFiles;
-        DirtyFileWatcher.watch(
+        await DirtyFileWatcher.watch(
             workspacePath,
             [],
             async (dirtyFiles: { path: string, eventType: WatchEventType}[]): Promise<void> =>
-        {
-            await this.updateCachedFiles(dirtyFiles);
-            return Promise.resolve();
-        });
-        if(!languagesPath.startsWith(workspacePath)) {
-            DirtyFileWatcher.watch(
-                languagesPath,
-                [],
-                async (dirtyFiles: { path: string, eventType: WatchEventType}[]): Promise<void> =>
             {
                 await this.updateCachedFiles(dirtyFiles);
                 return Promise.resolve();
-            });
+            },
+            3
+        );
+        if(!languagesPath.startsWith(workspacePath)) {
+            await DirtyFileWatcher.watch(
+                languagesPath,
+                [],
+                async (dirtyFiles: { path: string, eventType: WatchEventType}[]): Promise<void> =>
+                {
+                    await this.updateCachedFiles(dirtyFiles);
+                    return Promise.resolve();
+                },
+                3
+            );
         }
     }
 

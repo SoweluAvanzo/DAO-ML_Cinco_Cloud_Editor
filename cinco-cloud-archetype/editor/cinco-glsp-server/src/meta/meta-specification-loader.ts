@@ -39,10 +39,11 @@ export class MetaSpecificationLoader {
                     MetaSpecification.clear();
                     await this.load();
                 },
+                0,
                 'MetaSpecificationReset'
             );
         }
-        return DirtyFileWatcher.watch(languagesFolder, META_FILE_TYPES, dirtyCallback, callbackId);
+        return DirtyFileWatcher.watch(languagesFolder, META_FILE_TYPES, dirtyCallback, 0, callbackId);
     }
 
     static unwatch(watchInfo: { dirtyCallbackId: string; watchIds: string[] }): void {
@@ -82,7 +83,7 @@ export class MetaSpecificationLoader {
                     console.log('Error parsing: ' + file + '\n' + e);
                 }
                 countdown -= 1;
-                if (countdown <= 0) {
+                if (countdown <= 0) { // all have been parsed
                     MetaSpecification.prepareCache();
                     resolve();
                 }

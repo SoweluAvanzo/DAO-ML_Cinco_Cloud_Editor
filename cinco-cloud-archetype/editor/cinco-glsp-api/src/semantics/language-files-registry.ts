@@ -14,13 +14,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { MetaSpecification, SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
+import {
+    META_FILE_TYPES, MetaSpecification,
+    SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames
+} from '@cinco-glsp/cinco-glsp-common';
 import {
     existsFile, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories,
     readFileSync
 } from '../utils/file-helper';
-import { CincoFolderWatcher } from '../api/watcher/cinco-folder-watcher';
 import * as fs from 'fs';
+import { DirtyFileWatcher } from '../api/watcher/dirty-file-watcher';
 
 interface LanguageFilesRegistryEntry {
     name: string;
@@ -50,22 +53,27 @@ export abstract class LanguageFilesRegistry {
         }
         this.initialized = true;
         const languagesFolder = getLanguageFolder();
-        const entries = CincoFolderWatcher.watchRecursive(
+        DirtyFileWatcher.watch(
             languagesFolder,
-            SUPPORTED_DYNAMIC_FILE_TYPES,
-            async (filename: string, eventType: fs.WatchEventType) => {
-                if (!await existsFile(filename)) {
-                    // a file was deleted -> reload all folders
-                    // (no way to identify which file it was by the default filewatcher)
-                    this.reloadAllFolders();
-                } else if (!this._dirty.includes(filename)) {
-                    this._dirty.push(filename);
+            SUPPORTED_DYNAMIC_FILE_TYPES.concat(META_FILE_TYPES),
+            async (dirtyFiles: { path: string, eventType: fs.WatchEventType}[]) => {
+                for(const dirtyFile of dirtyFiles) {
+                    const filename = dirtyFile.path;
+                    if (
+                        !await existsFile(filename) // a file was deleted -> reload all folders
+                        ||
+                        MetaSpecification.annotationsChanged()
+                    ) {
+                        // (no way to identify which file it was by the default filewatcher)
+                        this.reloadAllFolders();
+                    } else if (!this._dirty.includes(filename)) {
+                        this._dirty.push(filename);
+                    }
                 }
             },
-            isMetaDevMode
+            3
         );
-        const folders = entries.map(e => e.folderPath);
-        this._registered = await this.fetchSemanticFiles(folders); // initial fetch
+        await this.reloadAllFolders();
     }
 
     static async getRegistered(): Promise<any[]> {
@@ -211,6 +219,7 @@ export abstract class LanguageFilesRegistry {
         // eslint-disable-next-line no-eval
         const cinco_glsp_common = eval("( require('@cinco-glsp/cinco-glsp-common') )");
         cinco_glsp_common.MetaSpecification.merge(MetaSpecification.get());
+        cinco_glsp_common.MetaSpecification.importCachedComputations(MetaSpecification.exportCachedComputations());
 
         // load handler code
         for (const handler of handlerToImport) {

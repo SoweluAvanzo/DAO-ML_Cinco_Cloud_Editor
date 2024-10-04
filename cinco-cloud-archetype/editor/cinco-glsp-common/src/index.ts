@@ -39,3 +39,4 @@ export * from './protocol/arg-utils';
 export * from './protocol/editor-button-protocol';
 export * from './protocol/hooks/hook-arguments';
 export * from './protocol/hooks/hook-type';
+export * from './protocol/uri';
