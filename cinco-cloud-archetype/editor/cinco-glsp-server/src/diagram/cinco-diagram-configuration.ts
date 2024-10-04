@@ -65,19 +65,18 @@ export class CincoDiagramConfiguration implements DiagramConfiguration {
 
     get edgeTypeHints(): EdgeTypeHint[] {
         const edgeTypes = getEdgeTypes();
-        const edgeTypeHints: EdgeTypeHint[] = [];
-        edgeTypes.forEach((e: EdgeType) => {
-            const outgoingEdgeFor = getEdgeSources(e).map(n => n.elementTypeId);
-            const incomingEdgeFor = getEdgeTargets(e).map(n => n.elementTypeId);
+        const edgeTypeHints: EdgeTypeHint[] = edgeTypes.map((e: EdgeType) => {
+            const outgoingEdgeFor = getEdgeSources(e.elementTypeId).map(n => n.elementTypeId);
+            const incomingEdgeFor = getEdgeTargets(e.elementTypeId).map(n => n.elementTypeId);
             const elementTypeId = e.elementTypeId;
-            edgeTypeHints.push({
+            return {
                 elementTypeId: elementTypeId,
                 deletable: isDeletable(elementTypeId),
                 repositionable: isMovable(elementTypeId),
                 routable: e.routable ?? true,
                 sourceElementTypeIds: outgoingEdgeFor,
                 targetElementTypeIds: incomingEdgeFor
-            });
+            };
         });
         return edgeTypeHints;
     }
