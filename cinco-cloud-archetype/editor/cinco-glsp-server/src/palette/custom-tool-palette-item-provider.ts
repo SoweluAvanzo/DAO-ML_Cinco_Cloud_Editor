@@ -220,10 +220,9 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             .filter(h => h instanceof SpecifiedNodeHandler)
             .map(h => h as SpecifiedNodeHandler)
             .filter(nh => {
-                for(const e of nh.elementTypeIds) {
-                    const s = getNodeSpecOf(e);
-                    const palettes = getPalettes(s);
-                    if(palettes && palettes.includes(categoryId)) {
+                const relevantElements = nh.elementTypeIds.filter(e => this.state.graphModel.couldContain(e));
+                for(const e of relevantElements) {
+                    if(getPalettes(getNodeSpecOf(e)).includes(categoryId)) {
                         return true;
                     }
                 }
@@ -255,15 +254,13 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             if (handler instanceof SpecifiedElementHandler) {
                 const graphModel = this.state.graphModel;
                 handler.elementTypeIds
-                    .filter(e => isCreateable(e))
+                    .filter(e => graphModel.couldContain(e) && isCreateable(e))
                     .forEach(elementTypeId => {
-                        const isPartOfPalette = graphModel.couldContain(elementTypeId);
                         const spec = getSpecOf(elementTypeId);
                         const action = NodeType.is(spec)
                             ? TriggerNodeCreationAction.create(elementTypeId)
                             : TriggerEdgeCreationAction.create(elementTypeId);
                         if (
-                            isPartOfPalette && // filter out only creatable elements
                             (hasPalette(elementTypeId, categoryId) ||
                                 (getPalettes(spec).length <= 0 && this.WHITE_LIST.includes(categoryId)))
                         ) {
