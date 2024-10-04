@@ -34,6 +34,7 @@ export class GraphModelWatcher {
                     await callback(dirtyFiles);
                 }
             },
+            1,
             'GraphModelWatcher_' + id
         );
     }
