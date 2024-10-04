@@ -62,7 +62,6 @@ export class FrontendResourceLoader {
         const serverArgs = await ServerArgsProvider.getServerArgs();
         for (const file of resources) {
             await this.loadCSSFile(
-                `${serverArgs.rootFolder}/${serverArgs.languagePath}/`,
                 `${file.path}`,
                 serverArgs.metaDevMode,
                 workspaceFileService
@@ -78,19 +77,19 @@ export class FrontendResourceLoader {
         FrontendResourceLoader._locked = false;
     }
 
-    static async loadCSSFile(root: string, filePath: string, overwrite = false, workspaceFileService: WorkspaceFileService): Promise<void> {
-        if (this.hasChild(filePath)) {
+    static async loadCSSFile(absoluteFilePath: string, overwrite = false, workspaceFileService: WorkspaceFileService): Promise<void> {
+        if (this.hasChild(absoluteFilePath)) {
             if (!overwrite) {
                 // only provide if not already loaded
                 return;
             } else {
-                this.replaceOrBust(filePath);
+                this.replaceOrBust(absoluteFilePath);
             }
         }
-        const url = await workspaceFileService.serveFileInRoot('', root + filePath);
+        const url = await workspaceFileService.serveFileInRoot('', absoluteFilePath);
         if (url) {
             const fileref = document.createElement('link');
-            fileref.setAttribute('id', filePath);
+            fileref.setAttribute('id', absoluteFilePath);
             fileref.setAttribute('rel', 'stylesheet');
             fileref.setAttribute('type', 'text/css');
             fileref.setAttribute('href', url);
