@@ -19,6 +19,7 @@ import {
     ElementType,
     getEdgePalettes,
     getEdgeSpecOf,
+    getGraphSpecOf,
     getIconClass,
     getNodePalettes,
     getNodeSpecOf,
@@ -28,7 +29,8 @@ import {
     getSpecOf,
     hasPalette,
     isCreateable,
-    isPrimeReference
+    isPrimeReference,
+    UPDATING_RACE_CONDITION_INDICATOR
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     OperationHandlerRegistry,
@@ -53,6 +55,18 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         if (!this.state.graphModel) {
             return [];
         }
+        if(!getGraphSpecOf(this.state.graphModel.type)) {
+            // TODO: this can occur if the palette is fetched, while the metaSpecification
+            // is updated, thus, the current type is not present.
+            // If the graphmodel is indeed not present anymore, the window should be closed.
+            // This is currently a sufficient workaround. The clean way would be to identify
+            // the updating of the meta-specification and block this procedure, until the updating
+            // is finished. (The UPDATING_RACE_CONDITION_INDICATOR would not be needed anymore)
+            return [
+                UPDATING_RACE_CONDITION_INDICATOR
+            ];
+        }
+
         const handlers = this.operationHandlerRegistry
             .getAll()
             .filter(handler => handler instanceof SpecifiedElementHandler) as CreateOperationHandler[];

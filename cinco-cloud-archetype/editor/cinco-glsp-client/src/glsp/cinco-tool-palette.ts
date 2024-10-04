@@ -31,6 +31,7 @@ import { Action, PaletteItem } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { CincoCustomTool, EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
 import { GraphModelProvider } from '../model/graph-model-provider';
+import { UPDATING_RACE_CONDITION_INDICATOR } from '@cinco-glsp/cinco-glsp-common';
 
 // imported from: '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette'
 const PALETTE_ICON_ID = 'symbol-color';
@@ -67,7 +68,9 @@ export class CincoToolPalette extends KeyboardToolPalette {
                 this.changeActiveButton();
                 this.restoreFocus();
             }
-        } else if (SetContextActions.is(action) && action.actions.length > 0) {
+        } else if (SetContextActions.is(action)
+                && action.actions.filter(s => (s as PaletteItem).id === UPDATING_RACE_CONDITION_INDICATOR.id).length <= 0
+            ) {
             // TODO: SAMI - action.actions.length > 0 is wrong, but at somepoint actions is sent empty, find the reason why
             // store and backup new palette
             const newPaletteItems = action.actions.map(e => e as PaletteItem);
