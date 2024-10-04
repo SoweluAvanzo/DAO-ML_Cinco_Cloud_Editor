@@ -31,7 +31,7 @@ async function loadLanguageFiles(): Promise<void> {
     MetaSpecificationLoader.loadClassFiles(SUPPORTED_DYNAMIC_FILE_TYPES);
 
     // prepare file watching of served files
-    FileProviderHandler.init();
+    await FileProviderHandler.init();
 }
 loadLanguageFiles().then(_ => {
     launch(process.argv).catch((error: any): void => console.error('Error in cinco server launcher:', error));
