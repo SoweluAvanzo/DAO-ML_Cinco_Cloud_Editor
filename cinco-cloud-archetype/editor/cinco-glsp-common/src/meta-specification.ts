@@ -22,15 +22,34 @@ import { hasArrayProp, hasBooleanProp, hasNumberProp, hasObjectProp, hasStringPr
  */
 
 export namespace MetaSpecification {
+    let PRIOR_META_SPECIFICATION: CompositionSpecification = {};
     let META_SPECIFICATION: CompositionSpecification = {};
-    const CACHED_CONTAINMENTS: Map<ModelElementContainer, NodeType[]> = new Map();
+    let CACHED_CONTAINMENTS: Map<ModelElementContainer, NodeType[]> = new Map();
+    let changedAnnotations = false;
 
     export function get(): CompositionSpecification {
         return META_SPECIFICATION;
     }
 
+    export function exportCachedComputations(): {
+        cachedContainments: Map<ModelElementContainer, NodeType[]>
+        changedAnnotations: boolean
+    } {
+        return {
+            cachedContainments: CACHED_CONTAINMENTS,
+            changedAnnotations
+        };
+    }
+
+    export function importCachedComputations(computations: {
+        cachedContainments: Map<ModelElementContainer, NodeType[]>
+        changedAnnotations: boolean
+    }): void {
+        CACHED_CONTAINMENTS = computations.cachedContainments;
+        changedAnnotations = computations.changedAnnotations;
+    }
+
     export function merge(metaSpecification: CompositionSpecification): void {
-        CACHED_CONTAINMENTS.clear();
         addGraphTypes(metaSpecification.graphTypes ?? []);
         addNodeTypes(metaSpecification.nodeTypes ?? []);
         addEdgeTypes(metaSpecification.edgeTypes ?? []);
@@ -41,10 +60,16 @@ export namespace MetaSpecification {
 
     export function prepareCache(): void {
         cacheContainments();
+
+        // detections in relation to last call of 'prepareCache'
+        detectChanges();
+
+        PRIOR_META_SPECIFICATION = get();
     }
 
     function cacheContainments(): void {
         // pre resolve container
+        CACHED_CONTAINMENTS.clear();
         const containers = (getGraphTypes() as ModelElementContainer[]).concat(getContainerNodes());
         for(const container of containers) {
             const containments = getDeepContainmentsOf(container);
@@ -52,9 +77,25 @@ export namespace MetaSpecification {
         }
     }
 
+    /**
+     * Precomputations
+     */
+
     export function getCachedContainments(containerType: ModelElementContainer): NodeType[] {
         return CACHED_CONTAINMENTS.get(containerType) ?? [];
     }
+
+    function detectChanges(): void {
+        changedAnnotations = annotationsHaveChanged(PRIOR_META_SPECIFICATION, META_SPECIFICATION);
+    }
+
+    export function annotationsChanged(): boolean {
+        return changedAnnotations;
+    }
+
+    /*
+     * TYPES
+     */
 
     export function addTypes(types: any[], typeAccessor: string, idAccessor: string): void {
         const newTypes = (types ?? []).filter(
@@ -1030,6 +1071,79 @@ export function isCreateable(type: string): boolean {
 
 export function isSelectable(type: string): boolean {
     return getAnnotations(type, 'disable').filter(a => a.values.includes('select')).length <= 0;
+}
+
+function annotationsHaveChanged(oldSpec: CompositionSpecification | undefined, newSpec: CompositionSpecification): boolean {
+    if(!oldSpec) {
+        return true;
+    }
+    const getAnnotatable = (spec: CompositionSpecification): Map<string, Annotation[]> => {
+        const annotateable = (spec.nodeTypes??[] as Type[])
+            .concat(spec.edgeTypes ?? []).concat(spec.graphTypes ?? []).concat(spec.customTypes ??[]);
+        const map = new Map<string, Annotation[]>();
+        annotateable.forEach(e => map.set(e.elementTypeId, e.annotations ?? []));
+        return map;
+    };
+    const oldAnnotateble = getAnnotatable(oldSpec);
+    const newAnnotateble = getAnnotatable(newSpec);
+
+    const allKeys = new Set(Array.from(oldAnnotateble.keys()).concat(Array.from(newAnnotateble.keys())));
+    for(const type of allKeys) {
+        if(
+            (!newAnnotateble.has(type) && oldAnnotateble.get(type)!.length > 0)  // old annotated type was deleted
+            || (!oldAnnotateble.has(type) && newAnnotateble.get(type)!.length > 0) // new annotated type was added
+            ||
+                (oldAnnotateble.has(type) && newAnnotateble.has(type)
+                && annotationsAreDifferent(
+                    oldAnnotateble.get(type)!,
+                    newAnnotateble.get(type)!
+                ))
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+export function annotationsAreDifferent(a: Annotation[], b: Annotation[]): boolean {
+    if(a.length !== b.length) {
+        return true;
+    }
+    const allNames = new Set(a.map(an => an.name).concat(b.map(an => an.name)));
+    for(const name of allNames) {
+        const annotationsOfNameInA = a.filter(an => an.name === name);
+        const annotationsOfNameInB = b.filter(an => an.name === name);
+        if(
+            annotationsOfNameInA.length !== annotationsOfNameInB.length
+        ) {
+            // though lengths are equal, an annotation changed it's name
+            return true;
+        } else {
+            const valuesOfNameInA = annotationsOfNameInA.map(an => an.values);
+            const valuesOfNameInB = annotationsOfNameInB.map(an => an.values);
+            if(
+                valuesOfNameInA.flat().length !== valuesOfNameInB.flat().length
+            ) {
+                // a value of an annotation type was added or removed
+                return true;
+            } else {
+                const valueStrings = new Set( // all value strings per annotation of both A and B
+                    valuesOfNameInA.map(vs => vs.toString()).concat(
+                    valuesOfNameInB.map(vs => vs.toString())));
+                for(const v of valueStrings) {
+                    // the serialized valueSet v of the annotation must be present the same nummber in both
+                    // sets
+                    const presentInB = valuesOfNameInB.filter(vb => vb.toString() === v).length;
+                    const presentInA = valuesOfNameInA.filter(vb => vb.toString() === v).length;
+                    if(presentInA !== presentInB) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
 }
 
 /**
