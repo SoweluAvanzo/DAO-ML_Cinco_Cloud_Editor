@@ -27,7 +27,10 @@ export namespace MetaSpecification {
     let CACHED_CONTAINMENTS: Map<ModelElementContainer, ElementType[]> = new Map();
     const CACHED_EDGE_TARGETS: Map<string, NodeType[]> = new Map();
     const CACHED_EDGE_SOURCES: Map<string, NodeType[]> = new Map();
-
+    const IS_NODE_TYPE: Map<string, boolean> = new Map();
+    const IS_EDGE_TYPE: Map<string, boolean> = new Map();
+    const IS_GRAPH_TYPE: Map<string, boolean> = new Map();
+    const IS_CUSTOM_TYPE: Map<string, boolean> = new Map();
     const SPEC_MAP: Map<string, ElementType> = new Map();
     let changedAnnotations = false;
 
@@ -64,9 +67,9 @@ export namespace MetaSpecification {
 
     export function prepareCache(): void {
         createSpecMap();
+        computeClassifications();
         cacheEdgeRelations();
         cacheContainments();
-
         // detections in relation to last call of 'prepareCache'
         detectChanges();
 
@@ -136,6 +139,49 @@ export namespace MetaSpecification {
 
     export function annotationsChanged(): boolean {
         return changedAnnotations;
+    }
+
+    function computeClassifications(): void {
+        IS_NODE_TYPE.clear();
+        IS_EDGE_TYPE.clear();
+        IS_GRAPH_TYPE.clear();
+        IS_CUSTOM_TYPE.clear();
+        // graphs
+        (get().graphTypes ?? []).forEach(t => IS_GRAPH_TYPE.set(t.elementTypeId, true));
+        (get().edgeTypes ?? []).forEach(t => IS_GRAPH_TYPE.set(t.elementTypeId, false));
+        (get().nodeTypes ?? []).forEach(t => IS_GRAPH_TYPE.set(t.elementTypeId, false));
+        (get().customTypes ?? []).forEach(t => IS_GRAPH_TYPE.set(t.elementTypeId, false));
+        // nodes
+        (get().nodeTypes ?? []).forEach(t => IS_NODE_TYPE.set(t.elementTypeId, true));
+        (get().graphTypes ?? []).forEach(t => IS_NODE_TYPE.set(t.elementTypeId, false));
+        (get().edgeTypes ?? []).forEach(t => IS_NODE_TYPE.set(t.elementTypeId, false));
+        (get().customTypes ?? []).forEach(t => IS_NODE_TYPE.set(t.elementTypeId, false));
+        // edges
+        (get().edgeTypes ?? []).forEach(t => IS_EDGE_TYPE.set(t.elementTypeId, true));
+        (get().graphTypes ?? []).forEach(t => IS_EDGE_TYPE.set(t.elementTypeId, false));
+        (get().nodeTypes ?? []).forEach(t => IS_EDGE_TYPE.set(t.elementTypeId, false));
+        (get().customTypes ?? []).forEach(t => IS_EDGE_TYPE.set(t.elementTypeId, false));
+        // customType
+        (get().customTypes ?? []).forEach(t => IS_CUSTOM_TYPE.set(t.elementTypeId, true));
+        (get().graphTypes ?? []).forEach(t => IS_CUSTOM_TYPE.set(t.elementTypeId, false));
+        (get().nodeTypes ?? []).forEach(t => IS_CUSTOM_TYPE.set(t.elementTypeId, false));
+        (get().edgeTypes ?? []).forEach(t => IS_CUSTOM_TYPE.set(t.elementTypeId, false));
+    }
+
+    export function isNodeType(elementTypeId: string): boolean {
+        return IS_NODE_TYPE.get(elementTypeId) ?? false;
+    }
+
+    export function isEdgeType(elementTypeId: string): boolean {
+        return IS_EDGE_TYPE.get(elementTypeId) ?? false;
+    }
+
+    export function isGraphType(elementTypeId: string): boolean {
+        return IS_GRAPH_TYPE.get(elementTypeId) ?? false;
+    }
+
+    export function isCustomType(elementTypeId: string): boolean {
+        return IS_GRAPH_TYPE.get(elementTypeId) ?? false;
     }
 
     /*
@@ -664,7 +710,7 @@ export interface GraphType extends ModelElementContainer, ElementType {
 
 export namespace GraphType {
     export function is(object: any): object is GraphType {
-        const isSpecified = MetaSpecification.get().graphTypes?.find(e => e.elementTypeId === object?.elementTypeId) !== undefined;
+        const isSpecified = MetaSpecification.isGraphType(object?.elementTypeId);
         return ElementType.is(object) && isSpecified && ModelElementContainer.is(object);
     }
 }
@@ -699,7 +745,7 @@ export namespace ModelElementContainer {
 
 export namespace NodeType {
     export function is(object: any): object is NodeType {
-        const isSpecified = MetaSpecification.get().nodeTypes?.find(e => e.elementTypeId === object?.elementTypeId) !== undefined;
+        const isSpecified = MetaSpecification.isNodeType(object?.elementTypeId);
         return object !== undefined && isSpecified;
     }
 }
@@ -713,7 +759,7 @@ export interface EdgeType extends ElementType {
 
 export namespace EdgeType {
     export function is(object: any): object is EdgeType {
-        const isSpecified = MetaSpecification.get().edgeTypes?.find(e => e.elementTypeId === object?.elementTypeId) !== undefined;
+        const isSpecified = MetaSpecification.isEdgeType(object?.elementTypeId);
         return ElementType.is(object) && isSpecified;
     }
 }
@@ -758,7 +804,7 @@ export class UserDefinedType implements ElementType, CustomType {
 
 export namespace UserDefinedType {
     export function is(object: any): object is UserDefinedType {
-        const isSpecified = MetaSpecification.get().customTypes?.find(e => e.elementTypeId === object?.elementTypeId) !== undefined;
+        const isSpecified = MetaSpecification.isCustomType(object?.elementTypeId);
         return ElementType.is(object) && isSpecified &&
          (
             !Enum.is(object)
@@ -1399,8 +1445,9 @@ export function getAllPaletteCategories(primePalettes = true): string[] {
 }
 
 export function getAllPaletteAnnotations(): Annotation[] {
-    const modelElements = getModelElementSpecifications().filter(m => EdgeType.is(m) || NodeType.is(m));
-    return modelElements.map(e => (e.annotations ?? []).filter(a => a.name === 'palette')).flat();
+    const nodePalleteAnnotations = getNodeTypes().map(e => (e.annotations ?? []).filter(a => a.name === 'palette')).flat();
+    const edgePaletteAnnotations = getEdgeTypes().map(e => (e.annotations ?? []).filter(a => a.name === 'palette')).flat();
+    return nodePalleteAnnotations.concat(edgePaletteAnnotations);
 }
 
 /**
@@ -1466,7 +1513,7 @@ export function getDeepContainmentsOf(e: ModelElementContainer, seenContainments
     return containments;
 }
 
-export function canBeCreated(containerType: string, containmentType: string, seenContainments: NodeType[] = []): boolean {
+export function canBeCreated(containerType: string, containmentType: string): boolean {
     const containerSpec = getSpecOf(containerType);
     if (containerSpec === undefined || !ModelElementContainer.is(containerSpec)) {
         return false;
@@ -1540,14 +1587,7 @@ export function getDiagramExtensions(): string[] {
 }
 
 export function getModelElementSpecifications(): ElementType[] {
-    const nodeTypes: NodeType[] = getNodeTypes();
-    const edgeTypes: EdgeType[] = getEdgeTypes();
-    const graphTypes: GraphType[] = getGraphTypes();
-    let elementTypes: ElementType[] = [];
-    elementTypes = elementTypes.concat(nodeTypes);
-    elementTypes = elementTypes.concat(edgeTypes);
-    elementTypes = elementTypes.concat(graphTypes);
-    return elementTypes;
+    return Array.from(MetaSpecification.getSpecMap().values());
 }
 
 export function getSpecOf(elementTypeId: string | undefined): ElementType | undefined {
