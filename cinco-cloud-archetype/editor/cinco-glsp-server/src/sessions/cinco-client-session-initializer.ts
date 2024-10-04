@@ -78,7 +78,9 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                     const watchInfo = await MetaSpecificationLoader.watch(async () => {
                         const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
                         this.actionDispatcher.dispatch(response);
-                        this.sendToAllOtherClients(response);
+                        CincoClientSessionInitializer.sendToAllOtherClients(
+                            response, this.serverContainer.id, CincoClientSessionInitializer.clientSessionsActionDispatcher
+                        );
                     }, 'metaspecWatcher_' + clientId);
                     CincoClientSessionListener.addDisposeCallback(clientId, () => {
                         MetaSpecificationLoader.unwatch(watchInfo);
@@ -170,7 +172,9 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         }
                     });
                     this.actionDispatcher.dispatch(paletteResponse);
-                    this.sendToAllOtherClients(paletteResponse);
+                    CincoClientSessionInitializer.sendToAllOtherClients(
+                        paletteResponse, this.serverContainer.id, CincoClientSessionInitializer.clientSessionsActionDispatcher
+                    );
                 }
             }
         });
@@ -185,14 +189,15 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         CincoClientSessionInitializer.clientSessionsActionDispatcher.delete(id);
     }
 
-    sendToAllOtherClients(message: Action): void {
-        const actionDispatcherMap = CincoClientSessionInitializer.clientSessionsActionDispatcher;
-        for (const entry of actionDispatcherMap.entries()) {
-            if (entry[0] !== this.serverContainer.id) {
-                entry[1].dispatch(message).catch(e => {
-                    console.log('An error occured, maybe the client is not connected anymore:\n' + e);
-                    CincoClientSessionInitializer.removeClient(entry[0]);
-                });
+    static sendToAllOtherClients(message: Action, serverContainerId: number, actionDispatcherMap: Map<number, ActionDispatcher>): void {
+        if(actionDispatcherMap) {
+            for (const entry of actionDispatcherMap.entries()) {
+                if (entry[0] !== serverContainerId) {
+                    entry[1].dispatch(message).catch(e => {
+                        console.log('An error occured, maybe the client is not connected anymore:\n' + e);
+                        CincoClientSessionInitializer.removeClient(entry[0]);
+                    });
+                }
             }
         }
     }
