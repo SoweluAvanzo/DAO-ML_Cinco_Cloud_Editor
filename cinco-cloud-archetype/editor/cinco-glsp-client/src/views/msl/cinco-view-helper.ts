@@ -202,25 +202,24 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
 
     const filled = getProperty(appearance, a => a.filled) ?? options?.filled;
     const borderColor = foreground ?? background;
-    const fillColor = filled ? foreground ?? background : background;
+    const fillColor = filled ? (foreground ?? background) : background;
     if (!options?.isEdge) {
         /*
          * edges are discrimnated, because 'fill' breaks the
          * selection mechanism for edges of the GLSP. If 'fill' is set,
          * edges can cover other edges. Those edges can subsequently not be selected.
          */
-        style['fill'] =
-            options?.isEdge && !background
-                ? `rgba(${fillColor?.r ?? 0},${fillColor?.g ?? 0},${fillColor?.b ?? 0}, 0)`
-                : `rgb(${fillColor?.r ?? 0},${fillColor?.g ?? 0},${fillColor?.b ?? 0})`;
+        style['fill'] = options?.isEdge && !background ? 'none' : `rgb(${fillColor?.r ?? 0},${fillColor?.g ?? 0},${fillColor?.b ?? 0})`;
         style['background-color'] = `rgb(${background?.r ?? 0},${background?.g ?? 0},${background?.b ?? 0})`;
+    } else {
+        style['fill'] = 'none';
     }
 
     // font
     const fontName =
         getProperty(appearance, a => a.font?.fontName) ?? options?.fontName ?? '"Helvetica Neue", Helvetica, Arial, sans-serif';
-    const bold = getProperty(appearance, a => a.font?.isBold) ?? options?.isBold ? 'bold' : 'normal';
-    const italic = getProperty(appearance, a => a.font?.isItalic) ?? options?.isItalic ? 'italic' : 'normal';
+    const bold = (getProperty(appearance, a => a.font?.isBold) ?? options?.isBold) ? 'bold' : 'normal';
+    const italic = (getProperty(appearance, a => a.font?.isItalic) ?? options?.isItalic) ? 'italic' : 'normal';
     const fontSize = getProperty(appearance, a => a.font?.size) ?? options?.size ?? 10;
     style['font-family'] = `${fontName}`;
     style['font-style'] = `${bold}`;
@@ -637,7 +636,7 @@ export function resolveAttribute(node: CincoNode | CincoEdge, attributeName: str
         return node.size.height;
     }
     const properties = node.properties;
-    return properties ? properties[attributeName] ?? '' : '';
+    return properties ? (properties[attributeName] ?? '') : '';
 }
 
 /**
@@ -1438,6 +1437,7 @@ export function createTextShape(
         text
     ) as unknown as VNode;
     result.data!.attrs!['class'] = `${cssShapeClasses}`;
+    result.data!.attrs!['text-anchor'] = 'middle';
     return result;
 }
 
