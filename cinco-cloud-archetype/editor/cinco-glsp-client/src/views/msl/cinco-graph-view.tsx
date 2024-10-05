@@ -13,8 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { SChildElementImpl } from 'sprotty';
-import { RenderingContext, GGraph, GGraphView, svg, Bounds } from '@eclipse-glsp/client';
+import { RenderingContext, GGraph, GGraphView, svg, Bounds, GChildElement } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
 import { CincoEdge, CincoGraphModel, CincoMarker, CincoNode } from '../../model/model';
@@ -22,6 +21,7 @@ import { isEdgeType, isNodeType, isUnknownEdgeType, isUnknownNodeType } from './
 import { CincoNodeView } from './cinco-node-view';
 import { CincoEdgeView } from './cinco-edge-view';
 import { UNKNOWN_HEIGHT, UNKNOWN_WIDTH } from './unknown-definitions';
+import { FeedbackEdgeEnd } from '@eclipse-glsp/client/lib/features/tools/edge-creation/dangling-edge-feedback';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
 
@@ -44,10 +44,11 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
         }
 
         // identify nodes, containers, edges and rest to fix clipping
+        const feedbackEdges = model.children.filter(e => e instanceof FeedbackEdgeEnd);
         let nodes = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && !e.isContainer);
         let containers = model.children.filter(e => e instanceof CincoNode && !isUnknownNodeType(e) && e.isContainer);
         let edges = model.children.filter(e => e instanceof CincoEdge && !isUnknownEdgeType(e));
-        const markers = model.children.filter(e => e instanceof CincoMarker) as SChildElementImpl[];
+        const markers = model.children.filter(e => e instanceof CincoMarker) as GChildElement[];
 
         // identify unknowns
         let unknownNodes = model.children.filter(e => isUnknownNodeType(e));
@@ -78,7 +79,8 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
             }
             return anyUn;
         });
-        Object.assign(model.children, unknownNodes.concat(unknownEdges).concat(containers).concat(edges).concat(nodes).concat(markers));
+        Object.assign(model.children, unknownNodes.concat(unknownEdges).concat(containers).concat(edges).concat(nodes)
+            .concat(feedbackEdges).concat(markers));
 
         const edgeRouting = this.edgeRouterRegistry.routeAllChildren(model);
         const elements = context.renderChildren(model, { edgeRouting, edgeRouterRegistry: this.edgeRouterRegistry });
