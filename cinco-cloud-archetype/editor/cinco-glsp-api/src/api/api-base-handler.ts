@@ -176,11 +176,11 @@ export abstract class APIBaseHandler {
         }
     }
 
-    dialog(title: string, message: string): Promise<string> {
+    dialog(title: string, message: string, args: any = {}): Promise<string> {
         return new Promise((resolve, reject) => {
             const callback: (response: any) => void = (response: ServerDialogResponse) => resolve(response.result);
             const messageId = ServerResponseHandler.registerResponseHandling(callback);
-            const serverDialog = ServerDialogAction.create(messageId, title, message);
+            const serverDialog = ServerDialogAction.create(messageId, title, message, { args });
             try {
                 this.actionDispatcher.dispatch(serverDialog);
             } catch (e) {
@@ -216,8 +216,7 @@ export abstract class APIBaseHandler {
             kind: CreateNodeOperation.KIND,
             elementTypeId: type,
             isOperation: true,
-            containerId: typeof(container) == 'string' ? container
-                : (container?.id ?? this.modelState.index.getRoot().id),
+            containerId: typeof container == 'string' ? container : (container?.id ?? this.modelState.index.getRoot().id),
             location: location
         };
         return this.actionDispatcher.dispatch(operation);
@@ -228,8 +227,8 @@ export abstract class APIBaseHandler {
             kind: CreateEdgeOperation.KIND,
             elementTypeId: type,
             isOperation: true,
-            sourceElementId: typeof(source) === 'string' ? source: source.id,
-            targetElementId: typeof(target) === 'string' ? target : target.id
+            sourceElementId: typeof source === 'string' ? source : source.id,
+            targetElementId: typeof target === 'string' ? target : target.id
         };
         return this.actionDispatcher.dispatch(operation);
     }

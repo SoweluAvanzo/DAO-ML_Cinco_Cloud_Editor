@@ -194,7 +194,7 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
         });
     }
 
-    async showDialogInTheia(title: string, msg: string, options?: any): Promise<boolean | undefined> {
+    async showDialogInTheia(title: string, msg: string, options: any = {}): Promise<boolean | undefined> {
         const wrappedMsg = this.wrapMessage(msg);
         return new ConfirmDialog({ title, msg: wrappedMsg, ...options }).open();
     }
@@ -281,13 +281,10 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
                 if (!model) {
                     return;
                 }
-                // document.getElementById();
                 const svgElement = document.getElementById(`${this.options.clientId}_${model.id}`);
                 if (svgElement) {
-                    // Clone the element to avoid modifying the original SVG
                     const clonedSvg = svgElement.cloneNode(true) as SVGElement;
-                    clonedSvg.removeAttribute('xmlns'); // Example: remove namespaces if present
-
+                    clonedSvg.removeAttribute('xmlns');
                     const serializer = new XMLSerializer();
                     const svgString = serializer.serializeToString(clonedSvg);
                     const action = ExportSvgAction.create(svgString);

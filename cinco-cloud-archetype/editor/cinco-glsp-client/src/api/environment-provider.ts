@@ -229,13 +229,10 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
                 if (!model) {
                     return;
                 }
-                // document.getElementById();
                 const svgElement = document.getElementById(`${this.options.clientId}_${model.id}`);
                 if (svgElement) {
-                    // Clone the element to avoid modifying the original SVG
                     const clonedSvg = svgElement.cloneNode(true) as SVGElement;
-                    clonedSvg.removeAttribute('xmlns'); // Example: remove namespaces if present
-
+                    clonedSvg.removeAttribute('xmlns');
                     const serializer = new XMLSerializer();
                     const svgString = serializer.serializeToString(clonedSvg);
                     const action = ExportSvgAction.create(svgString);
