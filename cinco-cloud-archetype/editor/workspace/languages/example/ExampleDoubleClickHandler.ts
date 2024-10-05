@@ -30,8 +30,8 @@
          // logging
          const message = 'Element [' + element.type + '] was double-clicked with id: ' + element.id;
          this.log(message, { show: true });
-         this.dialog('DoubleClickEvent!', message).then(dialogResult => {
-             const buttonText = dialogResult === 'true' ? 'OK' : 'Cancel';
+         this.dialog('DoubleClickEvent!', message, { ok: 'Yes', cancel: 'No' }).then(dialogResult => {
+             const buttonText = dialogResult === 'true' ? 'Yes' : 'No';
              this.notify('You clicked: ' + buttonText);
  
              this.saveModel();

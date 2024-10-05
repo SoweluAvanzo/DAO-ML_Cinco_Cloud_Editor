@@ -31,6 +31,7 @@ import {
     hasGeneratorAction,
     hasValidator
 } from '@cinco-glsp/cinco-glsp-common';
+import { ExportSvgAction } from '@eclipse-glsp/sprotty';
 import { CommandRegistry } from '@theia/core';
 import URI from '@theia/core/lib/common/uri';
 import { OutputChannel } from '@theia/output/src/browser/output-channel';
@@ -82,13 +83,11 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
     override async postRequestModel(): Promise<void> {
         this.logger.log(this, 'Environment Provider loading - Theia');
         const sourceUri = this.currentSourceURI;
-        this.activeModel = this.graphModelProvider.getGraphModelFrom(
-            sourceUri ?? ''
-        );
+        this.activeModel = this.graphModelProvider.getGraphModelFrom(sourceUri ?? '');
 
         // register meta-specification-reload for model
         const model = this.getActiveModel();
-        if(model) {
+        if (model) {
             this.commandRegistry.executeCommand(GLSP2TheiaCommandRegistration.ID, {
                 commandId: MetaSpecificationReloadCommand.ID + '.' + model.id,
                 instanceId: model.id,
@@ -121,7 +120,7 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
             const newWidget = change.newValue;
             if (newWidget instanceof CincoGLSPDiagramWidget) {
                 const activeModelSourceUri = newWidget.modelSource.sourceUri;
-                if(activeModelSourceUri) {
+                if (activeModelSourceUri) {
                     this.activeModel = this.graphModelProvider.getGraphModelFrom(activeModelSourceUri);
                 } else {
                     this.activeModel = undefined;
@@ -189,15 +188,15 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
 
     override showDialog(action: ServerDialogAction): void {
         // this condition opens a popup dialog
-        this.showDialogInTheia(action.title, action.message).then(v => {
+        this.showDialogInTheia(action.title, action.message, action.args).then(v => {
             const response = ServerDialogResponse.create(action.messageId, '' + v);
             this.actionDispatcher.dispatch(response);
         });
     }
 
-    async showDialogInTheia(title: string, msg: string): Promise<boolean | undefined> {
+    async showDialogInTheia(title: string, msg: string, options: any = {}): Promise<boolean | undefined> {
         const wrappedMsg = this.wrapMessage(msg);
-        return new ConfirmDialog({ title, msg: wrappedMsg }).open();
+        return new ConfirmDialog({ title, msg: wrappedMsg, ...options }).open();
     }
 
     override async handleCommand(command: CommandAction): Promise<void> {
@@ -239,52 +238,75 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
                 id: '_delete'
             }
         ];
-        if(model) {
+        if (model) {
             if (hasValidator(model.type)) {
-                tools.push(
-                    {
-                        id: 'cinco.validate-tool',
-                        codicon: 'pass',
-                        title: 'Validate model',
-                        action: async (_: any) => {
-                            if(!model) {
-                                return;
-                            }
-                            const action = ValidationRequestAction.create(model.id);
-                            const validationResponse = await this.actionDispatcher.request(action);
-                            this.commandRegistry.executeCommand('CincoCloud.updateValidationModel', validationResponse.messages);
-                        },
-                        shortcut: ['AltLeft', 'KeyV']
-                    } as CincoPaletteTools
-                );
+                tools.push({
+                    id: 'cinco.validate-tool',
+                    codicon: 'pass',
+                    title: 'Validate model',
+                    action: async (_: any) => {
+                        if (!model) {
+                            return;
+                        }
+                        const action = ValidationRequestAction.create(model.id);
+                        const validationResponse = await this.actionDispatcher.request(action);
+                        this.commandRegistry.executeCommand('CincoCloud.updateValidationModel', validationResponse.messages);
+                    },
+                    shortcut: ['AltLeft', 'KeyV']
+                } as CincoPaletteTools);
             }
             if (hasGeneratorAction(model.type)) {
-                tools.push(
-                    {
-                        id: 'cinco.generate-tool',
-                        codicon: 'run-all',
-                        title: 'Generate',
-                        action: async (_: any) => {
-                            if(!model) {
-                                return;
-                            }
-                            const workspacePath: string = await this.getWorkspaceRoot();
-                            const action = GeneratorAction.create(model.id, workspacePath);
-                            this.actionDispatcher.dispatch(action);
-                        },
-                        shortcut: ['AltLeft', 'KeyG']
-                    } as CincoPaletteTools
-                );
+                tools.push({
+                    id: 'cinco.generate-tool',
+                    codicon: 'run-all',
+                    title: 'Generate',
+                    action: async (_: any) => {
+                        if (!model) {
+                            return;
+                        }
+                        const workspacePath: string = await this.getWorkspaceRoot();
+                        const action = GeneratorAction.create(model.id, workspacePath);
+                        this.actionDispatcher.dispatch(action);
+                    },
+                    shortcut: ['AltLeft', 'KeyG']
+                } as CincoPaletteTools);
             }
         }
         // right-most element
-        tools.push(
-            {
-                id: '_search'
-            }
-        );
+        tools.push({
+            id: 'cinco.export-svg',
+            codicon: 'export',
+            title: 'Export SVG',
+            action: async (_: any) => {
+                if (!model) {
+                    return;
+                }
+                const svgElement = document.getElementById(`${this.options.clientId}_${model.id}`);
+                if (svgElement) {
+                    const clonedSvg = svgElement.cloneNode(true) as SVGElement;
+                    clonedSvg.removeAttribute('xmlns');
+                    const serializer = new XMLSerializer();
+                    const svgString = serializer.serializeToString(clonedSvg);
+                    const action = ExportSvgAction.create(svgString);
+                    this.actionDispatcher
+                        .dispatch(action)
+                        .then(d => {
+                            console.log(d);
+                        })
+                        .catch(e => console.log(e));
+                } else {
+                    this.showDialogInTheia('Error', 'No model was found! Maybe it helps to close and re-open the canvas.', {
+                        ok: 'Yes',
+                        cancel: 'No'
+                    });
+                }
+            },
+            shortcut: ['AltLeft', 'KeyE']
+        } as CincoPaletteTools);
+        tools.push({
+            id: '_search'
+        });
 
         return tools;
     }
 }
-

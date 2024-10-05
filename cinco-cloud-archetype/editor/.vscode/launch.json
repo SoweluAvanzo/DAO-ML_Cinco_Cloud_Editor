@@ -418,7 +418,7 @@
       "name": "Launch Standalone Client",
       "type": "chrome",
       "request": "launch",
-      "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=msl-example.flowgraph",
+      "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=example-models/example.mm",
       "sourceMaps": true,
       "cleanUp": "wholeBrowser",
       "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
@@ -436,7 +436,7 @@
       "name": "Launch Standalone Client (PWA)",
       "type": "pwa-chrome",
       "request": "launch",
-      "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=msl-example.flowgraph",
+      "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=example-models/example.mm",
       "sourceMaps": true,
       "cleanUp": "wholeBrowser",
       "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
