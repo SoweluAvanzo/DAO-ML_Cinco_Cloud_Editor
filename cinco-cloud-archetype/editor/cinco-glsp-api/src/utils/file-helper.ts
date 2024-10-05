@@ -396,7 +396,12 @@ export async function existsFile(filePath: string): Promise<boolean> {
 }
 
 export function existsFileSync(filePath: string): boolean {
-    return fsStatsSync(filePath).isFile();
+    try{
+        return fsStatsSync(filePath).isFile();
+    } catch(e) {
+        console.log(e);
+        return false;
+    }
 }
 
 export async function existsDirectory(dirPath: string): Promise<boolean> {
@@ -405,7 +410,12 @@ export async function existsDirectory(dirPath: string): Promise<boolean> {
 }
 
 export function existsDirectorySync(dirPath: string): boolean {
-    return fsStatsSync(dirPath).isDirectory();
+    try{
+        return fsStatsSync(dirPath).isDirectory();
+    } catch(e) {
+        console.log(e);
+        return false;
+    }
 }
 
 export async function exists(fileOrDirPath: string): Promise<boolean> {
@@ -413,6 +423,7 @@ export async function exists(fileOrDirPath: string): Promise<boolean> {
         await fs.promises.access(fileOrDirPath);
         return true;
     } catch(e) {
+        console.log(e);
         return false;
     }
 }
@@ -421,13 +432,16 @@ export function existsSync(fileOrDirPath: string): boolean {
     return fs.existsSync(fileOrDirPath);
 }
 
-async function fsStats(fileOrDirPath: string): Promise<fs.Stats> {
+async function fsStats(fileOrDirPath: string): Promise<fs.Stats | undefined> {
     return new Promise<fs.Stats>(resolve => fs.lstat(fileOrDirPath, (err: NodeJS.ErrnoException | null, stats: fs.Stats) => {
         if(err) {
             console.log(err.message);
         }
         resolve(stats);
-    }));
+    })).catch(reason => {
+        console.log('Failed fsStats: ' + reason);
+        return undefined;
+    });
 }
 
 function fsStatsSync(fileOrDirPath: string): fs.Stats {
