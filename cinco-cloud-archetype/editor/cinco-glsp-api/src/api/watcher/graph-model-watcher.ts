@@ -26,17 +26,23 @@ export class GraphModelWatcher {
     static async watch(id?: string, folderToWatch: string = getWorkspaceRootUri()): Promise<void> {
         DirtyFileWatcher.unwatch(this.watchInfo);
         const fileTypes = getDiagramExtensions().map(e => '.' + e);
-        this.watchInfo = await DirtyFileWatcher.watch(
-            folderToWatch,
-            fileTypes,
-            async (dirtyFiles: { path: string; eventType: WatchEventType }[]) => {
-                for (const callback of this.graphModelChangeCallbacks.values()) {
-                    await callback(dirtyFiles);
-                }
-            },
-            1,
-            'GraphModelWatcher_' + id
-        );
+        if(fileTypes.length > 0) { // empty would mean any fileType
+            this.watchInfo = await DirtyFileWatcher.watch(
+                folderToWatch,
+                fileTypes,
+                async (dirtyFiles: { path: string; eventType: WatchEventType }[]) => {
+                    for (const callback of this.graphModelChangeCallbacks.values()) {
+                        try {
+                            await callback(dirtyFiles);
+                        } catch(e) {
+                            console.log(e);
+                        }
+                    }
+                },
+                1,
+                'GraphModelWatcher_' + id
+            );
+        }
     }
 
     static addCallback(id: string, callback: (dirtyFiles: { path: string; eventType: WatchEventType }[]) => Promise<void>): string {
