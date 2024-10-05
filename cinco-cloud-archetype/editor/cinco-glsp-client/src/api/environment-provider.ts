@@ -16,7 +16,9 @@
 
 import { inject, injectable } from 'inversify';
 import {
+    ExportSvgAction,
     IActionDispatcher,
+    IDiagramOptions,
     IDiagramStartup,
     ILogger,
     KeyCode,
@@ -95,6 +97,7 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
     @inject(GraphModelProvider)
     protected readonly graphModelProvider: GraphModelProvider;
     @inject(SelectionService) protected selectionService: SelectionService;
+    @inject(TYPES.IDiagramOptions) options: IDiagramOptions;
 
     protected selectedElementIds: string[];
     protected activeModel: CincoGraphModel | undefined;
@@ -174,59 +177,81 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
                 id: '_validate'
             },*/
         ];
-        if(model) {
+        if (model) {
             if (hasValidator(model.type)) {
-                tools.push(
-                    {
-                        id: 'cinco.validate-tool',
-                        codicon: 'pass',
-                        title: 'Validate model',
-                        action: async (_: any) => {
-                            if(!model) {
-                                return;
-                            }
-                            const action = ValidationRequestAction.create(model.id);
-                            const validationResponse = await this.actionDispatcher.request(action);
-                            let messageText = '';
-                            for (const message of validationResponse.messages) {
-                                messageText += `{
+                tools.push({
+                    id: 'cinco.validate-tool',
+                    codicon: 'pass',
+                    title: 'Validate model',
+                    action: async (_: any) => {
+                        if (!model) {
+                            return;
+                        }
+                        const action = ValidationRequestAction.create(model.id);
+                        const validationResponse = await this.actionDispatcher.request(action);
+                        let messageText = '';
+                        for (const message of validationResponse.messages) {
+                            messageText += `{
                                     Name: ${message.name},
                                     Status: ${message.status},
                                     Message: ${message.message},
                                 }\n`;
-                            }
-                            alert('Validation View not implemented: ' + messageText);
-                        },
-                        shortcut: ['AltLeft', 'KeyV']
-                    } as CincoPaletteTools
-                );
+                        }
+                        alert('Validation View not implemented: ' + messageText);
+                    },
+                    shortcut: ['AltLeft', 'KeyV']
+                } as CincoPaletteTools);
             }
             if (hasGeneratorAction(model.type)) {
-                tools.push(
-                    {
-                        id: 'cinco.generate-tool',
-                        codicon: 'run-all',
-                        title: 'Generate',
-                        action: async (_: any) => {
-                            if(!model) {
-                                return;
-                            }
-                            const workspacePath: string = await this.getWorkspaceRoot();
-                            const action = GeneratorAction.create(model.id, workspacePath);
-                            this.actionDispatcher.dispatch(action);
-                            alert('Triggered Generator. Output behaviour not yet implemented.');
-                        },
-                        shortcut: ['AltLeft', 'KeyG']
-                    } as CincoPaletteTools
-                );
+                tools.push({
+                    id: 'cinco.generate-tool',
+                    codicon: 'run-all',
+                    title: 'Generate',
+                    action: async (_: any) => {
+                        if (!model) {
+                            return;
+                        }
+                        const workspacePath: string = await this.getWorkspaceRoot();
+                        const action = GeneratorAction.create(model.id, workspacePath);
+                        this.actionDispatcher.dispatch(action);
+                        alert('Triggered Generator. Output behaviour not yet implemented.');
+                    },
+                    shortcut: ['AltLeft', 'KeyG']
+                } as CincoPaletteTools);
             }
         }
         // right-most element
-        tools.push(
-            {
-                id: '_search'
-            }
-        );
+        tools.push({
+            id: 'cinco.export-svg',
+            codicon: 'export',
+            title: 'Export SVG',
+            action: async (_: any) => {
+                if (!model) {
+                    return;
+                }
+                // document.getElementById();
+                const svgElement = document.getElementById(`${this.options.clientId}_${model.id}`);
+                if (svgElement) {
+                    // Clone the element to avoid modifying the original SVG
+                    const clonedSvg = svgElement.cloneNode(true) as SVGElement;
+                    clonedSvg.removeAttribute('xmlns'); // Example: remove namespaces if present
+
+                    const serializer = new XMLSerializer();
+                    const svgString = serializer.serializeToString(clonedSvg);
+                    const action = ExportSvgAction.create(svgString);
+                    this.actionDispatcher
+                        .dispatch(action)
+                        .then(d => {
+                            console.log(d);
+                        })
+                        .catch(e => console.log(e));
+                }
+            },
+            shortcut: ['AltLeft', 'KeyE']
+        } as CincoPaletteTools);
+        tools.push({
+            id: '_search'
+        });
         return tools;
     }
 
