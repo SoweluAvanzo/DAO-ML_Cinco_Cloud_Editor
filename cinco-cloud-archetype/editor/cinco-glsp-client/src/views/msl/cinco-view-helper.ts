@@ -205,6 +205,7 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
     const fillColor = filled ? (foreground ?? background) : background;
     if (!options?.isEdge) {
         /*
+         * // TODO: SAMI - this should be revisited
          * edges are discrimnated, because 'fill' breaks the
          * selection mechanism for edges of the GLSP. If 'fill' is set,
          * edges can cover other edges. Those edges can subsequently not be selected.
