@@ -1559,7 +1559,7 @@ export function getEdgeSources(elementTypeId: string): NodeType[] {
 }
 
 export function getEdgeTargets(elementTypeId: string): NodeType[] {
-    return MetaSpecification.getCachedEdgeSources(elementTypeId);
+    return MetaSpecification.getCachedEdgeTargets(elementTypeId);
 }
 
 /**
