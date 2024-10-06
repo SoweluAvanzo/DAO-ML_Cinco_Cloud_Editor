@@ -24,7 +24,7 @@ import {
     LineStyle,
     NodeStyle,
     Rectangle,
-    RequestAppearanceUpdateAction
+    AppearanceUpdateRequestAction
 } from '@cinco-glsp/cinco-glsp-common';
 
 const EXAMPLE_APPEARANCE: Appearance = {
@@ -65,19 +65,27 @@ export class HooksAndActionsAppearanceProvider extends AppearanceProvider {
     override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
 
     getAppearance(
-        action: RequestAppearanceUpdateAction,
+        action: AppearanceUpdateRequestAction,
         ...args: unknown[]
     ): ApplyAppearanceUpdateAction[] | Promise<ApplyAppearanceUpdateAction[]> {
         // parse action
         const modelElementId: string = action.modelElementId;
         const element = this.getElement(modelElementId);
-        if (element === undefined) {
+
+        if (!element) {
             return [];
         }
+        const toggle: boolean = element.getProperty('toggleAppearanceProvider');
 
+        if(!toggle) {
+            return [];
+        }
+        
         /**
          * calculate new appearance
          */
+
+        if(element)
 
         if (!element.style || !(element.style as NodeStyle).shape || !((element.style as NodeStyle).shape as Rectangle).appearance) {
             element.style = EXAMPLE_STYLE;
@@ -95,7 +103,7 @@ export class HooksAndActionsAppearanceProvider extends AppearanceProvider {
         const appearanceUpdate = ApplyAppearanceUpdateAction.create(modelElementId, [], { ...appearance });
         // logging
         const message = 'Element [' + element.type + ', ' + modelElementId + '] is changing appearance.';
-        this.log(message, { show: true });
+        this.log(message, { show: false });
 
         // save and update gui
         this.saveModel();

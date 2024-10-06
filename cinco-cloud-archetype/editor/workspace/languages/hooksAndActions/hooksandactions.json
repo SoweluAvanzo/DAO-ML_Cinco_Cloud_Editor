@@ -87,6 +87,12 @@
           "type": "string",
           "defaultValue": "Test",
           "final": false
+        },
+        {
+          "name": "toggleAppearanceProvider",
+          "type": "boolean",
+          "defaultValue": "false",
+          "final": false
         }
       ],
       "annotations": [
@@ -261,7 +267,6 @@
     {
       "name": "hooksandactions:blueTextRectangle",
       "styleType": "NodeStyle",
-      "appearanceProvider": "ExampleAppearanceProvider",
       "parameterCount": 1,
       "shape": {
         "type": "ROUNDEDRECTANGLE",
