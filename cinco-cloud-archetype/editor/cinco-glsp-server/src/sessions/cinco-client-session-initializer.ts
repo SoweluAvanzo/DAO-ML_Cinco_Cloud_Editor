@@ -34,10 +34,17 @@ import {
     HookType,
     getFileExtension,
     getGraphModelOfFileType,
-    DeleteArgument
+    DeleteArgument,
+    ValidationRequestAction,
+    AppearanceUpdateRequestAction,
+    ValueUpdateRequestAction,
+    hasValidation,
+    hasAppearanceProvider,
+    hasValueProvider
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     existsFile,
+    GraphModelIndex,
     GraphModelState,
     GraphModelStorage,
     GraphModelWatcher,
@@ -79,7 +86,9 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
                         this.actionDispatcher.dispatch(response);
                         CincoClientSessionInitializer.sendToAllOtherClients(
-                            response, this.serverContainer.id, CincoClientSessionInitializer.clientSessionsActionDispatcher
+                            response,
+                            this.serverContainer.id,
+                            CincoClientSessionInitializer.clientSessionsActionDispatcher
                         );
                     }, 'metaspecWatcher_' + clientId);
                     CincoClientSessionListener.addDisposeCallback(clientId, () => {
@@ -100,8 +109,8 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         GraphModelWatcher.removeCallback(clientId);
         GraphModelWatcher.addCallback(clientId, async dirtyFiles => {
             for (const dirtyFile of dirtyFiles) {
-                const wasMovedOrDeleted = dirtyFile.eventType === 'rename' && !await existsFile(dirtyFile.path);
-                const wasMovedRenamedOrCreated = dirtyFile.eventType === 'rename' && await existsFile(dirtyFile.path);
+                const wasMovedOrDeleted = dirtyFile.eventType === 'rename' && !(await existsFile(dirtyFile.path));
+                const wasMovedRenamedOrCreated = dirtyFile.eventType === 'rename' && (await existsFile(dirtyFile.path));
                 const wasChanged = dirtyFile.eventType === 'change';
                 if (wasMovedOrDeleted) {
                     // trigger delete Hook
@@ -122,7 +131,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         this.submissionHandler
                     );
                 } else {
-                    const model = await readJson(dirtyFile.path, { hideError: true }) as any | undefined;
+                    const model = (await readJson(dirtyFile.path, { hideError: true })) as any | undefined;
                     if (!model || !model.id) {
                         // Modelfile could not be read from path. It is either just intiialized (empty file) or moved.
                         return;
@@ -163,22 +172,70 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                             this.submissionHandler
                         );
                     }
-
-                    // update palettes as PrimeReferences could have
-                    const paletteResponse = RequestContextActions.create({
-                        contextId: 'tool-palette',
-                        editorContext: {
-                            selectedElementIds: []
-                        }
-                    });
-                    this.actionDispatcher.dispatch(paletteResponse);
-                    CincoClientSessionInitializer.sendToAllOtherClients(
-                        paletteResponse, this.serverContainer.id, CincoClientSessionInitializer.clientSessionsActionDispatcher
-                    );
+                    if (modelState.graphModel.id === model.id && modelState instanceof GraphModelState) {
+                        this.onGraphModelChange(modelState);
+                    }
                 }
             }
         });
         GraphModelWatcher.watch(clientId);
+    }
+
+    onGraphModelChange(modelState: GraphModelState): void {
+        const index: GraphModelIndex = modelState.index as GraphModelIndex;
+
+        /**
+         * PUT ALL ON CHANGE EVENTS HERE
+         */
+        const requests: Action[] = [];
+
+        // update palettes as PrimeReferences could have
+        const paletteResponse = RequestContextActions.create({
+            contextId: 'tool-palette',
+            editorContext: {
+                selectedElementIds: []
+            }
+        });
+        requests.push(paletteResponse);
+
+        /**
+         * Per ModelElement
+         */
+        const allModelElements = index.getAllModelElements();
+
+        // Validation Request
+        for (const modelElement of allModelElements) {
+            if (hasValidation(modelElement.type)) {
+                const validationRequest = ValidationRequestAction.create(modelElement.id);
+                requests.push(validationRequest);
+            }
+        }
+
+        // Appearance Provider Request
+        for (const modelElement of allModelElements) {
+            if (hasAppearanceProvider(modelElement.type)) {
+                const appearanceRequest = AppearanceUpdateRequestAction.create(modelElement.id);
+                requests.push(appearanceRequest);
+            }
+        }
+
+        // Value Provider
+        for (const modelElement of allModelElements) {
+            if (hasValueProvider(modelElement.type)) {
+                const valueRequest = ValueUpdateRequestAction.create(modelElement.id);
+                requests.push(valueRequest);
+            }
+        }
+
+        // propagate actions
+        for (const request of requests) {
+            this.actionDispatcher.dispatch(request);
+            CincoClientSessionInitializer.sendToAllOtherClients(
+                request,
+                this.serverContainer.id,
+                CincoClientSessionInitializer.clientSessionsActionDispatcher
+            );
+        }
     }
 
     static addClient(id: number, actionDispatcher: ActionDispatcher): void {
@@ -190,7 +247,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
     }
 
     static sendToAllOtherClients(message: Action, serverContainerId: number, actionDispatcherMap: Map<number, ActionDispatcher>): void {
-        if(actionDispatcherMap) {
+        if (actionDispatcherMap) {
             for (const entry of actionDispatcherMap.entries()) {
                 if (entry[0] !== serverContainerId) {
                     entry[1].dispatch(message).catch(e => {

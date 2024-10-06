@@ -29,7 +29,7 @@ import {
     ServerOutputAction,
     ValidationRequestAction,
     hasGeneratorAction,
-    hasValidator
+    hasValidation
 } from '@cinco-glsp/cinco-glsp-common';
 import { ExportSvgAction } from '@eclipse-glsp/sprotty';
 import { CommandRegistry } from '@theia/core';
@@ -239,7 +239,7 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
             }
         ];
         if (model) {
-            if (hasValidator(model.type)) {
+            if (hasValidation(model.type)) {
                 tools.push({
                     id: 'cinco.validate-tool',
                     codicon: 'pass',

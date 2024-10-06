@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,8 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { AppearanceProvider, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import { AppearanceUpdateRequestAction, getAppearanceProvider, hasAppearanceProvider } from '@cinco-glsp/cinco-glsp-common';
+import { ValueProvider, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { ValueUpdateRequestAction, getValueProvider, hasValueProvider } from '@cinco-glsp/cinco-glsp-common';
 import { Action } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { BaseHandlerManager } from './base-handler-manager';
@@ -24,33 +24,42 @@ import { BaseHandlerManager } from './base-handler-manager';
  */
 
 @injectable()
-export class AppearanceProviderManager extends BaseHandlerManager<AppearanceUpdateRequestAction, AppearanceProvider> {
-    baseHandlerName = 'AppearanceProvider';
-    actionKinds: string[] = [AppearanceUpdateRequestAction.KIND];
+export class ValueProviderManager extends BaseHandlerManager<ValueUpdateRequestAction, ValueProvider> {
+    baseHandlerName = 'ValueProvider';
+    actionKinds: string[] = [ValueUpdateRequestAction.KIND];
 
     hasHandlerProperty(element: ModelElement): boolean {
-        return hasAppearanceProvider(element.type);
+        return hasValueProvider(element.type);
     }
 
     isApplicableHandler(element: ModelElement, handlerClassName: string): boolean {
-        return getAppearanceProvider(element.type).includes(handlerClassName);
+        return getValueProvider(element.type).includes(handlerClassName);
     }
 
     handlerCanBeExecuted(
-        handler: AppearanceProvider,
+        handler: ValueProvider,
         element: ModelElement,
-        action: AppearanceUpdateRequestAction,
+        action: ValueUpdateRequestAction,
         args: any
     ): boolean | Promise<boolean> {
         return true;
     }
 
     executeHandler(
-        handler: AppearanceProvider,
+        handler: ValueProvider,
         element: ModelElement,
-        action: AppearanceUpdateRequestAction,
+        action: ValueUpdateRequestAction,
         args: any
     ): Action[] | Promise<Action[]> {
-        return handler.getAppearance(action, args) as Action[] | Promise<Action[]>;
+        const result = handler.updateValue(action, args) as Action[] | Promise<Action[]>;
+        if (result instanceof Promise) {
+            return result.then(actions => {
+                handler.saveModel();
+                return actions;
+            });
+        } else {
+            handler.saveModel();
+            return result;
+        }
     }
 }

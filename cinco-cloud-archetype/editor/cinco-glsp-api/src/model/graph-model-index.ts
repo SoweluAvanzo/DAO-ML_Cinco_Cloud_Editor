@@ -46,25 +46,34 @@ export class GraphModelIndex extends GModelIndex {
         });
     }
 
+    getAllModelElements(): ModelElement[] {
+        let modelElements: ModelElement[] = [this.getRoot()];
+        modelElements = modelElements.concat(Array.from(this.nodesIndex.values())).concat(Array.from(this.edgesIndex.values()));
+        return modelElements;
+    }
+
+    getAllModelElementIds(): string[] {
+        let ids: string[] = [this.getRoot().id];
+        ids = ids.concat(Array.from(this.nodesIndex.keys())).concat(Array.from(this.edgesIndex.keys()));
+        return ids;
+    }
+
     getModelElements(elementTypeId: string): ModelElement[] {
-        const allEdges = Array.from(this.edgesIndex.values());
-        const allNodes = Array.from(this.nodesIndex.values());
-        const allElements = [this.graphmodel as ModelElement].concat(allEdges).concat(allNodes);
-        return allElements.filter(e => e.type === elementTypeId);
+        return this.getAllModelElements().filter(e => e.type === elementTypeId);
     }
 
     findModelElement(id: string | undefined): ModelElement | undefined {
         if (id === undefined) {
             return undefined;
         }
-        return this.getRoot().id === id ? this.getRoot() : this.findNode(id) ?? this.findEdge(id) ?? undefined;
+        return this.getRoot().id === id ? this.getRoot() : (this.findNode(id) ?? this.findEdge(id) ?? undefined);
     }
 
     findElement(id: string | undefined): IdentifiableElement | undefined {
         if (id === undefined) {
             return undefined;
         }
-        return this.getRoot().id === id ? this.getRoot() : this.findNode(id) ?? this.findEdge(id) ?? undefined;
+        return this.getRoot().id === id ? this.getRoot() : (this.findNode(id) ?? this.findEdge(id) ?? undefined);
     }
 
     findEdge(id: string): Edge | undefined {

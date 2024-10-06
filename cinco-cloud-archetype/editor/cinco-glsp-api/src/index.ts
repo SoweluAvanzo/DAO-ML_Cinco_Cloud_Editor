@@ -18,6 +18,7 @@ import 'reflect-metadata';
 // export api
 export * from './api/api-base-handler';
 export * from './api/appearance-provider';
+export * from './api/value-provider';
 export * from './api/custom-action-handler';
 export * from './api/direction';
 export * from './api/double-click-handler';

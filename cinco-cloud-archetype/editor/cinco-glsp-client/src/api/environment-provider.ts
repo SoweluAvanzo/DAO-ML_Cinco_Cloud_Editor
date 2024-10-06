@@ -36,7 +36,7 @@ import {
     CommandAction,
     ValidationRequestAction,
     hasGeneratorAction,
-    hasValidator,
+    hasValidation,
     CINCO_STARTUP_RANK
 } from '@cinco-glsp/cinco-glsp-common';
 import { ServerArgsProvider } from '../meta/server-args-response-handler';
@@ -178,7 +178,7 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
             },*/
         ];
         if (model) {
-            if (hasValidator(model.type)) {
+            if (hasValidation(model.type)) {
                 tools.push({
                     id: 'cinco.validate-tool',
                     codicon: 'pass',

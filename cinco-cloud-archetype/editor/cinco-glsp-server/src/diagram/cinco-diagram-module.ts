@@ -64,6 +64,7 @@ import { SelectManager } from '../tools/select-manager';
 import { DoubleClickHookHandler } from '../handler/double-click-hook-handler';
 import { SelectHookHandler } from '../handler/select-hook-handler';
 import { ChoiceSelectionEdgeSourceHandler, ChoiceSelectionEdgeTargetHandler } from '../handler/choice-selection-handlers';
+import { ValueProviderManager } from '../tools/value-provider-manager';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -99,9 +100,10 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(DoubleClickHookHandler); // @Hook(canDoubleClick, postDoubleClick)
         binding.add(SelectManager); // @SelectAction
         binding.add(SelectHookHandler); // @Hook(canSelect, postSelect)
-        binding.add(AppearanceProviderManager);
+        binding.add(AppearanceProviderManager); // @AppearanceProvier
+        binding.add(ValueProviderManager); // @ValueProvider
+        binding.add(ValidationManager); // @Validation
         binding.add(PropertyViewHandler);
-        binding.add(ValidationManager);
         binding.add(GeneratorManager);
         binding.add(MetaSpecificationReloadHandler);
         binding.add(MetaSpecificationRequestHandler);

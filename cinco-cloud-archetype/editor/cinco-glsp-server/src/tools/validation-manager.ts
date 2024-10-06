@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { ModelElement, ValidationHandler } from '@cinco-glsp/cinco-glsp-api';
-import { ValidationRequestAction, getValidators, hasValidator } from '@cinco-glsp/cinco-glsp-common';
+import { ValidationRequestAction, getValidators, hasValidation } from '@cinco-glsp/cinco-glsp-common';
 import { Action } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { BaseHandlerManager } from './base-handler-manager';
@@ -29,7 +29,7 @@ export class ValidationManager extends BaseHandlerManager<ValidationRequestActio
     actionKinds: string[] = [ValidationRequestAction.KIND];
 
     hasHandlerProperty(element: ModelElement): boolean {
-        return hasValidator(element.type);
+        return hasValidation(element.type);
     }
 
     isApplicableHandler(element: ModelElement, handlerClassName: string): boolean {

@@ -17,20 +17,20 @@ import { Appearance } from '../meta-specification';
 import { Action } from './shared-protocol';
 import { hasArrayProp, hasObjectProp, hasStringProp } from './type-utils';
 
-export interface RequestAppearanceUpdateAction extends Action {
-    kind: typeof RequestAppearanceUpdateAction.KIND;
+export interface AppearanceUpdateRequestAction extends Action {
+    kind: typeof AppearanceUpdateRequestAction.KIND;
     modelElementId: string; // associated id of the model-element
     args?: any; // e.g. a specific css-class
 }
 
-export namespace RequestAppearanceUpdateAction {
-    export const KIND = 'requestAppearanceUpdate';
+export namespace AppearanceUpdateRequestAction {
+    export const KIND = 'appearanceUpdateRequest';
 
-    export function is(object: any): object is RequestAppearanceUpdateAction {
+    export function is(object: any): object is AppearanceUpdateRequestAction {
         return Action.hasKind(object, KIND) && hasStringProp(object, 'modelElementId');
     }
 
-    export function create(modelElementId: string, options?: { args: any }): RequestAppearanceUpdateAction {
+    export function create(modelElementId: string, options?: { args: any }): AppearanceUpdateRequestAction {
         return {
             kind: KIND,
             modelElementId,
