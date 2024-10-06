@@ -13,32 +13,31 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
- import { SelectHandler, LanguageFilesRegistry, ModelElement, Node } from '@cinco-glsp/cinco-glsp-api';
- import { Action, SelectAction, RequestAppearanceUpdateAction } from '@cinco-glsp/cinco-glsp-common';
- 
- /**
-  * Language Designer defined example of a SelectHandler
-  */
- export class HooksAndActionsSelectHandler extends SelectHandler {
-     override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
- 
-     override execute(action: SelectAction, ...args: unknown[]): Promise<Action[]> | Action[] {
+import { SelectHandler, LanguageFilesRegistry, ModelElement, Node } from '@cinco-glsp/cinco-glsp-api';
+import { Action, SelectAction } from '@cinco-glsp/cinco-glsp-common';
+
+/**
+ * Language Designer defined example of a SelectHandler
+ */
+export class HooksAndActionsSelectHandler extends SelectHandler {
+    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
+
+    override execute(action: SelectAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // parse action
         const modelElementId: string = action.modelElementId;
         const element = this.modelState.index.findElement(modelElementId)! as ModelElement;
         const isSelected = action.selectedElementsIDs.includes(modelElementId);
 
         // logging
-        const message = 'Element [' + element.type + '] was '+ (isSelected ? '' : 'un') +'selected with id: ' + element.id;
+        const message = 'Element [' + element.type + '] was ' + (isSelected ? '' : 'un') + 'selected with id: ' + element.id;
         this.log(message, { show: false });
- 
+
         return [];
-     }
- 
-     override canExecute(action: SelectAction, ...args: unknown[]): Promise<boolean> | boolean {
-         return true;
-     }
- }
- // register into app
- LanguageFilesRegistry.register(HooksAndActionsSelectHandler);
- 
+    }
+
+    override canExecute(action: SelectAction, ...args: unknown[]): Promise<boolean> | boolean {
+        return true;
+    }
+}
+// register into app
+LanguageFilesRegistry.register(HooksAndActionsSelectHandler);
