@@ -16,6 +16,7 @@
 import { GraphGModelFactory, GraphModelIndex, GraphModelState, GraphModelStorage, ServerResponseHandler } from '@cinco-glsp/cinco-glsp-api';
 import { DIAGRAM_TYPE } from '@cinco-glsp/cinco-glsp-common';
 import {
+    ActionDispatcher,
     ActionHandlerConstructor,
     BindingTarget,
     ClientSessionInitializer,
@@ -65,6 +66,7 @@ import { DoubleClickHookHandler } from '../handler/double-click-hook-handler';
 import { SelectHookHandler } from '../handler/select-hook-handler';
 import { ChoiceSelectionEdgeSourceHandler, ChoiceSelectionEdgeTargetHandler } from '../handler/choice-selection-handlers';
 import { ValueProviderManager } from '../tools/value-provider-manager';
+import { CincoActionDispatcher } from '@cinco-glsp/cinco-glsp-api/lib/api/cinco-action-dispatcher';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -145,5 +147,9 @@ export class CincoDiagramModule extends DiagramModule {
 
     protected override bindOperationHandlerRegistry(): BindingTarget<OperationHandlerRegistry> {
         return CincoOperationHandlerRegistry;
+    }
+
+    protected override bindActionDispatcher(): BindingTarget<ActionDispatcher> {
+        return CincoActionDispatcher;
     }
 }
