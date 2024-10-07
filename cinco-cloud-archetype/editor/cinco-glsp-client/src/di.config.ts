@@ -68,10 +68,20 @@ import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibi
 import { EnvironmentProvider } from './api/environment-provider';
 import { CincoToolPaletteUpdateHandler } from './glsp/cinco-tool-palette-update-handler';
 import { MarkerEdgeSourceTargetConflictView } from './views/marker-edge-source-target-conflict-view';
-import { CincoEdgeButtonSourceChoice, CincoEdgeButtonTargetChoice, CincoMarker } from './model/model';
+import {
+    CincoButtonDelete,
+    CincoButtonRestore,
+    CincoEdgeButtonSourceChoice,
+    CincoEdgeButtonTargetChoice,
+    CincoMarker
+} from './model/model';
 import { ButtonSelectChoiceView } from './views/button-select-choice';
 import { ChoiceSelectionTool } from './features/tool/choice-selection-tool';
 import { CincoEnableDefaultToolsOnFocusLossHandler } from './glsp/cinco-focus-fix-handler';
+import { MarkerGhostView } from './views/marker-ghost';
+import { ButtonDeleteView } from './views/button-delete';
+import { ButtonRestoreView } from './views/button-restore';
+import { GhostDecisionTool } from './features/tool/ghost-decision-tool';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -154,8 +164,9 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     bind(TYPES.IDefaultTool).to(PropertyViewTool).inSingletonScope();
     configureActionHandler(context, PropertyViewResponseAction.KIND, PropertyViewResponseActionHandler);
 
-    // bind the ChoiceSelectionTool
+    // bind the lazy merging tools
     bind(TYPES.IDefaultTool).to(ChoiceSelectionTool).inSingletonScope();
+    bind(TYPES.IDefaultTool).to(GhostDecisionTool).inSingletonScope();
 
     // GLSPToolManager
     rebind(TYPES.IToolManager).to(CincoToolManager).inSingletonScope();
@@ -170,8 +181,11 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
 
     configureDefaultModelElements(context);
     configureModelElement(context, 'marker:edge-source-target-conflict', CincoMarker, MarkerEdgeSourceTargetConflictView);
+    configureModelElement(context, 'marker:ghost', CincoMarker, MarkerGhostView);
     configureModelElement(context, 'button:edge-source-choice', CincoEdgeButtonSourceChoice, ButtonSelectChoiceView);
     configureModelElement(context, 'button:edge-target-choice', CincoEdgeButtonTargetChoice, ButtonSelectChoiceView);
+    configureModelElement(context, 'button:delete', CincoButtonDelete, ButtonDeleteView);
+    configureModelElement(context, 'button:restore', CincoButtonRestore, ButtonRestoreView);
 
     bind(TYPES.IDiagramStartup).toService(EnvironmentProvider);
 });

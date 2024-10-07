@@ -16,40 +16,19 @@
 
 import { Operation } from './shared-protocol';
 
-export interface ChoiceSelectionEdgeSourceOperation extends Operation {
-    kind: typeof ChoiceSelectionEdgeSourceOperation.KIND;
-    edgeId: string;
-    sourceId: string;
+export interface RestoreModelElementOperation extends Operation {
+    kind: typeof RestoreModelElementOperation.KIND;
+    modelElementId: string;
 }
 
-export namespace ChoiceSelectionEdgeSourceOperation {
-    export const KIND = 'choiceSelectionEdgeSourceOperation';
+export namespace RestoreModelElementOperation {
+    export const KIND = 'restoreModelElementOperation';
 
-    export function create(edgeId: string, sourceId: string): ChoiceSelectionEdgeSourceOperation {
+    export function create(modelElementId: string): RestoreModelElementOperation {
         return {
             kind: KIND,
             isOperation: true,
-            edgeId,
-            sourceId
-        };
-    }
-}
-
-export interface ChoiceSelectionEdgeTargetOperation extends Operation {
-    kind: typeof ChoiceSelectionEdgeTargetOperation.KIND;
-    edgeId: string;
-    targetId: string;
-}
-
-export namespace ChoiceSelectionEdgeTargetOperation {
-    export const KIND = 'choiceSelectionEdgeTargetOperation';
-
-    export function create(edgeId: string, targetId: string): ChoiceSelectionEdgeTargetOperation {
-        return {
-            kind: KIND,
-            isOperation: true,
-            edgeId,
-            targetId
+            modelElementId
         };
     }
 }

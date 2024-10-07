@@ -15,7 +15,8 @@
  ********************************************************************************/
 
 import 'core-js/actual/set';
-import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap } from './json-utilities';
+import * as crypto from 'crypto';
+import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap, deterministicStringify } from './json-utilities';
 import { cellValues, Choice, Optional, isGhost, optionalValue } from '@cinco-glsp/cinco-glsp-common';
 
 type Versions<T = any> = Readonly<{
@@ -183,25 +184,17 @@ export function objectMerger(mergers: (key: string) => Merger): Merger {
 }
 
 export function eagerMerger(): Merger {
-    return ({ ancestor, versionA, versionB }) => {
-        if (jsonEqual(versionA, versionB)) {
-            return mergeOk(versionA);
-        } else if (jsonEqual(versionB, ancestor)) {
-            return mergeOk(versionA);
-        } else if (jsonEqual(versionA, ancestor)) {
-            return mergeOk(versionB);
-        } else {
-            const conflict: EagerMergeConflict = {
-                tag: 'eager-merge-conflict',
-                versions: { ancestor, versionA, versionB }
-            };
-            return {
-                value: conflict,
-                newEagerConflicts: true,
-                newLazyConflicts: false
-            };
-        }
-    };
+    return equalityMerger(({ ancestor, versionA, versionB }) => {
+        const conflict: EagerMergeConflict = {
+            tag: 'eager-merge-conflict',
+            versions: { ancestor, versionA, versionB }
+        };
+        return {
+            value: conflict,
+            newEagerConflicts: true,
+            newLazyConflicts: false
+        };
+    });
 }
 
 export function cellMerger(): Merger {
@@ -222,4 +215,36 @@ export function cellMerger(): Merger {
 
 export function recursiveMerger(mergerConstructor: () => Merger): Merger {
     return versions => mergerConstructor()(versions);
+}
+
+export function arbitraryMerger<T>(): Merger<T> {
+    return equalityMerger(({ versionA, versionB }) => ({
+        value:
+            Buffer.compare(
+                crypto.createHash('sha512').update(deterministicStringify(versionA)).digest(),
+                crypto.createHash('sha512').update(deterministicStringify(versionB)).digest()
+            ) <= 0
+                ? versionA
+                : versionB,
+        newEagerConflicts: false,
+        newLazyConflicts: false
+    }));
+}
+
+export function defaultMerger<T>(defaultValue: T): Merger<T> {
+    return equalityMerger(() => ({ value: defaultValue, newEagerConflicts: false, newLazyConflicts: false }));
+}
+
+export function equalityMerger<T>(conflictMerger: Merger<T>): Merger<T> {
+    return ({ ancestor, versionA, versionB }) => {
+        if (jsonEqual(versionA, versionB)) {
+            return mergeOk(versionA);
+        } else if (jsonEqual(versionB, ancestor)) {
+            return mergeOk(versionA);
+        } else if (jsonEqual(versionA, ancestor)) {
+            return mergeOk(versionB);
+        } else {
+            return conflictMerger({ ancestor, versionA, versionB });
+        }
+    };
 }

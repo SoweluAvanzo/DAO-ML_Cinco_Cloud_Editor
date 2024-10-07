@@ -16,20 +16,31 @@
 
 import { JsonAny } from '@eclipse-glsp/server';
 
-export type Optional<T> = undefined | T | Ghost<T>;
+export type Optional<T> = undefined | Deletable<T>;
+
+export type Deletable<T> = T | Ghost<T>;
 
 export type Ghost<T> = Readonly<{
     tag: 'ghost';
     value: T;
 }>;
 
+export function isGhost<T>(deletable: Deletable<T>): deletable is Ghost<T>;
 export function isGhost<T>(optional: Optional<T>): optional is Ghost<T> {
     // eslint-disable-next-line no-null/no-null
     return typeof optional === 'object' && optional !== null && 'tag' in optional && optional.tag === 'ghost';
 }
 
+export function deletableValue<T>(deletable: Deletable<T>): T {
+    return isGhost(deletable) ? deletable.value : deletable;
+}
+
 export function optionalValue<T>(optional: Optional<T>): T | undefined {
     return isGhost(optional) ? optional.value : optional;
+}
+
+export function mapDeletable<A, B>(deletable: Deletable<A>, f: (a: A) => B): Deletable<B> {
+    return isGhost(deletable) ? { tag: 'ghost', value: f(deletable.value) } : f(deletable);
 }
 
 export type Cell<T> = T | Choice<T>;
@@ -69,6 +80,11 @@ export function mapCell<A, B>(cell: Cell<A>, f: (a: A) => B): Cell<B> {
         single: value => f(value),
         choice: options => ({ tag: 'choice', options: options.map(f) })
     });
+}
+
+export function filterOptions<T>(cell: Cell<T>, f: (x: T) => boolean): Cell<T> {
+    const filtered = cellValues(cell).filter(f);
+    return filtered.length === 1 ? filtered[0] : { tag: 'choice', options: filtered };
 }
 
 export function isConflictFree(value: JsonAny | undefined): boolean {

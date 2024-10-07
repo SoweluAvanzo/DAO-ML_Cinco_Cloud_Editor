@@ -83,7 +83,7 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
         let node;
         if (ModelElementContainer.is(specification)) {
             node = new Container();
-            node._containments = [];
+            node.containments = [];
         } else {
             node = new Node();
         }

@@ -13,7 +13,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { EdgeType, NodeType, getFileExtension, getGraphModelOfFileType, getSpecOf, isContainer } from '@cinco-glsp/cinco-glsp-common';
+import {
+    Deletable,
+    EdgeType,
+    NodeType,
+    getFileExtension,
+    getGraphModelOfFileType,
+    getSpecOf,
+    isContainer,
+    mapDeletable
+} from '@cinco-glsp/cinco-glsp-common';
 import { DefaultModelState, JsonModelState } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, ModelElement, ModelElementContainer, Node } from './graph-model';
@@ -51,22 +60,23 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
         return target;
     }
 
-    static resolveEdges(graphmodel: GraphModel, index: GraphModelIndex | undefined): Edge[] {
-        return graphmodel._edges.map(el => this.cleanModelElementInstance(el, index) as Edge);
+    static resolveEdges(graphmodel: GraphModel, index: GraphModelIndex | undefined): Deletable<Edge>[] {
+        return graphmodel.edges.map(containment =>
+            mapDeletable(containment, element => this.cleanModelElementInstance(element, index) as Edge)
+        );
     }
 
-    static resolveContainments(el: ModelElementContainer, index: GraphModelIndex | undefined): Node[] {
-        let containments = el._containments;
+    static resolveContainments(el: ModelElementContainer, index: GraphModelIndex | undefined): Deletable<Node>[] {
+        const containments = el.containments;
         if (containments === undefined) {
             return [];
         }
-        containments = containments
-            .map(containment => this.cleanModelElementInstance(containment, index) as Node)
-            .filter((node): node is Node => !!node);
-        return containments;
+        return containments.map(containment =>
+            mapDeletable(containment, element => this.cleanModelElementInstance(element, index) as Node)
+        );
     }
 
-    static cleanModelElementInstance(el: ModelElement, index: GraphModelIndex | undefined): ModelElement | undefined {
+    static cleanModelElementInstance(el: ModelElement, index: GraphModelIndex | undefined): ModelElement {
         let element: ModelElement | undefined;
         const spec = getSpecOf(el.type);
         if (NodeType.is(spec)) {
@@ -82,7 +92,7 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
         }
         element = this.copyModelElementProperties(el, index, element);
         if (ModelElementContainer.is(element)) {
-            element._containments = this.resolveContainments(element, index);
+            element.containments = this.resolveContainments(element, index);
         }
         return element;
     }

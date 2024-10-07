@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { EdgeType, NodeType, Point, Size, isChoice, getSpecOf } from '@cinco-glsp/cinco-glsp-common';
+import { EdgeType, NodeType, Point, Size, isChoice, getSpecOf, deletableValue, Deletable, isGhost } from '@cinco-glsp/cinco-glsp-common';
 import { GEdge, GGraph, GLabel, GModelElement, GModelFactory, GNode, GNodeBuilder } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
@@ -34,23 +34,25 @@ export class GraphGModelFactory implements GModelFactory {
 
     protected collectChildren(container: GraphModel | Container): GModelElement[] {
         const children: GModelElement[] = [];
-        container._containments.forEach(n => {
-            if (Container.is(n)) {
-                const containerChildren = this.collectChildren(n as Container);
-                const containerNode = this.createNode(n);
-                containerNode.children = containerChildren;
+        container.containments.forEach(containment => {
+            const element = deletableValue(containment);
+            if (Container.is(element)) {
+                const containerChildren = this.collectChildren(element as Container);
+                const containerNode = this.createNode(containment);
+                containerNode.children = containerNode.children.concat(containerChildren);
                 children.push(containerNode);
-            } else if (Node.is(n)) {
-                children.push(this.createNode(n));
+            } else if (Node.is(element)) {
+                children.push(this.createNode(containment));
             }
         });
         if (container instanceof GraphModel) {
-            container._edges.forEach(e => children.push(...this.createEdge(e)));
+            container.edges.forEach(e => children.push(...this.createEdge(e)));
         }
         return children;
     }
 
-    protected createNode<T extends Node>(node: T, add?: (preBuild: GNodeBuilder, t: T) => GNodeBuilder): GNode {
+    protected createNode<T extends Node>(containment: Deletable<T>, add?: (preBuild: GNodeBuilder, t: T) => GNodeBuilder): GNode {
+        const node = deletableValue(containment);
         const spec = getSpecOf(node.type) as NodeType | undefined;
 
         // css
@@ -83,11 +85,52 @@ export class GraphGModelFactory implements GModelFactory {
         // add view- and property-information
         builder.addArg('persistedView', JSON.stringify(node.view));
         builder.addArg('properties', JSON.stringify(node.properties));
+        if (isGhost(containment)) {
+            builder.addChildren(this.createGhostNodes(node.id, -40));
+        }
         return builder.build();
     }
 
-    protected createEdge<T extends Edge>(edge: T): GModelElement[] {
-        if (isChoice(edge.sourceID) || isChoice(edge.targetID)) {
+    protected createGhostNodes(modelElementID: string, verticalOffset: number): GNode[] {
+        return [
+            this.createGhostMarker(modelElementID, verticalOffset),
+            this.createDeleteButton(modelElementID, verticalOffset),
+            this.createRestoreButton(modelElementID, verticalOffset)
+        ];
+    }
+
+    protected createGhostMarker(modelElementID: string, verticalOffset: number): GNode {
+        return GNode.builder()
+            .type('marker:ghost')
+            .id(this.markerGhostID(modelElementID))
+            .position({ x: 0, y: verticalOffset })
+            .size(40, 20)
+            .build();
+    }
+
+    protected createDeleteButton(modelElementID: string, verticalOffset: number): GNode {
+        return GNode.builder()
+            .type('button:delete')
+            .id(this.buttonDeleteID(modelElementID))
+            .position({ x: 0, y: verticalOffset + 20 })
+            .size(20, 20)
+            .addArg('modelElementID', modelElementID)
+            .build();
+    }
+
+    protected createRestoreButton(modelElementID: string, verticalOffset: number): GNode {
+        return GNode.builder()
+            .type('button:restore')
+            .id(this.buttonRestoreID(modelElementID))
+            .position({ x: 20, y: verticalOffset + 20 })
+            .size(20, 20)
+            .addArg('modelElementID', modelElementID)
+            .build();
+    }
+
+    protected createEdge<T extends Edge>(containment: Deletable<T>): GModelElement[] {
+        const edge = deletableValue(containment);
+        if (isGhost(containment) || isChoice(edge.sourceID) || isChoice(edge.targetID)) {
             const sourceSegments = edge.sourceIDs.map(sourceID =>
                 this.buildEdgeSegment(
                     edge,
@@ -98,7 +141,7 @@ export class GraphGModelFactory implements GModelFactory {
                         ? [
                               GLabel.builder()
                                   .type('button:edge-source-choice')
-                                  .id(`button-edge-source-choice-${edge.id}-${sourceID}`)
+                                  .id(this.buttonEdgeSourceChoiceID(edge.id, sourceID))
                                   .size(20, 20)
                                   .text('foobar')
                                   .edgePlacement({
@@ -114,7 +157,7 @@ export class GraphGModelFactory implements GModelFactory {
                         : []
                 )
             );
-            const conflictMarker = this.buildConflictMarker(edge);
+            const conflictMarker = this.buildConflictMarker(edge, isGhost(containment) ? this.createGhostNodes(edge.id, 0) : []);
             const targetSegments = edge.targetIDs.map(targetID =>
                 this.buildEdgeSegment(
                     edge,
@@ -125,7 +168,7 @@ export class GraphGModelFactory implements GModelFactory {
                         ? [
                               GLabel.builder()
                                   .type('button:edge-target-choice')
-                                  .id(`button-edge-target-choice-${edge.id}-${targetID}`)
+                                  .id(this.buttonEdgeTargetChoiceID(edge.id, targetID))
                                   .size(20, 20)
                                   .text('foobar')
                                   .edgePlacement({
@@ -168,12 +211,13 @@ export class GraphGModelFactory implements GModelFactory {
         return builder.build();
     }
 
-    protected buildConflictMarker(edge: Edge): GNode {
+    protected buildConflictMarker(edge: Edge, children: GNode[]): GNode {
         return GNode.builder()
             .type('marker:edge-source-target-conflict')
             .id(this.markerEdgeSourceTargetConflictID(edge.id))
             .position(this.calculateConflictMarkerPosition(edge.sources, edge.targets))
             .size(conflictMarkerSize, conflictMarkerSize)
+            .addChildren(children)
             .build();
     }
 
@@ -210,6 +254,18 @@ export class GraphGModelFactory implements GModelFactory {
         return values.reduce((a, b) => a + b, 0) / values.length;
     }
 
+    protected markerGhostID(nodeID: string): string {
+        return `ghost-marker-${nodeID}`;
+    }
+
+    protected buttonDeleteID(nodeID: string): string {
+        return `button-delete-${nodeID}`;
+    }
+
+    protected buttonRestoreID(nodeID: string): string {
+        return `button-restore-${nodeID}`;
+    }
+
     protected edgeSourceSegmentID(edgeID: string, nodeID: string): string {
         return `edge-source-segement-${edgeID}-${nodeID}`;
     }
@@ -220,6 +276,14 @@ export class GraphGModelFactory implements GModelFactory {
 
     protected markerEdgeSourceTargetConflictID(edgeID: string): string {
         return `conflict-marker-${edgeID}`;
+    }
+
+    protected buttonEdgeSourceChoiceID(edgeID: string, sourceID: string): string {
+        return `button-edge-source-choice-${edgeID}-${sourceID}`;
+    }
+
+    protected buttonEdgeTargetChoiceID(edgeID: string, targetID: string): string {
+        return `button-edge-target-choice-${edgeID}-${targetID}`;
     }
 }
 
