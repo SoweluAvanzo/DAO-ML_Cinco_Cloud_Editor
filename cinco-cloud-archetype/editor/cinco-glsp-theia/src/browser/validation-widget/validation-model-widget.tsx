@@ -37,6 +37,7 @@ export class CincoCloudModelValidationWidget extends ReactWidget {
         toggled: boolean;
     } = {
         validationMessages: [
+            /*
             {
                 status: ValidationStatus.Info,
                 name: 'Test Info',
@@ -57,6 +58,7 @@ export class CincoCloudModelValidationWidget extends ReactWidget {
                 name: 'Error Info',
                 message: 'Lorem ipsum'
             }
+            */
         ],
         toggled: false
     };
@@ -73,7 +75,7 @@ export class CincoCloudModelValidationWidget extends ReactWidget {
     @postConstruct()
     registerDataSubscription(): void {
         this.validationModelDataHandler.registerDataSubscription(() => {
-            this.state.validationMessages = this.validationModelDataHandler.currentMessages;
+            this.state.validationMessages = Array.from(this.validationModelDataHandler.currentMessages.values()).flat();
             this.update();
         });
         this.update();
@@ -114,7 +116,8 @@ export class CincoCloudModelValidationWidget extends ReactWidget {
     protected render(): React.ReactNode {
         const validationMessages = this.state.validationMessages.map((message, index) => (
             <div className='validation-entry' key={'validation-message-' + index}>
-                <span className={CincoCloudModelValidationWidget.getStatusIconClass(message.status)}></span> {message.name}
+                <span className={CincoCloudModelValidationWidget.getStatusIconClass(message.status)}></span> {message.name} -{' '}
+                {message.message}
             </div>
         ));
         return (

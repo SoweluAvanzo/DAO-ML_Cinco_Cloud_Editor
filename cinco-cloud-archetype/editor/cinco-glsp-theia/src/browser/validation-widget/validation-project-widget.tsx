@@ -15,7 +15,7 @@
  ********************************************************************************/
 import '../../../css/validation-widget.css';
 
-import { ValidationMessage, ValidationStatus } from '@cinco-glsp/cinco-glsp-common/lib/protocol/validation-protocol';
+import { ValidationMessage } from '@cinco-glsp/cinco-glsp-common/lib/protocol/validation-protocol';
 import { codicon, ReactWidget } from '@theia/core/lib/browser';
 import { injectable } from 'inversify';
 import React = require('react');
@@ -38,6 +38,7 @@ export class CincoCloudProjectValidationWidget extends ReactWidget {
         }[];
     } = {
         models: [
+            /*
             {
                 validationMessages: [
                     {
@@ -85,6 +86,7 @@ export class CincoCloudProjectValidationWidget extends ReactWidget {
                 toggled: false,
                 modelName: 'Another Test Model Name'
             }
+            */
         ]
     };
 
