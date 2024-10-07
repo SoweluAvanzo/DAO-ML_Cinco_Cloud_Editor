@@ -18,7 +18,8 @@ import {
     MetaSpecificationResponseAction,
     PropertyViewResponseAction,
     ServerArgsResponse,
-    TypedServerMessageAction
+    TypedServerMessageAction,
+    ValidationResponseAction
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     ApplyTypeHintsCommand,
@@ -72,6 +73,7 @@ import { CincoEdgeButtonSourceChoice, CincoEdgeButtonTargetChoice, CincoMarker }
 import { ButtonSelectChoiceView } from './views/button-select-choice';
 import { ChoiceSelectionTool } from './features/tool/choice-selection-tool';
 import { CincoEnableDefaultToolsOnFocusLossHandler } from './glsp/cinco-focus-fix-handler';
+import { CincoValidationResponseHandler } from './glsp/cinco-validation-response-handler';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -153,6 +155,9 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     // bind the propertyViewTool, that will fire the PropertyViewActions to the backend and the handler processing the responses
     bind(TYPES.IDefaultTool).to(PropertyViewTool).inSingletonScope();
     configureActionHandler(context, PropertyViewResponseAction.KIND, PropertyViewResponseActionHandler);
+
+    // bind validationHandler
+    configureActionHandler(context, ValidationResponseAction.KIND, CincoValidationResponseHandler);
 
     // bind the ChoiceSelectionTool
     bind(TYPES.IDefaultTool).to(ChoiceSelectionTool).inSingletonScope();

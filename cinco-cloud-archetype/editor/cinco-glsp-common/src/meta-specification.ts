@@ -168,13 +168,13 @@ export namespace MetaSpecification {
         // ValueProvider
         for (const elementTypeId of getSpecMap().keys()) {
             const hasAnn = hasValueProvider(elementTypeId);
-            HAS_APPEARANCE_PROVIDER.set(elementTypeId, hasAnn);
+            HAS_VALUE_PROVIDER.set(elementTypeId, hasAnn);
         }
 
         // Validation
         for (const elementTypeId of getSpecMap().keys()) {
             const hasAnn = hasValidation(elementTypeId);
-            HAS_APPEARANCE_PROVIDER.set(elementTypeId, hasAnn);
+            HAS_VALIDATION.set(elementTypeId, hasAnn);
         }
     }
 

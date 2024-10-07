@@ -182,12 +182,10 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
     }
 
     onGraphModelChange(modelState: GraphModelState): void {
-        const index: GraphModelIndex = modelState.index as GraphModelIndex;
-
         /**
          * PUT ALL ON CHANGE EVENTS HERE
          */
-        const requests: Action[] = [];
+        let requests: Action[] = [];
 
         // update palettes as PrimeReferences could have
         const paletteResponse = RequestContextActions.create({
@@ -198,6 +196,15 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         });
         requests.push(paletteResponse);
 
+        requests = requests.concat(this.updateGraphModelHandler(modelState));
+        this.sendGraphModelHandlerRequests(requests);
+    }
+
+    updateGraphModelHandler(modelState: GraphModelState): Action[] {
+        const index: GraphModelIndex = modelState.index as GraphModelIndex;
+        const model = index.getRoot();
+        const requests: Action[] = [];
+
         /**
          * Per ModelElement
          */
@@ -206,7 +213,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         // Validation Request
         for (const modelElement of allModelElements) {
             if (hasValidation(modelElement.type)) {
-                const validationRequest = ValidationRequestAction.create(modelElement.id);
+                const validationRequest = ValidationRequestAction.create(model.id, modelElement.id);
                 requests.push(validationRequest);
             }
         }
@@ -227,6 +234,10 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
             }
         }
 
+        return requests;
+    }
+
+    sendGraphModelHandlerRequests(requests: Action[]): void {
         // propagate actions
         for (const request of requests) {
             this.actionDispatcher.dispatch(request);

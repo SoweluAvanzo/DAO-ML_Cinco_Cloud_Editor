@@ -213,6 +213,10 @@ export class ModelElement implements IdentifiableElement {
         return violatedConstraint;
     }
 
+    get valid(): Promise<boolean> {
+        return this.index.validate(this);
+    }
+
     get view(): View {
         const _view = this._view ?? { ...getSpecOf(this.type)?.view };
         return _view ?? ({} as View);
@@ -662,6 +666,19 @@ export class Container extends Node implements ModelElementContainer {
     getAllContainments(): IdentifiableElement[] {
         return ModelElementContainer.getAllContainments(this);
     }
+
+    override get valid(): Promise<boolean> {
+        const elements = [this as ModelElement].concat(this.containments);
+        return Promise.all(
+            elements.map(async element => {
+                const result = await this.index.validate(element);
+                if (!result) {
+                    return false;
+                }
+                return true;
+            })
+        ).then(results => results.indexOf(false) < 0);
+    }
 }
 
 export namespace Container {
@@ -778,9 +795,11 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
         }
         return this._index;
     }
+
     override set index(index: GraphModelIndex | undefined) {
         this._index = index;
     }
+
     get containments(): Node[] {
         if (!this._containments) {
             this._containments = [];
@@ -818,10 +837,23 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
         return super.getSpec() as GraphType;
     }
 
-    getAllContainments(): IdentifiableElement[] {
+    getAllContainments(): ModelElement[] {
         return ModelElementContainer.getAllContainments(this)
             .concat(this.edges)
-            .map(e => (ModelElement.is(e) && !(e instanceof ModelElement) ? Object.assign(new ModelElement(), e) : e));
+            .map(e => (ModelElement.is(e) && !(e instanceof ModelElement) ? Object.assign(new ModelElement(), e) : e)) as ModelElement[];
+    }
+
+    override get valid(): Promise<boolean> {
+        const elements = [this as ModelElement].concat(this.getAllContainments()).concat();
+        return Promise.all(
+            elements.map(async element => {
+                const result = await this.index.validate(element);
+                if (!result) {
+                    return false;
+                }
+                return true;
+            })
+        ).then(results => results.indexOf(false) < 0);
     }
 
     override toJSON(): any {
