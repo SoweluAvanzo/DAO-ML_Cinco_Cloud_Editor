@@ -97,6 +97,10 @@
       ],
       "annotations": [
         {
+          "name": "Validation",
+          "values": ["HooksAndActionsValidator"]
+        },
+        {
           "name": "CustomAction",
           "values": ["ShortestPathAction", "Calculate Shortest Path"]
         },

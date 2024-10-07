@@ -26,6 +26,8 @@ export class ExampleValidator extends ValidationHandler {
         // next actions
         return [
             ValidationResponseAction.create(
+                this.modelState.graphModel.id,
+                action.modelElementId,
                 [
                     {
                         name: 'Test message',
