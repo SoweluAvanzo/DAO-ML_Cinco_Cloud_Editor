@@ -15,7 +15,8 @@
  ********************************************************************************/
 
 import 'core-js/actual/set';
-import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap } from './json-utilities';
+import * as crypto from 'crypto';
+import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap, deterministicStringify } from './json-utilities';
 import { cellValues, Choice, Optional, isGhost, optionalValue } from '@cinco-glsp/cinco-glsp-common';
 
 type Versions<T = any> = Readonly<{
@@ -132,23 +133,10 @@ export function optionalMerger(valueMerger: Merger<any>): Merger<Optional<any>> 
 }
 
 export function recordMerger(mergers: Record<string, Merger>): Merger {
-    return ({ ancestor, versionA, versionB }) => {
-        validateNoUnknownKeysForRecordMerger(mergers, ancestor);
-        validateNoUnknownKeysForRecordMerger(mergers, versionA);
-        validateNoUnknownKeysForRecordMerger(mergers, versionB);
-        return sequenceMergeResultsMap(
-            mapMap(mergers, (merger, key) =>
-                merger({
-                    ancestor: ancestor[key],
-                    versionA: versionA[key],
-                    versionB: versionB[key]
-                })
-            )
-        );
-    };
+    return objectMerger(key => mergers[key] ?? eagerMerger());
 }
 
-export function sequenceMergeResultsMap(mergeResults: Record<string, MergeResult>): MergeResult {
+export function sequenceMergeResultsObject(mergeResults: Record<string, MergeResult>): MergeResult {
     return {
         value: mapMap(mergeResults, ({ value }) => value),
         newEagerConflicts: Object.values(mergeResults)
@@ -158,14 +146,6 @@ export function sequenceMergeResultsMap(mergeResults: Record<string, MergeResult
             .map(({ newLazyConflicts }) => newLazyConflicts)
             .some(x => x)
     };
-}
-
-function validateNoUnknownKeysForRecordMerger(mergers: Record<string, Merger>, record: Record<string, any>): void {
-    for (const key of Object.keys(record)) {
-        if (!(key in mergers)) {
-            throw new Error(`Key ${key} has no merger defined.`);
-        }
-    }
 }
 
 export function entityListMerger(merger: Merger): Merger {
@@ -181,39 +161,40 @@ export function entityListMerger(merger: Merger): Merger {
 }
 
 export function mapMerger(merger: Merger): Merger {
+    return objectMerger(_ => merger);
+}
+
+export function objectMerger(mergers: (key: string) => Merger): Merger {
     return ({ ancestor, versionA, versionB }) => {
         const keys = new Set<string>(Object.keys(ancestor).concat(Object.keys(versionA).concat(Object.keys(versionB))));
         const mergeResults: Record<string, MergeResult> = {};
         for (const key of keys) {
-            const entityMerge = optionalMerger(merger)({ ancestor: ancestor[key], versionA: versionA[key], versionB: versionB[key] });
+            const merger = optionalMerger(mergers(key));
+            const entityMerge = merger({
+                ancestor: ancestor[key],
+                versionA: versionA[key],
+                versionB: versionB[key]
+            });
             if (entityMerge.value !== undefined) {
                 mergeResults[key] = entityMerge;
             }
         }
-        return sequenceMergeResultsMap(mergeResults);
+        return sequenceMergeResultsObject(mergeResults);
     };
 }
 
 export function eagerMerger(): Merger {
-    return ({ ancestor, versionA, versionB }) => {
-        if (jsonEqual(versionA, versionB)) {
-            return mergeOk(versionA);
-        } else if (jsonEqual(versionB, ancestor)) {
-            return mergeOk(versionA);
-        } else if (jsonEqual(versionA, ancestor)) {
-            return mergeOk(versionB);
-        } else {
-            const conflict: EagerMergeConflict = {
-                tag: 'eager-merge-conflict',
-                versions: { ancestor, versionA, versionB }
-            };
-            return {
-                value: conflict,
-                newEagerConflicts: true,
-                newLazyConflicts: false
-            };
-        }
-    };
+    return equalityMerger(({ ancestor, versionA, versionB }) => {
+        const conflict: EagerMergeConflict = {
+            tag: 'eager-merge-conflict',
+            versions: { ancestor, versionA, versionB }
+        };
+        return {
+            value: conflict,
+            newEagerConflicts: true,
+            newLazyConflicts: false
+        };
+    });
 }
 
 export function cellMerger(): Merger {
@@ -229,5 +210,41 @@ export function cellMerger(): Merger {
             newEagerConflicts: false,
             newLazyConflicts: mergedSet.size > 1 && mergedSet.difference(ancestorSet).size > 0
         };
+    };
+}
+
+export function recursiveMerger(mergerConstructor: () => Merger): Merger {
+    return versions => mergerConstructor()(versions);
+}
+
+export function arbitraryMerger<T>(): Merger<T> {
+    return equalityMerger(({ versionA, versionB }) => ({
+        value:
+            Buffer.compare(
+                crypto.createHash('sha512').update(deterministicStringify(versionA)).digest(),
+                crypto.createHash('sha512').update(deterministicStringify(versionB)).digest()
+            ) <= 0
+                ? versionA
+                : versionB,
+        newEagerConflicts: false,
+        newLazyConflicts: false
+    }));
+}
+
+export function defaultMerger<T>(defaultValue: T): Merger<T> {
+    return equalityMerger(() => ({ value: defaultValue, newEagerConflicts: false, newLazyConflicts: false }));
+}
+
+export function equalityMerger<T>(conflictMerger: Merger<T>): Merger<T> {
+    return ({ ancestor, versionA, versionB }) => {
+        if (jsonEqual(versionA, versionB)) {
+            return mergeOk(versionA);
+        } else if (jsonEqual(versionB, ancestor)) {
+            return mergeOk(versionA);
+        } else if (jsonEqual(versionA, ancestor)) {
+            return mergeOk(versionB);
+        } else {
+            return conflictMerger({ ancestor, versionA, versionB });
+        }
     };
 }

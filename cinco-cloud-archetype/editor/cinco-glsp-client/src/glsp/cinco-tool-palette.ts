@@ -22,12 +22,16 @@ import {
     RequestContextActions,
     createIcon,
     changeCodiconClass,
-    IActionDispatcher
+    IActionDispatcher,
+    TYPES,
+    IDiagramOptions
 } from '@eclipse-glsp/client';
 import { KeyboardToolPalette } from '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette';
 import { Action, PaletteItem } from '@eclipse-glsp/protocol';
 import { inject, injectable } from 'inversify';
 import { CincoCustomTool, EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
+import { GraphModelProvider } from '../model/graph-model-provider';
+import { UPDATING_RACE_CONDITION_INDICATOR } from '@cinco-glsp/cinco-glsp-common';
 
 // imported from: '@eclipse-glsp/client/lib/features/accessibility/keyboard-tool-palette/keyboard-tool-palette'
 const PALETTE_ICON_ID = 'symbol-color';
@@ -36,9 +40,17 @@ const PALETTE_HEIGHT = '500px';
 
 @injectable()
 export class CincoToolPalette extends KeyboardToolPalette {
+    @inject(TYPES.IDiagramOptions)
+    protected diagramOptions: IDiagramOptions;
+    @inject(GraphModelProvider)
+    protected readonly graphModelProvider: GraphModelProvider;
     @inject(EnvironmentProvider) readonly environmentProvider: IEnvironmentProvider;
     protected lastFilter = '';
     CHANGED = false;
+
+    getHeadToolsId(): string {
+        return 'cinco-tool-palette-header-' + this.diagramOptions.clientId;
+    }
 
     static async requestPalette(actionDispatcher: IActionDispatcher): Promise<void> {
         const requestAction = RequestContextActions.create({
@@ -56,7 +68,10 @@ export class CincoToolPalette extends KeyboardToolPalette {
                 this.changeActiveButton();
                 this.restoreFocus();
             }
-        } else if (SetContextActions.is(action)) {
+        } else if (SetContextActions.is(action)
+                && action.actions.filter(s => (s as PaletteItem).id === UPDATING_RACE_CONDITION_INDICATOR.id).length <= 0
+            ) {
+            // TODO: SAMI - action.actions.length > 0 is wrong, but at somepoint actions is sent empty, find the reason why
             // store and backup new palette
             const newPaletteItems = action.actions.map(e => e as PaletteItem);
             if (this.palettesHaveChanged(this.paletteItems ?? [], newPaletteItems)) {
@@ -74,7 +89,7 @@ export class CincoToolPalette extends KeyboardToolPalette {
             // update palette view
             this.requestFilterUpdate(this.lastFilter);
             // update header tools
-            const headerTools = document.getElementById('cinco-tool-palette-header');
+            const headerTools = document.getElementById(this.getHeadToolsId());
             if (headerTools) {
                 this.updateHeaderTools(headerTools);
             }
@@ -173,15 +188,19 @@ export class CincoToolPalette extends KeyboardToolPalette {
     protected override createHeaderTools(): HTMLElement {
         this.headerToolsButtonMapping.clear();
         const headerTools = document.createElement('div');
-        headerTools.id = 'cinco-tool-palette-header';
+        headerTools.id = this.getHeadToolsId();
         headerTools.classList.add('header-tools');
         this.updateHeaderTools(headerTools);
         return headerTools;
     }
 
     protected updateHeaderTools(headerTools: HTMLElement): void {
-        // fetch custom tools
-        const tools = this.environmentProvider.provideTools();
+        const currentModel = this.graphModelProvider.getGraphModelFrom(
+            this.diagramOptions.sourceUri ?? ''
+        );
+        // fetch custom tools for model
+        const tools = this.environmentProvider.provideTools(currentModel);
+
         headerTools.replaceChildren(...([] as (string | Node)[]));
         let index = 0;
         for (const tool of tools) {

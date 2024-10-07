@@ -21,7 +21,13 @@ import { getFileExtension } from '@cinco-glsp/cinco-glsp-common';
 export class DirtyFileWatcher {
     static dirtyCallbacks: Map<
         string,
-        { folder: string; fileTypes: string[]; callback: (dirtyFiles: { path: string; eventType: WatchEventType }[]) => Promise<void> }
+        {
+            folder: string;
+            fileTypes: string[];
+            priority: number;
+            callback: (dirtyFiles: { path: string; eventType: WatchEventType}[]
+            ) => Promise<void>
+        }
     > = new Map();
     static dirtyFiles: { path: string; eventType: WatchEventType }[] = [];
     static reloadDelay = 100; // heuristic value
@@ -30,6 +36,7 @@ export class DirtyFileWatcher {
         folderToWatch: string,
         fileTypes: string[],
         dirtyCallback: (dirtyFiles: { path: string; eventType: WatchEventType }[]) => Promise<void>,
+        priority: number,
         id?: string
     ): Promise<{ dirtyCallbackId: string; watchIds: string[] }> {
         const entries = CincoFolderWatcher.watchRecursive(folderToWatch, fileTypes, async (filename: string, eventType: WatchEventType) => {
@@ -44,7 +51,7 @@ export class DirtyFileWatcher {
             this.startDirtyCheck();
         }
         const dirtyCallbackId = id ? id : uuid.v4();
-        this.dirtyCallbacks.set(dirtyCallbackId, { folder: folderToWatch, fileTypes: fileTypes, callback: dirtyCallback });
+        this.dirtyCallbacks.set(dirtyCallbackId, { folder: folderToWatch, fileTypes: fileTypes, priority, callback: dirtyCallback });
         return { dirtyCallbackId: dirtyCallbackId, watchIds: watchIds };
     }
 
@@ -65,15 +72,20 @@ export class DirtyFileWatcher {
                 const dirtyFiles = this.dirtyFiles;
                 this.dirtyFiles = [];
                 // handle dirtyFiles
-                for (const dirtyCallback of this.dirtyCallbacks.values()) {
+                const dirtyCallbacks = Array.from(this.dirtyCallbacks.values()).sort((e1, e2) => e1.priority - e2.priority);
+                for (const dirtyCallback of dirtyCallbacks) {
                     const folder = dirtyCallback.folder;
                     const callback = dirtyCallback.callback;
                     const fileTypes = dirtyCallback.fileTypes;
-                    const relatedFiles = dirtyFiles.filter(
-                        f => fileTypes.includes('.' + getFileExtension(f.path)) && f.path.indexOf(folder) >= 0
-                    );
-                    if (relatedFiles.length > 0) {
-                        await callback(relatedFiles);
+                    if(fileTypes.length <= 0) {
+                        await callback(dirtyFiles);
+                    } else {
+                        const relatedFiles = dirtyFiles.filter(
+                            f => fileTypes.includes('.' + getFileExtension(f.path)) && f.path.indexOf(folder) >= 0
+                        );
+                        if (relatedFiles.length > 0) {
+                            await callback(relatedFiles);
+                        }
                     }
                 }
             }

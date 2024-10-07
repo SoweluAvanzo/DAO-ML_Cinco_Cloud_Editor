@@ -63,6 +63,8 @@ import { CincoOperationHandlerRegistry } from './cinco-handler-registry';
 import { SelectManager } from '../tools/select-manager';
 import { DoubleClickHookHandler } from '../handler/double-click-hook-handler';
 import { SelectHookHandler } from '../handler/select-hook-handler';
+import { ChoiceSelectionEdgeSourceHandler, ChoiceSelectionEdgeTargetHandler } from '../handler/choice-selection-handlers';
+import { GhostDecisionHandler } from '../handler/ghost-decision-handler';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -123,6 +125,9 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(RoutingPointHandler);
         binding.add(GeneratorCreateFileHandler);
         binding.add(ReconnectEdgeHandler);
+        binding.add(ChoiceSelectionEdgeSourceHandler);
+        binding.add(ChoiceSelectionEdgeTargetHandler);
+        binding.add(GhostDecisionHandler);
     }
 
     protected override bindGModelIndex(): BindingTarget<GModelIndex> {

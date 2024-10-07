@@ -115,7 +115,9 @@ export class HookManager {
     }
 
     private static loadHookClasses(hookClassName: string, modelTypeId: string, hookType: HookType): any {
-        const hooks = LanguageFilesRegistry.getRegistered().filter((hook: any) => hook.name === hookClassName);
+        const hooks = (
+            LanguageFilesRegistry.getRegisteredSync()
+        ).filter((hook: any) => hook.name === hookClassName);
         return hooks.length > 0 ? hooks[0] : undefined;
     }
 
@@ -625,8 +627,15 @@ export class HookManager {
                 throw new Error(`Undefined source ID in canReconnectHook parameters: ${sourceID}`);
             }
         });
-        const newTarget = modelElement.index.findNode(parameters.targetId);
-        if (Edge.is(modelElement) && newTarget) {
+        const newTarget: Cell<Node> = mapCell(parameters.targetId, targetID => {
+            const target = modelElement.index.findNode(targetID);
+            if (target !== undefined) {
+                return target;
+            } else {
+                throw new Error(`Undefined target ID in canReconnectHook parameters: ${targetID}`);
+            }
+        });
+        if (Edge.is(modelElement)) {
             return !hook.canAttributeChange || hook.canReconnect(modelElement, newSource, newTarget);
         } else {
             throw new Error('Could not execute canReconnectHook.');
@@ -642,8 +651,15 @@ export class HookManager {
                 throw new Error(`Undefined source ID in preReconnectHook parameters: ${sourceID}`);
             }
         });
-        const newTarget = modelElement.index.findNode(parameters.targetId);
-        if (hook.preReconnect && Edge.is(modelElement) && newTarget) {
+        const newTarget: Cell<Node> = mapCell(parameters.targetId, targetID => {
+            const target = modelElement.index.findNode(targetID);
+            if (target !== undefined) {
+                return target;
+            } else {
+                throw new Error(`Undefined target ID in preReconnectHook parameters: ${targetID}`);
+            }
+        });
+        if (hook.preReconnect && Edge.is(modelElement)) {
             hook.preReconnect(modelElement, newSource, newTarget);
         } else {
             throw new Error('Could execute preReconnectHook.');
@@ -659,8 +675,15 @@ export class HookManager {
                 throw new Error(`Undefined source ID in postReconnectHook parameters: ${sourceID}`);
             }
         });
-        const oldTarget = modelElement.index.findNode(parameters.targetId);
-        if (hook.postReconnect && Edge.is(modelElement) && oldTarget) {
+        const oldTarget: Cell<Node> = mapCell(parameters.targetId, targetID => {
+            const target = modelElement.index.findNode(targetID);
+            if (target !== undefined) {
+                return target;
+            } else {
+                throw new Error(`Undefined target ID in canReconnectHook parameters: ${targetID}`);
+            }
+        });
+        if (hook.postReconnect && Edge.is(modelElement)) {
             hook.postReconnect(modelElement, oldSource, oldTarget);
         } else {
             throw new Error('Could execute postReconnectHook.');

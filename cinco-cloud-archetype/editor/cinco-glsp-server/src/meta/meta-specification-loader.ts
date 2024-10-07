@@ -14,7 +14,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { CompositionSpecification, META_FILE_TYPES, MetaSpecification } from '@cinco-glsp/cinco-glsp-common';
-import { getFiles, getLanguageFolder, getLibLanguageFolder, isBundle, readJson, DirtyFileWatcher } from '@cinco-glsp/cinco-glsp-api';
+import {
+    getFilesSync, getFiles, getLanguageFolder, getLibLanguageFolder, isBundle, readJson, DirtyFileWatcher
+} from '@cinco-glsp/cinco-glsp-api';
 import { loadLanguage } from '@cinco-glsp/cinco-languages/lib/index';
 
 export class MetaSpecificationLoader {
@@ -37,10 +39,11 @@ export class MetaSpecificationLoader {
                     MetaSpecification.clear();
                     await this.load();
                 },
+                0,
                 'MetaSpecificationReset'
             );
         }
-        return DirtyFileWatcher.watch(languagesFolder, META_FILE_TYPES, dirtyCallback, callbackId);
+        return DirtyFileWatcher.watch(languagesFolder, META_FILE_TYPES, dirtyCallback, 0, callbackId);
     }
 
     static unwatch(watchInfo: { dirtyCallbackId: string; watchIds: string[] }): void {
@@ -57,7 +60,7 @@ export class MetaSpecificationLoader {
     }
 
     private static async reloadFiles(metaLanguagesPath: string, fileTypes: string[]): Promise<void> {
-        const files = getFiles(metaLanguagesPath, fileTypes);
+        const files = await getFiles(metaLanguagesPath, fileTypes);
         return new Promise<void>(resolve => {
             if (files.length <= 0) {
                 resolve();
@@ -71,7 +74,7 @@ export class MetaSpecificationLoader {
                         const parsedMgl = await loadLanguage(`${metaLanguagesPath}/${file}`, {});
                         metaSpec = JSON.parse(parsedMgl);
                     } else if (fileExtension === '.json') {
-                        metaSpec = readJson(`${metaLanguagesPath}/${file}`);
+                        metaSpec = await readJson(`${metaLanguagesPath}/${file}`);
                     }
                     if (metaSpec && CompositionSpecification.is(metaSpec)) {
                         MetaSpecification.merge(metaSpec);
@@ -80,7 +83,8 @@ export class MetaSpecificationLoader {
                     console.log('Error parsing: ' + file + '\n' + e);
                 }
                 countdown -= 1;
-                if (countdown <= 0) {
+                if (countdown <= 0) { // all have been parsed
+                    MetaSpecification.prepareCache();
                     resolve();
                 }
             });
@@ -90,7 +94,7 @@ export class MetaSpecificationLoader {
     static loadClassFiles(supportedDynamicImportFileTypes: string[]): void {
         // Import all injected language-files under './languages/*.ts'
         const languagesPath = `${getLibLanguageFolder()}`;
-        const foundFiles = getFiles(languagesPath);
+        const foundFiles = getFilesSync(languagesPath);
         foundFiles
             .filter((file: string) => {
                 const fileExtension = file.slice(file.indexOf('.'));

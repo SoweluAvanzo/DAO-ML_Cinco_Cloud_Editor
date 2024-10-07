@@ -649,7 +649,7 @@ async function inferAppearancesAndStyles(stylePath: string): Promise<{ appearanc
         appearanceConfiguration.parent = parentId;
         appearanceConfiguration.lineWidth = appearance.lineWidth;
         appearanceConfiguration.lineStyle = appearance.lineStyle?.lineType;
-        appearanceConfiguration.filled = appearance.filled;
+        appearanceConfiguration.filled = appearance.filled?.value === 'true' ? true : false;
         appearanceConfiguration.font = appearance.font
             ? {
                   fontName: appearance.font.fontName,

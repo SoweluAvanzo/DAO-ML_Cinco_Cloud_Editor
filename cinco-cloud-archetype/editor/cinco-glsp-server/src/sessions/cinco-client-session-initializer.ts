@@ -78,7 +78,9 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                     const watchInfo = await MetaSpecificationLoader.watch(async () => {
                         const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
                         this.actionDispatcher.dispatch(response);
-                        this.sendToAllOtherClients(response);
+                        CincoClientSessionInitializer.sendToAllOtherClients(
+                            response, this.serverContainer.id, CincoClientSessionInitializer.clientSessionsActionDispatcher
+                        );
                     }, 'metaspecWatcher_' + clientId);
                     CincoClientSessionListener.addDisposeCallback(clientId, () => {
                         MetaSpecificationLoader.unwatch(watchInfo);
@@ -98,8 +100,8 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         GraphModelWatcher.removeCallback(clientId);
         GraphModelWatcher.addCallback(clientId, async dirtyFiles => {
             for (const dirtyFile of dirtyFiles) {
-                const wasMovedOrDeleted = dirtyFile.eventType === 'rename' && !existsFile(dirtyFile.path);
-                const wasMovedRenamedOrCreated = dirtyFile.eventType === 'rename' && existsFile(dirtyFile.path);
+                const wasMovedOrDeleted = dirtyFile.eventType === 'rename' && !await existsFile(dirtyFile.path);
+                const wasMovedRenamedOrCreated = dirtyFile.eventType === 'rename' && await existsFile(dirtyFile.path);
                 const wasChanged = dirtyFile.eventType === 'change';
                 if (wasMovedOrDeleted) {
                     // trigger delete Hook
@@ -120,7 +122,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         this.submissionHandler
                     );
                 } else {
-                    const model = readJson(dirtyFile.path, { hideError: true }) as any | undefined;
+                    const model = await readJson(dirtyFile.path, { hideError: true }) as any | undefined;
                     if (!model || !model.id) {
                         // Modelfile could not be read from path. It is either just intiialized (empty file) or moved.
                         return;
@@ -170,7 +172,9 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         }
                     });
                     this.actionDispatcher.dispatch(paletteResponse);
-                    this.sendToAllOtherClients(paletteResponse);
+                    CincoClientSessionInitializer.sendToAllOtherClients(
+                        paletteResponse, this.serverContainer.id, CincoClientSessionInitializer.clientSessionsActionDispatcher
+                    );
                 }
             }
         });
@@ -185,14 +189,15 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         CincoClientSessionInitializer.clientSessionsActionDispatcher.delete(id);
     }
 
-    sendToAllOtherClients(message: Action): void {
-        const actionDispatcherMap = CincoClientSessionInitializer.clientSessionsActionDispatcher;
-        for (const entry of actionDispatcherMap.entries()) {
-            if (entry[0] !== this.serverContainer.id) {
-                entry[1].dispatch(message).catch(e => {
-                    console.log('An error occured, maybe the client is not connected anymore:\n' + e);
-                    CincoClientSessionInitializer.removeClient(entry[0]);
-                });
+    static sendToAllOtherClients(message: Action, serverContainerId: number, actionDispatcherMap: Map<number, ActionDispatcher>): void {
+        if(actionDispatcherMap) {
+            for (const entry of actionDispatcherMap.entries()) {
+                if (entry[0] !== serverContainerId) {
+                    entry[1].dispatch(message).catch(e => {
+                        console.log('An error occured, maybe the client is not connected anymore:\n' + e);
+                        CincoClientSessionInitializer.removeClient(entry[0]);
+                    });
+                }
             }
         }
     }

@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { describe, test, expect } from '@jest/globals';
-import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap } from './json-utilities';
+import { jsonEqual, mapMap, mapFromEntityArray, entityArrayFromMap, deterministicStringify } from './json-utilities';
 
 describe('jsonValuesEqual', () => {
     test('different types', () => {
@@ -104,5 +104,33 @@ describe('entityArrayFromMap', () => {
             { id: 'y', value: 'doo' },
             { id: 'z', value: 'roo' }
         ]);
+    });
+});
+
+describe('deterministicStringify', () => {
+    test('sorts keys in a simple object', () => {
+        expect(
+            deterministicStringify({
+                b: 1,
+                c: 2,
+                a: 3
+            })
+        ).toBe('{"a":3,"b":1,"c":2}');
+    });
+
+    test('sorts keys recursively', () => {
+        expect(
+            deterministicStringify({
+                b: 2,
+                a: {
+                    d: 4,
+                    c: 5
+                }
+            })
+        ).toBe('{"a":{"c":5,"d":4},"b":2}');
+    });
+
+    test('serializes arrays', () => {
+        expect(deterministicStringify([1, 2, 3])).toBe('[1,2,3]');
     });
 });

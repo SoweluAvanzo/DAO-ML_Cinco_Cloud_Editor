@@ -12,6 +12,10 @@
 
 Integrates the GLSP features into our Cinco editor.
 
+### Code of Conduct
+
+The `sources.json` file lists the sources of the images used in the client for our reference.
+
 ## Documentation
 
 Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).

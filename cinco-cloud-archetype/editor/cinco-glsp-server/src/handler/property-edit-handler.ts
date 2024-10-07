@@ -206,7 +206,6 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
                 return canAssign(index, bounds);
             }
         }
-        return false;
     }
 
     // TODO: Inside of the for loop, the attribute considered is always a UserDefinedType (?)

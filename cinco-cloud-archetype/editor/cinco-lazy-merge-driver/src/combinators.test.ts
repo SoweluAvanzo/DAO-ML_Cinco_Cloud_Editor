@@ -24,7 +24,10 @@ import {
     optionalMerger,
     MergeResult,
     mergeOk,
-    mergeLazyConflict
+    mergeLazyConflict,
+    recursiveMerger,
+    arbitraryMerger,
+    defaultMerger
 } from './combinators';
 
 describe('mapMergeResult', () => {
@@ -224,32 +227,45 @@ describe('recordMerger', () => {
             newLazyConflicts: true
         });
     });
-    test('unknown key in ancestor', () => {
-        expect(() =>
-            recordMerger({ x: cellMerger() })({
-                ancestor: { x: 'foo', y: 'doo' },
+    test('merge unknown keys eagerly', () => {
+        expect(
+            recordMerger({})({
+                ancestor: { x: 'foo' },
                 versionA: { x: 'bar' },
                 versionB: { x: 'baz' }
             })
-        ).toThrow(new Error('Key y has no merger defined.'));
+        ).toStrictEqual({
+            value: {
+                x: {
+                    tag: 'eager-merge-conflict',
+                    versions: {
+                        ancestor: 'foo',
+                        versionA: 'bar',
+                        versionB: 'baz'
+                    }
+                }
+            },
+            newEagerConflicts: true,
+            newLazyConflicts: false
+        });
     });
-    test('unknown key in version A', () => {
-        expect(() =>
-            recordMerger({ x: cellMerger() })({
-                ancestor: { x: 'foo' },
-                versionA: { x: 'bar', y: 'doo' },
-                versionB: { x: 'baz' }
-            })
-        ).toThrow(new Error('Key y has no merger defined.'));
-    });
-    test('unknown key in version B', () => {
-        expect(() =>
+    test('optional merging for missing keys', () => {
+        expect(
             recordMerger({ x: cellMerger() })({
                 ancestor: { x: 'foo' },
                 versionA: { x: 'bar' },
-                versionB: { x: 'baz', y: 'doo' }
+                versionB: {}
             })
-        ).toThrow(new Error('Key y has no merger defined.'));
+        ).toStrictEqual({
+            value: {
+                x: {
+                    tag: 'ghost',
+                    value: 'bar'
+                }
+            },
+            newEagerConflicts: false,
+            newLazyConflicts: true
+        });
     });
 });
 
@@ -465,6 +481,79 @@ describe('cellMerger', () => {
             },
             newEagerConflicts: false,
             newLazyConflicts: true
+        });
+    });
+});
+
+describe('recursiveMerger', () => {
+    test('merge recursive record', () => {
+        const merger = recordMerger({
+            x: cellMerger(),
+            child: recursiveMerger(() => merger)
+        });
+        expect(
+            merger({
+                ancestor: {
+                    x: 'foo',
+                    child: {
+                        x: 'doo'
+                    }
+                },
+                versionA: {
+                    x: 'bar',
+                    child: {
+                        x: 'dar'
+                    }
+                },
+                versionB: {
+                    x: 'baz',
+                    child: {
+                        x: 'daz'
+                    }
+                }
+            })
+        ).toStrictEqual({
+            value: {
+                x: {
+                    tag: 'choice',
+                    options: ['bar', 'baz']
+                },
+                child: {
+                    x: {
+                        tag: 'choice',
+                        options: ['dar', 'daz']
+                    }
+                }
+            },
+            newEagerConflicts: false,
+            newLazyConflicts: true
+        });
+    });
+});
+
+describe('arbitraryMerger', () => {
+    test('select first', () => {
+        expect(arbitraryMerger()({ ancestor: 'coo', versionA: 'car', versionB: 'caz' })).toStrictEqual({
+            value: 'car',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
+    test('select second', () => {
+        expect(arbitraryMerger()({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+            value: 'baz',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
+});
+
+describe('defaultMerger', () => {
+    test('conflict', () => {
+        expect(defaultMerger('bam')({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+            value: 'bam',
+            newEagerConflicts: false,
+            newLazyConflicts: false
         });
     });
 });

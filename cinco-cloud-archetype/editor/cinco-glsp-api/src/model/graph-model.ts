@@ -57,12 +57,14 @@ import {
     Cell,
     cellValues,
     isConflictFree,
-    mapCell
+    mapCell,
+    Deletable,
+    deletableValue
 } from '@cinco-glsp/cinco-glsp-common';
-import { AnyObject, GEdge, GNode, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
+import { AnyObject, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { GraphModelIndex } from './graph-model-index';
 import { GraphModelStorage } from './graph-storage';
-import { getModelFiles, getWorkspaceRootUri } from '../utils/file-helper';
+import { getModelFilesSync, getWorkspaceRootUri } from '../utils/file-helper';
 import * as path from 'path';
 
 export interface IdentifiableElement {
@@ -76,7 +78,9 @@ export namespace IdentifiableElement {
 }
 
 export interface ModelElementContainer {
-    _containments: Node[];
+    get containments(): Deletable<Node>[];
+    set containments(containments: Deletable<Node>[]);
+    get containedElements(): Node[];
 }
 
 export interface PrimeReference {
@@ -105,13 +109,17 @@ export namespace ModelElementContainer {
         return AnyObject.is(object) && hasArrayProp(object, '_containments');
     }
 
+    export function getContainedElements(host: ModelElementContainer): Node[] {
+        return host.containments.map(deletableValue);
+    }
+
     // TODO: UserdefinedType currently not included
-    export function getAllContainments(host: ModelElementContainer): IdentifiableElement[] {
-        let allElements: IdentifiableElement[] = [];
-        allElements = allElements.concat(host._containments);
+    export function getAllContainedElements(host: ModelElementContainer): Node[] {
+        let allElements: Node[] = [];
+        allElements = allElements.concat(host.containedElements);
         for (const e of allElements) {
             if (ModelElementContainer.is(e)) {
-                allElements = allElements.concat(ModelElementContainer.getAllContainments(e));
+                allElements = allElements.concat(ModelElementContainer.getAllContainedElements(e));
             }
         }
         return allElements;
@@ -445,12 +453,12 @@ export class Node extends ModelElement {
     _primeReference?: PrimeReference;
 
     get parent(): ModelElementContainer | undefined {
-        return this.index!.findContainment(this);
+        return this.index!.findContainerOf(this.id);
     }
 
     get successors(): Node[] {
         const edges = this.outgoingEdges;
-        return edges.map(e => e.target);
+        return [...new Set(edges.flatMap(edge => edge.targets))];
     }
 
     get predecessors(): Node[] {
@@ -459,23 +467,17 @@ export class Node extends ModelElement {
     }
 
     get outgoingEdges(): Edge[] {
-        const gNode = this.index!.findGElement(this.id) as GNode | undefined;
-        if (gNode !== undefined) {
-            const gEdges: GEdge[] | undefined = this.index!.getOutgoingEdges(gNode);
-            if (gEdges) {
-                return gEdges.map(e => this.index!.findElement(e.id)).filter(e => Edge.is(e)) as Edge[];
-            }
+        const node = this.index!.findNode(this.id);
+        if (node !== undefined) {
+            return this.index!.getOutgoingEdgeElements(node);
         }
         return [];
     }
 
     get incomingEdges(): Edge[] {
-        const gNode = this.index!.findGElement(this.id) as GNode | undefined;
-        if (gNode !== undefined) {
-            const gEdges: GEdge[] | undefined = this.index!.getIncomingEdges(gNode);
-            if (gEdges) {
-                return gEdges.map(e => this.index!.findElement(e.id)).filter(e => Edge.is(e)) as Edge[];
-            }
+        const node = this.index!.findNode(this.id);
+        if (node !== undefined) {
+            return this.index!.getIncomingEdgeElements(node);
         }
         return [];
     }
@@ -537,16 +539,16 @@ export class Node extends ModelElement {
         }
         const filePath = this.primeReferenceInfo!.filePath;
         const workspace = path.join(getWorkspaceRootUri(), filePath);
-        let model = GraphModelStorage.readModelFromFile(workspace);
+        let model = GraphModelStorage.readModelFromFileSync(workspace);
         const primeReference = this.primeReferenceInfo!;
         if (!model || model.id !== primeReference.modelId) {
             // if model is not readable as it is gone or corrupted,
             // or the id is not correct => find correct model
             console.log('Model was not found. Path or Id does not match. Searching in workspace...');
-            const modelFiles = getModelFiles();
+            const modelFiles = getModelFilesSync();
             for (const modelPath of modelFiles) {
                 const absPath = path.join(getWorkspaceRootUri(), modelPath);
-                const potentialModel = GraphModelStorage.readModelFromFile(absPath);
+                const potentialModel = GraphModelStorage.readModelFromFileSync(absPath);
                 if (potentialModel && potentialModel.id === primeReference.modelId) {
                     // model found => update modelPath
                     this.primeReferenceInfo!.filePath = modelPath;
@@ -563,7 +565,7 @@ export class Node extends ModelElement {
             } else {
                 // find element in model
                 const potentialRefs = model
-                    .getAllContainments()
+                    .getAllContainedElements()
                     .filter(i => ModelElement.is(i))
                     .filter(e => e.id === primeReference.instanceId) as ModelElement[];
                 return potentialRefs.length > 0 ? potentialRefs[0] : undefined;
@@ -654,6 +656,9 @@ export class Container extends Node implements ModelElementContainer {
     set containments(elements: Node[]) {
         this._containments = elements;
     }
+    get containedElements(): Node[] {
+        return ModelElementContainer.getContainedElements(this);
+    }
 
     canContain(type: string): boolean {
         const spec = getSpecOf(this.type) as NodeType;
@@ -661,12 +666,12 @@ export class Container extends Node implements ModelElementContainer {
             return false;
         }
         const constraints: Constraint[] = spec.containments;
-        const elements = this.containments;
+        const elements = this.containedElements;
         return this.checkViolations(type, elements, constraints).length <= 0;
     }
 
-    getAllContainments(): IdentifiableElement[] {
-        return ModelElementContainer.getAllContainments(this);
+    getAllContainedElements(): IdentifiableElement[] {
+        return ModelElementContainer.getAllContainedElements(this);
     }
 }
 
@@ -678,7 +683,7 @@ export namespace Container {
 
 export class Edge extends ModelElement {
     sourceID: Cell<string>;
-    targetID: string;
+    targetID: Cell<string>;
     _routingPoints: RoutingPoint[];
 
     initialize({ type, sourceID, targetID }: { type: string; sourceID: string; targetID: string }): void {
@@ -706,13 +711,22 @@ export class Edge extends ModelElement {
         return cellValues(this.source);
     }
 
-    get target(): Node {
-        const id = this.targetID;
-        const node = this.index!.findNode(id);
-        if (!node) {
-            throw new Error(`Edge with id ${this.id} has an undefined targetID ${this.targetID}.`);
-        }
-        return node;
+    get targetIDs(): ReadonlyArray<string> {
+        return cellValues(this.targetID);
+    }
+
+    get target(): Cell<Node> {
+        return mapCell(this.targetID, targetID => {
+            const node = this.index!.findNode(targetID);
+            if (!node) {
+                throw new Error(`Edge with id ${this.id} has an undefined targetID ${targetID}.`);
+            }
+            return node;
+        });
+    }
+
+    get targets(): ReadonlyArray<Node> {
+        return cellValues(this.target);
     }
 
     canConnectToTarget(node: Node, filter?: (e: Edge) => boolean): boolean {
@@ -760,14 +774,14 @@ export class Edge extends ModelElement {
 
 export namespace Edge {
     export function is(object: any): object is Edge {
-        return AnyObject.is(object) && hasStringProp(object, 'sourceID') && hasStringProp(object, 'targetID') && ModelElement.is(object);
+        return AnyObject.is(object) && 'sourceID' in object && 'targetID' in object && ModelElement.is(object);
     }
 }
 
 export class GraphModel extends ModelElement implements ModelElementContainer {
     _sourceUri?: string;
-    _containments: Node[] = [];
-    _edges: Edge[] = [];
+    _containments: Deletable<Node>[] = [];
+    _edges: Deletable<Edge>[] = [];
 
     override get index(): GraphModelIndex {
         if (!this._index) {
@@ -778,23 +792,30 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
     override set index(index: GraphModelIndex | undefined) {
         this._index = index;
     }
-    get containments(): Node[] {
+    get containments(): Deletable<Node>[] {
         if (!this._containments) {
             this._containments = [];
         }
         return this._containments!;
     }
-    set containments(elements: Node[]) {
+    get containedElements(): Node[] {
+        return ModelElementContainer.getContainedElements(this);
+    }
+    set containments(elements: Deletable<Node>[]) {
         this._containments = elements;
     }
-    get edges(): Edge[] {
+    get edges(): Deletable<Edge>[] {
         if (!this._edges!) {
             this._edges = [];
         }
         return this._edges!;
     }
-    set edges(elements: Edge[]) {
+    set edges(elements: Deletable<Edge>[]) {
         this._edges = elements;
+    }
+
+    get edgeElements(): Edge[] {
+        return this.edges.map(deletableValue);
     }
 
     canContain(type: string): boolean {
@@ -803,8 +824,7 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
             return false;
         }
         const constraints: Constraint[] = spec.containments;
-        const elements = this.containments;
-        return this.checkViolations(type, elements, constraints).length <= 0;
+        return this.checkViolations(type, this.containedElements, constraints).length <= 0;
     }
 
     couldContain(type: string): boolean {
@@ -815,9 +835,9 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
         return super.getSpec() as GraphType;
     }
 
-    getAllContainments(): IdentifiableElement[] {
-        return ModelElementContainer.getAllContainments(this)
-            .concat(this.edges)
+    getAllContainedElements(): IdentifiableElement[] {
+        return (ModelElementContainer.getAllContainedElements(this) as IdentifiableElement[])
+            .concat(this.edgeElements)
             .map(e => (ModelElement.is(e) && !(e instanceof ModelElement) ? Object.assign(new ModelElement(), e) : e));
     }
 

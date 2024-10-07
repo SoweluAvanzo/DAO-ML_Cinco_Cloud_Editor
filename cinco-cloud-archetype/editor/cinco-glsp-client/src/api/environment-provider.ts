@@ -16,7 +16,9 @@
 
 import { inject, injectable } from 'inversify';
 import {
+    ExportSvgAction,
     IActionDispatcher,
+    IDiagramOptions,
     IDiagramStartup,
     ILogger,
     KeyCode,
@@ -73,9 +75,9 @@ export interface IEnvironmentProvider extends IDiagramStartup {
     selectedElementsChanged(modelElementId: string[]): void | Promise<void>;
     provideProperties(action: PropertyViewResponseAction): void | Promise<void>;
     propagateMetaspecification(metaSpec: CompositionSpecification): void | Promise<void>;
-    provideTools(): CincoPaletteTools[];
+    provideTools(model?: CincoGraphModel): CincoPaletteTools[];
     postRequestMetaSpecification(): Promise<void> | void;
-    getCurrentModel(): CincoGraphModel;
+    getActiveModel(): CincoGraphModel | undefined;
     get actionDispatcher(): IActionDispatcher;
     selectedElements(): CincoModelElement[];
 }
@@ -95,17 +97,18 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
     @inject(GraphModelProvider)
     protected readonly graphModelProvider: GraphModelProvider;
     @inject(SelectionService) protected selectionService: SelectionService;
+    @inject(TYPES.IDiagramOptions) options: IDiagramOptions;
 
     protected selectedElementIds: string[];
-    protected model: CincoGraphModel;
+    protected activeModel: CincoGraphModel | undefined;
 
     async getWorkspaceRoot(): Promise<string> {
         const serverArgs = await ServerArgsProvider.getServerArgs();
         return serverArgs?.workspacePath;
     }
 
-    getCurrentModel(): CincoGraphModel {
-        return this.model;
+    getActiveModel(): CincoGraphModel | undefined {
+        return this.activeModel;
     }
 
     handleLogging(action: ServerOutputAction): void | Promise<void> {
@@ -151,21 +154,21 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
     }
 
     async postRequestModel(): Promise<void> {
-        this.model = await this.graphModelProvider.graphModel;
+        this.activeModel = await this.graphModelProvider.graphModel;
     }
 
     postRequestMetaSpecification(): Promise<void> | void {
         this.logger.log(this, 'Received metaspec.');
     }
 
-    provideTools(): CincoPaletteTools[] {
-        let tools = [
+    provideTools(model: CincoGraphModel): CincoPaletteTools[] {
+        const tools = [
             {
                 id: '_default'
             },
             {
                 id: '_delete'
-            },
+            }
             /*
             {
                 id: '_marquee'
@@ -173,49 +176,79 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
             {
                 id: '_validate'
             },*/
-            {
-                id: 'cinco.validate-tool',
-                codicon: 'pass',
-                title: 'Validate model',
-                action: async (_: any) => {
-                    const model = await this.graphModelProvider.graphModel;
-                    const action = ValidationRequestAction.create(model.id);
-                    const validationResponse = await this.actionDispatcher.request(action);
-                    let messageText = '';
-                    for (const message of validationResponse.messages) {
-                        messageText += `{
-                            Name: ${message.name},
-                            Status: ${message.status},
-                            Message: ${message.message},
-                        }\n`;
-                    }
-                    alert('Validation View not implemented: ' + messageText);
-                },
-                shortcut: ['AltLeft', 'KeyV']
-            } as CincoPaletteTools,
-            {
-                id: 'cinco.generate-tool',
-                codicon: 'run-all',
-                title: 'Generate',
-                action: async (_: any) => {
-                    const model = await this.graphModelProvider.graphModel;
-                    const workspacePath: string = await this.getWorkspaceRoot();
-                    const action = GeneratorAction.create(model.id, workspacePath);
-                    this.actionDispatcher.dispatch(action);
-                    alert('Triggered Generator. Output behaviour not yet implemented.');
-                },
-                shortcut: ['AltLeft', 'KeyG']
-            } as CincoPaletteTools,
-            {
-                id: '_search'
-            }
         ];
-        if (!this.model || !hasGeneratorAction(this.model.type)) {
-            tools = tools.filter(t => t.id !== 'cinco.generate-tool');
+        if (model) {
+            if (hasValidator(model.type)) {
+                tools.push({
+                    id: 'cinco.validate-tool',
+                    codicon: 'pass',
+                    title: 'Validate model',
+                    action: async (_: any) => {
+                        if (!model) {
+                            return;
+                        }
+                        const action = ValidationRequestAction.create(model.id);
+                        const validationResponse = await this.actionDispatcher.request(action);
+                        let messageText = '';
+                        for (const message of validationResponse.messages) {
+                            messageText += `{
+                                    Name: ${message.name},
+                                    Status: ${message.status},
+                                    Message: ${message.message},
+                                }\n`;
+                        }
+                        alert('Validation View not implemented: ' + messageText);
+                    },
+                    shortcut: ['AltLeft', 'KeyV']
+                } as CincoPaletteTools);
+            }
+            if (hasGeneratorAction(model.type)) {
+                tools.push({
+                    id: 'cinco.generate-tool',
+                    codicon: 'run-all',
+                    title: 'Generate',
+                    action: async (_: any) => {
+                        if (!model) {
+                            return;
+                        }
+                        const workspacePath: string = await this.getWorkspaceRoot();
+                        const action = GeneratorAction.create(model.id, workspacePath);
+                        this.actionDispatcher.dispatch(action);
+                        alert('Triggered Generator. Output behaviour not yet implemented.');
+                    },
+                    shortcut: ['AltLeft', 'KeyG']
+                } as CincoPaletteTools);
+            }
         }
-        if (!this.model || !hasValidator(this.model.type)) {
-            tools = tools.filter(t => t.id !== 'cinco.validate-tool');
-        }
+        // right-most element
+        tools.push({
+            id: 'cinco.export-svg',
+            codicon: 'export',
+            title: 'Export SVG',
+            action: async (_: any) => {
+                if (!model) {
+                    return;
+                }
+                const svgElement = document.getElementById(`${this.options.clientId}_${model.id}`);
+                if (svgElement) {
+                    const clonedSvg = svgElement.cloneNode(true) as SVGElement;
+                    clonedSvg.removeAttribute('xmlns');
+                    const serializer = new XMLSerializer();
+                    const svgString = serializer.serializeToString(clonedSvg);
+                    const action = ExportSvgAction.create(svgString);
+                    this.actionDispatcher
+                        .dispatch(action)
+                        .then(d => {
+                            console.log(d);
+                        })
+                        .catch(e => console.log(e));
+                }
+            },
+            shortcut: ['AltLeft', 'KeyE']
+        } as CincoPaletteTools);
+        tools.push({
+            id: '_search'
+        });
         return tools;
     }
 
