@@ -13,12 +13,17 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GModelElement, GModelIndex, GModelRoot } from '@eclipse-glsp/server';
-import { injectable } from 'inversify';
+import { ActionDispatcher, GModelElement, GModelIndex, GModelRoot } from '@eclipse-glsp/server';
+import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, IdentifiableElement, ModelElement, ModelElementContainer, Node } from './graph-model';
+import { CincoActionDispatcher } from '../api/cinco-action-dispatcher';
+import { hasValidation, ValidationRequestAction, ValidationResponseAction } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class GraphModelIndex extends GModelIndex {
+    @inject(ActionDispatcher)
+    protected actionDispatcher: CincoActionDispatcher;
+
     protected graphmodel: GraphModel;
     protected edgesIndex = new Map<string, Edge>();
     protected nodesIndex = new Map<string, Node>();
@@ -26,6 +31,11 @@ export class GraphModelIndex extends GModelIndex {
 
     indexGraphModel(graphModel: GraphModel): void {
         this.graphmodel = graphModel;
+        this.edgesIndex.clear();
+        this.nodesIndex.clear();
+        this.reverseContainerIndex.clear();
+        this.idToElement.clear();
+        this.typeToElements.clear();
         this.reverseIndexContainers(this.graphmodel);
         this.indexEdges(this.graphmodel);
     }
@@ -46,11 +56,23 @@ export class GraphModelIndex extends GModelIndex {
         });
     }
 
+    getAllModelElements(): ModelElement[] {
+        if (!this.graphmodel) {
+            return [];
+        }
+        let modelElements: ModelElement[] = [this.getRoot()];
+        modelElements = modelElements.concat(Array.from(this.nodesIndex.values())).concat(Array.from(this.edgesIndex.values()));
+        return modelElements;
+    }
+
+    getAllModelElementIds(): string[] {
+        let ids: string[] = [this.getRoot().id];
+        ids = ids.concat(Array.from(this.nodesIndex.keys())).concat(Array.from(this.edgesIndex.keys()));
+        return ids;
+    }
+
     getModelElements(elementTypeId: string): ModelElement[] {
-        const allEdges = Array.from(this.edgesIndex.values());
-        const allNodes = Array.from(this.nodesIndex.values());
-        const allElements = [this.graphmodel as ModelElement].concat(allEdges).concat(allNodes);
-        return allElements.filter(e => e.type === elementTypeId);
+        return this.getAllModelElements().filter(e => e.type === elementTypeId);
     }
 
     findModelElement(id: string | undefined): ModelElement | undefined {
@@ -116,5 +138,14 @@ export class GraphModelIndex extends GModelIndex {
      */
     getOutgoingEdgeElements(node: ModelElement): Edge[] {
         return this.getAllEdgeElements().filter(edge => edge.sourceIDs.includes(node.id));
+    }
+
+    async validate(element: ModelElement): Promise<boolean> {
+        if (!hasValidation(element.type)) {
+            return Promise.resolve(true);
+        }
+        const responses = await this.actionDispatcher.request(ValidationRequestAction.create(this.graphmodel.id, element.id));
+        const validationResults = responses.filter(r => r.kind === ValidationResponseAction.KIND) as ValidationResponseAction[];
+        return !ValidationResponseAction.containsErrors(validationResults);
     }
 }

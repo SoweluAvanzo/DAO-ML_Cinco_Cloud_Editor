@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2023 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,12 +14,9 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { ApplyAppearanceUpdateAction, AppearanceUpdateRequestAction } from '@cinco-glsp/cinco-glsp-common';
+import { Action, ValueUpdateRequestAction } from '@cinco-glsp/cinco-glsp-common';
 import { APIBaseHandler } from './api-base-handler';
 
-export abstract class AppearanceProvider extends APIBaseHandler {
-    abstract getAppearance(
-        action: AppearanceUpdateRequestAction,
-        ...args: unknown[]
-    ): Promise<ApplyAppearanceUpdateAction[]> | ApplyAppearanceUpdateAction[];
+export abstract class ValueProvider extends APIBaseHandler {
+    abstract updateValue(action: ValueUpdateRequestAction, ...args: unknown[]): Promise<Action[]> | Action[];
 }

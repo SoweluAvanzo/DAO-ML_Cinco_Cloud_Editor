@@ -64,6 +64,14 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     abstract executeHandler(handler: H, element: ModelElement, action: A, args: any): Promise<Action[]> | Action[];
 
     execute(action: A, ...args: unknown[]): Promise<Action[]> {
+        /**
+         * - 'tempId' is an internal glsp convention
+         * - 'SYSTEM' is the internal cinco-glsp convention for a client like the theia editor,
+         *    which exists besides the canvas-clients
+         */
+        if (['tempId', 'SYSTEM'].includes(this.modelState.clientId)) {
+            return Promise.resolve([]);
+        }
         return new Promise<Action[]>((resolve, _) => {
             const results: Action[] = [];
             this.getActiveHandlers(action, args).then(handlers => {

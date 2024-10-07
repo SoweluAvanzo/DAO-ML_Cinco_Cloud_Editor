@@ -21,18 +21,28 @@ export class HooksAndActionsValidator extends ValidationHandler {
 
     override execute(action: ValidationRequestAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // next actions
-        return [
-            ValidationResponseAction.create(
-                [
-                    {
-                        name: 'Test message',
-                        message: 'This is a test message',
-                        status: ValidationStatus.Info
-                    }
-                ],
-                action.requestId
-            )
-        ];
+
+        const modelElement = this.getElement(action.modelElementId);
+        const name = `${modelElement.getSpec().label} (${modelElement.id})`
+        return [ValidationResponseAction.create(
+            this.modelState.graphModel.id,
+            action.modelElementId,
+            [
+                modelElement.type == 'hooksandactions:hooksandactions' ? 
+                {
+                    name: name,
+                    message: 'Element is valid.',
+                    status: ValidationStatus.Pass
+                } :
+                {
+                    name: name,
+                    message: 'Element has errors.',
+                    status: ValidationStatus.Error
+                }
+                
+            ],
+            action.requestId
+        )];
     }
 
     override canExecute(action: ValidationRequestAction, ...args: unknown[]): Promise<boolean> | boolean {

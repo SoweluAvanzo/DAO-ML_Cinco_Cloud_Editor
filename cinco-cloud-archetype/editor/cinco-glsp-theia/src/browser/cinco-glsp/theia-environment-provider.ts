@@ -27,9 +27,11 @@ import {
     ServerDialogAction,
     ServerDialogResponse,
     ServerOutputAction,
+    ValidationModelUpdateCommand,
     ValidationRequestAction,
+    ValidationResponseAction,
     hasGeneratorAction,
-    hasValidator
+    hasValidation
 } from '@cinco-glsp/cinco-glsp-common';
 import { ExportSvgAction } from '@eclipse-glsp/sprotty';
 import { CommandRegistry } from '@theia/core';
@@ -45,7 +47,7 @@ import { WorkspaceService } from '@theia/workspace/lib/browser';
 import { CincoGLSPDiagramMananger } from '../diagram/cinco-glsp-diagram-manager';
 import { CommandAction } from '../../../../cinco-glsp-common/lib/protocol/server-message-protocol';
 import { CincoGLSPDiagramWidget } from '../diagram/cinco-glsp-diagram-widget';
-import { CincoGraphModel } from '@cinco-glsp/cinco-glsp-client/lib/model/model';
+import { CincoGraphModel, CincoModelElement } from '@cinco-glsp/cinco-glsp-client/lib/model/model';
 
 @injectable()
 export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
@@ -70,6 +72,10 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
             return theiaRoot.path.fsPath();
         }
         return super.getWorkspaceRoot();
+    }
+
+    override handleValidation(action: ValidationResponseAction): void | Promise<void> {
+        this.commandRegistry.executeCommand(ValidationModelUpdateCommand.id, action);
     }
 
     override async preInitialize(): Promise<void> {}
@@ -107,7 +113,7 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
                 callbacks: [
                     async () => {
                         // send validation request
-                        const action = ValidationRequestAction.create(model.id);
+                        const action = ValidationRequestAction.create(model.id, model.id);
                         const response = await this.actionDispatcher.request(action);
                         this.commandRegistry.executeCommand('CincoCloud.updateValidationModel', response.messages);
                     }
@@ -128,6 +134,12 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
             }
         });
 
+        // request initial validation
+        // TODO: currently UserDefined Types missing
+        if (this.activeModel && hasValidation(this.activeModel.type) && model instanceof CincoGraphModel) {
+            this.validateModelElements(model);
+        }
+
         // TODO: SAMI - This generatorButton causes artifacts in the theia GUI and is currently turned off
         // Also this is deprecated, as the palette should handle the generator button as of GLSP 2.0
         // register generate command
@@ -137,6 +149,18 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
             this.registerGeneratorCommand();
         });
         */
+    }
+
+    private validateModelElements(model: CincoGraphModel): void {
+        const modelElements = model.children.filter(c => CincoModelElement.is(c)) as CincoModelElement[];
+        modelElements.push(model);
+        modelElements
+            .filter(m => hasValidation(m.type))
+            .forEach(async m => {
+                const action = ValidationRequestAction.create(model.id, m.id);
+                const validationResponse = await this.actionDispatcher.request(action);
+                this.handleValidation(validationResponse);
+            });
     }
 
     /**
@@ -239,7 +263,7 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
             }
         ];
         if (model) {
-            if (hasValidator(model.type)) {
+            if (hasValidation(model.type)) {
                 tools.push({
                     id: 'cinco.validate-tool',
                     codicon: 'pass',
@@ -248,9 +272,7 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
                         if (!model) {
                             return;
                         }
-                        const action = ValidationRequestAction.create(model.id);
-                        const validationResponse = await this.actionDispatcher.request(action);
-                        this.commandRegistry.executeCommand('CincoCloud.updateValidationModel', validationResponse.messages);
+                        this.validateModelElements(model);
                     },
                     shortcut: ['AltLeft', 'KeyV']
                 } as CincoPaletteTools);

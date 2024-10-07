@@ -24,23 +24,35 @@ import { hasArrayProp, hasNumberProp, hasObjectProp, hasStringProp } from './pro
 export namespace MetaSpecification {
     let PRIOR_META_SPECIFICATION: CompositionSpecification = {};
     let META_SPECIFICATION: CompositionSpecification = {};
+    let cacheReady = false;
+
+    // preprocessed
+    const SPEC_MAP: Map<string, ElementType> = new Map();
+
+    // delta
+    let changedAnnotations = false;
+
+    // cached
     let CACHED_CONTAINMENTS: Map<ModelElementContainer, ElementType[]> = new Map();
     const CACHED_EDGE_TARGETS: Map<string, NodeType[]> = new Map();
     const CACHED_EDGE_SOURCES: Map<string, NodeType[]> = new Map();
+
+    // precomputated (Convention: <elementTypeId, information>)
     const IS_NODE_TYPE: Map<string, boolean> = new Map();
     const IS_EDGE_TYPE: Map<string, boolean> = new Map();
     const IS_GRAPH_TYPE: Map<string, boolean> = new Map();
     const IS_CUSTOM_TYPE: Map<string, boolean> = new Map();
-    const SPEC_MAP: Map<string, ElementType> = new Map();
-    let changedAnnotations = false;
+    const HAS_APPEARANCE_PROVIDER: Map<string, boolean> = new Map();
+    const HAS_VALUE_PROVIDER: Map<string, boolean> = new Map();
+    const HAS_VALIDATION: Map<string, boolean> = new Map();
 
     export function get(): CompositionSpecification {
         return META_SPECIFICATION;
     }
 
     export function exportCachedComputations(): {
-        cachedContainments: Map<ModelElementContainer, ElementType[]>
-        changedAnnotations: boolean
+        cachedContainments: Map<ModelElementContainer, ElementType[]>;
+        changedAnnotations: boolean;
     } {
         return {
             cachedContainments: CACHED_CONTAINMENTS,
@@ -49,14 +61,15 @@ export namespace MetaSpecification {
     }
 
     export function importCachedComputations(computations: {
-        cachedContainments: Map<ModelElementContainer, NodeType[]>
-        changedAnnotations: boolean
+        cachedContainments: Map<ModelElementContainer, NodeType[]>;
+        changedAnnotations: boolean;
     }): void {
         CACHED_CONTAINMENTS = computations.cachedContainments;
         changedAnnotations = computations.changedAnnotations;
     }
 
     export function merge(metaSpecification: CompositionSpecification): void {
+        cacheReady = false;
         addGraphTypes(metaSpecification.graphTypes ?? []);
         addNodeTypes(metaSpecification.nodeTypes ?? []);
         addEdgeTypes(metaSpecification.edgeTypes ?? []);
@@ -70,10 +83,14 @@ export namespace MetaSpecification {
         computeClassifications();
         cacheEdgeRelations();
         cacheContainments();
-        // detections in relation to last call of 'prepareCache'
         detectChanges();
-
+        computateAnnotationClassifications();
         PRIOR_META_SPECIFICATION = get();
+        cacheReady = true;
+    }
+
+    export function isCacheReady(): boolean {
+        return cacheReady;
     }
 
     /**
@@ -83,10 +100,10 @@ export namespace MetaSpecification {
     function createSpecMap(): void {
         SPEC_MAP.clear();
         const spec = get();
-        const elements = (spec.nodeTypes as ElementType[] ?? [])
-            .concat((spec.edgeTypes ?? []))
-            .concat((spec.graphTypes ?? []))
-            .concat((spec.customTypes ?? []));
+        const elements = ((spec.nodeTypes as ElementType[]) ?? [])
+            .concat(spec.edgeTypes ?? [])
+            .concat(spec.graphTypes ?? [])
+            .concat(spec.customTypes ?? []);
         elements.forEach(e => SPEC_MAP.set(e.elementTypeId, e));
     }
 
@@ -96,19 +113,15 @@ export namespace MetaSpecification {
 
     function cacheEdgeRelations(): void {
         CACHED_EDGE_TARGETS.clear();
-        getEdgeTypes().forEach(
-            edgeType => {
-                const targets = getEdgeTargetsForCaching(edgeType);
-                CACHED_EDGE_TARGETS.set(edgeType.elementTypeId, targets);
-            }
-        );
+        getEdgeTypes().forEach(edgeType => {
+            const targets = getEdgeTargetsForCaching(edgeType);
+            CACHED_EDGE_TARGETS.set(edgeType.elementTypeId, targets);
+        });
         CACHED_EDGE_SOURCES.clear();
-        getEdgeTypes().forEach(
-            edgeType => {
-                const sources = getEdgeSourcesForCaching(edgeType);
-                CACHED_EDGE_SOURCES.set(edgeType.elementTypeId, sources);
-            }
-        );
+        getEdgeTypes().forEach(edgeType => {
+            const sources = getEdgeSourcesForCaching(edgeType);
+            CACHED_EDGE_SOURCES.set(edgeType.elementTypeId, sources);
+        });
     }
 
     export function getCachedEdgeTargets(elementTypeId: string): NodeType[] {
@@ -123,7 +136,7 @@ export namespace MetaSpecification {
         // pre resolve container
         CACHED_CONTAINMENTS.clear();
         const containers = (getGraphTypes() as ModelElementContainer[]).concat(getContainerNodes());
-        for(const container of containers) {
+        for (const container of containers) {
             const containments = getDeepContainmentsOf(container);
             CACHED_CONTAINMENTS.set(container, containments);
         }
@@ -141,11 +154,48 @@ export namespace MetaSpecification {
         return changedAnnotations;
     }
 
+    function computateAnnotationClassifications(): void {
+        HAS_APPEARANCE_PROVIDER.clear();
+        HAS_VALUE_PROVIDER.clear();
+        HAS_VALIDATION.clear();
+
+        // AppearanceProvider
+        for (const elementTypeId of getSpecMap().keys()) {
+            const hasAnn = hasAppearanceProvider(elementTypeId);
+            HAS_APPEARANCE_PROVIDER.set(elementTypeId, hasAnn);
+        }
+
+        // ValueProvider
+        for (const elementTypeId of getSpecMap().keys()) {
+            const hasAnn = hasValueProvider(elementTypeId);
+            HAS_VALUE_PROVIDER.set(elementTypeId, hasAnn);
+        }
+
+        // Validation
+        for (const elementTypeId of getSpecMap().keys()) {
+            const hasAnn = hasValidation(elementTypeId);
+            HAS_VALIDATION.set(elementTypeId, hasAnn);
+        }
+    }
+
+    export function _hasAppearanceProvider(elementTypeId: string): boolean {
+        return HAS_APPEARANCE_PROVIDER.get(elementTypeId) ?? false;
+    }
+
+    export function _hasValueProvider(elementTypeId: string): boolean {
+        return HAS_VALUE_PROVIDER.get(elementTypeId) ?? false;
+    }
+
+    export function _hasValidation(elementTypeId: string): boolean {
+        return HAS_VALIDATION.get(elementTypeId) ?? false;
+    }
+
     function computeClassifications(): void {
         IS_NODE_TYPE.clear();
         IS_EDGE_TYPE.clear();
         IS_GRAPH_TYPE.clear();
         IS_CUSTOM_TYPE.clear();
+
         // graphs
         (get().graphTypes ?? []).forEach(t => IS_GRAPH_TYPE.set(t.elementTypeId, true));
         (get().edgeTypes ?? []).forEach(t => IS_GRAPH_TYPE.set(t.elementTypeId, false));
@@ -805,12 +855,11 @@ export class UserDefinedType implements ElementType, CustomType {
 export namespace UserDefinedType {
     export function is(object: any): object is UserDefinedType {
         const isSpecified = MetaSpecification.isCustomType(object?.elementTypeId);
-        return ElementType.is(object) && isSpecified &&
-         (
-            !Enum.is(object)
-            ||
-            (hasStringProp(object, 'label') && hasArrayProp(object, 'attributes')))
-         ;
+        return (
+            ElementType.is(object) &&
+            isSpecified &&
+            (!Enum.is(object) || (hasStringProp(object, 'label') && hasArrayProp(object, 'attributes')))
+        );
     }
 }
 
@@ -968,6 +1017,7 @@ const handlerAnnotations = [
     'Hook',
     'CustomAction',
     'AppearanceProvider',
+    'ValueProvider',
     'Validation',
     'GeneratorAction',
     'Interpreter',
@@ -975,16 +1025,16 @@ const handlerAnnotations = [
     'SelectAction'
 ];
 
-export function hasAppearanceProvider(type: string): boolean {
-    return getAppearanceProvider(type).length > 0;
+export function hasAppearanceProvider(elementTypeId: string): boolean {
+    if (MetaSpecification.isCacheReady()) {
+        return MetaSpecification._hasAppearanceProvider(elementTypeId);
+    }
+    return getAppearanceProvider(elementTypeId).length > 0;
 }
 
 export function getAppearanceProvider(elementTypeId: string): string[] {
     const type = getSpecOf(elementTypeId);
-    if(
-        !type
-        || (!NodeType.is(type) && !EdgeType.is(type))
-    ) {
+    if (!type || (!NodeType.is(type) && !EdgeType.is(type))) {
         return [];
     }
     const result: Set<string> = new Set();
@@ -1006,9 +1056,35 @@ export function getAppearanceProvider(elementTypeId: string): string[] {
     return Array.from(result);
 }
 
+export function hasValueProvider(elementTypeId: string): boolean {
+    if (MetaSpecification.isCacheReady()) {
+        return MetaSpecification._hasValueProvider(elementTypeId);
+    }
+    return getValueProvider(elementTypeId).length > 0;
+}
+
+export function getValueProvider(elementTypeId: string): string[] {
+    const type = getSpecOf(elementTypeId);
+    if (!type) {
+        return [];
+    }
+    const result: Set<string> = new Set();
+    const annotationValues = getAnnotationValues(type, 'ValueProvider');
+    for (const ann of annotationValues) {
+        if (ann && ann.length > 0) {
+            ann.forEach(a => {
+                if (!result.has(a)) {
+                    result.add(a);
+                }
+            });
+        }
+    }
+    return Array.from(result);
+}
+
 export function hasGeneratorAction(elementTypeId: string): boolean {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return hasAnnotation(type, 'GeneratorAction');
@@ -1016,7 +1092,7 @@ export function hasGeneratorAction(elementTypeId: string): boolean {
 
 export function getGeneratorAction(elementTypeId: string): string[][] {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return [];
     }
     return getAnnotationValues(type, 'GeneratorAction');
@@ -1024,7 +1100,7 @@ export function getGeneratorAction(elementTypeId: string): string[][] {
 
 export function hasCustomAction(elementTypeId: string): boolean {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return hasAnnotation(type, 'CustomAction');
@@ -1032,7 +1108,7 @@ export function hasCustomAction(elementTypeId: string): boolean {
 
 export function getCustomActions(elementTypeId: string): string[][] {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return [];
     }
     return getAnnotationValues(type, 'CustomAction');
@@ -1040,7 +1116,7 @@ export function getCustomActions(elementTypeId: string): string[][] {
 
 export function hasDoubleClickAction(elementTypeId: string): boolean {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return hasAnnotation(type, 'DoubleClickAction');
@@ -1048,7 +1124,7 @@ export function hasDoubleClickAction(elementTypeId: string): boolean {
 
 export function getDoubleClickActions(elementTypeId: string): string[][] {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return [];
     }
     return getAnnotationValues(type, 'DoubleClickAction');
@@ -1056,7 +1132,7 @@ export function getDoubleClickActions(elementTypeId: string): string[][] {
 
 export function hasSelectAction(elementTypeId: string): boolean {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return hasAnnotation(type, 'SelectAction');
@@ -1064,15 +1140,18 @@ export function hasSelectAction(elementTypeId: string): boolean {
 
 export function getSelectActions(elementTypeId: string): string[][] {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return [];
     }
     return getAnnotationValues(type, 'SelectAction');
 }
 
-export function hasValidator(elementTypeId: string): boolean {
+export function hasValidation(elementTypeId: string): boolean {
+    if (MetaSpecification.isCacheReady()) {
+        return MetaSpecification._hasValidation(elementTypeId);
+    }
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return hasAnnotation(type, 'Validation');
@@ -1080,7 +1159,7 @@ export function hasValidator(elementTypeId: string): boolean {
 
 export function getValidators(elementTypeId: string): string[][] {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return [];
     }
     return getAnnotationValues(type, 'Validation');
@@ -1109,7 +1188,7 @@ export function getAllHandlerNames(): string[] {
     const elements = getModelElementSpecifications();
     let handlerNames: string[] = [];
     for (const element of elements) {
-        // get style handler
+        // get style handler (special as it can also be specified in msl)
         const appearanceProvider = getAppearanceProvider(element.elementTypeId);
         if (appearanceProvider) {
             handlerNames = handlerNames.concat(appearanceProvider);
@@ -1139,7 +1218,7 @@ export function getAllHandlerNames(): string[] {
 
 export function hasHooks(elementTypeId: string): boolean {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return hasAnnotation(type, 'Hook');
@@ -1174,7 +1253,7 @@ export function getHooksOfType(elementTypeId: string, hookType: HookType): strin
 
 export function getAllHooks(elementTypeId: string): string[][] {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return [];
     }
     return getAnnotationValues(type, 'Hook');
@@ -1182,7 +1261,7 @@ export function getAllHooks(elementTypeId: string): string[][] {
 
 export function isResizeable(elementTypeId: string): boolean {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return getAnnotations(type, 'disable').filter(a => a.values.includes('resize')).length <= 0;
@@ -1190,7 +1269,7 @@ export function isResizeable(elementTypeId: string): boolean {
 
 export function isMovable(elementTypeId: string): boolean {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return getAnnotations(type, 'disable').filter(a => a.values.includes('move')).length <= 0;
@@ -1198,7 +1277,7 @@ export function isMovable(elementTypeId: string): boolean {
 
 export function isDeletable(elementTypeId: string): boolean {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return getAnnotations(type, 'disable').filter(a => a.values.includes('delete')).length <= 0;
@@ -1206,7 +1285,7 @@ export function isDeletable(elementTypeId: string): boolean {
 
 export function isCreateable(elementTypeId: string): boolean {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return getAnnotations(type, 'disable').filter(a => a.values.includes('create')).length <= 0;
@@ -1214,19 +1293,21 @@ export function isCreateable(elementTypeId: string): boolean {
 
 export function isSelectable(elementTypeId: string): boolean {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return false;
     }
     return getAnnotations(type, 'disable').filter(a => a.values.includes('select')).length <= 0;
 }
 
 function annotationsHaveChanged(oldSpec: CompositionSpecification | undefined, newSpec: CompositionSpecification): boolean {
-    if(!oldSpec) {
+    if (!oldSpec) {
         return true;
     }
     const getAnnotatable = (spec: CompositionSpecification): Map<string, Annotation[]> => {
-        const annotateable = (spec.nodeTypes??[] as Type[])
-            .concat(spec.edgeTypes ?? []).concat(spec.graphTypes ?? []).concat(spec.customTypes ??[]);
+        const annotateable = (spec.nodeTypes ?? ([] as Type[]))
+            .concat(spec.edgeTypes ?? [])
+            .concat(spec.graphTypes ?? [])
+            .concat(spec.customTypes ?? []);
         const map = new Map<string, Annotation[]>();
         annotateable.forEach(e => map.set(e.elementTypeId, e.annotations ?? []));
         return map;
@@ -1235,16 +1316,13 @@ function annotationsHaveChanged(oldSpec: CompositionSpecification | undefined, n
     const newAnnotateble = getAnnotatable(newSpec);
 
     const allKeys = new Set(Array.from(oldAnnotateble.keys()).concat(Array.from(newAnnotateble.keys())));
-    for(const type of allKeys) {
-        if(
-            (!newAnnotateble.has(type) && oldAnnotateble.get(type)!.length > 0)  // old annotated type was deleted
-            || (!oldAnnotateble.has(type) && newAnnotateble.get(type)!.length > 0) // new annotated type was added
-            ||
-                (oldAnnotateble.has(type) && newAnnotateble.has(type)
-                && annotationsAreDifferent(
-                    oldAnnotateble.get(type)!,
-                    newAnnotateble.get(type)!
-                ))
+    for (const type of allKeys) {
+        if (
+            (!newAnnotateble.has(type) && oldAnnotateble.get(type)!.length > 0) || // old annotated type was deleted
+            (!oldAnnotateble.has(type) && newAnnotateble.get(type)!.length > 0) || // new annotated type was added
+            (oldAnnotateble.has(type) &&
+                newAnnotateble.has(type) &&
+                annotationsAreDifferent(oldAnnotateble.get(type)!, newAnnotateble.get(type)!))
         ) {
             return true;
         }
@@ -1254,36 +1332,31 @@ function annotationsHaveChanged(oldSpec: CompositionSpecification | undefined, n
 }
 
 export function annotationsAreDifferent(a: Annotation[], b: Annotation[]): boolean {
-    if(a.length !== b.length) {
+    if (a.length !== b.length) {
         return true;
     }
     const allNames = new Set(a.map(an => an.name).concat(b.map(an => an.name)));
-    for(const name of allNames) {
+    for (const name of allNames) {
         const annotationsOfNameInA = a.filter(an => an.name === name);
         const annotationsOfNameInB = b.filter(an => an.name === name);
-        if(
-            annotationsOfNameInA.length !== annotationsOfNameInB.length
-        ) {
+        if (annotationsOfNameInA.length !== annotationsOfNameInB.length) {
             // though lengths are equal, an annotation changed it's name
             return true;
         } else {
             const valuesOfNameInA = annotationsOfNameInA.map(an => an.values);
             const valuesOfNameInB = annotationsOfNameInB.map(an => an.values);
-            if(
-                valuesOfNameInA.flat().length !== valuesOfNameInB.flat().length
-            ) {
+            if (valuesOfNameInA.flat().length !== valuesOfNameInB.flat().length) {
                 // a value of an annotation type was added or removed
                 return true;
             } else {
-                const valueStrings = new Set( // all value strings per annotation of both A and B
-                    valuesOfNameInA.map(vs => vs.toString()).concat(
-                    valuesOfNameInB.map(vs => vs.toString())));
-                for(const v of valueStrings) {
+                // all value strings per annotation of both A and B
+                const valueStrings = new Set(valuesOfNameInA.map(vs => vs.toString()).concat(valuesOfNameInB.map(vs => vs.toString())));
+                for (const v of valueStrings) {
                     // the serialized valueSet v of the annotation must be present the same nummber in both
                     // sets
                     const presentInB = valuesOfNameInB.filter(vb => vb.toString() === v).length;
                     const presentInA = valuesOfNameInA.filter(vb => vb.toString() === v).length;
-                    if(presentInA !== presentInB) {
+                    if (presentInA !== presentInB) {
                         return true;
                     }
                 }
@@ -1320,7 +1393,7 @@ function getIconFromAnnotation(type: ElementType): string | undefined {
 
 export function getIcon(elementTypeId: string | undefined): string | undefined {
     const type = getSpecOf(elementTypeId);
-    if(!type) {
+    if (!type) {
         return undefined;
     }
     if (NodeType.is(type) || EdgeType.is(type)) {
@@ -1445,8 +1518,12 @@ export function getAllPaletteCategories(primePalettes = true): string[] {
 }
 
 export function getAllPaletteAnnotations(): Annotation[] {
-    const nodePalleteAnnotations = getNodeTypes().map(e => (e.annotations ?? []).filter(a => a.name === 'palette')).flat();
-    const edgePaletteAnnotations = getEdgeTypes().map(e => (e.annotations ?? []).filter(a => a.name === 'palette')).flat();
+    const nodePalleteAnnotations = getNodeTypes()
+        .map(e => (e.annotations ?? []).filter(a => a.name === 'palette'))
+        .flat();
+    const edgePaletteAnnotations = getEdgeTypes()
+        .map(e => (e.annotations ?? []).filter(a => a.name === 'palette'))
+        .flat();
     return nodePalleteAnnotations.concat(edgePaletteAnnotations);
 }
 
@@ -1477,21 +1554,24 @@ export function getContainerNodes(): ModelElementContainer[] {
 export function getContainmentsOf(e: ModelElementContainer): ElementType[] {
     if (e?.containments !== undefined) {
         const containmentTypesIds = e.containments.map((c: Constraint) => c.elements ?? []).flat();
-        const nodeContainments = containmentTypesIds.map(id => getNodeSpecOf(id))
+        const nodeContainments = containmentTypesIds
+            .map(id => getNodeSpecOf(id))
             .filter((n: NodeType | undefined) => n !== undefined) as NodeType[];
 
-        const edgeTypes = Array.from(new Set(nodeContainments.map(n =>
-            // incoming edges
-            (n.outgoingEdges ?? [])
-            .map((c: Constraint) => c.elements)
-            .flat()
-            .concat(
-                // incoming edges
-                    (n.incomingEdges ?? [])
-                    .map((c: Constraint) => c.elements)
-                    .flat()
+        const edgeTypes = Array.from(
+            new Set(
+                nodeContainments.map(n =>
+                    // incoming edges
+                    (n.outgoingEdges ?? [])
+                        .map((c: Constraint) => c.elements)
+                        .flat()
+                        .concat(
+                            // incoming edges
+                            (n.incomingEdges ?? []).map((c: Constraint) => c.elements).flat()
+                        )
+                )
             )
-        ))).flat();
+        ).flat();
         const edgeContainments = edgeTypes.map(eT => getEdgeSpecOf(eT!)).filter(element => element !== undefined) as ElementType[];
         const allContainments = (nodeContainments as ElementType[]).concat(edgeContainments);
         return allContainments;
@@ -1502,11 +1582,13 @@ export function getContainmentsOf(e: ModelElementContainer): ElementType[] {
 export function getDeepContainmentsOf(e: ModelElementContainer, seenContainments: ElementType[] = []): ElementType[] {
     let containments = getContainmentsOf(e);
     // containments of containments
-    containments = Array.from(new Set(
+    containments = Array.from(
+        new Set(
             containments.concat(
-                containments.filter(c => ModelElementContainer.is(c) && !seenContainments.includes(c)).map(c =>
-                    getDeepContainmentsOf(c as ModelElementContainer, containments)
-                ).flat()
+                containments
+                    .filter(c => ModelElementContainer.is(c) && !seenContainments.includes(c))
+                    .map(c => getDeepContainmentsOf(c as ModelElementContainer, containments))
+                    .flat()
             )
         )
     );
@@ -1701,11 +1783,7 @@ export function isPrime(type: ElementType): boolean {
 
 export function isPrimeReference(type: ElementType | undefined): boolean {
     if (type && NodeType.is(type)) {
-        if (
-            type.primeReference !== undefined
-            && type.primeReference.name
-            && type.primeReference.type
-        ) {
+        if (type.primeReference !== undefined && type.primeReference.name && type.primeReference.type) {
             return true;
         }
     }

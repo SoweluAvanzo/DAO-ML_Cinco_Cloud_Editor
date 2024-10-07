@@ -36,8 +36,9 @@ import {
     CommandAction,
     ValidationRequestAction,
     hasGeneratorAction,
-    hasValidator,
-    CINCO_STARTUP_RANK
+    hasValidation,
+    CINCO_STARTUP_RANK,
+    ValidationResponseAction
 } from '@cinco-glsp/cinco-glsp-common';
 import { ServerArgsProvider } from '../meta/server-args-response-handler';
 import { GraphModelProvider } from '../model/graph-model-provider';
@@ -72,6 +73,7 @@ export interface IEnvironmentProvider extends IDiagramStartup {
     handleLogging(action: ServerOutputAction): void | Promise<void>;
     handleCommand(command: CommandAction): void | Promise<void>;
     showDialog(action: ServerDialogAction): void | Promise<void>;
+    handleValidation(action: ValidationResponseAction): void | Promise<void>;
     selectedElementsChanged(modelElementId: string[]): void | Promise<void>;
     provideProperties(action: PropertyViewResponseAction): void | Promise<void>;
     propagateMetaspecification(metaSpec: CompositionSpecification): void | Promise<void>;
@@ -137,6 +139,18 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
         alert('ShowDialog not implemented: ' + action.message);
     }
 
+    handleValidation(action: ValidationResponseAction): void | Promise<void> {
+        let messageText = '';
+        for (const message of action.messages) {
+            messageText += `{
+                    Name: ${message.name},
+                    Status: ${message.status},
+                    Message: ${message.message},
+                }\n`;
+        }
+        alert('Validation View not implemented: ' + messageText);
+    }
+
     selectedElementsChanged(modelElementIds: string[]): void | Promise<void> {
         this.selectedElementIds = modelElementIds;
     }
@@ -178,7 +192,7 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
             },*/
         ];
         if (model) {
-            if (hasValidator(model.type)) {
+            if (hasValidation(model.type)) {
                 tools.push({
                     id: 'cinco.validate-tool',
                     codicon: 'pass',
@@ -187,17 +201,9 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
                         if (!model) {
                             return;
                         }
-                        const action = ValidationRequestAction.create(model.id);
+                        const action = ValidationRequestAction.create(model.id, model.id);
                         const validationResponse = await this.actionDispatcher.request(action);
-                        let messageText = '';
-                        for (const message of validationResponse.messages) {
-                            messageText += `{
-                                    Name: ${message.name},
-                                    Status: ${message.status},
-                                    Message: ${message.message},
-                                }\n`;
-                        }
-                        alert('Validation View not implemented: ' + messageText);
+                        this.handleValidation(validationResponse);
                     },
                     shortcut: ['AltLeft', 'KeyV']
                 } as CincoPaletteTools);

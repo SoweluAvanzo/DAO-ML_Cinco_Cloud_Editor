@@ -17,7 +17,16 @@ import { Container, Edge, Node, HookManager, ModelElement, ModelElementContainer
 import { DeleteElementOperation, remove } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import { isChoice, DeleteArgument, HookType, deletableValue, filterOptions, Deletable } from '@cinco-glsp/cinco-glsp-common';
+import {
+    isChoice,
+    DeleteArgument,
+    HookType,
+    deletableValue,
+    filterOptions,
+    Deletable,
+    ValidationResponseAction,
+    hasValidation
+} from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class DeleteHandler extends CincoJsonOperationHandler {
@@ -89,6 +98,10 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             this.sourceModelStorage,
             this.submissionHandler
         );
+        // remove validation
+        if (hasValidation(parameters.deleted?.type ?? '')) {
+            this.actionDispatcher.dispatch(ValidationResponseAction.create(this.modelState.graphModel.id, parameters.modelElementId, []));
+        }
     }
 
     protected deleteNode(container: ModelElementContainer, containment: Deletable<Node>): void {

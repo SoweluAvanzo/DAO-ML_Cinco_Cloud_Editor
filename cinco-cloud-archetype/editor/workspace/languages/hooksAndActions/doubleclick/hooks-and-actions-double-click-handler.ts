@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { DoubleClickHandler, LanguageFilesRegistry, ModelElement, Node } from '@cinco-glsp/cinco-glsp-api';
-import { Action, DoubleClickAction, RequestAppearanceUpdateAction } from '@cinco-glsp/cinco-glsp-common';
+import { Action, DoubleClickAction, AppearanceUpdateRequestAction } from '@cinco-glsp/cinco-glsp-common';
 
 /**
  * Language Designer defined example of a DoubleClickHandler
@@ -32,7 +32,7 @@ export class HooksAndActionsDoubleClickHandler extends DoubleClickHandler {
         this.log(message, { show: true });
 
         // next actions => find all activities and update their appearance
-        const consecutiveActions: Action[] = [RequestAppearanceUpdateAction.create(modelElementId)];
+        const consecutiveActions: Action[] = [AppearanceUpdateRequestAction.create(modelElementId)];
         return consecutiveActions;
     }
 

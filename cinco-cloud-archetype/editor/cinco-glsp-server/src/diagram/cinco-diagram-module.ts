@@ -16,6 +16,7 @@
 import { GraphGModelFactory, GraphModelIndex, GraphModelState, GraphModelStorage, ServerResponseHandler } from '@cinco-glsp/cinco-glsp-api';
 import { DIAGRAM_TYPE } from '@cinco-glsp/cinco-glsp-common';
 import {
+    ActionDispatcher,
     ActionHandlerConstructor,
     BindingTarget,
     ClientSessionInitializer,
@@ -64,6 +65,8 @@ import { SelectManager } from '../tools/select-manager';
 import { DoubleClickHookHandler } from '../handler/double-click-hook-handler';
 import { SelectHookHandler } from '../handler/select-hook-handler';
 import { ChoiceSelectionEdgeSourceHandler, ChoiceSelectionEdgeTargetHandler } from '../handler/choice-selection-handlers';
+import { ValueProviderManager } from '../tools/value-provider-manager';
+import { CincoActionDispatcher } from '@cinco-glsp/cinco-glsp-api/lib/api/cinco-action-dispatcher';
 import { GhostDecisionHandler } from '../handler/ghost-decision-handler';
 
 @injectable()
@@ -100,9 +103,10 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(DoubleClickHookHandler); // @Hook(canDoubleClick, postDoubleClick)
         binding.add(SelectManager); // @SelectAction
         binding.add(SelectHookHandler); // @Hook(canSelect, postSelect)
-        binding.add(AppearanceProviderManager);
+        binding.add(AppearanceProviderManager); // @AppearanceProvier
+        binding.add(ValueProviderManager); // @ValueProvider
+        binding.add(ValidationManager); // @Validation
         binding.add(PropertyViewHandler);
-        binding.add(ValidationManager);
         binding.add(GeneratorManager);
         binding.add(MetaSpecificationReloadHandler);
         binding.add(MetaSpecificationRequestHandler);
@@ -145,5 +149,9 @@ export class CincoDiagramModule extends DiagramModule {
 
     protected override bindOperationHandlerRegistry(): BindingTarget<OperationHandlerRegistry> {
         return CincoOperationHandlerRegistry;
+    }
+
+    protected override bindActionDispatcher(): BindingTarget<ActionDispatcher> {
+        return CincoActionDispatcher;
     }
 }

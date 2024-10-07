@@ -153,6 +153,9 @@ export function getDefaultValue(elementTypeId: string, attributeName: string, an
     if (definition === undefined) {
         throw new Error(`Cannot get definition for attribute ${attributeName} of ${elementTypeId}.`);
     }
+    if (definition.defaultValue && definition.type === 'boolean' && typeof definition.defaultValue == 'string') {
+        return definition.defaultValue.toLowerCase() === 'true' ? true : false;
+    }
     return definition.defaultValue ?? getFallbackDefaultValue(definition.type, annotations);
 }
 
