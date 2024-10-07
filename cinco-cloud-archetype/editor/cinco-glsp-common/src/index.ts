@@ -25,6 +25,7 @@ export * from './protocol/choice-selection-protocol';
 export * from './protocol/cinco-glsp-lifecycle';
 export * from './protocol/custom-action-protocol';
 export * from './protocol/double-click-protocol';
+export * from './protocol/ghost-decision-protocol';
 export * from './protocol/select-protocol';
 export * from './protocol/generator-protocol';
 export * from './protocol/meta-specification-reload-protocol';

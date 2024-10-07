@@ -16,13 +16,13 @@
 import { RenderingContext, ShapeView, svg } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
-import * as conflictMarker from '@mdi/svg/svg/flash.svg';
+import * as ghost from '@mdi/svg/svg/ghost.svg';
 import { CincoMarker } from '../model/model';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
 
 @injectable()
-export class MarkerEdgeSourceTargetConflictView extends ShapeView {
+export class MarkerGhostView extends ShapeView {
     render(node: CincoMarker, context: RenderingContext): VNode | undefined {
         if (!this.isVisible(node, context)) {
             return undefined;
@@ -30,8 +30,7 @@ export class MarkerEdgeSourceTargetConflictView extends ShapeView {
         return (
             <g>
                 <rect width={node.size.width} height={node.size.height} fill='white' stroke='black' stroke-width={2} />
-                <image href={conflictMarker as any} width={node.size.width} height={node.size.height} />
-                {context.renderChildren(node) as Iterable<React.ReactNode>}
+                <image href={ghost as any} width={node.size.width} height={node.size.height} />
             </g>
         ) as unknown as VNode;
     }

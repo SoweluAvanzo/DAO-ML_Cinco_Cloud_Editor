@@ -57,7 +57,9 @@ import {
     Cell,
     cellValues,
     isConflictFree,
-    mapCell
+    mapCell,
+    Deletable,
+    deletableValue
 } from '@cinco-glsp/cinco-glsp-common';
 import { AnyObject, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { GraphModelIndex } from './graph-model-index';
@@ -76,7 +78,9 @@ export namespace IdentifiableElement {
 }
 
 export interface ModelElementContainer {
-    _containments: Node[];
+    get containments(): Deletable<Node>[];
+    set containments(containments: Deletable<Node>[]);
+    get containedElements(): Node[];
 }
 
 export interface PrimeReference {
@@ -105,13 +109,17 @@ export namespace ModelElementContainer {
         return AnyObject.is(object) && hasArrayProp(object, '_containments');
     }
 
+    export function getContainedElements(host: ModelElementContainer): Node[] {
+        return host.containments.map(deletableValue);
+    }
+
     // TODO: UserdefinedType currently not included
-    export function getAllContainments(host: ModelElementContainer): IdentifiableElement[] {
-        let allElements: IdentifiableElement[] = [];
-        allElements = allElements.concat(host._containments);
+    export function getAllContainedElements(host: ModelElementContainer): Node[] {
+        let allElements: Node[] = [];
+        allElements = allElements.concat(host.containedElements);
         for (const e of allElements) {
             if (ModelElementContainer.is(e)) {
-                allElements = allElements.concat(ModelElementContainer.getAllContainments(e));
+                allElements = allElements.concat(ModelElementContainer.getAllContainedElements(e));
             }
         }
         return allElements;
@@ -449,7 +457,7 @@ export class Node extends ModelElement {
     _primeReference?: PrimeReference;
 
     get parent(): ModelElementContainer | undefined {
-        return this.index!.findContainment(this);
+        return this.index!.findContainerOf(this.id);
     }
 
     get successors(): Node[] {
@@ -561,7 +569,7 @@ export class Node extends ModelElement {
             } else {
                 // find element in model
                 const potentialRefs = model
-                    .getAllContainments()
+                    .getAllContainedElements()
                     .filter(i => ModelElement.is(i))
                     .filter(e => e.id === primeReference.instanceId) as ModelElement[];
                 return potentialRefs.length > 0 ? potentialRefs[0] : undefined;
@@ -652,6 +660,9 @@ export class Container extends Node implements ModelElementContainer {
     set containments(elements: Node[]) {
         this._containments = elements;
     }
+    get containedElements(): Node[] {
+        return ModelElementContainer.getContainedElements(this);
+    }
 
     canContain(type: string): boolean {
         const spec = getSpecOf(this.type) as NodeType;
@@ -659,12 +670,12 @@ export class Container extends Node implements ModelElementContainer {
             return false;
         }
         const constraints: Constraint[] = spec.containments;
-        const elements = this.containments;
+        const elements = this.containedElements;
         return this.checkViolations(type, elements, constraints).length <= 0;
     }
 
-    getAllContainments(): IdentifiableElement[] {
-        return ModelElementContainer.getAllContainments(this);
+    getAllContainedElements(): IdentifiableElement[] {
+        return ModelElementContainer.getAllContainedElements(this);
     }
 
     override get valid(): Promise<boolean> {
@@ -780,14 +791,14 @@ export class Edge extends ModelElement {
 
 export namespace Edge {
     export function is(object: any): object is Edge {
-        return AnyObject.is(object) && hasStringProp(object, 'sourceID') && hasStringProp(object, 'targetID') && ModelElement.is(object);
+        return AnyObject.is(object) && 'sourceID' in object && 'targetID' in object && ModelElement.is(object);
     }
 }
 
 export class GraphModel extends ModelElement implements ModelElementContainer {
     _sourceUri?: string;
-    _containments: Node[] = [];
-    _edges: Edge[] = [];
+    _containments: Deletable<Node>[] = [];
+    _edges: Deletable<Edge>[] = [];
 
     override get index(): GraphModelIndex {
         if (!this._index) {
@@ -799,24 +810,29 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
     override set index(index: GraphModelIndex | undefined) {
         this._index = index;
     }
-
-    get containments(): Node[] {
+    get containments(): Deletable<Node>[] {
         if (!this._containments) {
             this._containments = [];
         }
         return this._containments!;
     }
-    set containments(elements: Node[]) {
+    get containedElements(): Node[] {
+        return ModelElementContainer.getContainedElements(this);
+    }
+    set containments(elements: Deletable<Node>[]) {
         this._containments = elements;
     }
-    get edges(): Edge[] {
+    get edges(): Deletable<Edge>[] {
         if (!this._edges!) {
             this._edges = [];
         }
         return this._edges!;
     }
-    set edges(elements: Edge[]) {
+    set edges(elements: Deletable<Edge>[]) {
         this._edges = elements;
+    }
+    get edgeElements(): Edge[] {
+        return this.edges.map(deletableValue);
     }
 
     canContain(type: string): boolean {
@@ -825,8 +841,7 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
             return false;
         }
         const constraints: Constraint[] = spec.containments;
-        const elements = this.containments;
-        return this.checkViolations(type, elements, constraints).length <= 0;
+        return this.checkViolations(type, this.containedElements, constraints).length <= 0;
     }
 
     couldContain(type: string): boolean {
@@ -837,14 +852,14 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
         return super.getSpec() as GraphType;
     }
 
-    getAllContainments(): ModelElement[] {
-        return ModelElementContainer.getAllContainments(this)
-            .concat(this.edges)
+    getAllContainedElements(): ModelElement[] {
+        return (ModelElementContainer.getAllContainedElements(this) as ModelElement[])
+            .concat(this.edgeElements)
             .map(e => (ModelElement.is(e) && !(e instanceof ModelElement) ? Object.assign(new ModelElement(), e) : e)) as ModelElement[];
     }
 
     override get valid(): Promise<boolean> {
-        const elements = [this as ModelElement].concat(this.getAllContainments()).concat();
+        const elements = [this as ModelElement].concat(this.getAllContainedElements()).concat();
         return Promise.all(
             elements.map(async element => {
                 const result = await this.index.validate(element);

@@ -13,25 +13,26 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { RenderingContext, ShapeView, svg } from '@eclipse-glsp/client';
+
+import { ShapeView, RenderingContext, svg } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
-import * as conflictMarker from '@mdi/svg/svg/flash.svg';
-import { CincoMarker } from '../model/model';
+import { CincoButtonRestore } from '../model/model';
+import * as restore from '@mdi/svg/svg/restore.svg';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const JSX = { createElement: svg };
 
 @injectable()
-export class MarkerEdgeSourceTargetConflictView extends ShapeView {
-    render(node: CincoMarker, context: RenderingContext): VNode | undefined {
-        if (!this.isVisible(node, context)) {
+export class ButtonRestoreView extends ShapeView {
+    render(button: Readonly<CincoButtonRestore>, context: RenderingContext): VNode | undefined {
+        if (!this.isVisible(button, context)) {
             return undefined;
         }
+
         return (
             <g>
-                <rect width={node.size.width} height={node.size.height} fill='white' stroke='black' stroke-width={2} />
-                <image href={conflictMarker as any} width={node.size.width} height={node.size.height} />
-                {context.renderChildren(node) as Iterable<React.ReactNode>}
+                <rect width={button.size.width} height={button.size.height} fill='white' stroke='black' stroke-width={2} cursor='pointer' />
+                <image href={restore as any} width={button.size.width} height={button.size.height} />
             </g>
         ) as unknown as VNode;
     }

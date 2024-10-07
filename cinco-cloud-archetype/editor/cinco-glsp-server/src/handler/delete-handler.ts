@@ -13,11 +13,20 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Container, Edge, Node, ModelElement, HookManager } from '@cinco-glsp/cinco-glsp-api';
+import { Container, Edge, Node, HookManager, ModelElement, ModelElementContainer } from '@cinco-glsp/cinco-glsp-api';
 import { DeleteElementOperation, remove } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import { isChoice, DeleteArgument, HookType, ValidationResponseAction, hasValidation } from '@cinco-glsp/cinco-glsp-common';
+import {
+    isChoice,
+    DeleteArgument,
+    HookType,
+    deletableValue,
+    filterOptions,
+    Deletable,
+    ValidationResponseAction,
+    hasValidation
+} from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class DeleteHandler extends CincoJsonOperationHandler {
@@ -31,13 +40,10 @@ export class DeleteHandler extends CincoJsonOperationHandler {
     protected deleteElementById(elementId: string, operation: DeleteElementOperation): void {
         const index = this.modelState.index;
         const element: ModelElement | undefined = index.findModelElement(elementId);
-        if (!element) {
+        if (element === undefined) {
             return;
         }
-        this.deleteElement(element, operation);
-    }
 
-    protected deleteElement(element: ModelElement, operation: DeleteElementOperation): void {
         const parameters: DeleteArgument = {
             kind: 'Delete',
             modelElementId: element.id,
@@ -68,32 +74,20 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             this.submissionHandler
         );
         parameters.deleted = element;
-        if (Container.is(element)) {
-            const containments = element.containments ?? [];
-            containments.forEach((c: Node) => this.deleteElement(c, operation));
-        }
+
         if (Node.is(element)) {
-            // disjunct from container
-            const containingNode = this.modelState.index.findContainment(element as Node);
-            if (containingNode !== undefined) {
-                remove(containingNode._containments, element);
-            } else {
-                remove(this.modelState.graphModel._containments, element);
+            const container = index.findContainerOf(elementId);
+            if (container === undefined) {
+                return;
             }
-            // remove associated edges
-            this.modelState.graphModel.edges.forEach((edge: Edge) => {
-                if (edge.sourceID === element.id || edge.targetID === element.id) {
-                    remove(this.modelState.graphModel._edges, edge);
-                } else if (isChoice(edge.sourceID) && edge.sourceID.options.includes(element.id)) {
-                    edge.sourceID = {
-                        tag: 'choice',
-                        options: edge.sourceID.options.filter(sourceID => sourceID !== element.id)
-                    };
-                }
-            });
+            const containment = container.containments.find(c => deletableValue(c).id === elementId)!;
+            this.deleteNode(container, containment);
         } else if (Edge.is(element)) {
-            remove(this.modelState.graphModel.edges, element);
+            const container = this.modelState.graphModel;
+            const containment = container.edges.find(c => deletableValue(c).id === elementId)!;
+            remove(this.modelState.graphModel.edges, containment);
         }
+
         // POST
         HookManager.executeHook(
             parameters,
@@ -108,5 +102,27 @@ export class DeleteHandler extends CincoJsonOperationHandler {
         if (hasValidation(parameters.deleted?.type ?? '')) {
             this.actionDispatcher.dispatch(ValidationResponseAction.create(this.modelState.graphModel.id, parameters.modelElementId, []));
         }
+    }
+
+    protected deleteNode(container: ModelElementContainer, containment: Deletable<Node>): void {
+        const node = deletableValue(containment);
+        if (Container.is(node)) {
+            for (const child of node.containments) {
+                this.deleteNode(node, child);
+            }
+        }
+        remove(container.containments, containment);
+
+        // remove associated edges
+        this.modelState.graphModel.edges.forEach((edgeContainment: Deletable<Edge>) => {
+            const edge = deletableValue(edgeContainment);
+            if (edge.sourceID === node.id || edge.targetID === node.id) {
+                remove(this.modelState.graphModel.edges, edgeContainment);
+            } else if (isChoice(edge.sourceID) && edge.sourceID.options.includes(node.id)) {
+                edge.sourceID = filterOptions(edge.sourceID, sourceID => sourceID !== node.id);
+            } else if (isChoice(edge.targetID) && edge.targetID.options.includes(node.id)) {
+                edge.targetID = filterOptions(edge.targetID, targetID => targetID !== node.id);
+            }
+        });
     }
 }

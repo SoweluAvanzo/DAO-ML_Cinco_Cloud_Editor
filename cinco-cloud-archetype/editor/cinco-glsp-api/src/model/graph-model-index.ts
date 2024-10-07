@@ -27,32 +27,31 @@ export class GraphModelIndex extends GModelIndex {
     protected graphmodel: GraphModel;
     protected edgesIndex = new Map<string, Edge>();
     protected nodesIndex = new Map<string, Node>();
-    protected containmentsIndex = new Map<Node, Container | GraphModel>(); // index to get Container-Node by Node
+    protected reverseContainerIndex = new Map<string, Container | GraphModel>(); // index to get Container-Node by Node
 
     indexGraphModel(graphModel: GraphModel): void {
         this.graphmodel = graphModel;
         this.edgesIndex.clear();
         this.nodesIndex.clear();
-        this.containmentsIndex.clear();
+        this.reverseContainerIndex.clear();
         this.idToElement.clear();
         this.typeToElements.clear();
-        this.indexContainments(this.graphmodel);
+        this.reverseIndexContainers(this.graphmodel);
         this.indexEdges(this.graphmodel);
     }
 
-    indexEdges(container: GraphModel): void {
-        this.edgesIndex.clear();
-        container.edges.forEach(e => {
+    indexEdges(graphModel: GraphModel): void {
+        graphModel.edgeElements.forEach(e => {
             this.edgesIndex.set(e.id, e);
         });
     }
 
-    indexContainments(container: GraphModel | Container): void {
-        container._containments.forEach(n => {
-            this.nodesIndex.set(n.id, n);
-            this.containmentsIndex.set(n, container);
-            if (Container.is(n)) {
-                this.indexContainments(n as Container);
+    reverseIndexContainers(container: GraphModel | Container): void {
+        container.containedElements.forEach(node => {
+            this.nodesIndex.set(node.id, node);
+            this.reverseContainerIndex.set(node.id, container);
+            if (Container.is(node)) {
+                this.reverseIndexContainers(node as Container);
             }
         });
     }
@@ -102,8 +101,8 @@ export class GraphModelIndex extends GModelIndex {
         return this.graphmodel;
     }
 
-    findContainment(node: Node): ModelElementContainer | undefined {
-        return this.containmentsIndex.get(node);
+    findContainerOf(id: string): ModelElementContainer | undefined {
+        return this.reverseContainerIndex.get(id);
     }
 
     findGElement(id: string): GModelElement | undefined {

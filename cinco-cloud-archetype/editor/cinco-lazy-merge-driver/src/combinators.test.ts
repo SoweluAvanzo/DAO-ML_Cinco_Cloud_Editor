@@ -25,7 +25,9 @@ import {
     MergeResult,
     mergeOk,
     mergeLazyConflict,
-    recursiveMerger
+    recursiveMerger,
+    arbitraryMerger,
+    defaultMerger
 } from './combinators';
 
 describe('mapMergeResult', () => {
@@ -525,6 +527,33 @@ describe('recursiveMerger', () => {
             },
             newEagerConflicts: false,
             newLazyConflicts: true
+        });
+    });
+});
+
+describe('arbitraryMerger', () => {
+    test('select first', () => {
+        expect(arbitraryMerger()({ ancestor: 'coo', versionA: 'car', versionB: 'caz' })).toStrictEqual({
+            value: 'car',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
+    test('select second', () => {
+        expect(arbitraryMerger()({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+            value: 'baz',
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
+});
+
+describe('defaultMerger', () => {
+    test('conflict', () => {
+        expect(defaultMerger('bam')({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+            value: 'bam',
+            newEagerConflicts: false,
+            newLazyConflicts: false
         });
     });
 });

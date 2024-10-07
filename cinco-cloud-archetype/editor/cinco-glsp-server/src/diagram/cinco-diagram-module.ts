@@ -67,6 +67,7 @@ import { SelectHookHandler } from '../handler/select-hook-handler';
 import { ChoiceSelectionEdgeSourceHandler, ChoiceSelectionEdgeTargetHandler } from '../handler/choice-selection-handlers';
 import { ValueProviderManager } from '../tools/value-provider-manager';
 import { CincoActionDispatcher } from '@cinco-glsp/cinco-glsp-api/lib/api/cinco-action-dispatcher';
+import { GhostDecisionHandler } from '../handler/ghost-decision-handler';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -130,6 +131,7 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(ReconnectEdgeHandler);
         binding.add(ChoiceSelectionEdgeSourceHandler);
         binding.add(ChoiceSelectionEdgeTargetHandler);
+        binding.add(GhostDecisionHandler);
     }
 
     protected override bindGModelIndex(): BindingTarget<GModelIndex> {

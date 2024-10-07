@@ -17,6 +17,7 @@ import { Container, GraphModel, IdentifiableElement, Node } from '@cinco-glsp/ci
 import { ChangeContainerOperation, Point } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
+import { deletableValue } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class ChangeContainerHandler extends CincoJsonOperationHandler {
@@ -37,8 +38,8 @@ export class ChangeContainerHandler extends CincoJsonOperationHandler {
             const newParent = index.findElement(targetContainerId) as Container | GraphModel;
             element.position = location;
             if (newParent !== undefined) {
-                oldParent._containments = oldParent._containments.filter(e => e.id !== elementId);
-                newParent._containments.push(element);
+                oldParent.containments = oldParent.containments.filter(containment => deletableValue(containment).id !== elementId);
+                newParent.containments.push(element);
             }
         }
     }
