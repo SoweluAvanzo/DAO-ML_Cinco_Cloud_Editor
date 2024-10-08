@@ -181,7 +181,7 @@ export namespace MetaSpecification {
     }
 
     export function isCustomType(elementTypeId: string): boolean {
-        return IS_GRAPH_TYPE.get(elementTypeId) ?? false;
+        return IS_CUSTOM_TYPE.get(elementTypeId) ?? false;
     }
 
     /*
@@ -872,20 +872,23 @@ export function getUserDefinedType(elementTypeId: string): UserDefinedType | und
     return UserDefinedType.is(spec) ? spec : undefined;
 }
 
-export function getNonAbstractTypeOptions(parentType: ElementType): ElementType[] {
+export function getTypeOptions(parentTypeId: string): ElementType[] {
+    const instantiableType = getSpecOf(parentTypeId) ??
+        getModelElementSpecifications().find(element => element.superTypes?.includes(parentTypeId));
     let relevantTypes: ElementType[] = [];
-    if (NodeType.is(parentType)) {
+
+    if (NodeType.is(instantiableType)) {
         relevantTypes = getNodeTypes();
-    } else if (EdgeType.is(parentType)) {
+    } else if (EdgeType.is(instantiableType)) {
         relevantTypes = getEdgeTypes();
-    } else if (GraphType.is(parentType)) {
+    } else if (GraphType.is(instantiableType)) {
         relevantTypes = getGraphTypes();
-    } else if (UserDefinedType.is(parentType)) {
+    } else if (UserDefinedType.is(instantiableType)) {
         relevantTypes = getUserDefinedTypes();
     }
 
-    const subTypes: ElementType[] = relevantTypes.filter(type => type.superTypes?.includes(parentType.elementTypeId));
-    return [parentType].concat(subTypes);
+    const subTypes: ElementType[] = relevantTypes.filter(type => type.superTypes?.includes(parentTypeId));
+    return (instantiableType ? [instantiableType] : []).concat(subTypes);
 }
 
 export function getAttributesOf(elementTypeId: string): Attribute[] {
