@@ -62,7 +62,7 @@ export class CincoLogger extends Logger {
     }
 
     private cleanANSI(msg: string): string {
-        const message: string = msg as string;
+        const message = '' + msg;
         // eslint-disable-next-line no-control-regex
         return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
     }
