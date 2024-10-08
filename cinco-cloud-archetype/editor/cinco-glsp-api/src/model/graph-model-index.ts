@@ -86,7 +86,7 @@ export class GraphModelIndex extends GModelIndex {
         if (id === undefined) {
             return undefined;
         }
-        return this.getRoot().id === id ? this.getRoot() : (this.findNode(id) ?? this.findEdge(id) ?? undefined);
+        return this.getRoot()?.id === id ? this.getRoot() : (this.findNode(id) ?? this.findEdge(id) ?? undefined);
     }
 
     findEdge(id: string): Edge | undefined {
