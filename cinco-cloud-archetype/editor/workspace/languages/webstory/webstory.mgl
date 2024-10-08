@@ -53,7 +53,6 @@ node Condition extends Activity {
 }
 
 @palette("Variables")
-@disable(resize)
 node Variable {
 	style variable("${name}")
 	incomingEdges (DataFlow)
