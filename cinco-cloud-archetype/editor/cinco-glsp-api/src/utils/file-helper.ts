@@ -50,28 +50,42 @@ async function getFileEntities(absRoot: string, folderPath: string, filterTypes?
 
     const found = await readDirectory(absoluteFolderPath); // all found files and directories
     // search for existing files
-    const foundFileEntities = (await Promise.all(found.map(async potentialFile => {
-        const absPath = path.join(absoluteFolderPath, potentialFile);
-        const isFile = await existsFile(absPath);
-        return { potentialFile, isFile };
-    }))).filter(value => value.isFile).map(value => value.potentialFile);
+    const foundFileEntities = (
+        await Promise.all(
+            found.map(async potentialFile => {
+                const absPath = path.join(absoluteFolderPath, potentialFile);
+                const isFile = await existsFile(absPath);
+                return { potentialFile, isFile };
+            })
+        )
+    )
+        .filter(value => value.isFile)
+        .map(value => value.potentialFile);
 
     // search for existing folders
-    const foundFolders = (await Promise.all(found.map(async potentialFolder => {
-        const absPath = path.join(absoluteFolderPath, potentialFolder);
-        const isFolder = await existsDirectory(absPath);
-        return { potentialFolder, isFolder };
-    }))).filter(value => value.isFolder).map(value => value.potentialFolder);
+    const foundFolders = (
+        await Promise.all(
+            found.map(async potentialFolder => {
+                const absPath = path.join(absoluteFolderPath, potentialFolder);
+                const isFolder = await existsDirectory(absPath);
+                return { potentialFolder, isFolder };
+            })
+        )
+    )
+        .filter(value => value.isFolder)
+        .map(value => value.potentialFolder);
 
     const containedFiles: string[] = [];
-    await Promise.all(foundFolders.map(async (folder: string) => {
-        const relativeFolderPath = path.join(folderPath, folder);
-        const filesFromFolder = await getFileEntities(absRoot, relativeFolderPath, filterTypes);
-        filesFromFolder.forEach(file => {
-            const relativeFilePath = path.join(folder, file);
-            containedFiles.push(relativeFilePath);
-        });
-    }));
+    await Promise.all(
+        foundFolders.map(async (folder: string) => {
+            const relativeFolderPath = path.join(folderPath, folder);
+            const filesFromFolder = await getFileEntities(absRoot, relativeFolderPath, filterTypes);
+            filesFromFolder.forEach(file => {
+                const relativeFilePath = path.join(folder, file);
+                containedFiles.push(relativeFilePath);
+            });
+        })
+    );
 
     let allFoundFileEntities = foundFileEntities.concat(containedFiles);
     if (filterTypes && filterTypes.length > 0) {
@@ -87,7 +101,7 @@ async function getFileEntities(absRoot: string, folderPath: string, filterTypes?
                 // Only :FOLDER is defined => remove all files, that were previously added...
                 allFoundFileEntities = [];
             }
-             // ...and add only the folders
+            // ...and add only the folders
             allFoundFileEntities = allFoundFileEntities.concat(foundFolders.map(f => `${absRoot}/${f}`));
         }
     }
@@ -150,7 +164,7 @@ export function getFiles(absFolderPath: string, filterTypes: string[] = []): Pro
     } catch (e) {
         console.log('failed to access filesystem.');
     }
-    return new Promise<string[]>(resolve=>resolve([]));
+    return new Promise<string[]>(resolve => resolve([]));
 }
 
 export function getFilesSync(absFolderPath: string, filterTypes: string[] = []): string[] {
@@ -169,9 +183,7 @@ export async function getSubfolder(absFolderPath: string, depth?: number): Promi
     try {
         let subfolders = await getFileEntities(absFolderPath, './', [FOLDER_TYPE]);
         for (const sf of subfolders) {
-            subfolders = subfolders.concat(
-                await getSubfolder(sf, (depth ?? 0) - 1)
-            );
+            subfolders = subfolders.concat(await getSubfolder(sf, (depth ?? 0) - 1));
         }
         return subfolders;
     } catch (e) {
@@ -197,19 +209,27 @@ export function getSubfolderSync(absFolderPath: string, depth?: number): string[
 }
 
 export async function writeFile(
-    targetPath: string, content: string, overwriteExistingFile = true, encoding: NodeJS.BufferEncoding = 'utf-8'
+    targetPath: string,
+    content: string,
+    overwriteExistingFile = true,
+    encoding: NodeJS.BufferEncoding = 'utf-8'
 ): Promise<void> {
     const doesExist = await exists(targetPath);
     return new Promise<void>(resolve => {
         if (overwriteExistingFile || !doesExist) {
-            fs.writeFile(targetPath, content, {
-                encoding: encoding
-            } as fs.WriteFileOptions, (err: NodeJS.ErrnoException | null) => {
-                if(err) {
-                    throw new Error('Could not write file: '+targetPath);
+            fs.writeFile(
+                targetPath,
+                content,
+                {
+                    encoding: encoding
+                } as fs.WriteFileOptions,
+                (err: NodeJS.ErrnoException | null) => {
+                    if (err) {
+                        throw new Error('Could not write file: ' + targetPath);
+                    }
+                    resolve();
                 }
-                resolve();
-            });
+            );
         } else {
             resolve();
         }
@@ -223,15 +243,12 @@ export function writeFileSync(targetPath: string, content: string, overwriteExis
 }
 
 export async function readFile(filePath: string, encoding: NodeJS.BufferEncoding = 'utf8'): Promise<string | undefined> {
-    return new Promise<string | undefined> ((resolve, reject) => {
-        fs.readFile(
-            filePath,
-            { encoding: encoding },
-            (err: NodeJS.ErrnoException | null, data: string) => {
-                if(err) {
-                    console.log(`failed to read file: ${filePath}`);
-                }
-                resolve( err ? undefined : data);
+    return new Promise<string | undefined>((resolve, reject) => {
+        fs.readFile(filePath, { encoding: encoding }, (err: NodeJS.ErrnoException | null, data: string) => {
+            if (err) {
+                console.log(`failed to read file: ${filePath}`);
+            }
+            resolve(err ? undefined : data);
         });
     });
 }
@@ -239,8 +256,7 @@ export async function readFile(filePath: string, encoding: NodeJS.BufferEncoding
 export function readFileSync(filePath: string, encoding: NodeJS.BufferEncoding = 'utf-8'): string | undefined {
     let result: string | undefined;
     try {
-        return fs.readFileSync(filePath,
-            { encoding: encoding });
+        return fs.readFileSync(filePath, { encoding: encoding });
     } catch (e) {
         console.log(`failed to read file: ${filePath}`);
     }
@@ -271,7 +287,9 @@ export function readFilesSync(filePaths: string[], encoding: NodeJS.BufferEncodi
 }
 
 export async function readFilesFromDirectories(
-    directories: string[], filterTypes: string[] = [], encoding: NodeJS.BufferEncoding = 'utf8'
+    directories: string[],
+    filterTypes: string[] = [],
+    encoding: NodeJS.BufferEncoding = 'utf8'
 ): Promise<Map<string, string>> {
     const result = new Map<string, string>();
     for (const dir of directories) {
@@ -396,9 +414,9 @@ export async function existsFile(filePath: string): Promise<boolean> {
 }
 
 export function existsFileSync(filePath: string): boolean {
-    try{
+    try {
         return fsStatsSync(filePath).isFile();
-    } catch(e) {
+    } catch (e) {
         console.log(e);
         return false;
     }
@@ -410,9 +428,9 @@ export async function existsDirectory(dirPath: string): Promise<boolean> {
 }
 
 export function existsDirectorySync(dirPath: string): boolean {
-    try{
+    try {
         return fsStatsSync(dirPath).isDirectory();
-    } catch(e) {
+    } catch (e) {
         console.log(e);
         return false;
     }
@@ -422,7 +440,7 @@ export async function exists(fileOrDirPath: string): Promise<boolean> {
     try {
         await fs.promises.access(fileOrDirPath);
         return true;
-    } catch(e) {
+    } catch (e) {
         console.log(e);
         return false;
     }
@@ -433,12 +451,14 @@ export function existsSync(fileOrDirPath: string): boolean {
 }
 
 async function fsStats(fileOrDirPath: string): Promise<fs.Stats | undefined> {
-    return new Promise<fs.Stats>(resolve => fs.lstat(fileOrDirPath, (err: NodeJS.ErrnoException | null, stats: fs.Stats) => {
-        if(err) {
-            console.log(err.message);
-        }
-        resolve(stats);
-    })).catch(reason => {
+    return new Promise<fs.Stats>(resolve =>
+        fs.lstat(fileOrDirPath, (err: NodeJS.ErrnoException | null, stats: fs.Stats) => {
+            if (err) {
+                console.log(err.message);
+            }
+            resolve(stats);
+        })
+    ).catch(reason => {
         console.log('Failed fsStats: ' + reason);
         return undefined;
     });
@@ -454,16 +474,20 @@ function fsStatsSync(fileOrDirPath: string): fs.Stats {
 
 export async function createDirectory(dirPath: string, deleteExistingDirectory = false): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        exists(dirPath).then(doesExist => {
-            if (deleteExistingDirectory && doesExist) {
-                deleteDirectory(dirPath, true).then(_ => {
-                    fs.mkdir(dirPath, { recursive: true }, __ => resolve());
-                }).catch(e => {
-                    reject(e);
-                });
-            }
-            fs.mkdir(dirPath, { recursive: true },(err: NodeJS.ErrnoException | null, _) => err ? reject(err) : resolve());
-        }).catch(e => reject(e));
+        exists(dirPath)
+            .then(doesExist => {
+                if (deleteExistingDirectory && doesExist) {
+                    deleteDirectory(dirPath, true)
+                        .then(_ => {
+                            fs.mkdir(dirPath, { recursive: true }, __ => resolve());
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+                }
+                fs.mkdir(dirPath, { recursive: true }, (err: NodeJS.ErrnoException | null, _) => (err ? reject(err) : resolve()));
+            })
+            .catch(e => reject(e));
     });
 }
 
@@ -477,7 +501,7 @@ export function createDirectorySync(dirPath: string, deleteExistingDirectory = f
 export async function readDirectory(dirPath: string): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
         fs.readdir(dirPath, (err: NodeJS.ErrnoException | null, files: string[]) => {
-            if(err) {
+            if (err) {
                 reject(err);
             }
             resolve(files);
@@ -486,13 +510,18 @@ export async function readDirectory(dirPath: string): Promise<string[]> {
 }
 
 export function readDirectorySync(dirPath: string): string[] {
-    return fs.readdirSync(dirPath);
+    try {
+        return fs.readdirSync(dirPath);
+    } catch (e) {
+        console.log(e);
+        return [];
+    }
 }
 
 export async function deleteFile(dirPath: string, force = false): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         fs.rm(dirPath, { recursive: false, force: force }, (err: NodeJS.ErrnoException | null) => {
-            if(err) {
+            if (err) {
                 reject(err);
             }
             resolve();
@@ -501,13 +530,17 @@ export async function deleteFile(dirPath: string, force = false): Promise<void> 
 }
 
 export function deleteFileSync(dirPath: string, force = false): void {
-    fs.rmSync(dirPath, { recursive: false, force: force });
+    try {
+        fs.rmSync(dirPath, { recursive: false, force: force });
+    } catch (e) {
+        console.log(e);
+    }
 }
 
 export async function deleteDirectory(dirPath: string, recursive = false, force = false): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         fs.rm(dirPath, { recursive: recursive, force: force }, (err: NodeJS.ErrnoException | null) => {
-            if(err) {
+            if (err) {
                 reject(err);
             }
             resolve();
@@ -516,7 +549,11 @@ export async function deleteDirectory(dirPath: string, recursive = false, force 
 }
 
 export function deleteDirectorySync(dirPath: string, recursive = false, force = false): void {
-    fs.rmSync(dirPath, { recursive: recursive, force: force });
+    try {
+        fs.rmSync(dirPath, { recursive: recursive, force: force });
+    } catch (e) {
+        console.log(e);
+    }
 }
 
 export async function copyFile(sourceFilePath: string, targetFilePath: string, overwriteExistingFile = true): Promise<void> {
@@ -530,7 +567,11 @@ export async function copyFile(sourceFilePath: string, targetFilePath: string, o
 
 export function copyFileSync(sourceFilePath: string, targetFilePath: string, overwriteExistingFile = true): void {
     const mode = overwriteExistingFile ? 0 : fs.constants.COPYFILE_EXCL;
-    fs.copyFileSync(sourceFilePath, targetFilePath, mode);
+    try {
+        fs.copyFileSync(sourceFilePath, targetFilePath, mode);
+    } catch (e) {
+        console.log(e);
+    }
 }
 
 export async function copyDirectory(
@@ -551,9 +592,11 @@ export async function copyDirectory(
                 await copyFile(entry, targetPath, overwriteExistingFiles);
             }
         });
-        Promise.all(copyCalls).then(_ => {
-            resolve();
-        }).catch(reason => reject(reason));
+        Promise.all(copyCalls)
+            .then(_ => {
+                resolve();
+            })
+            .catch(reason => reject(reason));
     });
 }
 
