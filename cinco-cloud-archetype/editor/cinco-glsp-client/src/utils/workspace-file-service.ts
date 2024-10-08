@@ -36,27 +36,23 @@ export class WorkspaceFileService {
     protected static FILE_TIMER: NodeJS.Timeout | undefined = undefined;
 
     static initUpdatePolling(actionDispatcher: IActionDispatcher): void {
-        if(!this.FILE_TIMER) {
+        if (!this.FILE_TIMER) {
             this.startDirtyCheck(actionDispatcher);
         }
     }
 
-    protected static startDirtyCheck(actionDispatcher: IActionDispatcher): void {
+    protected static async startDirtyCheck(actionDispatcher: IActionDispatcher): Promise<void> {
         this.FILE_TIMER = setTimeout(async () => {
-            for(const folder of this.CACHED_FILES.keys()) {
-                this.updateCachedFiles(folder, actionDispatcher);
+            for (const folder of this.CACHED_FILES.keys()) {
+                await this.updateCachedFiles(folder, actionDispatcher);
             }
             this.startDirtyCheck(actionDispatcher);
         }, this.RELOAD_DELAY);
     }
 
-    protected static async updateCachedFiles(dir: string, actionDispatcher: IActionDispatcher): Promise<void>{
-        WorkspaceFileService.CACHED_FILES.set(dir, await FileProviderHandler.getFiles(
-            dir,
-            false,
-            ALLOWED_IMAGE_FILE_TYPES,
-            actionDispatcher
-        ));
+    protected static async updateCachedFiles(dir: string, actionDispatcher: IActionDispatcher): Promise<void> {
+        const newFiles = await FileProviderHandler.getFiles(dir, false, ALLOWED_IMAGE_FILE_TYPES, actionDispatcher);
+        WorkspaceFileService.CACHED_FILES.set(dir, newFiles);
     }
 
     protected static dirIsCached(dir: string): boolean {
@@ -135,7 +131,7 @@ export class WorkspaceFileService {
     }
 
     protected async fileExists(dir: string, filePath: string, actionDispatcher: IActionDispatcher): Promise<boolean> {
-        if(!WorkspaceFileService.dirIsCached(dir)) {
+        if (!WorkspaceFileService.dirIsCached(dir)) {
             await WorkspaceFileService.updateCachedFiles(dir, actionDispatcher);
         }
         const files: FileProviderResponseItem[] = WorkspaceFileService.CACHED_FILES.get(dir) ?? [];
