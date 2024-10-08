@@ -21,7 +21,7 @@ import { Action, GeneratorAction } from '@cinco-glsp/cinco-glsp-common';
  * Language Designer defined example of a Generator
  */
 export class HooksAndActionsGenerator extends GeneratorHandler {
-    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.graphModel.id + ']';
 
     override async execute(action: GeneratorAction, ...args: unknown[]): Promise<Action[]> {
         // parse action

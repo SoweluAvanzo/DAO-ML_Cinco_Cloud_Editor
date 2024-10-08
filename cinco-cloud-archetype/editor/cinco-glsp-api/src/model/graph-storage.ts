@@ -46,15 +46,25 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
     override async loadSourceModel(action: RequestModelAction): Promise<void> {
         const sourceUri = this.getSourceUri(action);
         await GraphModelStorage.loadSourceModel(
-            sourceUri, this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler
+            sourceUri,
+            this.modelState,
+            this.logger,
+            this.actionDispatcher,
+            this,
+            this.submissionHandler
         );
     }
 
     override async saveSourceModel(action: SaveModelAction): Promise<void> {
-        const fileUri = this.getFileUri(action);
-        GraphModelStorage.saveSourceModel(
-            fileUri, this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler
-        );
+        if (!action.fileUri) {
+            action.fileUri = this.modelState.graphModel?._sourceUri;
+        }
+        try {
+            const fileUri = this.getFileUri(action);
+            GraphModelStorage.saveSourceModel(fileUri, this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler);
+        } catch (e) {
+            this.logger.error('Could not save!\n' + e);
+        }
     }
 
     static async loadSourceModel(
@@ -205,9 +215,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
         return { graphModel: undefined, initialized: false };
     }
 
-    protected static loadFromFileSync(
-        sourceUri: string
-    ): GraphModel | undefined {
+    protected static loadFromFileSync(sourceUri: string): GraphModel | undefined {
         try {
             const path = toPath(sourceUri);
             let fileContent: GraphModel | any = readJsonSync(path, { hideError: true });

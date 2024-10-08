@@ -988,7 +988,7 @@ export function buildImageShape(
     const cssShapeName = toCSSShapeName(shapeStyle);
 
     // size
-    const localSize = translateSize(shapeStyle.size, parentScale);
+    const localSize = translateSize(shapeStyle.size ?? parentSize, parentScale);
 
     // position
     const localCentered = false;
@@ -1333,6 +1333,7 @@ export function createImageShape(
     child.data.attrs['width'] = `${childWidth}px`;
     child.data.attrs['height'] = `${childHeight}px`;
     child.data!.attrs!['class'] = `${cssShapeName}`;
+    child.data!.attrs['preserveAspectRatio'] = 'none';
     return child;
 }
 

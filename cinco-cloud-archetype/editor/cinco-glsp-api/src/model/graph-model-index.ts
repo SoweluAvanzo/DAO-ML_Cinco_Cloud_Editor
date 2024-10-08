@@ -17,7 +17,7 @@ import { ActionDispatcher, GModelElement, GModelIndex, GModelRoot } from '@eclip
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, IdentifiableElement, ModelElement, ModelElementContainer, Node } from './graph-model';
 import { CincoActionDispatcher } from '../api/cinco-action-dispatcher';
-import { hasValidation, ValidationRequestAction, ValidationResponseAction } from '@cinco-glsp/cinco-glsp-common';
+import { hasValidation, isContainer, ValidationRequestAction, ValidationResponseAction } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class GraphModelIndex extends GModelIndex {
@@ -50,7 +50,7 @@ export class GraphModelIndex extends GModelIndex {
         container.containedElements.forEach(node => {
             this.nodesIndex.set(node.id, node);
             this.reverseContainerIndex.set(node.id, container);
-            if (Container.is(node)) {
+            if (isContainer(node.type)) {
                 this.reverseIndexContainers(node as Container);
             }
         });
@@ -86,7 +86,7 @@ export class GraphModelIndex extends GModelIndex {
         if (id === undefined) {
             return undefined;
         }
-        return this.getRoot().id === id ? this.getRoot() : (this.findNode(id) ?? this.findEdge(id) ?? undefined);
+        return this.getRoot()?.id === id ? this.getRoot() : (this.findNode(id) ?? this.findEdge(id) ?? undefined);
     }
 
     findEdge(id: string): Edge | undefined {
