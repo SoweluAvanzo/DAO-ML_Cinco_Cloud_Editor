@@ -233,7 +233,7 @@ export class GraphGModelFactory implements GModelFactory {
     }
 
     protected nodeCenterPoints(nodes: ReadonlyArray<Node>): ReadonlyArray<Point> {
-        return Array.from(nodes).map(node => this.centerPoint(node.position, node._size ?? { width: 0, height: 0 }));
+        return Array.from(nodes).map(node => this.centerPoint(this.absolutePosition(node), node._size ?? { width: 0, height: 0 }));
     }
 
     protected centerPoint(position: Point, size: Size): Point {
@@ -248,6 +248,20 @@ export class GraphGModelFactory implements GModelFactory {
             x: this.average(points.map(point => point.x)),
             y: this.average(points.map(point => point.y))
         };
+    }
+
+    protected absolutePosition(node: Node): Point {
+        const iterate = (absolutePosition: Point, element: Node | GraphModel | undefined): Point => {
+            if (element === undefined || GraphModel.is(element)) {
+                return absolutePosition;
+            } else {
+                return iterate(
+                    { x: absolutePosition.x + element.position.x, y: absolutePosition.y + element.position.y },
+                    this.modelState.index.findContainerOf(element.id)
+                );
+            }
+        };
+        return iterate({ x: 0, y: 0 }, node);
     }
 
     protected average(values: number[]): number {
