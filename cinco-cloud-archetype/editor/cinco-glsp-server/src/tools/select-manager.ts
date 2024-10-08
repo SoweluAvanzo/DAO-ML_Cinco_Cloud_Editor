@@ -30,7 +30,10 @@ export class SelectManager extends BaseHandlerManager<SelectAction, SelectHandle
 
     override async execute(action: SelectAction, ...args: unknown[]): Promise<Action[]> {
         if (!action.modelElementId) {
-            action.modelElementId = this.modelState.graphModel.id;
+            if (!this.modelState.graphModel) {
+                return [];
+            }
+            action.modelElementId = this.modelState.graphModel?.id;
         }
         return super.execute(action, args);
     }
