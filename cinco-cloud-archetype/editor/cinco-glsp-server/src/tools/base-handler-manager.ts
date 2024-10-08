@@ -69,7 +69,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
          * - 'SYSTEM' is the internal cinco-glsp convention for a client like the theia editor,
          *    which exists besides the canvas-clients
          */
-        if (['tempId', 'SYSTEM'].includes(this.modelState.clientId)) {
+        if (['tempId'].includes(this.modelState.clientId) || !this.modelState.graphModel) {
             return Promise.resolve([]);
         }
         return new Promise<Action[]>((resolve, _) => {
@@ -162,16 +162,15 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
             const actionHandlers: H[] = [];
             console.log('[' + leftToHandle + '] handlers will be tested for execution as a ' + this.baseHandlerName + '!');
             for (const handlerClass of applicableHandlerClasses) {
-                // initialize handler
-                const handler = new handlerClass(
-                    this.logger,
-                    this.modelState,
-                    this.actionDispatcher,
-                    this.sourceModelStorage,
-                    this.submissionHandler
-                );
-                // test if handler can be executed =>
                 try {
+                    // initialize handler
+                    const handler = new handlerClass(
+                        this.logger,
+                        this.modelState,
+                        this.actionDispatcher,
+                        this.sourceModelStorage,
+                        this.submissionHandler
+                    );
                     // test if handler can be executed
                     const canExecute = this.handlerCanBeExecuted(handler, element, action, args);
                     if (canExecute instanceof Promise) {
@@ -234,6 +233,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
             severity: severity ?? 'INFO',
             details: details ?? ''
         });
-        this.actionDispatcher.dispatch(messageAction);
+        this.actionDispatcher.dispatch(messageAction).catch(e => {
+            console.log(e);
+        });
     }
 }

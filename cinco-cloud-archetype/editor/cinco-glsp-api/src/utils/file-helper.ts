@@ -609,10 +609,11 @@ export function copyDirectorySync(
     createDirectorySync(targetDirPath, deleteExistingDirectories);
     for (const entry of readDirectorySync(sourceDirPath)) {
         const targetPath = path.join(targetDirPath, getFileName(entry));
-        if (existsDirectorySync(targetPath)) {
-            copyDirectorySync(entry, targetPath, deleteExistingDirectories, overwriteExistingFiles);
+        const sourcePath = path.join(sourceDirPath, entry);
+        if (existsDirectorySync(sourcePath)) {
+            copyDirectorySync(sourcePath, targetPath, deleteExistingDirectories, overwriteExistingFiles);
         } else {
-            copyFileSync(entry, targetPath, overwriteExistingFiles);
+            copyFileSync(sourcePath, targetPath, overwriteExistingFiles);
         }
     }
 }

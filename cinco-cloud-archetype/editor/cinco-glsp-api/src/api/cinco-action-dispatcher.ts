@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Action, DefaultActionDispatcher, GLSPServerError, Logger, UpdateModelAction } from '@eclipse-glsp/server';
+import { Action, DefaultActionDispatcher, Logger, UpdateModelAction } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 
 @injectable()
@@ -28,7 +28,8 @@ export class CincoActionDispatcher extends DefaultActionDispatcher {
 
         const actionHandlers = this.actionHandlerRegistry.get(action.kind);
         if (!handledOnClient && actionHandlers.length === 0) {
-            throw new GLSPServerError(`No handler registered for action kind: ${action.kind}`);
+            this._logger.error(`No handler registered for action kind: ${action.kind}`);
+            return Promise.resolve([]);
         }
 
         const responses: Action[] = [];
@@ -43,5 +44,29 @@ export class CincoActionDispatcher extends DefaultActionDispatcher {
         }
 
         return responses;
+    }
+
+    protected override async doDispatch(action: Action): Promise<void> {
+        this._logger.debug('Dispatch action:', action.kind);
+        const handledOnClient = this.clientActionForwarder.handle(action);
+
+        const actionHandlers = this.actionHandlerRegistry.get(action.kind);
+        if (!handledOnClient && actionHandlers.length === 0) {
+            this._logger.error(`No handler registered for action kind: ${action.kind}`);
+            return Promise.resolve();
+        }
+
+        const responses: Action[] = [];
+        for (const handler of actionHandlers) {
+            const response = await this.executeHandler(handler, action);
+            responses.push(...response);
+        }
+
+        if (UpdateModelAction.is(action) && this.postUpdateQueue.length > 0) {
+            responses.push(...this.postUpdateQueue);
+            this.postUpdateQueue = [];
+        }
+
+        await this.dispatchResponses(responses);
     }
 }

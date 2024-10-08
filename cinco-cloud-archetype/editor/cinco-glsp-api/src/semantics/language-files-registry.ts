@@ -14,12 +14,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { META_FILE_TYPES, MetaSpecification, SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames } from '@cinco-glsp/cinco-glsp-common';
 import {
-    META_FILE_TYPES, MetaSpecification,
-    SUPPORTED_DYNAMIC_FILE_TYPES, getAllHandlerNames
-} from '@cinco-glsp/cinco-glsp-common';
-import {
-    existsFile, getLanguageFolder, getSubfolder, isMetaDevMode, readFile, readFilesFromDirectories,
+    existsFile,
+    getLanguageFolder,
+    getSubfolder,
+    isMetaDevMode,
+    readFile,
+    readFilesFromDirectories,
     readFileSync
 } from '../utils/file-helper';
 import * as fs from 'fs';
@@ -56,12 +58,11 @@ export abstract class LanguageFilesRegistry {
         DirtyFileWatcher.watch(
             languagesFolder,
             SUPPORTED_DYNAMIC_FILE_TYPES.concat(META_FILE_TYPES),
-            async (dirtyFiles: { path: string, eventType: fs.WatchEventType}[]) => {
-                for(const dirtyFile of dirtyFiles) {
+            async (dirtyFiles: { path: string; eventType: fs.WatchEventType }[]) => {
+                for (const dirtyFile of dirtyFiles) {
                     const filename = dirtyFile.path;
                     if (
-                        !await existsFile(filename) // a file was deleted -> reload all folders
-                        ||
+                        !(await existsFile(filename)) || // a file was deleted -> reload all folders
                         MetaSpecification.annotationsChanged()
                     ) {
                         // (no way to identify which file it was by the default filewatcher)
@@ -124,12 +125,7 @@ export abstract class LanguageFilesRegistry {
     private static async collectDirtyHandlers(): Promise<HandlerEntry[]> {
         const dirtyFiles = this._dirty;
         this._dirty = []; // clear dirty files
-        const files = (await Promise.all(dirtyFiles.map(
-            async df => [
-                df,
-                await readFile(df)
-            ]
-        ))).filter(
+        const files = (await Promise.all(dirtyFiles.map(async df => [df, await readFile(df)]))).filter(
             df => df[1] !== undefined // content of read file is "not undefined"/present
         ) as [string, string][];
         return this.collectHandlersToImport(files);
@@ -138,23 +134,18 @@ export abstract class LanguageFilesRegistry {
     private static collectDirtyHandlersSync(): HandlerEntry[] {
         const dirtyFiles = this._dirty;
         this._dirty = []; // clear dirty files
-        const files = (dirtyFiles.map(
-            df => [
-                df,
-                readFileSync(df)
-            ]
-        )).filter(
-            df => df[1] !== undefined // content of read file is "not undefined"/present
-        ) as [string, string][];
+        const files = dirtyFiles
+            .map(df => [df, readFileSync(df)])
+            .filter(
+                df => df[1] !== undefined // content of read file is "not undefined"/present
+            ) as [string, string][];
         return this.collectHandlersToImport(files);
     }
 
     private static async fetchSemanticFiles(languagesFolder: string[]): Promise<LanguageFilesRegistryEntry[]> {
         let handlerToImport = [] as HandlerEntry[];
         for (const lf of languagesFolder) {
-            handlerToImport = handlerToImport.concat(
-                await this.collectHandlersFromFolder(lf)
-            );
+            handlerToImport = handlerToImport.concat(await this.collectHandlersFromFolder(lf));
         }
         // register all found
         this.registerFound(handlerToImport);
