@@ -162,8 +162,8 @@ export class GraphGModelFactory implements GModelFactory {
                 this.buildEdgeSegment(
                     edge,
                     this.edgeTargetSegmentID(edge.id, targetID),
-                    targetID,
                     this.markerEdgeSourceTargetConflictID(edge.id),
+                    targetID,
                     isChoice(edge.targetID)
                         ? [
                               GLabel.builder()
