@@ -20,7 +20,7 @@ import { Action, DoubleClickAction, AppearanceUpdateRequestAction } from '@cinco
  * Language Designer defined example of a DoubleClickHandler
  */
 export class HooksAndActionsDoubleClickHandler extends DoubleClickHandler {
-    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.graphModel.id + ']';
 
     override execute(action: DoubleClickAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // parse action

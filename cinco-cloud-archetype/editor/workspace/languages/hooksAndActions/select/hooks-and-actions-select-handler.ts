@@ -20,7 +20,7 @@ import { Action, SelectAction } from '@cinco-glsp/cinco-glsp-common';
  * Language Designer defined example of a SelectHandler
  */
 export class HooksAndActionsSelectHandler extends SelectHandler {
-    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.graphModel.id + ']';
 
     override execute(action: SelectAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // parse action

@@ -20,7 +20,7 @@ import { Action, DoubleClickAction } from '@cinco-glsp/cinco-glsp-common';
  * Language Designer defined example of a DoubleClickHandler
  */
 export class ExampleDoubleClickHandler extends DoubleClickHandler {
-    override CHANNEL_NAME: string | undefined = 'Example [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'Example [' + this.modelState.graphModel.id + ']';
 
     override execute(action: DoubleClickAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // parse action

@@ -20,7 +20,7 @@ import { Action, ValidationResponseAction, ValidationRequestAction, ValidationSt
  * Language Designer defined example of a Validator
  */
 export class ExampleValidator extends ValidationHandler {
-    override CHANNEL_NAME: string | undefined = 'Validator Flowgraph [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'Validator Flowgraph [' + this.modelState.graphModel.id + ']';
 
     override execute(action: ValidationRequestAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // next actions

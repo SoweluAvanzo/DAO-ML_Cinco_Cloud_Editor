@@ -17,7 +17,7 @@ import { LanguageFilesRegistry, ValidationHandler } from '@cinco-glsp/cinco-glsp
 import { Action, ValidationResponseAction, ValidationRequestAction, ValidationStatus } from '@cinco-glsp/cinco-glsp-common';
 
 export class HooksAndActionsValidator extends ValidationHandler {
-    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.graphModel.id + ']';
 
     override execute(action: ValidationRequestAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // next actions

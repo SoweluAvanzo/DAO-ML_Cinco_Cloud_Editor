@@ -5,7 +5,7 @@ import { GeneratorAction, Action, hasArrayProp, AnyObject, hasStringProp } from 
  * Generator for the Webstory
  */
 export class WebstoryGenerator extends GeneratorHandler {
-    override CHANNEL_NAME: string | undefined = 'Webstory [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'Webstory [' + this.modelState.graphModel.id + ']';
 
     override execute(action: GeneratorAction, ...args: unknown[]): Promise<Action[]> | Action[] {
         // parse action

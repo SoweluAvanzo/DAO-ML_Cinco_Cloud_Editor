@@ -17,7 +17,7 @@ import { Node, AbstractNodeHook, LanguageFilesRegistry, Container, GraphModel } 
 import { Point } from '@eclipse-glsp/server';
 
 export class ActivityHook2 extends AbstractNodeHook {
-    override CHANNEL_NAME: string | undefined = 'ActivityHook2 [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'ActivityHook2 [' + this.modelState.graphModel.id + ']';
 
     /**
      * Create
