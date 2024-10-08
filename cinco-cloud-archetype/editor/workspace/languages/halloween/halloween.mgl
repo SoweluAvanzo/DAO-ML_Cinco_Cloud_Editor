@@ -7,14 +7,14 @@ abstract node A
 graphModel HalloweenGame {
     diagramExtension "halloween"
     
-    containableElements(Level)
+    containableElements(Level[0,1]) // 1 Level
 }  
-
+ 
 @Hook("LevelHooks", "PostCreate", "PostResize")
 container Level {
     style level
     
-    containableElements(Player, GameObject)
+    containableElements(Player[0,1],GameObject)
 }	
 
 @disable(resize)

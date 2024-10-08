@@ -30,8 +30,8 @@
         // fix tiles
         let normalizedX = Math.floor(node.size.width / 48) * 48;
         let normalizedY = Math.floor(node.size.height / 48) * 48;
-        node.size.width = normalizedX;
-        node.size.height = normalizedY;
+        node.size.width = normalizedX < 48 ? 48 : normalizedX;
+        node.size.height = normalizedY < 48 ? 48 : normalizedY;
         await this.saveModel();
         await this.submitModel();
         this.log("Updated level", {show: true})
