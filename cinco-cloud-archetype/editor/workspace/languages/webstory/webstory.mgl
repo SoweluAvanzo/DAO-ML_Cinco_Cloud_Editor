@@ -21,7 +21,7 @@ abstract node Activity {}
 container Screen extends Activity {
 	style screen("${backgroundImage}")
 	 
-    incomingEdges (Transition, TTransition, FTransition)
+    incomingEdges (Transition, FTransition, TTransition)
     containableElements (ClickArea)
 
 	attr string as backgroundImage
