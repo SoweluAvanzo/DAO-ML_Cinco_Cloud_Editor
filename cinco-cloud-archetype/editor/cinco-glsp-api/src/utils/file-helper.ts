@@ -609,7 +609,7 @@ export function copyDirectorySync(
     createDirectorySync(targetDirPath, deleteExistingDirectories);
     for (const entry of readDirectorySync(sourceDirPath)) {
         const targetPath = path.join(targetDirPath, getFileName(entry));
-        if (existsDirectorySync(entry)) {
+        if (existsDirectorySync(targetPath)) {
             copyDirectorySync(entry, targetPath, deleteExistingDirectories, overwriteExistingFiles);
         } else {
             copyFileSync(entry, targetPath, overwriteExistingFiles);
