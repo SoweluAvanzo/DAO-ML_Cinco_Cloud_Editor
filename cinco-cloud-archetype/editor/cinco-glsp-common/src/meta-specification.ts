@@ -875,8 +875,8 @@ export function getUserDefinedType(elementTypeId: string): UserDefinedType | und
 export function getTypeOptions(parentTypeId: string): ElementType[] {
     const instantiableType = getSpecOf(parentTypeId) ??
         getModelElementSpecifications().find(element => element.superTypes?.includes(parentTypeId));
-    let relevantTypes: ElementType[] = [];
 
+    let relevantTypes: ElementType[] = [];
     if (NodeType.is(instantiableType)) {
         relevantTypes = getNodeTypes();
     } else if (EdgeType.is(instantiableType)) {
@@ -888,7 +888,8 @@ export function getTypeOptions(parentTypeId: string): ElementType[] {
     }
 
     const subTypes: ElementType[] = relevantTypes.filter(type => type.superTypes?.includes(parentTypeId));
-    return (instantiableType ? [instantiableType] : []).concat(subTypes);
+    const parentAbstract: boolean = parentTypeId !== instantiableType?.elementTypeId;
+    return (parentAbstract ? [] : [instantiableType!]).concat(subTypes);
 }
 
 export function getAttributesOf(elementTypeId: string): Attribute[] {
