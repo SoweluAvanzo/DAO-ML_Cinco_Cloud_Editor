@@ -1,7 +1,5 @@
 stylePath "halloween.style"
 
-abstract node A
-
 @GeneratorAction("HalloweenGenerator")
 @Hook("GameEngineHook", "PostContentChange")
 graphModel HalloweenGame {
@@ -34,9 +32,12 @@ abstract node Obstacle extends GameObject {
 }
 
 abstract node Item extends GameObject {
+    attr number as heal = 100
 }
 
 abstract node Enemy extends GameObject {
+    attr number as attack = 1
+    attr number as speed = 100
 }
 
 @disable(resize)
@@ -45,7 +46,7 @@ node Heart extends Item {
     style heart
 
     // attributes
-    attr number as heal = 100
+    override heal = 120
 }
 
 @disable(resize)
@@ -66,8 +67,8 @@ node Skull extends Enemy {
     style skull
 
     // attributes
-    attr number as attack = 1
-    attr number as speed = 100
+    override attack = 1
+    override speed = 100
 }
 
 @disable(resize)
@@ -76,6 +77,6 @@ node Slicer extends Enemy {
     style slicer
 
     // attributes
-    attr number as attack = 10
-    attr number as speed = 200
+    override attack = 10
+    override speed = 200
 }
