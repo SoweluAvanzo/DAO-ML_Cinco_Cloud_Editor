@@ -33,7 +33,8 @@
                     "msl"
                 ],
                 "extensions": [
-                    ".style"
+                    ".style",
+                    ".msl"
                 ],
                 "configuration": "./language-configuration.json"
             }
