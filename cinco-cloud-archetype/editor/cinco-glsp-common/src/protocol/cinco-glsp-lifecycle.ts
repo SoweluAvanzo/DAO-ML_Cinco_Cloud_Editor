@@ -14,4 +14,5 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 export const CINCO_STARTUP_RANK = -10;
-export const SYSTEM_ID = 'SYSTEM';
+export const SYSTEM_ID = 'SYSTEM'; // internal cinco-glsp convention for a user-less client like the theia editor,
+export const GLSP_TEMP_ID = 'tempId'; // an internal glsp convention

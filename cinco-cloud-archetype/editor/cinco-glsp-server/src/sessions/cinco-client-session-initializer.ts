@@ -40,7 +40,8 @@ import {
     ValueUpdateRequestAction,
     hasValidation,
     hasAppearanceProvider,
-    hasValueProvider
+    hasValueProvider,
+    SYSTEM_ID
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     existsFile,
@@ -102,7 +103,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
     }
 
     updateGraphModelWatcher(clientId: string, modelState: GraphModelState, actionDispatcher: ActionDispatcher): void {
-        if (clientId !== 'SYSTEM') {
+        if (clientId !== SYSTEM_ID) {
             return;
         }
         // add graphmodel Watcher

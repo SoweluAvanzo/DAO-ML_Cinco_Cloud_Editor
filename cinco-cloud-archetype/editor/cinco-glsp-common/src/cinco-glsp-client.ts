@@ -117,7 +117,7 @@ export class CincoGLSPClient extends BaseJsonrpcGLSPClient {
     }
 
     override sendActionMessage(message: ActionMessage): void {
-        if (message.clientId === 'SYSTEM') {
+        if (message.clientId === SYSTEM_ID) {
             for (const client of this.localClients) {
                 const messageForClient = { ...message };
                 messageForClient.clientId = client;
