@@ -14,6 +14,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { deletableValue, isGhost, mapDeletable } from '@cinco-glsp/cinco-glsp-common';
+
 export function jsonEqual(a: any, b: any): boolean {
     const jsonTypeA = jsonType(a);
     const jsonTypeB = jsonType(b);
@@ -65,23 +67,28 @@ export function mapMap<A, B>(record: Record<string, A>, f: (value: A, key: strin
 
 export function mapFromEntityArray(entities: ReadonlyArray<any>): Record<string, any> {
     const result: any = {};
-    for (const entity of entities) {
-        const { id } = entity;
+    for (const deletableEntity of entities) {
+        const { id } = deletableValue(deletableEntity);
         if (id === undefined) {
             throw new TypeError('Entity has no id field.');
         }
         if (id in result) {
             throw new Error(`Duplicate ID ${id}.`);
         }
-        const entityCopy = { ...entity };
-        delete entityCopy.id;
-        result[id] = entityCopy;
+
+        result[id] = mapDeletable(deletableEntity, entity => {
+            const entityCopy = { ...entity };
+            delete entityCopy.id;
+            return entityCopy;
+        });
     }
     return result;
 }
 
 export function entityArrayFromMap(map: Record<string, any>): ReadonlyArray<any> {
-    return Object.entries(map).map(([id, entity]) => ({ id, ...entity }));
+    return Object.entries(map).map(([id, entity]) =>
+        isGhost(entity) ? { tag: 'ghost', value: { id, ...entity.value } } : { id, ...entity }
+    );
 }
 
 export function deterministicStringify(value: any): string {
