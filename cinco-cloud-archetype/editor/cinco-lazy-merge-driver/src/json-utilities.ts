@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { deletableValue, isGhost, mapDeletable } from '@cinco-glsp/cinco-glsp-common';
+import { deletableValue, mapDeletable } from '@cinco-glsp/cinco-glsp-common';
 
 export function jsonEqual(a: any, b: any): boolean {
     const jsonTypeA = jsonType(a);
@@ -86,9 +86,7 @@ export function mapFromEntityArray(entities: ReadonlyArray<any>): Record<string,
 }
 
 export function entityArrayFromMap(map: Record<string, any>): ReadonlyArray<any> {
-    return Object.entries(map).map(([id, entity]) =>
-        isGhost(entity) ? { tag: 'ghost', value: { id, ...entity.value } } : { id, ...entity }
-    );
+    return Object.entries(map).map(([id, deletableEntity]) => mapDeletable(deletableEntity, entity => ({ id, ...entity })));
 }
 
 export function deterministicStringify(value: any): string {
