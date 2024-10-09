@@ -74,7 +74,7 @@ describe('mapRecord', () => {
     });
 });
 
-describe('recordFromEntityArray', () => {
+describe('mapFromEntityArray', () => {
     test('empty entity list', () => {
         expect(mapFromEntityArray([])).toStrictEqual({});
     });
@@ -92,6 +92,9 @@ describe('recordFromEntityArray', () => {
     test('duplicate ids', () => {
         expect(() => mapFromEntityArray([{ id: 'x' }, { id: 'x' }])).toThrow('Duplicate ID x.');
     });
+    test('ghosts', () => {
+        expect(mapFromEntityArray([{ tag: 'ghost', value: { id: 'x', a: 1 } }])).toStrictEqual({ x: { tag: 'ghost', value: { a: 1 } } });
+    });
 });
 
 describe('entityArrayFromMap', () => {
@@ -103,6 +106,11 @@ describe('entityArrayFromMap', () => {
             { id: 'x', value: 'foo' },
             { id: 'y', value: 'doo' },
             { id: 'z', value: 'roo' }
+        ]);
+    });
+    test('ghosts', () => {
+        expect(entityArrayFromMap({ x: { tag: 'ghost', value: { key: 'foo' } } })).toStrictEqual([
+            { tag: 'ghost', value: { id: 'x', key: 'foo' } }
         ]);
     });
 });

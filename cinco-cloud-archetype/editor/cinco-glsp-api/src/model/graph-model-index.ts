@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { ActionDispatcher, GModelElement, GModelIndex, GModelRoot } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
-import { Container, Edge, GraphModel, IdentifiableElement, ModelElement, ModelElementContainer, Node } from './graph-model';
+import { Container, Edge, GraphModel, IdentifiableElement, ModelElement, Node } from './graph-model';
 import { CincoActionDispatcher } from '../api/cinco-action-dispatcher';
 import { hasValidation, isContainer, ValidationRequestAction, ValidationResponseAction } from '@cinco-glsp/cinco-glsp-common';
 
@@ -101,7 +101,7 @@ export class GraphModelIndex extends GModelIndex {
         return this.graphmodel;
     }
 
-    findContainerOf(id: string): ModelElementContainer | undefined {
+    findContainerOf(id: string): Container | GraphModel | undefined {
         return this.reverseContainerIndex.get(id);
     }
 
