@@ -1,4 +1,4 @@
-stylePath "metamodel.style" 
+stylePath "metamodel.msl" 
 
 graphModel Model {
     diagramExtension "mm"
