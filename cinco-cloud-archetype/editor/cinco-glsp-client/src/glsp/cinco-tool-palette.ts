@@ -80,12 +80,14 @@ export class CincoToolPalette extends KeyboardToolPalette {
             this.paletteItems = newPaletteItems;
             this.backupPaletteCopy();
             // make
+            /*
             this.actionDispatcher.dispatch(
                 SetUIExtensionVisibilityAction.create({
                     extensionId: ToolPalette.ID,
                     visible: !this.editorContext.isReadonly
                 })
             );
+            */
             // update palette view
             this.requestFilterUpdate(this.lastFilter);
             // update header tools
