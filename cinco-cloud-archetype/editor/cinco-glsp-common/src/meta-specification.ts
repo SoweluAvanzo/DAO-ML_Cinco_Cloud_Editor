@@ -231,7 +231,7 @@ export namespace MetaSpecification {
     }
 
     export function isCustomType(elementTypeId: string): boolean {
-        return IS_GRAPH_TYPE.get(elementTypeId) ?? false;
+        return IS_CUSTOM_TYPE.get(elementTypeId) ?? false;
     }
 
     /*
