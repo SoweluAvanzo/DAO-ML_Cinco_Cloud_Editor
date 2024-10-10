@@ -77,7 +77,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                 let leftToHandle: number = handlers.length;
                 console.log(leftToHandle + ' handlers will be executed as ' + this.baseHandlerName + '...');
                 handlers.forEach(handler => {
-                    console.log(handler + ' handler will be executed...');
+                    console.log(handler?.constructor.name + ' handler will be executed...');
                     const element = this.modelState.index.findElement(action.modelElementId) as ModelElement;
                     try {
                         const result = this.executeHandler(handler, element, action, args);
@@ -100,8 +100,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                             }
                         }
                     } catch (e) {
-                        console.log(`Error executing handler: ${(handler as any).name}`);
-                        this.notify(`${(handler as any).name} ran into errors!`, 'ERROR');
+                        console.log(`Error executing handler: ${handler?.constructor.name}`);
+                        this.notify(`${handler.constructor.name} ran into errors!`, 'ERROR');
                         console.log(`${e}`);
                         leftToHandle = leftToHandle - 1;
                         if (leftToHandle <= 0) {
@@ -173,7 +173,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                         // mark handler as active/executable
                         canExecute.then(value => {
                             if (value) {
-                                console.log('[' + handler.name + '] can be executed as a ' + this.baseHandlerName + '!');
+                                console.log('[' + handlerClass.name + '] can be executed as a ' + this.baseHandlerName + '!');
                                 actionHandlers.push(handler);
                             }
                             leftToHandle = leftToHandle - 1;
@@ -184,7 +184,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                     } else {
                         // mark handler as active/executable
                         if (canExecute) {
-                            console.log('[' + handler.name + '] can be executed as a ' + this.baseHandlerName + '!');
+                            console.log('[' + handlerClass.name + '] can be executed as a ' + this.baseHandlerName + '!');
                             actionHandlers.push(handler);
                         }
                         leftToHandle = leftToHandle - 1;
