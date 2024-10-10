@@ -68,6 +68,12 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
         if ([GLSP_TEMP_ID].includes(this.modelState.clientId) || !this.modelState.graphModel) {
             return Promise.resolve([]);
         }
+        if ('modelId' in action) {
+            if (action.modelId !== this.modelState.graphModel?.id) {
+                // not the associated graphmodel
+                return Promise.resolve([]);
+            }
+        }
         return new Promise<Action[]>((resolve, _) => {
             const results: Action[] = [];
             this.getActiveHandlers(action, args).then(handlers => {
@@ -77,7 +83,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                 let leftToHandle: number = handlers.length;
                 console.log(leftToHandle + ' handlers will be executed as ' + this.baseHandlerName + '...');
                 handlers.forEach(handler => {
-                    console.log(handler + ' handler will be executed...');
+                    console.log(handler?.constructor.name + ' handler will be executed...');
                     const element = this.modelState.index.findElement(action.modelElementId) as ModelElement;
                     try {
                         const result = this.executeHandler(handler, element, action, args);
@@ -100,8 +106,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                             }
                         }
                     } catch (e) {
-                        console.log(`Error executing handler: ${(handler as any).name}`);
-                        this.notify(`${(handler as any).name} ran into errors!`, 'ERROR');
+                        console.log(`Error executing handler: ${handler?.constructor.name}`);
+                        this.notify(`${handler.constructor.name} ran into errors!`, 'ERROR');
                         console.log(`${e}`);
                         leftToHandle = leftToHandle - 1;
                         if (leftToHandle <= 0) {
@@ -121,7 +127,13 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
      * @returns an Array of Handlers, that can be executed with the associated action
      */
     async getActiveHandlers(action: A, ...args: unknown[]): Promise<H[]> {
+        console.log('Getting handlers for element: ' + action.modelElementId);
+        console.log('-> In model: ' + this.modelState?.graphModel?.id);
         const element = this.modelState.index.findElement(action.modelElementId) as ModelElement;
+        if (!element) {
+            console.log('Element not found in model!');
+            return Promise.resolve([]);
+        }
         try {
             if (!this.hasHandlerProperty(element)) {
                 console.log('This element has no assigned ' + this.baseHandlerName + '!');
@@ -173,7 +185,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                         // mark handler as active/executable
                         canExecute.then(value => {
                             if (value) {
-                                console.log('[' + handler.name + '] can be executed as a ' + this.baseHandlerName + '!');
+                                console.log('[' + handlerClass.name + '] can be executed as a ' + this.baseHandlerName + '!');
                                 actionHandlers.push(handler);
                             }
                             leftToHandle = leftToHandle - 1;
@@ -184,7 +196,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                     } else {
                         // mark handler as active/executable
                         if (canExecute) {
-                            console.log('[' + handler.name + '] can be executed as a ' + this.baseHandlerName + '!');
+                            console.log('[' + handlerClass.name + '] can be executed as a ' + this.baseHandlerName + '!');
                             actionHandlers.push(handler);
                         }
                         leftToHandle = leftToHandle - 1;

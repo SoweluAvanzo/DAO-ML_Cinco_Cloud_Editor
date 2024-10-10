@@ -85,12 +85,13 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                 });
                 if (isMetaDevMode()) {
                     const watchInfo = await MetaSpecificationLoader.watch(async () => {
-                        const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
-                        CincoClientSessionInitializer.sendToAllClients(
-                            response,
-                            clientId,
-                            CincoClientSessionInitializer.clientSessionsActionDispatcher
-                        );
+                        if (clientId === SYSTEM_ID) {
+                            const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
+                            CincoClientSessionInitializer.sendToAllClients(
+                                response,
+                                CincoClientSessionInitializer.clientSessionsActionDispatcher
+                            );
+                        }
                     }, 'metaspecWatcher_' + clientId);
                     CincoClientSessionListener.addDisposeCallback(clientId, () => {
                         MetaSpecificationLoader.unwatch(watchInfo);
@@ -198,7 +199,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         requests.push(paletteResponse);
 
         requests = requests.concat(this.updateGraphModelHandler(modelState));
-        this.sendGraphModelHandlerRequests(requests);
+        this.propagateRequests(requests);
     }
 
     updateGraphModelHandler(modelState: GraphModelState): Action[] {
@@ -222,7 +223,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         // Appearance Provider Request
         for (const modelElement of allModelElements) {
             if (hasAppearanceProvider(modelElement.type)) {
-                const appearanceRequest = AppearanceUpdateRequestAction.create(modelElement.id);
+                const appearanceRequest = AppearanceUpdateRequestAction.create(model.id, modelElement.id);
                 requests.push(appearanceRequest);
             }
         }
@@ -230,7 +231,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         // Value Provider
         for (const modelElement of allModelElements) {
             if (hasValueProvider(modelElement.type)) {
-                const valueRequest = ValueUpdateRequestAction.create(modelElement.id);
+                const valueRequest = ValueUpdateRequestAction.create(model.id, modelElement.id);
                 requests.push(valueRequest);
             }
         }
@@ -238,15 +239,9 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         return requests;
     }
 
-    sendGraphModelHandlerRequests(requests: Action[]): void {
-        // propagate actions
+    propagateRequests(requests: Action[]): void {
         for (const request of requests) {
-            this.actionDispatcher.dispatch(request);
-            CincoClientSessionInitializer.sendToAllOtherClients(
-                request,
-                this.serverContainer.id,
-                CincoClientSessionInitializer.clientSessionsActionDispatcher
-            );
+            CincoClientSessionInitializer.sendToAllClients(request, CincoClientSessionInitializer.clientSessionsActionDispatcher);
         }
     }
 
@@ -271,10 +266,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         }
     }
 
-    static sendToAllClients(message: Action, clientId: string, actionDispatcherMap: Map<number, ActionDispatcher>): void {
-        if (clientId !== SYSTEM_ID) {
-            return;
-        }
+    static sendToAllClients(message: Action, actionDispatcherMap: Map<number, ActionDispatcher>, clientId?: string): void {
         if (actionDispatcherMap) {
             for (const entry of actionDispatcherMap.entries()) {
                 entry[1].dispatch(message).catch(e => {

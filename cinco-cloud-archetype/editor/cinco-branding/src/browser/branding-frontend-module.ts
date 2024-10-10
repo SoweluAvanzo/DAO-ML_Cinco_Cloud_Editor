@@ -17,9 +17,12 @@ import '../../style/index.css';
 import { ThemeHandler } from './branding';
 
 import { ContainerModule } from 'inversify';
-import { FrontendApplicationContribution } from '@theia/core/lib/browser';
+import { FrontendApplicationContribution, PreferenceContribution } from '@theia/core/lib/browser';
+import { CincoCloudDefaultPreferences } from './default-preferences';
 
 export default new ContainerModule((bind, unbind, isBound, rebind) => {
     bind(FrontendApplicationContribution).to(ThemeHandler).inSingletonScope();
+    bind(PreferenceContribution).toConstantValue({
+        schema: new CincoCloudDefaultPreferences().schema
+    });
 });
-

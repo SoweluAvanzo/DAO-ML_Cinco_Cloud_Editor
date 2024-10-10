@@ -19,6 +19,7 @@ import { hasArrayProp, hasObjectProp, hasStringProp } from './type-utils';
 
 export interface AppearanceUpdateRequestAction extends Action {
     kind: typeof AppearanceUpdateRequestAction.KIND;
+    modelId: string; // associated id of the model
     modelElementId: string; // associated id of the model-element
     args?: any; // e.g. a specific css-class
 }
@@ -30,9 +31,10 @@ export namespace AppearanceUpdateRequestAction {
         return Action.hasKind(object, KIND) && hasStringProp(object, 'modelElementId');
     }
 
-    export function create(modelElementId: string, options?: { args: any }): AppearanceUpdateRequestAction {
+    export function create(modelId: string, modelElementId: string, options?: { args: any }): AppearanceUpdateRequestAction {
         return {
             kind: KIND,
+            modelId,
             modelElementId,
             ...options
         };

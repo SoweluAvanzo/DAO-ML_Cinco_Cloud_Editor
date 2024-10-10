@@ -72,24 +72,27 @@ export class HooksAndActionsAppearanceProvider extends AppearanceProvider {
         const modelElementId: string = action.modelElementId;
         const element = this.getElement(modelElementId);
 
+        // logging
+        const message1 = 'Element [' + element.type + ', ' + modelElementId + '] is appearanceProvider triggered!.';
+        this.notify(message1);
+
         if (!element) {
             return [];
         }
         const toggle: boolean = element.getProperty('toggleAppearanceProvider');
 
-        if(!toggle) {
+        if (!toggle) {
             return [];
         }
-        
+
         /**
          * calculate new appearance
          */
 
-        if(element)
-
-        if (!element.style || !(element.style as NodeStyle).shape || !((element.style as NodeStyle).shape as Rectangle).appearance) {
-            element.style = EXAMPLE_STYLE;
-        }
+        if (element)
+            if (!element.style || !(element.style as NodeStyle).shape || !((element.style as NodeStyle).shape as Rectangle).appearance) {
+                element.style = EXAMPLE_STYLE;
+            }
 
         // toggle transparency
         const appearance = { ...element.appearance } as Appearance;
