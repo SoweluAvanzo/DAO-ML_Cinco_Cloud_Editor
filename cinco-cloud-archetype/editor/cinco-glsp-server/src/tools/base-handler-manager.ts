@@ -121,6 +121,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
      * @returns an Array of Handlers, that can be executed with the associated action
      */
     async getActiveHandlers(action: A, ...args: unknown[]): Promise<H[]> {
+        console.log('Getting handlers for element: ' + action.modelElementId);
+        console.log('-> In model: ' + this.modelState?.graphModel?.id);
         const element = this.modelState.index.findElement(action.modelElementId) as ModelElement;
         try {
             if (!this.hasHandlerProperty(element)) {
