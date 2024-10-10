@@ -80,9 +80,6 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                 modelState: GraphModelState,
                 actionDispatcher: ActionDispatcher
             ): Promise<void> => {
-                if (clientId === GLSP_TEMP_ID) {
-                    return;
-                }
                 this.updateGraphModelWatcher(clientId, modelState, actionDispatcher);
                 MetaSpecificationLoader.addReloadCallback(async () => {
                     this.updateGraphModelWatcher(clientId, modelState, actionDispatcher);
@@ -90,7 +87,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                 if (isMetaDevMode()) {
                     const watchInfo = await MetaSpecificationLoader.watch(async () => {
                         const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
-                        CincoClientSessionInitializer.sendToClient(
+                        CincoClientSessionInitializer.sendToAllClients(
                             response,
                             clientId,
                             CincoClientSessionInitializer.clientSessionsActionDispatcher
@@ -271,6 +268,20 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         CincoClientSessionInitializer.removeClient(entry[0]);
                     });
                 }
+            }
+        }
+    }
+
+    static sendToAllClients(message: Action, clientId: string, actionDispatcherMap: Map<number, ActionDispatcher>): void {
+        if (clientId !== SYSTEM_ID) {
+            return;
+        }
+        if (actionDispatcherMap) {
+            for (const entry of actionDispatcherMap.entries()) {
+                entry[1].dispatch(message).catch(e => {
+                    console.log('An error occured, maybe the client is not connected anymore:\n' + e);
+                    CincoClientSessionInitializer.removeClient(entry[0]);
+                });
             }
         }
     }
