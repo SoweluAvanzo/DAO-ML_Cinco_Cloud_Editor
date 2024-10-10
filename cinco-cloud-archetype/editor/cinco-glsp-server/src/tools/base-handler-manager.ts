@@ -68,6 +68,12 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
         if ([GLSP_TEMP_ID].includes(this.modelState.clientId) || !this.modelState.graphModel) {
             return Promise.resolve([]);
         }
+        if ('modelId' in action) {
+            if (action.modelId !== this.modelState.graphModel?.id) {
+                // not the associated graphmodel
+                return Promise.resolve([]);
+            }
+        }
         return new Promise<Action[]>((resolve, _) => {
             const results: Action[] = [];
             this.getActiveHandlers(action, args).then(handlers => {
@@ -124,6 +130,10 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
         console.log('Getting handlers for element: ' + action.modelElementId);
         console.log('-> In model: ' + this.modelState?.graphModel?.id);
         const element = this.modelState.index.findElement(action.modelElementId) as ModelElement;
+        if (!element) {
+            console.log('Element not found in model!');
+            return Promise.resolve([]);
+        }
         try {
             if (!this.hasHandlerProperty(element)) {
                 console.log('This element has no assigned ' + this.baseHandlerName + '!');
