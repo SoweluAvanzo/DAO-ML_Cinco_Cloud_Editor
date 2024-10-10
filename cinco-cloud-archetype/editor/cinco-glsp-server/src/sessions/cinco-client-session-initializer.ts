@@ -41,7 +41,8 @@ import {
     hasValidation,
     hasAppearanceProvider,
     hasValueProvider,
-    SYSTEM_ID
+    SYSTEM_ID,
+    GLSP_TEMP_ID
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     existsFile,
@@ -54,6 +55,7 @@ import {
     readJson
 } from '@cinco-glsp/cinco-glsp-api';
 import { CincoClientSessionListener } from './cinco-client-session-listener';
+import { CincoActionDispatcher } from '@cinco-glsp/cinco-glsp-api/lib/api/cinco-action-dispatcher';
 
 @injectable()
 export class CincoClientSessionInitializer implements ClientSessionInitializer {
@@ -78,6 +80,9 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                 modelState: GraphModelState,
                 actionDispatcher: ActionDispatcher
             ): Promise<void> => {
+                if (clientId === GLSP_TEMP_ID) {
+                    return;
+                }
                 this.updateGraphModelWatcher(clientId, modelState, actionDispatcher);
                 MetaSpecificationLoader.addReloadCallback(async () => {
                     this.updateGraphModelWatcher(clientId, modelState, actionDispatcher);
@@ -85,10 +90,9 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                 if (isMetaDevMode()) {
                     const watchInfo = await MetaSpecificationLoader.watch(async () => {
                         const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
-                        this.actionDispatcher.dispatch(response);
-                        CincoClientSessionInitializer.sendToAllOtherClients(
+                        CincoClientSessionInitializer.sendToClient(
                             response,
-                            this.serverContainer.id,
+                            clientId,
                             CincoClientSessionInitializer.clientSessionsActionDispatcher
                         );
                     }, 'metaspecWatcher_' + clientId);
@@ -266,6 +270,20 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         console.log('An error occured, maybe the client is not connected anymore:\n' + e);
                         CincoClientSessionInitializer.removeClient(entry[0]);
                     });
+                }
+            }
+        }
+    }
+
+    static sendToClient(message: Action, clientId: string, actionDispatcherMap: Map<number, ActionDispatcher>): void {
+        if (actionDispatcherMap) {
+            for (const entry of actionDispatcherMap.entries()) {
+                if (entry[1] instanceof CincoActionDispatcher && entry[1].clientId === clientId) {
+                    entry[1].dispatch(message).catch(e => {
+                        console.log('An error occured, maybe the client is not connected anymore:\n' + e);
+                        CincoClientSessionInitializer.removeClient(entry[0]);
+                    });
+                    return;
                 }
             }
         }

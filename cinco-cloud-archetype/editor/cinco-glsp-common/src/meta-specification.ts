@@ -1533,7 +1533,7 @@ export function getAllPaletteAnnotations(): Annotation[] {
 
 export function isContainer(containerType: string): boolean {
     const containerSpec = getSpecOf(containerType) as NodeType;
-    return ModelElementContainer.is(containerSpec);
+    return containerSpec && ModelElementContainer.is(containerSpec);
 }
 
 export function getContainersOf(e: NodeType): NodeType[] {
