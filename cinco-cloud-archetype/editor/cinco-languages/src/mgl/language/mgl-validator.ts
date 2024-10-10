@@ -23,10 +23,8 @@ import {
     NodeType,
     MglModel,
     Styles,
-    Annotation,
-    isAttribute,
-    isModelElement,
-    isComplexModelElement
+    isComplexModelElement,
+    Annotation
 } from '../../generated/ast';
 import type { MglServices } from './mgl-module';
 import { getConnectingEdges } from '../util/mgl-util';
@@ -52,7 +50,7 @@ export function registerValidationChecks(services: MglServices): void {
         ],
         MglModel: [validator.checkStylePath],
         Edge: [validator.checkStyle],
-        Annotation: [validator.checkAnnotation],
+        Annotation: [validator.checkAnnotations],
         ComplexModelElement: [validator.checkInheritanceCircle]
     };
     registry.register(checks, validator);
@@ -63,6 +61,10 @@ export function registerValidationChecks(services: MglServices): void {
  */
 export class MglValidator {
     // TODO: imports validation
+
+    checkAnnotations(annotation: Annotation, acceptor: ValidationAcceptor): void {
+        MglAnnotations.checkAnnotation(annotation, acceptor);
+    }
 
     checkInheritanceCircle(element: ComplexModelElement, acceptor: ValidationAcceptor): void {
         const circledElements = this.isInheritanceCircle(element);
@@ -83,30 +85,6 @@ export class MglValidator {
         }
         const ancestor = element.localExtension?.ref;
         return this.isInheritanceCircle(ancestor, seen.concat([element]));
-    }
-
-    checkAnnotation(annotation: Annotation, acceptor: ValidationAcceptor): void {
-        if (isAttribute(annotation.$container)) {
-            this.checkAnnotationSupport(MglAnnotations.attributeAnnotations, annotation, acceptor);
-        } else if (isModelElement(annotation.$container)) {
-            this.checkAnnotationSupport(MglAnnotations.modelElementAnnotations, annotation, acceptor);
-        } else {
-            const message = 'Unknown Annotation "' + annotation.name + '"!';
-            acceptor('warning', message, {
-                node: annotation,
-                property: 'name'
-            });
-        }
-    }
-
-    checkAnnotationSupport(supportedAnnotations: string[], annotation: Annotation, acceptor: ValidationAcceptor): void {
-        if (!supportedAnnotations.includes(annotation.name)) {
-            const message = 'Unknown Annotation "' + annotation.name + '"! Supported are: ' + supportedAnnotations.join(', ');
-            acceptor('error', message, {
-                node: annotation,
-                property: 'name'
-            });
-        }
     }
 
     async checkStyle(element: Edge | NodeType, acceptor: ValidationAcceptor): Promise<void> {
