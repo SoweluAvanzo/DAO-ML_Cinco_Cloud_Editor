@@ -173,25 +173,24 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     protected async addReconnect(client: CincoGLSPClient, connection: any): Promise<void> {
         return connection.onDispose(() => {
             client.stop().then(_ => {
-                setTimeout(async () => {
-                    // reconnection
-                    this.doReconnect(client, connection);
-                }, 3000);
+                this.doReconnect(client, connection);
             });
         });
     }
 
     protected async doReconnect(client: CincoGLSPClient, connection: any): Promise<void> {
-        const reConnection = await this.createConnection();
-        client.setConnectionProvider(reConnection);
-        await this.addReconnect(client, connection);
-        client.resetInitializeResult();
-        await client.start();
-        await Promise.all(
-            client.getLocalClients().map(async params => {
-                await this.initializeSession(params.clientSessionId, true, params);
-            })
-        );
+        setTimeout(async () => {
+            const reConnection = await this.createConnection();
+            client.setConnectionProvider(reConnection);
+            await this.addReconnect(client, connection);
+            client.resetInitializeResult();
+            await client.start();
+            await Promise.all(
+                client.getLocalClients().map(async params => {
+                    await this.initializeSession(params.clientSessionId, true, params);
+                })
+            );
+        }, 3000);
         // refresh canvas here (currently not working)
         // Canvas looses DIContainer for some reason (?)
     }
