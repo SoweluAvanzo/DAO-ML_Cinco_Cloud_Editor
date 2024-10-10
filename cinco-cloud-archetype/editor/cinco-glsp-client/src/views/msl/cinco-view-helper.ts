@@ -98,7 +98,7 @@ export function fromPathToURL(
     options = {
         contentMode: false
     }
-): string {
+): string | undefined {
     const existsIn = workspaceFileService.servedExistsIn(path, workspaceFileService.actionDispatcher);
     existsIn.then(fileURIString => {
         if (!fileURIString) {
@@ -121,7 +121,8 @@ export function fromPathToURL(
         return `${RESOURCE_MAP.get(path)?.content}`;
     }
     // return current cached resource
-    return `${RESOURCE_MAP.get(path)?.url}`;
+    const url = RESOURCE_MAP.get(path)?.url;
+    return url ? `${url}` : undefined;
 }
 
 function updateResourceServing(

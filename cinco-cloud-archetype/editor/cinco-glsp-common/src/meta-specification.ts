@@ -231,7 +231,7 @@ export namespace MetaSpecification {
     }
 
     export function isCustomType(elementTypeId: string): boolean {
-        return IS_GRAPH_TYPE.get(elementTypeId) ?? false;
+        return IS_CUSTOM_TYPE.get(elementTypeId) ?? false;
     }
 
     /*
@@ -1533,7 +1533,7 @@ export function getAllPaletteAnnotations(): Annotation[] {
 
 export function isContainer(containerType: string): boolean {
     const containerSpec = getSpecOf(containerType) as NodeType;
-    return ModelElementContainer.is(containerSpec);
+    return containerSpec && ModelElementContainer.is(containerSpec);
 }
 
 export function getContainersOf(e: NodeType): NodeType[] {

@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2023 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,16 +14,11 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { ActionMessage, DefaultGLSPServer } from '@eclipse-glsp/server';
-import { injectable } from 'inversify';
+import { BindingTarget, GLSPServer, ServerModule } from '@eclipse-glsp/server';
+import { CincoGLSPServer } from './cinco-glsp-server';
 
-@injectable()
-export class CincoGLSPServer extends DefaultGLSPServer {
-    protected override sendToClient(message: ActionMessage): void {
-        try {
-            this.glspClientProxy.process(message);
-        } catch (e: any) {
-            this.logger.error(`Could not sendToClient: ${e}`);
-        }
+export class CincoServerModule extends ServerModule {
+    protected override bindGLSPServer(): BindingTarget<GLSPServer> {
+        return CincoGLSPServer;
     }
 }

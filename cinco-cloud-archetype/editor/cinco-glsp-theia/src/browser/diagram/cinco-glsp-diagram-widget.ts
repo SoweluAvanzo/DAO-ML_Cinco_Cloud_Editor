@@ -20,11 +20,14 @@ import { getGraphModelOfFileType } from '@cinco-glsp/cinco-glsp-common';
 import { CincoGLSPDiagramContextKeyService } from './cinco-glsp-diagram-manager';
 import { wait } from '@theia/core/lib/common/promise-util';
 import { inject } from '@theia/core/shared/inversify';
+import { DiagramLoader, ICopyPasteHandler, IDiagramOptions, TYPES } from '@eclipse-glsp/client';
 
 export class CincoGLSPDiagramWidget extends GLSPDiagramWidget {
     static _cincoDiagramExtension?: string;
     @inject(ApplicationShell) protected shell: ApplicationShell;
     @inject(CincoGLSPDiagramContextKeyService) protected contextKeyService: CincoGLSPDiagramContextKeyService;
+    protected _clientId: string | undefined;
+    protected _diagramOptions: IDiagramOptions | undefined;
 
     protected override onActivateRequest(msg: Message): void {
         super.onActivateRequest(msg);
@@ -38,6 +41,32 @@ export class CincoGLSPDiagramWidget extends GLSPDiagramWidget {
     protected override onAfterShow(msg: Widget.ResizeMessage): void {
         super.onAfterShow(msg);
         this.updateTabBarButtons();
+    }
+
+    protected override onAfterAttach(msg: Message): void {
+        if (!this.diagramContainer) {
+            // Create the container and initialize its content upon first attachment
+            this.createContainer();
+            this.initializeDiagram().then(_ => {
+                this._clientId = super.clientId;
+                this._diagramOptions = this.diagramOptions;
+            });
+        }
+        super.onAfterAttach(msg);
+
+        this.disposed.connect(() => {
+            this.diContainer.unbindAll();
+        });
+
+        this.node.dataset['uri'] = this.uri.toString();
+        if (this.diContainer.isBound(TYPES.ICopyPasteHandler)) {
+            this.copyPasteHandler = this.diContainer.get<ICopyPasteHandler>(TYPES.ICopyPasteHandler);
+            this.addClipboardListener(this.node, 'copy', e => this.handleCopy(e));
+            this.addClipboardListener(this.node, 'paste', e => this.handlePaste(e));
+            this.addClipboardListener(this.node, 'cut', e => this.handleCut(e));
+        }
+        this.node.addEventListener('mouseenter', e => this.handleMouseEnter(e));
+        this.node.addEventListener('mouseleave', e => this.handleMouseLeave(e));
     }
 
     /**
@@ -75,5 +104,17 @@ export class CincoGLSPDiagramWidget extends GLSPDiagramWidget {
 
     get cincoGraphModelType(): string | undefined {
         return getGraphModelOfFileType(this.cincoDiagramExtension ?? '')?.elementTypeId;
+    }
+
+    get diagramLoader(): DiagramLoader {
+        return this.diContainer.get(DiagramLoader);
+    }
+
+    get diagramOptions(): IDiagramOptions {
+        return this._diagramOptions ?? this.diContainer.get(TYPES.IDiagramOptions);
+    }
+
+    override get clientId(): string {
+        return this._clientId ?? super.clientId;
     }
 }

@@ -22,7 +22,8 @@ import {
     DisposeClientSessionParameters,
     InitializeClientSessionParameters,
     BaseJsonrpcGLSPClient,
-    ClientState
+    ClientState,
+    ConnectionProvider
 } from '@eclipse-glsp/protocol';
 import { SYSTEM_ID } from './protocol/cinco-glsp-lifecycle';
 
@@ -38,35 +39,56 @@ import { SYSTEM_ID } from './protocol/cinco-glsp-lifecycle';
  * multiple clienst and has build-in SYSTEM-message support, for broadcast propagation.
  */
 export class CincoGLSPClient extends BaseJsonrpcGLSPClient {
-    protected localClients: string[] = [];
+    protected localClients: Map<string, InitializeClientSessionParameters> = new Map();
     protected handlers: Map<string, ((m: ActionMessage<Action>) => void)[]> = new Map();
     protected globalHandler: ((m: ActionMessage<Action>) => void)[] = [];
-
+    protected reconnect: ((client: CincoGLSPClient) => Promise<void>) | undefined;
     protected theiaMessageService?: any; // optional theia message service
+    protected override connectionProvider: ConnectionProvider;
 
     constructor(options: any) {
         super(options);
         if (options.messageService) {
             this.theiaMessageService = options.messageService;
         }
+        this.reconnect = options.reconnect;
+    }
+
+    setConnectionProvider(connectionProvider: any /* MessageConnection */): void {
+        this.connectionProvider = connectionProvider;
     }
 
     protected override handleConnectionError(error: Error, message: any, count: number): void {
-        super.handleConnectionError(error, message, count);
+        // super.handleConnectionError(error, message, count);
+        this.stop();
+        this.state = ClientState.ServerError;
         if (this.theiaMessageService) {
-            this.theiaMessageService.error(`Connection the ${this.id} glsp server is erroring. Shutting down server.`);
+            this.theiaMessageService.error(`Connection the ${this.id} glsp server is erroring.`);
+        }
+        if (this.reconnect) {
+            this.reconnect(this);
         }
     }
 
     protected override handleConnectionClosed(): void {
         if (this.theiaMessageService && this.state !== ClientState.Stopping && this.state !== ClientState.Stopped) {
-            this.theiaMessageService.error(`Connection to the ${this.id} glsp server got closed. Server will not be restarted.`);
+            this.theiaMessageService.error(
+                `Connection to the ${this.id} glsp server got closed.` +
+                    (this.reconnect ? ' Reconnecting! Please, close and reopen canvas!' : '')
+            );
+        }
+        this.state = this.state === ClientState.Stopping || this.state === ClientState.Stopped ? this.state : ClientState.ServerError;
+        if (this.reconnect) {
+            this.connectionPromise = undefined;
+            this.resolvedConnection = undefined;
+            this.reconnect(this);
+            return;
         }
         super.handleConnectionClosed();
     }
 
     override disposeClientSession(params: DisposeClientSessionParameters): Promise<void> {
-        const result = this.checkedConnection.sendRequest(JsonrpcGLSPClient.DisposeClientSessionRequest, params).then(v => {
+        const result = this.checkedConnection.sendRequest(JsonrpcGLSPClient.DisposeClientSessionRequest, params).then(() => {
             this.removeLocalClient(params.clientSessionId);
             this.setDefaultCallback();
         });
@@ -74,7 +96,7 @@ export class CincoGLSPClient extends BaseJsonrpcGLSPClient {
     }
 
     protected setDefaultCallback(): any {
-        return this.checkedConnection.onNotification(JsonrpcGLSPClient.ActionMessageNotification, msg => {
+        return this.checkedConnection.onNotification(JsonrpcGLSPClient.ActionMessageNotification, (msg: ActionMessage) => {
             this.defaultCallback(msg);
         });
     }
@@ -110,15 +132,14 @@ export class CincoGLSPClient extends BaseJsonrpcGLSPClient {
     }
 
     override initializeClientSession(params: InitializeClientSessionParameters): Promise<void> {
-        return this.checkedConnection.sendRequest(JsonrpcGLSPClient.InitializeClientSessionRequest, params).then(result => {
-            this.addLocalClient(params.clientSessionId);
-            return result;
+        return this.checkedConnection.sendRequest(JsonrpcGLSPClient.InitializeClientSessionRequest, params).then(() => {
+            this.addLocalClient(params);
         });
     }
 
     override sendActionMessage(message: ActionMessage): void {
-        if (message.clientId === 'SYSTEM') {
-            for (const client of this.localClients) {
+        if (message.clientId === SYSTEM_ID) {
+            for (const client of this.localClients.keys()) {
                 const messageForClient = { ...message };
                 messageForClient.clientId = client;
                 this.checkedConnection.sendNotification(JsonrpcGLSPClient.ActionMessageNotification, messageForClient);
@@ -145,21 +166,39 @@ export class CincoGLSPClient extends BaseJsonrpcGLSPClient {
         }
     }
 
-    addLocalClient(clientId: string): void {
-        if (!this.localClients.includes(clientId)) {
-            this.localClients.push(clientId);
+    addLocalClient(params: InitializeClientSessionParameters): void {
+        if (!this.localClients.has(params.clientSessionId)) {
+            this.localClients.set(params.clientSessionId, params);
         }
     }
 
     removeLocalClient(clientId: string): void {
-        this.localClients = this.localClients.filter(c => c !== clientId);
+        this.localClients.delete(clientId);
+    }
+
+    getLocalClients(): InitializeClientSessionParameters[] {
+        return Array.from(this.localClients.values());
     }
 
     isConnected(clientId: string): boolean {
-        return this.localClients.includes(clientId);
+        return this.localClients.has(clientId);
     }
 
     isConnectingOrRunning(): boolean {
         return this.state === ClientState.Initial || this.state === ClientState.Starting || this.state === ClientState.Running;
+    }
+
+    resetInitializeResult(): void {
+        this._initializeResult = undefined;
+    }
+
+    protected override get checkedConnection(): any /* Message Connection */ {
+        if (!this.isConnectionActive()) {
+            if (this.reconnect) {
+                this.reconnect(this);
+            }
+            throw new Error(JsonrpcGLSPClient.ClientNotReadyMsg);
+        }
+        return this.resolvedConnection!;
     }
 }

@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { APIBaseHandler, GraphModelState, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import { ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
+import { GLSP_TEMP_ID, ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
 import {
     Action,
     ActionDispatcher,
@@ -64,12 +64,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     abstract executeHandler(handler: H, element: ModelElement, action: A, args: any): Promise<Action[]> | Action[];
 
     execute(action: A, ...args: unknown[]): Promise<Action[]> {
-        /**
-         * - 'tempId' is an internal glsp convention
-         * - 'SYSTEM' is the internal cinco-glsp convention for a client like the theia editor,
-         *    which exists besides the canvas-clients
-         */
-        if (['tempId'].includes(this.modelState.clientId) || !this.modelState.graphModel) {
+        // Is not a user client?
+        if ([GLSP_TEMP_ID].includes(this.modelState.clientId) || !this.modelState.graphModel) {
             return Promise.resolve([]);
         }
         return new Promise<Action[]>((resolve, _) => {

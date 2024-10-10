@@ -15,7 +15,7 @@
  ********************************************************************************/
 import { BaseGLSPClientContribution, WebSocketConnectionOptions } from '@eclipse-glsp/theia-integration/lib/browser';
 import { EnvVariablesServer } from '@theia/core/lib/common/env-variables';
-import { inject, injectable } from '@theia/core/shared/inversify';
+import { inject, injectable, multiInject } from '@theia/core/shared/inversify';
 import { getDiagramConfiguration } from '../common/cinco-language';
 import { ActionMessage } from '@eclipse-glsp/sprotty';
 import {
@@ -37,6 +37,7 @@ import { CommandRegistry } from '@theia/core';
 import { InitializeClientSessionParameters } from '@eclipse-glsp/protocol';
 import { MetaSpecificationReloadCommandHandler } from './meta/meta-specification-reload-command-handler';
 import { WebSocketConnectionInfo, isValidWebSocketAddress } from '@eclipse-glsp/theia-integration/lib/common';
+import { CincoGLSPDiagramWidget } from './diagram/cinco-glsp-diagram-widget';
 
 @injectable()
 export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
@@ -44,13 +45,15 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     protected readonly envVariablesServer: EnvVariablesServer;
     @inject(CommandRegistry)
     protected readonly commandRegistry: CommandRegistry;
+    @multiInject(CincoGLSPDiagramWidget)
+    protected readonly diagramWidgets: CincoGLSPDiagramWidget[];
 
     readonly id = getDiagramConfiguration().contributionId;
     readonly fileExtensions = getDiagramConfiguration().fileExtensions;
 
     constructor() {
         super();
-        this.initializeSystemSession(SYSTEM_ID);
+        this.initializeSession(SYSTEM_ID);
     }
 
     protected override async getWebSocketConnectionOptions(): Promise<WebSocketConnectionOptions | undefined> {
@@ -105,40 +108,47 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
         return undefined;
     }
 
-    initializeSystemSession(id: string): void {
+    initializeSession(id: string, reconnect?: boolean, params?: InitializeClientSessionParameters): Promise<void> {
         console.log('Initializing GLSP Client Connection: ' + this.id);
-        this.glspClient.then(client => {
+        return this.glspClient.then(client => {
             if (!(client instanceof CincoGLSPClient)) {
                 throw Error('Client is no CincoGLSPClient. Maybe the API has changed, please review.');
             }
-            this.initialize(client).then(_v => {
+            return this.initialize(client).then(_v => {
                 client
-                    .initializeClientSession({
-                        clientSessionId: id,
-                        diagramType: DIAGRAM_TYPE,
-                        clientActionKinds: [MetaSpecificationResponseAction.KIND]
-                    } as InitializeClientSessionParameters)
+                    .initializeClientSession(
+                        params ??
+                            ({
+                                clientSessionId: id,
+                                diagramType: DIAGRAM_TYPE,
+                                clientActionKinds: id === SYSTEM_ID ? [MetaSpecificationResponseAction.KIND] : []
+                            } as InitializeClientSessionParameters)
+                    )
                     .then(() => {
-                        console.log('CincoGLSPClient connected!');
-                        client.onActionMessage((m: ActionMessage) => {
-                            const action = m.action;
-                            if (MetaSpecificationResponseAction.KIND === action.kind) {
-                                this.commandRegistry.executeCommand(LANGUAGE_UPDATE_COMMAND.id, {
-                                    metaSpecification: (m.action as MetaSpecificationResponseAction).metaSpecification
-                                } as LanguageUpdateMessage);
-                                // register command to fetch current meta-spec by other vscode/theia extensions
-                                if (this.commandRegistry.commands.filter(c => c.id === META_SPEC_PROVIDER_COMMAND.id).length <= 0) {
-                                    this.commandRegistry.registerCommand(META_SPEC_PROVIDER_COMMAND, {
-                                        execute: _ => MetaSpecification.get()
-                                    });
+                        console.log('CincoGLSPClient "' + id + '" ' + (reconnect ? 'reconnected!' : 'connected!'));
+                        if (id === SYSTEM_ID) {
+                            client.onActionMessage((m: ActionMessage) => {
+                                const action = m.action;
+                                if (MetaSpecificationResponseAction.KIND === action.kind) {
+                                    this.commandRegistry.executeCommand(LANGUAGE_UPDATE_COMMAND.id, {
+                                        metaSpecification: (m.action as MetaSpecificationResponseAction).metaSpecification
+                                    } as LanguageUpdateMessage);
+                                    // register command to fetch current meta-spec by other vscode/theia extensions
+                                    if (this.commandRegistry.commands.filter(c => c.id === META_SPEC_PROVIDER_COMMAND.id).length <= 0) {
+                                        this.commandRegistry.registerCommand(META_SPEC_PROVIDER_COMMAND, {
+                                            execute: _ => MetaSpecification.get()
+                                        });
+                                    }
                                 }
+                            }, SYSTEM_ID);
+                            if (!reconnect) {
+                                this.commandRegistry.registerCommand(
+                                    { id: MetaSpecificationReloadCommand.ID, label: 'Reload Meta-Specification', category: 'Cinco Cloud' },
+                                    new MetaSpecificationReloadCommandHandler(client)
+                                );
+                                this.commandRegistry.executeCommand(MetaSpecificationReloadCommand.ID);
                             }
-                        }, SYSTEM_ID);
-                        this.commandRegistry.registerCommand(
-                            { id: MetaSpecificationReloadCommand.ID, label: 'Reload Meta-Specification', category: 'Cinco Cloud' },
-                            new MetaSpecificationReloadCommandHandler(client)
-                        );
-                        this.commandRegistry.executeCommand(MetaSpecificationReloadCommand.ID);
+                        }
                     });
             });
         });
@@ -148,7 +158,41 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
         return new CincoGLSPClient({
             id: this.id,
             connectionProvider,
-            messageService: this.messageService
+            messageService: this.messageService,
+            reconnect: (client: CincoGLSPClient) => this.doReconnect(client, connectionProvider)
         });
+    }
+
+    protected override async activateClient(): Promise<void> {
+        const connection = await this.createConnection();
+        const client = await this.createGLSPClient(connection);
+        await this.addReconnect(client, connection);
+        return this.start(client);
+    }
+
+    protected async addReconnect(client: CincoGLSPClient, connection: any): Promise<void> {
+        return connection.onDispose(() => {
+            client.stop().then(_ => {
+                setTimeout(async () => {
+                    // reconnection
+                    this.doReconnect(client, connection);
+                }, 3000);
+            });
+        });
+    }
+
+    protected async doReconnect(client: CincoGLSPClient, connection: any): Promise<void> {
+        const reConnection = await this.createConnection();
+        client.setConnectionProvider(reConnection);
+        await this.addReconnect(client, connection);
+        client.resetInitializeResult();
+        await client.start();
+        await Promise.all(
+            client.getLocalClients().map(async params => {
+                await this.initializeSession(params.clientSessionId, true, params);
+            })
+        );
+        // refresh canvas here (currently not working)
+        // Canvas looses DIContainer for some reason (?)
     }
 }
