@@ -16,47 +16,69 @@
 import { argv, exit } from 'process';
 import { readFileSync, writeFileSync } from 'fs';
 import { graphMerger } from './graph-merger';
+import { command, flag, number, option, positional, run, string } from 'cmd-ts';
 
-console.log('ancestor', argv[2]);
-console.log('version a', argv[3]);
-console.log('version b', argv[4]);
-console.log('conflict marker length', argv[5]);
+const app = command({
+    name: 'cinco-lazy-merge',
+    args: {
+        ancestorFile: positional({ type: string, displayName: 'ancestor-file' }),
+        versionAFile: positional({ type: string, displayName: 'version-a-file' }),
+        versionBFile: positional({ type: string, displayName: 'version-b-file' }),
+        outputFile: positional({ type: string, displayName: 'output-file' }),
+        conflictMarkerSize: option({ type: number, long: 'conflict-maker-size', defaultValue: () => 7 }),
+        failMergeOnLazyConflicts: flag({ long: 'fail-merge-on-lazy-conflicts' }),
+        mergeUnknownCellsArbitrarily: flag({ long: 'merge-unknown-cells-arbitrarily' })
+    },
+    handler: ({
+        ancestorFile,
+        versionAFile,
+        versionBFile,
+        outputFile,
+        conflictMarkerSize,
+        failMergeOnLazyConflicts,
+        mergeUnknownCellsArbitrarily
+    }) => {
+        const ancestorInput = readFileSync(ancestorFile, 'utf-8');
+        const versionAInput = readFileSync(versionAFile, 'utf-8');
+        const versionBInput = readFileSync(versionBFile, 'utf-8');
 
-const ancestorInput = readFileSync(argv[2], 'utf-8');
-const versionAInput = readFileSync(argv[3], 'utf-8');
-const versionBInput = readFileSync(argv[4], 'utf-8');
+        let output: string;
+        let exitCode: number;
 
-let output: string;
-let exitCode: number;
+        try {
+            const ancestor = JSON.parse(ancestorInput);
+            const versionA = JSON.parse(versionAInput);
+            const versionB = JSON.parse(versionBInput);
 
-try {
-    const ancestor = JSON.parse(ancestorInput);
-    const versionA = JSON.parse(versionAInput);
-    const versionB = JSON.parse(versionBInput);
+            const merger = graphMerger();
+            const { value, newEagerConflicts, newLazyConflicts } = merger(
+                { mergeUnknownCellsArbitrarily },
+                { ancestor, versionA, versionB }
+            );
 
-    const merger = graphMerger();
-    const result = merger({ ancestor, versionA, versionB });
+            output = JSON.stringify(value);
+            exitCode = newEagerConflicts || (failMergeOnLazyConflicts && newLazyConflicts) ? 1 : 0;
+        } catch (error) {
+            output =
+                'Unable to merge files:\n' +
+                `${error}\n` +
+                `${'<'.repeat(conflictMarkerSize)}\n` +
+                assureEndsWithNewline(versionAInput) +
+                `${'='.repeat(conflictMarkerSize)}\n` +
+                assureEndsWithNewline(ancestorInput) +
+                `${'='.repeat(conflictMarkerSize)}\n` +
+                assureEndsWithNewline(versionBInput) +
+                `${'>'.repeat(conflictMarkerSize)}\n`;
+            exitCode = 2;
+        }
 
-    output = JSON.stringify(result.value);
-    exitCode = result.newEagerConflicts ? 1 : 0;
-} catch (error) {
-    const markerSize = Number(argv[5]);
-    output =
-        'Unable to merge files:\n' +
-        `${error}\n` +
-        `${'<'.repeat(markerSize)}\n` +
-        assureEndsWithNewline(versionAInput) +
-        `${'='.repeat(markerSize)}\n` +
-        assureEndsWithNewline(ancestorInput) +
-        `${'='.repeat(markerSize)}\n` +
-        assureEndsWithNewline(versionBInput) +
-        `${'>'.repeat(markerSize)}\n`;
-    exitCode = 2;
-}
+        function assureEndsWithNewline(value: string): string {
+            return value.endsWith('\n') ? value : `${value}\n`;
+        }
 
-function assureEndsWithNewline(value: string): string {
-    return value.endsWith('\n') ? value : `${value}\n`;
-}
+        writeFileSync(outputFile, output);
+        exit(exitCode);
+    }
+});
 
-writeFileSync(argv[6], output);
-exit(exitCode);
+run(app, argv.slice(2));

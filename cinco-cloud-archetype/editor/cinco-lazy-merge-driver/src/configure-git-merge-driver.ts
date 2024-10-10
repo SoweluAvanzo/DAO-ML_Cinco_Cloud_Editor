@@ -16,20 +16,46 @@
 import { spawn } from 'child_process';
 import { exit } from 'process';
 
-const process = spawn(
-    'git',
-    ['config', '--global', 'merge.cinco-lazy-merge.driver', `node '${__dirname}/cinco-lazy-merge.js' %O %A %B %L %A`],
-    { stdio: 'inherit' }
-);
+main();
 
-process.on('error', error => {
-    console.error(error);
-    exit(1);
-});
-
-process.on('exit', code => {
-    if (code !== 0) {
-        console.error(`git command exited with ${code}`);
+async function main(): Promise<void> {
+    try {
+        await configureDriver('cinco-lazy-merge', { eager: false, arbitrarily: false });
+        await configureDriver('cinco-eager-merge', { eager: true, arbitrarily: false });
+        await configureDriver('cinco-lazy-merge-arbitrarily', { eager: false, arbitrarily: true });
+        await configureDriver('cinco-eager-merge-arbitrarily', { eager: true, arbitrarily: true });
+    } catch (error) {
+        console.log(error);
         exit(1);
     }
-});
+}
+
+function configureDriver(name: string, { eager, arbitrarily }: { eager: boolean; arbitrarily: boolean }): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const process = spawn(
+            'git',
+            [
+                'config',
+                '--global',
+                `merge.${name}.driver`,
+                `node '${__dirname}/cinco-lazy-merge.js' %O %A %B %A ` +
+                    '--conflict-marker-size=%L' +
+                    (eager ? ' --fail-merge-on-lazy-conflicts' : '') +
+                    (arbitrarily ? ' --merge-unknown-cells-arbitrarily' : '')
+            ],
+            { stdio: 'inherit' }
+        );
+
+        process.on('error', error => {
+            reject(error);
+        });
+
+        process.on('exit', code => {
+            if (code === 0) {
+                resolve();
+            } else {
+                reject(new Error(`git command exited with ${code}`));
+            }
+        });
+    });
+}

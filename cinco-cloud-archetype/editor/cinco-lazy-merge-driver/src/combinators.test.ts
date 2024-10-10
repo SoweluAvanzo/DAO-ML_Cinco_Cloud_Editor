@@ -27,7 +27,8 @@ import {
     mergeLazyConflict,
     recursiveMerger,
     arbitraryMerger,
-    defaultMerger
+    defaultMerger,
+    defaultContext
 } from './combinators';
 
 describe('mapMergeResult', () => {
@@ -195,12 +196,12 @@ describe('optionalMerger', () => {
     ];
     for (const [i, { ancestor, versionA, versionB, result }] of scenarios.entries()) {
         test(`optional merging scenario ${i + 1}`, () => {
-            expect(optionalMerger(cellMerger())({ ancestor, versionA, versionB })).toStrictEqual(result);
+            expect(optionalMerger(cellMerger())(defaultContext, { ancestor, versionA, versionB })).toStrictEqual(result);
         });
     }
     test('ghost of equal value anomaly', () => {
         expect(
-            optionalMerger(cellMerger())({
+            optionalMerger(cellMerger())(defaultContext, {
                 ancestor: { tag: 'ghost', value: 'foo' },
                 versionA: 'foo',
                 versionB: 'baz'
@@ -213,7 +214,7 @@ describe('optionalMerger', () => {
 describe('recordMerger', () => {
     test('merge record of cells', () => {
         expect(
-            recordMerger({ x: cellMerger(), y: cellMerger() })({
+            recordMerger({ x: cellMerger(), y: cellMerger() })(defaultContext, {
                 ancestor: { x: 'foo', y: 'doo' },
                 versionA: { x: 'bar', y: 'dar' },
                 versionB: { x: 'baz', y: 'daz' }
@@ -229,11 +230,14 @@ describe('recordMerger', () => {
     });
     test('merge unknown keys eagerly', () => {
         expect(
-            recordMerger({})({
-                ancestor: { x: 'foo' },
-                versionA: { x: 'bar' },
-                versionB: { x: 'baz' }
-            })
+            recordMerger({})(
+                { mergeUnknownCellsArbitrarily: false },
+                {
+                    ancestor: { x: 'foo' },
+                    versionA: { x: 'bar' },
+                    versionB: { x: 'baz' }
+                }
+            )
         ).toStrictEqual({
             value: {
                 x: {
@@ -249,9 +253,27 @@ describe('recordMerger', () => {
             newLazyConflicts: false
         });
     });
+    test('merge unknown keys arbitrarily', () => {
+        expect(
+            recordMerger({})(
+                { mergeUnknownCellsArbitrarily: true },
+                {
+                    ancestor: { x: 'foo' },
+                    versionA: { x: 'bar' },
+                    versionB: { x: 'baz' }
+                }
+            )
+        ).toStrictEqual({
+            value: {
+                x: 'baz'
+            },
+            newEagerConflicts: false,
+            newLazyConflicts: false
+        });
+    });
     test('optional merging for missing keys', () => {
         expect(
-            recordMerger({ x: cellMerger() })({
+            recordMerger({ x: cellMerger() })(defaultContext, {
                 ancestor: { x: 'foo' },
                 versionA: { x: 'bar' },
                 versionB: {}
@@ -272,7 +294,7 @@ describe('recordMerger', () => {
 describe('entityMapMerger', () => {
     test('update and addition', () => {
         expect(
-            entityListMerger(recordMerger({ value: cellMerger() }))({
+            entityListMerger(recordMerger({ value: cellMerger() }))(defaultContext, {
                 ancestor: [{ id: 'x', value: 'foo' }],
                 versionA: [
                     { id: 'x', value: 'bar' },
@@ -298,7 +320,7 @@ describe('entityMapMerger', () => {
 describe('mapMerger', () => {
     test('updates', () => {
         expect(
-            mapMerger(cellMerger())({
+            mapMerger(cellMerger())(defaultContext, {
                 ancestor: { x: 'foo', y: 'doo' },
                 versionA: { x: 'bar', y: 'dar' },
                 versionB: { x: 'baz', y: 'daz' }
@@ -314,7 +336,7 @@ describe('mapMerger', () => {
     });
     test('additions', () => {
         expect(
-            mapMerger(cellMerger())({
+            mapMerger(cellMerger())(defaultContext, {
                 ancestor: {},
                 versionA: { x: 'bar' },
                 versionB: { y: 'daz' }
@@ -330,7 +352,7 @@ describe('mapMerger', () => {
     });
     test('deleted in version A', () => {
         expect(
-            mapMerger(cellMerger())({
+            mapMerger(cellMerger())(defaultContext, {
                 ancestor: { x: 'foo' },
                 versionA: {},
                 versionB: { x: 'foo' }
@@ -339,7 +361,7 @@ describe('mapMerger', () => {
     });
     test('deleted in version B', () => {
         expect(
-            mapMerger(cellMerger())({
+            mapMerger(cellMerger())(defaultContext, {
                 ancestor: { x: 'foo' },
                 versionA: { x: 'foo' },
                 versionB: {}
@@ -348,7 +370,7 @@ describe('mapMerger', () => {
     });
     test('record deleted', () => {
         expect(
-            mapMerger(recordMerger({ y: cellMerger() }))({
+            mapMerger(recordMerger({ y: cellMerger() }))(defaultContext, {
                 ancestor: { x: { y: 'foo' } },
                 versionA: { x: { y: 'foo' } },
                 versionB: {}
@@ -357,7 +379,7 @@ describe('mapMerger', () => {
     });
     test('edited in A, deleted in B', () => {
         expect(
-            mapMerger(cellMerger())({
+            mapMerger(cellMerger())(defaultContext, {
                 ancestor: { x: 'foo' },
                 versionA: { x: 'bar' },
                 versionB: {}
@@ -366,7 +388,7 @@ describe('mapMerger', () => {
     });
     test('deleted in A, edited in B', () => {
         expect(
-            mapMerger(cellMerger())({
+            mapMerger(cellMerger())(defaultContext, {
                 ancestor: { x: 'foo' },
                 versionA: {},
                 versionB: { x: 'bar' }
@@ -377,35 +399,35 @@ describe('mapMerger', () => {
 
 describe('eagerMerger', () => {
     test('unchanged value', () => {
-        expect(eagerMerger()({ ancestor: 'foo', versionA: 'foo', versionB: 'foo' })).toStrictEqual({
+        expect(eagerMerger()(defaultContext, { ancestor: 'foo', versionA: 'foo', versionB: 'foo' })).toStrictEqual({
             value: 'foo',
             newEagerConflicts: false,
             newLazyConflicts: false
         });
     });
     test('a changed', () => {
-        expect(eagerMerger()({ ancestor: 'foo', versionA: 'bar', versionB: 'foo' })).toStrictEqual({
+        expect(eagerMerger()(defaultContext, { ancestor: 'foo', versionA: 'bar', versionB: 'foo' })).toStrictEqual({
             value: 'bar',
             newEagerConflicts: false,
             newLazyConflicts: false
         });
     });
     test('b changed', () => {
-        expect(eagerMerger()({ ancestor: 'foo', versionA: 'foo', versionB: 'bar' })).toStrictEqual({
+        expect(eagerMerger()(defaultContext, { ancestor: 'foo', versionA: 'foo', versionB: 'bar' })).toStrictEqual({
             value: 'bar',
             newEagerConflicts: false,
             newLazyConflicts: false
         });
     });
     test('changed to the same value', () => {
-        expect(eagerMerger()({ ancestor: 'foo', versionA: 'bar', versionB: 'bar' })).toStrictEqual({
+        expect(eagerMerger()(defaultContext, { ancestor: 'foo', versionA: 'bar', versionB: 'bar' })).toStrictEqual({
             value: 'bar',
             newEagerConflicts: false,
             newLazyConflicts: false
         });
     });
     test('changed to different values', () => {
-        expect(eagerMerger()({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+        expect(eagerMerger()(defaultContext, { ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
             value: {
                 tag: 'eager-merge-conflict',
                 versions: { ancestor: 'foo', versionA: 'bar', versionB: 'baz' }
@@ -418,35 +440,35 @@ describe('eagerMerger', () => {
 
 describe('cellMerger', () => {
     test('unchanged value', () => {
-        expect(cellMerger()({ ancestor: 'foo', versionA: 'foo', versionB: 'foo' })).toStrictEqual({
+        expect(cellMerger()(defaultContext, { ancestor: 'foo', versionA: 'foo', versionB: 'foo' })).toStrictEqual({
             value: 'foo',
             newEagerConflicts: false,
             newLazyConflicts: false
         });
     });
     test('a changed', () => {
-        expect(cellMerger()({ ancestor: 'foo', versionA: 'bar', versionB: 'foo' })).toStrictEqual({
+        expect(cellMerger()(defaultContext, { ancestor: 'foo', versionA: 'bar', versionB: 'foo' })).toStrictEqual({
             value: 'bar',
             newEagerConflicts: false,
             newLazyConflicts: false
         });
     });
     test('b changed', () => {
-        expect(cellMerger()({ ancestor: 'foo', versionA: 'foo', versionB: 'bar' })).toStrictEqual({
+        expect(cellMerger()(defaultContext, { ancestor: 'foo', versionA: 'foo', versionB: 'bar' })).toStrictEqual({
             value: 'bar',
             newEagerConflicts: false,
             newLazyConflicts: false
         });
     });
     test('changed to the same value', () => {
-        expect(cellMerger()({ ancestor: 'foo', versionA: 'bar', versionB: 'bar' })).toStrictEqual({
+        expect(cellMerger()(defaultContext, { ancestor: 'foo', versionA: 'bar', versionB: 'bar' })).toStrictEqual({
             value: 'bar',
             newEagerConflicts: false,
             newLazyConflicts: false
         });
     });
     test('changed to different values', () => {
-        expect(cellMerger()({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+        expect(cellMerger()(defaultContext, { ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
             value: {
                 tag: 'choice',
                 options: ['bar', 'baz']
@@ -456,7 +478,9 @@ describe('cellMerger', () => {
         });
     });
     test('a changed, b option added', () => {
-        expect(cellMerger()({ ancestor: 'foo', versionA: { tag: 'choice', options: ['foo', 'bar'] }, versionB: 'baz' })).toStrictEqual({
+        expect(
+            cellMerger()(defaultContext, { ancestor: 'foo', versionA: { tag: 'choice', options: ['foo', 'bar'] }, versionB: 'baz' })
+        ).toStrictEqual({
             value: {
                 tag: 'choice',
                 options: ['bar', 'baz']
@@ -466,7 +490,7 @@ describe('cellMerger', () => {
         });
     });
     test('sort options', () => {
-        expect(cellMerger()({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+        expect(cellMerger()(defaultContext, { ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
             value: {
                 tag: 'choice',
                 options: ['bar', 'baz']
@@ -474,7 +498,7 @@ describe('cellMerger', () => {
             newEagerConflicts: false,
             newLazyConflicts: true
         });
-        expect(cellMerger()({ ancestor: 'foo', versionA: 'baz', versionB: 'bar' })).toStrictEqual({
+        expect(cellMerger()(defaultContext, { ancestor: 'foo', versionA: 'baz', versionB: 'bar' })).toStrictEqual({
             value: {
                 tag: 'choice',
                 options: ['bar', 'baz']
@@ -492,7 +516,7 @@ describe('recursiveMerger', () => {
             child: recursiveMerger(() => merger)
         });
         expect(
-            merger({
+            merger(defaultContext, {
                 ancestor: {
                     x: 'foo',
                     child: {
@@ -533,14 +557,14 @@ describe('recursiveMerger', () => {
 
 describe('arbitraryMerger', () => {
     test('select first', () => {
-        expect(arbitraryMerger()({ ancestor: 'coo', versionA: 'car', versionB: 'caz' })).toStrictEqual({
+        expect(arbitraryMerger()(defaultContext, { ancestor: 'coo', versionA: 'car', versionB: 'caz' })).toStrictEqual({
             value: 'car',
             newEagerConflicts: false,
             newLazyConflicts: false
         });
     });
     test('select second', () => {
-        expect(arbitraryMerger()({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+        expect(arbitraryMerger()(defaultContext, { ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
             value: 'baz',
             newEagerConflicts: false,
             newLazyConflicts: false
@@ -550,7 +574,7 @@ describe('arbitraryMerger', () => {
 
 describe('defaultMerger', () => {
     test('conflict', () => {
-        expect(defaultMerger('bam')({ ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
+        expect(defaultMerger('bam')(defaultContext, { ancestor: 'foo', versionA: 'bar', versionB: 'baz' })).toStrictEqual({
             value: 'bam',
             newEagerConflicts: false,
             newLazyConflicts: false

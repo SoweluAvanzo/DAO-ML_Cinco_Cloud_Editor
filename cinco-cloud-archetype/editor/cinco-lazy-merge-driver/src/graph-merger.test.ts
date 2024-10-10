@@ -16,6 +16,7 @@
 import { describe, test, expect } from '@jest/globals';
 import { readdirSync, readFileSync } from 'fs';
 import { graphMerger } from './graph-merger';
+import { defaultContext } from './combinators';
 
 describe('examples', () => {
     const examples = readdirSync('examples', { withFileTypes: true })
@@ -28,7 +29,7 @@ describe('examples', () => {
             const versionB = JSON.parse(readFileSync(`examples/${example}/version-b.flowgraph`, 'utf-8'));
 
             const merger = graphMerger();
-            const result = merger({ ancestor, versionA, versionB });
+            const result = merger(defaultContext, { ancestor, versionA, versionB });
 
             expect(result.value).toStrictEqual(JSON.parse(readFileSync(`examples/${example}/merged.flowgraph`, 'utf-8')));
             expect(result.newEagerConflicts ? 1 : 0).toBe(Number(readFileSync(`examples/${example}/exit-code.txt`, 'utf-8')));
