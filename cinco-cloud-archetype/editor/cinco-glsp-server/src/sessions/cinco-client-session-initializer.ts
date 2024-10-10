@@ -41,8 +41,7 @@ import {
     hasValidation,
     hasAppearanceProvider,
     hasValueProvider,
-    SYSTEM_ID,
-    GLSP_TEMP_ID
+    SYSTEM_ID
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     existsFile,
