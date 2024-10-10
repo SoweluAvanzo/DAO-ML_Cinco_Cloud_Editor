@@ -14,12 +14,12 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { ApplyAppearanceUpdateAction, RequestAppearanceUpdateAction } from '@cinco-glsp/cinco-glsp-common';
+import { ApplyAppearanceUpdateAction, AppearanceUpdateRequestAction } from '@cinco-glsp/cinco-glsp-common';
 import { APIBaseHandler } from './api-base-handler';
 
 export abstract class AppearanceProvider extends APIBaseHandler {
     abstract getAppearance(
-        action: RequestAppearanceUpdateAction,
+        action: AppearanceUpdateRequestAction,
         ...args: unknown[]
     ): Promise<ApplyAppearanceUpdateAction[]> | ApplyAppearanceUpdateAction[];
 }

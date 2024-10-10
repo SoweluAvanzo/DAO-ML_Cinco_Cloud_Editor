@@ -12,10 +12,6 @@
 
 Integrates the GLSP features into our Cinco editor.
 
-### Code of Conduct
-
-The `sources.json` file lists the sources of the images used in the client for our reference.
-
 ## Documentation
 
 Indepth Documentation is under construction and will be found as part of our [website](https://scce.gitlab.io/cinco-cloud/).
@@ -26,9 +22,9 @@ Indepth Documentation is under construction and will be found as part of our [we
 
 [GLSP][glsp] - Our graphical editor is based on the GLSP project.
 
-[//]: # "Source definitions"
-[typescript]: https://www.typescriptlang.org/ "Typescript"
-[glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
+[//]: # 'Source definitions'
+[typescript]: https://www.typescriptlang.org/ 'Typescript'
+[glsp]: https://github.com/eclipse-glsp/glsp 'The Graphical Language Server Platform'
 
 ## License
 

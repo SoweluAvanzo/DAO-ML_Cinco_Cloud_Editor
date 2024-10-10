@@ -14,10 +14,8 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    ToolPalette,
     ICommand,
     EnableDefaultToolsAction,
-    SetUIExtensionVisibilityAction,
     SetContextActions,
     RequestContextActions,
     createIcon,
@@ -68,9 +66,10 @@ export class CincoToolPalette extends KeyboardToolPalette {
                 this.changeActiveButton();
                 this.restoreFocus();
             }
-        } else if (SetContextActions.is(action)
-                && action.actions.filter(s => (s as PaletteItem).id === UPDATING_RACE_CONDITION_INDICATOR.id).length <= 0
-            ) {
+        } else if (
+            SetContextActions.is(action) &&
+            action.actions.filter(s => (s as PaletteItem).id === UPDATING_RACE_CONDITION_INDICATOR.id).length <= 0
+        ) {
             // TODO: SAMI - action.actions.length > 0 is wrong, but at somepoint actions is sent empty, find the reason why
             // store and backup new palette
             const newPaletteItems = action.actions.map(e => e as PaletteItem);
@@ -80,12 +79,14 @@ export class CincoToolPalette extends KeyboardToolPalette {
             this.paletteItems = newPaletteItems;
             this.backupPaletteCopy();
             // make
+            /*
             this.actionDispatcher.dispatch(
                 SetUIExtensionVisibilityAction.create({
                     extensionId: ToolPalette.ID,
                     visible: !this.editorContext.isReadonly
                 })
             );
+            */
             // update palette view
             this.requestFilterUpdate(this.lastFilter);
             // update header tools
@@ -195,9 +196,7 @@ export class CincoToolPalette extends KeyboardToolPalette {
     }
 
     protected updateHeaderTools(headerTools: HTMLElement): void {
-        const currentModel = this.graphModelProvider.getGraphModelFrom(
-            this.diagramOptions.sourceUri ?? ''
-        );
+        const currentModel = this.graphModelProvider.getGraphModelFrom(this.diagramOptions.sourceUri ?? '');
         // fetch custom tools for model
         const tools = this.environmentProvider.provideTools(currentModel);
 

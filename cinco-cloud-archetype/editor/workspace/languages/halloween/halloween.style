@@ -1,0 +1,61 @@
+nodeStyle level{
+    image {
+        // shape content
+        position (0 , 0)
+        path ("halloween/images/level.png")
+    }
+}
+
+nodeStyle player{
+    image {
+        // shape content
+        position (0 , 0)
+        size (48, 48)
+        path ("halloween/images/player.png")
+    }
+}
+
+nodeStyle heart{
+    image {
+        // shape content
+        position (0 , 0)
+        size (48, 48)
+        path ("halloween/images/heart.png")
+    }
+}
+
+nodeStyle skull{
+    image {
+        // shape content
+        position (0 , 0)
+        size (48, 48)
+        path ("halloween/images/skull.png")
+    }
+}
+
+nodeStyle slicer{
+    image {
+        // shape content
+        position (0 , 0)
+        size (48, 48)
+        path ("halloween/images/slicer.png")
+    }
+}
+
+nodeStyle tree{
+    image {
+        // shape content
+        position (0 , 0)
+        size (48, 48)
+        path ("halloween/images/tree.png")
+    }
+}
+
+nodeStyle stump{
+    image {
+        // shape content
+        position (0 , 0)
+        size (48, 48)
+        path ("halloween/images/stump.png")
+    }
+}

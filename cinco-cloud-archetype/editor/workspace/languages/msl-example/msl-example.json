@@ -12,7 +12,7 @@
       "elementTypeId": "graphmodel:msl-example",
       "label": "MSLExample",
       "diagramExtension": "msl-example",
-      "containments": [
+      "containments": [ 
         {
           "lowerBound": 1,
           "upperBound": 1,
@@ -695,10 +695,6 @@
       },
       "annotations": [
         {
-          "name": "DoubleClickAction",
-          "values": ["ExampleDoubleClickHandler"]
-        },
-        {
           "name": "CustomAction",
           "values": ["ShortestPathAction", "Calculate Shortest Path"]
         },
@@ -1108,10 +1104,6 @@
         {
           "name": "CustomAction",
           "values": ["LongestPathAction", "Calculate Longest Path"]
-        },
-        {
-          "name": "AppearanceProvider",
-          "values": ["ExampleAppearanceProvider"]
         },
         {
           "name": "palette",

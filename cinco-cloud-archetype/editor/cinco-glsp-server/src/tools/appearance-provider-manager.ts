@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { AppearanceProvider, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import { RequestAppearanceUpdateAction, getAppearanceProvider, hasAppearanceProvider } from '@cinco-glsp/cinco-glsp-common';
+import { AppearanceUpdateRequestAction, getAppearanceProvider, hasAppearanceProvider } from '@cinco-glsp/cinco-glsp-common';
 import { Action } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { BaseHandlerManager } from './base-handler-manager';
@@ -24,9 +24,9 @@ import { BaseHandlerManager } from './base-handler-manager';
  */
 
 @injectable()
-export class AppearanceProviderManager extends BaseHandlerManager<RequestAppearanceUpdateAction, AppearanceProvider> {
+export class AppearanceProviderManager extends BaseHandlerManager<AppearanceUpdateRequestAction, AppearanceProvider> {
     baseHandlerName = 'AppearanceProvider';
-    actionKinds: string[] = [RequestAppearanceUpdateAction.KIND];
+    actionKinds: string[] = [AppearanceUpdateRequestAction.KIND];
 
     hasHandlerProperty(element: ModelElement): boolean {
         return hasAppearanceProvider(element.type);
@@ -39,7 +39,7 @@ export class AppearanceProviderManager extends BaseHandlerManager<RequestAppeara
     handlerCanBeExecuted(
         handler: AppearanceProvider,
         element: ModelElement,
-        action: RequestAppearanceUpdateAction,
+        action: AppearanceUpdateRequestAction,
         args: any
     ): boolean | Promise<boolean> {
         return true;
@@ -48,7 +48,7 @@ export class AppearanceProviderManager extends BaseHandlerManager<RequestAppeara
     executeHandler(
         handler: AppearanceProvider,
         element: ModelElement,
-        action: RequestAppearanceUpdateAction,
+        action: AppearanceUpdateRequestAction,
         args: any
     ): Action[] | Promise<Action[]> {
         return handler.getAppearance(action, args) as Action[] | Promise<Action[]>;

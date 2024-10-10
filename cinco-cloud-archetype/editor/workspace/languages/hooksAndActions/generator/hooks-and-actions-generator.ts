@@ -21,12 +21,16 @@ import { Action, GeneratorAction } from '@cinco-glsp/cinco-glsp-common';
  * Language Designer defined example of a Generator
  */
 export class HooksAndActionsGenerator extends GeneratorHandler {
-    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'HooksAndActions [' + this.modelState.graphModel.id + ']';
 
-    override execute(action: GeneratorAction, ...args: unknown[]): Promise<Action[]> | Action[] {
+    override async execute(action: GeneratorAction, ...args: unknown[]): Promise<Action[]> {
         // parse action
         const model = this.getElement(action.modelElementId);
-
+        const isValid = await model.valid
+        if(!isValid) {
+            this.notify("Model is not valid! Please fix it, before generating.", "ERROR");
+            return [];
+        }
         // generate
         this.generate(model);
 

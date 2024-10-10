@@ -18,7 +18,7 @@ import { Edge, AbstractEdgeHook, LanguageFilesRegistry, Node } from '@cinco-glsp
 import { AssignValue, PropertyEditOperation } from '@cinco-glsp/cinco-glsp-common';
 
 export class TransitionHooks extends AbstractEdgeHook {
-    override CHANNEL_NAME: string | undefined = 'TransitionHooks [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'TransitionHooks [' + this.modelState.graphModel.id + ']';
 
     override canCreate(elementTypeId: string, source: Node, target: Node): boolean {
         this.log('Triggered preCreate. Can create edge of type (' + elementTypeId + ') for source (' + source.id + ') and target (' + target.id + ')');

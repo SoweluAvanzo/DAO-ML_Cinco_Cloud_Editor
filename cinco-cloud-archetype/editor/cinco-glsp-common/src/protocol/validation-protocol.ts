@@ -55,16 +55,18 @@ export interface ValidationMessage {
 
 export interface ValidationRequestAction extends RequestAction<ValidationResponseAction> {
     kind: typeof ValidationRequestAction.KIND;
+    modelId: string;
     modelElementId: string;
     requestId: string;
 }
 export namespace ValidationRequestAction {
     export const KIND = 'validationRequest';
 
-    export function create(graphModelId: string): ValidationRequestAction {
+    export function create(modelId: string, modelElementId: string): ValidationRequestAction {
         return {
             kind: KIND,
-            modelElementId: graphModelId,
+            modelId,
+            modelElementId,
             requestId: uuid.v4()
         };
     }
@@ -72,16 +74,51 @@ export namespace ValidationRequestAction {
 
 export interface ValidationResponseAction extends ResponseAction {
     kind: typeof ValidationResponseAction.KIND;
+    modelId: string;
+    modelElementId: string; // associated id of the model-element
     messages: ValidationMessage[];
 }
 export namespace ValidationResponseAction {
-    export const KIND = 'validationModelAnswer';
+    export const KIND = 'validationResponse';
 
-    export function create(messages: ValidationMessage[], responseId: string): ValidationResponseAction {
+    export function create(
+        modelId: string,
+        modelElementId: string,
+        messages: ValidationMessage[],
+        responseId: string = uuid.v4()
+    ): ValidationResponseAction {
         return {
             kind: KIND,
-            messages: messages,
-            responseId: responseId
+            modelId,
+            modelElementId,
+            messages,
+            responseId
         };
+    }
+
+    export function containsInfos(validationResults: ValidationResponseAction[]): boolean {
+        return containsStatus(validationResults, ValidationStatus.Info);
+    }
+
+    export function containsPass(validationResults: ValidationResponseAction[]): boolean {
+        return containsStatus(validationResults, ValidationStatus.Pass);
+    }
+
+    export function containsWarnings(validationResults: ValidationResponseAction[]): boolean {
+        return containsStatus(validationResults, ValidationStatus.Warning);
+    }
+
+    export function containsErrors(validationResults: ValidationResponseAction[]): boolean {
+        return containsStatus(validationResults, ValidationStatus.Error);
+    }
+
+    export function containsStatus(validationResults: ValidationResponseAction[], status: ValidationStatus): boolean {
+        for (const res of validationResults) {
+            const stats = res.messages.filter(m => m.status === status);
+            if (stats.length > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 }

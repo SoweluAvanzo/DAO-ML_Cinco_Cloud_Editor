@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { APIBaseHandler, GraphModelState, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import { ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
+import { GLSP_TEMP_ID, ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
 import {
     Action,
     ActionDispatcher,
@@ -64,6 +64,16 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     abstract executeHandler(handler: H, element: ModelElement, action: A, args: any): Promise<Action[]> | Action[];
 
     execute(action: A, ...args: unknown[]): Promise<Action[]> {
+        // Is not a user client?
+        if ([GLSP_TEMP_ID].includes(this.modelState.clientId) || !this.modelState.graphModel) {
+            return Promise.resolve([]);
+        }
+        if ('modelId' in action) {
+            if (action.modelId !== this.modelState.graphModel?.id) {
+                // not the associated graphmodel
+                return Promise.resolve([]);
+            }
+        }
         return new Promise<Action[]>((resolve, _) => {
             const results: Action[] = [];
             this.getActiveHandlers(action, args).then(handlers => {
@@ -73,7 +83,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                 let leftToHandle: number = handlers.length;
                 console.log(leftToHandle + ' handlers will be executed as ' + this.baseHandlerName + '...');
                 handlers.forEach(handler => {
-                    console.log(handler + ' handler will be executed...');
+                    console.log(handler?.constructor.name + ' handler will be executed...');
                     const element = this.modelState.index.findElement(action.modelElementId) as ModelElement;
                     try {
                         const result = this.executeHandler(handler, element, action, args);
@@ -96,8 +106,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                             }
                         }
                     } catch (e) {
-                        console.log(`Error executing handler: ${(handler as any).name}`);
-                        this.notify(`${(handler as any).name} ran into errors!`, 'ERROR');
+                        console.log(`Error executing handler: ${handler?.constructor.name}`);
+                        this.notify(`${handler.constructor.name} ran into errors!`, 'ERROR');
                         console.log(`${e}`);
                         leftToHandle = leftToHandle - 1;
                         if (leftToHandle <= 0) {
@@ -117,7 +127,13 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
      * @returns an Array of Handlers, that can be executed with the associated action
      */
     async getActiveHandlers(action: A, ...args: unknown[]): Promise<H[]> {
+        console.log('Getting handlers for element: ' + action.modelElementId);
+        console.log('-> In model: ' + this.modelState?.graphModel?.id);
         const element = this.modelState.index.findElement(action.modelElementId) as ModelElement;
+        if (!element) {
+            console.log('Element not found in model!');
+            return Promise.resolve([]);
+        }
         try {
             if (!this.hasHandlerProperty(element)) {
                 console.log('This element has no assigned ' + this.baseHandlerName + '!');
@@ -154,23 +170,22 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
             const actionHandlers: H[] = [];
             console.log('[' + leftToHandle + '] handlers will be tested for execution as a ' + this.baseHandlerName + '!');
             for (const handlerClass of applicableHandlerClasses) {
-                // initialize handler
-                const handler = new handlerClass(
-                    this.logger,
-                    this.modelState,
-                    this.actionDispatcher,
-                    this.sourceModelStorage,
-                    this.submissionHandler
-                );
-                // test if handler can be executed =>
                 try {
+                    // initialize handler
+                    const handler = new handlerClass(
+                        this.logger,
+                        this.modelState,
+                        this.actionDispatcher,
+                        this.sourceModelStorage,
+                        this.submissionHandler
+                    );
                     // test if handler can be executed
                     const canExecute = this.handlerCanBeExecuted(handler, element, action, args);
                     if (canExecute instanceof Promise) {
                         // mark handler as active/executable
                         canExecute.then(value => {
                             if (value) {
-                                console.log('[' + handler.name + '] can be executed as a ' + this.baseHandlerName + '!');
+                                console.log('[' + handlerClass.name + '] can be executed as a ' + this.baseHandlerName + '!');
                                 actionHandlers.push(handler);
                             }
                             leftToHandle = leftToHandle - 1;
@@ -181,7 +196,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
                     } else {
                         // mark handler as active/executable
                         if (canExecute) {
-                            console.log('[' + handler.name + '] can be executed as a ' + this.baseHandlerName + '!');
+                            console.log('[' + handlerClass.name + '] can be executed as a ' + this.baseHandlerName + '!');
                             actionHandlers.push(handler);
                         }
                         leftToHandle = leftToHandle - 1;
@@ -226,6 +241,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
             severity: severity ?? 'INFO',
             details: details ?? ''
         });
-        this.actionDispatcher.dispatch(messageAction);
+        this.actionDispatcher.dispatch(messageAction).catch(e => {
+            console.log(e);
+        });
     }
 }

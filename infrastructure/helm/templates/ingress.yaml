@@ -5,6 +5,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
     # Remove Origin header in local environments as Quarkus denies access to API endpoints
     # when started in development mode and the origin is not "localhost"
     nginx.ingress.kubernetes.io/configuration-snippet: |

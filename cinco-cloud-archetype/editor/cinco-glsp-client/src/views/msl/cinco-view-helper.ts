@@ -98,7 +98,7 @@ export function fromPathToURL(
     options = {
         contentMode: false
     }
-): string {
+): string | undefined {
     const existsIn = workspaceFileService.servedExistsIn(path, workspaceFileService.actionDispatcher);
     existsIn.then(fileURIString => {
         if (!fileURIString) {
@@ -121,7 +121,8 @@ export function fromPathToURL(
         return `${RESOURCE_MAP.get(path)?.content}`;
     }
     // return current cached resource
-    return `${RESOURCE_MAP.get(path)?.url}`;
+    const url = RESOURCE_MAP.get(path)?.url;
+    return url ? `${url}` : undefined;
 }
 
 function updateResourceServing(
@@ -988,7 +989,7 @@ export function buildImageShape(
     const cssShapeName = toCSSShapeName(shapeStyle);
 
     // size
-    const localSize = translateSize(shapeStyle.size, parentScale);
+    const localSize = translateSize(shapeStyle.size ?? parentSize, parentScale);
 
     // position
     const localCentered = false;
@@ -1333,6 +1334,7 @@ export function createImageShape(
     child.data.attrs['width'] = `${childWidth}px`;
     child.data.attrs['height'] = `${childHeight}px`;
     child.data!.attrs!['class'] = `${cssShapeName}`;
+    child.data!.attrs['preserveAspectRatio'] = 'none';
     return child;
 }
 

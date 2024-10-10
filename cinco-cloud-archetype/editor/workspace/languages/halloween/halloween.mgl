@@ -1,0 +1,82 @@
+stylePath "halloween.style"
+
+@GeneratorAction("HalloweenGenerator")
+@Hook("GameEngineHook", "PostContentChange")
+graphModel HalloweenGame {
+    diagramExtension "halloween"
+    
+    containableElements(Level[0,1]) // 1 Level
+}  
+ 
+@Hook("LevelHooks", "PostCreate", "PostResize")
+container Level {
+    style level
+    
+    containableElements(Player[0,1],GameObject)
+}	
+
+@disable(resize)
+@Hook("GameObjectHook", "PostCreate", "PostMove")
+node Player extends GameObject {
+    style player
+
+    // attributes
+    attr number as maxLife = 100
+    attr number as speed = 120 
+}
+
+abstract node GameObject {
+}
+ 
+abstract node Obstacle extends GameObject {
+}
+
+abstract node Item extends GameObject {
+    attr number as heal = 100
+}
+
+abstract node Enemy extends GameObject {
+    attr number as attack = 1
+    attr number as speed = 100
+}
+
+@disable(resize)
+@Hook("GameObjectHook", "PostCreate", "PostMove")
+node Heart extends Item {
+    style heart
+
+    // attributes
+    override heal = 120
+}
+
+@disable(resize)
+@Hook("GameObjectHook", "PostCreate", "PostMove")
+node Tree extends Obstacle {
+    style tree
+}
+
+@disable(resize)
+@Hook("GameObjectHook", "PostCreate", "PostMove")
+node Stump extends Obstacle {
+    style stump
+}
+
+@disable(resize)
+@Hook("GameObjectHook", "PostCreate", "PostMove")
+node Skull extends Enemy {
+    style skull
+
+    // attributes
+    override attack = 1
+    override speed = 100
+}
+
+@disable(resize)
+@Hook("GameObjectHook", "PostCreate", "PostMove")
+node Slicer extends Enemy {
+    style slicer
+
+    // attributes
+    override attack = 10
+    override speed = 200
+}

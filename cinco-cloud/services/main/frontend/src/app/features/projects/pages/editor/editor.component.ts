@@ -8,7 +8,7 @@ import { WebSocketMessage } from '../../../../core/models/web-socket-message';
 import { WebSocketEvent } from '../../../../core/enums/web-socket-event';
 import { AuthApiService } from '../../../../core/services/api/auth-api.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { filter, fromEvent } from 'rxjs';
+import { filter, fromEvent, Subject, takeUntil } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { WorkspaceImageBuildJob } from '../../../../core/models/workspace-image-build-job';
 import { fromJsog } from '../../../../core/utils/jsog-utils';
@@ -97,6 +97,14 @@ export class EditorComponent implements OnInit, OnDestroy {
         });
       }
     });
+
+    history.pushState(null, '');
+
+    fromEvent(window, 'popstate')
+      .pipe(untilDestroyed(this))
+      .subscribe((_) => {
+        history.pushState(null, '');
+      });
   }
 
   ngOnDestroy() {

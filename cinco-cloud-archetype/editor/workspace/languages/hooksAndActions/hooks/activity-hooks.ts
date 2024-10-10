@@ -18,7 +18,7 @@ import { PropertyEditOperation, AssignValue } from '@cinco-glsp/cinco-glsp-commo
 import { Dimension, Point } from '@eclipse-glsp/server';
 
 export class ActivityHook extends AbstractNodeHook {
-    override CHANNEL_NAME: string | undefined = 'ActivityHook [' + this.modelState.root.id + ']';
+    override CHANNEL_NAME: string | undefined = 'ActivityHook [' + this.modelState.graphModel.id + ']';
 
     /**
      * Create

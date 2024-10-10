@@ -18,11 +18,17 @@ import { injectable } from 'inversify';
 
 @injectable()
 export class ValidationModelDataHandler {
-    currentMessages: ValidationMessage[] = [];
+    currentMessages: Map<string, ValidationMessage[]> = new Map();
     dataSubscriptions: (() => void)[] = [];
 
-    updatePropertySelection(messages: ValidationMessage[]): void {
-        this.currentMessages = messages;
+    updatePropertySelection(modelId: string, modelElementId: string, messages: ValidationMessage[]): void {
+        const id = `${modelId}_${modelElementId}`;
+        if (messages.length <= 0 && this.currentMessages.has(id)) {
+            // empty messages means remove
+            this.currentMessages.delete(id);
+        } else {
+            this.currentMessages.set(id, messages);
+        }
         this.dataSubscriptions.forEach(fn => fn());
     }
 

@@ -21,7 +21,7 @@ abstract node Activity {}
 container Screen extends Activity {
 	style screen("${backgroundImage}")
 	 
-    incomingEdges (Transition)
+    incomingEdges (Transition, FTransition, TTransition)
     containableElements (ClickArea)
 
 	attr string as backgroundImage
@@ -53,7 +53,6 @@ node Condition extends Activity {
 }
 
 @palette("Variables")
-@disable(resize)
 node Variable {
 	style variable("${name}")
 	incomingEdges (DataFlow)

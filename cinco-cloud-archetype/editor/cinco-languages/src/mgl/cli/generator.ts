@@ -120,7 +120,7 @@ export class MGLGenerator {
     }
 
     async generateMetaSpecification(model: MglModel, mglPathString: string, services: MglServices): Promise<string> {
-        if(!model.stylePath) {
+        if (!model.stylePath) {
             throw new Error('No stylePath defined!');
         }
         const mglPath = path.parse(mglPathString);
@@ -219,11 +219,7 @@ export class MGLGenerator {
         modelElementSpec.elementTypeId = getElementTypeId(modelElement);
         modelElementSpec.label = modelElement.name;
 
-        modelElementSpec.annotations = mergeArrays(
-            modelElementSpec.annotations,
-            modelElement.annotations.map(annotation => handleAnnotation(annotation)),
-            'name'
-        );
+        modelElementSpec.annotations = modelElement.annotations.map(annotation => handleAnnotation(annotation));
 
         if (!isEnum(modelElement)) {
             // Attributes

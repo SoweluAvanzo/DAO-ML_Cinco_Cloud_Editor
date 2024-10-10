@@ -13,10 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import {
-    ValidationMessage,
-    ValidationModelUpdateCommand
-} from '@cinco-glsp/cinco-glsp-common/lib/protocol/validation-protocol';
+import { ValidationMessage, ValidationModelUpdateCommand } from '@cinco-glsp/cinco-glsp-common/lib/protocol/validation-protocol';
 import { CommandContribution, CommandRegistry } from '@theia/core';
 import { inject, injectable } from 'inversify';
 
@@ -28,8 +25,8 @@ export class ValidationModelUpdateCommandContribution implements CommandContribu
 
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(ValidationModelUpdateCommand, {
-            execute: (messages: ValidationMessage[]) => {
-                this.validationModelDataHanlder.updatePropertySelection(messages);
+            execute: (action: { modelId: string; modelElementId: string; messages: ValidationMessage[] }) => {
+                this.validationModelDataHanlder.updatePropertySelection(action.modelId, action.modelElementId, action.messages);
             }
         });
     }

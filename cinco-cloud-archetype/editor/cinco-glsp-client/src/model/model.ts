@@ -83,6 +83,13 @@ export class CincoNode extends GNode implements CincoModelElement {
         return this.type;
     }
 
+    reset(): void {
+        this._view = undefined;
+        this._properties = undefined;
+        // reset persistedView
+        (this as any)['args']['persistedView'] = undefined;
+    }
+
     static getDefaultFeatures(elementTypeId: string): symbol[] {
         const features = [
             connectableFeature,
@@ -220,6 +227,11 @@ export class CincoEdge extends GEdge implements CincoModelElement {
 
     get elementType(): string | undefined {
         return this.type;
+    }
+
+    reset(): void {
+        this._view = undefined;
+        this._properties = undefined;
     }
 
     static getDefaultFeatures(elementTypeId: string): symbol[] {

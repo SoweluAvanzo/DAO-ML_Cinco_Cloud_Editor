@@ -17,7 +17,16 @@ import { Container, Edge, Node, HookManager, ModelElement, ModelElementContainer
 import { DeleteElementOperation, remove } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 import { CincoJsonOperationHandler } from './cinco-json-operation-handler';
-import { isChoice, DeleteArgument, HookType, deletableValue, filterOptions, Deletable } from '@cinco-glsp/cinco-glsp-common';
+import {
+    isChoice,
+    DeleteArgument,
+    HookType,
+    deletableValue,
+    filterOptions,
+    Deletable,
+    ValidationResponseAction,
+    hasValidation
+} from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
 export class DeleteHandler extends CincoJsonOperationHandler {
@@ -89,6 +98,10 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             this.sourceModelStorage,
             this.submissionHandler
         );
+        // remove validation
+        if (hasValidation(parameters.deleted?.type ?? '')) {
+            this.actionDispatcher.dispatch(ValidationResponseAction.create(this.modelState.graphModel.id, parameters.modelElementId, []));
+        }
     }
 
     protected deleteNode(container: ModelElementContainer, containment: Deletable<Node>): void {
@@ -98,18 +111,26 @@ export class DeleteHandler extends CincoJsonOperationHandler {
                 this.deleteNode(node, child);
             }
         }
-        remove(container.containments, containment);
 
         // remove associated edges
+        const toDelete: Deletable<Edge>[] = [];
+        // collect
         this.modelState.graphModel.edges.forEach((edgeContainment: Deletable<Edge>) => {
             const edge = deletableValue(edgeContainment);
             if (edge.sourceID === node.id || edge.targetID === node.id) {
-                remove(this.modelState.graphModel.edges, edgeContainment);
+                toDelete.push(edgeContainment);
             } else if (isChoice(edge.sourceID) && edge.sourceID.options.includes(node.id)) {
                 edge.sourceID = filterOptions(edge.sourceID, sourceID => sourceID !== node.id);
             } else if (isChoice(edge.targetID) && edge.targetID.options.includes(node.id)) {
                 edge.targetID = filterOptions(edge.targetID, targetID => targetID !== node.id);
             }
         });
+        // remove
+        toDelete.forEach(edgeContainment => {
+            remove(this.modelState.graphModel.edges, edgeContainment);
+        });
+
+        // remove node
+        remove(container.containments, containment);
     }
 }

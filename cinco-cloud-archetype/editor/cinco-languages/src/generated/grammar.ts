@@ -20,6 +20,19 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
         "$type": "Group",
         "elements": [
           {
+            "$type": "Assignment",
+            "feature": "annotations",
+            "operator": "+=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@1"
+              },
+              "arguments": []
+            },
+            "cardinality": "*"
+          },
+          {
             "$type": "UnorderedGroup",
             "elements": [
               {
@@ -72,19 +85,6 @@ export const MglGrammar = (): Grammar => loadedMglGrammar ?? (loadedMglGrammar =
                   "$type": "RuleCall",
                   "rule": {
                     "$ref": "#/rules@14"
-                  },
-                  "arguments": []
-                },
-                "cardinality": "+"
-              },
-              {
-                "$type": "Assignment",
-                "feature": "annotations",
-                "operator": "+=",
-                "terminal": {
-                  "$type": "RuleCall",
-                  "rule": {
-                    "$ref": "#/rules@1"
                   },
                   "arguments": []
                 },

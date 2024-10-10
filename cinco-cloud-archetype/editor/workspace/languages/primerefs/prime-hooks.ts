@@ -16,7 +16,7 @@
  import { Node, Edge, AbstractNodeHook, LanguageFilesRegistry, GraphModel, Container } from '@cinco-glsp/cinco-glsp-api';
 
  export class PrimeHooks extends AbstractNodeHook {
-     override CHANNEL_NAME: string | undefined = 'PrimeHooks [' + this.modelState.root.id + ']';
+     override CHANNEL_NAME: string | undefined = 'PrimeHooks [' + this.modelState.graphModel.id + ']';
  
      /**
       * Double Click
