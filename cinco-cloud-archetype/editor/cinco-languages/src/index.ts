@@ -15,6 +15,7 @@
  ********************************************************************************/
 import 'reflect-metadata';
 
+export { MglAnnotations } from './mgl/language/mgl-annotations';
 export * from './mgl/cli';
 export * as MglModule from './mgl/language/mgl-module';
 export * as MglValidator from './mgl/language/mgl-validator';
