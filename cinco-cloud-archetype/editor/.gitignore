@@ -20,3 +20,4 @@ workspace/**/*.js
 # Ignore Yarn v1 lockfile because it is generated differently on
 # Linux/macOS/Windows which creates incompatibilities.
 yarn.lock
+git-workspace

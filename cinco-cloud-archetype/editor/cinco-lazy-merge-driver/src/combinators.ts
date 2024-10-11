@@ -25,6 +25,12 @@ type Versions<T = any> = Readonly<{
     versionB: T;
 }>;
 
+type Context = Readonly<{
+    mergeUnknownCellsArbitrarily: boolean;
+}>;
+
+export const defaultContext: Context = { mergeUnknownCellsArbitrarily: false };
+
 type EagerMergeConflict<T = any> = Readonly<{
     tag: 'eager-merge-conflict';
     versions: Versions<T>;
@@ -52,10 +58,10 @@ export function mapMergeResult<A, B>({ value, newEagerConflicts, newLazyConflict
     };
 }
 
-export type Merger<T = any> = (versions: Versions<T>) => MergeResult<T>;
+export type Merger<T = any> = (context: Context, versions: Versions<T>) => MergeResult<T>;
 
 export function optionalMerger(valueMerger: Merger<any>): Merger<Optional<any>> {
-    return ({ ancestor, versionA, versionB }) => {
+    return (context, { ancestor, versionA, versionB }) => {
         // Compare optional-merging.fods
 
         // no conflict
@@ -86,7 +92,7 @@ export function optionalMerger(valueMerger: Merger<any>): Merger<Optional<any>> 
 
         // both defined
         if (versionA !== undefined && !isGhost(versionA) && versionB !== undefined && !isGhost(versionB)) {
-            return valueMerger({ ancestor: optionalValue(ancestor), versionA, versionB });
+            return valueMerger(context, { ancestor: optionalValue(ancestor), versionA, versionB });
         }
 
         // edit/delete
@@ -114,7 +120,7 @@ export function optionalMerger(valueMerger: Merger<any>): Merger<Optional<any>> 
             }
         }
 
-        const valueMerge = valueMerger({
+        const valueMerge = valueMerger(context, {
             ancestor: optionalValue(ancestor),
             versionA: optionalValue(versionA),
             versionB: optionalValue(versionB)
@@ -133,7 +139,8 @@ export function optionalMerger(valueMerger: Merger<any>): Merger<Optional<any>> 
 }
 
 export function recordMerger(mergers: Record<string, Merger>): Merger {
-    return objectMerger(key => mergers[key] ?? eagerMerger());
+    return (context, versions) =>
+        objectMerger(key => mergers[key] ?? (context.mergeUnknownCellsArbitrarily ? arbitraryMerger() : eagerMerger()))(context, versions);
 }
 
 export function sequenceMergeResultsObject(mergeResults: Record<string, MergeResult>): MergeResult {
@@ -149,9 +156,9 @@ export function sequenceMergeResultsObject(mergeResults: Record<string, MergeRes
 }
 
 export function entityListMerger(merger: Merger): Merger {
-    return ({ ancestor, versionA, versionB }) =>
+    return (context, { ancestor, versionA, versionB }) =>
         mapMergeResult(
-            mapMerger(merger)({
+            mapMerger(merger)(context, {
                 ancestor: mapFromEntityArray(ancestor),
                 versionA: mapFromEntityArray(versionA),
                 versionB: mapFromEntityArray(versionB)
@@ -165,12 +172,12 @@ export function mapMerger(merger: Merger): Merger {
 }
 
 export function objectMerger(mergers: (key: string) => Merger): Merger {
-    return ({ ancestor, versionA, versionB }) => {
+    return (context, { ancestor, versionA, versionB }) => {
         const keys = new Set<string>(Object.keys(ancestor).concat(Object.keys(versionA).concat(Object.keys(versionB))));
         const mergeResults: Record<string, MergeResult> = {};
         for (const key of keys) {
             const merger = optionalMerger(mergers(key));
-            const entityMerge = merger({
+            const entityMerge = merger(context, {
                 ancestor: ancestor[key],
                 versionA: versionA[key],
                 versionB: versionB[key]
@@ -184,7 +191,7 @@ export function objectMerger(mergers: (key: string) => Merger): Merger {
 }
 
 export function eagerMerger(): Merger {
-    return equalityMerger(({ ancestor, versionA, versionB }) => {
+    return equalityMerger((context, { ancestor, versionA, versionB }) => {
         const conflict: EagerMergeConflict = {
             tag: 'eager-merge-conflict',
             versions: { ancestor, versionA, versionB }
@@ -198,7 +205,7 @@ export function eagerMerger(): Merger {
 }
 
 export function cellMerger(): Merger {
-    return ({ ancestor, versionA, versionB }) => {
+    return (context, { ancestor, versionA, versionB }) => {
         const ancestorSet = new Set(cellValues(ancestor));
         const versionASet = new Set(cellValues(versionA));
         const versionBSet = new Set(cellValues(versionB));
@@ -214,11 +221,11 @@ export function cellMerger(): Merger {
 }
 
 export function recursiveMerger(mergerConstructor: () => Merger): Merger {
-    return versions => mergerConstructor()(versions);
+    return (context, versions) => mergerConstructor()(context, versions);
 }
 
 export function arbitraryMerger<T>(): Merger<T> {
-    return equalityMerger(({ versionA, versionB }) => ({
+    return equalityMerger((_context, { versionA, versionB }) => ({
         value:
             Buffer.compare(
                 crypto.createHash('sha512').update(deterministicStringify(versionA)).digest(),
@@ -236,7 +243,7 @@ export function defaultMerger<T>(defaultValue: T): Merger<T> {
 }
 
 export function equalityMerger<T>(conflictMerger: Merger<T>): Merger<T> {
-    return ({ ancestor, versionA, versionB }) => {
+    return (context, { ancestor, versionA, versionB }) => {
         if (jsonEqual(versionA, versionB)) {
             return mergeOk(versionA);
         } else if (jsonEqual(versionB, ancestor)) {
@@ -244,7 +251,7 @@ export function equalityMerger<T>(conflictMerger: Merger<T>): Merger<T> {
         } else if (jsonEqual(versionA, ancestor)) {
             return mergeOk(versionB);
         } else {
-            return conflictMerger({ ancestor, versionA, versionB });
+            return conflictMerger(context, { ancestor, versionA, versionB });
         }
     };
 }
