@@ -34,7 +34,9 @@
     "prepare": "yarn clean && yarn build",
     "install:only": "yarn install --ignore-scripts",
     "clean": "rimraf lib",
-    "build": "yarn install:only && tsc",
-    "test": "jest"
+    "compile": "tsc",
+    "build": "yarn install:only && yarn compile",
+    "test": "yarn compile && jest",
+    "_test-comment": "echo yarn compile is necessary for cinco-laz-merge.test.ts"
   }
 }

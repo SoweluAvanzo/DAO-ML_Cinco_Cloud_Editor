@@ -15,6 +15,7 @@
  ********************************************************************************/
 import { spawn } from 'child_process';
 import { exit } from 'process';
+import * as path from 'path';
 
 main();
 
@@ -38,7 +39,7 @@ function configureDriver(name: string, { eager, arbitrarily }: { eager: boolean;
                 'config',
                 '--global',
                 `merge.${name}.driver`,
-                `node '${__dirname}/cinco-lazy-merge.js' %O %A %B %A ` +
+                `node '${path.join(__dirname, 'cinco-lazy-merge.js')}' %O %A %B %A ` +
                     '--conflict-marker-size=%L' +
                     (eager ? ' --fail-merge-on-lazy-conflicts' : '') +
                     (arbitrarily ? ' --merge-unknown-cells-arbitrarily' : '')

@@ -56,7 +56,7 @@ const app = command({
                 { ancestor, versionA, versionB }
             );
 
-            output = JSON.stringify(value);
+            output = assureEndsWithNewline(JSON.stringify(value));
             exitCode = newEagerConflicts || (failMergeOnLazyConflicts && newLazyConflicts) ? 1 : 0;
         } catch (error) {
             output =
@@ -72,13 +72,13 @@ const app = command({
             exitCode = 2;
         }
 
-        function assureEndsWithNewline(value: string): string {
-            return value.endsWith('\n') ? value : `${value}\n`;
-        }
-
         writeFileSync(outputFile, output);
         exit(exitCode);
     }
 });
+
+function assureEndsWithNewline(value: string): string {
+    return value.endsWith('\n') ? value : `${value}\n`;
+}
 
 run(app, argv.slice(2));
