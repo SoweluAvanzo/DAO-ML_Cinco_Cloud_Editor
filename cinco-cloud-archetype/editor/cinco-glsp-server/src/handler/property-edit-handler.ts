@@ -140,19 +140,17 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
                     break;
                 }
                 case 'changeType': {
-                    const { index, newValue, newType } = change;
+                    const { index, newValue } = change;
                     if (index !== undefined) {
                         if (object[name][index]._type === undefined) {
                             throw new Error('Value of specified object does not fit UserDefinedType (no _type-property)');
                         }
-                        object[name][index]._value = newValue;
-                        object[name][index]._type = newType;
+                        object[name][index] = newValue;
                     } else {
                         if (object[name]._type === undefined) {
                             throw new Error('Value of specified object does not fit UserDefinedType (no _type-property)');
                         }
-                        object[name]._value = newValue;
-                        object[name]._type = newType;
+                        object[name] = newValue;
                     }
                     break;
                 }
@@ -208,26 +206,14 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
         }
     }
 
-    // TODO: Inside of the for loop, the attribute considered is always a UserDefinedType (?)
-    // Then the if-conditions regarding _value-property are only relevant because of "root" level attribute
     protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[], object: any } {
         let attributes: Attribute[] = element.propertyDefinitions;
         let object: Record<string, any> = element.properties;
 
         for (const segment of pointer) {
-            // UserDefinedType -> go into _value property to get the actual value
-            if (object._value !== undefined) {
-                object = object._value;
-            }
+            object = segment.index !== undefined ? object[segment.attribute][segment.index] : object[segment.attribute];
 
-            // For UserDefinedTypes the type stored in the metaspecification might not be the one instantiated
-            // -> Potentially select type from model element instead
-
-            object =
-                segment.index !== undefined ?
-                    object[segment.attribute][segment.index] :
-                    object[segment.attribute];
-
+            // subType of specified type might have been instantiated instead of specified type
             const type = object._type ?? findAttribute(attributes, segment.attribute).type;
             const userDefinedType = getUserDefinedType(type);
 
@@ -238,6 +224,6 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             attributes = userDefinedType.attributes;
         }
 
-        return { attributes: attributes, object: object._value ?? object };
+        return { attributes, object };
     }
 }

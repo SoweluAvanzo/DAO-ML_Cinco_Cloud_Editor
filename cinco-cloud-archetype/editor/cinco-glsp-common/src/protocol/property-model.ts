@@ -224,10 +224,10 @@ function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[],
 
                 if (UserDefinedType.is(specifiedTypeDefinition)) {
                     const newAncestorTypes = ancestorTypes.concat([specifiedTypeDefinition.elementTypeId]);
-                    const defaultObject: any = { _type: specifiedTypeDefinition.elementTypeId, _value: {} };
+                    const defaultObject: any = { _type: specifiedTypeDefinition.elementTypeId };
                     for (const child of specifiedTypeDefinition.attributes) {
                         if (child.defaultValue !== undefined) {
-                            defaultObject._value[child.name] = child.defaultValue;
+                            defaultObject[child.name] = child.defaultValue;
                             continue;
                         }
 
@@ -238,7 +238,7 @@ function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[],
                         if (bounds.lowerBound > 0 && newAncestorTypes.includes(child.type)) {
                             // Recursive user-defined type with non-zero lower
                             // bound, cannot build default value.
-                            defaultObject._value[child.name] = childIsList ? [] : undefined;
+                            defaultObject[child.name] = childIsList ? [] : undefined;
 
                             continue;
                         }
@@ -248,10 +248,10 @@ function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[],
                             for (let i = 0; i++; i < bounds.lowerBound) {
                                 defaultValues.push(getFallbackDefaultValue(child.type, annotations));
                             }
-                            defaultObject._value[child.name] = defaultValues;
+                            defaultObject[child.name] = defaultValues;
                         } else {
                             if (bounds.lowerBound > 0) {
-                                defaultObject._value[child.name] = getFallbackDefaultValue(child.type, annotations);
+                                defaultObject[child.name] = getFallbackDefaultValue(child.type, annotations);
                             }
                         }
                     }
@@ -335,7 +335,6 @@ export namespace DeleteValue {
 export interface ChangeType {
     kind: 'changeType';
     index?: number;
-    newType: string;
-    newValue: any;
+    newValue: any; // includes _type-property as well as attribute values
 }
 

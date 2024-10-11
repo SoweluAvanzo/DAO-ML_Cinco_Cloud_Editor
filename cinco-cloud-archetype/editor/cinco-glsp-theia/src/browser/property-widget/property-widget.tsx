@@ -687,6 +687,8 @@ export class CincoPropertyEntry extends React.Component<
                             >
                                 <option value=''></option>
                                 {this.state.modelElementIndex[attributeDefinition.type].map(({ id, name, label }) => (
+                                    // TODO Polymorphism for ModelElementReferences
+
                                     // ModelElementReference identifier specified in the following fallback order:
                                     // name => label => attributeDefinitionType
                                     <option value={id} key={id}>
@@ -781,35 +783,17 @@ function addPropertyValue(
     pointer: ObjectPointer,
     name: string
 ): void {
+    const attributeDefinition = locateAttributeDefinition(state, pointer, name);
+    const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
+    const isList = isListAttribute(bounds.upperBound);
+
     // TODO: The following code mutates the state, the shallow copy in the next
     // line does not prevent that.
     const newState = { ...state };
-    let objectValue = locateObjectValueWrapped(newState, pointer);
+    const objectValue = locateObjectValue(newState, pointer);
 
-    let attributeDefinition: Attribute | undefined;
-    // list attribute might be only defined on subtype of type specified in meta-specification
-    // check if instantiated type differs from meta-specification
-    if (objectValue._type !== undefined) {
-        const instantiatedType = getUserDefinedType(objectValue._type);
-        if (instantiatedType === undefined) {
-            throw new Error(`Invalid _type specified in model file: ${objectValue._type}`);
-        } else {
-            attributeDefinition = instantiatedType!.attributes.find(attr => attr.name === name);
-        }
-
-        if (attributeDefinition === undefined) {
-            throw new Error(`Invalid attribute name ${name} on type ${objectValue._type}.`);
-        }
-    } else {
-        // use type from meta-specification
-        attributeDefinition = locateAttributeDefinition(state, pointer, name);
-    }
-
-    objectValue = objectValue._value ?? objectValue;
-
-    const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
-    const defaultValue = getFallbackDefaultValue(attributeDefinition.type, attributeDefinition.annotations);
-    const isList = isListAttribute(bounds.upperBound);
+    // Also check if subtype was instantiated instead of specified supertype
+    const defaultValue = getFallbackDefaultValue(objectValue[name]._type ?? attributeDefinition.type, attributeDefinition.annotations);
 
     if (isList) {
         if (!objectValue[name]) {
@@ -843,16 +827,16 @@ function assignPropertyType(
     if (index !== undefined) {
         propertyRef = propertyRef[index];
     }
-    propertyRef._type = newType;
 
+    // default value also includes _type-property
     const defaultVal = getFallbackDefaultValue(newType, attributeDefinition.annotations);
-    propertyRef._value = defaultVal._value;
+    Object.assign(propertyRef, defaultVal);
     // TODO Try assigning compatible values from before to new type
     setState(newState);
 
     // persist data
     postPropertyChange(state.modelElementId, pointer, attributeDefinition.name,
-        { kind: 'changeType', index: index, newType: newType, newValue: defaultVal._value });
+        { kind: 'changeType', index: index, newValue: defaultVal });
 
     // update
     widget.update();
@@ -983,14 +967,9 @@ function checkEnum(type: string, value: any): boolean {
 /**
  * FUNCTIONS FOR LOCATING VALUES
  */
-function locateObjectValueWrapped(state: PropertyWidgetState, pointer: ObjectPointer): any {
+function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): any {
     let objectValue: any = state.values; // these are the attributes of the modelElement
     for (const step of pointer) {
-        // UserDefinedType-values are wrapped inside _type-_value-object
-        if (objectValue._value !== undefined) {
-            objectValue = objectValue._value;
-        }
-
         let nextValue;
         if (step.index !== undefined) {
             nextValue = objectValue[step.attribute][step.index];
@@ -1014,11 +993,6 @@ function locateObjectValueWrapped(state: PropertyWidgetState, pointer: ObjectPoi
     }
 
     return objectValue;
-}
-
-function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): any {
-    const objectValue = locateObjectValueWrapped(state, pointer);
-    return objectValue._value ?? objectValue;
 }
 
 function locateAttributeDefinition(state: PropertyWidgetState, pointer: ObjectPointer, name: string): Attribute {
