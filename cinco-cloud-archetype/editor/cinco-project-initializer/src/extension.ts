@@ -27,7 +27,7 @@ async function openProjectInitializationWebview(context: vscode.ExtensionContext
     panel.webview.html = await getWebviewContent(context, panel);
 
     panel.webview.onDidReceiveMessage(
-        message => {
+        async message => {
             switch (message.command) {
                 case 'createExampleProject':
                     pullRepoIntoWorkspace(message.repoUrl, message.branch, panel);
@@ -37,8 +37,8 @@ async function openProjectInitializationWebview(context: vscode.ExtensionContext
                         const projectName = message.projectName;
                         const mglContent = generateMGL(projectName, `${projectName}.msl`);
                         const mslContent = generateMSL();
-                        createFile(projectName, 'mgl', mglContent);
-                        createFile(projectName, 'msl', mslContent);
+                        await createFile(projectName, 'mgl', mglContent, 'languages');
+                        await createFile(projectName, 'msl', mslContent, 'languages');
                         vscode.window.showInformationMessage('Project successfully initialized!');
                         panel.dispose();
                     }
@@ -47,7 +47,7 @@ async function openProjectInitializationWebview(context: vscode.ExtensionContext
                     {
                         const fileName = message.modelName;
                         const fileType = message.modelType;
-                        createFile(fileName, fileType, '');
+                        await createFile(fileName, fileType, '');
                         vscode.window.showInformationMessage('Modelfile successfully initialized!');
                         panel.dispose();
                     }
@@ -59,7 +59,7 @@ async function openProjectInitializationWebview(context: vscode.ExtensionContext
     );
 }
 
-function createFile(fileName: string, fileType: string, fileContent: string) {
+async function createFile(fileName: string, fileType: string, fileContent: string, workspaceSubFolder?: string): Promise<void> {
     const workspaceFolder = vscode.workspace.workspaceFolders;
     if (!workspaceFolder || workspaceFolder.length < 1) {
         vscode.window.showErrorMessage('Workspace could not be found!');
@@ -72,11 +72,40 @@ function createFile(fileName: string, fileType: string, fileContent: string) {
     }
 
     const workspaceRoot = workspaceFolder[0].uri.fsPath;
-    const filePath = path.join(workspaceRoot, `${fileName}.${fileType}`);
-    const fileUri = vscode.Uri.file(filePath);
+    const folderPath = workspaceSubFolder ? path.join(workspaceRoot, workspaceSubFolder) : workspaceRoot;
 
+    if (workspaceSubFolder) {
+        const uri = vscode.Uri.parse(folderPath);
+
+        const stat = await getStats(uri);
+        if (stat) {
+            switch (stat.type) {
+                case vscode.FileType.File:
+                    throw new Error('Could not create Folder: ' + folderPath);
+                case vscode.FileType.Directory:
+                    break;
+                case vscode.FileType.Unknown:
+                    break;
+            }
+        }
+        try {
+            await vscode.workspace.fs.createDirectory(uri);
+        } catch (e) {
+            throw new Error('Error creating Folder: ' + folderPath);
+        }
+    }
+    const filePath = path.join(folderPath, `${fileName}.${fileType}`);
+    const fileUri = vscode.Uri.file(filePath);
     const utf8Encoder = new TextEncoder();
     vscode.workspace.fs.writeFile(fileUri, utf8Encoder.encode(fileContent));
+}
+
+async function getStats(uri: vscode.Uri): Promise<vscode.FileStat | undefined> {
+    try {
+        return await vscode.workspace.fs.stat(uri);
+    } catch (e) {
+        return undefined;
+    }
 }
 
 async function isWorkspaceEmpty() {

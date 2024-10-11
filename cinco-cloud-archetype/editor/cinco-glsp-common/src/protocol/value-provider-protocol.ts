@@ -18,6 +18,7 @@ import { hasStringProp } from './type-utils';
 
 export interface ValueUpdateRequestAction extends Action {
     kind: typeof ValueUpdateRequestAction.KIND;
+    modelId: string; // associated id of the model
     modelElementId: string; // associated id of the model-element
     args?: any; // not yet specified
 }
@@ -29,9 +30,10 @@ export namespace ValueUpdateRequestAction {
         return Action.hasKind(object, KIND) && hasStringProp(object, 'modelElementId');
     }
 
-    export function create(modelElementId: string, options?: { args: any }): ValueUpdateRequestAction {
+    export function create(modelId: string, modelElementId: string, options?: { args: any }): ValueUpdateRequestAction {
         return {
             kind: KIND,
+            modelId,
             modelElementId,
             ...options
         };

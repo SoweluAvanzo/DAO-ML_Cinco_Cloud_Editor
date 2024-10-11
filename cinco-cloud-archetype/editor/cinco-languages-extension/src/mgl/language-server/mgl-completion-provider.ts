@@ -14,51 +14,34 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import {
-    CompletionAcceptor, CompletionContext, CstNode, DefaultCompletionProvider,
-    isCompositeCstNode, LangiumDocument, LangiumServices, NextFeature, stream
+    CompletionAcceptor,
+    CompletionContext,
+    CstNode,
+    DefaultCompletionProvider,
+    isCompositeCstNode,
+    LangiumDocument,
+    LangiumServices,
+    NextFeature,
+    stream
 } from 'langium';
 import {
-    CompletionParams, CancellationToken, CompletionList, CompletionItem, CompletionItemKind,
+    CompletionParams,
+    CancellationToken,
+    CompletionList,
+    CompletionItem,
+    CompletionItemKind,
     InsertTextFormat
 } from 'vscode-languageserver';
 import { AbstractElement, isKeyword } from 'langium/lib/grammar/generated/ast';
 import { Annotation } from '@cinco-glsp/cinco-languages/lib/generated/ast';
+import { MglAnnotations } from '@cinco-glsp/cinco-languages';
 
 export class MglCompletionProvider extends DefaultCompletionProvider {
     services: LangiumServices;
-    annotations =[
-        'Hook',
-        'disable'
-    ];
-    hooks =[
-        'CanCreate',
-        'PreCreate',
-        'PostCreate',
-        'CanDelete',
-        'PreDelete',
-        'PostDelete',
-        'CanAttributeChange',
-        'PostAttributeChange',
-        'PreAttributeChange',
-        'CanSelect',
-        'PostSelect',
-        'CanDoubleClick',
-        'PostDoubleClick',
-        'CanReconnect',
-        'PreReconnect',
-        'PostReconnect',
-        'CanMove',
-        'PreMove',
-        'PostMove',
-        'CanResize',
-        'PreResize',
-        'PostResize',
-        'CanSave',
-        'PostSave',
-        'PostPathChange',
-        'PostContentChange'
-    ];
-    entityCompletions: {gate: (node: CstNode) => boolean, completion: CompletionItem}[] = [
+    annotations = MglAnnotations.allAnnotations;
+    hooks = MglAnnotations.HOOK_VALUES;
+
+    entityCompletions: { gate: (node: CstNode) => boolean; completion: CompletionItem }[] = [
         this.createGraphModelCompletion,
         this.createNodeCompletion,
         this.createContainerCompletion,
@@ -67,7 +50,7 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
         this.createEnumCompletion
     ];
 
-    propertyCompletions: {gate: (node: CstNode) => boolean, completion: CompletionItem}[] = [
+    propertyCompletions: { gate: (node: CstNode) => boolean; completion: CompletionItem }[] = [
         this.createAttributeCompletion,
         this.createComplexReferenceCompletion,
         this.createFullAttributeCompletion,
@@ -88,9 +71,9 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
     }
 
     override async getCompletion(
-            document: LangiumDocument,
-            params: CompletionParams,
-            _?: CancellationToken
+        document: LangiumDocument,
+        params: CompletionParams,
+        _?: CancellationToken
     ): Promise<CompletionList | undefined> {
         const items: CompletionItem[] = [];
         const contexts = this.buildContexts(document, params.position);
@@ -99,11 +82,7 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
         const acceptor: CompletionAcceptor = (context, value) => {
             const completionItem = this.fillCompletionItem(context, value);
             const currentToken = context.document.textDocument.getText().substring(context.tokenOffset, context.tokenEndOffset);
-            if(value.kind === CompletionItemKind.Keyword
-                && (!value.label?.includes(currentToken)
-                    || currentToken.length <= 0
-                )
-            ) {
+            if (value.kind === CompletionItemKind.Keyword && (!value.label?.includes(currentToken) || currentToken.length <= 0)) {
                 return;
             }
             if (completionItem) {
@@ -129,29 +108,27 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
             completedFeatures.push(...context.features);
 
             // add completion snippets for properties
-            for(const com of this.propertyCompletions) {
+            for (const com of this.propertyCompletions) {
                 const cstNodes = this.getCstNodes(context);
-                for(const cstNode of cstNodes)
-                {
+                for (const cstNode of cstNodes) {
                     try {
-                        if(com.gate(cstNode)) {
+                        if (com.gate(cstNode)) {
                             items.push(com.completion);
                         }
-                    } catch(e) {
+                    } catch (e) {
                         console.log(e);
                     }
                 }
             }
             // add completion snippets for structs
-            for(const com of this.entityCompletions) {
+            for (const com of this.entityCompletions) {
                 const cstNodes = this.getCstNodes(context);
-                for(const cstNode of cstNodes)
-                {
+                for (const cstNode of cstNodes) {
                     try {
-                        if(com.gate(cstNode)) {
+                        if (com.gate(cstNode)) {
                             items.push(com.completion);
                         }
-                    } catch(e) {
+                    } catch (e) {
                         console.log(e);
                     }
                 }
@@ -161,7 +138,7 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
     }
 
     private getCstNodes(context: CompletionContext): CstNode[] {
-        if(!context || (!context.node?.$cstNode?.root && !context.document.parseResult.value.$cstNode)) {
+        if (!context || (!context.node?.$cstNode?.root && !context.document.parseResult.value.$cstNode)) {
             return [];
         }
         // check node
@@ -171,7 +148,7 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
 
         // search at actual position
         let foundNode = this.findLeafNodeAtOffset(rootCstNode, positionOffset);
-        if(foundNode) {
+        if (foundNode) {
             result.push(foundNode);
             return result;
         }
@@ -179,22 +156,22 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
         // search to start
         do {
             foundNode = this.findLeafNodeAtOffset(rootCstNode, currentOffset);
-            if(foundNode && result.indexOf(foundNode) < 0) {
+            if (foundNode && result.indexOf(foundNode) < 0) {
                 result.push(foundNode);
                 break;
             }
-            currentOffset-=1;
-        } while(currentOffset > 0);
+            currentOffset -= 1;
+        } while (currentOffset > 0);
         // search to end
         currentOffset = positionOffset + 1;
         do {
             foundNode = this.findLeafNodeAtOffset(rootCstNode, currentOffset);
-            if(foundNode && result.indexOf(foundNode) < 0) {
+            if (foundNode && result.indexOf(foundNode) < 0) {
                 result.push(foundNode);
                 break;
             }
-            currentOffset+=1;
-        } while(currentOffset < context.document.textDocument.getText().length);
+            currentOffset += 1;
+        } while (currentOffset < context.document.textDocument.getText().length);
 
         return result;
     }
@@ -216,10 +193,10 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
 
     private createMglStructCompletion(type: string, detail: string, content: string): CompletionItem {
         return {
-            label: 'Create '+type,
+            label: 'Create ' + type,
             kind: CompletionItemKind.Struct,
             detail: detail,
-            insertText: type+' ${1:'+type+'Name} {\n'+content+'\n}',
+            insertText: type + ' ${1:' + type + 'Name} {\n' + content + '\n}',
             insertTextFormat: InsertTextFormat.Snippet // Use Snippet to allow placeholders
         };
     }
@@ -234,212 +211,208 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
         };
     }
 
-    get createGraphModelCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createGraphModelCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
             gate: (cstNode: CstNode) => this.canCreateStruct(cstNode),
-            completion: this.createMglStructCompletion('graphmodel', 'Create a graphmodel',
-            //    '\t// Path to an icon for representation (currently not supported)\n'
-            // +   '\t// iconPath "./someIcon.png"\n'
-                '\t// fileExtension\n'
-            +   '\tdiagramExtension ${2:"ext"}\n'
-            +   '\t// containments\n'
-            +   '\tcontainableElements(${3:/* <outgoingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n\n'
-            +   '\t// attributes\n'
-            +   '\t${4:attr}')
-        };
-    }
-
-    get createNodeCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
-        return {
-            gate: (cstNode: CstNode) => this.canCreateStruct(cstNode),
-            completion: this.createMglStructCompletion('node', 'Create a node',
-                    '\tstyle ${2:styleName}\n'
-                +   '\t// edges\n'
-                +   '\tincomingEdges(${3:/* <incomingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n'
-                +   '\toutgoingEdges(${4:/* <outgoingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n\n'
-                +   '\t// attributes\n'
-                +   '\t${5:attr}'
+            completion: this.createMglStructCompletion(
+                'graphmodel',
+                'Create a graphmodel',
+                //    '\t// Path to an icon for representation (currently not supported)\n'
+                // +   '\t// iconPath "./someIcon.png"\n'
+                '\t// fileExtension\n' +
+                    '\tdiagramExtension ${2:"ext"}\n' +
+                    '\t// containments\n' +
+                    '\tcontainableElements(${3:/* <outgoingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n\n' +
+                    '\t// attributes\n' +
+                    '\t${4:attr}'
             )
         };
     }
 
-    get createContainerCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createNodeCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
             gate: (cstNode: CstNode) => this.canCreateStruct(cstNode),
-            completion: this.createMglStructCompletion('container', 'Create a container',
-                '\t// style\n'
-            +   '\tstyle ${2:styleName}\n'
-            +   '\t// containments\n'
-            +   '\tcontainableElements(${3:/* <outgoingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n'
-            +   '\t// edges\n'
-            +   '\tincomingEdges(${4:/* <incomingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n'
-            +   '\toutgoingEdges(${5:/* <outgoingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n\n'
-            +   '\t// attributes\n'
-            +   '\t${6:attr}')
-        };
-    }
-
-    get createEdgeCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
-        return {
-            gate: (cstNode: CstNode) => this.canCreateStruct(cstNode),
-            completion: this.createMglStructCompletion('edge', 'Create an edge',
-                '\t// style\n'
-            +   '\tstyle ${2:styleName}\n\n'
-            +   '\t// attributes\n'
-            +   '\t${3:attr}')
-        };
-    }
-
-    get createEnumCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
-        return {
-            gate: (cstNode: CstNode) => this.canCreateStruct(cstNode),
-            completion: this.createMglStructCompletion('enum', 'Create an enum',
-                '\t${1:Value1}\n\t${2:Value2}'
+            completion: this.createMglStructCompletion(
+                'node',
+                'Create a node',
+                '\tstyle ${2:styleName}\n' +
+                    '\t// edges\n' +
+                    '\tincomingEdges(${3:/* <incomingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n' +
+                    '\toutgoingEdges(${4:/* <outgoingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n\n' +
+                    '\t// attributes\n' +
+                    '\t${5:attr}'
             )
         };
     }
 
-    get createTypeCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createContainerCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
             gate: (cstNode: CstNode) => this.canCreateStruct(cstNode),
-            completion: this.createMglStructCompletion('type', 'Create a type','\t$0')
+            completion: this.createMglStructCompletion(
+                'container',
+                'Create a container',
+                '\t// style\n' +
+                    '\tstyle ${2:styleName}\n' +
+                    '\t// containments\n' +
+                    '\tcontainableElements(${3:/* <outgoingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n' +
+                    '\t// edges\n' +
+                    '\tincomingEdges(${4:/* <incomingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n' +
+                    '\toutgoingEdges(${5:/* <outgoingEdgeType>[<lowerBound or *>, <UpperBound or *>], ... */})\n\n' +
+                    '\t// attributes\n' +
+                    '\t${6:attr}'
+            )
         };
     }
 
-    get createIdCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createEdgeCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
+        return {
+            gate: (cstNode: CstNode) => this.canCreateStruct(cstNode),
+            completion: this.createMglStructCompletion(
+                'edge',
+                'Create an edge',
+                '\t// style\n' + '\tstyle ${2:styleName}\n\n' + '\t// attributes\n' + '\t${3:attr}'
+            )
+        };
+    }
+
+    get createEnumCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
+        return {
+            gate: (cstNode: CstNode) => this.canCreateStruct(cstNode),
+            completion: this.createMglStructCompletion('enum', 'Create an enum', '\t${1:Value1}\n\t${2:Value2}')
+        };
+    }
+
+    get createTypeCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
+        return {
+            gate: (cstNode: CstNode) => this.canCreateStruct(cstNode),
+            completion: this.createMglStructCompletion('type', 'Create a type', '\t$0')
+        };
+    }
+
+    get createIdCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
             gate: (cstNode: CstNode) => this.canCreateId(cstNode),
-            completion: this.createMglPropertyCompletion('Specify id', 'Specify the MGLs id',
-                'id ${1:package.name}'
-            )
+            completion: this.createMglPropertyCompletion('Specify id', 'Specify the MGLs id', 'id ${1:package.name}')
         };
     }
 
-    get createStylePathCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createStylePathCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
             gate: (cstNode: CstNode) => this.canCreateStylePath(cstNode),
-            completion: this.createMglPropertyCompletion('Specify id', 'Specify the MGLs id',
-                'stylePath "${1:relativePathToMSL}"'
-            )
+            completion: this.createMglPropertyCompletion('Specify id', 'Specify the MGLs id', 'stylePath "${1:relativePathToMSL}"')
         };
     }
 
-    get createImportCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createImportCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
             gate: (cstNode: CstNode) => this.canCreateImport(cstNode),
-            completion: this.createMglPropertyCompletion('Declare import', 'Declare an import',
+            completion: this.createMglPropertyCompletion(
+                'Declare import',
+                'Declare an import',
                 'import "${1:relativePath}" as ${2:importName}'
             )
         };
     }
 
-    get createStealthImportCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createStealthImportCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
             gate: (cstNode: CstNode) => this.canCreateImport(cstNode),
-            completion: this.createMglPropertyCompletion('Declare stealth import', 'Declare stealth import',
+            completion: this.createMglPropertyCompletion(
+                'Declare stealth import',
+                'Declare stealth import',
                 'stealth import "${1:relativePath}" as ${2:importName}'
             )
         };
     }
 
-    get createAttributeCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createAttributeCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
-                gate: (cstNode: CstNode) => this.canCreateAttribute(cstNode),
-                completion:
-                    this.createMglPropertyCompletion(
-                        'Primitive Attribute',
-                        'Create attribute: attr string as stringAttribute = "defaultValue"',
-                        'attr ${1|string,number,boolean,Date|} as ${2:attributeName} = ${3|"defaultValue",true,false,42|}'
-                    )
+            gate: (cstNode: CstNode) => this.canCreateAttribute(cstNode),
+            completion: this.createMglPropertyCompletion(
+                'Primitive Attribute',
+                'Create attribute: attr string as stringAttribute = "defaultValue"',
+                'attr ${1|string,number,boolean,Date|} as ${2:attributeName} = ${3|"defaultValue",true,false,42|}'
+            )
         };
     }
 
-    get createFullAttributeCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createFullAttributeCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
-                gate: (cstNode: CstNode) => this.canCreateAttribute(cstNode),
-                completion:
-                    this.createMglPropertyCompletion(
-                        'Full Primitive Attribute',
-                        'Create full primitive attribute: final unique attr string as stringAttribute = "defaultValue"',
-                        // eslint-disable-next-line max-len
-                        'final unique attr ${1|string,number,boolean,Date|} as ${2:attributeName} = ${3|"defaultValue",true,false,42|}'
-                    )
+            gate: (cstNode: CstNode) => this.canCreateAttribute(cstNode),
+            completion: this.createMglPropertyCompletion(
+                'Full Primitive Attribute',
+                'Create full primitive attribute: final unique attr string as stringAttribute = "defaultValue"',
+                // eslint-disable-next-line max-len
+                'final unique attr ${1|string,number,boolean,Date|} as ${2:attributeName} = ${3|"defaultValue",true,false,42|}'
+            )
         };
     }
 
-    get createPrimeReferenceCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createPrimeReferenceCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
-                gate: (cstNode: CstNode) => this.canCreateAttribute(cstNode),
-                completion:
-                    this.createMglPropertyCompletion(
-                        'PrimeReference Attribute',
-                        'Create full primitive attribute: final unique attr string as stringAttribute = "defaultValue"',
-                        // eslint-disable-next-line max-len
-                        'prime ${1|this::ReferencedType,importName::ReferencedType,Node,Edge,Container,ModelElement,ModelElementContainer,GraphModel|} as ${2:referenceName}'
-                    )
+            gate: (cstNode: CstNode) => this.canCreateAttribute(cstNode),
+            completion: this.createMglPropertyCompletion(
+                'PrimeReference Attribute',
+                'Create full primitive attribute: final unique attr string as stringAttribute = "defaultValue"',
+                // eslint-disable-next-line max-len
+                'prime ${1|this::ReferencedType,importName::ReferencedType,Node,Edge,Container,ModelElement,ModelElementContainer,GraphModel|} as ${2:referenceName}'
+            )
         };
     }
 
-    get createComplexReferenceCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createComplexReferenceCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
-                gate: (cstNode: CstNode) => this.canCreateAttribute(cstNode),
-                completion:
-                    this.createMglPropertyCompletion(
-                        'Complex Reference Attribute',
-                        'Create complex reference: attr Node1 as nodeReference',
-                        // eslint-disable-next-line max-len
-                        'attr ${1:ModelElementType} as ${2:attributeName}'
-                    )
+            gate: (cstNode: CstNode) => this.canCreateAttribute(cstNode),
+            completion: this.createMglPropertyCompletion(
+                'Complex Reference Attribute',
+                'Create complex reference: attr Node1 as nodeReference',
+                // eslint-disable-next-line max-len
+                'attr ${1:ModelElementType} as ${2:attributeName}'
+            )
         };
     }
 
-    get createFullComplexReferenceCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createFullComplexReferenceCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
-                gate: (cstNode: CstNode) => this.canCreateAttribute(cstNode),
-                completion:
-                    this.createMglPropertyCompletion(
-                        'Full Complex Reference Attribute',
-                        'Create full complex reference: final unique override attr Node1 as nodeReference',
-                        // eslint-disable-next-line max-len
-                        'final unique override attr ${1:ModelElementType} as ${2:attributeName}'
-                    )
+            gate: (cstNode: CstNode) => this.canCreateAttribute(cstNode),
+            completion: this.createMglPropertyCompletion(
+                'Full Complex Reference Attribute',
+                'Create full complex reference: final unique override attr Node1 as nodeReference',
+                // eslint-disable-next-line max-len
+                'final unique override attr ${1:ModelElementType} as ${2:attributeName}'
+            )
         };
     }
 
-    get createAnnotationCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createAnnotationCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         return {
-                gate: (cstNode: CstNode) => this.canCreateAnnotation(cstNode),
-                completion:
-                    this.createMglPropertyCompletion(
-                        'Annotation',
-                        'Choose an Annotation out of these supported ones',
-                        // eslint-disable-next-line max-len
-                        '@${1|'+this.annotations.join(',')+'|}(${2:/*hookParameter*/}) '
-                    )
+            gate: (cstNode: CstNode) => this.canCreateAnnotation(cstNode),
+            completion: this.createMglPropertyCompletion(
+                'Annotation',
+                'Choose an Annotation out of these supported ones',
+                // eslint-disable-next-line max-len
+                '@${1|' + this.annotations.join(',') + '|}(${2:/*hookParameter*/}) '
+            )
         };
     }
 
-    get createHookAnnotationCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createHookAnnotationCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         const hookString = this.hooks.join(',');
         return {
-                gate: (cstNode: CstNode) => this.canCreateHookAnnotation(cstNode),
-                completion:
-                    this.createMglPropertyCompletion(
-                        'Hook-Annotation', 'Create a Hook Annotation',
-                        'Hooks(${1:ClassName}, ${2|'+hookString+'|}, ${0})'
-                    )
+            gate: (cstNode: CstNode) => this.canCreateHookAnnotation(cstNode),
+            completion: this.createMglPropertyCompletion(
+                'Hook-Annotation',
+                'Create a Hook Annotation',
+                'Hooks(${1:ClassName}, ${2|' + hookString + '|}, ${0})'
+            )
         };
     }
 
-    get createMoreHookCompletion(): { gate: (cstNode: CstNode) => boolean, completion: CompletionItem } {
+    get createMoreHookCompletion(): { gate: (cstNode: CstNode) => boolean; completion: CompletionItem } {
         const hookString = this.hooks.join(',');
         return {
-                gate: (cstNode: CstNode) => this.isInsideHookAnnotation(cstNode),
-                completion:
-                    this.createMglPropertyCompletion(
-                        'Add Hook', 'Add a Hook',
-                        '${1|'+hookString+'|}, ${0}'
-                    )
+            gate: (cstNode: CstNode) => this.isInsideHookAnnotation(cstNode),
+            completion: this.createMglPropertyCompletion('Add Hook', 'Add a Hook', '${1|' + hookString + '|}, ${0}')
         };
     }
 
@@ -460,17 +433,15 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
     }
 
     canCreateHookAnnotation(node: CstNode): boolean {
-        return !this.isInsideAnnotation(node)
-            && !this.isInsideAttribute(node)
-            && (this.isInsideModelElement(node)
-            || this.isInsideMGL(node));
+        return (
+            !this.isInsideAnnotation(node) && !this.isInsideAttribute(node) && (this.isInsideModelElement(node) || this.isInsideMGL(node))
+        );
     }
 
     canCreateAnnotation(node: CstNode): boolean {
-        return !this.isInsideAnnotation(node)
-            && (this.isInsideAttribute(node)
-            || this.isInsideModelElement(node)
-            || this.isInsideMGL(node));
+        return (
+            !this.isInsideAnnotation(node) && (this.isInsideAttribute(node) || this.isInsideModelElement(node) || this.isInsideMGL(node))
+        );
     }
 
     canCreateStruct(node: CstNode): boolean {
@@ -511,11 +482,11 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
     }
 
     isStruct(type: string | undefined): boolean {
-        return type !== undefined && this.isModelElementType(type) || this.isEnumType(type);
+        return (type !== undefined && this.isModelElementType(type)) || this.isEnumType(type);
     }
 
     isModelElementType(type: string | undefined): boolean {
-        return ['GraphModel', 'Node',  'NodeContainer', 'Edge', 'UserdefinedType'].includes(type ?? '');
+        return ['GraphModel', 'Node', 'NodeContainer', 'Edge', 'UserdefinedType'].includes(type ?? '');
     }
 
     isEnumType(type: string | undefined): boolean {
@@ -531,10 +502,10 @@ export class MglCompletionProvider extends DefaultCompletionProvider {
     }
 
     isInside(node: CstNode, gate: (type: string) => boolean): CstNode | undefined {
-        if(gate(node.element.$type)) {
+        if (gate(node.element.$type)) {
             return node;
         }
-        if(node.parent) {
+        if (node.parent) {
             this.isInside(node.parent, gate);
         }
         return undefined;

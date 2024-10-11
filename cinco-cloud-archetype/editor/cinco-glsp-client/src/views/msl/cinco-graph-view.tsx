@@ -13,8 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { RenderingContext, GGraph, GGraphView, svg, Bounds, GChildElement } from '@eclipse-glsp/client';
-import { injectable } from 'inversify';
+import { RenderingContext, GGraph, GGraphView, svg, Bounds, GChildElement, EdgeRouterRegistry } from '@eclipse-glsp/client';
+import { injectable, inject, optional } from 'inversify';
 import { VNode } from 'snabbdom';
 import { CincoEdge, CincoGraphModel, CincoMarker, CincoNode } from '../../model/model';
 import { isEdgeType, isNodeType, isUnknownEdgeType, isUnknownNodeType } from './cinco-view-helper';
@@ -30,6 +30,8 @@ const JSX = { createElement: svg };
  */
 @injectable()
 export class CincoGraphView<IRenderingArgs> extends GGraphView {
+    @inject(EdgeRouterRegistry) @optional() override edgeRouterRegistry: EdgeRouterRegistry;
+
     override render(model: Readonly<GGraph>, context: RenderingContext, args?: IRenderingArgs): VNode {
         // render
         const scroll = model.scroll ?? { x: 0, y: 0 };
@@ -79,10 +81,12 @@ export class CincoGraphView<IRenderingArgs> extends GGraphView {
             }
             return anyUn;
         });
-        Object.assign(model.children, unknownNodes.concat(unknownEdges).concat(containers).concat(edges).concat(nodes)
-            .concat(feedbackEdges).concat(markers));
+        Object.assign(
+            model.children,
+            unknownNodes.concat(unknownEdges).concat(containers).concat(edges).concat(nodes).concat(feedbackEdges).concat(markers)
+        );
 
-        const edgeRouting = this.edgeRouterRegistry.routeAllChildren(model);
+        const edgeRouting = this.edgeRouterRegistry?.routeAllChildren(model);
         const elements = context.renderChildren(model, { edgeRouting, edgeRouterRegistry: this.edgeRouterRegistry });
         const gNodes = elements.filter(gElement => nodes.find(n => n.id === gElement.key));
         const gContainers = elements.filter(gElement => containers.find(n => n.id === gElement.key));

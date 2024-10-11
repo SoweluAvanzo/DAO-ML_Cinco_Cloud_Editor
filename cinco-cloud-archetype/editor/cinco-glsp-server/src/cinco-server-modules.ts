@@ -13,19 +13,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Edge, EdgeElementConnection } from '../../generated/ast';
-import { Reference } from 'langium';
 
-export function getConnectingEdges(edgeElementConnection: EdgeElementConnection): Edge[] {
-    const localConnections = edgeElementConnection.localConnection;
-    const result = localConnections
-        .flatMap((localConnection: Reference<Edge>) => localConnection.$refNode?.element as Edge)
-        .filter((entry: Edge) => entry !== undefined);
-    if (result.length > 1) {
-        for (const entry of result) {
-            console.log(entry.name);
-            console.log(entry);
-        }
+import { BindingTarget, GLSPServer, ServerModule } from '@eclipse-glsp/server';
+import { CincoGLSPServer } from './cinco-glsp-server';
+
+export class CincoServerModule extends ServerModule {
+    protected override bindGLSPServer(): BindingTarget<GLSPServer> {
+        return CincoGLSPServer;
     }
-    return result;
 }

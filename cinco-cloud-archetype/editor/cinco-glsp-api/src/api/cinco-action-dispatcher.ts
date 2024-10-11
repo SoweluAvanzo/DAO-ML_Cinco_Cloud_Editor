@@ -14,13 +14,15 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Action, DefaultActionDispatcher, Logger, UpdateModelAction } from '@eclipse-glsp/server';
+import { Action, ClientId, DefaultActionDispatcher, Logger, UpdateModelAction } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 
 @injectable()
 export class CincoActionDispatcher extends DefaultActionDispatcher {
     @inject(Logger)
     _logger: Logger;
+    @inject(ClientId)
+    override readonly clientId: string;
 
     async request(action: Action): Promise<Action[]> {
         this._logger.debug('Dispatch action:', action.kind);

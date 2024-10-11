@@ -35,6 +35,7 @@ import { GraphModelProvider } from '../model/graph-model-provider';
 import { CincoToolPalette } from './cinco-tool-palette';
 import { CincoGLSPClient, CINCO_STARTUP_RANK } from '@cinco-glsp/cinco-glsp-common';
 import { EnvironmentProvider, IEnvironmentProvider } from '../api/environment-provider';
+import { CincoEdge, CincoNode } from '../model/model';
 
 @injectable()
 export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
@@ -101,12 +102,24 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
         // load css language-files
         FrontendResourceLoader.load(this.actionDispatcher, this.workspaceFileService);
         // dynamically register bindings
-        reregisterBindings(this.context, this.ctx, this.registry, this.viewRegistry);
+        try {
+            // TODO: this call fires a "no matching bindings found for serviceIdentifier: EdgeRouterRegistry"
+            reregisterBindings(this.context, this.ctx, this.registry, this.viewRegistry);
+        } catch (e) {
+            console.log(e);
+        }
         // dynamic tool palette update
         CincoToolPalette.requestPalette(this.actionDispatcher);
         // update canvas
-        if(updateCanvas) {
+        if (updateCanvas) {
             this.graphModelProvider.graphModel.then(g => {
+                g.children.forEach(c => {
+                    if (c instanceof CincoNode) {
+                        c.reset();
+                    } else if (c instanceof CincoEdge) {
+                        c.reset();
+                    }
+                });
                 this.viewerProvider.modelViewer.update(g);
                 this.typeHintProvider.postRequestModel();
             });

@@ -14,8 +14,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { DefaultGLSPServer } from '@eclipse-glsp/server';
+import { ActionMessage, DefaultGLSPServer } from '@eclipse-glsp/server';
 import { injectable } from 'inversify';
 
 @injectable()
-export class CincoGLSPServer extends DefaultGLSPServer {}
+export class CincoGLSPServer extends DefaultGLSPServer {
+    protected override sendToClient(message: ActionMessage): void {
+        try {
+            this.glspClientProxy.process(message);
+        } catch (e: any) {
+            this.logger.error(`Could not sendToClient: ${e}`);
+        }
+    }
+}

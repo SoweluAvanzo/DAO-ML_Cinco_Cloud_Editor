@@ -1,11 +1,11 @@
 grammar Mgl
 
 entry MglModel:
+    (annotations+=Annotation)*
     (
         ('id' package=QNAME)
         & ('stylePath' stylePath=STRING)
         & (imports+=Import)+
-        & (annotations+=Annotation)+
     )
     modelElements+=(ModelElement)*
 ;
