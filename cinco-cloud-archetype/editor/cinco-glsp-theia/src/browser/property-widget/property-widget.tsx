@@ -823,15 +823,30 @@ function assignPropertyType(
     newType: string
 ): void {
     const newState = { ...state };
-    let propertyRef = locateObjectValue(newState, pointer)[attributeDefinition.name];
-    if (index !== undefined) {
-        propertyRef = propertyRef[index];
-    }
+    const objectValue = locateObjectValue(newState, pointer);
+    const currentPropertyValue = index !== undefined ? objectValue[attributeDefinition.name][index] : objectValue[attributeDefinition.name];
 
     // default value also includes _type-property
     const defaultVal = getFallbackDefaultValue(newType, attributeDefinition.annotations);
-    Object.assign(propertyRef, defaultVal);
-    // TODO Try assigning compatible values from before to new type
+
+    // keep compatible attribute values of type (where name and type matches in old and new type-option)
+    const newTypeAttributes = getUserDefinedType(newType)?.attributes;
+    const oldTypeAttributes = getUserDefinedType(currentPropertyValue._type)?.attributes;
+    if (newTypeAttributes === undefined || oldTypeAttributes === undefined) {
+        throw new Error(`The type ${newType} does not exist.`);
+    }
+    newTypeAttributes.forEach(newTypeAttr => {
+        const oldAttrOfSameName = oldTypeAttributes.find(attr => attr.name === newTypeAttr.name);
+        if (oldAttrOfSameName !== undefined && newTypeAttr.type === oldAttrOfSameName.type) {
+            defaultVal[newTypeAttr.name] = currentPropertyValue[newTypeAttr.name];
+        }
+    });
+
+    if (index !== undefined) {
+        objectValue[attributeDefinition.name][index] = defaultVal;
+    } else {
+        objectValue[attributeDefinition.name] = defaultVal;
+    }
     setState(newState);
 
     // persist data
