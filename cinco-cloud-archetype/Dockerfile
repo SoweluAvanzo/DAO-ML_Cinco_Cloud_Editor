@@ -62,6 +62,9 @@ RUN cd minio-client && yarn && cd ../
 # build theia-editor
 RUN yarn
 
+# configure lazy merge driver for Git
+RUN node /editor/cinco-lazy-merge-driver/lib/configure-git-merge-driver.js
+
 # runtime configuration
 VOLUME /editor/workspace
 EXPOSE 3000 3003 5007 9000 9222

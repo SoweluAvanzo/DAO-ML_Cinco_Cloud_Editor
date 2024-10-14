@@ -1,2 +1,0 @@
-[merge "cinco-lazy-merge"]
-	driver = node cinco-lazy-merge.js %O %A %B %L %A

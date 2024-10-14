@@ -14,24 +14,31 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { describe, test, expect } from '@jest/globals';
-import { readdirSync, readFileSync } from 'fs';
+import { readdirSync } from 'fs';
+import { readFile } from 'fs/promises';
 import { graphMerger } from './graph-merger';
+import { defaultContext } from './combinators';
+import * as path from 'path';
 
 describe('examples', () => {
-    const examples = readdirSync('examples', { withFileTypes: true })
+    const examplesDirectory = `${__dirname}/../graph-merger-examples`;
+    const examples = readdirSync(examplesDirectory, { withFileTypes: true })
         .filter(entry => entry.isDirectory())
         .map(entry => entry.name);
     for (const example of examples) {
-        test(example, () => {
-            const ancestor = JSON.parse(readFileSync(`examples/${example}/ancestor.flowgraph`, 'utf-8'));
-            const versionA = JSON.parse(readFileSync(`examples/${example}/version-a.flowgraph`, 'utf-8'));
-            const versionB = JSON.parse(readFileSync(`examples/${example}/version-b.flowgraph`, 'utf-8'));
+        test(example, async () => {
+            const exampleDirectory = path.join(examplesDirectory, example);
+            const ancestor = JSON.parse(await readFile(path.join(exampleDirectory, 'ancestor.flowgraph'), 'utf-8'));
+            const versionA = JSON.parse(await readFile(path.join(exampleDirectory, 'version-a.flowgraph'), 'utf-8'));
+            const versionB = JSON.parse(await readFile(path.join(exampleDirectory, 'version-b.flowgraph'), 'utf-8'));
 
             const merger = graphMerger();
-            const result = merger({ ancestor, versionA, versionB });
+            const { value, newEagerConflicts, newLazyConflicts } = merger(defaultContext, { ancestor, versionA, versionB });
 
-            expect(result.value).toStrictEqual(JSON.parse(readFileSync(`examples/${example}/merged.flowgraph`, 'utf-8')));
-            expect(result.newEagerConflicts ? 1 : 0).toBe(Number(readFileSync(`examples/${example}/exit-code.txt`, 'utf-8')));
+            expect(value).toStrictEqual(JSON.parse(await readFile(path.join(exampleDirectory, 'merged.flowgraph'), 'utf-8')));
+            expect({ newEagerConflicts, newLazyConflicts }).toStrictEqual(
+                JSON.parse(await readFile(path.join(exampleDirectory, 'conflicts.json'), 'utf-8'))
+            );
         });
     }
 });
