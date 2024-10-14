@@ -142,14 +142,8 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
                 case 'changeType': {
                     const { index, newValue } = change;
                     if (index !== undefined) {
-                        if (object[name][index]._type === undefined) {
-                            throw new Error('Value of specified object does not fit UserDefinedType (no _type-property)');
-                        }
                         object[name][index] = newValue;
                     } else {
-                        if (object[name]._type === undefined) {
-                            throw new Error('Value of specified object does not fit UserDefinedType (no _type-property)');
-                        }
                         object[name] = newValue;
                     }
                     break;

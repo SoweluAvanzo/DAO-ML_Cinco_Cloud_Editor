@@ -610,8 +610,9 @@ export class CincoPropertyEntry extends React.Component<
                                 objectValue[attributeDefinition.name][index] :
                                 objectValue[attributeDefinition.name];
 
-                            const selectedTypeId: string = userTypeObject._type;
-                            selectedType = getUserDefinedType(selectedTypeId)!;
+                            if (userTypeObject?._type !== undefined) {
+                                selectedType = getUserDefinedType(userTypeObject._type)!;
+                            }
 
                             typeSelectionDropdown = (
                                 <select
@@ -793,7 +794,7 @@ function addPropertyValue(
     const objectValue = locateObjectValue(newState, pointer);
 
     // Also check if subtype was instantiated instead of specified supertype
-    const defaultValue = getFallbackDefaultValue(objectValue[name]._type ?? attributeDefinition.type, attributeDefinition.annotations);
+    const defaultValue = getFallbackDefaultValue(objectValue[name]?._type ?? attributeDefinition.type, attributeDefinition.annotations);
 
     if (isList) {
         if (!objectValue[name]) {
@@ -831,7 +832,9 @@ function assignPropertyType(
 
     // keep compatible attribute values of type (where name and type matches in old and new type-option)
     const newTypeAttributes = getUserDefinedType(newType)?.attributes;
-    const oldTypeAttributes = getUserDefinedType(currentPropertyValue._type)?.attributes;
+
+    const oldType = currentPropertyValue._type ?? attributeDefinition.type; // for compatibility with older model files
+    const oldTypeAttributes = getUserDefinedType(oldType)?.attributes;
     if (newTypeAttributes === undefined || oldTypeAttributes === undefined) {
         throw new Error(`The type ${newType} does not exist.`);
     }
