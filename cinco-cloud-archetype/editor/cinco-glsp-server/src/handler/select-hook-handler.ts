@@ -34,6 +34,10 @@ export class SelectHookHandler implements ActionHandler {
     actionKinds: string[] = [SelectAction.KIND];
 
     execute(action: SelectAction, ...args: unknown[]): MaybePromise<Action[]> {
+        if (!this.modelState.graphModel) {
+            this.logger.info('SelectHookHandler triggered - modelState not ready.');
+            return [];
+        }
         // parse
         const selectedElements = action.selectedElementsIDs;
         const deselectedElements = action.deselectedElementsIDs;
