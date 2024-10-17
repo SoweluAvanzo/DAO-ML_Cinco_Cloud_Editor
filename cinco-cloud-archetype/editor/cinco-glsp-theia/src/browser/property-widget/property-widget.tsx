@@ -28,7 +28,8 @@ import {
     getUserDefinedType,
     UserDefinedType,
     ElementType,
-    Type
+    Type,
+    isInstanceOf
 } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
 import {
     getFallbackDefaultValue,
@@ -833,14 +834,19 @@ function assignPropertyType(
     // keep compatible attribute values of type (where name and type matches in old and new type-option)
     const newTypeAttributes = getUserDefinedType(newType)?.attributes;
 
-    const oldType = currentPropertyValue._type ?? attributeDefinition.type; // for compatibility with older model files
+    // "attributeDefinition.type" for compatibility with older model files
+    const oldType = currentPropertyValue._type ?? attributeDefinition.type;
     const oldTypeAttributes = getUserDefinedType(oldType)?.attributes;
     if (newTypeAttributes === undefined || oldTypeAttributes === undefined) {
         throw new Error(`The type ${newType} does not exist.`);
     }
     newTypeAttributes.forEach(newTypeAttr => {
         const oldAttrOfSameName = oldTypeAttributes.find(attr => attr.name === newTypeAttr.name);
-        if (oldAttrOfSameName !== undefined && newTypeAttr.type === oldAttrOfSameName.type) {
+        const currentAttrType = currentPropertyValue[newTypeAttr.name]?._type;
+        if (oldAttrOfSameName !== undefined && (
+            newTypeAttr.type === oldAttrOfSameName.type
+            || (currentAttrType !== undefined && isInstanceOf(currentAttrType, newTypeAttr.type))
+        )) {
             defaultVal[newTypeAttr.name] = currentPropertyValue[newTypeAttr.name];
         }
     });
