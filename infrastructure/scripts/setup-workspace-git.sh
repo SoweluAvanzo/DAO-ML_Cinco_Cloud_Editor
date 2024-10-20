@@ -5,7 +5,6 @@ set -euo pipefail
 # 2. Download the script: "curl -O https://gitlab.com/scce/cinco-cloud/-/raw/main/infrastructure/scripts/setup-workspace-git.sh"
 # 3. Make the script executable: "chmod +x setup-workspace-git.sh"
 # 4. Run the script: "./setup-workspace-git.sh"
-# 5. You can then delete the script from the workspace: "rm setup-workspace-git.sh"
 echo This script sets up a Git repository with an SSH-authenticated remote with all config files fully containted within the .git directory in the workspace, to persist the config across pods in the current cluster setup.
 echo Be aware that this is a workaround until Git setup is properly supported in Cinco Cloud, and workspaces set up with this script will need to be migrated manually at that point.
 echo -n "Enter your email for Git commits: "; read email
@@ -26,5 +25,9 @@ cat .git/ssh/id_rsa.pub
 echo --------------------------------------------------------------------------------
 git config --local core.sshCommand "ssh -i '$workspace/.git/ssh/id_rsa' -o UserKnownHostsFile='$workspace/.git/ssh/known_hosts'"
 git remote add origin "$remote"
+read -p 'Setup deploy key now. Grant write permissions! Press enter to continue.'
+git fetch
+git merge origin/main
+git push -u origin 
+rm setup-workspace-git.sh
 echo Done!
-echo After you configured the deploy key, \(1\) commit your changes and \(2\) run \`git push -u origin main\` and confirm the SSH fingerprint. From then on, you can use the Theia Git UI.
