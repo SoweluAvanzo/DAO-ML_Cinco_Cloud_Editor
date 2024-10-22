@@ -5,5 +5,6 @@ export class Settings extends BaseEntity {
   autoActivateUsers: boolean;
   createDefaultProjects: boolean;
   sendMails: boolean;
+  persistentDeployments: boolean;
   archetypeImage: string;
 }

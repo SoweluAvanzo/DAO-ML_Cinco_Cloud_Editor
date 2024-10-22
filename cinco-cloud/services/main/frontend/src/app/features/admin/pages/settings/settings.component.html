@@ -66,11 +66,28 @@
       </div>
       <div class="d-flex align-items-center cursor-pointer">
         <span
-          (click)="settings.createDefaultProjects = !settings.createDefaultProjects"
+          (click)="setCreateDefaultProjects(!settings.createDefaultProjects)"
           [ngbTooltip]="settings.createDefaultProjects ? 'Disable' : 'Enable'"
           placement="top"
         >
           <fa-icon [icon]="settings.createDefaultProjects ? icons.toggleOn : icons.toggleOff"></fa-icon>
+        </span>
+      </div>
+    </div>
+    <div class="list-group-item d-flex flex-row">
+      <div class="w-100 mr-3">
+        <strong>Persistent Deployments</strong>
+        <p class="mb-0 text-muted">
+          When enabled, project workspaces are persistent i.e. the associated pods are not scaled down when being idle.
+        </p>
+      </div>
+      <div class="d-flex align-items-center cursor-pointer">
+        <span
+          (click)="setPersistentDeployments(!settings.persistentDeployments)"
+          [ngbTooltip]="settings.persistentDeployments ? 'Disable' : 'Enable'"
+          placement="top"
+        >
+          <fa-icon [icon]="settings.persistentDeployments ? icons.toggleOn : icons.toggleOff"></fa-icon>
         </span>
       </div>
     </div>
