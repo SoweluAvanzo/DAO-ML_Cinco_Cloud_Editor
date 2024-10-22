@@ -68,6 +68,14 @@ export class SettingsComponent implements OnInit {
     this.settings.sendMails = sendMails;
   }
 
+  setCreateDefaultProjects(createDefaultProjects: boolean) {
+    this.settings.createDefaultProjects = createDefaultProjects;
+  }
+
+  setPersistentDeployments(persistentDeployments: boolean) {
+    this.settings.persistentDeployments = persistentDeployments;
+  }
+
   get canSave(): boolean {
     return this.settingsForm.valid;
   }

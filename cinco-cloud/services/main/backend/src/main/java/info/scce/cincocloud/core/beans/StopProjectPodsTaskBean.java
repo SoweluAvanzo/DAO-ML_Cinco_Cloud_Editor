@@ -1,6 +1,7 @@
 package info.scce.cincocloud.core.beans;
 
 import info.scce.cincocloud.core.services.ProjectDeploymentService;
+import info.scce.cincocloud.core.services.SettingsService;
 import info.scce.cincocloud.db.ProjectDB;
 import info.scce.cincocloud.db.StopProjectPodsTaskDB;
 import io.quarkus.runtime.StartupEvent;
@@ -74,12 +75,22 @@ public class StopProjectPodsTaskBean {
 
   public static class StopProjectPodsJob implements Job {
 
+    private static final Logger LOGGER = Logger.getLogger(StopProjectPodsJob.class.getName());
+
     @Inject
     StopProjectPodsTaskBean taskBean;
 
+    @Inject
+    SettingsService settingsService;
+
     @Transactional
     public void execute(JobExecutionContext context) {
-      taskBean.performTask();
+      if (!settingsService.getSettings().persistentDeployments) {
+        taskBean.performTask();
+      } else {
+        LOGGER.log(Level.INFO, "SKIP stopping inactive pods, persistent deployments active.");
+      }
     }
+
   }
 }

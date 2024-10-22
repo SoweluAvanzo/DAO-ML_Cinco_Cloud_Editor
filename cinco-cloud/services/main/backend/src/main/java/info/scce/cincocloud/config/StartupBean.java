@@ -39,6 +39,7 @@ public class StartupBean {
       final var settings = new SettingsDB();
       settings.allowPublicUserRegistration = true;
       settings.sendMails = false;
+      settings.persistentDeployments = false;
       settings.archetypeImage = properties.getArchetypeImage()
               .orElse("registry.gitlab.com/scce/cinco-cloud/archetype:latest");
       settings.persist();

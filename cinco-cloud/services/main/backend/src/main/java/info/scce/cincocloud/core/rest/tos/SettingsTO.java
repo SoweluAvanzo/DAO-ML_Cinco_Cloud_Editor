@@ -10,6 +10,7 @@ public class SettingsTO extends RESTBaseImpl {
   private boolean allowPublicUserRegistration;
   private boolean autoActivateUsers;
   private boolean sendMails;
+  private boolean persistentDeployments;
   private boolean createDefaultProjects;
   private String archetypeImage;
 
@@ -26,6 +27,7 @@ public class SettingsTO extends RESTBaseImpl {
     to.setallowPublicUserRegistration(entity.allowPublicUserRegistration);
     to.setautoActivateUsers(entity.autoActivateUsers);
     to.setsendMails(entity.sendMails);
+    to.setpersistentDeployments(entity.persistentDeployments);
     to.setArchetypeImage(entity.archetypeImage);
     to.setCreateDefaultProjects(entity.createDefaultProjects);
     objectCache.putRestTo(entity, to);
@@ -60,6 +62,16 @@ public class SettingsTO extends RESTBaseImpl {
   @JsonProperty("sendMails")
   public void setsendMails(boolean sendMails) {
     this.sendMails = sendMails;
+  }
+
+  @JsonProperty("persistentDeployments")
+  public boolean getpersistentDeployments() {
+    return persistentDeployments;
+  }
+
+  @JsonProperty("persistentDeployments")
+  public void setpersistentDeployments(boolean persistentDeployments) {
+    this.persistentDeployments = persistentDeployments;
   }
 
   @JsonProperty("archetypeImage")

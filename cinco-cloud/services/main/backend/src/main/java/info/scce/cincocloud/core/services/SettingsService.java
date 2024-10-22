@@ -18,6 +18,7 @@ public class SettingsService {
     settings.allowPublicUserRegistration = settingsTO.getallowPublicUserRegistration();
     settings.autoActivateUsers = settingsTO.getautoActivateUsers();
     settings.sendMails = settingsTO.getsendMails();
+    settings.persistentDeployments = settingsTO.getpersistentDeployments();
     settings.archetypeImage = settingsTO.getArchetypeImage();
     settings.createDefaultProjects = settingsTO.isCreateDefaultProjects();
     return settings;
