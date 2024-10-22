@@ -28,6 +28,6 @@ git remote add origin "$remote"
 read -p 'Setup deploy key now. Grant write permissions! Press enter to continue.'
 git fetch
 git merge origin/main
-git push -u origin 
+git push -u origin main
 rm setup-workspace-git.sh
 echo Done!
