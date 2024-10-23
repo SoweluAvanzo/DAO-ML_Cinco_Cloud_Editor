@@ -74,11 +74,12 @@ export class FileProviderHandler implements ActionHandler {
         console.log('Found DirtyFiles: [\n' + dirtyFiles.map(d => d.path).join(',\n') + '\n]');
         await Promise.all(
             dirtyFiles.map(async (dirtyFile: { path: string; eventType: WatchEventType }): Promise<void> => {
-                const deleted = !(await existsFile(dirtyFile.path));
+                const resolvedPath = path.resolve(dirtyFile.path);
+                const deleted = !(await existsFile(resolvedPath));
                 if (deleted) {
-                    toRemove.push(dirtyFile.path);
-                } else if (this.CACHED_FILES.indexOf(dirtyFile.path) < 0) {
-                    toAdd.push(dirtyFile.path);
+                    toRemove.push(resolvedPath);
+                } else if (this.CACHED_FILES.indexOf(resolvedPath) < 0) {
+                    toAdd.push(resolvedPath);
                 }
             })
         );
