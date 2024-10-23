@@ -45,6 +45,7 @@ export class FileProviderHandler implements ActionHandler {
             workspacePath,
             [],
             async (dirtyFiles: { path: string; eventType: WatchEventType }[]): Promise<void> => {
+                console.log('New DirtyFiles!');
                 await this.updateCachedFiles(dirtyFiles);
                 return Promise.resolve();
             },
@@ -55,7 +56,11 @@ export class FileProviderHandler implements ActionHandler {
                 languagesPath,
                 [],
                 async (dirtyFiles: { path: string; eventType: WatchEventType }[]): Promise<void> => {
-                    await this.updateCachedFiles(dirtyFiles);
+                    try {
+                        await this.updateCachedFiles(dirtyFiles);
+                    } catch (e) {
+                        console.log('A cinco-glsp-server-error occured caching files:\n' + e);
+                    }
                     return Promise.resolve();
                 },
                 3
@@ -66,6 +71,7 @@ export class FileProviderHandler implements ActionHandler {
     static async updateCachedFiles(dirtyFiles: { path: string; eventType: WatchEventType }[]): Promise<void> {
         const toRemove: string[] = [];
         const toAdd: string[] = [];
+        console.log('Found DirtyFiles: [\n' + dirtyFiles.map(d => d.path).join(',\n') + '\n]');
         await Promise.all(
             dirtyFiles.map(async (dirtyFile: { path: string; eventType: WatchEventType }): Promise<void> => {
                 const deleted = !(await existsFile(dirtyFile.path));
@@ -76,6 +82,8 @@ export class FileProviderHandler implements ActionHandler {
                 }
             })
         );
+        console.log('Removed: [\n' + toRemove.join(',\n') + '\n]');
+        console.log('New File: [\n' + toAdd.join(',\n') + '\n]');
         if (toRemove.length > 0) {
             this.CACHED_FILES = this.CACHED_FILES.filter(c => toRemove.indexOf(c) < 0);
         }
