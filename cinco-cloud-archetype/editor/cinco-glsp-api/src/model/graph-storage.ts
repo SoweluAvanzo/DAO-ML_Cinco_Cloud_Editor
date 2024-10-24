@@ -163,7 +163,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
         return GraphModelState.resolveGraphmodel(model, new GraphModel(), undefined); // TODO: merged index?
     }
 
-    protected static async loadFromFile(
+    static async loadFromFile(
         sourceUri: string,
         modelState?: GraphModelState,
         logger?: Logger,

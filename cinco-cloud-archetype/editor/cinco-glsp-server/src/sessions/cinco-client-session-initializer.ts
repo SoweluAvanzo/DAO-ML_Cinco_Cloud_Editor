@@ -24,7 +24,9 @@ import {
     Logger,
     ModelSubmissionHandler,
     RequestContextActions,
-    SourceModelStorage
+    RequestModelAction,
+    SourceModelStorage,
+    UpdateModelAction
 } from '@eclipse-glsp/server';
 import { Container, inject, injectable } from 'inversify';
 import { MetaSpecificationLoader } from '../meta/meta-specification-loader';
@@ -73,40 +75,56 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
 
     initialize(_args?: Args): void {
         CincoClientSessionInitializer.addClient(this.serverContainer.id, this.actionDispatcher);
-        if (!CincoClientSessionListener.initialized) {
-            const createdCallback = async (
-                clientId: string,
-                modelState: GraphModelState,
-                actionDispatcher: ActionDispatcher
-            ): Promise<void> => {
+        const createdCallback = async (
+            clientId: string,
+            modelState: GraphModelState,
+            actionDispatcher: ActionDispatcher
+        ): Promise<void> => {
+            this.updateGraphModelWatcher(clientId, modelState, actionDispatcher);
+            MetaSpecificationLoader.addReloadCallback(async () => {
                 this.updateGraphModelWatcher(clientId, modelState, actionDispatcher);
-                MetaSpecificationLoader.addReloadCallback(async () => {
-                    this.updateGraphModelWatcher(clientId, modelState, actionDispatcher);
+            });
+            if (isMetaDevMode()) {
+                const watchInfo = await MetaSpecificationLoader.watch(async () => {
+                    if (clientId === SYSTEM_ID) {
+                        const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
+                        CincoClientSessionInitializer.sendToAllClients(
+                            response,
+                            CincoClientSessionInitializer.clientSessionsActionDispatcher
+                        );
+                    }
+                }, 'metaspecWatcher_' + clientId);
+                CincoClientSessionListener.addDisposeCallback(clientId, () => {
+                    MetaSpecificationLoader.unwatch(watchInfo);
+                    GraphModelWatcher.removeCallback(clientId);
                 });
-                if (isMetaDevMode()) {
-                    const watchInfo = await MetaSpecificationLoader.watch(async () => {
-                        if (clientId === SYSTEM_ID) {
-                            const response = MetaSpecificationResponseAction.create(MetaSpecification.get());
-                            CincoClientSessionInitializer.sendToAllClients(
-                                response,
-                                CincoClientSessionInitializer.clientSessionsActionDispatcher
-                            );
-                        }
-                    }, 'metaspecWatcher_' + clientId);
-                    CincoClientSessionListener.addDisposeCallback(clientId, () => {
-                        MetaSpecificationLoader.unwatch(watchInfo);
-                        GraphModelWatcher.removeCallback(clientId);
-                    });
-                }
-            };
-            this.sessions.addListener(new CincoClientSessionListener(createdCallback));
-        }
+            }
+        };
+        this.sessions.addListener(new CincoClientSessionListener(createdCallback));
     }
 
     updateGraphModelWatcher(clientId: string, modelState: GraphModelState, actionDispatcher: ActionDispatcher): void {
         if (clientId !== SYSTEM_ID) {
+            /**
+             * CANVAS
+             */
+            GraphModelWatcher.removeCallback(clientId);
+            GraphModelWatcher.addCallback(clientId, async dirtyFiles => {
+                for (const dirtyFile of dirtyFiles) {
+                    const model = (await readJson(dirtyFile.path, { hideError: true })) as any | undefined;
+                    if (model && model.id && modelState.graphModel.id === model.id) {
+                        // update model of client/canvas
+                        this.updateClientOnChange(modelState, clientId);
+                    }
+                }
+            });
             return;
         }
+
+        /**
+         * SYSTEM_ID
+         */
+
         // add graphmodel Watcher
         GraphModelWatcher.removeCallback(clientId);
         GraphModelWatcher.addCallback(clientId, async dirtyFiles => {
@@ -175,7 +193,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         );
                     }
                     if (modelState.graphModel.id === model.id && modelState instanceof GraphModelState) {
-                        this.onGraphModelChange(modelState);
+                        await this.onGraphModelChange(modelState);
                     }
                 }
             }
@@ -183,7 +201,41 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         GraphModelWatcher.watch(clientId);
     }
 
-    onGraphModelChange(modelState: GraphModelState): void {
+    async updateClientOnChange(modelState: GraphModelState, clientId: string): Promise<void> {
+        // update internal model
+        const sourceUri = modelState.graphModel._sourceUri ?? modelState.sourceUri ?? '';
+        GraphModelStorage.loadFromFile(
+            sourceUri,
+            modelState,
+            this.logger,
+            this.actionDispatcher,
+            this.sourceModelStorage,
+            this.submissionHandler,
+            false
+        ).then(async ({ graphModel }) => {
+            if (graphModel?.id === modelState.graphModel.id) {
+                if (JSON.stringify(modelState.graphModel) !== JSON.stringify(graphModel)) {
+                    // if changes occured, that were not tracked, it means external reasons
+                    // e.g. fileChanged manually on the fileSystem
+                    modelState.graphModel = graphModel;
+                    // GUI update
+                    const requests = [
+                        RequestModelAction.create({ options: { sourceUri: modelState.sourceUri } as Args }),
+                        UpdateModelAction.create(graphModel, { animate: true })
+                    ];
+                    for (const request of requests) {
+                        await CincoClientSessionInitializer.sendToClient(
+                            request,
+                            clientId,
+                            CincoClientSessionInitializer.clientSessionsActionDispatcher
+                        );
+                    }
+                }
+            }
+        });
+    }
+
+    async onGraphModelChange(modelState: GraphModelState): Promise<void> {
         /**
          * PUT ALL ON CHANGE EVENTS HERE
          */
@@ -198,11 +250,11 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         });
         requests.push(paletteResponse);
 
-        requests = requests.concat(this.updateGraphModelHandler(modelState));
+        requests = requests.concat(await this.updateGraphModelHandler(modelState));
         this.propagateRequests(requests);
     }
 
-    updateGraphModelHandler(modelState: GraphModelState): Action[] {
+    async updateGraphModelHandler(modelState: GraphModelState): Promise<Action[]> {
         const index: GraphModelIndex = modelState.index as GraphModelIndex;
         const model = index.getRoot();
         const requests: Action[] = [];
@@ -277,15 +329,14 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         }
     }
 
-    static sendToClient(message: Action, clientId: string, actionDispatcherMap: Map<number, ActionDispatcher>): void {
+    static async sendToClient(message: Action, clientId: string, actionDispatcherMap: Map<number, ActionDispatcher>): Promise<void> {
         if (actionDispatcherMap) {
             for (const entry of actionDispatcherMap.entries()) {
                 if (entry[1] instanceof CincoActionDispatcher && entry[1].clientId === clientId) {
-                    entry[1].dispatch(message).catch(e => {
+                    return entry[1].dispatch(message).catch(e => {
                         console.log('An error occured, maybe the client is not connected anymore:\n' + e);
                         CincoClientSessionInitializer.removeClient(entry[0]);
                     });
-                    return;
                 }
             }
         }
