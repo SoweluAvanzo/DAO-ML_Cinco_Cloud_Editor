@@ -34,4 +34,5 @@
     // ? Do you want to continue? [Y/n]
     "? Do you want to continue? [Y/n]": "Y\r"
   },
+  "git.openRepositoryInParentFolders": "always"
 }
