@@ -221,7 +221,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                     // GUI update
                     const requests = [
                         RequestModelAction.create({ options: { sourceUri: modelState.sourceUri } as Args }),
-                        UpdateModelAction.create(graphModel, { animate: true })
+                        UpdateModelAction.create(graphModel, { animate: false })
                     ];
                     for (const request of requests) {
                         await CincoClientSessionInitializer.sendToClient(
