@@ -48,7 +48,12 @@
 				  "terminal.integrated.defaultProfile.linux": "bash"
 			},
 			"extensions": [
-				"langium.langium-vscode"
+				"langium.langium-vscode",
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"EditorConfig.EditorConfig",
+				"DavidAnson.vscode-markdownlint",
+				"aeschli.vscode-css-formatter"
 			]
 		}
 	},
