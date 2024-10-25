@@ -16,6 +16,14 @@
 
 	"forwardPorts": [3000, 3003, 5007],
 
+	// Overrides the default local mount point for the workspace when the container is created.
+	// Requires workspaceFolder be set as well.
+	"workspaceMount": "source=${localWorkspaceFolder}/../..,target=/cinco-cloud,type=bind,consistency=cached",
+
+	// Sets the default path that devcontainer.json supporting services / tools should open when connecting to the container.
+	// Requires workspaceMount be set.
+	"workspaceFolder": "/cinco-cloud/cinco-cloud-archetype/editor",
+
 	"mounts": [
 		"source=${localWorkspaceFolder},target=/home/node/cinco-cloud-archetype,type=bind,consistency=cached"
 	],
