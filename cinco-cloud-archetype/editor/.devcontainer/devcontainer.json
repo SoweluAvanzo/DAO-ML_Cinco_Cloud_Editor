@@ -20,6 +20,11 @@
 		"source=${localWorkspaceFolder},target=/home/node/cinco-cloud-archetype,type=bind,consistency=cached"
 	],
 
+	"containerEnv": {
+		// For Apple Silicon Macs: Stop Puppeteer from downloading Chromium, as it is not available for arm64.
+		"PUPPETEER_SKIP_DOWNLOAD": "true"
+	},
+
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "yarn install",
 
