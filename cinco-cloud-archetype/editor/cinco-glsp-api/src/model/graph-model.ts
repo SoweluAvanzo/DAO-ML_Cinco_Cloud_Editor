@@ -396,7 +396,7 @@ export class ModelElement implements IdentifiableElement {
                 this._attributes[name] = value;
             } else {
                 // check if new complex value has same complex type (UserDefinedType, ModelElementReferences and Enums)
-                const userDefinedType = getUserDefinedType(propertyType);
+                const userDefinedType = getUserDefinedType(propertyType); // TODO Abstract types are not found in meta specification
                 const enumerator = getEnum(propertyType);
                 const modelElementReference = getSpecOf(propertyType);
                 // enums can be checked against literal-domain | userDefinedTypes can be checked against signature TODO:
