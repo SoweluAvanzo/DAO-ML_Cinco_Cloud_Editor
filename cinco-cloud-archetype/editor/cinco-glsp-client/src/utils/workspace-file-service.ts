@@ -43,8 +43,12 @@ export class WorkspaceFileService {
 
     protected static async startDirtyCheck(actionDispatcher: IActionDispatcher): Promise<void> {
         this.FILE_TIMER = setTimeout(async () => {
-            for (const folder of this.CACHED_FILES.keys()) {
-                await this.updateCachedFiles(folder, actionDispatcher);
+            try {
+                for (const folder of this.CACHED_FILES.keys()) {
+                    await this.updateCachedFiles(folder, actionDispatcher);
+                }
+            } catch (e) {
+                console.log(e);
             }
             this.startDirtyCheck(actionDispatcher);
         }, this.RELOAD_DELAY);
