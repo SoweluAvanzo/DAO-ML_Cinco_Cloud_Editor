@@ -92,9 +92,9 @@ export function uploadToMinio(directoryPath: string, onError: (e: any) => void):
             console.log('Stored meta specification successfully');
             client.createBuildJob(new CreateBuildJobMessage().setProjectid(parseInt(MINIO_RESOURCE_ID)), (error, response) => {
                 if (error) {
+                    onError(error);
                     throw Error('Failed to submit build job:\n' + error);
                 }
-                onError(error);
             });
         })
         .catch(error => {

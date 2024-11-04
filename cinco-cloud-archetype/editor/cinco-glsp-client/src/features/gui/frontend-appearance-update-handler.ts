@@ -23,7 +23,16 @@ import {
     Shape,
     Text
 } from '@cinco-glsp/cinco-glsp-common';
-import { CommandExecutionContext, CommandReturn, ILogger, GModelElement, GModelRoot, SystemCommand, TYPES } from '@eclipse-glsp/client';
+import {
+    CommandExecutionContext,
+    CommandReturn,
+    ILogger,
+    GModelElement,
+    GModelRoot,
+    SystemCommand,
+    TYPES,
+    IViewerProvider
+} from '@eclipse-glsp/client';
 import { inject, injectable } from 'inversify';
 import { CincoEdge, CincoNode } from '../../model/model';
 
@@ -34,6 +43,7 @@ export class ApplyAppearanceUpdateCommand extends SystemCommand {
     protected logger: ILogger;
     @inject(TYPES.Action)
     protected readonly action: ApplyAppearanceUpdateAction;
+    @inject(TYPES.IViewerProvider) protected viewerProvider: IViewerProvider; // TODO: check
 
     constructor() {
         super();
@@ -70,6 +80,7 @@ export class ApplyAppearanceUpdateCommand extends SystemCommand {
                 }
             }
         }
+        this.viewerProvider.modelViewer.update(model);
         return this.redo(context);
     }
 

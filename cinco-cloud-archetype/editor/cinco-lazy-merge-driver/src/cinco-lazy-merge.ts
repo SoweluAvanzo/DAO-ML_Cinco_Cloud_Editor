@@ -25,7 +25,7 @@ const app = command({
         versionAFile: positional({ type: string, displayName: 'version-a-file' }),
         versionBFile: positional({ type: string, displayName: 'version-b-file' }),
         outputFile: positional({ type: string, displayName: 'output-file' }),
-        conflictMarkerSize: option({ type: number, long: 'conflict-maker-size', defaultValue: () => 7 }),
+        conflictMarkerSize: option({ type: number, long: 'conflict-marker-size', defaultValue: () => 7 }),
         failMergeOnLazyConflicts: flag({ long: 'fail-merge-on-lazy-conflicts' }),
         mergeUnknownCellsArbitrarily: flag({ long: 'merge-unknown-cells-arbitrarily' })
     },

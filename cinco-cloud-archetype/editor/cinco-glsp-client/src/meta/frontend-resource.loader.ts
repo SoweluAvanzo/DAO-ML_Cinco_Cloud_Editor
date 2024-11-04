@@ -34,7 +34,7 @@ export class FrontendResourceLoader {
     static _locked = false;
     static currentIconMap = new Map();
     static currentPaletteIconMap = new Map();
-    static currentCSS: { id: string, css: string }[] = [] ;
+    static currentCSS: { id: string; css: string }[] = [];
 
     static async load(
         actionDispatcher: IActionDispatcher,
@@ -60,12 +60,10 @@ export class FrontendResourceLoader {
         FrontendResourceLoader._locked = true;
 
         const serverArgs = await ServerArgsProvider.getServerArgs();
-        for (const file of resources) {
-            await this.loadCSSFile(
-                `${file.path}`,
-                serverArgs.metaDevMode,
-                workspaceFileService
-            );
+
+        for (const file of resources.filter(r => r.path.endsWith('diagram.css'))) {
+            // TODO: Documentation
+            await this.loadCSSFile(`${file.path}`, serverArgs.metaDevMode, workspaceFileService);
         }
         await this.addIconStyle(`${serverArgs.rootFolder}/${serverArgs.languagePath}/`, workspaceFileService);
 
@@ -121,23 +119,24 @@ export class FrontendResourceLoader {
 
         const changedIcons = this.hasChanged(this.currentIconMap, iconMap);
         const changedPaletteIcons = this.hasChanged(this.currentPaletteIconMap, paletteIconMap);
-        if(changedIcons || changedPaletteIcons) {
+        if (changedIcons || changedPaletteIcons) {
             // get changes
-            const { newValues: newValuesIcon, removedKeys: removedKeysIcon } =
-                this.getChanges(this.currentIconMap, iconMap);
-            const { newValues: newValuesPalette, removedKeys: removedKeysPalette } =
-                this.getChanges(this.currentPaletteIconMap, paletteIconMap);
+            const { newValues: newValuesIcon, removedKeys: removedKeysIcon } = this.getChanges(this.currentIconMap, iconMap);
+            const { newValues: newValuesPalette, removedKeys: removedKeysPalette } = this.getChanges(
+                this.currentPaletteIconMap,
+                paletteIconMap
+            );
             this.currentIconMap = iconMap;
             this.currentPaletteIconMap = paletteIconMap;
 
             // serve new
             // remove outdated
-            this.currentCSS =
-                this.currentCSS.filter(iconType =>
-                    !removedKeysIcon.includes(iconType.id)
-                    && !removedKeysPalette.includes(iconType.id)
-                    && !(Array.from(newValuesIcon.keys()).includes(iconType.id))
-                    && !(Array.from(newValuesPalette.keys()).includes(iconType.id))
+            this.currentCSS = this.currentCSS.filter(
+                iconType =>
+                    !removedKeysIcon.includes(iconType.id) &&
+                    !removedKeysPalette.includes(iconType.id) &&
+                    !Array.from(newValuesIcon.keys()).includes(iconType.id) &&
+                    !Array.from(newValuesPalette.keys()).includes(iconType.id)
             );
             this.currentCSS = this.currentCSS.concat(await this.serveIcons(newValuesIcon, iconFolder, workspaceFileService));
             this.currentCSS = this.currentCSS.concat(await this.serveIcons(newValuesPalette, iconFolder, workspaceFileService));
@@ -155,16 +154,16 @@ export class FrontendResourceLoader {
         }
     }
 
-    static hasChanged(oldMap: Map<string,any>, newMap: Map<string,any>): boolean {
-        if(oldMap.size !== newMap.size) {
+    static hasChanged(oldMap: Map<string, any>, newMap: Map<string, any>): boolean {
+        if (oldMap.size !== newMap.size) {
             return true;
         }
-        for(const entry of oldMap.entries()) {
+        for (const entry of oldMap.entries()) {
             const key = entry[0];
             const value = entry[1];
-            if(
-                !newMap.has(key) // key was removed in newMap
-                || newMap.get(key) !== value // value has changed in newMap
+            if (
+                !newMap.has(key) || // key was removed in newMap
+                newMap.get(key) !== value // value has changed in newMap
             ) {
                 return true;
             }
@@ -172,19 +171,22 @@ export class FrontendResourceLoader {
         return false;
     }
 
-    static getChanges(oldMap: Map<string,any>, newMap: Map<string,any>): { newValues: Map<string, any>, removedKeys: string[]} {
+    static getChanges(oldMap: Map<string, any>, newMap: Map<string, any>): { newValues: Map<string, any>; removedKeys: string[] } {
         const newValues = new Map();
         const removedKeys: string[] = [];
 
         oldMap.forEach((value, key) => {
-            if(!newMap.has(key)) { // removed value
+            if (!newMap.has(key)) {
+                // removed value
                 removedKeys.push(key);
-            } else if(newMap.get(key) !== value) { // changed Values
+            } else if (newMap.get(key) !== value) {
+                // changed Values
                 newValues.set(key, newMap.get(key));
             }
         });
         newMap.forEach((value, key) => {
-            if(!oldMap.has(key)) { // new Values
+            if (!oldMap.has(key)) {
+                // new Values
                 newValues.set(key, newMap.get(key));
             }
         });
@@ -198,8 +200,8 @@ export class FrontendResourceLoader {
         iconMap: Map<string, string>,
         iconFolder: string,
         workspaceFileService: WorkspaceFileService
-    ): Promise<{ id: string, css: string }[]> {
-        const css: { id: string, css: string }[] = [];
+    ): Promise<{ id: string; css: string }[]> {
+        const css: { id: string; css: string }[] = [];
         for (const icon of iconMap.entries()) {
             const iconType = icon[0];
             const iconPath = icon[1];
@@ -208,10 +210,9 @@ export class FrontendResourceLoader {
                 url = await workspaceFileService.serveFileInRoot(iconFolder, iconPath);
             }
             if (url) {
-                css.push(
-                    {
-                        id: iconType,
-                        css:`
+                css.push({
+                    id: iconType,
+                    css: `
                             .codicon-${iconType} {
                                 width: 16px;
                                 height: 16px;
@@ -220,7 +221,7 @@ export class FrontendResourceLoader {
                                 background-position: center;
                             }
                         `
-                    });
+                });
             }
         }
         return css;
@@ -231,13 +232,13 @@ export class FrontendResourceLoader {
         for (const current of children) {
             if (current && current.id === id) {
                 document.head.removeChild(current);
-                if(replacingElement) {
+                if (replacingElement) {
                     document.head.appendChild(replacingElement);
                 }
                 return;
             }
         }
-        if(replacingElement) {
+        if (replacingElement) {
             document.head.appendChild(replacingElement);
         }
     }
