@@ -1,3 +1,4 @@
+.DS_Store
 .idea
 .kpt-pipeline
 /infrastructure/helm/secrets.yaml

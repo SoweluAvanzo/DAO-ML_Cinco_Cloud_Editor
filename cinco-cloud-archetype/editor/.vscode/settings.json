@@ -16,7 +16,8 @@
   "[typescript]": {
     "editor.tabSize": 4
   },
-  "[json]": {
+  "[json,jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.tabSize": 2
   },
   "typescript.tsdk": "node_modules/typescript/lib",
@@ -26,5 +27,13 @@
     "html",
     "typescript",
     "typescriptreact"
-  ]
+  ],
+  "terminal.integrated.autoReplies": {
+    // Automatically accept to download Yarn, when it is first run:
+    // node@docker-desktop:editor$ yarn
+    // ! Corepack is about to download https://registry.yarnpkg.com/yarn/-/yarn-1.22.22.tgz
+    // ? Do you want to continue? [Y/n]
+    "? Do you want to continue? [Y/n]": "Y\r"
+  },
+  "git.openRepositoryInParentFolders": "always"
 }
