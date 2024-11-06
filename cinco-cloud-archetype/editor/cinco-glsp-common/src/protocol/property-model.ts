@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { Annotation, Attribute, Enum, UserDefinedType, getAttribute, getCustomType } from '../meta-specification';
+import { Annotation, Attribute, Enum, UserDefinedType, getAttribute, getCustomType, getTypeOptions } from '../meta-specification';
 import { hasStringProp } from './type-utils';
 
 export interface ModelElementIndex {
@@ -211,46 +211,55 @@ function getFallbackDefaultValueRecursive(type: string, ancestorTypes: string[],
             return '';
         }
         default: {
-            const typeDefinition = getCustomType(type);
-            if (!typeDefinition) {
-                // could be modelElementReference: default should be 'not set', i.e. undefined
-                return undefined;
-            } else if (Enum.is(typeDefinition)) {
-                return typeDefinition.literals[0];
-            } else if (UserDefinedType.is(typeDefinition)) {
-                const newAncestorTypes = ancestorTypes.concat([typeDefinition.elementTypeId]);
-                const defaultObject: any = {};
-                for (const child of typeDefinition.attributes) {
-                    if (child.defaultValue !== undefined) {
-                        defaultObject[child.name] = child.defaultValue;
-                        continue;
-                    }
-
-                    const bounds = child.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
-                    const childIsList = isListAttribute(bounds.upperBound);
-
-                    // Infinite recursion protection
-                    if (bounds.lowerBound > 0 && newAncestorTypes.includes(child.type)) {
-                        // Recursive user-defined type with non-zero lower
-                        // bound, cannot build default value.
-                        defaultObject[child.name] = childIsList ? [] : undefined;
-
-                        continue;
-                    }
-
-                    if (childIsList) {
-                        const defaultValues = [];
-                        for (let i = 0; i++; i < bounds.lowerBound) {
-                            defaultValues.push(getFallbackDefaultValue(child.type, annotations));
-                        }
-                        defaultObject[child.name] = defaultValues;
-                    } else {
-                        if (bounds.lowerBound > 0) {
-                            defaultObject[child.name] = getFallbackDefaultValue(child.type, annotations);
-                        }
-                    }
+            let specifiedTypeDefinition = getCustomType(type);
+            if (Enum.is(specifiedTypeDefinition)) {
+                return specifiedTypeDefinition.literals[0];
+            } else {
+                // type might refer to a (abstract) Model Element Reference or abstract UserDefinedType (i.e. might be undefined)
+                const typeOptions = getTypeOptions(type);
+                if (typeOptions.length === 0) {
+                    return undefined; // No instantiable type (e.g. abstract type without subtypes)
                 }
-                return defaultObject;
+                specifiedTypeDefinition = typeOptions[0];
+
+                if (UserDefinedType.is(specifiedTypeDefinition)) {
+                    const newAncestorTypes = ancestorTypes.concat([specifiedTypeDefinition.elementTypeId]);
+                    const defaultObject: any = { _type: specifiedTypeDefinition.elementTypeId };
+                    for (const child of specifiedTypeDefinition.attributes) {
+                        if (child.defaultValue !== undefined) {
+                            defaultObject[child.name] = child.defaultValue;
+                            continue;
+                        }
+
+                        const bounds = child.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
+                        const childIsList = isListAttribute(bounds.upperBound);
+
+                        // Infinite recursion protection
+                        if (bounds.lowerBound > 0 && newAncestorTypes.includes(child.type)) {
+                            // Recursive user-defined type with non-zero lower
+                            // bound, cannot build default value.
+                            defaultObject[child.name] = childIsList ? [] : undefined;
+
+                            continue;
+                        }
+
+                        if (childIsList) {
+                            const defaultValues = [];
+                            for (let i = 0; i++; i < bounds.lowerBound) {
+                                defaultValues.push(getFallbackDefaultValue(child.type, annotations));
+                            }
+                            defaultObject[child.name] = defaultValues;
+                        } else {
+                            if (bounds.lowerBound > 0) {
+                                defaultObject[child.name] = getFallbackDefaultValue(child.type, annotations);
+                            }
+                        }
+                    }
+                    return defaultObject;
+                } else {
+                    // Model Element Reference -> default should be 'not set', i.e. undefined
+                    return undefined;
+                }
             }
         }
     }
@@ -286,7 +295,7 @@ export interface EditProperty {
 
 export type ObjectPointer = { attribute: string; index?: number }[];
 
-export type PropertyChange = AddValue | AssignValue | DeleteValue;
+export type PropertyChange = AddValue | AssignValue | DeleteValue | ChangeType;
 
 export interface AddValue {
     kind: 'addValue';
@@ -322,3 +331,10 @@ export namespace DeleteValue {
         return hasStringProp(object, 'kind') && object.kind === 'deleteValue';
     }
 }
+
+export interface ChangeType {
+    kind: 'changeType';
+    index?: number;
+    newValue: any; // includes _type-property as well as attribute values
+}
+

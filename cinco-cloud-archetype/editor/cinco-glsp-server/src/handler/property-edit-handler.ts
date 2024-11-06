@@ -139,6 +139,15 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
                     }
                     break;
                 }
+                case 'changeType': {
+                    const { index, newValue } = change;
+                    if (index !== undefined) {
+                        object[name][index] = newValue;
+                    } else {
+                        object[name] = newValue;
+                    }
+                    break;
+                }
             }
 
             // POST
@@ -178,7 +187,8 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             case 'deleteValue': {
                 return canDelete(listLength - 1, bounds);
             }
-            case 'assignValue': {
+            case 'assignValue':
+            case 'changeType': {
                 // limitation: only let elements change, if the index are in the bounds of constraints
                 let index = change.index;
                 if (index === undefined) {
@@ -190,12 +200,15 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
         }
     }
 
-    protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[]; object: any } {
+    protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[], object: any } {
         let attributes: Attribute[] = element.propertyDefinitions;
         let object: Record<string, any> = element.properties;
 
         for (const segment of pointer) {
-            const type = findAttribute(attributes, segment.attribute).type;
+            object = segment.index !== undefined ? object[segment.attribute][segment.index] : object[segment.attribute];
+
+            // subType of specified type might have been instantiated instead of specified type
+            const type = object._type ?? findAttribute(attributes, segment.attribute).type;
             const userDefinedType = getUserDefinedType(type);
 
             if (userDefinedType === undefined) {
@@ -203,8 +216,6 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             }
 
             attributes = userDefinedType.attributes;
-
-            object = segment.index !== undefined ? object[segment.attribute][segment.index] : object[segment.attribute];
         }
 
         return { attributes, object };

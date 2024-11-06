@@ -731,6 +731,8 @@ export interface Type {
     elementTypeId: string;
     label: string;
     annotations?: Annotation[];
+    abstract?: boolean;
+    parent?: string;
 }
 
 export namespace Type {
@@ -909,14 +911,35 @@ export function getEnum(elementTypeId: string): Enum | undefined {
     return getEnums().filter(t => t.elementTypeId === elementTypeId)[0] ?? undefined;
 }
 
-export function getUserDefinedTypes(): UserDefinedType[] {
-    const types = getCustomTypes().filter(t => UserDefinedType.is(t)) as UserDefinedType[];
-    return types ?? [];
+export function getUserDefinedTypes(filter?: (e: UserDefinedType) => boolean): UserDefinedType[] {
+    const types = (getCustomTypes().filter(t => UserDefinedType.is(t)) as UserDefinedType[]) ?? [];
+    if (filter) {
+        return types.filter(e => filter(e));
+    }
+    return types;
 }
 
 export function getUserDefinedType(elementTypeId: string): UserDefinedType | undefined {
     const spec = getSpecOf(elementTypeId);
     return UserDefinedType.is(spec) ? spec : undefined;
+}
+
+export function getTypeOptions(ancestorTypeId: string): ElementType[] {
+    const instantiableType =
+        getSpecOf(ancestorTypeId) ?? getModelElementSpecifications().find(element => element.superTypes?.includes(ancestorTypeId));
+    let subTypes: ElementType[] = [];
+    const filter = (type: ElementType): boolean => type.superTypes?.includes(ancestorTypeId) ?? false;
+    if (NodeType.is(instantiableType)) {
+        subTypes = getNodeTypes(filter);
+    } else if (EdgeType.is(instantiableType)) {
+        subTypes = getEdgeTypes(filter);
+    } else if (GraphType.is(instantiableType)) {
+        subTypes = getGraphTypes(filter);
+    } else if (UserDefinedType.is(instantiableType)) {
+        subTypes = getUserDefinedTypes(filter);
+    }
+    const parentAbstract: boolean = ancestorTypeId !== instantiableType?.elementTypeId;
+    return (parentAbstract ? [] : [instantiableType!]).concat(subTypes);
 }
 
 export function getAttributesOf(elementTypeId: string): Attribute[] {

@@ -22,9 +22,14 @@ import {
     canAssign,
     canDelete,
     Enum,
+    getTypeOptions,
     getCustomType,
     getCustomTypes,
-    UserDefinedType
+    getUserDefinedType,
+    UserDefinedType,
+    ElementType,
+    Type,
+    isInstanceOf
 } from '@cinco-glsp/cinco-glsp-common/lib/meta-specification';
 import {
     getFallbackDefaultValue,
@@ -300,6 +305,7 @@ export class CincoPropertyView extends React.Component<
                 </tr>
             );
         } else {
+
             return (
                 <>
                     {(valueList as any[]).map((listItemValue, index) => (
@@ -557,7 +563,7 @@ export class CincoPropertyEntry extends React.Component<
                 }
             }
             default: {
-                const typeDefinition = getCustomType(attributeDefinition.type);
+                let typeDefinition: Type | undefined = getCustomType(attributeDefinition.type); // undefined if specified type is abstract
                 if (Enum.is(typeDefinition)) {
                     return (
                         <select
@@ -585,56 +591,116 @@ export class CincoPropertyEntry extends React.Component<
                             ))}
                         </select>
                     );
-                } else if (UserDefinedType.is(typeDefinition)) {
-                    return (
-                        <table className='attribute-table'>
-                            <tbody>
-                                {
-                                    // userdefined type
-                                    typeDefinition.attributes.map(childDefinition => (
-                                        <CincoPropertyView
-                                            parent={this.props.parent}
-                                            parentState={this.props.parentState}
-                                            pointer={pointer.concat({
-                                                attribute: attributeDefinition.name,
-                                                index: isList ? index : undefined
-                                            })}
-                                            attributeDefinition={childDefinition}
-                                        ></CincoPropertyView>
-                                    ))
-                                }
-                            </tbody>
-                        </table>
-                    );
                 } else {
-                    return (
-                        <select
-                            value={value.value}
-                            onChange={event =>
-                                assignPropertyValue(
-                                    this.props.parent,
-                                    (newState: PropertyWidgetState) => this.setState(newState),
-                                    this.state,
-                                    pointer,
-                                    attributeDefinition,
-                                    isList ? index : undefined,
-                                    event.currentTarget.value
-                                )
+                    // specified type is potentially polymorphic (UserDefinedType or ModelElementReference)
+                    const typeOptions: ElementType[] = getTypeOptions(attributeDefinition.type);
+                    if (typeOptions.length === 0) {
+                        throw new Error(`Specified datatype (${attributeDefinition.type}) is not valid.`);
+                    }
+                    typeDefinition = typeOptions[0];
+
+                    if (UserDefinedType.is(typeDefinition)) {
+                        // Allow potential subtype selection for polymorphic types
+                        const isPolymorphic: boolean = typeOptions.length > 1;
+
+                        let typeSelectionDropdown: React.JSX.Element;
+                        let selectedType: UserDefinedType = typeDefinition as UserDefinedType;
+                        if (isPolymorphic) {
+                            // current type might differ from type specified in meta-spec (could be subtype)
+                            const userTypeObject = isList ?
+                                objectValue[attributeDefinition.name][index] :
+                                objectValue[attributeDefinition.name];
+
+                            if (userTypeObject?._type !== undefined) {
+                                selectedType = getUserDefinedType(userTypeObject._type)!;
                             }
-                            disabled={isReadOnly}
-                            id={inputId}
-                        >
-                            <option value=''></option>
-                            {this.state.modelElementIndex[attributeDefinition.type].map(({ id, name, label }) => (
-                                // ModelElementReference identifier specified in the following fallback order:
-                                // name => label => attributeDefinitionType
-                                <option value={id} key={id}>
-                                    {name ? name : label ? label : attributeDefinition.type}({name ? label + ', ' : ''}
-                                    {id})
-                                </option>
-                            ))}
-                        </select>
-                    );
+
+                            typeSelectionDropdown = (
+                                <select
+                                    value={selectedType.elementTypeId}
+                                    onChange={event => {
+                                        assignPropertyType(
+                                            this.props.parent,
+                                            (newState: PropertyWidgetState) => this.setState(newState),
+                                            this.state,
+                                            pointer,
+                                            isList ? index : undefined,
+                                            attributeDefinition,
+                                            event.currentTarget.value
+                                        );
+                                    }}
+                                >
+                                    {typeOptions.map((type, typeIndex) => (
+                                        <option value={type.elementTypeId} key={`typeSelection-${attributeDefinition.name}-${typeIndex}`}>
+                                            {type.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            );
+                        }
+
+                        return (
+                            <table className='attribute-table'>
+                                <tbody>
+                                    {
+                                        // insert type-selection dropdown
+                                        isPolymorphic &&
+                                        <tr>
+                                            <td colSpan={3}>
+                                                {typeSelectionDropdown!}
+                                            </td>
+                                        </tr>
+                                    }
+                                    {
+                                        // userdefined type
+                                        selectedType.attributes.map(childDefinition => (
+                                            <CincoPropertyView
+                                                parent={this.props.parent}
+                                                parentState={this.props.parentState}
+                                                pointer={pointer.concat({
+                                                    attribute: attributeDefinition.name,
+                                                    index: isList ? index : undefined
+                                                })}
+                                                attributeDefinition={childDefinition}
+                                            ></CincoPropertyView>
+                                        ))
+                                    }
+                                </tbody>
+                            </table>
+                        );
+                    } else {
+                        // ModelElementReference
+                        return (
+                            <select
+                                value={value.value}
+                                onChange={event =>
+                                    assignPropertyValue(
+                                        this.props.parent,
+                                        (newState: PropertyWidgetState) => this.setState(newState),
+                                        this.state,
+                                        pointer,
+                                        attributeDefinition,
+                                        isList ? index : undefined,
+                                        event.currentTarget.value
+                                    )
+                                }
+                                disabled={isReadOnly}
+                                id={inputId}
+                            >
+                                <option value=''></option>
+                                {this.state.modelElementIndex[attributeDefinition.type].map(({ id, name, label }) => (
+                                    // TODO Polymorphism for ModelElementReferences
+
+                                    // ModelElementReference identifier specified in the following fallback order:
+                                    // name => label => attributeDefinitionType
+                                    <option value={id} key={id}>
+                                        {name ? name : label ? label : attributeDefinition.type}({name ? label + ', ' : ''}
+                                        {id})
+                                    </option>
+                                ))}
+                            </select>
+                        );
+                    }
                 }
             }
         }
@@ -721,13 +787,16 @@ function addPropertyValue(
 ): void {
     const attributeDefinition = locateAttributeDefinition(state, pointer, name);
     const bounds = attributeDefinition.bounds ?? { upperBound: 1.0, lowerBound: 1.0 };
-    const defaultValue = getFallbackDefaultValue(attributeDefinition.type, attributeDefinition.annotations);
     const isList = isListAttribute(bounds.upperBound);
 
-    // TODO: The follwoing code mutates the state, the shallow copy in the next
+    // TODO: The following code mutates the state, the shallow copy in the next
     // line does not prevent that.
     const newState = { ...state };
     const objectValue = locateObjectValue(newState, pointer);
+
+    // Also check if subtype was instantiated instead of specified supertype
+    const defaultValue = getFallbackDefaultValue(objectValue[name]?._type ?? attributeDefinition.type, attributeDefinition.annotations);
+
     if (isList) {
         if (!objectValue[name]) {
             objectValue[name] = [];
@@ -743,6 +812,57 @@ function addPropertyValue(
 
     // persist data
     postPropertyChange(state.modelElementId, pointer, name, { kind: 'addValue', isList, defaultValue });
+    widget.update();
+}
+
+function assignPropertyType(
+    widget: Widget,
+    setState: (newState: PropertyWidgetState) => void,
+    state: PropertyWidgetState,
+    pointer: ObjectPointer,
+    index: number | undefined,
+    attributeDefinition: Attribute,
+    newType: string
+): void {
+    const newState = { ...state };
+    const objectValue = locateObjectValue(newState, pointer);
+    const currentPropertyValue = index !== undefined ? objectValue[attributeDefinition.name][index] : objectValue[attributeDefinition.name];
+
+    // default value also includes _type-property
+    const defaultVal = getFallbackDefaultValue(newType, attributeDefinition.annotations);
+
+    // keep compatible attribute values of type (where name and type matches in old and new type-option)
+    const newTypeAttributes = getUserDefinedType(newType)?.attributes;
+
+    // "attributeDefinition.type" for compatibility with older model files
+    const oldType = currentPropertyValue._type ?? attributeDefinition.type;
+    const oldTypeAttributes = getUserDefinedType(oldType)?.attributes;
+    if (newTypeAttributes === undefined || oldTypeAttributes === undefined) {
+        throw new Error(`The type ${newType} does not exist.`);
+    }
+    newTypeAttributes.forEach(newTypeAttr => {
+        const oldAttrOfSameName = oldTypeAttributes.find(attr => attr.name === newTypeAttr.name);
+        const currentAttrType = currentPropertyValue[newTypeAttr.name]?._type;
+        if (oldAttrOfSameName !== undefined && (
+            newTypeAttr.type === oldAttrOfSameName.type
+            || (currentAttrType !== undefined && isInstanceOf(currentAttrType, newTypeAttr.type))
+        )) {
+            defaultVal[newTypeAttr.name] = currentPropertyValue[newTypeAttr.name];
+        }
+    });
+
+    if (index !== undefined) {
+        objectValue[attributeDefinition.name][index] = defaultVal;
+    } else {
+        objectValue[attributeDefinition.name] = defaultVal;
+    }
+    setState(newState);
+
+    // persist data
+    postPropertyChange(state.modelElementId, pointer, attributeDefinition.name,
+        { kind: 'changeType', index: index, newValue: defaultVal });
+
+    // update
     widget.update();
 }
 
@@ -785,6 +905,7 @@ function assignPropertyValue(
     // update state
     const newState = { ...state };
     const objectValue = locateObjectValue(newState, pointer);
+
     if (index !== undefined) {
         objectValue[name][index] = value;
     } else {
@@ -870,7 +991,6 @@ function checkEnum(type: string, value: any): boolean {
 /**
  * FUNCTIONS FOR LOCATING VALUES
  */
-
 function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): any {
     let objectValue: any = state.values; // these are the attributes of the modelElement
     for (const step of pointer) {
@@ -895,6 +1015,7 @@ function locateObjectValue(state: PropertyWidgetState, pointer: ObjectPointer): 
         }
         objectValue = nextValue;
     }
+
     return objectValue;
 }
 

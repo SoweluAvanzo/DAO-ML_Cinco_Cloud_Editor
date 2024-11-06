@@ -1,0 +1,14 @@
+nodeStyle base(1) {
+    rectangle {
+        size(fix 70, fix 40)
+        position (CENTER, MIDDLE)
+        appearance {
+            background (255, 177, 74)
+            foreground (255, 177, 74)
+        }
+        text {
+            value "%s"
+            position(CENTER, MIDDLE)
+        }
+    }
+}
