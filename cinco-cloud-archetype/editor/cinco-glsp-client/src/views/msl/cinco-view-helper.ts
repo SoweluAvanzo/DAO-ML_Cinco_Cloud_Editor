@@ -152,28 +152,49 @@ function updateResourceServing(
     });
 }
 
+function resolveAppearance(appearance: Appearance): Appearance {
+    if (appearance?.parent) {
+        const parent = getAppearanceByNameOf(appearance.parent) as Appearance;
+        const base = resolveAppearance(parent);
+        const result = mergeAppearance(base, appearance, false);
+        result.parent = undefined;
+        return result;
+    }
+    return appearance;
+}
+
 export function mergeAppearance(
     baseAppearance: Appearance | string | undefined,
-    updatedAppearance: Appearance | string | undefined
+    updatedAppearance: Appearance | string | undefined,
+    resolve = true
 ): Appearance {
     let base: Appearance;
     let update: Appearance;
+
     if (typeof baseAppearance == 'string') {
         base = { ...(getAppearanceByNameOf(baseAppearance) as Appearance) };
     } else {
         base = { ...baseAppearance };
     }
+    if (resolve) {
+        base = resolveAppearance(base);
+    }
+    if (!updatedAppearance) {
+        return base;
+    }
+
     if (typeof updatedAppearance == 'string') {
         update = { ...(getAppearanceByNameOf(updatedAppearance) as Appearance) };
     } else {
         update = { ...updatedAppearance };
     }
-    if (!updatedAppearance) {
-        return base;
+    if (resolve) {
+        update = resolveAppearance(update);
     }
     if (!baseAppearance) {
         return update;
     }
+
     return Object.assign(base, update);
 }
 
@@ -188,17 +209,18 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
     const style: any = {};
     if (typeof appearance == 'string') {
         appearance = getAppearanceByNameOf(appearance) as Appearance;
+        appearance = resolveAppearance(appearance);
     }
 
     // foreground, background, filled
     let background;
     let foreground;
     if (options?.isText) {
-        background = getProperty(appearance, a => a.foreground) ?? { r: 14, g: 14, b: 14 };
-        foreground = getProperty(appearance, a => a.background) ?? { r: 14, g: 14, b: 14 };
+        background = getProperty(appearance, a => a.foreground) ?? options?.background ?? { r: 14, g: 14, b: 14 };
+        foreground = getProperty(appearance, a => a.background) ?? options?.foreground ?? { r: 14, g: 14, b: 14 };
     } else {
         background = getProperty(appearance, a => a.background) ?? options?.background;
-        foreground = getProperty(appearance, a => a.foreground) ?? options?.foreground;
+        foreground = getProperty(appearance, a => a.foreground) ?? background ?? options?.foreground;
     }
 
     const filled = getProperty(appearance, a => a.filled) ?? options?.filled;
@@ -847,8 +869,6 @@ export function buildTextShape(
     }
     const style = appearanceToStyle(appearance, {
         lineWidth: 0.0,
-        background: { r: 255, g: 255, b: 255 },
-        foreground: { r: 0, g: 0, b: 0 },
         isText: true
     });
     const value = resolveText(element, shapeStyle.value, parameterCount);

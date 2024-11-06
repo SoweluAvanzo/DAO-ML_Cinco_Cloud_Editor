@@ -1752,7 +1752,7 @@
   "appearances": [
     {
       "name": "default",
-      "lineWidth": 5,
+      "lineWidth": 2,
       "background": {
         "r": 144,
         "g": 207,
@@ -1762,14 +1762,9 @@
     {
       "name": "defaultDecorator",
       "lineStyle": "SOLID",
-      "lineWidth": 10,
+      "lineWidth": 2,
       "background": {
         "r": 144,
-        "g": 207,
-        "b": 238
-      },
-      "foreground": {
-        "r": 200,
         "g": 207,
         "b": 238
       }
@@ -2093,7 +2088,12 @@
       "name": "simpleCircleDashDefault",
       "styleType": "EdgeStyle",
       "appearance": {
-        "lineStyle": "DASH"
+        "lineStyle": "DASH",
+        "foreground": {
+          "r": 230,
+          "g": 230,
+          "b": 230
+        }
       },
       "decorator": [
         {
@@ -2193,9 +2193,7 @@
     {
       "name": "simpleArrow",
       "styleType": "EdgeStyle",
-      "appearance": {
-        "lineStyle": "SOLID"
-      },
+      "appearance": "default",
       "decorator": [
         {
           "location": 1.0,

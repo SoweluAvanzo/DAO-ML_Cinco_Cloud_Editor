@@ -1,7 +1,7 @@
 appearance default {
 	background (229,229,229)
 	foreground (255,0,183)
-    lineWidth 3
+    lineWidth 2
 }
 
 appearance blackText {

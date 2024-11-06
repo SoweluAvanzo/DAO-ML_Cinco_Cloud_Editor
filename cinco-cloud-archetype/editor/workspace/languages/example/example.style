@@ -79,7 +79,7 @@ edgeStyle eStyle1(1) {
             background (0,98,127)
             foreground (0,98,127)
             lineStyle SOLID
-            lineWidth 7
+            lineWidth 2
             filled true
         }
     }
@@ -109,7 +109,7 @@ edgeStyle eStyle2(1) {
             background (0,98,127)
             foreground (0,98,127)
             lineStyle SOLID
-            lineWidth 7
+            lineWidth 2
             filled true
         }
     }

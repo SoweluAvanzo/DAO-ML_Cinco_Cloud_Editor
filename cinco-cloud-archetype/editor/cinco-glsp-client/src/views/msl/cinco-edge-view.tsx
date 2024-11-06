@@ -491,6 +491,7 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
         } else {
             edgeAppearance = edgeStyle.appearance ?? undefined;
         }
+
         const edgeVNodeStyle = appearanceToStyle(edgeAppearance, {
             filled: false,
             isEdge: true,
@@ -602,13 +603,13 @@ export class CincoEdgeView extends MergedGLSPEdgeRenderingView {
         // keep predefined relation of circle size and border
         const length = appearance?.lineWidth ?? 10.0;
         const innerLength = length;
-        appearance.lineWidth = length / 5; // lineWidth is a fifth of the full length
+        appearance.lineWidth = length; // lineWidth is a fifth of the full length
         const decoratorStyle = appearanceToStyle(appearance, {
             isEdge: false,
             strokeRound: false
         });
 
-        const size = { width: innerLength, height: innerLength };
+        const size = { width: innerLength * 5, height: innerLength * 5 };
         switch (type) {
             case DecoratorShape.ARROW:
                 return this.createArrow(route, cssShapeName, location, size, decoratorStyle);
