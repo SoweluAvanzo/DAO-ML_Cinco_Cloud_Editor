@@ -338,3 +338,8 @@ export interface ChangeType {
     newValue: any; // includes _type-property as well as attribute values
 }
 
+export namespace ChangeType {
+    export function is(object: any): object is ChangeType {
+        return hasStringProp(object, 'kind') && object.kind === 'changeType';
+    }
+}
