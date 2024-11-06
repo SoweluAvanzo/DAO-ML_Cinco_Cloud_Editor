@@ -9,4 +9,5 @@ RUN cd Python-3.9.6 \
     && ./configure --enable-optimizations --enable-loadable-sqlite-extensions \
     && make -j 4 \
     && make install
+RUN rm -rf Python-3.9.6.tar.xz Python-3.9.6
 RUN corepack enable

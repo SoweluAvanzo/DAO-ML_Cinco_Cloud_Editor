@@ -662,7 +662,7 @@ export class HookManager {
         if (hook.preReconnect && Edge.is(modelElement)) {
             hook.preReconnect(modelElement, newSource, newTarget);
         } else {
-            throw new Error('Could execute preReconnectHook.');
+            throw new Error('Could not execute preReconnectHook.');
         }
     }
 
@@ -686,7 +686,7 @@ export class HookManager {
         if (hook.postReconnect && Edge.is(modelElement)) {
             hook.postReconnect(modelElement, oldSource, oldTarget);
         } else {
-            throw new Error('Could execute postReconnectHook.');
+            throw new Error('Could not execute postReconnectHook.');
         }
     }
 

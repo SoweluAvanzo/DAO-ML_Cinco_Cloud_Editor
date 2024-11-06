@@ -1,46 +1,65 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/javascript-node
 {
-	"name": "Cinco Cloud Archetype Dev Container",
-	
-	"build": {
-        "dockerfile": "Dockerfile"
-    },
+  "name": "Cinco Cloud Archetype",
 
-	"runArgs": [
-		"--network", "host" // Optional: Use this if you need to share the network namespace with the host
-	],
-	
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
 
-	"forwardPorts": [3000, 3003, 5007],
+  "runArgs": [
+    "--network", "host" // Optional: Use this if you need to share the network namespace with the host
+  ],
 
-	"mounts": [
-		"source=${localWorkspaceFolder},target=/home/node/cinco-cloud-archetype,type=bind,consistency=cached"
-	],
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  // "features": {},
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "yarn install",
+  "forwardPorts": [3000, 3003, 5007],
 
-	// Configure tool-specific properties.
-	"customizations": {
-		"vscode": {
-			"settings": {
-				"terminal.integrated.profiles.linux": {
-					"bash": {
-					  "path": "/usr/bin/bash"
-					}
-				  },
-				  "terminal.integrated.defaultProfile.linux": "bash"
-			},
-			"extensions": [
-				"langium.langium-vscode"
-			]
-		}
-	},
-	"remoteUser": "node"
+  // Overrides the default local mount point for the workspace when the container is created.
+  // Requires workspaceFolder be set as well.
+  "workspaceMount": "source=${localWorkspaceFolder}/../..,target=/cinco-cloud,type=bind,consistency=cached",
 
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+  // Sets the default path that devcontainer.json supporting services / tools should open when connecting to the container.
+  // Requires workspaceMount be set.
+  "workspaceFolder": "/cinco-cloud/cinco-cloud-archetype/editor",
+
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/home/node/cinco-cloud-archetype,type=bind,consistency=cached"
+  ],
+
+  "containerEnv": {
+    // For Apple Silicon Macs: Stop Puppeteer from downloading Chromium, as it is not available for arm64.
+    "PUPPETEER_SKIP_DOWNLOAD": "true"
+  },
+
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // "postCreateCommand": "yarn install",
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/usr/bin/bash"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "langium.langium-vscode",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "EditorConfig.EditorConfig",
+        "DavidAnson.vscode-markdownlint",
+        "aeschli.vscode-css-formatter"
+      ]
+    }
+  },
+
+  "remoteUser": "node"
+
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
 }
