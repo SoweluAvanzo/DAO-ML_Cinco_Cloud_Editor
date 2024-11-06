@@ -381,7 +381,7 @@ export namespace AbsolutePosition {
     }
 }
 
-export interface AbstractPosition { }
+export interface AbstractPosition {}
 
 export namespace AbstractPosition {
     export function is(object: any): object is AbstractPosition {
@@ -503,7 +503,7 @@ export namespace Text {
     }
 }
 
-export interface GraphicsAlgorithm { }
+export interface GraphicsAlgorithm {}
 
 export interface ContainerShape extends AbstractShape {
     appearance?: string | Appearance;
@@ -599,7 +599,7 @@ export namespace EdgeStyle {
     }
 }
 
-export interface GraphModelStyle extends Style { }
+export interface GraphModelStyle extends Style {}
 
 export namespace GraphModelStyle {
     export function is(object: any): object is GraphModelStyle {
@@ -624,7 +624,7 @@ export namespace Style {
     }
 }
 
-export interface GraphModelView extends View { }
+export interface GraphModelView extends View {}
 
 export namespace GraphModelView {
     export function is(object: any): object is GraphModelView {
@@ -826,7 +826,7 @@ export interface Attribute {
     annotations?: Annotation[];
 }
 
-export interface CustomType extends Type { }
+export interface CustomType extends Type {}
 
 export namespace CustomType {
     export function is(object: any): object is CustomType {
@@ -911,9 +911,12 @@ export function getEnum(elementTypeId: string): Enum | undefined {
     return getEnums().filter(t => t.elementTypeId === elementTypeId)[0] ?? undefined;
 }
 
-export function getUserDefinedTypes(): UserDefinedType[] {
-    const types = getCustomTypes().filter(t => UserDefinedType.is(t)) as UserDefinedType[];
-    return types ?? [];
+export function getUserDefinedTypes(filter?: (e: UserDefinedType) => boolean): UserDefinedType[] {
+    const types = (getCustomTypes().filter(t => UserDefinedType.is(t)) as UserDefinedType[]) ?? [];
+    if (filter) {
+        return types.filter(e => filter(e));
+    }
+    return types;
 }
 
 export function getUserDefinedType(elementTypeId: string): UserDefinedType | undefined {
@@ -921,23 +924,21 @@ export function getUserDefinedType(elementTypeId: string): UserDefinedType | und
     return UserDefinedType.is(spec) ? spec : undefined;
 }
 
-export function getTypeOptions(parentTypeId: string): ElementType[] {
-    const instantiableType = getSpecOf(parentTypeId) ??
-        getModelElementSpecifications().find(element => element.superTypes?.includes(parentTypeId));
-
-    let relevantTypes: ElementType[] = [];
+export function getTypeOptions(ancestorTypeId: string): ElementType[] {
+    const instantiableType =
+        getSpecOf(ancestorTypeId) ?? getModelElementSpecifications().find(element => element.superTypes?.includes(ancestorTypeId));
+    let subTypes: ElementType[] = [];
+    const filter = (type: ElementType): boolean => type.superTypes?.includes(ancestorTypeId) ?? false;
     if (NodeType.is(instantiableType)) {
-        relevantTypes = getNodeTypes();
+        subTypes = getNodeTypes(filter);
     } else if (EdgeType.is(instantiableType)) {
-        relevantTypes = getEdgeTypes();
+        subTypes = getEdgeTypes(filter);
     } else if (GraphType.is(instantiableType)) {
-        relevantTypes = getGraphTypes();
+        subTypes = getGraphTypes(filter);
     } else if (UserDefinedType.is(instantiableType)) {
-        relevantTypes = getUserDefinedTypes();
+        subTypes = getUserDefinedTypes(filter);
     }
-
-    const subTypes: ElementType[] = relevantTypes.filter(type => type.superTypes?.includes(parentTypeId));
-    const parentAbstract: boolean = parentTypeId !== instantiableType?.elementTypeId;
+    const parentAbstract: boolean = ancestorTypeId !== instantiableType?.elementTypeId;
     return (parentAbstract ? [] : [instantiableType!]).concat(subTypes);
 }
 
