@@ -194,11 +194,11 @@ export function appearanceToStyle(appearance: Appearance | string | undefined, o
     let background;
     let foreground;
     if (options?.isText) {
-        background = getProperty(appearance, a => a.foreground) ?? options?.background;
-        foreground = getProperty(appearance, a => a.background) ?? options?.foreground;
+        background = getProperty(appearance, a => a.foreground) ?? { r: 14, g: 14, b: 14 };
+        foreground = getProperty(appearance, a => a.background) ?? { r: 14, g: 14, b: 14 };
     } else {
-        foreground = getProperty(appearance, a => a.foreground) ?? options?.foreground;
         background = getProperty(appearance, a => a.background) ?? options?.background;
+        foreground = getProperty(appearance, a => a.foreground) ?? options?.foreground;
     }
 
     const filled = getProperty(appearance, a => a.filled) ?? options?.filled;
