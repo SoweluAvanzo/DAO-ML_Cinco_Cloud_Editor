@@ -227,25 +227,21 @@
   ],
   "appearances": [
     {
-      "name": "default",
-      "lineWidth": 5,
-      "background": {
-        "r": 144,
-        "g": 207,
-        "b": 238
-      }
-    },
-    {
-      "name": "defaultDecorator",
-      "lineStyle": "SOLID",
-      "lineWidth": 10,
+      "name": "defaultH",
+      "lineWidth": 2,
       "background": {
         "r": 144,
         "g": 207,
         "b": 238
       },
-      "foreground": {
-        "r": 200,
+      "lineStyle": "SOLID"
+    },
+    {
+      "name": "defaultDecoratorH",
+      "lineStyle": "SOLID",
+      "lineWidth": 2,
+      "background": {
+        "r": 144,
         "g": 207,
         "b": 238
       }
@@ -255,15 +251,13 @@
     {
       "name": "hooksandactions:simpleArrow",
       "styleType": "EdgeStyle",
-      "appearance": {
-        "lineStyle": "SOLID"
-      },
+      "appearance": "defaultH",
       "decorator": [
         {
           "location": 1.0,
           "predefinedDecorator": {
             "shape": "ARROW",
-            "appearance": "defaultDecorator"
+            "appearance": "defaultDecoratorH"
           }
         }
       ]
@@ -274,7 +268,7 @@
       "parameterCount": 1,
       "shape": {
         "type": "ROUNDEDRECTANGLE",
-        "appearance": "default",
+        "appearance": "defaultH",
         "position": {
           "xPos": 0,
           "yPos": 0
