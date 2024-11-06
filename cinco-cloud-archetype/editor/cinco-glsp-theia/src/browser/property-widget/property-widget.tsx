@@ -688,15 +688,17 @@ export class CincoPropertyEntry extends React.Component<
                                 id={inputId}
                             >
                                 <option value=''></option>
-                                {this.state.modelElementIndex[attributeDefinition.type].map(({ id, name, label }) => (
-                                    // TODO Polymorphism for ModelElementReferences
-
-                                    // ModelElementReference identifier specified in the following fallback order:
-                                    // name => label => attributeDefinitionType
-                                    <option value={id} key={id}>
-                                        {name ? name : label ? label : attributeDefinition.type}({name ? label + ', ' : ''}
-                                        {id})
-                                    </option>
+                                {typeOptions.map(({ elementTypeId: typeId, label: typeLabel }) => (
+                                    <optgroup key={typeId} label={typeLabel}>
+                                        {this.state.modelElementIndex[typeId].map(({ id, name, label }) => (
+                                            // ModelElementReference identifier specified in the following fallback order:
+                                            // name => label => attributeDefinitionType
+                                            <option value={id} key={id}>
+                                                {name ? name : label ? label : attributeDefinition.type}({name ? label + ', ' : ''}
+                                                {id})
+                                            </option>
+                                        ))}
+                                    </optgroup>
                                 ))}
                             </select>
                         );
