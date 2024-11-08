@@ -248,7 +248,9 @@ export class CincoPropertyView extends React.Component<
         // list-operation activation definitions
         const objectValue = locateObjectValue(this.state, pointer);
         const listLength = (objectValue[attributeDefinition.name]?.length ?? 0.0) + 1.0;
-        const addCellActivated = isList && canAdd(listLength, bounds);
+        const annotations: Annotation[] = attributeDefinition.annotations ?? [];
+        const isReadonly = attributeDefinition.final || annotations.filter(a => a.name === 'readOnly').length > 0;
+        const addCellActivated = isList && !isReadonly && canAdd(listLength, bounds);
         const deleteCellActivated = (lengthIndex: number | undefined): boolean =>
             canDelete(lengthIndex === undefined ? 0.0 : lengthIndex - 1, bounds);
 
