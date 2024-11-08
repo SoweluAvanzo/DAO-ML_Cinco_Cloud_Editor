@@ -252,7 +252,7 @@ export class CincoPropertyView extends React.Component<
         const isReadonly = attributeDefinition.final || annotations.filter(a => a.name === 'readOnly').length > 0;
         const addCellActivated = isList && !isReadonly && canAdd(listLength, bounds);
         const deleteCellActivated = (lengthIndex: number | undefined): boolean =>
-            canDelete(lengthIndex === undefined ? 0.0 : lengthIndex - 1, bounds);
+            !isReadonly && canDelete(lengthIndex === undefined ? 0.0 : lengthIndex - 1, bounds);
 
         const valueList: any = isList ? value ?? [] : [value ?? attributeDefinition.defaultValue ?? ''];
         const firstInputId = valueList.length > 0 ? `${inputIdPrefix + (isList ? '-0' : '')}` : undefined;
