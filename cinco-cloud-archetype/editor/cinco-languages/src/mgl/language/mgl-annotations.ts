@@ -102,7 +102,7 @@ export class MglAnnotations {
         },
         {
             name: 'disable',
-            parameterLimits: [1, 4],
+            parameterLimits: [1, 5],
             description:
                 'This annotation disables functionality on the canvas.' +
                 ' E.g. `@disable(resize, move)` disables the resizing and moving of the annotated modelElement.' +
@@ -116,6 +116,22 @@ export class MglAnnotations {
         }
     ];
     static readonly actionHandlerAnnotations: AnnotationDescription[] = [
+        {
+            name: 'CustomAction',
+            parameterLimits: [1, 2],
+            description: this.createHandlerDescription(
+                'CustomAction',
+                '"ExampleCustomAction", "Some label for the action"',
+                'If you open a context menu, there will be an entry with the second value of the annotation. If you click on it,' +
+                    ' it will execute the action associated with the `ExampleCustomAction`.'
+            ),
+            valueRules: [
+                {
+                    position: [0, -1],
+                    type: AnnotationValue.STRING
+                }
+            ]
+        },
         {
             name: 'Hook',
             parameterLimits: [1, -1],
