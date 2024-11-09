@@ -30,7 +30,7 @@ import { inject, injectable } from 'inversify';
 import { GraphModel } from './graph-model';
 import { GraphModelState } from './graph-model-state';
 import { HookManager } from '../semantics/hook-manager';
-import { readJson, readJsonSync, toPath, writeFileSync } from '../utils/file-helper';
+import { existsFile, readJson, readJsonSync, toPath, toWorkspaceUri, writeFileSync } from '../utils/file-helper';
 
 @injectable()
 export class GraphModelStorage extends AbstractJsonModelStorage {
@@ -44,7 +44,8 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
     protected submissionHandler: ModelSubmissionHandler;
 
     override async loadSourceModel(action: RequestModelAction): Promise<void> {
-        const sourceUri = this.getSourceUri(action);
+        let sourceUri = this.getSourceUri(action);
+        sourceUri = await this.resolveSourceURI(sourceUri);
         await GraphModelStorage.loadSourceModel(
             sourceUri,
             this.modelState,
@@ -53,6 +54,21 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
             this,
             this.submissionHandler
         );
+    }
+
+    /**
+     * Checks if sourceURI is absolute or relative. If it is relative it resolves it to an absolute path.
+     * Eventually it returns the absolute sourceURI.
+     */
+    async resolveSourceURI(sourceUri: string): Promise<string> {
+        if (await existsFile(sourceUri)) {
+            return sourceUri;
+        }
+        const workspaceUri = toWorkspaceUri(sourceUri);
+        if (!(await existsFile(workspaceUri))) {
+            throw new Error('Modelfile for sourceUri not found: ' + sourceUri);
+        }
+        return workspaceUri;
     }
 
     override async saveSourceModel(action: SaveModelAction): Promise<void> {

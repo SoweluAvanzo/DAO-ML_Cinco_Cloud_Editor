@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@cinco-glsp/cinco-glsp-client": "1.0.0",
+    "@cinco-glsp/cinco-glsp-common": "1.0.0",
     "@eclipse-glsp/client": "2.1.0",
     "crypto-browserify": "3.12.0",
     "os-browserify": "0.3.0",

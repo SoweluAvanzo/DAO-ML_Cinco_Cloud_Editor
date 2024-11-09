@@ -644,6 +644,10 @@ export function getRootUri(): string {
     }
 }
 
+export function toWorkspaceUri(relativeUri: string): string {
+    return path.resolve(path.join(getWorkspaceRootUri(), relativeUri));
+}
+
 export function getWorkspaceRootUri(): string {
     const workspaceFolder = getWorkspaceFolderArg();
     const root = getRootUri();
