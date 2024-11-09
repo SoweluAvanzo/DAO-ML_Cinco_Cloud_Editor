@@ -25,7 +25,6 @@ import {
     StatusAction
 } from '@eclipse-glsp/client';
 import { Container } from 'inversify';
-import { join, resolve } from 'path';
 import createContainer from './di.config';
 import { DIAGRAM_TYPE, DEFAULT_WEBSOCKET_PATH, DEFAULT_SERVER_PORT, CincoGLSPClient } from '@cinco-glsp/cinco-glsp-common';
 import { getParameters } from './url-parameters';
@@ -36,10 +35,7 @@ const host = window.location.hostname && window.location.hostname.length > 0 ? w
 const port = DEFAULT_SERVER_PORT;
 const endpoint_id = DEFAULT_WEBSOCKET_PATH;
 const diagramType = DIAGRAM_TYPE;
-const loc = window.location.pathname;
-const currentDir = loc.substring(0, loc.lastIndexOf('/'));
-const relativeModelPath = getParameters()['model'] ?? 'main.flowgraph';
-const filePath = resolve(join(currentDir, '../../workspace/' + relativeModelPath));
+const workspaceModelPath = getParameters()['model'] ?? '';
 const clientId = DIAGRAM_TYPE + '_' + uuid.v4();
 const htmlContainerId = 'cinco-diagram';
 let glspClient: GLSPClient;
@@ -51,7 +47,7 @@ wsProvider.listen({ onConnection: initialize, onReconnect: reconnect, logger: co
 
 function initialize(connectionProvider: any, isReconnecting = false): MaybePromise<void> {
     glspClient = new CincoGLSPClient({ id: endpoint_id, connectionProvider });
-    container = createContainer({ clientId, diagramType, glspClientProvider: async () => glspClient, sourceUri: filePath });
+    container = createContainer({ clientId, diagramType, glspClientProvider: async () => glspClient, sourceUri: workspaceModelPath });
 
     // create canvas
     const htmlContainer = document.getElementById(htmlContainerId);
