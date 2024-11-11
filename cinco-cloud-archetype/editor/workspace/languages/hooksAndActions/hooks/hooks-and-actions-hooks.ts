@@ -13,9 +13,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
- import { LanguageFilesRegistry, AbstractGraphModelHook, GraphModel } from '@cinco-glsp/cinco-glsp-api';
- import { PropertyEditOperation, AssignValue } from '@cinco-glsp/cinco-glsp-common';
- 
+import { LanguageFilesRegistry, AbstractGraphModelHook, GraphModel } from '@cinco-glsp/cinco-glsp-api';
+import { PropertyEditOperation, AssignValue } from '@cinco-glsp/cinco-glsp-common';
+
 export class HooksAndActionsHook extends AbstractGraphModelHook {
     override CHANNEL_NAME: string | undefined = 'HooksAndActionsHook';
 
@@ -49,7 +49,7 @@ export class HooksAndActionsHook extends AbstractGraphModelHook {
         // THIS IS A SYSTEM TRACKED HOOK. YOU CAN NOT USE GUI-RELATED FEEDBACK.
         console.log('Triggered postPathChange on graphmodel (' + graphModel.id + ')');
     }
-    
+
     override postContentChange(graphModel: GraphModel): void {
         // THIS IS A SYSTEM TRACKED HOOK. YOU CAN NOT USE GUI-RELATED FEEDBACK.
         console.log('Triggered postContentChange on graphmodel (' + graphModel.id + ')');
@@ -113,14 +113,17 @@ export class HooksAndActionsHook extends AbstractGraphModelHook {
      */
 
     canSave(graphModel: GraphModel, path: string): boolean {
-        this.log('Triggered canSave on graphModel (' + graphModel.id + ') to path: '+path);
+        this.log('Triggered canSave on graphModel (' + graphModel.id + ') to path: ' + path);
         return true;
     }
 
     postSave(graphModel: GraphModel, path: string): void {
-        this.log('Triggered postSave on graphModel (' + graphModel.id + ') to path: '+path);
+        this.log('Triggered postSave on graphModel (' + graphModel.id + ') to path: ' + path);
+    }
+
+    onOpen(graphModel: GraphModel): void {
+        this.log('Triggered onOpen on graphModel (' + graphModel.id + ')');
     }
 }
- 
+
 LanguageFilesRegistry.register(HooksAndActionsHook);
- 

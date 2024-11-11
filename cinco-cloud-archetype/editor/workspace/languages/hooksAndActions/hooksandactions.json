@@ -17,6 +17,10 @@
           "values": ["HooksAndActionsValidator"]
         },
         {
+          "name": "FileCodec",
+          "values": ["HooksAndActionsFileCodecHandler"]
+        },
+        {
           "name": "CustomAction",
           "values": ["HooksAndActionsCustomActionHandler", "Some Custom Action"]
         },
@@ -48,7 +52,8 @@
             "CanDoubleClick",
             "PostDoubleClick",
             "CanSave",
-            "PostSave"
+            "PostSave",
+            "OnOpen"
           ]
         }
       ],
