@@ -31,9 +31,7 @@ export class HooksAndActionsDoubleClickHandler extends DoubleClickHandler {
         const message = 'Element [' + element.type + '] was double-clicked with id: ' + element.id;
         this.log(message, { show: true });
 
-        // next actions => find all activities and update their appearance
-        const consecutiveActions: Action[] = [AppearanceUpdateRequestAction.create(modelElementId)];
-        return consecutiveActions;
+        return [] as Action[];
     }
 
     override canExecute(action: DoubleClickAction, ...args: unknown[]): Promise<boolean> | boolean {

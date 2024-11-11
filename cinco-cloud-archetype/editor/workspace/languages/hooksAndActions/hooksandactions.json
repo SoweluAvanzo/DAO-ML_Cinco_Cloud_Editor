@@ -17,6 +17,16 @@
           "values": ["HooksAndActionsValidator"]
         },
         {
+          "name": "CustomAction",
+          "values": ["HooksAndActionsCustomActionHandler", "Some Custom Action"]
+        },
+        {
+          "name": "DoubleClickAction",
+          "values": [
+            "HooksAndActionsDoubleClickHandler"
+          ]
+        },
+        {
           "name": "GeneratorAction",
           "values": ["HooksAndActionsGenerator"]
         },
