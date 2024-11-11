@@ -33,6 +33,11 @@ If you change the node version using nvm while using vscode and want to execute 
 the project, vscode will use the version of node, that was present while it was opened. vscode will not
 update the node version using nvm.
 
+Also, make sure, the absolute path to this directory **does not contain any spaces**. The dependency `node-gyp`
+does not play nicely with spaces in file paths. It does not escape them correctly and will split the path into
+multiple arguments. This will cause errors when building Cinco Cloud. If you cannot ensure a space-free path
+on your local filesystem, we recommend working in the **VS Code Devcontainer**.
+
 ### Install linux packages (if necessary)
 
     sudo apt-get install g++-4.8 libsecret-1-dev xvfb libx11-dev libxkbfile-dev libxml2-utils
