@@ -16,15 +16,52 @@
 
 import { GraphModelState, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import { CustomAction, getCustomActions, hasCustomAction } from '@cinco-glsp/cinco-glsp-common';
-import { Args, ContextMenuItemProvider, MenuItem, Point } from '@eclipse-glsp/server';
+import { ActionHandlerRegistry, Args, ContextActionsProvider, EditorContext, LabeledAction, MenuItem, Point } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
+import { CustomActionManager } from '../tools/custom-action-manager';
+
+/**
+ * The original ContextMenuItemProvider does not support asynchronouse creation of MenuItems.
+ */
+@injectable()
+export abstract class CincoContextMenuItemProvider implements ContextActionsProvider {
+    /**
+     * Returns the context id of the {@link ContextMenuItemProvider}.
+     */
+    get contextId(): string {
+        return 'context-menu';
+    }
+
+    /**
+     * Returns a list of {@link MenuItem}s for a given list of selected elements at a certain mouse position.
+     *
+     * @param selectedElementIds The list of currently selected elementIds.
+     * @param position           The current mouse position.
+     * @param args               Additional arguments.
+     * @returns A list of {@link MenuItem}s for a given list of selected elements at a certain mouse position.
+     */
+    abstract getItems(selectedElementIds: string[], position: Point, args?: Args): Promise<MenuItem[]>;
+
+    /**
+     * Returns a list of {@link LabeledAction}s for a given {@link EditorContext}.
+     *
+     * @param editorContext The editorContext for which the actions are returned.
+     * @returns A list of {@link LabeledAction}s for a given {@link EditorContext}.
+     */
+    getActions(editorContext: EditorContext): Promise<LabeledAction[]> {
+        const position = editorContext.lastMousePosition ? editorContext.lastMousePosition : { x: 0, y: 0 };
+        return this.getItems(editorContext.selectedElementIds, position, editorContext.args);
+    }
+}
 
 @injectable()
-export class CustomContextMenuItemProvider extends ContextMenuItemProvider {
+export class CustomContextMenuItemProvider extends CincoContextMenuItemProvider {
     @inject(GraphModelState)
     protected readonly modelState: GraphModelState;
+    @inject(ActionHandlerRegistry)
+    protected readonly actionHandlerRegistry: ActionHandlerRegistry;
 
-    getItems(selectedElementIds: string[], position: Point, args?: Args | undefined): MenuItem[] {
+    getItems(selectedElementIds: string[], position: Point, args?: Args | undefined): Promise<MenuItem[]> {
         // custom action
         return selectedElementIds.length <= 0
             ? // graphmodell was clicked
@@ -33,17 +70,20 @@ export class CustomContextMenuItemProvider extends ContextMenuItemProvider {
               this.getCustomMenuItems(selectedElementIds);
     }
 
-    getCustomMenuItems(selectedElementIds: string[]): MenuItem[] {
+    async getCustomMenuItems(selectedElementIds: string[]): Promise<MenuItem[]> {
         if (selectedElementIds.length <= 0) {
-            return [];
+            return Promise.resolve([]);
         }
         const modelElement = this.modelState.index.findElement(selectedElementIds[0]) as ModelElement;
         const type = modelElement.type;
         const menuItems: MenuItem[] = [];
         const hasAc = hasCustomAction(type);
         if (hasAc) {
+            const customActionManager = this.actionHandlerRegistry.get(CustomAction.KIND)?.find(v => v instanceof CustomActionManager);
+            const handlers = customActionManager ? await customActionManager.getExecutableHandlerFor(modelElement.id) : undefined;
             for (const action of getCustomActions(modelElement.type)) {
                 const label = action[1];
+                const enabled = handlers ? handlers.includes(action[0]) : true;
                 const menuItem = {
                     id: 'action_graph_custom_' + action[0],
                     label: label,
@@ -52,14 +92,8 @@ export class CustomContextMenuItemProvider extends ContextMenuItemProvider {
                     icon: '',
                     actionKind: action[0],
                     args: [selectedElementIds],
-                    actions: [] as CustomAction[]
-                    /*
-                        // TODO:
-                        isEnabled: () => true,
-                        isVisible: () => true,
-                        isToggled: () => true,
-                        children: []
-                    */
+                    actions: [] as CustomAction[],
+                    isDisabled: !enabled
                 };
                 const customAction: CustomAction = CustomAction.create(selectedElementIds[0], selectedElementIds, menuItem.actionKind);
                 menuItem.actions.push(customAction);
