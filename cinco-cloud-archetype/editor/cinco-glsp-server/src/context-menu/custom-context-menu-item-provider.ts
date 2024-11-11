@@ -80,7 +80,9 @@ export class CustomContextMenuItemProvider extends CincoContextMenuItemProvider 
         const hasAc = hasCustomAction(type);
         if (hasAc) {
             const customActionManager = this.actionHandlerRegistry.get(CustomAction.KIND)?.find(v => v instanceof CustomActionManager);
-            const handlers = customActionManager ? await customActionManager.getExecutableHandlerFor(modelElement.id) : undefined;
+            const handlers = customActionManager
+                ? await (customActionManager as CustomActionManager).getExecutableHandlerFor(modelElement.id)
+                : undefined;
             for (const action of getCustomActions(modelElement.type)) {
                 const label = action[1];
                 const enabled = handlers ? handlers.includes(action[0]) : true;

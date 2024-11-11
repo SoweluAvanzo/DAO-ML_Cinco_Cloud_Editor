@@ -47,16 +47,17 @@ import {
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     existsFile,
+    GraphModel,
     GraphModelIndex,
     GraphModelState,
     GraphModelStorage,
     GraphModelWatcher,
     HookManager,
-    isMetaDevMode,
-    readJson
+    isMetaDevMode
 } from '@cinco-glsp/cinco-glsp-api';
 import { CincoClientSessionListener } from './cinco-client-session-listener';
 import { CincoActionDispatcher } from '@cinco-glsp/cinco-glsp-api/lib/api/cinco-action-dispatcher';
+import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
 
 @injectable()
 export class CincoClientSessionInitializer implements ClientSessionInitializer {
@@ -75,14 +76,10 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
 
     initialize(_args?: Args): void {
         CincoClientSessionInitializer.addClient(this.serverContainer.id, this.actionDispatcher);
-        const createdCallback = async (
-            clientId: string,
-            modelState: GraphModelState,
-            actionDispatcher: ActionDispatcher
-        ): Promise<void> => {
-            this.updateGraphModelWatcher(clientId, modelState, actionDispatcher);
+        const createdCallback = async (clientId: string, contextBundle: ContextBundle): Promise<void> => {
+            this.updateGraphModelWatcher(clientId, contextBundle);
             MetaSpecificationLoader.addReloadCallback(async () => {
-                this.updateGraphModelWatcher(clientId, modelState, actionDispatcher);
+                this.updateGraphModelWatcher(clientId, contextBundle);
             });
             if (isMetaDevMode()) {
                 const watchInfo = await MetaSpecificationLoader.watch(async () => {
@@ -103,7 +100,7 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         this.sessions.addListener(new CincoClientSessionListener(createdCallback));
     }
 
-    updateGraphModelWatcher(clientId: string, modelState: GraphModelState, actionDispatcher: ActionDispatcher): void {
+    updateGraphModelWatcher(clientId: string, contextBundle: ContextBundle): void {
         if (clientId !== SYSTEM_ID) {
             /**
              * CANVAS
@@ -111,10 +108,10 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
             GraphModelWatcher.removeCallback(clientId);
             GraphModelWatcher.addCallback(clientId, async dirtyFiles => {
                 for (const dirtyFile of dirtyFiles) {
-                    const model = (await readJson(dirtyFile.path, { hideError: true })) as any | undefined;
-                    if (model && model.id && modelState.graphModel.id === model.id) {
+                    const model = GraphModelStorage.parseModelFileSync(dirtyFile.path, contextBundle) as GraphModel | undefined;
+                    if (model && model.id && contextBundle.modelState.graphModel.id === model.id) {
                         // update model of client/canvas
-                        this.updateClientOnChange(modelState, clientId);
+                        this.updateClientOnChange(contextBundle, clientId);
                     }
                 }
             });
@@ -141,32 +138,17 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         throw new Error('File extension has no graphmodeltype: ' + fileExtension);
                     }
                     deleteArgument.elementTypeId = graphModelType?.elementTypeId;
-                    HookManager.executeHook(
-                        deleteArgument,
-                        HookType.POST_DELETE,
-                        modelState,
-                        this.logger,
-                        actionDispatcher,
-                        this.sourceModelStorage,
-                        this.submissionHandler
-                    );
+                    HookManager.executeHook(deleteArgument, HookType.POST_DELETE, contextBundle);
                 } else {
-                    const model = (await readJson(dirtyFile.path, { hideError: true })) as any | undefined;
+                    const model = GraphModelStorage.parseModelFileSync(dirtyFile.path, contextBundle) as GraphModel | undefined;
                     if (!model || !model.id) {
                         // Modelfile could not be read from path. It is either just intiialized (empty file) or moved.
                         return;
                     }
-                    if (!modelState.root) {
-                        await GraphModelStorage.loadSourceModel(
-                            dirtyFile.path,
-                            modelState,
-                            this.logger,
-                            actionDispatcher,
-                            this.sourceModelStorage,
-                            this.submissionHandler
-                        );
+                    if (!contextBundle.modelState.root) {
+                        await GraphModelStorage.loadSourceModel(dirtyFile.path, contextBundle);
                     }
-                    if (!modelState.index.getRoot()) {
+                    if (!contextBundle.modelState.index.getRoot()) {
                         throw new Error('Model could not been loaded: ' + dirtyFile.path);
                     }
                     if (wasMovedRenamedOrCreated) {
@@ -174,26 +156,18 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
                         HookManager.executeHook(
                             { kind: 'ModelFileChange', modelElementId: model.id },
                             HookType.POST_PATH_CHANGE,
-                            modelState,
-                            this.logger,
-                            actionDispatcher,
-                            this.sourceModelStorage,
-                            this.submissionHandler
+                            contextBundle
                         );
                     } else if (wasChanged) {
                         // trigger changedContent Hook
                         HookManager.executeHook(
                             { kind: 'ModelFileChange', modelElementId: model.id },
                             HookType.POST_CONTENT_CHANGE,
-                            modelState,
-                            this.logger,
-                            actionDispatcher,
-                            this.sourceModelStorage,
-                            this.submissionHandler
+                            contextBundle
                         );
                     }
-                    if (modelState.graphModel.id === model.id && modelState instanceof GraphModelState) {
-                        await this.onGraphModelChange(modelState);
+                    if (contextBundle.modelState.graphModel.id === model.id && contextBundle.modelState instanceof GraphModelState) {
+                        await this.onGraphModelChange(contextBundle.modelState);
                     }
                 }
             }
@@ -201,18 +175,11 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         GraphModelWatcher.watch(clientId);
     }
 
-    async updateClientOnChange(modelState: GraphModelState, clientId: string): Promise<void> {
+    async updateClientOnChange(contextBundle: ContextBundle, clientId: string): Promise<void> {
         // update internal model
+        const modelState = contextBundle.modelState;
         const sourceUri = modelState.graphModel._sourceUri ?? modelState.sourceUri ?? '';
-        GraphModelStorage.loadFromFile(
-            sourceUri,
-            modelState,
-            this.logger,
-            this.actionDispatcher,
-            this.sourceModelStorage,
-            this.submissionHandler,
-            false
-        ).then(async ({ graphModel }) => {
+        GraphModelStorage.loadFromFile(sourceUri, contextBundle, false).then(async ({ graphModel }) => {
             if (graphModel?.id === modelState.graphModel.id) {
                 if (JSON.stringify(modelState.graphModel) !== JSON.stringify(graphModel)) {
                     // if changes occured, that were not tracked, it means external reasons

@@ -53,27 +53,10 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             oldValue: element.getProperty(name),
             operation: operation
         };
-        const canSetValue = (): boolean =>
-            HookManager.executeHook(
-                parameters,
-                HookType.CAN_ATTRIBUTE_CHANGE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+        const canSetValue = (): boolean => HookManager.executeHook(parameters, HookType.CAN_ATTRIBUTE_CHANGE, this.getBundle());
         if (inConstraint && canSetValue() && element !== undefined) {
             // PRE
-            HookManager.executeHook(
-                parameters,
-                HookType.PRE_ATTRIBUTE_CHANGE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.PRE_ATTRIBUTE_CHANGE, this.getBundle());
 
             // Change
             switch (change.kind) {
@@ -151,15 +134,7 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
             }
 
             // POST
-            HookManager.executeHook(
-                parameters,
-                HookType.POST_ATTRIBUTE_CHANGE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.POST_ATTRIBUTE_CHANGE, this.getBundle());
         }
     }
 
@@ -200,7 +175,7 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
         }
     }
 
-    protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[], object: any } {
+    protected locateObject(element: ModelElement, pointer: ObjectPointer): { attributes: Attribute[]; object: any } {
         let attributes: Attribute[] = element.propertyDefinitions;
         let object: Record<string, any> = element.properties;
 

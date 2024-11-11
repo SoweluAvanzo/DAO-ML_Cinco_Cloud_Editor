@@ -140,6 +140,7 @@ export abstract class AbstractGraphModelHook extends AbstractHook implements Gra
         return true;
     }
     postSave(graphModel: GraphModel, path: string): void {}
+    onOpen(graphModel: GraphModel): void {}
 }
 
 // TODO-SAMI: This is not yet further implemented
@@ -220,6 +221,7 @@ export interface GraphModelElementHook<T extends GraphModel> extends GraphicalEl
     preCreate(elementTypeId: string, path: string): void; // Use-case, prepare related files before creation of model
     canSave(graphModel: T, path: string): boolean;
     postSave(graphModel: T, path: string): void;
+    onOpen(graphModel: T): void;
 }
 
 export namespace GraphModelElementHook {
@@ -227,7 +229,10 @@ export namespace GraphModelElementHook {
         return (
             GraphicalElementHook.is(object) &&
             AttributeHook.is(object) &&
-            (hasFunctionProp(object, 'preCreate') || hasFunctionProp(object, 'canSave') || hasFunctionProp(object, 'postSave'))
+            (hasFunctionProp(object, 'preCreate') ||
+                hasFunctionProp(object, 'canSave') ||
+                hasFunctionProp(object, 'postSave') ||
+                hasFunctionProp(object, 'onOpen'))
         );
     }
 }

@@ -62,7 +62,8 @@ export class MglAnnotations {
         'CanSave',
         'PostSave',
         'PostPathChange',
-        'PostContentChange'
+        'PostContentChange',
+        'OnOpen'
     ];
     static readonly paletteAnnotations: AnnotationDescription[] = [
         {
@@ -183,6 +184,31 @@ export class MglAnnotations {
             valueRules: [
                 {
                     position: [0, 0],
+                    type: AnnotationValue.STRING
+                }
+            ]
+        },
+        {
+            name: 'FileCodec',
+            parameterLimits: [1, 1],
+            description: this.createHandlerDescription(
+                'FileCodec',
+                '"ExampleFileCodec"',
+                'If you open a graphModel the associated class `ExampleFileCodec` is triggered.' +
+                    ' The class handles the parsing/decoding and seralization/encoding behavior.' +
+                    ' Not using the annotation results in the use of default JSON format.'
+            ),
+            extra: (annotation: Annotation, acceptor: ValidationAcceptor) => {
+                if (!isGraphModel(annotation.$container)) {
+                    acceptor('error', 'Only graphModels are allowed to have fileCodecs!', {
+                        node: annotation,
+                        property: 'name'
+                    });
+                }
+            },
+            valueRules: [
+                {
+                    position: [1, 1],
                     type: AnnotationValue.STRING
                 }
             ]
@@ -436,7 +462,8 @@ export class MglAnnotations {
                                             'CanSave',
                                             'PostSave',
                                             'PostPathChange',
-                                            'PostContentChange'
+                                            'PostContentChange',
+                                            'OnOpen'
                                         ]);
                                     } else if (isEdge(annotation.$container)) {
                                         possibleValues = possibleValues.concat([

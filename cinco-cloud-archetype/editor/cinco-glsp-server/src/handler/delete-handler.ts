@@ -50,29 +50,11 @@ export class DeleteHandler extends CincoJsonOperationHandler {
             deleted: undefined
         };
         // CAN
-        if (
-            !HookManager.executeHook(
-                parameters,
-                HookType.CAN_DELETE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            )
-        ) {
+        if (!HookManager.executeHook(parameters, HookType.CAN_DELETE, this.getBundle())) {
             return;
         }
         // PRE
-        HookManager.executeHook(
-            parameters,
-            HookType.PRE_DELETE,
-            this.modelState,
-            this.logger,
-            this.actionDispatcher,
-            this.sourceModelStorage,
-            this.submissionHandler
-        );
+        HookManager.executeHook(parameters, HookType.PRE_DELETE, this.getBundle());
         parameters.deleted = element;
 
         if (Node.is(element)) {
@@ -89,15 +71,7 @@ export class DeleteHandler extends CincoJsonOperationHandler {
         }
 
         // POST
-        HookManager.executeHook(
-            parameters,
-            HookType.POST_DELETE,
-            this.modelState,
-            this.logger,
-            this.actionDispatcher,
-            this.sourceModelStorage,
-            this.submissionHandler
-        );
+        HookManager.executeHook(parameters, HookType.POST_DELETE, this.getBundle());
         // remove validation
         if (hasValidation(parameters.deleted?.type ?? '')) {
             this.actionDispatcher.dispatch(ValidationResponseAction.create(this.modelState.graphModel.id, parameters.modelElementId, []));

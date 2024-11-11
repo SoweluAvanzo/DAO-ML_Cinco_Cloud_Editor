@@ -14,6 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { APIBaseHandler, GraphModelState, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
 import { GLSP_TEMP_ID, ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
 import {
     Action,
@@ -131,16 +132,17 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
         const actionHandlers: H[] = [];
         const promisedProcedure: Promise<void>[] = [];
         console.log('[' + applicableHandlerClasses.length + '] handlers will be tested for execution as a ' + this.baseHandlerName + '!');
+        const contextBundle = new ContextBundle(
+            this.modelState,
+            this.logger,
+            this.actionDispatcher,
+            this.sourceModelStorage,
+            this.submissionHandler
+        );
         for (const handlerClass of applicableHandlerClasses) {
             try {
                 // initialize handler
-                const handler = new handlerClass(
-                    this.logger,
-                    this.modelState,
-                    this.actionDispatcher,
-                    this.sourceModelStorage,
-                    this.submissionHandler
-                );
+                const handler = new handlerClass(contextBundle);
                 // test if handler can be executed
                 const canExecute = this.handlerCanBeExecuted(handler, element, action, args);
                 if (canExecute instanceof Promise) {

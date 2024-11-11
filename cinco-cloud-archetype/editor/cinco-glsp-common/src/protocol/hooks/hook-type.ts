@@ -40,5 +40,6 @@ export enum HookType {
     POST_PATH_CHANGE = 'PostPathChange',
     POST_CONTENT_CHANGE = 'PostContentChange',
     CAN_SAVE = 'CanSave',
-    POST_SAVE = 'PostSave'
+    POST_SAVE = 'PostSave',
+    ON_OPEN = 'OnOpen'
 }

@@ -25,6 +25,7 @@ import {
     SourceModelStorage
 } from '@eclipse-glsp/server';
 import { GraphModelState, HookManager } from '@cinco-glsp/cinco-glsp-api';
+import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
 
 @injectable()
 export class DoubleClickHookHandler implements ActionHandler {
@@ -45,25 +46,16 @@ export class DoubleClickHookHandler implements ActionHandler {
         const parameters = {
             modelElementId: action.modelElementId
         } as DoubleClickArgument;
-        const canDoubleClick = HookManager.executeHook(
-            parameters,
-            HookType.CAN_DOUBLE_CLICK,
+        const contextBundle = new ContextBundle(
             this.modelState,
             this.logger,
             this.actionDispatcher,
             this.sourceModelStorage,
             this.submissionHandler
         );
+        const canDoubleClick = HookManager.executeHook(parameters, HookType.CAN_DOUBLE_CLICK, contextBundle);
         if (canDoubleClick) {
-            HookManager.executeHook(
-                parameters,
-                HookType.POST_DOUBLE_CLICK,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.POST_DOUBLE_CLICK, contextBundle);
         }
         return [];
     }
