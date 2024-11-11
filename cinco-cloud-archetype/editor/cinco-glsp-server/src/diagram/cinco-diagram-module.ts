@@ -144,7 +144,8 @@ export class CincoDiagramModule extends DiagramModule {
     }
 
     protected override bindContextMenuItemProvider(): BindingTarget<ContextMenuItemProvider> | undefined {
-        return CustomContextMenuItemProvider;
+        // workaround/fix for wrong glsp interface
+        return CustomContextMenuItemProvider as unknown as BindingTarget<ContextMenuItemProvider>;
     }
 
     protected override bindOperationHandlerRegistry(): BindingTarget<OperationHandlerRegistry> {

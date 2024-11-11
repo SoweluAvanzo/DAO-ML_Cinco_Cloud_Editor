@@ -31,6 +31,7 @@ export type OperationArgument = Argument &
         | DoubleClickArgument
         | ModelFileChangeArgument
         | SaveModelFileArgument
+        | OpenModelFileArgument
     );
 
 interface Argument extends ManagedBaseAction {
@@ -50,7 +51,8 @@ interface Argument extends ManagedBaseAction {
         | 'Select'
         | 'DoubleClick'
         | 'ModelFileChange'
-        | 'SaveModelFile';
+        | 'SaveModelFile'
+        | 'OpenModelFile';
 }
 
 export interface AttributeChangeArgument extends Argument {
@@ -130,4 +132,8 @@ export interface ModelFileChangeArgument extends Argument {
 export interface SaveModelFileArgument extends Argument {
     kind: 'SaveModelFile';
     path: string;
+}
+
+export interface OpenModelFileArgument extends Argument {
+    kind: 'OpenModelFile';
 }

@@ -66,6 +66,7 @@ import { GraphModelIndex } from './graph-model-index';
 import { GraphModelStorage } from './graph-storage';
 import { getModelFilesSync, getWorkspaceRootUri } from '../utils/file-helper';
 import * as path from 'path';
+import { ContextBundle } from '../api/context-bundle';
 
 export interface IdentifiableElement {
     id: string;
@@ -543,7 +544,7 @@ export class Node extends ModelElement {
         }
         const filePath = this.primeReferenceInfo!.filePath;
         const workspace = path.join(getWorkspaceRootUri(), filePath);
-        let model = GraphModelStorage.readModelFromFileSync(workspace);
+        let model = GraphModelStorage.readModelFromFileSync(workspace, {} as ContextBundle);
         const primeReference = this.primeReferenceInfo!;
         if (!model || model.id !== primeReference.modelId) {
             // if model is not readable as it is gone or corrupted,
@@ -552,7 +553,7 @@ export class Node extends ModelElement {
             const modelFiles = getModelFilesSync();
             for (const modelPath of modelFiles) {
                 const absPath = path.join(getWorkspaceRootUri(), modelPath);
-                const potentialModel = GraphModelStorage.readModelFromFileSync(absPath);
+                const potentialModel = GraphModelStorage.readModelFromFileSync(absPath, {} as ContextBundle);
                 if (potentialModel && potentialModel.id === primeReference.modelId) {
                     // model found => update modelPath
                     this.primeReferenceInfo!.filePath = modelPath;

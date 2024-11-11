@@ -1045,7 +1045,8 @@ const handlerAnnotations = [
     'GeneratorAction',
     'Interpreter',
     'DoubleClickAction',
-    'SelectAction'
+    'SelectAction',
+    'FileCodec'
 ];
 
 export function hasAppearanceProvider(elementTypeId: string): boolean {
@@ -1186,6 +1187,22 @@ export function getValidators(elementTypeId: string): string[][] {
         return [];
     }
     return getAnnotationValues(type, 'Validation');
+}
+
+export function hasFileCodec(elementTypeId: string): boolean {
+    const type = getSpecOf(elementTypeId);
+    if (!type) {
+        return false;
+    }
+    return hasAnnotation(type, 'FileCodec');
+}
+
+export function getFileCodec(elementTypeId: string): string[][] {
+    const type = getSpecOf(elementTypeId);
+    if (!type) {
+        return [];
+    }
+    return getAnnotationValues(type, 'FileCodec');
 }
 
 export function getAnnotationValues(type: ElementType, annotation: string): string[][] {

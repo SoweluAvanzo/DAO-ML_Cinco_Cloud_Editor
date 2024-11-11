@@ -43,7 +43,8 @@ import {
     configureModelElement,
     EnableDefaultToolsOnFocusLossHandler,
     FocusStateChangedAction,
-    SetModelCommand
+    SetModelCommand,
+    ServerContextMenuItemProvider
 } from '@eclipse-glsp/client';
 import 'balloon-css/balloon.min.css';
 import { Container, ContainerModule } from 'inversify';
@@ -86,6 +87,7 @@ import { ButtonDeleteView } from './views/button-delete';
 import { ButtonRestoreView } from './views/button-restore';
 import { GhostDecisionTool } from './features/tool/ghost-decision-tool';
 import { CincoSetModelCommand } from './glsp/cinco-set-model';
+import { CincoServerContextMenuItemProvider } from './glsp/cinco-server-context-menu-item-provider';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -183,6 +185,10 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     unbind(SetModelCommand);
     bind(SetModelCommand).to(CincoSetModelCommand);
     configureCommand(context, CincoSetModelCommand);
+
+    // ServerContextMenuItemProvider
+    unbind(ServerContextMenuItemProvider);
+    bind(ServerContextMenuItemProvider).to(CincoServerContextMenuItemProvider);
 
     // actions
     configureActionHandler(context, TypedServerMessageAction.KIND, ServerMessageHandler);

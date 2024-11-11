@@ -34,7 +34,11 @@ import {
     UPDATING_RACE_CONDITION_INDICATOR
 } from '@cinco-glsp/cinco-glsp-common';
 import {
+    ActionDispatcher,
+    Logger,
+    ModelSubmissionHandler,
     OperationHandlerRegistry,
+    SourceModelStorage,
     ToolPaletteItemProvider,
     TriggerEdgeCreationAction,
     TriggerNodeCreationAction
@@ -44,28 +48,48 @@ import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
 import { CreateOperationHandler, SpecifiedElementHandler } from '../handler/specified_element_handler';
 import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
 import * as path from 'path';
+import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
 
 @injectable()
 export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
-    @inject(GraphModelState) state: GraphModelState;
+    @inject(Logger)
+    readonly logger: Logger;
+    @inject(GraphModelState)
+    readonly state: GraphModelState;
+    @inject(ActionDispatcher)
+    readonly actionDispatcher: ActionDispatcher;
+    @inject(SourceModelStorage)
+    protected sourceModelStorage: SourceModelStorage;
+    @inject(ModelSubmissionHandler)
+    protected submissionHandler: ModelSubmissionHandler;
     @inject(OperationHandlerRegistry) operationHandlerRegistry: OperationHandlerRegistry;
     protected counter: number;
     protected WHITE_LIST = ['Nodes', 'Edges'];
+    readonly contextBundle: ContextBundle;
+
+    constructor() {
+        super();
+        this.contextBundle = new ContextBundle(
+            this.state,
+            this.logger,
+            this.actionDispatcher,
+            this.sourceModelStorage,
+            this.submissionHandler
+        );
+    }
 
     async getItems(args?: Args): Promise<PaletteItem[]> {
         if (!this.state.graphModel) {
             return [];
         }
-        if(!getGraphSpecOf(this.state.graphModel.type)) {
+        if (!getGraphSpecOf(this.state.graphModel.type)) {
             // TODO: this can occur if the palette is fetched, while the metaSpecification
             // is updated, thus, the current type is not present.
             // If the graphmodel is indeed not present anymore, the window should be closed.
             // This is currently a sufficient workaround. The clean way would be to identify
             // the updating of the meta-specification and block this procedure, until the updating
             // is finished. (The UPDATING_RACE_CONDITION_INDICATOR would not be needed anymore)
-            return [
-                UPDATING_RACE_CONDITION_INDICATOR
-            ];
+            return [UPDATING_RACE_CONDITION_INDICATOR];
         }
 
         const handlers = this.operationHandlerRegistry
@@ -221,8 +245,8 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             .map(h => h as SpecifiedNodeHandler)
             .filter(nh => {
                 const relevantElements = nh.elementTypeIds.filter(e => this.state.graphModel.couldContain(e));
-                for(const e of relevantElements) {
-                    if(getPalettes(getNodeSpecOf(e)).includes(categoryId)) {
+                for (const e of relevantElements) {
+                    if (getPalettes(getNodeSpecOf(e)).includes(categoryId)) {
                         return true;
                     }
                 }
@@ -261,8 +285,8 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                             ? TriggerNodeCreationAction.create(elementTypeId)
                             : TriggerEdgeCreationAction.create(elementTypeId);
                         if (
-                            (hasPalette(elementTypeId, categoryId) ||
-                                (getPalettes(spec).length <= 0 && this.WHITE_LIST.includes(categoryId)))
+                            hasPalette(elementTypeId, categoryId) ||
+                            (getPalettes(spec).length <= 0 && this.WHITE_LIST.includes(categoryId))
                         ) {
                             if (isPrimeReference(spec)) {
                                 if (primeReferencedEntries && primeReferencedEntries.length > 0) {
@@ -365,7 +389,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                         await Promise.all(
                             modelFiles.map(async file => {
                                 const filePath = path.join(getWorkspaceRootUri(), file);
-                                const model = await GraphModelStorage.readModelFromFile(filePath);
+                                const model = await GraphModelStorage.readModelFromFile(filePath, this.contextBundle);
                                 if (model) {
                                     const allSupportedModelElementsOfModel = model
                                         ?.getAllContainedElements()

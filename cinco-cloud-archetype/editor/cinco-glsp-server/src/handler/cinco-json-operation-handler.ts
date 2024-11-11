@@ -15,6 +15,7 @@
  ********************************************************************************/
 
 import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
+import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
 import {
     ActionDispatcher,
     Command,
@@ -40,6 +41,10 @@ export abstract class CincoJsonOperationHandler extends JsonOperationHandler {
     protected sourceModelStorage: SourceModelStorage;
     @inject(ModelSubmissionHandler)
     protected submissionHandler: ModelSubmissionHandler;
+
+    getBundle(): ContextBundle {
+        return new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this.sourceModelStorage, this.submissionHandler);
+    }
 
     createCommand(operation: Operation): MaybePromise<Command | undefined> {
         return this.commandOf(() => {

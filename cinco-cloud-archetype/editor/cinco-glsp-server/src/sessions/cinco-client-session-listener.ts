@@ -14,14 +14,22 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
-import { ActionDispatcher, ClientSession, ClientSessionListener } from '@eclipse-glsp/server';
+import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
+import {
+    ActionDispatcher,
+    ClientSession,
+    ClientSessionListener,
+    Logger,
+    ModelSubmissionHandler,
+    SourceModelStorage
+} from '@eclipse-glsp/server';
 
 export class CincoClientSessionListener implements ClientSessionListener {
     static disposedCallback: Map<string, (() => void)[]> = new Map();
-    static createdCallback: (clientId: string, modelState: GraphModelState, actionDispatcher: ActionDispatcher) => void;
+    static createdCallback: (clientId: string, contextBundle: ContextBundle) => void;
     static initialized = false;
 
-    constructor(createdCallback: (clientId: string, modelState: GraphModelState, actionDispatcher: ActionDispatcher) => void) {
+    constructor(createdCallback: (clientId: string, contextBundle: ContextBundle) => void) {
         CincoClientSessionListener.initialized = true;
         CincoClientSessionListener.createdCallback = createdCallback;
     }
@@ -42,7 +50,11 @@ export class CincoClientSessionListener implements ClientSessionListener {
     sessionCreated(clientSession: ClientSession): void {
         const graphModelState = clientSession.container.get(GraphModelState);
         const actionDispatcher = clientSession.container.get(ActionDispatcher) as ActionDispatcher;
-        CincoClientSessionListener.createdCallback(clientSession.id, graphModelState, actionDispatcher);
+        const logger = clientSession.container.get(Logger) as Logger;
+        const sourceModelStorage = clientSession.container.get(SourceModelStorage) as SourceModelStorage;
+        const submissionHandler = clientSession.container.get(ModelSubmissionHandler) as ModelSubmissionHandler;
+        const contextBundle = new ContextBundle(graphModelState, logger, actionDispatcher, sourceModelStorage, submissionHandler);
+        CincoClientSessionListener.createdCallback(clientSession.id, contextBundle);
     }
 
     sessionDisposed(client: ClientSession): void {

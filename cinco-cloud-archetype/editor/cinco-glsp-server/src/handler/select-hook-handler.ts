@@ -17,6 +17,7 @@ import { HookType, SelectAction, Action, SelectArgument } from '@cinco-glsp/cinc
 import { inject, injectable } from 'inversify';
 import { ActionDispatcher, ActionHandler, Logger, MaybePromise, ModelSubmissionHandler, SourceModelStorage } from '@eclipse-glsp/server';
 import { GraphModelState, HookManager } from '@cinco-glsp/cinco-glsp-api';
+import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
 
 @injectable()
 export class SelectHookHandler implements ActionHandler {
@@ -58,26 +59,17 @@ export class SelectHookHandler implements ActionHandler {
             param.isSelected = param.selectedElements.includes(param.modelElementId);
 
             // Can Hook
-            const canSelect = HookManager.executeHook(
-                param,
-                HookType.CAN_SELECT,
+            const contextBundle = new ContextBundle(
                 this.modelState,
                 this.logger,
                 this.actionDispatcher,
                 this.sourceModelStorage,
                 this.submissionHandler
             );
+            const canSelect = HookManager.executeHook(param, HookType.CAN_SELECT, contextBundle);
             if (canSelect) {
                 // Post Hook
-                HookManager.executeHook(
-                    parameters,
-                    HookType.POST_SELECT,
-                    this.modelState,
-                    this.logger,
-                    this.actionDispatcher,
-                    this.sourceModelStorage,
-                    this.submissionHandler
-                );
+                HookManager.executeHook(parameters, HookType.POST_SELECT, contextBundle);
             }
         }
         return [];

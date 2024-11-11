@@ -57,27 +57,10 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
             targetId: operation.targetElementId,
             modelElementId: operation.edgeElementId
         };
-        const canConnect = (): boolean =>
-            HookManager.executeHook(
-                reconnectArguments,
-                HookType.CAN_RECONNECT,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+        const canConnect = (): boolean => HookManager.executeHook(reconnectArguments, HookType.CAN_RECONNECT, this.getBundle());
         if (inConstraint && canConnect()) {
             // PRE
-            HookManager.executeHook(
-                reconnectArguments,
-                HookType.PRE_RECONNECT,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(reconnectArguments, HookType.PRE_RECONNECT, this.getBundle());
             reconnectArguments.sourceId = edge.sourceID;
             reconnectArguments.targetId = edge.targetID;
             edge.sourceID = gSource.id;
@@ -85,15 +68,7 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
             edge.routingPoints = [];
             this.modelState.refresh();
             // POST
-            HookManager.executeHook(
-                reconnectArguments,
-                HookType.POST_RECONNECT,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(reconnectArguments, HookType.POST_RECONNECT, this.getBundle());
         } else {
             this.logger.info(`Could not change source and target of edge: ${edge.id}`);
             this.modelState.refresh();

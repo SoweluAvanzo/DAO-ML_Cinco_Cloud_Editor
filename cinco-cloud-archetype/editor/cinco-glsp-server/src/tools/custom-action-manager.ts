@@ -27,6 +27,18 @@ import { BaseHandlerManager } from './base-handler-manager';
 export class CustomActionManager extends BaseHandlerManager<CustomAction, CustomActionHandler> {
     baseHandlerName = 'CustomActionHandler';
     actionKinds: string[] = [CustomAction.KIND];
+
+    /**
+     * A helper method e.g. for the context menu provision. It returns all handlers for the given action,
+     * that are applicable and can execute.
+     * @param elementId Id of the specific element
+     * @returns all executable handlers, that could be executed as a custom action for the associated element.
+     */
+    async getExecutableHandlerFor(elementId: string): Promise<string[]> {
+        const customActionHandler = await this.getActiveHandlers(CustomAction.create(elementId, [], '*'));
+        return customActionHandler.map(c => c.constructor.name);
+    }
+
     hasHandlerProperty(element: ModelElement): boolean {
         const hasCustom: boolean = hasCustomAction(element.type);
         return hasCustom;
@@ -39,10 +51,11 @@ export class CustomActionManager extends BaseHandlerManager<CustomAction, Custom
     }
 
     handlerCanBeExecuted(handler: CustomActionHandler, element: ModelElement, action: CustomAction, args: any): boolean | Promise<boolean> {
-        const result = handler.constructor.name === action.handlerClass;
+        const result = action.handlerClass === '*' || handler.constructor.name === action.handlerClass;
         this.logger.info('is correct handler? ' + handler + ':' + result);
         return result && handler.canExecute(action, ...args);
     }
+
     executeHandler(handler: CustomActionHandler, element: ModelElement, action: CustomAction, args: any): Action[] | Promise<Action[]> {
         const result = handler.execute(action, ...args);
         try {

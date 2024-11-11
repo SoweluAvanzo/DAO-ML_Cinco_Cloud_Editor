@@ -35,27 +35,10 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
             position: operation.location
         };
         const inConstraint = this.canBeContained(container, operation.elementTypeId);
-        const canCreate = (): boolean =>
-            HookManager.executeHook(
-                parameters,
-                HookType.CAN_CREATE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+        const canCreate = (): boolean => HookManager.executeHook(parameters, HookType.CAN_CREATE, this.getBundle());
         if (inConstraint && canCreate()) {
             // PRE
-            HookManager.executeHook(
-                parameters,
-                HookType.PRE_CREATE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.PRE_CREATE, this.getBundle());
             // creation
             const elementTypeId = operation.elementTypeId;
             const relativeLocation = this.getRelativeLocation(operation) ?? Point.ORIGIN;
@@ -65,15 +48,7 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
             this.modelState.refresh();
             // POST
             parameters.modelElementId = node.id;
-            HookManager.executeHook(
-                parameters,
-                HookType.POST_CREATE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.POST_CREATE, this.getBundle());
             this.saveAndUpdate();
         }
     }

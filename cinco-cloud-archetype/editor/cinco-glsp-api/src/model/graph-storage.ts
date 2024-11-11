@@ -14,7 +14,15 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { CreateGraphModelArgument, getGraphModelOfFileType, HookType, SaveModelFileArgument } from '@cinco-glsp/cinco-glsp-common';
+import {
+    CreateGraphModelArgument,
+    getFileExtension,
+    getGraphModelOfFileType,
+    hasFileCodec,
+    HookType,
+    OpenModelFileArgument,
+    SaveModelFileArgument
+} from '@cinco-glsp/cinco-glsp-common';
 import {
     ActionDispatcher,
     GLSPServerError,
@@ -22,15 +30,26 @@ import {
     ModelSubmissionHandler,
     RequestModelAction,
     SaveModelAction,
-    SOURCE_URI_ARG,
-    SourceModelStorage
+    SOURCE_URI_ARG
 } from '@eclipse-glsp/server';
 import { AbstractJsonModelStorage } from '@eclipse-glsp/server/lib/node/abstract-json-model-storage';
 import { inject, injectable } from 'inversify';
 import { GraphModel } from './graph-model';
 import { GraphModelState } from './graph-model-state';
 import { HookManager } from '../semantics/hook-manager';
-import { existsFile, readJson, readJsonSync, toPath, toWorkspaceUri, writeFileSync } from '../utils/file-helper';
+import {
+    existsFile,
+    readFile,
+    readFileSync,
+    readJson,
+    readJsonSync,
+    toPath,
+    toWorkspaceUri,
+    writeFile,
+    writeFileSync
+} from '../utils/file-helper';
+import { FileCodecManager } from '../semantics/file-codec-manager';
+import { ContextBundle } from '../api/context-bundle';
 
 @injectable()
 export class GraphModelStorage extends AbstractJsonModelStorage {
@@ -46,14 +65,14 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
     override async loadSourceModel(action: RequestModelAction): Promise<void> {
         let sourceUri = this.getSourceUri(action);
         sourceUri = await this.resolveSourceURI(sourceUri);
-        await GraphModelStorage.loadSourceModel(
-            sourceUri,
-            this.modelState,
-            this.logger,
-            this.actionDispatcher,
-            this,
-            this.submissionHandler
-        );
+        const contextBundle = new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler);
+        await GraphModelStorage.loadSourceModel(sourceUri, contextBundle);
+        // On Open
+        const parameters: OpenModelFileArgument = {
+            kind: 'OpenModelFile',
+            modelElementId: contextBundle.modelState.graphModel.id
+        };
+        HookManager.executeHook(parameters, HookType.ON_OPEN, contextBundle);
     }
 
     /**
@@ -77,21 +96,15 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
         }
         try {
             const fileUri = this.getFileUri(action);
-            GraphModelStorage.saveSourceModel(fileUri, this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler);
+            const contextBundle = new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler);
+            GraphModelStorage.saveSourceModel(fileUri, contextBundle);
         } catch (e) {
             this.logger.error('Could not save!\n' + e);
         }
     }
 
-    static async loadSourceModel(
-        sourceUri: string,
-        modelState: GraphModelState,
-        logger: Logger,
-        actionDispatcher: ActionDispatcher,
-        sourceModelStorage: SourceModelStorage,
-        submissionHandler: ModelSubmissionHandler
-    ): Promise<void> {
-        const { graphModel, initialized } = await GraphModelStorage.loadFromFile(sourceUri, modelState, logger, actionDispatcher);
+    static async loadSourceModel(sourceUri: string, contextBundle: ContextBundle): Promise<void> {
+        const { graphModel, initialized } = await GraphModelStorage.loadFromFile(sourceUri, contextBundle);
         if (graphModel) {
             if (initialized) {
                 const parameters: CreateGraphModelArgument = {
@@ -101,78 +114,47 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
                     elementKind: 'GraphModel',
                     path: toPath(sourceUri)
                 };
-                HookManager.executeHook(
-                    parameters,
-                    HookType.PRE_CREATE,
-                    modelState,
-                    logger,
-                    actionDispatcher,
-                    sourceModelStorage,
-                    submissionHandler
-                );
-                modelState.graphModel = graphModel;
+                HookManager.executeHook(parameters, HookType.PRE_CREATE, contextBundle);
+                contextBundle.modelState.graphModel = graphModel;
                 parameters.modelElementId = graphModel.id;
-                HookManager.executeHook(
-                    parameters,
-                    HookType.POST_CREATE,
-                    modelState,
-                    logger,
-                    actionDispatcher,
-                    sourceModelStorage,
-                    submissionHandler
-                );
-                this.saveSourceModel(sourceUri, modelState, logger, actionDispatcher, sourceModelStorage, submissionHandler);
+                HookManager.executeHook(parameters, HookType.POST_CREATE, contextBundle);
+                this.saveSourceModel(sourceUri, contextBundle);
             } else {
-                modelState.graphModel = graphModel;
+                contextBundle.modelState.graphModel = graphModel;
             }
         }
     }
 
-    static saveSourceModel(
-        sourceUri: string,
-        modelState: GraphModelState,
-        logger: Logger,
-        actionDispatcher: ActionDispatcher,
-        sourceModelStorage: SourceModelStorage,
-        submissionHandler: ModelSubmissionHandler
-    ): void {
+    static saveSourceModel(sourceUri: string, contextBundle: ContextBundle): void {
         const canSave = HookManager.executeHook(
-            { kind: 'SaveModelFile', modelElementId: modelState.graphModel.id, path: sourceUri } as SaveModelFileArgument,
+            { kind: 'SaveModelFile', modelElementId: contextBundle.modelState.graphModel.id, path: sourceUri } as SaveModelFileArgument,
             HookType.CAN_SAVE,
-            modelState,
-            logger,
-            actionDispatcher,
-            sourceModelStorage,
-            submissionHandler
+            contextBundle
         );
         if (canSave) {
-            writeFileSync(sourceUri, JSON.stringify(modelState.sourceModel));
+            this.serializeModelFile(sourceUri, contextBundle.modelState.sourceModel as GraphModel, contextBundle);
             HookManager.executeHook(
-                { kind: 'SaveModelFile', modelElementId: modelState.graphModel.id, path: sourceUri } as SaveModelFileArgument,
+                { kind: 'SaveModelFile', modelElementId: contextBundle.modelState.graphModel.id, path: sourceUri } as SaveModelFileArgument,
                 HookType.POST_SAVE,
-                modelState,
-                logger,
-                actionDispatcher,
-                sourceModelStorage,
-                submissionHandler
+                contextBundle
             );
         }
     }
 
-    readModelFromURI(sourceUri: string): GraphModel | undefined {
-        return GraphModelStorage.loadFromFileSync(sourceUri);
+    readModelFromURI(sourceUri: string, contextBundle: ContextBundle): GraphModel | undefined {
+        return GraphModelStorage.loadFromFileSync(sourceUri, contextBundle);
     }
 
-    static async readModelFromFile(sourceUri: string): Promise<GraphModel | undefined> {
-        const model = (await this.loadFromFile(sourceUri)).graphModel;
+    static async readModelFromFile(sourceUri: string, contextBundle: ContextBundle): Promise<GraphModel | undefined> {
+        const model = (await this.loadFromFile(sourceUri, contextBundle)).graphModel;
         if (!model) {
             return undefined;
         }
         return GraphModelState.resolveGraphmodel(model, new GraphModel(), undefined); // TODO: merged index?
     }
 
-    static readModelFromFileSync(sourceUri: string): GraphModel | undefined {
-        const model = this.loadFromFileSync(sourceUri);
+    static readModelFromFileSync(sourceUri: string, contextBundle: ContextBundle): GraphModel | undefined {
+        const model = this.loadFromFileSync(sourceUri, contextBundle);
         if (!model) {
             return undefined;
         }
@@ -181,16 +163,12 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
 
     static async loadFromFile(
         sourceUri: string,
-        modelState?: GraphModelState,
-        logger?: Logger,
-        actionDispatcher?: ActionDispatcher,
-        sourceModelStorage?: SourceModelStorage,
-        submissionHandler?: ModelSubmissionHandler,
+        contextBundle: ContextBundle,
         executeCanCreateHook: boolean = true
     ): Promise<{ graphModel: GraphModel | undefined; initialized: boolean }> {
         try {
             const path = toPath(sourceUri);
-            let fileContent: GraphModel | any = await readJson(path, { hideError: true });
+            let fileContent = await this.parseModelFile(path, contextBundle);
             let initialized = false;
             if (!fileContent) {
                 fileContent = this.createModelForEmptyFile(path); // initialized
@@ -201,16 +179,8 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
                     elementKind: 'GraphModel',
                     path: path
                 };
-                if (executeCanCreateHook && modelState && logger && actionDispatcher && submissionHandler && sourceModelStorage) {
-                    const canCreate = HookManager.executeHook(
-                        parameters,
-                        HookType.CAN_CREATE,
-                        modelState,
-                        logger,
-                        actionDispatcher,
-                        sourceModelStorage,
-                        submissionHandler
-                    );
+                if (executeCanCreateHook) {
+                    const canCreate = HookManager.executeHook(parameters, HookType.CAN_CREATE, contextBundle);
                     if (!canCreate) {
                         return { graphModel: undefined, initialized: false };
                     }
@@ -231,10 +201,10 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
         return { graphModel: undefined, initialized: false };
     }
 
-    protected static loadFromFileSync(sourceUri: string): GraphModel | undefined {
+    protected static loadFromFileSync(sourceUri: string, contextBundle: ContextBundle): GraphModel | undefined {
         try {
             const path = toPath(sourceUri);
-            let fileContent: GraphModel | any = readJsonSync(path, { hideError: true });
+            let fileContent: GraphModel | any = this.parseModelFileSync(path, contextBundle);
             if (!GraphModel.is(fileContent)) {
                 throw new Error('The loaded root object is not of the expected type!');
             }
@@ -263,5 +233,75 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
             throw new GLSPServerError('Could not derive fileUri for saving the current source model');
         }
         return uri;
+    }
+
+    /**
+     * Parsing/Decoding & Serializing/Encoding
+     */
+
+    static async parseModelFile(sourceUri: string, contextBundle: ContextBundle): Promise<GraphModel | undefined> {
+        const fileExtension = getFileExtension(sourceUri);
+        const graphModelSpec = getGraphModelOfFileType(fileExtension);
+        let fileContent: GraphModel | any = '';
+        if (graphModelSpec && hasFileCodec(graphModelSpec.elementTypeId)) {
+            // Parsing with custom codec
+            const content = await readFile(sourceUri);
+            if (content === undefined) {
+                throw new Error('Failed to read file: ' + sourceUri);
+            } else if (!content) {
+                return undefined; // new file
+            }
+            fileContent = FileCodecManager.decode(sourceUri, content, contextBundle);
+        } else {
+            fileContent = readJson(sourceUri, { hideError: true });
+        }
+        return fileContent;
+    }
+
+    static parseModelFileSync(sourceUri: string, contextBundle: ContextBundle): GraphModel | undefined {
+        const fileExtension = getFileExtension(sourceUri);
+        const graphModelSpec = getGraphModelOfFileType(fileExtension);
+        let fileContent: GraphModel | undefined;
+        if (graphModelSpec && hasFileCodec(graphModelSpec.elementTypeId)) {
+            // Parsing with custom codec
+            const content = readFileSync(sourceUri);
+            if (!content) {
+                throw new Error('Failed to read file: ' + sourceUri);
+            }
+            fileContent = FileCodecManager.decode(sourceUri, content, contextBundle);
+        } else {
+            fileContent = readJsonSync(sourceUri, { hideError: true }) as GraphModel;
+        }
+        return fileContent;
+    }
+
+    static async serializeModelFile(sourceUri: string, model: GraphModel | undefined, contextBundle: ContextBundle): Promise<void> {
+        if (!model) {
+            throw new Error('Could not save model! Model is undefined.');
+        }
+        const graphModelSpec = model.getSpec();
+        let fileContent: string | undefined;
+        if (hasFileCodec(graphModelSpec.elementTypeId)) {
+            // Serializing with custom codec
+            fileContent = FileCodecManager.encode(model, contextBundle);
+        } else {
+            fileContent = JSON.stringify(model, undefined, 4);
+        }
+        writeFile(sourceUri, fileContent ?? '');
+    }
+
+    static serializeModelFileSync(sourceUri: string, model: GraphModel | undefined, contextBundle: ContextBundle): void {
+        if (!model) {
+            throw new Error('Could not save model! Model is undefined.');
+        }
+        const graphModelSpec = model.getSpec();
+        let fileContent: string | undefined;
+        if (hasFileCodec(graphModelSpec.elementTypeId)) {
+            // Serializing with custom codec
+            fileContent = FileCodecManager.encode(model, contextBundle);
+        } else {
+            fileContent = JSON.stringify(model, undefined, 4);
+        }
+        writeFileSync(sourceUri, fileContent ?? '');
     }
 }

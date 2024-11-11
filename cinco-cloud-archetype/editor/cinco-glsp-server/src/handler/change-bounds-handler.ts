@@ -59,38 +59,14 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
             oldPosition: oldPosition,
             newPosition: newPosition ?? oldPosition
         };
-        const canResize = HookManager.executeHook(
-            parameters,
-            HookType.CAN_RESIZE,
-            this.modelState,
-            this.logger,
-            this.actionDispatcher,
-            this.sourceModelStorage,
-            this.submissionHandler
-        );
+        const canResize = HookManager.executeHook(parameters, HookType.CAN_RESIZE, this.getBundle());
         if (canResize) {
-            HookManager.executeHook(
-                parameters,
-                HookType.PRE_RESIZE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.PRE_RESIZE, this.getBundle());
             if (newPosition) {
                 node.position = newPosition;
             }
             node.size = newSize;
-            HookManager.executeHook(
-                parameters,
-                HookType.POST_RESIZE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.POST_RESIZE, this.getBundle());
         }
     }
 
@@ -102,35 +78,11 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
             oldPosition: oldPosition,
             newPosition: newPosition
         };
-        const canMove = HookManager.executeHook(
-            parameters,
-            HookType.CAN_MOVE,
-            this.modelState,
-            this.logger,
-            this.actionDispatcher,
-            this.sourceModelStorage,
-            this.submissionHandler
-        );
+        const canMove = HookManager.executeHook(parameters, HookType.CAN_MOVE, this.getBundle());
         if (canMove) {
-            HookManager.executeHook(
-                parameters,
-                HookType.PRE_MOVE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.PRE_MOVE, this.getBundle());
             node.position = newPosition;
-            HookManager.executeHook(
-                parameters,
-                HookType.POST_MOVE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.POST_MOVE, this.getBundle());
         }
     }
 }

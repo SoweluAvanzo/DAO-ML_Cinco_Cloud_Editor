@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -31,15 +31,7 @@ import {
     mapCell,
     Cell
 } from '@cinco-glsp/cinco-glsp-common';
-import {
-    ActionDispatcher,
-    hasStringProp,
-    Logger,
-    MessageAction,
-    ModelSubmissionHandler,
-    SeverityLevel,
-    SourceModelStorage
-} from '@eclipse-glsp/server';
+import { ActionDispatcher, hasStringProp, MessageAction, SeverityLevel } from '@eclipse-glsp/server';
 import {
     AbstractHook,
     AttributeHook,
@@ -57,23 +49,16 @@ import { ModelElement, Edge, Node, ModelElementContainer, GraphModel } from '../
 import { GraphModelState } from '../model/graph-model-state';
 import { APIBaseHandler } from '../api/api-base-handler';
 import { ResizeBounds } from '../api/resize-bounds';
+import { ContextBundle } from '../api/context-bundle';
 
 export class HookManager {
-    static executeHook(
-        parameters: OperationArgument,
-        type: HookType,
-        modelState: GraphModelState,
-        logger: Logger,
-        actionDispatcher: ActionDispatcher,
-        sourceModelStorage: SourceModelStorage,
-        submissionHandler: ModelSubmissionHandler
-    ): boolean {
+    static executeHook(parameters: OperationArgument, type: HookType, contextBundle: ContextBundle): boolean {
         let elementTypeId = '';
         if (hasStringProp(parameters, 'elementTypeId')) {
             elementTypeId = (parameters as any).elementTypeId;
         } else {
             if (parameters.modelElementId !== '<NONE>') {
-                const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                 if (modelElement) {
                     elementTypeId = modelElement.type;
                 } else {
@@ -86,16 +71,16 @@ export class HookManager {
         const hookResults: boolean[] = [];
         // execute all hooks
         for (const hookClassName of hookClassNames) {
-            const hookClass = this.loadHookClasses(hookClassName, elementTypeId, type);
+            const hookClass = this.loadHookClasses(hookClassName);
             try {
-                const hook = new hookClass(logger, modelState, actionDispatcher, sourceModelStorage, submissionHandler) as APIBaseHandler;
-                const result = this.dispatchHook(hook, parameters, type, modelState, logger, actionDispatcher);
+                const hook = new hookClass(contextBundle) as APIBaseHandler;
+                const result = this.dispatchHook(hook, parameters, type, contextBundle);
                 hookResults.push(result);
             } catch (error: any) {
-                logger.error(error);
+                contextBundle.logger.error(error);
                 const errorMsg =
                     'No Hook for Element "' + elementTypeId + '" with Class "' + hookClassName + '" and hook type : "' + type + '" found.';
-                this.notify(actionDispatcher, errorMsg, 'ERROR');
+                this.notify(contextBundle.actionDispatcher, errorMsg, 'ERROR');
                 hookResults.push(false);
             }
         }
@@ -114,28 +99,19 @@ export class HookManager {
         return [];
     }
 
-    private static loadHookClasses(hookClassName: string, modelTypeId: string, hookType: HookType): any {
-        const hooks = (
-            LanguageFilesRegistry.getRegisteredSync()
-        ).filter((hook: any) => hook.name === hookClassName);
+    private static loadHookClasses(hookClassName: string): any {
+        const hooks = LanguageFilesRegistry.getRegisteredSync().filter((hook: any) => hook.name === hookClassName);
         return hooks.length > 0 ? hooks[0] : undefined;
     }
 
-    private static dispatchHook(
-        hook: AbstractHook,
-        parameters: OperationArgument,
-        type: HookType,
-        modelState: GraphModelState,
-        logger: Logger,
-        actionDispatcher: ActionDispatcher
-    ): boolean {
+    private static dispatchHook(hook: AbstractHook, parameters: OperationArgument, type: HookType, contextBundle: ContextBundle): boolean {
         try {
             switch (type) {
                 case HookType.CAN_ATTRIBUTE_CHANGE: {
                     if (!AttributeHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                     }
-                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                     if (!modelElement) {
                         throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                     }
@@ -146,7 +122,7 @@ export class HookManager {
                         if (!AttributeHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -158,7 +134,7 @@ export class HookManager {
                         if (!AttributeHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an AttributeHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -169,19 +145,19 @@ export class HookManager {
                     if (!ModelElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not a ModelElementHook.`);
                     }
-                    return this.canCreateHook(hook, parameters as CreateArgument, modelState);
+                    return this.canCreateHook(hook, parameters as CreateArgument, contextBundle.modelState);
                 }
                 case HookType.PRE_CREATE:
                     {
                         if (!ModelElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not a ModelElementHook.`);
                         }
-                        this.preCreateHook(hook, parameters as CreateArgument, modelState);
+                        this.preCreateHook(hook, parameters as CreateArgument, contextBundle.modelState);
                     }
                     break;
                 case HookType.POST_CREATE:
                     {
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -193,7 +169,7 @@ export class HookManager {
                     break;
                 case HookType.CAN_DELETE:
                     {
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -205,7 +181,7 @@ export class HookManager {
                     break;
                 case HookType.PRE_DELETE:
                     {
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -236,7 +212,7 @@ export class HookManager {
                     if (!GraphModelElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not a ModelElementHook.`);
                     }
-                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                     if (!GraphModel.is(modelElement)) {
                         throw new Error(`Hook of type ${type} could not be executed. Modelelement is not a GraphModel.`);
                     }
@@ -247,11 +223,23 @@ export class HookManager {
                         if (!GraphModelElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not a ModelElementHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!GraphModel.is(modelElement)) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is not a GraphModel.`);
                         }
                         this.postSaveHook(hook, parameters as SaveModelFileArgument, modelElement);
+                    }
+                    break;
+                case HookType.ON_OPEN:
+                    {
+                        if (!GraphModelElementHook.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not a ModelElementHook.`);
+                        }
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
+                        if (!GraphModel.is(modelElement)) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is not a GraphModel.`);
+                        }
+                        this.onOpenHook(hook, modelElement);
                     }
                     break;
                 case HookType.POST_CONTENT_CHANGE:
@@ -259,7 +247,7 @@ export class HookManager {
                         if (!ModelFileHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not a ModelFileHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -271,7 +259,7 @@ export class HookManager {
                         if (!ModelFileHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not a ModelFileHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -282,7 +270,7 @@ export class HookManager {
                     if (!NodeElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not a NodeElementHook.`);
                     }
-                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                     if (!modelElement) {
                         throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                     }
@@ -293,7 +281,7 @@ export class HookManager {
                         if (!NodeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not a NodeElementHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -305,7 +293,7 @@ export class HookManager {
                         if (!NodeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not a NodeElementHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -316,7 +304,7 @@ export class HookManager {
                     if (!NodeElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not a NodeElementHook.`);
                     }
-                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                     if (!modelElement) {
                         throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                     }
@@ -327,7 +315,7 @@ export class HookManager {
                         if (!NodeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not a NodeElementHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -339,7 +327,7 @@ export class HookManager {
                         if (!NodeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not a NodeElementHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -350,7 +338,7 @@ export class HookManager {
                     if (!EdgeElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not an EdgeElementHook.`);
                     }
-                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                     if (!modelElement) {
                         throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                     }
@@ -361,7 +349,7 @@ export class HookManager {
                         if (!EdgeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an EdgeElementHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -373,7 +361,7 @@ export class HookManager {
                         if (!EdgeElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not an EdgeElementHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -384,7 +372,7 @@ export class HookManager {
                     if (!GraphicalElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not a GraphicalElementHook.`);
                     }
-                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                     if (!modelElement) {
                         throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                     }
@@ -395,7 +383,7 @@ export class HookManager {
                         if (!GraphicalElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not a GraphicalElementHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -406,7 +394,7 @@ export class HookManager {
                     if (!GraphicalElementHook.is(hook)) {
                         throw new Error(`Hook of type ${type} could not be executed. hook is not a GraphicalElementHook.`);
                     }
-                    const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                    const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                     if (!modelElement) {
                         throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                     }
@@ -417,7 +405,7 @@ export class HookManager {
                         if (!GraphicalElementHook.is(hook)) {
                             throw new Error(`Hook of type ${type} could not be executed. hook is not a GraphicalElementHook.`);
                         }
-                        const modelElement = modelState.index.findModelElement(parameters.modelElementId);
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
                         if (!modelElement) {
                             throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
                         }
@@ -426,8 +414,8 @@ export class HookManager {
                     break;
             }
         } catch (e: any) {
-            logger.error(e);
-            this.notify(actionDispatcher, e.message, 'ERROR');
+            contextBundle.logger.error(e);
+            this.notify(contextBundle.actionDispatcher, e.message, 'ERROR');
             return false;
         }
         return true;
@@ -596,6 +584,13 @@ export class HookManager {
             return;
         }
         hook.postSave(graphModel, parameters.path);
+    }
+
+    private static onOpenHook(hook: GraphModelElementHook<GraphModel>, graphModel: GraphModel): void {
+        if (!hook.onOpen) {
+            return;
+        }
+        hook.onOpen(graphModel);
     }
 
     /**

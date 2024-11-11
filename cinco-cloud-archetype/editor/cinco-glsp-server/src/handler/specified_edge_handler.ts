@@ -38,27 +38,10 @@ export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
             sourceElementId: operation.sourceElementId,
             targetElementId: operation.targetElementId
         };
-        const canCreate = (): boolean =>
-            HookManager.executeHook(
-                parameters,
-                HookType.CAN_CREATE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+        const canCreate = (): boolean => HookManager.executeHook(parameters, HookType.CAN_CREATE, this.getBundle());
         if (this.checkConstraints(operation) && canCreate()) {
             // PRE
-            HookManager.executeHook(
-                parameters,
-                HookType.PRE_CREATE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.PRE_CREATE, this.getBundle());
             const edge = this.createEdge(operation.sourceElementId, operation.targetElementId, operation.elementTypeId);
             edge.index = this.modelState.index;
             const graphmodel = this.modelState.index.getRoot();
@@ -66,15 +49,7 @@ export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
             this.modelState.refresh();
             // POST
             parameters.modelElementId = edge.id;
-            HookManager.executeHook(
-                parameters,
-                HookType.POST_CREATE,
-                this.modelState,
-                this.logger,
-                this.actionDispatcher,
-                this.sourceModelStorage,
-                this.submissionHandler
-            );
+            HookManager.executeHook(parameters, HookType.POST_CREATE, this.getBundle());
             this.saveAndUpdate();
         }
     }

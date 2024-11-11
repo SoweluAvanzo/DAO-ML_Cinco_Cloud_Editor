@@ -41,8 +41,10 @@ import { GraphModelState } from '../model/graph-model-state';
 import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
 import * as fileHelper from '../utils/file-helper';
 import { GraphModelStorage } from '../model/graph-storage';
+import { ContextBundle } from './context-bundle';
 
 export abstract class APIBaseHandler {
+    protected readonly contextBundle: ContextBundle;
     protected readonly logger: Logger;
     readonly modelState: GraphModelState;
     protected readonly actionDispatcher: ActionDispatcher;
@@ -50,19 +52,12 @@ export abstract class APIBaseHandler {
     protected submissionHandler: ModelSubmissionHandler;
     CHANNEL_NAME: string | undefined;
 
-    constructor(
-        // TODO-Sami: Bundle these Clases together
-        logger: Logger,
-        modelState: GraphModelState,
-        actionDispatcher: ActionDispatcher,
-        sourceModelStorage: SourceModelStorage,
-        submissionHandler: ModelSubmissionHandler
-    ) {
-        this.logger = logger;
-        this.modelState = modelState;
-        this.actionDispatcher = actionDispatcher;
-        this.sourceModelStorage = sourceModelStorage;
-        this.submissionHandler = submissionHandler;
+    constructor(contextBundle: ContextBundle) {
+        this.logger = contextBundle.logger;
+        this.modelState = contextBundle.modelState;
+        this.actionDispatcher = contextBundle.actionDispatcher;
+        this.sourceModelStorage = contextBundle.sourceModelStorage;
+        this.submissionHandler = contextBundle.submissionHandler;
     }
 
     getElement(modelElementId: string): ModelElement {
@@ -271,7 +266,7 @@ export abstract class APIBaseHandler {
 
     readModelFromFile(relativePath: string, root = RootPath.WORKSPACE): GraphModel | undefined {
         const targetPath = root.join(relativePath);
-        return (this.sourceModelStorage as GraphModelStorage).readModelFromURI(targetPath);
+        return (this.sourceModelStorage as GraphModelStorage).readModelFromURI(targetPath, this.contextBundle);
     }
 
     readDirectory(relativePath: string, root = RootPath.WORKSPACE): string[] {
