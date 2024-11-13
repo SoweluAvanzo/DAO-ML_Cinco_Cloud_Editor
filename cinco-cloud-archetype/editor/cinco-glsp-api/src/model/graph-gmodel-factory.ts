@@ -14,7 +14,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { EdgeType, NodeType, Point, Size, isChoice, getSpecOf, deletableValue, Deletable, isGhost } from '@cinco-glsp/cinco-glsp-common';
-import { GEdge, GGraph, GLabel, GModelElement, GModelFactory, GNode, GNodeBuilder } from '@eclipse-glsp/server';
+import {
+    GEdge,
+    GGraph,
+    GLabel,
+    GModelElement,
+    GModelFactory,
+    GModelRootSchema,
+    GModelSerializer,
+    GNode,
+    GNodeBuilder
+} from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, Node } from './graph-model';
 import { GraphModelState } from './graph-model-state';
@@ -23,13 +33,31 @@ import { GraphModelState } from './graph-model-state';
 export class GraphGModelFactory implements GModelFactory {
     @inject(GraphModelState)
     readonly modelState: GraphModelState;
+    @inject(GModelSerializer)
+    protected serializer: GModelSerializer;
 
     createModel(): void {
         const graphmodel = this.modelState.graphModel;
         this.modelState.index.indexGraphModel(graphmodel);
-        const children = this.collectChildren(graphmodel);
-        const newRoot = GGraph.builder().type(graphmodel.type).id(graphmodel.id).addChildren(children).build();
+        const newRoot = this.buildGModel();
         this.modelState.updateRoot(newRoot);
+    }
+
+    updateModel(graphModel: GraphModel): void {
+        this.modelState.graphModel = graphModel;
+        const newRoot = this.buildGModel();
+        this.modelState.updateRoot(newRoot);
+    }
+
+    serializeGModel(): GModelRootSchema {
+        return this.serializer.createSchema(this.modelState.root);
+    }
+
+    protected buildGModel(): GGraph {
+        const graphModel = this.modelState.graphModel;
+        const children = this.collectChildren(graphModel);
+        const newRoot = GGraph.builder().type(graphModel.type).id(graphModel.id).addChildren(children).build();
+        return newRoot;
     }
 
     protected collectChildren(container: GraphModel | Container): GModelElement[] {

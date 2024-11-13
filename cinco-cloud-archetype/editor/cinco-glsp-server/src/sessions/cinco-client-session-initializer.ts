@@ -20,11 +20,11 @@ import {
     Args,
     ClientSessionInitializer,
     ClientSessionManager,
+    GModelFactory,
     InjectionContainer,
     Logger,
     ModelSubmissionHandler,
     RequestContextActions,
-    RequestModelAction,
     SourceModelStorage,
     UpdateModelAction
 } from '@eclipse-glsp/server';
@@ -47,6 +47,7 @@ import {
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     existsFile,
+    GraphGModelFactory,
     GraphModel,
     GraphModelIndex,
     GraphModelState,
@@ -71,6 +72,8 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
     protected sourceModelStorage: SourceModelStorage;
     @inject(ModelSubmissionHandler)
     protected submissionHandler: ModelSubmissionHandler;
+    @inject(GModelFactory)
+    protected frontendModelFactory: GraphGModelFactory;
 
     protected graphModelWatcherCallback: string;
 
@@ -180,16 +183,14 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
         const modelState = contextBundle.modelState;
         const sourceUri = modelState.graphModel._sourceUri ?? modelState.sourceUri ?? '';
         GraphModelStorage.loadFromFile(sourceUri, contextBundle, false).then(async ({ graphModel }) => {
-            if (graphModel?.id === modelState.graphModel.id) {
+            if (graphModel?.id === modelState.graphModel?.id) {
                 if (JSON.stringify(modelState.graphModel) !== JSON.stringify(graphModel)) {
                     // if changes occured, that were not tracked, it means external reasons
                     // e.g. fileChanged manually on the fileSystem
-                    modelState.graphModel = graphModel;
+                    this.frontendModelFactory.updateModel(graphModel); // update internal model root (backend and frontend model)
+                    const frontendModel = this.frontendModelFactory.serializeGModel(); // create serialized frontend model (without circles)
                     // GUI update
-                    const requests = [
-                        RequestModelAction.create({ options: { sourceUri: modelState.sourceUri } as Args }),
-                        UpdateModelAction.create(graphModel, { animate: false })
-                    ];
+                    const requests: Action[] = [UpdateModelAction.create(frontendModel, { animate: true })];
                     for (const request of requests) {
                         await CincoClientSessionInitializer.sendToClient(
                             request,

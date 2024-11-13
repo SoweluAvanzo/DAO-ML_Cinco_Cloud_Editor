@@ -67,12 +67,14 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
         sourceUri = await this.resolveSourceURI(sourceUri);
         const contextBundle = new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler);
         await GraphModelStorage.loadSourceModel(sourceUri, contextBundle);
-        // On Open
-        const parameters: OpenModelFileArgument = {
-            kind: 'OpenModelFile',
-            modelElementId: contextBundle.modelState.graphModel.id
-        };
-        HookManager.executeHook(parameters, HookType.ON_OPEN, contextBundle);
+        if (contextBundle.modelState.graphModel) {
+            // On Open
+            const parameters: OpenModelFileArgument = {
+                kind: 'OpenModelFile',
+                modelElementId: contextBundle.modelState.graphModel.id
+            };
+            HookManager.executeHook(parameters, HookType.ON_OPEN, contextBundle);
+        }
     }
 
     /**
@@ -97,7 +99,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
         try {
             const fileUri = this.getFileUri(action);
             const contextBundle = new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler);
-            GraphModelStorage.saveSourceModel(fileUri, contextBundle);
+            await GraphModelStorage.saveSourceModel(fileUri, contextBundle);
         } catch (e) {
             this.logger.error('Could not save!\n' + e);
         }
@@ -118,26 +120,38 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
                 contextBundle.modelState.graphModel = graphModel;
                 parameters.modelElementId = graphModel.id;
                 HookManager.executeHook(parameters, HookType.POST_CREATE, contextBundle);
-                this.saveSourceModel(sourceUri, contextBundle);
+                await this.saveSourceModel(sourceUri, contextBundle);
             } else {
                 contextBundle.modelState.graphModel = graphModel;
             }
         }
     }
 
-    static saveSourceModel(sourceUri: string, contextBundle: ContextBundle): void {
+    static async saveSourceModel(sourceUri: string, contextBundle: ContextBundle): Promise<void> {
         const canSave = HookManager.executeHook(
             { kind: 'SaveModelFile', modelElementId: contextBundle.modelState.graphModel.id, path: sourceUri } as SaveModelFileArgument,
             HookType.CAN_SAVE,
             contextBundle
         );
         if (canSave) {
-            this.serializeModelFile(sourceUri, contextBundle.modelState.sourceModel as GraphModel, contextBundle);
-            HookManager.executeHook(
-                { kind: 'SaveModelFile', modelElementId: contextBundle.modelState.graphModel.id, path: sourceUri } as SaveModelFileArgument,
-                HookType.POST_SAVE,
-                contextBundle
-            );
+            let saved = false;
+            try {
+                await this.serializeModelFile(sourceUri, contextBundle.modelState.sourceModel as GraphModel, contextBundle);
+                saved = true;
+            } catch (error) {
+                console.log(`Could not encode model to file: ${sourceUri}`, error);
+            }
+            if (saved) {
+                HookManager.executeHook(
+                    {
+                        kind: 'SaveModelFile',
+                        modelElementId: contextBundle.modelState.graphModel.id,
+                        path: sourceUri
+                    } as SaveModelFileArgument,
+                    HookType.POST_SAVE,
+                    contextBundle
+                );
+            }
         }
     }
 

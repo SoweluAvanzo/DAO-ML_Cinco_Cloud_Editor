@@ -78,24 +78,28 @@ export abstract class APIBaseHandler {
      * @param options
      */
     async log(message: string, options?: { channelName?: string; show?: boolean; logLevel?: LogLevel }): Promise<void> {
-        switch (options?.logLevel) {
-            case LogLevel.debug:
-                this.logger.debug(message);
-                break;
-            case LogLevel.error:
-                this.logger.error(message);
-                break;
-            case LogLevel.info:
-                this.logger.info(message);
-                break;
-            case LogLevel.warn:
-                this.logger.warn(message);
-                break;
-            default:
-                this.logger.info(message);
-                break;
+        if (!this.logger) {
+            console.log(message);
+        } else {
+            switch (options?.logLevel) {
+                case LogLevel.debug:
+                    this.logger.debug(message);
+                    break;
+                case LogLevel.error:
+                    this.logger.error(message);
+                    break;
+                case LogLevel.info:
+                    this.logger.info(message);
+                    break;
+                case LogLevel.warn:
+                    this.logger.warn(message);
+                    break;
+                default:
+                    this.logger.info(message);
+                    break;
+            }
         }
-        const channelName = options?.channelName ?? this.CHANNEL_NAME ?? this.logger.caller?.toString() ?? 'unnamed';
+        const channelName = options?.channelName ?? this.CHANNEL_NAME ?? this.logger?.caller?.toString() ?? 'unnamed';
         const o = {
             show: options?.show ?? false,
             logLevel: options?.logLevel?.toString() ?? LogLevel.info.toString()
@@ -186,7 +190,7 @@ export abstract class APIBaseHandler {
 
     saveModel(): Promise<void> {
         return new Promise<void>(resolve => {
-            const result = this.sourceModelStorage.saveSourceModel(SaveModelAction.create({ fileUri: this.modelState.sourceUri }));
+            const result = this.sourceModelStorage?.saveSourceModel(SaveModelAction.create({ fileUri: this.modelState.sourceUri }));
             if (result instanceof Promise) {
                 result.then(_ => resolve());
             } else {
@@ -197,7 +201,7 @@ export abstract class APIBaseHandler {
 
     submitModel(): Promise<void> {
         return new Promise<void>(resolve => {
-            const result = this.submissionHandler.submitModel();
+            const result = this.submissionHandler?.submitModel();
             if (result instanceof Promise) {
                 result.then(_ => resolve());
             } else {
@@ -214,7 +218,12 @@ export abstract class APIBaseHandler {
             containerId: typeof container == 'string' ? container : (container?.id ?? this.modelState.index.getRoot().id),
             location: location
         };
-        return this.actionDispatcher.dispatch(operation);
+        try {
+            return this.actionDispatcher.dispatch(operation);
+        } catch (e) {
+            console.log(e);
+        }
+        return Promise.resolve();
     }
 
     createEdge(type: string, source: Node | string, target: Node | string): Promise<void> {
@@ -225,7 +234,12 @@ export abstract class APIBaseHandler {
             sourceElementId: typeof source === 'string' ? source : source.id,
             targetElementId: typeof target === 'string' ? target : target.id
         };
-        return this.actionDispatcher.dispatch(operation);
+        try {
+            return this.actionDispatcher.dispatch(operation);
+        } catch (e) {
+            console.log(e);
+        }
+        return Promise.resolve();
     }
 
     getParentDirectory(fileOrDirPath: string): string {
@@ -259,14 +273,20 @@ export abstract class APIBaseHandler {
         return fileHelper.existsDirectorySync(targetPath);
     }
 
-    readFile(relativePath: string, root = RootPath.WORKSPACE, encoding: NodeJS.BufferEncoding = 'utf-8'): string | undefined {
-        const targetPath = root.join(relativePath);
+    readFile(path: string, root = RootPath.WORKSPACE, encoding: NodeJS.BufferEncoding = 'utf-8'): string | undefined {
+        let targetPath;
+        if (path.startsWith('/')) {
+            // absolute path
+            targetPath = path;
+        } else {
+            targetPath = root.join(path);
+        }
         return fileHelper.readFileSync(targetPath, encoding);
     }
 
     readModelFromFile(relativePath: string, root = RootPath.WORKSPACE): GraphModel | undefined {
         const targetPath = root.join(relativePath);
-        return (this.sourceModelStorage as GraphModelStorage).readModelFromURI(targetPath, this.contextBundle);
+        return (this.sourceModelStorage as GraphModelStorage)?.readModelFromURI(targetPath, this.contextBundle);
     }
 
     readDirectory(relativePath: string, root = RootPath.WORKSPACE): string[] {

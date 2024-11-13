@@ -61,7 +61,7 @@ import {
     Deletable,
     deletableValue
 } from '@cinco-glsp/cinco-glsp-common';
-import { AnyObject, hasArrayProp, hasObjectProp, hasStringProp, Point } from '@eclipse-glsp/server';
+import { AnyObject, hasArrayProp, hasStringProp, Point } from '@eclipse-glsp/server';
 import { GraphModelIndex } from './graph-model-index';
 import { GraphModelStorage } from './graph-storage';
 import { getModelFilesSync, getWorkspaceRootUri } from '../utils/file-helper';
@@ -107,7 +107,7 @@ export namespace PrimeReference {
 
 export namespace ModelElementContainer {
     export function is(object: any): object is ModelElementContainer {
-        return AnyObject.is(object) && hasArrayProp(object, '_containments');
+        return AnyObject.is(object) && (hasArrayProp(object, '_containments') || 'containments' in object);
     }
 
     export function getContainedElements(host: ModelElementContainer): Node[] {
@@ -645,12 +645,16 @@ export class Node extends ModelElement {
 
 export namespace Node {
     export function is(object: any): object is Node {
-        return AnyObject.is(object) && hasObjectProp(object, '_position') && hasObjectProp(object, '_size') && ModelElement.is(object);
+        return (
+            AnyObject.is(object) &&
+            ((hasStringProp(object, 'type') && NodeType.is(getSpecOf((object as any)['type']))) ||
+                (!Edge.is(object) && ModelElement.is(object)))
+        );
     }
 }
 
 export class Container extends Node implements ModelElementContainer {
-    _containments: Node[];
+    _containments: Node[] = [];
 
     get containments(): Node[] {
         if (!this._containments) {
@@ -792,7 +796,11 @@ export class Edge extends ModelElement {
 
 export namespace Edge {
     export function is(object: any): object is Edge {
-        return AnyObject.is(object) && 'sourceID' in object && 'targetID' in object && ModelElement.is(object);
+        return (
+            AnyObject.is(object) &&
+            ((hasStringProp(object, 'type') && EdgeType.is(getSpecOf((object as any)['type']))) ||
+                (('sourceID' in object || 'source' in object) && ('targetID' in object || 'target' in object) && ModelElement.is(object)))
+        );
     }
 }
 
@@ -881,6 +889,10 @@ export class GraphModel extends ModelElement implements ModelElementContainer {
 
 export namespace GraphModel {
     export function is(object: any): object is GraphModel {
-        return ModelElement.is(object) && ModelElementContainer.is(object) && hasArrayProp(object, '_edges');
+        return (
+            ModelElement.is(object) &&
+            ((hasStringProp(object, 'type') && GraphType.is(getSpecOf((object as any)['type']))) ||
+                (ModelElementContainer.is(object) && hasArrayProp(object, '_edges')))
+        );
     }
 }
