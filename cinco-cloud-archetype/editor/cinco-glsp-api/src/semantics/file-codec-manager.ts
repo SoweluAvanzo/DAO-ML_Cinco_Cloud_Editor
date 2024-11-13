@@ -79,8 +79,8 @@ export class FileCodecManager {
                 className +
                 '" found.';
             this.notify(contextBundle.actionDispatcher, errorMsg, 'ERROR');
+            throw new Error(error);
         }
-        return undefined;
     }
 
     private static getFileCodecClass(elementTypeId: string): string {
@@ -106,11 +106,11 @@ export class FileCodecManager {
      * @param severity "NONE" | "INFO" | "WARNING" | "ERROR" | "FATAL" | "OK"
      * @returns
      */
-    static notify(actionDispatcher: ActionDispatcher, message: string, severity?: SeverityLevel, details?: string, timeout?: number): void {
+    static notify(actionDispatcher: ActionDispatcher | undefined, message: string, severity?: SeverityLevel, details?: string): void {
         const messageAction = MessageAction.create(message, {
             severity: severity ?? 'INFO',
             details: details ?? ''
         });
-        actionDispatcher.dispatch(messageAction);
+        actionDispatcher?.dispatch(messageAction);
     }
 }
