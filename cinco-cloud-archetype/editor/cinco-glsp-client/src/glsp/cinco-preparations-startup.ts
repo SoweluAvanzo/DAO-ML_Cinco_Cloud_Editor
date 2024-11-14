@@ -120,7 +120,11 @@ export class CinoPreparationsStartUp implements IDiagramStartup, Ranked {
                         c.reset();
                     }
                 });
-                this.viewerProvider.modelViewer.update(g);
+                try {
+                    this.viewerProvider.modelViewer.update(g);
+                } catch (e) {
+                    console.log(e);
+                }
                 this.typeHintProvider.postRequestModel();
             });
         }
