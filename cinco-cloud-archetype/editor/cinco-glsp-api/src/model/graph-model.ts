@@ -403,7 +403,7 @@ export class ModelElement implements IdentifiableElement {
                 // enums can be checked against literal-domain | userDefinedTypes can be checked against signature TODO:
                 if (userDefinedType || enumerator || modelElementReference) {
                     if (enumerator && !(enumerator.literals.indexOf(value) >= 0)) {
-                        throw new Error('Type-Error: Value is not inside the domain of the enumerator!');
+                        throw new Error('Type-Error: Value is not inside the domain of the enumerator: ' + value);
                     }
                     this._attributes[name] = value;
                 } else {
