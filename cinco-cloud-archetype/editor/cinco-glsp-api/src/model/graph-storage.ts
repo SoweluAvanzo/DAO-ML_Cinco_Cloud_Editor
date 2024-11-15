@@ -299,7 +299,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
             // Serializing with custom codec
             fileContent = FileCodecManager.encode(model, contextBundle);
         } else {
-            fileContent = JSON.stringify(model, undefined, 4);
+            fileContent = this.stringifyGraphModel(model);
         }
         writeFile(sourceUri, fileContent ?? '');
     }
@@ -314,8 +314,12 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
             // Serializing with custom codec
             fileContent = FileCodecManager.encode(model, contextBundle);
         } else {
-            fileContent = JSON.stringify(model, undefined, 4);
+            fileContent = this.stringifyGraphModel(model);
         }
         writeFileSync(sourceUri, fileContent ?? '');
+    }
+
+    static stringifyGraphModel(model: GraphModel): string {
+        return JSON.stringify(model, undefined, 4) + '\n';
     }
 }

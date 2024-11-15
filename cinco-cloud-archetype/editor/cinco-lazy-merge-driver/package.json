@@ -1,42 +1,43 @@
 {
-  "name": "@cinco-glsp/cinco-lazy-merge-driver",
-  "version": "1.0.0",
-  "license": "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
-  "dependencies": {
-    "@cinco-glsp/cinco-glsp-common": "1.0.0",
-    "cmd-ts": "^0.13.0",
-    "core-js": "^3.38.1"
-  },
-  "author": {
-    "name": "Cinco Cloud"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://gitlab.com/scce/cinco-cloud.git"
-  },
-  "homepage": "https://gitlab.com/scce/cinco-cloud",
-  "bugs": "https://gitlab.com/scce/cinco-cloud/issues",
-  "contributors": [
-    {
-      "name": "Cinco Cloud",
-      "url": "https://gitlab.com/scce/cinco-cloud"
+    "name": "@cinco-glsp/cinco-lazy-merge-driver",
+    "version": "1.0.0",
+    "license": "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
+    "dependencies": {
+        "@cinco-glsp/cinco-glsp-api": "1.0.0",
+        "@cinco-glsp/cinco-glsp-common": "1.0.0",
+        "cmd-ts": "^0.13.0",
+        "core-js": "^3.38.1"
+    },
+    "author": {
+        "name": "Cinco Cloud"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://gitlab.com/scce/cinco-cloud.git"
+    },
+    "homepage": "https://gitlab.com/scce/cinco-cloud",
+    "bugs": "https://gitlab.com/scce/cinco-cloud/issues",
+    "contributors": [
+        {
+            "name": "Cinco Cloud",
+            "url": "https://gitlab.com/scce/cinco-cloud"
+        }
+    ],
+    "devDependencies": {
+        "@eclipse-glsp/config": "2.0.0",
+        "@jest/globals": "29.7.0",
+        "jest": "29.7.0",
+        "rimraf": "3.0.2",
+        "ts-jest": "29.2.5",
+        "typescript": "5.6.2"
+    },
+    "scripts": {
+        "prepare": "yarn clean && yarn build",
+        "install:only": "yarn install --ignore-scripts",
+        "clean": "rimraf lib",
+        "compile": "tsc",
+        "build": "yarn install:only && yarn compile",
+        "test": "yarn compile && jest",
+        "_test-comment": "echo yarn compile is necessary for cinco-laz-merge.test.ts"
     }
-  ],
-  "devDependencies": {
-    "@eclipse-glsp/config": "2.0.0",
-    "@jest/globals": "29.7.0",
-    "jest": "29.7.0",
-    "rimraf": "3.0.2",
-    "ts-jest": "29.2.5",
-    "typescript": "5.6.2"
-  },
-  "scripts": {
-    "prepare": "yarn clean && yarn build",
-    "install:only": "yarn install --ignore-scripts",
-    "clean": "rimraf lib",
-    "compile": "tsc",
-    "build": "yarn install:only && yarn compile",
-    "test": "yarn compile && jest",
-    "_test-comment": "echo yarn compile is necessary for cinco-laz-merge.test.ts"
-  }
 }

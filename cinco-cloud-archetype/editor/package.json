@@ -26,7 +26,8 @@
     "lint": "lerna run lint --",
     "install:only": "yarn install --ignore-scripts",
     "rebuild:browser": "theia rebuild:browser",
-    "start:server": "node cinco-glsp-server/bundle/cinco-glsp-server-packed.js -p 5007"
+    "start:server": "node cinco-glsp-server/bundle/cinco-glsp-server-packed.js -p 5007",
+    "test": "lerna run test"
   },
   "devDependencies": {
     "@eclipse-glsp/config": "2.0.0",

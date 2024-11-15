@@ -14,6 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
+import { GraphModelStorage } from '../model/graph-storage';
 import { GraphModel } from '../model/graph-model';
 import { APIBaseHandler } from './api-base-handler';
 
@@ -23,7 +24,7 @@ export abstract class FileCodecHandler extends APIBaseHandler {
     }
 
     encode(model: GraphModel): string {
-        return JSON.stringify(model, undefined, 4);
+        return GraphModelStorage.stringifyGraphModel(model);
     }
 }
 

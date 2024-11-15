@@ -1,1 +1,143 @@
-{"id":"79997fb9-a2b9-4c96-9bb1-b9ec6c9fba08","_containments":[{"id":"90d9a8fc-90d4-4410-9a7c-f1c1992b3a87","type":"flowgraph:activity","_attributes":{"name":"Source A","description":""},"_size":{"width":96,"height":32},"_position":{"x":279.835039345206,"y":132.84734522498437}},{"id":"4756470d-2769-4b8f-8b06-5ea5715dcbcc","type":"flowgraph:activity","_attributes":{"name":"Node","description":""},"_size":{"width":96,"height":32},"_position":{"x":554.6052553844615,"y":197.67666345304625}},{"id":"b9777d3a-a2fb-4185-8664-83786e99fbe9","type":"flowgraph:activity","_attributes":{"name":"Source B","description":""},"_size":{"width":96,"height":32},"_position":{"x":278.7164592908677,"y":202.7051216212206}},{"id":"8b7bdc5f-4130-4e75-a0f7-74a3cfebac85","type":"flowgraph:activity","_attributes":{"name":"Source C","description":""},"_size":{"width":96,"height":32},"_position":{"x":277.26289433086566,"y":270.19788348743504}},{"id":"9a50f8ff-576a-4fbc-9cd0-145fbb18c51a","type":"flowgraph:activity","_attributes":{"name":"Target A","description":""},"_size":{"width":96,"height":32},"_position":{"x":815.0815854039363,"y":123.28083297338642}},{"id":"2910ef74-bf31-4407-b036-f883f114edd3","type":"flowgraph:activity","_attributes":{"name":"Target B","description":""},"_size":{"width":96,"height":32},"_position":{"x":812.9622894536469,"y":192.8069840575518}},{"id":"bd08dd6c-5a09-4873-969a-5cadbe3a6c9b","type":"flowgraph:activity","_attributes":{"name":"Target C","description":""},"_size":{"width":96,"height":32},"_position":{"x":815.0266255247585,"y":259.508264622031}}],"_edges":[{"id":"27242507-0532-482c-82d9-64ea2a70686b","type":"flowgraph:labeledtransition","_attributes":{"label":""},"sourceID":"8b7bdc5f-4130-4e75-a0f7-74a3cfebac85","targetID":"4756470d-2769-4b8f-8b06-5ea5715dcbcc","_routingPoints":[]},{"id":"7dabe85b-9807-4d0c-b0c2-2228cfa2a661","type":"flowgraph:labeledtransition","_attributes":{"label":""},"sourceID":"4756470d-2769-4b8f-8b06-5ea5715dcbcc","targetID":"bd08dd6c-5a09-4873-969a-5cadbe3a6c9b","_routingPoints":[]}],"type":"flowgraph:flowgraphdiagram","_attributes":{"modelName":""}}
+{
+    "id": "79997fb9-a2b9-4c96-9bb1-b9ec6c9fba08",
+    "_containments": [
+        {
+            "id": "90d9a8fc-90d4-4410-9a7c-f1c1992b3a87",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "Source A",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 279.835039345206,
+                "y": 132.84734522498437
+            }
+        },
+        {
+            "id": "4756470d-2769-4b8f-8b06-5ea5715dcbcc",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "Node",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 554.6052553844615,
+                "y": 197.67666345304625
+            }
+        },
+        {
+            "id": "b9777d3a-a2fb-4185-8664-83786e99fbe9",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "Source B",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 278.7164592908677,
+                "y": 202.7051216212206
+            }
+        },
+        {
+            "id": "8b7bdc5f-4130-4e75-a0f7-74a3cfebac85",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "Source C",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 277.26289433086566,
+                "y": 270.19788348743504
+            }
+        },
+        {
+            "id": "9a50f8ff-576a-4fbc-9cd0-145fbb18c51a",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "Target A",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 815.0815854039363,
+                "y": 123.28083297338642
+            }
+        },
+        {
+            "id": "2910ef74-bf31-4407-b036-f883f114edd3",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "Target B",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 812.9622894536469,
+                "y": 192.8069840575518
+            }
+        },
+        {
+            "id": "bd08dd6c-5a09-4873-969a-5cadbe3a6c9b",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "Target C",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 815.0266255247585,
+                "y": 259.508264622031
+            }
+        }
+    ],
+    "_edges": [
+        {
+            "id": "27242507-0532-482c-82d9-64ea2a70686b",
+            "type": "flowgraph:labeledtransition",
+            "_attributes": {
+                "label": ""
+            },
+            "sourceID": "8b7bdc5f-4130-4e75-a0f7-74a3cfebac85",
+            "targetID": "4756470d-2769-4b8f-8b06-5ea5715dcbcc",
+            "_routingPoints": []
+        },
+        {
+            "id": "7dabe85b-9807-4d0c-b0c2-2228cfa2a661",
+            "type": "flowgraph:labeledtransition",
+            "_attributes": {
+                "label": ""
+            },
+            "sourceID": "4756470d-2769-4b8f-8b06-5ea5715dcbcc",
+            "targetID": "bd08dd6c-5a09-4873-969a-5cadbe3a6c9b",
+            "_routingPoints": []
+        }
+    ],
+    "type": "flowgraph:flowgraphdiagram",
+    "_attributes": {
+        "modelName": ""
+    }
+}
