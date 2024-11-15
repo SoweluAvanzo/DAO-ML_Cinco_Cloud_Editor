@@ -14,7 +14,7 @@ appearance blackText {
 appearance clickArea {
     background (255,0,183)
 	lineWidth 0
-    transparency 0.7
+    transparency 0.4
 }
  
 nodeStyle startMarker {
