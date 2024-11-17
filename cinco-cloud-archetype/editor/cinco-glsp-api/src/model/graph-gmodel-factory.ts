@@ -57,6 +57,10 @@ export class GraphGModelFactory implements GModelFactory {
     static buildGModel(graphModel: GraphModel): GGraph {
         const children = this.collectChildren(graphModel);
         const newRoot = GGraph.builder().type(graphModel.type).id(graphModel.id).addChildren(children).build();
+        newRoot.children.map(c => {
+            (c as any)['parent'] = undefined; // remove any circular reference!
+            return c;
+        });
         return newRoot;
     }
 
@@ -65,7 +69,10 @@ export class GraphGModelFactory implements GModelFactory {
         container.containments.forEach(containment => {
             const element = deletableValue(containment);
             if (Container.is(element)) {
-                const containerChildren = this.collectChildren(element as Container);
+                const containerChildren = this.collectChildren(element as Container).map(c => {
+                    (c as any)['parent'] = undefined; // remove any circular reference!
+                    return c;
+                });
                 const containerNode = this.createNode(containment);
                 containerNode.children = containerNode.children.concat(containerChildren);
                 children.push(containerNode);
