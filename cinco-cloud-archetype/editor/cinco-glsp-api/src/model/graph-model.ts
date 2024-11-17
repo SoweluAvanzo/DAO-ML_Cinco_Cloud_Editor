@@ -78,7 +78,7 @@ export namespace IdentifiableElement {
     }
 }
 
-export interface ModelElementContainer {
+export interface ModelElementContainer extends ModelElement {
     get containments(): Deletable<Node>[];
     set containments(containments: Deletable<Node>[]);
     get containedElements(): Node[];
@@ -648,7 +648,7 @@ export namespace Node {
         return (
             AnyObject.is(object) &&
             ((hasStringProp(object, 'type') && NodeType.is(getSpecOf((object as any)['type']))) ||
-                (!Edge.is(object) && ModelElement.is(object)))
+                (!Edge.is(object) && !GraphModel.is(object) && ModelElement.is(object)))
         );
     }
 }
