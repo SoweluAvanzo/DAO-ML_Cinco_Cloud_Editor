@@ -14,7 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
-import { Action, ActionHandler, MaybePromise, SaveModelAction } from '@eclipse-glsp/server/node';
+import { Action, ActionHandler, MaybePromise } from '@eclipse-glsp/server/node';
 import { inject, injectable } from 'inversify';
 
 @injectable()
@@ -25,7 +25,6 @@ export class CompoundHandler implements ActionHandler {
     readonly modelState: GraphModelState;
 
     execute(action: Action, ...args: unknown[]): MaybePromise<Action[]> {
-        const fileUri = this.modelState.graphModel._sourceUri;
-        return [SaveModelAction.create({ fileUri })];
+        return [];
     }
 }

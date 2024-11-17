@@ -21,7 +21,6 @@ import {
     ActionDispatcher,
     ActionHandler,
     Logger,
-    SaveModelAction,
     MessageAction,
     SeverityLevel,
     SourceModelStorage,
@@ -82,7 +81,6 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
         }
 
         console.log(handlers.length + ' handlers will be executed as ' + this.baseHandlerName + '...');
-        result.push(SaveModelAction.create());
         await Promise.all(
             handlers.map(async handler => {
                 console.log(handler?.constructor.name + ' handler will be executed...');

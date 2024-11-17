@@ -39,10 +39,8 @@ import {
     DeleteArgument,
     ValidationRequestAction,
     AppearanceUpdateRequestAction,
-    ValueUpdateRequestAction,
     hasValidation,
     hasAppearanceProvider,
-    hasValueProvider,
     SYSTEM_ID
 } from '@cinco-glsp/cinco-glsp-common';
 import {
@@ -245,14 +243,6 @@ export class CincoClientSessionInitializer implements ClientSessionInitializer {
             if (hasAppearanceProvider(modelElement.type)) {
                 const appearanceRequest = AppearanceUpdateRequestAction.create(model.id, modelElement.id);
                 requests.push(appearanceRequest);
-            }
-        }
-
-        // Value Provider
-        for (const modelElement of allModelElements) {
-            if (hasValueProvider(modelElement.type)) {
-                const valueRequest = ValueUpdateRequestAction.create(model.id, modelElement.id);
-                requests.push(valueRequest);
             }
         }
 

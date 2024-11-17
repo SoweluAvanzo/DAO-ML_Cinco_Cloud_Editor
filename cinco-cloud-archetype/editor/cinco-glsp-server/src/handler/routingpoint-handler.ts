@@ -71,12 +71,17 @@ export class RoutingPointHandler extends CincoJsonOperationHandler {
                             // convert routingPoint of GLSP to routingPoints of meta-specification (explicitly)
                             routingPoint => ({ x: routingPoint.x, y: routingPoint.y }) as RoutingPoint
                         );
-
                         // update all routingPoints
                         element.routingPoints = routingPoints;
                     }
                 }
             }
+        }
+        // handle Value Change
+        if (operation.newRoutingPoints.length > 0) {
+            const modelElementId = operation.newRoutingPoints[0].elementId;
+            const element = this.modelState.index.findElement(modelElementId) as any;
+            this.handleStateChange(element);
         }
     }
 }

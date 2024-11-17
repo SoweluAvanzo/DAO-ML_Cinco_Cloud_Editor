@@ -135,6 +135,9 @@ export class PropertyEditHandler extends CincoJsonOperationHandler {
 
             // POST
             HookManager.executeHook(parameters, HookType.POST_ATTRIBUTE_CHANGE, this.getBundle());
+
+            // handle ValueChange
+            this.handleStateChange(element);
         }
     }
 

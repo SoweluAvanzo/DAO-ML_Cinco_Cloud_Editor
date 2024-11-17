@@ -32,9 +32,9 @@ import {
 export class DeleteHandler extends CincoJsonOperationHandler {
     readonly operationType = DeleteElementOperation.KIND;
 
-    executeOperation(operation: DeleteElementOperation): void {
+    async executeOperation(operation: DeleteElementOperation): Promise<void> {
         operation.elementIds.forEach(elementId => this.deleteElementById(elementId, operation));
-        this.saveAndUpdate();
+        await this.saveAndUpdate();
     }
 
     protected deleteElementById(elementId: string, operation: DeleteElementOperation): void {

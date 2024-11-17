@@ -51,15 +51,6 @@ export class ValueProviderManager extends BaseHandlerManager<ValueUpdateRequestA
         action: ValueUpdateRequestAction,
         args: any
     ): Action[] | Promise<Action[]> {
-        const result = handler.updateValue(action, args) as Action[] | Promise<Action[]>;
-        if (result instanceof Promise) {
-            return result.then(actions => {
-                handler.saveModel();
-                return actions;
-            });
-        } else {
-            handler.saveModel();
-            return result;
-        }
+        return handler.updateValue(action, args) as Action[] | Promise<Action[]>;
     }
 }
