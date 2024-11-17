@@ -21,55 +21,49 @@ import { hasArrayProp, hasNumberProp, hasObjectProp, hasStringProp } from './pro
  * Data model
  */
 
-export namespace MetaSpecification {
-    let PRIOR_META_SPECIFICATION: CompositionSpecification = {};
-    let META_SPECIFICATION: CompositionSpecification = {};
-    let cacheReady = false;
+class META_SPECIFICATION_CACHE {
+    PRIOR_META_SPECIFICATION: CompositionSpecification = {};
+    META_SPECIFICATION: CompositionSpecification = {};
+    cacheReady = false;
 
     // preprocessed
-    const SPEC_MAP: Map<string, ElementType> = new Map();
+    SPEC_MAP: Map<string, ElementType> = new Map();
 
     // delta
-    let changedAnnotations = false;
+    changedAnnotations = false;
 
     // cached
-    let CACHED_CONTAINMENTS: Map<ModelElementContainer, ElementType[]> = new Map();
-    const CACHED_EDGE_TARGETS: Map<string, NodeType[]> = new Map();
-    const CACHED_EDGE_SOURCES: Map<string, NodeType[]> = new Map();
+    CACHED_CONTAINMENTS: Map<ModelElementContainer, ElementType[]> = new Map();
+    CACHED_EDGE_TARGETS: Map<string, NodeType[]> = new Map();
+    CACHED_EDGE_SOURCES: Map<string, NodeType[]> = new Map();
 
     // precomputated (Convention: <elementTypeId, information>)
-    const IS_NODE_TYPE: Map<string, boolean> = new Map();
-    const IS_EDGE_TYPE: Map<string, boolean> = new Map();
-    const IS_GRAPH_TYPE: Map<string, boolean> = new Map();
-    const IS_CUSTOM_TYPE: Map<string, boolean> = new Map();
-    const HAS_APPEARANCE_PROVIDER: Map<string, boolean> = new Map();
-    const HAS_VALUE_PROVIDER: Map<string, boolean> = new Map();
-    const HAS_VALIDATION: Map<string, boolean> = new Map();
+    IS_NODE_TYPE: Map<string, boolean> = new Map();
+    IS_EDGE_TYPE: Map<string, boolean> = new Map();
+    IS_GRAPH_TYPE: Map<string, boolean> = new Map();
+    IS_CUSTOM_TYPE: Map<string, boolean> = new Map();
+    HAS_APPEARANCE_PROVIDER: Map<string, boolean> = new Map();
+    HAS_VALUE_PROVIDER: Map<string, boolean> = new Map();
+    HAS_VALIDATION: Map<string, boolean> = new Map();
+}
+
+export namespace MetaSpecification {
+    let CACHE = new META_SPECIFICATION_CACHE();
 
     export function get(): CompositionSpecification {
-        return META_SPECIFICATION;
+        return CACHE.META_SPECIFICATION;
     }
 
-    export function exportCachedComputations(): {
-        cachedContainments: Map<ModelElementContainer, ElementType[]>;
-        changedAnnotations: boolean;
-    } {
-        return {
-            cachedContainments: CACHED_CONTAINMENTS,
-            changedAnnotations
-        };
+    export function exportCachedComputations(): META_SPECIFICATION_CACHE {
+        return CACHE;
     }
 
-    export function importCachedComputations(computations: {
-        cachedContainments: Map<ModelElementContainer, NodeType[]>;
-        changedAnnotations: boolean;
-    }): void {
-        CACHED_CONTAINMENTS = computations.cachedContainments;
-        changedAnnotations = computations.changedAnnotations;
+    export function importCachedComputations(computations: META_SPECIFICATION_CACHE): void {
+        CACHE = computations;
     }
 
     export function merge(metaSpecification: CompositionSpecification): void {
-        cacheReady = false;
+        CACHE.cacheReady = false;
         addGraphTypes(metaSpecification.graphTypes ?? []);
         addNodeTypes(metaSpecification.nodeTypes ?? []);
         addEdgeTypes(metaSpecification.edgeTypes ?? []);
@@ -85,12 +79,12 @@ export namespace MetaSpecification {
         cacheContainments();
         detectChanges();
         computateAnnotationClassifications();
-        PRIOR_META_SPECIFICATION = get();
-        cacheReady = true;
+        CACHE.PRIOR_META_SPECIFICATION = get();
+        CACHE.cacheReady = true;
     }
 
     export function isCacheReady(): boolean {
-        return cacheReady;
+        return CACHE.cacheReady;
     }
 
     /**
@@ -98,140 +92,140 @@ export namespace MetaSpecification {
      */
 
     function createSpecMap(): void {
-        SPEC_MAP.clear();
+        CACHE.SPEC_MAP.clear();
         const spec = get();
         const elements = ((spec.nodeTypes as ElementType[]) ?? [])
             .concat(spec.edgeTypes ?? [])
             .concat(spec.graphTypes ?? [])
             .concat(spec.customTypes ?? []);
-        elements.forEach(e => SPEC_MAP.set(e.elementTypeId, e));
+        elements.forEach(e => CACHE.SPEC_MAP.set(e.elementTypeId, e));
     }
 
     export function getSpecMap(): Map<string, ElementType> {
-        return SPEC_MAP;
+        return CACHE.SPEC_MAP;
     }
 
     function cacheEdgeRelations(): void {
-        CACHED_EDGE_TARGETS.clear();
+        CACHE.CACHED_EDGE_TARGETS.clear();
         getEdgeTypes().forEach(edgeType => {
             const targets = getEdgeTargetsForCaching(edgeType);
-            CACHED_EDGE_TARGETS.set(edgeType.elementTypeId, targets);
+            CACHE.CACHED_EDGE_TARGETS.set(edgeType.elementTypeId, targets);
         });
-        CACHED_EDGE_SOURCES.clear();
+        CACHE.CACHED_EDGE_SOURCES.clear();
         getEdgeTypes().forEach(edgeType => {
             const sources = getEdgeSourcesForCaching(edgeType);
-            CACHED_EDGE_SOURCES.set(edgeType.elementTypeId, sources);
+            CACHE.CACHED_EDGE_SOURCES.set(edgeType.elementTypeId, sources);
         });
     }
 
     export function getCachedEdgeTargets(elementTypeId: string): NodeType[] {
-        return CACHED_EDGE_TARGETS.get(elementTypeId) ?? [];
+        return CACHE.CACHED_EDGE_TARGETS.get(elementTypeId) ?? [];
     }
 
     export function getCachedEdgeSources(elementTypeId: string): NodeType[] {
-        return CACHED_EDGE_SOURCES.get(elementTypeId) ?? [];
+        return CACHE.CACHED_EDGE_SOURCES.get(elementTypeId) ?? [];
     }
 
     function cacheContainments(): void {
         // pre resolve container
-        CACHED_CONTAINMENTS.clear();
+        CACHE.CACHED_CONTAINMENTS.clear();
         const containers = (getGraphTypes() as ModelElementContainer[]).concat(getContainerNodes());
         for (const container of containers) {
             const containments = getDeepContainmentsOf(container);
-            CACHED_CONTAINMENTS.set(container, containments);
+            CACHE.CACHED_CONTAINMENTS.set(container, containments);
         }
     }
 
     export function getCachedContainments(containerType: ModelElementContainer): ElementType[] {
-        return CACHED_CONTAINMENTS.get(containerType) ?? [];
+        return CACHE.CACHED_CONTAINMENTS.get(containerType) ?? [];
     }
 
     function detectChanges(): void {
-        changedAnnotations = annotationsHaveChanged(PRIOR_META_SPECIFICATION, META_SPECIFICATION);
+        CACHE.changedAnnotations = annotationsHaveChanged(CACHE.PRIOR_META_SPECIFICATION, CACHE.META_SPECIFICATION);
     }
 
     export function annotationsChanged(): boolean {
-        return changedAnnotations;
+        return CACHE.changedAnnotations;
     }
 
     function computateAnnotationClassifications(): void {
-        HAS_APPEARANCE_PROVIDER.clear();
-        HAS_VALUE_PROVIDER.clear();
-        HAS_VALIDATION.clear();
+        CACHE.HAS_APPEARANCE_PROVIDER.clear();
+        CACHE.HAS_VALUE_PROVIDER.clear();
+        CACHE.HAS_VALIDATION.clear();
 
         // AppearanceProvider
         for (const elementTypeId of getSpecMap().keys()) {
             const hasAnn = hasAppearanceProvider(elementTypeId);
-            HAS_APPEARANCE_PROVIDER.set(elementTypeId, hasAnn);
+            CACHE.HAS_APPEARANCE_PROVIDER.set(elementTypeId, hasAnn);
         }
 
         // ValueProvider
         for (const elementTypeId of getSpecMap().keys()) {
             const hasAnn = hasValueProvider(elementTypeId);
-            HAS_VALUE_PROVIDER.set(elementTypeId, hasAnn);
+            CACHE.HAS_VALUE_PROVIDER.set(elementTypeId, hasAnn);
         }
 
         // Validation
         for (const elementTypeId of getSpecMap().keys()) {
             const hasAnn = hasValidation(elementTypeId);
-            HAS_VALIDATION.set(elementTypeId, hasAnn);
+            CACHE.HAS_VALIDATION.set(elementTypeId, hasAnn);
         }
     }
 
     export function _hasAppearanceProvider(elementTypeId: string): boolean {
-        return HAS_APPEARANCE_PROVIDER.get(elementTypeId) ?? false;
+        return CACHE.HAS_APPEARANCE_PROVIDER.get(elementTypeId) ?? false;
     }
 
     export function _hasValueProvider(elementTypeId: string): boolean {
-        return HAS_VALUE_PROVIDER.get(elementTypeId) ?? false;
+        return CACHE.HAS_VALUE_PROVIDER.get(elementTypeId) ?? false;
     }
 
     export function _hasValidation(elementTypeId: string): boolean {
-        return HAS_VALIDATION.get(elementTypeId) ?? false;
+        return CACHE.HAS_VALIDATION.get(elementTypeId) ?? false;
     }
 
     function computeClassifications(): void {
-        IS_NODE_TYPE.clear();
-        IS_EDGE_TYPE.clear();
-        IS_GRAPH_TYPE.clear();
-        IS_CUSTOM_TYPE.clear();
+        CACHE.IS_NODE_TYPE.clear();
+        CACHE.IS_EDGE_TYPE.clear();
+        CACHE.IS_GRAPH_TYPE.clear();
+        CACHE.IS_CUSTOM_TYPE.clear();
 
         // graphs
-        (get().graphTypes ?? []).forEach(t => IS_GRAPH_TYPE.set(t.elementTypeId, true));
-        (get().edgeTypes ?? []).forEach(t => IS_GRAPH_TYPE.set(t.elementTypeId, false));
-        (get().nodeTypes ?? []).forEach(t => IS_GRAPH_TYPE.set(t.elementTypeId, false));
-        (get().customTypes ?? []).forEach(t => IS_GRAPH_TYPE.set(t.elementTypeId, false));
+        (get().graphTypes ?? []).forEach(t => CACHE.IS_GRAPH_TYPE.set(t.elementTypeId, true));
+        (get().edgeTypes ?? []).forEach(t => CACHE.IS_GRAPH_TYPE.set(t.elementTypeId, false));
+        (get().nodeTypes ?? []).forEach(t => CACHE.IS_GRAPH_TYPE.set(t.elementTypeId, false));
+        (get().customTypes ?? []).forEach(t => CACHE.IS_GRAPH_TYPE.set(t.elementTypeId, false));
         // nodes
-        (get().nodeTypes ?? []).forEach(t => IS_NODE_TYPE.set(t.elementTypeId, true));
-        (get().graphTypes ?? []).forEach(t => IS_NODE_TYPE.set(t.elementTypeId, false));
-        (get().edgeTypes ?? []).forEach(t => IS_NODE_TYPE.set(t.elementTypeId, false));
-        (get().customTypes ?? []).forEach(t => IS_NODE_TYPE.set(t.elementTypeId, false));
+        (get().nodeTypes ?? []).forEach(t => CACHE.IS_NODE_TYPE.set(t.elementTypeId, true));
+        (get().graphTypes ?? []).forEach(t => CACHE.IS_NODE_TYPE.set(t.elementTypeId, false));
+        (get().edgeTypes ?? []).forEach(t => CACHE.IS_NODE_TYPE.set(t.elementTypeId, false));
+        (get().customTypes ?? []).forEach(t => CACHE.IS_NODE_TYPE.set(t.elementTypeId, false));
         // edges
-        (get().edgeTypes ?? []).forEach(t => IS_EDGE_TYPE.set(t.elementTypeId, true));
-        (get().graphTypes ?? []).forEach(t => IS_EDGE_TYPE.set(t.elementTypeId, false));
-        (get().nodeTypes ?? []).forEach(t => IS_EDGE_TYPE.set(t.elementTypeId, false));
-        (get().customTypes ?? []).forEach(t => IS_EDGE_TYPE.set(t.elementTypeId, false));
+        (get().edgeTypes ?? []).forEach(t => CACHE.IS_EDGE_TYPE.set(t.elementTypeId, true));
+        (get().graphTypes ?? []).forEach(t => CACHE.IS_EDGE_TYPE.set(t.elementTypeId, false));
+        (get().nodeTypes ?? []).forEach(t => CACHE.IS_EDGE_TYPE.set(t.elementTypeId, false));
+        (get().customTypes ?? []).forEach(t => CACHE.IS_EDGE_TYPE.set(t.elementTypeId, false));
         // customType
-        (get().customTypes ?? []).forEach(t => IS_CUSTOM_TYPE.set(t.elementTypeId, true));
-        (get().graphTypes ?? []).forEach(t => IS_CUSTOM_TYPE.set(t.elementTypeId, false));
-        (get().nodeTypes ?? []).forEach(t => IS_CUSTOM_TYPE.set(t.elementTypeId, false));
-        (get().edgeTypes ?? []).forEach(t => IS_CUSTOM_TYPE.set(t.elementTypeId, false));
+        (get().customTypes ?? []).forEach(t => CACHE.IS_CUSTOM_TYPE.set(t.elementTypeId, true));
+        (get().graphTypes ?? []).forEach(t => CACHE.IS_CUSTOM_TYPE.set(t.elementTypeId, false));
+        (get().nodeTypes ?? []).forEach(t => CACHE.IS_CUSTOM_TYPE.set(t.elementTypeId, false));
+        (get().edgeTypes ?? []).forEach(t => CACHE.IS_CUSTOM_TYPE.set(t.elementTypeId, false));
     }
 
     export function isNodeType(elementTypeId: string): boolean {
-        return IS_NODE_TYPE.get(elementTypeId) ?? false;
+        return CACHE.IS_NODE_TYPE.get(elementTypeId) ?? false;
     }
 
     export function isEdgeType(elementTypeId: string): boolean {
-        return IS_EDGE_TYPE.get(elementTypeId) ?? false;
+        return CACHE.IS_EDGE_TYPE.get(elementTypeId) ?? false;
     }
 
     export function isGraphType(elementTypeId: string): boolean {
-        return IS_GRAPH_TYPE.get(elementTypeId) ?? false;
+        return CACHE.IS_GRAPH_TYPE.get(elementTypeId) ?? false;
     }
 
     export function isCustomType(elementTypeId: string): boolean {
-        return IS_CUSTOM_TYPE.get(elementTypeId) ?? false;
+        return CACHE.IS_CUSTOM_TYPE.get(elementTypeId) ?? false;
     }
 
     /*
@@ -242,12 +236,12 @@ export namespace MetaSpecification {
         const newTypes = (types ?? []).filter(
             // take those who do not already exist
             (e1: any) =>
-                ((META_SPECIFICATION as any)[typeAccessor] ?? []).filter((e2: any) => e1[idAccessor] === e2[idAccessor]).length <= 0
+                ((CACHE.META_SPECIFICATION as any)[typeAccessor] ?? []).filter((e2: any) => e1[idAccessor] === e2[idAccessor]).length <= 0
         );
         for (const newType of newTypes) {
             console.debug('Found new Type of [' + typeAccessor + ']: ' + newType[idAccessor]);
         }
-        (META_SPECIFICATION as any)[typeAccessor] = ((META_SPECIFICATION as any)[typeAccessor] ?? []).concat(newTypes);
+        (CACHE.META_SPECIFICATION as any)[typeAccessor] = ((CACHE.META_SPECIFICATION as any)[typeAccessor] ?? []).concat(newTypes);
     }
 
     export function addNodeTypes(types: NodeType[]): void {
@@ -278,7 +272,7 @@ export namespace MetaSpecification {
      * Clears the meta-specification. Can be useful for a reload functionality
      */
     export function clear(): void {
-        META_SPECIFICATION = {};
+        CACHE.META_SPECIFICATION = {};
     }
 }
 
