@@ -26,7 +26,7 @@ export class ServerArgsProvider implements IActionHandler {
     static singleton: ServerArgsProvider;
 
     constructor() {
-        if(!ServerArgsProvider.singleton) {
+        if (!ServerArgsProvider.singleton) {
             ServerArgsProvider.singleton = this;
         }
     }
@@ -42,13 +42,11 @@ export class ServerArgsProvider implements IActionHandler {
 
     static getServerArgs(): Promise<ServerArgs> {
         if (this._serverArgs) {
-            return new Promise<ServerArgs>(resolve => {
-                resolve(this._serverArgs);
-            });
+            return Promise.resolve(this._serverArgs);
         } else {
             return new Promise<ServerArgs>(resolve => {
                 ServerArgsProvider._locks.push(resolve);
-                if(this.singleton && this.singleton.actionDispatcher) {
+                if (this.singleton && this.singleton.actionDispatcher) {
                     this.singleton.actionDispatcher.dispatch(ServerArgsRequest.create());
                 }
             });
