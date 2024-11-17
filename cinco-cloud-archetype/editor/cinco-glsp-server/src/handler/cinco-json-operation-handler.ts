@@ -42,28 +42,34 @@ export abstract class CincoJsonOperationHandler extends JsonOperationHandler {
     protected sourceModelStorage: SourceModelStorage;
     @inject(ModelSubmissionHandler)
     protected submissionHandler: ModelSubmissionHandler;
+
     // Example Use-Case: async composition of changeBounds and and changeContainer
     static MODEL_ACTION_LOCK: Map<string /* ModelID */, any[] /* Resovle */> = new Map();
+    static USE_SEMAPHORE = true;
 
     async lockModelActions(): Promise<void> {
-        if (CincoJsonOperationHandler.MODEL_ACTION_LOCK.has(this.modelState.graphModel.id)) {
-            const locks = CincoJsonOperationHandler.MODEL_ACTION_LOCK.get(this.modelState.graphModel.id)!;
-            await new Promise(lock => {
-                locks.push(lock);
-            });
-            this.lockModelActions();
-        } else {
-            CincoJsonOperationHandler.MODEL_ACTION_LOCK.set(this.modelState.graphModel.id, []);
+        if (CincoJsonOperationHandler.USE_SEMAPHORE) {
+            if (CincoJsonOperationHandler.MODEL_ACTION_LOCK.has(this.modelState.graphModel.id)) {
+                const locks = CincoJsonOperationHandler.MODEL_ACTION_LOCK.get(this.modelState.graphModel.id)!;
+                await new Promise(lock => {
+                    locks.push(lock);
+                });
+                this.lockModelActions();
+            } else {
+                CincoJsonOperationHandler.MODEL_ACTION_LOCK.set(this.modelState.graphModel.id, []);
+            }
         }
     }
 
     unlockModelActions(): void {
-        if (!CincoJsonOperationHandler.MODEL_ACTION_LOCK.has(this.modelState.graphModel.id)) {
-            throw new Error('Model "' + this.modelState.graphModel.id + '" was not locked!');
-        } else {
-            const locks = CincoJsonOperationHandler.MODEL_ACTION_LOCK.get(this.modelState.graphModel.id);
-            CincoJsonOperationHandler.MODEL_ACTION_LOCK.delete(this.modelState.graphModel.id);
-            locks?.forEach(l => l());
+        if (CincoJsonOperationHandler.USE_SEMAPHORE) {
+            if (!CincoJsonOperationHandler.MODEL_ACTION_LOCK.has(this.modelState.graphModel.id)) {
+                throw new Error('Model "' + this.modelState.graphModel.id + '" was not locked!');
+            } else {
+                const locks = CincoJsonOperationHandler.MODEL_ACTION_LOCK.get(this.modelState.graphModel.id);
+                CincoJsonOperationHandler.MODEL_ACTION_LOCK.delete(this.modelState.graphModel.id);
+                locks?.forEach(l => l());
+            }
         }
     }
 
@@ -101,7 +107,7 @@ export abstract class CincoJsonOperationHandler extends JsonOperationHandler {
 
     async updateFrontendModel(): Promise<void> {
         await this.actionDispatcher.dispatch(
-            UpdateModelAction.create(GraphGModelFactory.buildGModel(this.modelState.graphModel), { animate: false })
+            UpdateModelAction.create(GraphGModelFactory.buildGModel(this.modelState.graphModel), { animate: true })
         );
     }
 }
