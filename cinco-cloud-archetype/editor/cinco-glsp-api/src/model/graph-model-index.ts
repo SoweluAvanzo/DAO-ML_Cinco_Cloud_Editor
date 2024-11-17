@@ -18,6 +18,7 @@ import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, IdentifiableElement, ModelElement, Node } from './graph-model';
 import { CincoActionDispatcher } from '../api/cinco-action-dispatcher';
 import { hasValidation, isContainer, ValidationRequestAction, ValidationResponseAction } from '@cinco-glsp/cinco-glsp-common';
+import { GraphGModelFactory } from './graph-gmodel-factory';
 
 @injectable()
 export class GraphModelIndex extends GModelIndex {
@@ -54,6 +55,17 @@ export class GraphModelIndex extends GModelIndex {
                 this.reverseIndexContainers(node as Container);
             }
         });
+    }
+
+    override find(elementId: string, predicate?: (test: GModelElement) => boolean): GModelElement | undefined {
+        if (this.idToElement.size <= 0) {
+            this.indexRoot(GraphGModelFactory.buildGModel(this.graphmodel));
+        }
+        const element = this.idToElement.get(elementId);
+        if (element && predicate ? predicate(element) : true) {
+            return element;
+        }
+        return undefined;
     }
 
     getAllModelElements(): ModelElement[] {

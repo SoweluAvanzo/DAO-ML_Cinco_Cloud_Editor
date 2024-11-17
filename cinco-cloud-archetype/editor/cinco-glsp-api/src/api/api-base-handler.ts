@@ -30,10 +30,10 @@ import {
     SeverityLevel,
     MessageAction,
     SourceModelStorage,
-    SaveModelAction,
     ModelSubmissionHandler,
     CreateNodeOperation,
-    CreateEdgeOperation
+    CreateEdgeOperation,
+    SaveModelAction
 } from '@eclipse-glsp/server';
 import { RootPath } from './root-path';
 import { Container, GraphModel, ModelElement, Node } from '../model/graph-model';
@@ -188,15 +188,19 @@ export abstract class APIBaseHandler {
         });
     }
 
-    saveModel(): Promise<void> {
-        return new Promise<void>(resolve => {
-            const result = this.sourceModelStorage?.saveSourceModel(SaveModelAction.create({ fileUri: this.modelState.sourceUri }));
-            if (result instanceof Promise) {
-                result.then(_ => resolve());
-            } else {
-                resolve();
+    async saveModel(): Promise<void> {
+        try {
+            try {
+                return await (this.sourceModelStorage as GraphModelStorage).saveSourceModel(
+                    SaveModelAction.create({ fileUri: this.modelState?.sourceUri ?? '' })
+                );
+            } catch (e: any) {
+                return await this.log(e);
             }
-        });
+        } catch (e: any) {
+            this.log(e);
+        }
+        return Promise.resolve();
     }
 
     submitModel(): Promise<void> {
@@ -286,7 +290,7 @@ export abstract class APIBaseHandler {
 
     readModelFromFile(relativePath: string, root = RootPath.WORKSPACE): GraphModel | undefined {
         const targetPath = root.join(relativePath);
-        return (this.sourceModelStorage as GraphModelStorage)?.readModelFromURI(targetPath, this.contextBundle);
+        return (this.sourceModelStorage as GraphModelStorage)?.loadFromFileSync(targetPath, this.contextBundle);
     }
 
     readDirectory(relativePath: string, root = RootPath.WORKSPACE): string[] {
