@@ -223,7 +223,7 @@ export abstract class LanguageFilesRegistry {
                 console.log(e);
             }
         }
-        if (handlerToImport) {
+        if (handlerToImport && handlerToImport.length > 0) {
             const registered = cinco_glsp_api.LanguageFilesRegistry._registered as LanguageFilesRegistryEntry[];
 
             for (const newInstance of registered) {
