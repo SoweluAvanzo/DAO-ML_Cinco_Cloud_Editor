@@ -87,7 +87,7 @@ export class CincoGLSPClientContribution extends BaseGLSPClientContribution {
     override getWebsocketAddress(opts: WebSocketConnectionOptions): string {
         const address = typeof opts === 'string' ? opts : this.getWebSocketAddress(opts);
         if (!address) {
-            throw new Error(`Could not derive server websocket address from options: ${JSON.stringify(opts, undefined, 2)}`);
+            throw new Error(`Could not derive server websocket address from options: ${JSON.stringify(opts, undefined, 4)}`);
         }
         if (!isValidWebSocketAddress(address)) {
             throw new Error(`The given websocket server address is not valid: ${address}`);

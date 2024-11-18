@@ -330,7 +330,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
                 // Serializing with custom codec
                 fileContent = FileCodecManager.encode(model, contextBundle);
             } else {
-                fileContent = JSON.stringify(model, undefined, 4);
+                fileContent = this.stringifyGraphModel(model);
             }
             await writeFile(sourceUri, fileContent ?? '');
         } catch (e: any) {
@@ -340,5 +340,9 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
         if (error) {
             throw new Error(error);
         }
+    }
+
+    static stringifyGraphModel(model: GraphModel): string {
+        return JSON.stringify(model, undefined, 4) + '\n';
     }
 }

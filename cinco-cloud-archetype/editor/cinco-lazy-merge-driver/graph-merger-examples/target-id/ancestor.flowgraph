@@ -1,1 +1,85 @@
-{"id":"8a2e68ce-bdfb-42c9-a6ac-4679de4eb7f8","_containments":[{"id":"e0f48302-1cbb-4b65-a43d-b6f259c89668","type":"flowgraph:activity","_attributes":{"name":"Source","description":""},"_size":{"width":96,"height":32},"_position":{"x":284,"y":281}},{"id":"17425242-ba38-45fd-8110-0cacd7e54783","type":"flowgraph:activity","_attributes":{"name":"A","description":""},"_size":{"width":96,"height":32},"_position":{"x":518,"y":191}},{"id":"a1cf9621-6180-4f88-970c-deb7cd4c7f72","type":"flowgraph:activity","_attributes":{"name":"B","description":""},"_size":{"width":96,"height":32},"_position":{"x":516,"y":281}},{"id":"27626fd6-fd50-45d4-96ca-23964c6226c3","type":"flowgraph:activity","_attributes":{"name":"C","description":""},"_size":{"width":96,"height":32},"_position":{"x":518,"y":359}}],"_edges":[{"id":"5c6b52b3-d278-4042-82d2-982561b636f8","type":"flowgraph:labeledtransition","_attributes":{"label":""},"sourceID":"e0f48302-1cbb-4b65-a43d-b6f259c89668","targetID":"17425242-ba38-45fd-8110-0cacd7e54783","_routingPoints":[]}],"type":"flowgraph:flowgraphdiagram","_attributes":{"modelName":""}}
+{
+    "id": "8a2e68ce-bdfb-42c9-a6ac-4679de4eb7f8",
+    "_containments": [
+        {
+            "id": "e0f48302-1cbb-4b65-a43d-b6f259c89668",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "Source",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 284,
+                "y": 281
+            }
+        },
+        {
+            "id": "17425242-ba38-45fd-8110-0cacd7e54783",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "A",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 518,
+                "y": 191
+            }
+        },
+        {
+            "id": "a1cf9621-6180-4f88-970c-deb7cd4c7f72",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "B",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 516,
+                "y": 281
+            }
+        },
+        {
+            "id": "27626fd6-fd50-45d4-96ca-23964c6226c3",
+            "type": "flowgraph:activity",
+            "_attributes": {
+                "name": "C",
+                "description": ""
+            },
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 518,
+                "y": 359
+            }
+        }
+    ],
+    "_edges": [
+        {
+            "id": "5c6b52b3-d278-4042-82d2-982561b636f8",
+            "type": "flowgraph:labeledtransition",
+            "_attributes": {
+                "label": ""
+            },
+            "sourceID": "e0f48302-1cbb-4b65-a43d-b6f259c89668",
+            "targetID": "17425242-ba38-45fd-8110-0cacd7e54783",
+            "_routingPoints": []
+        }
+    ],
+    "type": "flowgraph:flowgraphdiagram",
+    "_attributes": {
+        "modelName": ""
+    }
+}

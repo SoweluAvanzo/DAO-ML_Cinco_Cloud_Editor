@@ -1,4 +1,4 @@
 {
-  "newEagerConflicts": false,
-  "newLazyConflicts": true
+    "newEagerConflicts": false,
+    "newLazyConflicts": true
 }

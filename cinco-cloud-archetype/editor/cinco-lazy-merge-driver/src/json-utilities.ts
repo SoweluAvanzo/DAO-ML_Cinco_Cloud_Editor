@@ -89,8 +89,18 @@ export function entityArrayFromMap(map: Record<string, any>): ReadonlyArray<any>
     return Object.entries(map).map(([id, deletableEntity]) => mapDeletable(deletableEntity, entity => ({ id, ...entity })));
 }
 
-export function deterministicStringify(value: any): string {
-    return JSON.stringify(value, (_key, item) =>
-        item instanceof Object && !(item instanceof Array) ? Object.fromEntries(Object.entries(item).sort()) : item
+export function deterministicStringify(value: any, space: number | string): string {
+    return (
+        JSON.stringify(
+            value,
+            (_key, item) => {
+                if (item instanceof Object && !(item instanceof Array)) {
+                    return Object.fromEntries(Object.entries(item).sort());
+                } else {
+                    return item;
+                }
+            },
+            space
+        ) + (space === 0 ? '' : '\n')
     );
 }

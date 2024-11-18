@@ -228,8 +228,8 @@ export function arbitraryMerger<T>(): Merger<T> {
     return equalityMerger((_context, { versionA, versionB }) => ({
         value:
             Buffer.compare(
-                crypto.createHash('sha512').update(deterministicStringify(versionA)).digest(),
-                crypto.createHash('sha512').update(deterministicStringify(versionB)).digest()
+                crypto.createHash('sha512').update(deterministicStringify(versionA, 0)).digest(),
+                crypto.createHash('sha512').update(deterministicStringify(versionB, 0)).digest()
             ) <= 0
                 ? versionA
                 : versionB,
