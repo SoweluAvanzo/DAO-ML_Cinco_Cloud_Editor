@@ -118,27 +118,37 @@ describe('entityArrayFromMap', () => {
 describe('deterministicStringify', () => {
     test('sorts keys in a simple object', () => {
         expect(
-            deterministicStringify({
-                b: 1,
-                c: 2,
-                a: 3
-            })
+            deterministicStringify(
+                {
+                    b: 1,
+                    c: 2,
+                    a: 3
+                },
+                0
+            )
         ).toBe('{"a":3,"b":1,"c":2}');
     });
 
     test('sorts keys recursively', () => {
         expect(
-            deterministicStringify({
-                b: 2,
-                a: {
-                    d: 4,
-                    c: 5
-                }
-            })
+            deterministicStringify(
+                {
+                    b: 2,
+                    a: {
+                        d: 4,
+                        c: 5
+                    }
+                },
+                0
+            )
         ).toBe('{"a":{"c":5,"d":4},"b":2}');
     });
 
     test('serializes arrays', () => {
-        expect(deterministicStringify([1, 2, 3])).toBe('[1,2,3]');
+        expect(deterministicStringify([1, 2, 3], 0)).toBe('[1,2,3]');
+    });
+
+    test('indents', () => {
+        expect(deterministicStringify({ a: 1 }, 4)).toBe('{\n    "a": 1\n}\n');
     });
 });

@@ -17,6 +17,7 @@ import { argv, exit } from 'process';
 import { readFileSync, writeFileSync } from 'fs';
 import { graphMerger } from './graph-merger';
 import { command, flag, number, option, positional, run, string } from 'cmd-ts';
+import { GraphModelStorage } from '@cinco-glsp/cinco-glsp-api';
 
 const app = command({
     name: 'cinco-lazy-merge',
@@ -56,7 +57,7 @@ const app = command({
                 { ancestor, versionA, versionB }
             );
 
-            output = assureEndsWithNewline(JSON.stringify(value));
+            output = GraphModelStorage.stringifyGraphModel(value);
             exitCode = newEagerConflicts || (failMergeOnLazyConflicts && newLazyConflicts) ? 1 : 0;
         } catch (error) {
             output =
