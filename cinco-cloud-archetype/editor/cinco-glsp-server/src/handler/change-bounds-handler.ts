@@ -25,13 +25,16 @@ import { HookManager } from '@cinco-glsp/cinco-glsp-api';
 export class ChangeBoundsHandler extends CincoJsonOperationHandler {
     readonly operationType = ChangeBoundsOperation.KIND;
 
-    override executeOperation(operation: ChangeBoundsOperation): void {
+    override async executeOperation(operation: ChangeBoundsOperation): Promise<void> {
+        await this.lockModelActions();
         for (const element of operation.newBounds) {
-            this.changeElementBounds(element.elementId, element.newSize, element.newPosition);
+            await this.changeElementBounds(element.elementId, element.newSize, element.newPosition);
         }
+        await this.saveAndUpdate();
+        this.unlockModelActions();
     }
 
-    protected changeElementBounds(elementId: string, newSize?: Dimension, newPosition?: Point): void {
+    protected async changeElementBounds(elementId: string, newSize?: Dimension, newPosition?: Point): Promise<void> {
         const index = this.modelState.index;
         const node = index.findByClass(elementId, GNode);
         const nodeObj = node ? index.findNode(node.id) : undefined;
@@ -45,6 +48,7 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
             } else if (isMove) {
                 this.handleMove(nodeObj, newPosition);
             }
+            return this.handleStateChange(nodeObj, false);
         }
     }
 

@@ -42,6 +42,9 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
         } else if (!gTarget) {
             throw new Error(`Invalid target in graph model: target ID ${operation.targetElementId}`);
         }
+
+        const oldSources = edge.sourceIDs;
+        const oldTargets = edge.targetIDs;
         const source = index.findNode(gSource.id);
         const target = index.findNode(gTarget.id);
         if (!source || !target) {
@@ -69,6 +72,35 @@ export class ReconnectEdgeHandler extends CincoJsonOperationHandler {
             this.modelState.refresh();
             // POST
             HookManager.executeHook(reconnectArguments, HookType.POST_RECONNECT, this.getBundle());
+
+            // handle Value Change
+            Promise.resolve(async () => {
+                for (const id of oldSources) {
+                    const oldSource = index.findNode(id);
+                    if (oldSource) {
+                        await this.handleStateChange(oldSource, false);
+                    }
+                }
+                for (const id of oldTargets) {
+                    const oldTarget = index.findNode(id);
+                    if (oldTarget) {
+                        await this.handleStateChange(oldTarget, false);
+                    }
+                }
+                for (const id of edge.sourceIDs) {
+                    const newSource = index.findNode(id);
+                    if (newSource) {
+                        await this.handleStateChange(newSource, false);
+                    }
+                }
+                for (const id of edge.targetIDs) {
+                    const newTarget = index.findNode(id);
+                    if (newTarget) {
+                        await this.handleStateChange(newTarget, false);
+                    }
+                }
+                await this.handleStateChange(edge);
+            });
         } else {
             this.logger.info(`Could not change source and target of edge: ${edge.id}`);
             this.modelState.refresh();

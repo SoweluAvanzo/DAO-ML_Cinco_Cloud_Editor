@@ -49,7 +49,9 @@ export class SpecifiedNodeHandler extends AbstractSpecifiedNodeElementHandler {
             // POST
             parameters.modelElementId = node.id;
             HookManager.executeHook(parameters, HookType.POST_CREATE, this.getBundle());
-            this.saveAndUpdate();
+
+            // handle Value Change
+            this.handleStateChange(node);
         }
     }
 

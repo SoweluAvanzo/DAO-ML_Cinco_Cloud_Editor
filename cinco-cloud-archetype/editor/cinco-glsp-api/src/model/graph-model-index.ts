@@ -13,11 +13,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { ActionDispatcher, GModelElement, GModelIndex, GModelRoot } from '@eclipse-glsp/server';
+import { ActionDispatcher, GLSPServerError, GModelElement, GModelIndex, GModelRoot } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, IdentifiableElement, ModelElement, Node } from './graph-model';
 import { CincoActionDispatcher } from '../api/cinco-action-dispatcher';
 import { hasValidation, isContainer, ValidationRequestAction, ValidationResponseAction } from '@cinco-glsp/cinco-glsp-common';
+import { GraphGModelFactory } from './graph-gmodel-factory';
 
 @injectable()
 export class GraphModelIndex extends GModelIndex {
@@ -28,6 +29,27 @@ export class GraphModelIndex extends GModelIndex {
     protected edgesIndex = new Map<string, Edge>();
     protected nodesIndex = new Map<string, Node>();
     protected reverseContainerIndex = new Map<string, Container | GraphModel>(); // index to get Container-Node by Node
+
+    protected override doIndex(element: GModelElement): void {
+        try {
+            if (this.idToElement.has(element.id)) {
+                throw new GLSPServerError('Duplicate ID in model: ' + element.id);
+            }
+            this.idToElement.set(element.id, element);
+            const typeSet = this.typeToElements.get(element.type) ?? [];
+            typeSet.push(element);
+            this.typeToElements.set(element.type, typeSet);
+            (element.children ?? []).forEach(child => {
+                this.doIndex(child);
+                // Double check wether the parent reference of the child is set correctly
+                if (!child.parent) {
+                    child.parent = element;
+                }
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    }
 
     indexGraphModel(graphModel: GraphModel): void {
         this.graphmodel = graphModel;
@@ -54,6 +76,17 @@ export class GraphModelIndex extends GModelIndex {
                 this.reverseIndexContainers(node as Container);
             }
         });
+    }
+
+    override find(elementId: string, predicate?: (test: GModelElement) => boolean): GModelElement | undefined {
+        if (this.idToElement.size <= 0) {
+            this.indexRoot(GraphGModelFactory.buildGModel(this.graphmodel));
+        }
+        const element = this.idToElement.get(elementId);
+        if (element && predicate ? predicate(element) : true) {
+            return element;
+        }
+        return undefined;
     }
 
     getAllModelElements(): ModelElement[] {

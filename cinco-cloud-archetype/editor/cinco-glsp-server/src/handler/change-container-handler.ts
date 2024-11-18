@@ -23,11 +23,13 @@ import { deletableValue } from '@cinco-glsp/cinco-glsp-common';
 export class ChangeContainerHandler extends CincoJsonOperationHandler {
     readonly operationType = ChangeContainerOperation.KIND;
 
-    override executeOperation(operation: ChangeContainerOperation): void {
-        this.changeContainer(operation.elementId, operation.targetContainerId, operation.location ?? Point.ORIGIN);
+    override async executeOperation(operation: ChangeContainerOperation): Promise<void> {
+        await this.lockModelActions();
+        await this.changeContainer(operation.elementId, operation.targetContainerId, operation.location ?? Point.ORIGIN);
+        this.unlockModelActions();
     }
 
-    protected changeContainer(elementId: string, targetContainerId: string, location: Point): void {
+    protected async changeContainer(elementId: string, targetContainerId: string, location: Point): Promise<void> {
         const index = this.modelState.index;
         const element: IdentifiableElement | undefined = index.findElement(elementId);
         if (!element) {
@@ -41,6 +43,9 @@ export class ChangeContainerHandler extends CincoJsonOperationHandler {
                 oldParent.containments = oldParent.containments.filter(containment => deletableValue(containment).id !== elementId);
                 newParent.containments.push(element);
             }
+            await this.handleStateChange(element, false);
+            await this.handleStateChange(oldParent, false);
+            await this.handleStateChange(newParent);
         }
     }
 }

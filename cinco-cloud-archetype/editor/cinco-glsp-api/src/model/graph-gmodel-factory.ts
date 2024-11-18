@@ -20,6 +20,7 @@ import {
     GLabel,
     GModelElement,
     GModelFactory,
+    GModelRoot,
     GModelRootSchema,
     GModelSerializer,
     GNode,
@@ -39,33 +40,39 @@ export class GraphGModelFactory implements GModelFactory {
     createModel(): void {
         const graphmodel = this.modelState.graphModel;
         this.modelState.index.indexGraphModel(graphmodel);
-        const newRoot = this.buildGModel();
+        const newRoot = GraphGModelFactory.buildGModel(graphmodel);
         this.modelState.updateRoot(newRoot);
     }
 
     updateModel(graphModel: GraphModel): void {
         this.modelState.graphModel = graphModel;
-        const newRoot = this.buildGModel();
+        const newRoot = GraphGModelFactory.buildGModel(this.modelState.graphModel);
         this.modelState.updateRoot(newRoot);
     }
 
-    serializeGModel(): GModelRootSchema {
-        return this.serializer.createSchema(this.modelState.root);
+    serializeGModel(root?: GModelRoot): GModelRootSchema {
+        return this.serializer.createSchema(root ?? this.modelState.root);
     }
 
-    protected buildGModel(): GGraph {
-        const graphModel = this.modelState.graphModel;
+    static buildGModel(graphModel: GraphModel): GGraph {
         const children = this.collectChildren(graphModel);
         const newRoot = GGraph.builder().type(graphModel.type).id(graphModel.id).addChildren(children).build();
+        newRoot.children.map(c => {
+            (c as any)['parent'] = undefined; // remove any circular reference!
+            return c;
+        });
         return newRoot;
     }
 
-    protected collectChildren(container: GraphModel | Container): GModelElement[] {
+    protected static collectChildren(container: GraphModel | Container): GModelElement[] {
         const children: GModelElement[] = [];
         container.containments.forEach(containment => {
             const element = deletableValue(containment);
             if (Container.is(element)) {
-                const containerChildren = this.collectChildren(element as Container);
+                const containerChildren = this.collectChildren(element as Container).map(c => {
+                    (c as any)['parent'] = undefined; // remove any circular reference!
+                    return c;
+                });
                 const containerNode = this.createNode(containment);
                 containerNode.children = containerNode.children.concat(containerChildren);
                 children.push(containerNode);
@@ -79,7 +86,7 @@ export class GraphGModelFactory implements GModelFactory {
         return children;
     }
 
-    protected createNode<T extends Node>(containment: Deletable<T>, add?: (preBuild: GNodeBuilder, t: T) => GNodeBuilder): GNode {
+    protected static createNode<T extends Node>(containment: Deletable<T>, add?: (preBuild: GNodeBuilder, t: T) => GNodeBuilder): GNode {
         const node = deletableValue(containment);
         const spec = getSpecOf(node.type) as NodeType | undefined;
 
@@ -119,7 +126,7 @@ export class GraphGModelFactory implements GModelFactory {
         return builder.build();
     }
 
-    protected createGhostNodes(modelElementID: string, verticalOffset: number): GNode[] {
+    protected static createGhostNodes(modelElementID: string, verticalOffset: number): GNode[] {
         return [
             this.createGhostMarker(modelElementID, verticalOffset),
             this.createDeleteButton(modelElementID, verticalOffset),
@@ -127,7 +134,7 @@ export class GraphGModelFactory implements GModelFactory {
         ];
     }
 
-    protected createGhostMarker(modelElementID: string, verticalOffset: number): GNode {
+    protected static createGhostMarker(modelElementID: string, verticalOffset: number): GNode {
         return GNode.builder()
             .type('marker:ghost')
             .id(this.markerGhostID(modelElementID))
@@ -136,7 +143,7 @@ export class GraphGModelFactory implements GModelFactory {
             .build();
     }
 
-    protected createDeleteButton(modelElementID: string, verticalOffset: number): GNode {
+    protected static createDeleteButton(modelElementID: string, verticalOffset: number): GNode {
         return GNode.builder()
             .type('button:delete')
             .id(this.buttonDeleteID(modelElementID))
@@ -146,7 +153,7 @@ export class GraphGModelFactory implements GModelFactory {
             .build();
     }
 
-    protected createRestoreButton(modelElementID: string, verticalOffset: number): GNode {
+    protected static createRestoreButton(modelElementID: string, verticalOffset: number): GNode {
         return GNode.builder()
             .type('button:restore')
             .id(this.buttonRestoreID(modelElementID))
@@ -156,7 +163,7 @@ export class GraphGModelFactory implements GModelFactory {
             .build();
     }
 
-    protected createEdge<T extends Edge>(containment: Deletable<T>): GModelElement[] {
+    protected static createEdge<T extends Edge>(containment: Deletable<T>): GModelElement[] {
         const edge = deletableValue(containment);
         if (isGhost(containment) || isChoice(edge.sourceID) || isChoice(edge.targetID)) {
             const sourceSegments = edge.sourceIDs.map(sourceID =>
@@ -218,7 +225,13 @@ export class GraphGModelFactory implements GModelFactory {
         }
     }
 
-    protected buildEdgeSegment<T extends Edge>(edge: T, id: string, sourceID: string, targetID: string, childen: GModelElement[]): GEdge {
+    protected static buildEdgeSegment<T extends Edge>(
+        edge: T,
+        id: string,
+        sourceID: string,
+        targetID: string,
+        childen: GModelElement[]
+    ): GEdge {
         const spec = getSpecOf(edge.type) as EdgeType | undefined;
         const cssClasses = edge.cssClasses ?? [];
         const routerKind = spec?.view?.routerKind;
@@ -239,7 +252,7 @@ export class GraphGModelFactory implements GModelFactory {
         return builder.build();
     }
 
-    protected buildConflictMarker(edge: Edge, children: GNode[]): GNode {
+    protected static buildConflictMarker(edge: Edge, children: GNode[]): GNode {
         return GNode.builder()
             .type('marker:edge-source-target-conflict')
             .id(this.markerEdgeSourceTargetConflictID(edge.id))
@@ -249,7 +262,7 @@ export class GraphGModelFactory implements GModelFactory {
             .build();
     }
 
-    protected calculateConflictMarkerPosition(sources: ReadonlyArray<Node>, targets: ReadonlyArray<Node>): Point {
+    protected static calculateConflictMarkerPosition(sources: ReadonlyArray<Node>, targets: ReadonlyArray<Node>): Point {
         const sourcePositions = this.nodeCenterPoints(sources);
         const targetPositions = this.nodeCenterPoints(targets);
         const markerCenter = this.positionAverage([this.positionAverage(sourcePositions), this.positionAverage(targetPositions)]);
@@ -260,71 +273,71 @@ export class GraphGModelFactory implements GModelFactory {
         };
     }
 
-    protected nodeCenterPoints(nodes: ReadonlyArray<Node>): ReadonlyArray<Point> {
+    protected static nodeCenterPoints(nodes: ReadonlyArray<Node>): ReadonlyArray<Point> {
         return Array.from(nodes).map(node => this.centerPoint(this.absolutePosition(node), node._size ?? { width: 0, height: 0 }));
     }
 
-    protected centerPoint(position: Point, size: Size): Point {
+    protected static centerPoint(position: Point, size: Size): Point {
         return {
             x: position.x + size.width / 2,
             y: position.y + size.height / 2
         };
     }
 
-    protected positionAverage(points: ReadonlyArray<Point>): Point {
+    protected static positionAverage(points: ReadonlyArray<Point>): Point {
         return {
             x: this.average(points.map(point => point.x)),
             y: this.average(points.map(point => point.y))
         };
     }
 
-    protected absolutePosition(node: Node): Point {
+    protected static absolutePosition(node: Node): Point {
         const iterate = (absolutePosition: Point, element: Node | GraphModel | undefined): Point => {
             if (element === undefined || GraphModel.is(element)) {
                 return absolutePosition;
             } else {
                 return iterate(
                     { x: absolutePosition.x + element.position.x, y: absolutePosition.y + element.position.y },
-                    this.modelState.index.findContainerOf(element.id)
+                    node.index.findContainerOf(element.id)
                 );
             }
         };
         return iterate({ x: 0, y: 0 }, node);
     }
 
-    protected average(values: number[]): number {
+    protected static average(values: number[]): number {
         return values.reduce((a, b) => a + b, 0) / values.length;
     }
 
-    protected markerGhostID(nodeID: string): string {
+    protected static markerGhostID(nodeID: string): string {
         return `ghost-marker-${nodeID}`;
     }
 
-    protected buttonDeleteID(nodeID: string): string {
+    protected static buttonDeleteID(nodeID: string): string {
         return `button-delete-${nodeID}`;
     }
 
-    protected buttonRestoreID(nodeID: string): string {
+    protected static buttonRestoreID(nodeID: string): string {
         return `button-restore-${nodeID}`;
     }
 
-    protected edgeSourceSegmentID(edgeID: string, nodeID: string): string {
+    protected static edgeSourceSegmentID(edgeID: string, nodeID: string): string {
         return `edge-source-segement-${edgeID}-${nodeID}`;
     }
 
-    protected edgeTargetSegmentID(edgeID: string, nodeID: string): string {
+    protected static edgeTargetSegmentID(edgeID: string, nodeID: string): string {
         return `edge-target-segement-${edgeID}-${nodeID}`;
     }
 
-    protected markerEdgeSourceTargetConflictID(edgeID: string): string {
+    protected static markerEdgeSourceTargetConflictID(edgeID: string): string {
         return `conflict-marker-${edgeID}`;
     }
 
-    protected buttonEdgeSourceChoiceID(edgeID: string, sourceID: string): string {
+    protected static buttonEdgeSourceChoiceID(edgeID: string, sourceID: string): string {
         return `button-edge-source-choice-${edgeID}-${sourceID}`;
     }
 
-    protected buttonEdgeTargetChoiceID(edgeID: string, targetID: string): string {
+    protected static buttonEdgeTargetChoiceID(edgeID: string, targetID: string): string {
         return `button-edge-target-choice-${edgeID}-${targetID}`;
     }
 }

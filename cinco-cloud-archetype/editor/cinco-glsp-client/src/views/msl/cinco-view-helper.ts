@@ -682,12 +682,12 @@ export function fixByApplyMargin(
     let px = cx;
     let py = cy;
     if (Alignment.is(position)) {
-        if (position.horizontal === HAlignment.LEFT) {
+        if (position.horizontal === HAlignment.LEFT || position.vertical === HAlignment.CENTER) {
             px += margin.x;
         } else if (position.horizontal === HAlignment.RIGHT) {
             px -= margin.x;
         }
-        if (position.vertical === VAlignment.TOP) {
+        if (position.vertical === VAlignment.TOP || position.vertical === VAlignment.MIDDLE) {
             py += margin.y;
         } else if (position.vertical === VAlignment.BOTTOM) {
             py -= margin.y;

@@ -50,7 +50,9 @@ export class SpecifiedEdgeHandler extends AbstractSpecifiedEdgeElementHandler {
             // POST
             parameters.modelElementId = edge.id;
             HookManager.executeHook(parameters, HookType.POST_CREATE, this.getBundle());
-            this.saveAndUpdate();
+
+            // handle Value Change
+            this.handleStateChange(edge);
         }
     }
 
