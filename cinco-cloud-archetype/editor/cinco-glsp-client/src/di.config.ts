@@ -88,6 +88,7 @@ import { ButtonRestoreView } from './views/button-restore';
 import { GhostDecisionTool } from './features/tool/ghost-decision-tool';
 import { CincoSetModelCommand } from './glsp/cinco-set-model';
 import { CincoServerContextMenuItemProvider } from './glsp/cinco-server-context-menu-item-provider';
+import { CincoDeleteElementContextMenuItemProvider } from './glsp/cinco-delete-element-context-menu-item-provider';
 
 export function initializeCincoDiagramContainer(container: Container, ...containerConfiguration: ContainerConfiguration): Container {
     return initializeDiagramContainer(container, cincoDiagramModule, ...containerConfiguration);
@@ -189,6 +190,10 @@ export const cincoDiagramModule = new ContainerModule((bind, unbind, isBound, re
     // ServerContextMenuItemProvider
     unbind(ServerContextMenuItemProvider);
     bind(ServerContextMenuItemProvider).to(CincoServerContextMenuItemProvider);
+
+    // delete handler (for disable(delete) annotation)
+    unbind(DeleteElementContextMenuItemProvider);
+    bind(DeleteElementContextMenuItemProvider).to(CincoDeleteElementContextMenuItemProvider);
 
     // actions
     configureActionHandler(context, TypedServerMessageAction.KIND, ServerMessageHandler);

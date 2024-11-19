@@ -25,7 +25,8 @@ import {
     filterOptions,
     Deletable,
     ValidationResponseAction,
-    hasValidation
+    hasValidation,
+    isDeletable
 } from '@cinco-glsp/cinco-glsp-common';
 
 @injectable()
@@ -41,6 +42,11 @@ export class DeleteHandler extends CincoJsonOperationHandler {
         const index = this.modelState.index;
         const element: ModelElement | undefined = index.findModelElement(elementId);
         if (element === undefined) {
+            return;
+        }
+        const deletable = isDeletable(element.type);
+        if (!deletable) {
+            this.logger.error('Element of type "' + element.type + '" has deletion disabled!');
             return;
         }
 
