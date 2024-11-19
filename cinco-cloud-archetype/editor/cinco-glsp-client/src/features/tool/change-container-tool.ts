@@ -125,14 +125,21 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         super(tool);
     }
 
+    getSelectable(target: GModelElement): GModelElement {
+        // delegate target to selectable target (a click on an annotated @disable(select) element addresses the container)
+        return target instanceof GModelRoot ? target : (findParentByFeature(target, isSelectable) as GModelElement);
+    }
+
     override mouseDown(target: GModelElement, event: MouseEvent): Action[] {
+        // delegate target to selectable target (a click on an annotated @disable(select) element addresses the container)
+        const selectable = this.getSelectable(target);
         const result: Action[] = [];
         this.__isMouseDown = true;
 
         if (event.button === 0) {
-            if (!(target instanceof SResizeHandle)) {
+            if (!(selectable instanceof SResizeHandle)) {
                 // initiate moving start position of dragging
-                const moveable = findParentByFeature(target, isMoveable);
+                const moveable = findParentByFeature(selectable, isMoveable);
                 if (moveable !== undefined) {
                     this.startDragPosition = { x: event.pageX, y: event.pageY };
                 } else {
@@ -141,12 +148,12 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
                 this.hasDragged = false;
             }
 
-            if (!(target instanceof GModelRoot)) {
+            if (!(selectable instanceof GModelRoot)) {
                 // check if we have a resize handle (only single-selection)
-                if (this.activeResizeElement && target instanceof SResizeHandle) {
-                    this.activeResizeHandle = target;
+                if (this.activeResizeElement && selectable instanceof SResizeHandle) {
+                    this.activeResizeHandle = selectable;
                 } else {
-                    this.setActiveResizeElement(target);
+                    this.setActiveResizeElement(selectable);
                 }
                 if (this.activeResizeElement) {
                     // initDragPosition
@@ -159,7 +166,7 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
 
         // set selected elements sourcePositions (for reset of invalid actions) and bring them to front
         this.sourcePositions.clear();
-        const selectedElements = getSelectedElements(target.root);
+        const selectedElements = getSelectedElements(selectable.root);
         this.bringToFront(selectedElements);
         selectedElements.forEach(e => this.sourcePositions.set(e.id, e.bounds));
 
@@ -177,6 +184,8 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
     }
 
     override mouseMove(target: GModelElement, event: MouseEvent): Action[] {
+        // delegate target to selectable target (a click on an annotated @disable(select) element addresses the container)
+        const selectableElement = this.getSelectable(target);
         let result: Action[] = [];
 
         if (this.__isMouseDown) {
@@ -188,7 +197,11 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
                     cursorFeedbackAction(this.activeResizeHandle.isNwSeResize() ? CursorCSS.RESIZE_NWSE : CursorCSS.RESIZE_NESW),
                     applyCssClasses(this.activeResizeHandle, ChangeBoundsListener.CSS_CLASS_ACTIVE)
                 ];
-                const positionUpdate = this.pointPositionUpdater.updatePosition(target, { x: event.pageX, y: event.pageY }, !event.altKey);
+                const positionUpdate = this.pointPositionUpdater.updatePosition(
+                    selectableElement,
+                    { x: event.pageX, y: event.pageY },
+                    !event.altKey
+                );
                 if (positionUpdate) {
                     const resizeActions = this.handleResizeOnClient(positionUpdate);
                     actions.push(...resizeActions);
@@ -199,20 +212,20 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
 
         if (event.buttons === 0) {
             // move while mouse up
-            result = result.concat(this.mouseUp(target, event));
+            result = result.concat(this.mouseUp(selectableElement, event));
         } else if (this.startDragPosition) {
             // move dragged element
             if (this.elementId2startPos.size === 0) {
-                this.collectStartPositions(target.root);
+                this.collectStartPositions(selectableElement.root);
             }
             this.hasDragged = true;
-            const moveAction = this.getElementMoves(target, event, false);
+            const moveAction = this.getElementMoves(selectableElement, event, false);
             if (moveAction) {
                 result.push(moveAction);
                 // hierarchy aware feedback (potencial container change)
-                const currentMousePosition = getCurrentMousePosition(target.root, event);
-                const selectedElements = getSelectedElements(target.root);
-                const currentContainer = getHoveredContainer(currentMousePosition, target, selectedElements);
+                const currentMousePosition = getCurrentMousePosition(selectableElement.root, event);
+                const selectedElements = getSelectedElements(selectableElement.root);
+                const currentContainer = getHoveredContainer(currentMousePosition, selectableElement, selectedElements);
                 const feedback = this.handleDragFeedback(currentContainer);
                 result.push(feedback);
             }
@@ -220,15 +233,18 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
         return result;
     }
 
-    override mouseUp(element: GModelElement, event: MouseEvent): Action[] {
+    override mouseUp(target: GModelElement, event: MouseEvent): Action[] {
+        // delegate target to selectable target (a click on an annotated @disable(select) element addresses the container)
+        const selectableElement = this.getSelectable(target);
         const result: Action[] = [];
         this.__isMouseDown = false;
+
         if (this.__isMouseDrag) {
-            const root = element.root;
-            const selectedElements = getSelectedElements(element.root);
+            const root = selectableElement.root;
+            const selectedElements = getSelectedElements(selectableElement.root);
             const childrenlessSelectedElements = this.clearOutChildrenOfSelectedContainer(selectedElements);
             const mousePosition = getCurrentMousePosition(root, event);
-            const targetContainer = getHoveredContainer(mousePosition, element, selectedElements);
+            const targetContainer = getHoveredContainer(mousePosition, selectableElement, selectedElements);
             const changeContainerOperations: ChangeContainerOperation[] = [];
             // potencially change container for all selected elements
             for (const selectedElement of selectedElements) {
@@ -280,13 +296,13 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
                     result.push(...this.handleResize(this.activeResizeHandle));
                 } else {
                     // Move
-                    result.push(...this.handleMoveOnServer(element));
+                    result.push(...this.handleMoveOnServer(selectableElement));
                 }
             }
 
             // Reset feedback
             if (this.tool.movementRestrictor) {
-                this.tool.deregisterFeedback(this, [removeMovementRestrictionFeedback(element, this.tool.movementRestrictor)]);
+                this.tool.deregisterFeedback(this, [removeMovementRestrictionFeedback(selectableElement, this.tool.movementRestrictor)]);
             }
             result.push(cursorFeedbackAction(CursorCSS.DEFAULT));
             // reset data
