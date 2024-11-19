@@ -36,7 +36,9 @@ import {
     VAlignment,
     WebView,
     canBeCreated,
-    getAppearanceByNameOf
+    getAppearanceByNameOf,
+    resolveAttribute,
+    resolveParameter
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     Bounds,
@@ -538,7 +540,7 @@ export function resolveTextByProperties(node: CincoNode | CincoEdge, text: strin
         let property = '';
         if (parameterText) {
             // resolve parameter from attribute
-            property = resolveAttribute(node, parameterText);
+            property = resolveAttribute(node, parameterText) ?? '';
         }
         result = prefix + property + postfix;
     }
@@ -620,47 +622,6 @@ export function resolveTextIndexed(node: CincoNode | CincoEdge, text: string, pa
         } while (currentFind);
     }
     return result;
-}
-
-export function resolveParameter(node: CincoNode | CincoEdge, parameter: string): string {
-    const parameterPattern = RegExp('(\\$\\{(.*)\\})', 'g');
-    let result: string = parameter;
-    let currentFind;
-    do {
-        currentFind = parameterPattern.exec(result);
-        if (currentFind) {
-            const startIndex = currentFind.index;
-            const endIndex = startIndex + currentFind[0].length;
-            const prefix = result.substring(0, startIndex);
-            const postfix = result.substring(endIndex, result.length);
-            const attributeName = currentFind[2];
-            if (attributeName) {
-                // resolve parameter from attribute
-                result = prefix + resolveAttribute(node, attributeName) + postfix;
-            }
-        }
-    } while (currentFind);
-    return result;
-}
-
-export function resolveAttribute(node: CincoNode | CincoEdge, attributeName: string): string {
-    if (attributeName === 'id') {
-        return node.id;
-    }
-    if (attributeName === 'type') {
-        return node.type;
-    }
-    if (attributeName === 'specification') {
-        return JSON.stringify({ ...node.specification });
-    }
-    if (attributeName === 'size.width') {
-        return node.size.width;
-    }
-    if (attributeName === 'size.height') {
-        return node.size.height;
-    }
-    const properties = node.properties;
-    return properties ? (properties[attributeName] ?? '') : '';
 }
 
 /**

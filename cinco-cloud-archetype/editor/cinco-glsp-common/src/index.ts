@@ -42,3 +42,4 @@ export * from './protocol/editor-button-protocol';
 export * from './protocol/hooks/hook-arguments';
 export * from './protocol/hooks/hook-type';
 export * from './protocol/uri';
+export * from './helper/property-resolver';
