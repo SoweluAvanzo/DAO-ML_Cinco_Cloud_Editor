@@ -93,7 +93,8 @@
     "**/@eclipse-glsp/config": "2.0.0",
     "@eclipse-glsp/server": "2.0.0",
     "@eclipse-glsp/client": "2.0.0",
-    "@eclipse-glsp/theia-integration": "2.0.0"
+    "@eclipse-glsp/theia-integration": "2.0.0",
+    "@eclipse-glsp/layout-elk": "2.0.0"
   },
   "engines": {
     "node": ">=18.17.0",

@@ -127,7 +127,9 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
 
     getSelectable(target: GModelElement): GModelElement {
         // delegate target to selectable target (a click on an annotated @disable(select) element addresses the container)
-        return target instanceof GModelRoot ? target : (findParentByFeature(target, isSelectable) as GModelElement);
+        return target instanceof SResizeHandle || target instanceof GModelRoot
+            ? target
+            : (findParentByFeature(target, isSelectable) as GModelElement);
     }
 
     override mouseDown(target: GModelElement, event: MouseEvent): Action[] {
@@ -210,26 +212,29 @@ export class ChangeContainerAndBoundsListener extends ChangeBoundsListener imple
             }
         }
 
-        if (event.buttons === 0) {
-            // move while mouse up
-            result = result.concat(this.mouseUp(selectableElement, event));
-        } else if (this.startDragPosition) {
-            // move dragged element
-            if (this.elementId2startPos.size === 0) {
-                this.collectStartPositions(selectableElement.root);
-            }
-            this.hasDragged = true;
-            const moveAction = this.getElementMoves(selectableElement, event, false);
-            if (moveAction) {
-                result.push(moveAction);
-                // hierarchy aware feedback (potencial container change)
-                const currentMousePosition = getCurrentMousePosition(selectableElement.root, event);
-                const selectedElements = getSelectedElements(selectableElement.root);
-                const currentContainer = getHoveredContainer(currentMousePosition, selectableElement, selectedElements);
-                const feedback = this.handleDragFeedback(currentContainer);
-                result.push(feedback);
+        if (!this.activeResizeHandle) {
+            if (event.buttons === 0) {
+                // move while mouse up
+                result = result.concat(this.mouseUp(selectableElement, event));
+            } else if (this.startDragPosition) {
+                // move dragged element
+                if (this.elementId2startPos.size === 0) {
+                    this.collectStartPositions(selectableElement.root);
+                }
+                this.hasDragged = true;
+                const moveAction = this.getElementMoves(selectableElement, event, false);
+                if (moveAction) {
+                    result.push(moveAction);
+                    // hierarchy aware feedback (potencial container change)
+                    const currentMousePosition = getCurrentMousePosition(selectableElement.root, event);
+                    const selectedElements = getSelectedElements(selectableElement.root);
+                    const currentContainer = getHoveredContainer(currentMousePosition, selectableElement, selectedElements);
+                    const feedback = this.handleDragFeedback(currentContainer);
+                    result.push(feedback);
+                }
             }
         }
+
         return result;
     }
 

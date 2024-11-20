@@ -15,6 +15,7 @@
  ********************************************************************************/
 
 import { createAppModule, SocketServerLauncher } from '@eclipse-glsp/server/node';
+import { configureELKLayoutModule } from '@eclipse-glsp/layout-elk';
 import { Container } from 'inversify';
 import { CincoDiagramModule } from './diagram/cinco-diagram-module';
 import { CincoWebSocketServerLauncher } from './cinco-glsp-websocket-server-launcher';
@@ -22,6 +23,7 @@ import { DEFAULT_WEB_SERVER_PORT, DEFAULT_WEBSOCKET_PATH } from '@cinco-glsp/cin
 import { createCincoCliParser } from './cinco-cli-parser';
 import { startWebServer } from './web-server/cinco-web-server';
 import { CincoServerModule } from './cinco-server-modules';
+import { CincoLayoutConfigurator } from './diagram/cinco-layout-configurator';
 
 export async function launch(argv?: string[]): Promise<void> {
     const argParser = createCincoCliParser();
@@ -30,7 +32,8 @@ export async function launch(argv?: string[]): Promise<void> {
     const appContainer = new Container();
     appContainer.load(createAppModule(options));
 
-    const serverModule = new CincoServerModule().configureDiagramModule(new CincoDiagramModule());
+    const elkLayoutModule = configureELKLayoutModule({ algorithms: ['layered'], layoutConfigurator: CincoLayoutConfigurator });
+    const serverModule = new CincoServerModule().configureDiagramModule(new CincoDiagramModule(), elkLayoutModule);
 
     // check if webServer should be started
     const webServerPort = Number.parseInt(`${options.webServerPort ?? DEFAULT_WEB_SERVER_PORT}`, 10);
