@@ -68,17 +68,13 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
     @inject(OperationHandlerRegistry) operationHandlerRegistry: OperationHandlerRegistry;
     protected counter: number;
     protected WHITE_LIST = ['Nodes', 'Edges'];
-    readonly contextBundle: ContextBundle;
 
     constructor() {
         super();
-        this.contextBundle = new ContextBundle(
-            this.state,
-            this.logger,
-            this.actionDispatcher,
-            this.sourceModelStorage,
-            this.submissionHandler
-        );
+    }
+
+    getBundle(): ContextBundle {
+        return new ContextBundle(this.state, this.logger, this.actionDispatcher, this.sourceModelStorage, this.submissionHandler);
     }
 
     async getItems(args?: Args): Promise<PaletteItem[]> {
@@ -414,7 +410,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                         await Promise.all(
                             modelFiles.map(async file => {
                                 const filePath = path.join(getWorkspaceRootUri(), file);
-                                const model = await GraphModelStorage.readModelFromFile(filePath, this.contextBundle);
+                                const model = await GraphModelStorage.readModelFromFile(filePath, this.getBundle());
                                 if (model) {
                                     const allSupportedModelElementsOfModel = model
                                         ?.getAllContainedElements()
