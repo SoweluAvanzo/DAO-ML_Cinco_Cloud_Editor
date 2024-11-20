@@ -36,8 +36,7 @@ export class ChangeBoundsHandler extends CincoJsonOperationHandler {
 
     protected async changeElementBounds(elementId: string, newSize?: Dimension, newPosition?: Point): Promise<void> {
         const index = this.modelState.index;
-        const node = index.findByClass(elementId, GNode);
-        const nodeObj = node ? index.findNode(node.id) : undefined;
+        const nodeObj = index.findNode(elementId);
         if (nodeObj) {
             const oldSize = nodeObj.size;
             const oldPosition = nodeObj.position;
