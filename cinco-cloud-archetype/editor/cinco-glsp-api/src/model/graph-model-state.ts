@@ -23,7 +23,7 @@ import {
     isContainer,
     mapDeletable
 } from '@cinco-glsp/cinco-glsp-common';
-import { DefaultModelState, JsonModelState } from '@eclipse-glsp/server';
+import { DefaultModelState, GEdge, GModelElement, GModelRoot, GNode, JsonModelState } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 import { Container, Edge, GraphModel, ModelElement, ModelElementContainer, Node } from './graph-model';
 import { GraphModelIndex } from './graph-model-index';
@@ -130,5 +130,41 @@ export class GraphModelState extends DefaultModelState implements JsonModelState
         }
         graphModel._sourceUri = sourceUri;
         return graphModel;
+    }
+
+    override updateRoot(newRoot: GModelRoot): void {
+        if (!newRoot.revision && this.root) {
+            newRoot.revision = this.root.revision;
+        }
+        this.root = newRoot;
+        this.index.indexRoot(newRoot);
+
+        // update changes
+        this.updateProperties(newRoot);
+    }
+
+    updateProperties(gElement: GModelElement): void {
+        const element = this.index.findElement(gElement.id);
+        if (gElement instanceof GEdge && Edge.is(element)) {
+            // update edge properties
+        } else if (gElement instanceof GNode && Node.is(element)) {
+            // update node properties
+            const newWidth = gElement.layoutOptions?.prefWidth as number;
+            const newHeight = gElement.layoutOptions?.prefHeight as number;
+            element.size = {
+                width: newWidth ?? element.size.width,
+                widthFixed: element.size.widthFixed,
+                height: newHeight ?? element.size.height,
+                heightFixed: element.size.heightFixed
+            };
+            element.position = gElement.position;
+        } else if (gElement instanceof GModelRoot && GraphModel.is(element)) {
+            // update model properties
+        }
+        if (ModelElementContainer.is(element)) {
+            gElement.children.forEach(c => {
+                this.updateProperties(c);
+            });
+        }
     }
 }

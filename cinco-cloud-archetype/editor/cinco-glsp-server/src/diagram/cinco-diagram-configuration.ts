@@ -23,14 +23,18 @@ import {
     NodeType,
     isResizeable,
     isMovable,
-    isDeletable
+    isDeletable,
+    getGraphTypes
 } from '@cinco-glsp/cinco-glsp-common';
 import {
     DiagramConfiguration,
     EdgeTypeHint,
+    GEdge,
     getDefaultMapping,
+    GGraph,
     GModelElement,
     GModelElementConstructor,
+    GNode,
     ServerLayoutKind,
     ShapeTypeHint
 } from '@eclipse-glsp/server';
@@ -43,7 +47,16 @@ export class CincoDiagramConfiguration implements DiagramConfiguration {
     animatedUpdate = true;
 
     get typeMapping(): Map<string, GModelElementConstructor<GModelElement>> {
-        return getDefaultMapping();
+        const mapping = getDefaultMapping();
+        const graphTypes = getGraphTypes().map(t => t.elementTypeId);
+        const nodeTypes = getNodeTypes().map(t => t.elementTypeId);
+        const edgeTypes = getEdgeTypes().map(t => t.elementTypeId);
+
+        graphTypes.forEach(t => mapping.set(t, GGraph));
+        nodeTypes.forEach(t => mapping.set(t, GNode));
+        edgeTypes.forEach(t => mapping.set(t, GEdge));
+
+        return mapping;
     }
 
     get shapeTypeHints(): ShapeTypeHint[] {
