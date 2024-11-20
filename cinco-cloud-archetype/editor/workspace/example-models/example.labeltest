@@ -1,0 +1,70 @@
+{
+    "id": "770830b4-59d0-4f86-8c2d-757d59836c89",
+    "_containments": [
+        {
+            "id": "ca5cd81f-f5cd-44a7-b485-2f0cdb375447",
+            "type": "labeltest:referencedwithid",
+            "_attributes": {
+                "primeLabel": "Some Prime Label for PrimeNode2 By ReferencedWithID"
+            },
+            "_size": {
+                "width": 150,
+                "height": 50
+            },
+            "_position": {
+                "x": 795.001708984375,
+                "y": 180.01041412353516
+            }
+        },
+        {
+            "id": "28cbe03e-97d4-42b2-a69e-a336d2f54f98",
+            "type": "labeltest:referencedwithlabel",
+            "_attributes": {
+                "primeLabel": "Some Prime Label for PrimeNode2 By ReferencedWithLabel",
+                "label": "Some Referenced Label for PrimeNode1"
+            },
+            "_size": {
+                "width": 150,
+                "height": 50
+            },
+            "_position": {
+                "x": 797.001708984375,
+                "y": 309.01041412353516
+            }
+        },
+        {
+            "id": "4412ba2e-22a9-48c0-8d4c-159be9307da3",
+            "type": "labeltest:referencedwithname",
+            "_attributes": {
+                "primeLabel": "Some Prime Label for PrimeNode2 By ReferencedWithName",
+                "name": "Some Referenced Name for PrimeNode1"
+            },
+            "_size": {
+                "width": 150,
+                "height": 50
+            },
+            "_position": {
+                "x": 798.001708984375,
+                "y": 374.01041412353516
+            }
+        },
+        {
+            "id": "2247fd38-9f27-4220-b92c-db3f06d73008",
+            "type": "labeltest:referencedwithunspecified",
+            "_attributes": {
+                "primeLabel": "Some Prime Label for PrimeNode2 By ReferencedWithUnspecified"
+            },
+            "_size": {
+                "width": 150,
+                "height": 50
+            },
+            "_position": {
+                "x": 797.001708984375,
+                "y": 246.01041412353516
+            }
+        }
+    ],
+    "_edges": [],
+    "type": "labeltest:labeltestmodel",
+    "_attributes": {}
+}

@@ -327,6 +327,9 @@ export class MGLGenerator {
             if (modelElement.primeReference) {
                 modelElementSpec.primeReference = {};
                 modelElementSpec.primeReference.name = modelElement.primeReference.name;
+                modelElementSpec.primeReference.annotations = modelElement.primeReference.annotations.map(annotation =>
+                    handleAnnotation(annotation)
+                );
                 if (isReferencedEClass(modelElement.primeReference)) {
                     throw new Error(
                         'EClass are currently not supported as prime Refernce. Go to gitlab.com/scce/cinco-cloud and contribute!'

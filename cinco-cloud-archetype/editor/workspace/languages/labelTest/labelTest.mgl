@@ -1,0 +1,45 @@
+stylePath "labelTest.style" 
+
+graphModel LabelTestModel {
+    diagramExtension "labeltest"
+    containableElements (PrimeNode1, PrimeNode2, PrimeLabelNode)  
+}
+
+node PrimeNode1 { 
+	style typeStyle1("PrimeNode1")
+
+    prime this::PrimeLabelNode as SomeReferenceCategory
+}
+
+@palette("Some Other Category")
+node PrimeNode2 { 
+	style typeStyle1("PrimeNode2")
+
+    @label("${primeLabel}") 
+    prime this::PrimeLabelNode as OnlyUsePrimeLabel
+}
+
+abstract node PrimeLabelNode{
+    attr string as primeLabel
+}
+
+node ReferencedWithUnspecified extends PrimeLabelNode {
+	style typeStyle2("ReferencedWithUnspecified")
+}
+
+@label("${label}")
+node ReferencedWithLabel extends PrimeLabelNode {
+	style typeStyle2("ReferencedWithLabel")
+    attr string as label  
+}
+
+@label("${name}")
+node ReferencedWithName extends PrimeLabelNode {
+	style typeStyle2("ReferencedWithName")
+    attr string as name   
+}
+
+@label("${id}")
+node ReferencedWithID extends PrimeLabelNode {
+	style typeStyle2("ReferencedWithID")
+}

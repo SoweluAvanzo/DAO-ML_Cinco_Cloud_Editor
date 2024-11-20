@@ -721,10 +721,19 @@ export namespace CompositionSpecification {
     }
 }
 
-export interface Type {
+export interface Annotatable {
+    annotations?: Annotation[];
+}
+
+export namespace Annotatable {
+    export function is(object: any): object is Annotatable {
+        return object !== undefined && hasArrayProp(object, 'annotations');
+    }
+}
+
+export interface Type extends Annotatable {
     elementTypeId: string;
     label: string;
-    annotations?: Annotation[];
     abstract?: boolean;
     parent?: string;
 }
@@ -739,7 +748,6 @@ export interface ElementType extends Type {
     icon?: string;
     view?: View;
     superTypes?: string[];
-    annotations?: Annotation[];
     attributes?: Attribute[];
 }
 
@@ -773,8 +781,7 @@ export interface NodeType extends ElementType {
     primeReference?: ReferencedModelElement;
 }
 
-export interface ReferencedModelElement {
-    annotation?: Annotation;
+export interface ReferencedModelElement extends Annotatable {
     name: string;
     type: string;
 }
@@ -810,14 +817,13 @@ export namespace EdgeType {
     }
 }
 
-export interface Attribute {
+export interface Attribute extends Annotatable {
     name: string;
     type: string;
     bounds?: Constraint;
     final?: boolean;
     unique?: false;
     defaultValue?: string;
-    annotations?: Annotation[];
 }
 
 export interface CustomType extends Type {}
@@ -842,7 +848,6 @@ export class UserDefinedType implements ElementType, CustomType {
     icon?: string | undefined;
     view?: View | undefined;
     superTypes?: string[];
-    annotations?: Annotation[] | undefined;
     elementTypeId: string;
     label: string;
     attributes: Attribute[];
@@ -1199,18 +1204,18 @@ export function getFileCodec(elementTypeId: string): string[][] {
     return getAnnotationValues(type, 'FileCodec');
 }
 
-export function getAnnotationValues(type: ElementType, annotation: string): string[][] {
+export function getAnnotationValues(type: Annotatable, annotation: string): string[][] {
     const annotations = getAnnotations(type, annotation);
     return annotations.map(v => v.values);
 }
 
-function hasAnnotation(type: ElementType, annotation: string): boolean {
+function hasAnnotation(type: Annotatable, annotation: string): boolean {
     const annotations = getAnnotations(type, annotation);
     return annotations.filter(a => a.name === annotation).length > 0;
 }
 
-function getAnnotations(elementSpec: ElementType, annotation: string): Annotation[] {
-    return (elementSpec.annotations ?? []).filter(a => a.name === annotation);
+function getAnnotations(type: Annotatable, annotation: string): Annotation[] {
+    return (type?.annotations ?? []).filter(a => a.name === annotation);
 }
 
 export function getAllAnnotations(type: string): Annotation[] {
@@ -1466,7 +1471,7 @@ export function getPaletteIconPath(paletteCategory: string | undefined): string 
     return undefined;
 }
 
-function getPalettesFromAnnotation(type: ElementType): string[][] {
+function getPalettesFromAnnotation(type: Annotatable): string[][] {
     return getAnnotations(type, 'palette').map(a => a.values);
 }
 
@@ -1489,7 +1494,8 @@ export function getPalettes(type: ElementType | undefined): string[] {
     const paletteNamesOfAnnotations = getPalettesFromAnnotation(type).map(a => a[0]);
     result = ((type as any).palettes ?? []).concat(paletteNamesOfAnnotations);
     if (result.length <= 0 && isPrime(type)) {
-        result.push((type as any).primeReference.name);
+        const reference = (type as NodeType).primeReference!;
+        result.push(reference.name);
     }
     return result;
 }
@@ -1527,9 +1533,16 @@ export function getPrimeNodePaletteCategoryOf(elementTypeId: string): PrimeNodeP
         return undefined;
     }
     const primeReference = spec.primeReference!;
+    const paletteCategoriesFromAnnotations = getPalettesFromAnnotation(spec).flat();
+    let label: string;
+    if (paletteCategoriesFromAnnotations.length > 0) {
+        label = paletteCategoriesFromAnnotations[0];
+    } else {
+        label = primeReference.name;
+    }
     return {
         primeElementTypeId: spec.elementTypeId,
-        label: primeReference.name,
+        label: label,
         elementTypeIds: [primeReference.type]
     };
 }
@@ -1559,6 +1572,40 @@ export function getAllPaletteAnnotations(): Annotation[] {
         .map(e => (e.annotations ?? []).filter(a => a.name === 'palette'))
         .flat();
     return nodePalleteAnnotations.concat(edgePaletteAnnotations);
+}
+
+/**
+ * Label (For References)
+ *
+ * e.g.
+ * @label('label') // global label
+ * @label('category1', 'label2') // label per category
+ * @label('${name}') // attribute based label
+ * node Foo {...}
+ */
+
+export function hasLabelAnnotation(type: Annotatable): boolean {
+    return hasAnnotation(type, 'label');
+}
+
+export function getLabelAnnotations(type: Annotatable): string[][] {
+    return getAnnotations(type, 'label').map(a => a.values);
+}
+
+export function getLabel(type: Annotatable, category?: string): string | undefined {
+    const labelAnnotations = getAnnotations(type, 'label').map(a => a.values);
+    if (category) {
+        const categoryLabels = labelAnnotations.filter(l => l.length >= 2);
+        const labelForCategory = categoryLabels.find(l => l[0] === category);
+        if (labelForCategory) {
+            return labelForCategory[1];
+        }
+    }
+    const globalLabel = labelAnnotations.find(l => l.length === 1);
+    if (globalLabel) {
+        return globalLabel[0];
+    }
+    return undefined;
 }
 
 /**

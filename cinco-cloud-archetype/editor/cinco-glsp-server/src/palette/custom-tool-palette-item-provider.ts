@@ -21,16 +21,19 @@ import {
     getEdgeSpecOf,
     getGraphSpecOf,
     getIconClass,
+    getLabel,
     getNodePalettes,
     getNodeSpecOf,
     getPaletteIconClass,
     getPalettes,
     getPrimeNodePaletteCategoriesOf,
     getSpecOf,
+    hasLabelAnnotation,
     hasPalette,
     isCreateable,
     isPrimeReference,
     NodeType,
+    resolveParameter,
     UPDATING_RACE_CONDITION_INDICATOR
 } from '@cinco-glsp/cinco-glsp-common';
 import {
@@ -292,7 +295,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                                 if (primeReferencedEntries && primeReferencedEntries.length > 0) {
                                     primeReferencedEntries.forEach(entry => {
                                         if (entry.primeNodeType === elementTypeId) {
-                                            paletteItems.push(this.createPaletteItem(action, handler, elementTypeId, entry));
+                                            paletteItems.push(this.createPaletteItem(action, handler, elementTypeId, entry, categoryId));
                                         }
                                     });
                                 }
@@ -314,11 +317,12 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         action: PaletteItem.TriggerElementCreationAction,
         handler: CreateOperationHandler,
         elementTypeId?: string,
-        primeArgs?: PrimeReferencedEntry
+        primeArgs?: PrimeReferencedEntry,
+        categoryId?: string
     ): PaletteItem {
         const spec = getSpecOf(elementTypeId);
         if (elementTypeId && spec && isPrimeReference(spec) && primeArgs) {
-            return this.createPrimePaletteIten(action, handler, elementTypeId, primeArgs);
+            return this.createPrimePaletteIten(action, handler, elementTypeId, primeArgs, categoryId);
         }
         const label = elementTypeId && handler instanceof SpecifiedElementHandler ? handler.getLabelFor(elementTypeId) : handler.label;
         let iconClass: string | undefined = undefined;
@@ -348,10 +352,31 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         action: PaletteItem.TriggerElementCreationAction,
         handler: CreateOperationHandler,
         elementTypeId: string,
-        primeArgs: PrimeReferencedEntry
+        primeArgs: PrimeReferencedEntry,
+        categoryId?: string
     ): PaletteItem {
+        const primeRefSpec = getSpecOf(elementTypeId) as NodeType;
         const elementSpecOfPrimedType = getSpecOf(primeArgs.instanceType!) as ElementType;
-        const label = elementSpecOfPrimedType.label + '\n[' + primeArgs.instanceId + ']\n' + ' (' + primeArgs.filePath + ')';
+
+        let label: string | undefined;
+        // Annotation on pointer
+        if (primeRefSpec.primeReference && hasLabelAnnotation(primeRefSpec.primeReference)) {
+            label = getLabel(primeRefSpec.primeReference, categoryId);
+            if (label) {
+                label = resolveParameter(primeArgs.element, label);
+            }
+        }
+        // Fallback: annotation on reference
+        if ((!label || label.length <= 0) && hasLabelAnnotation(elementSpecOfPrimedType)) {
+            label = getLabel(elementSpecOfPrimedType, categoryId);
+            if (label) {
+                label = resolveParameter(primeArgs.element, label);
+            }
+        }
+        // Last Fallback:
+        if (!label || label.length <= 0) {
+            label = elementSpecOfPrimedType.label + '\n[' + primeArgs.instanceId + ']\n' + ' (' + primeArgs.filePath + ')';
+        }
 
         let iconClass: string | undefined = undefined;
         if (handler instanceof SpecifiedElementHandler) {
@@ -408,7 +433,8 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
                                                 instanceType: element.type,
                                                 modelId: model.id,
                                                 modelType: model.type,
-                                                filePath: file
+                                                filePath: file,
+                                                element
                                             }) as PrimeReferencedEntry
                                     );
                                 }
@@ -450,6 +476,7 @@ interface PrimeReferencedEntry {
     modelId: string;
     modelType: string;
     filePath: string;
+    element: ModelElement;
 }
 
 namespace PrimeReferencedEntry {

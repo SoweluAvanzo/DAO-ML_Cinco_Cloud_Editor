@@ -81,11 +81,25 @@ export class MglAnnotations {
             ]
         },
         {
+            name: 'label',
+            parameterLimits: [1, 1],
+            description:
+                'This annotations set the label of the element for references e.g. inside the palette.' +
+                ' E.g. `label("someNode")` or `label("${name}")` with a contained reference.' +
+                ' The `label("${name}")` uses a declared attribute "name" as a label for mapping.',
+            valueRules: [
+                {
+                    position: [0, -1],
+                    type: AnnotationValue.STRING
+                }
+            ]
+        },
+        {
             name: 'palette',
             parameterLimits: [0, -1],
             description:
                 'This annotations set the category of the palette in which the modelElement will be shown.' +
-                ' E.g. `palette("MySpecialNodes")`. This will create a category `MySpecialNodes` inside the palette.',
+                ' E.g. `palette("My Special Nodes")`. This will create a category `My Special Nodes` inside the palette.',
             extra: (annotation: Annotation, acceptor: ValidationAcceptor) => {
                 if (isGraphModel(annotation.$container.$type)) {
                     acceptor('error', 'GraphModels are not shown in the palette!', {
