@@ -56,7 +56,9 @@ export function resolveAttribute(element: any, attributeName: string): string | 
         return '' + element.position.y;
     }
     try {
+        // frontend
         return element.properties ? element.properties[attributeName]
+            // backend
             : element.getProperty(attributeName);
     } catch (e) {
         console.log(e);
