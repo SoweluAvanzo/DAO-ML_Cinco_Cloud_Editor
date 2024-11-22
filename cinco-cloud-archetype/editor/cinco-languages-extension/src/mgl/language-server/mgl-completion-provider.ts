@@ -38,7 +38,7 @@ import { MglAnnotations } from '@cinco-glsp/cinco-languages';
 
 export class MglCompletionProvider extends DefaultCompletionProvider {
     services: LangiumServices;
-    annotations = MglAnnotations.allAnnotations;
+    annotations = MglAnnotations.allAnnotationNames;
     hooks = MglAnnotations.HOOK_VALUES;
 
     entityCompletions: { gate: (node: CstNode) => boolean; completion: CompletionItem }[] = [
