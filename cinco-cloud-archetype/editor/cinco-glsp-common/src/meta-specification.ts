@@ -1338,6 +1338,14 @@ export function isSelectable(elementTypeId: string): boolean {
     return getAnnotations(type, 'disable').filter(a => a.values.includes('select')).length <= 0;
 }
 
+export function isLayoutable(elementTypeId: string): boolean {
+    const type = getSpecOf(elementTypeId);
+    if (!type) {
+        return false;
+    }
+    return getAnnotations(type, 'disable').filter(a => a.values.includes('layout')).length <= 0;
+}
+
 function annotationsHaveChanged(oldSpec: CompositionSpecification | undefined, newSpec: CompositionSpecification): boolean {
     if (!oldSpec) {
         return true;
@@ -1572,6 +1580,27 @@ export function getAllPaletteAnnotations(): Annotation[] {
         .map(e => (e.annotations ?? []).filter(a => a.name === 'palette'))
         .flat();
     return nodePalleteAnnotations.concat(edgePaletteAnnotations);
+}
+
+/**
+ * Layout
+ */
+
+export function hasLayoutAnnotation(type: Annotatable): boolean {
+    return hasAnnotation(type, 'layout');
+}
+
+export function getLayoutAnnotations(type: Annotatable): string[][] {
+    return getAnnotations(type, 'layout').map(a => a.values);
+}
+
+export function getLayout(type: Annotatable): string | undefined {
+    const annotations = getAnnotations(type, 'layout').map(a => a.values);
+    const layout = annotations.find(l => l.length === 1);
+    if (layout) {
+        return layout[0];
+    }
+    return undefined;
 }
 
 /**

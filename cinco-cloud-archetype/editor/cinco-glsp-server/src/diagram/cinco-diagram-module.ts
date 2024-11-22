@@ -34,7 +34,7 @@ import {
     SourceModelStorage,
     ToolPaletteItemProvider
 } from '@eclipse-glsp/server';
-import { injectable } from 'inversify';
+import { injectable, interfaces } from 'inversify';
 import { CustomContextMenuItemProvider } from '../context-menu/custom-context-menu-item-provider';
 import { ApplyLabelEditHandler } from '../handler/apply-label-edit-handler';
 import { ChangeBoundsHandler } from '../handler/change-bounds-handler';
@@ -154,5 +154,14 @@ export class CincoDiagramModule extends DiagramModule {
 
     protected override bindActionDispatcher(): BindingTarget<ActionDispatcher> {
         return CincoActionDispatcher;
+    }
+
+    protected override configure(
+        bind: interfaces.Bind,
+        unbind: interfaces.Unbind,
+        isBound: interfaces.IsBound,
+        rebind: interfaces.Rebind
+    ): void {
+        super.configure(bind, unbind, isBound, rebind);
     }
 }

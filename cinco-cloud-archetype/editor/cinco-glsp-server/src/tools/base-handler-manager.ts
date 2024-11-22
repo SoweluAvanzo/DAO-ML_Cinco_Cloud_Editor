@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { APIBaseHandler, GraphModelState, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
+import { APIBaseHandler, GraphGModelFactory, GraphModelState, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
 import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
 import { GLSP_TEMP_ID, ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
 import {
@@ -21,10 +21,10 @@ import {
     ActionDispatcher,
     ActionHandler,
     Logger,
+    GModelFactory,
     MessageAction,
     SeverityLevel,
-    SourceModelStorage,
-    ModelSubmissionHandler
+    SourceModelStorage
 } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 
@@ -42,8 +42,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     protected readonly actionDispatcher: ActionDispatcher;
     @inject(SourceModelStorage)
     protected sourceModelStorage: SourceModelStorage;
-    @inject(ModelSubmissionHandler)
-    protected submissionHandler: ModelSubmissionHandler;
+    @inject(GModelFactory)
+    protected frontendModelFactory: GraphGModelFactory;
 
     // this needs to contain KIND of the ManagedBaseAction A
     abstract actionKinds: string[];
@@ -135,7 +135,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
             this.logger,
             this.actionDispatcher,
             this.sourceModelStorage,
-            this.submissionHandler
+            this.frontendModelFactory
         );
         for (const handlerClass of applicableHandlerClasses) {
             try {

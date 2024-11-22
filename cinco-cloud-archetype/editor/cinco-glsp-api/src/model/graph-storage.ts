@@ -26,8 +26,8 @@ import {
 import {
     ActionDispatcher,
     GLSPServerError,
+    GModelFactory,
     Logger,
-    ModelSubmissionHandler,
     RequestModelAction,
     SaveModelAction,
     SOURCE_URI_ARG
@@ -40,6 +40,7 @@ import { HookManager } from '../semantics/hook-manager';
 import { existsFile, readFile, readFileSync, readJson, readJsonSync, toPath, toWorkspaceUri, writeFile } from '../utils/file-helper';
 import { FileCodecManager } from '../semantics/file-codec-manager';
 import { ContextBundle } from '../api/context-bundle';
+import { GraphGModelFactory } from './graph-gmodel-factory';
 
 @injectable()
 export class GraphModelStorage extends AbstractJsonModelStorage {
@@ -49,8 +50,8 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
     protected logger: Logger;
     @inject(ActionDispatcher)
     protected actionDispatcher: ActionDispatcher;
-    @inject(ModelSubmissionHandler)
-    protected submissionHandler: ModelSubmissionHandler;
+    @inject(GModelFactory)
+    protected frontendModelFactory: GraphGModelFactory;
 
     static RW_LOCK_MAP: Map<string, any[]> = new Map();
 
@@ -79,7 +80,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
     override async loadSourceModel(action: RequestModelAction): Promise<void> {
         let sourceUri = this.getSourceUri(action);
         sourceUri = await this.resolveSourceURI(sourceUri);
-        const contextBundle = new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler);
+        const contextBundle = new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this, this.frontendModelFactory);
         await GraphModelStorage.loadSourceModel(sourceUri, contextBundle);
         if (contextBundle.modelState.graphModel) {
             // On Open
@@ -112,7 +113,7 @@ export class GraphModelStorage extends AbstractJsonModelStorage {
         }
         try {
             const fileUri = this.getFileUri(action);
-            const contextBundle = new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this, this.submissionHandler);
+            const contextBundle = new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this, this.frontendModelFactory);
             await GraphModelStorage.saveSourceModel(fileUri, contextBundle);
         } catch (e) {
             this.logger.error('Could not save!\n' + e);

@@ -14,7 +14,14 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Args, PaletteItem } from '@eclipse-glsp/protocol';
-import { GraphModelState, GraphModelStorage, ModelElement, getModelFiles, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
+import {
+    GraphGModelFactory,
+    GraphModelState,
+    GraphModelStorage,
+    ModelElement,
+    getModelFiles,
+    getWorkspaceRootUri
+} from '@cinco-glsp/cinco-glsp-api';
 import {
     ElementType,
     getEdgePalettes,
@@ -39,11 +46,11 @@ import {
 import {
     ActionDispatcher,
     Logger,
-    ModelSubmissionHandler,
     OperationHandlerRegistry,
     SourceModelStorage,
     ToolPaletteItemProvider,
     TriggerEdgeCreationAction,
+    GModelFactory,
     TriggerNodeCreationAction
 } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
@@ -63,8 +70,8 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
     readonly actionDispatcher: ActionDispatcher;
     @inject(SourceModelStorage)
     protected sourceModelStorage: SourceModelStorage;
-    @inject(ModelSubmissionHandler)
-    protected submissionHandler: ModelSubmissionHandler;
+    @inject(GModelFactory)
+    protected frontendModelFactory: GraphGModelFactory;
     @inject(OperationHandlerRegistry) operationHandlerRegistry: OperationHandlerRegistry;
     protected counter: number;
     protected WHITE_LIST = ['Nodes', 'Edges'];
@@ -74,7 +81,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
     }
 
     getBundle(): ContextBundle {
-        return new ContextBundle(this.state, this.logger, this.actionDispatcher, this.sourceModelStorage, this.submissionHandler);
+        return new ContextBundle(this.state, this.logger, this.actionDispatcher, this.sourceModelStorage, this.frontendModelFactory);
     }
 
     async getItems(args?: Args): Promise<PaletteItem[]> {

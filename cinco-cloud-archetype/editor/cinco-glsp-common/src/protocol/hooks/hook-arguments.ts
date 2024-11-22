@@ -32,6 +32,7 @@ export type OperationArgument = Argument &
         | ModelFileChangeArgument
         | SaveModelFileArgument
         | OpenModelFileArgument
+        | LayoutArgument
     );
 
 interface Argument extends ManagedBaseAction {
@@ -52,7 +53,8 @@ interface Argument extends ManagedBaseAction {
         | 'DoubleClick'
         | 'ModelFileChange'
         | 'SaveModelFile'
-        | 'OpenModelFile';
+        | 'OpenModelFile'
+        | 'Layout';
 }
 
 export interface AttributeChangeArgument extends Argument {
@@ -136,4 +138,8 @@ export interface SaveModelFileArgument extends Argument {
 
 export interface OpenModelFileArgument extends Argument {
     kind: 'OpenModelFile';
+}
+
+export interface LayoutArgument extends Argument {
+    kind: 'Layout';
 }

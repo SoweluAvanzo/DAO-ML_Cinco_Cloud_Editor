@@ -20,10 +20,10 @@ import { hasValueProvider, ValueUpdateRequestAction } from '@cinco-glsp/cinco-gl
 import {
     ActionDispatcher,
     Command,
+    GModelFactory,
     JsonOperationHandler,
     Logger,
     MaybePromise,
-    ModelSubmissionHandler,
     Operation,
     SourceModelStorage,
     UpdateModelAction
@@ -40,8 +40,8 @@ export abstract class CincoJsonOperationHandler extends JsonOperationHandler {
     protected readonly logger: Logger;
     @inject(SourceModelStorage)
     protected sourceModelStorage: SourceModelStorage;
-    @inject(ModelSubmissionHandler)
-    protected submissionHandler: ModelSubmissionHandler;
+    @inject(GModelFactory)
+    protected frontendModelFactory: GraphGModelFactory;
 
     // Example Use-Case: async composition of changeBounds and and changeContainer
     static MODEL_ACTION_LOCK: Map<string /* ModelID */, any[] /* Resovle */> = new Map();
@@ -74,7 +74,7 @@ export abstract class CincoJsonOperationHandler extends JsonOperationHandler {
     }
 
     getBundle(): ContextBundle {
-        return new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this.sourceModelStorage, this.submissionHandler);
+        return new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this.sourceModelStorage, this.frontendModelFactory);
     }
 
     createCommand(operation: Operation): MaybePromise<Command | undefined> {
