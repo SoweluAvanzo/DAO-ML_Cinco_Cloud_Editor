@@ -1,0 +1,265 @@
+{
+    "id": "e8665f92-0631-45c5-a666-c6548c132345",
+    "_containments": [
+        {
+            "id": "e05b9bb2-9132-4015-95a6-d4e3ee132519",
+            "type": "layout:notmovablenode",
+            "_attributes": {},
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 118.001708984375,
+                "y": 35.010414123535156
+            }
+        },
+        {
+            "id": "65f9f883-a21b-428a-9536-6a62531dcff2",
+            "type": "layout:notselectablenode",
+            "_attributes": {},
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 12,
+                "y": 12
+            }
+        },
+        {
+            "id": "da1e162b-98df-4c39-b552-432b08c04bef",
+            "type": "layout:somenode",
+            "_attributes": {},
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 208,
+                "y": 12
+            }
+        },
+        {
+            "id": "9bf01980-a5d0-4f88-bc3d-c62464f39c1b",
+            "_containments": [
+                {
+                    "id": "4e58489f-cf2d-4042-9dce-0d1eb09995dc",
+                    "type": "layout:notselectablenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 12,
+                        "y": 12
+                    }
+                },
+                {
+                    "id": "c5127328-e975-4e67-be16-adcf81fa7d1e",
+                    "type": "layout:notmovablenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 147,
+                        "y": 184
+                    }
+                },
+                {
+                    "id": "8fd8762c-8c11-4f9a-917d-3e6fff4288a4",
+                    "type": "layout:somenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 12,
+                        "y": 64
+                    }
+                }
+            ],
+            "type": "layout:elklayeredlayoutcontainer",
+            "_attributes": {},
+            "_size": {
+                "width": 200,
+                "height": 300
+            },
+            "_position": {
+                "x": 474.14110014661844,
+                "y": 106.27556991791307
+            }
+        },
+        {
+            "id": "374c2bae-3924-416f-bf0c-b1b8417fbd74",
+            "_containments": [
+                {
+                    "id": "6ab1fa9b-1397-4076-b62e-86f93c6b2e1f",
+                    "type": "layout:somenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 71.63888180938882,
+                        "y": 63.62973718761655
+                    }
+                },
+                {
+                    "id": "4584feb2-870f-4dac-b9ce-69262bc8000e",
+                    "type": "layout:notselectablenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 122.3727300389288,
+                        "y": 63.712659901342406
+                    }
+                },
+                {
+                    "id": "481bdb2a-787c-4dfa-8131-463d4399ab83",
+                    "type": "layout:notmovablenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 66,
+                        "y": 223
+                    }
+                }
+            ],
+            "type": "layout:elkrandomlayoutcontainer",
+            "_attributes": {},
+            "_size": {
+                "width": 200,
+                "height": 300
+            },
+            "_position": {
+                "x": 12,
+                "y": 508
+            }
+        },
+        {
+            "id": "f925a0b3-34f9-4f45-8378-3837a15da58d",
+            "_containments": [
+                {
+                    "id": "6b1911c1-b701-4834-aa7c-9fbdf6db47b5",
+                    "type": "layout:somenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 12,
+                        "y": 12
+                    }
+                },
+                {
+                    "id": "430e4ead-2149-4fa4-a18c-63a3a34e5ec6",
+                    "type": "layout:notselectablenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 12,
+                        "y": 144
+                    }
+                }
+            ],
+            "type": "layout:layered_layout_container",
+            "_attributes": {},
+            "_size": {
+                "width": 200,
+                "height": 300
+            },
+            "_position": {
+                "x": 12,
+                "y": 220
+            }
+        },
+        {
+            "id": "898b950b-7494-437e-b320-4a240e17b1a3",
+            "type": "layout:notmovablenode",
+            "_attributes": {},
+            "_size": {
+                "width": 96,
+                "height": 32
+            },
+            "_position": {
+                "x": 83.37777459283377,
+                "y": 377.89591912624184,
+                "width": 96,
+                "height": 32
+            }
+        },
+        {
+            "id": "3e483775-86ce-4f8e-bd32-ea884d18d3b1",
+            "_containments": [
+                {
+                    "id": "9b3e0b8c-8c38-483f-a071-8a2a4bd589f8",
+                    "type": "layout:somenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 39.54362904184458,
+                        "y": 29.50891934659833
+                    }
+                },
+                {
+                    "id": "b2a88f8f-0912-4cf6-bae6-6381bbcd129e",
+                    "type": "layout:notmovablenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 118.10608086104509,
+                        "y": 127.30915209697059
+                    }
+                },
+                {
+                    "id": "4272ebea-8a4b-402d-8b08-7678743b9de9",
+                    "type": "layout:notselectablenode",
+                    "_attributes": {},
+                    "_size": {
+                        "width": 96,
+                        "height": 32
+                    },
+                    "_position": {
+                        "x": 107.6148878784809,
+                        "y": 47.90830501743949
+                    }
+                }
+            ],
+            "type": "layout:random_layout_container",
+            "_attributes": {},
+            "_size": {
+                "width": 200,
+                "height": 300
+            },
+            "_position": {
+                "x": 236,
+                "y": 220
+            }
+        }
+    ],
+    "_edges": [],
+    "type": "layout:layouttest",
+    "_attributes": {}
+}

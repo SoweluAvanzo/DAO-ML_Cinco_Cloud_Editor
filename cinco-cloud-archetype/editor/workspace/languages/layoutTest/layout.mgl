@@ -1,0 +1,88 @@
+stylePath "layout.msl"
+
+/**
+ * TODO: Sami
+ * - LayoutProvider + LabelProvider
+ * - Elk does not recognize size of container
+ * - Edges need to be integrated in this test
+ */
+
+@layout('{
+    "elk.algorithm": "layered",
+    "elk.direction": "RIGHT",
+    "elk.layered.spacing.baseValue": 100
+}')
+graphModel LayoutTest {
+	diagramExtension "layout"
+	containableElements(*)
+}
+
+node SomeNode {
+    style blueTextRectangle("Node")
+	incomingEdges ({Transition}[1,*])
+	outgoingEdges ({Transition}[1,*])
+}
+
+@disable(layout)
+node NotLayoutNode {
+    style blueTextRectangle("Node")
+	incomingEdges ({Transition}[1,*])
+	outgoingEdges ({Transition}[1,*])
+}
+
+@disable(select)
+node NotSelectableNode {
+    style blueTextRectangle("NotSelectableNode")
+	incomingEdges ({Transition}[1,*])
+	outgoingEdges ({Transition}[1,*])
+}
+
+@disable(move)
+node NotMovableNode {
+    style blueTextRectangle("NotMovableNode")
+	incomingEdges ({Transition}[1,*])
+	outgoingEdges ({Transition}[1,*])
+}
+
+@layout('{
+    "elk.algorithm": "random",
+    "elk.spacing.nodeNode": 100
+}')
+container ElkRandomLayoutContainer {
+    style purpleTextRectangle("ElkRandomLayoutContainer")
+    containableElements(*)
+}
+
+@layout('{
+    "elk.algorithm": "layered",
+    "elk.layered.spacing.nodeNode": 100,
+    "cycleBreaking.strategy": "INTERACTIVE",
+    "layering.strategy": "INTERACTIVE"
+}')
+container ElkLayeredLayoutContainer {
+    style purpleTextRectangle("ElkLayeredLayoutContainer")
+    containableElements(*)
+}
+
+@layout('random')
+container Random_Layout_Container {
+    style purpleTextRectangle("Random_Layout_Container")
+    containableElements(*)
+}
+
+@layout('layered')
+container Layered_Layout_Container {
+    style purpleTextRectangle("Layered_Layout_Container")
+    containableElements(*)
+}
+
+// TODO: @LayoutProvider
+container ProviderContainer {
+    style purpleTextRectangle("ProviderContainer")
+    containableElements(*)
+}
+
+edge Transition {
+	style simpleArrow
+}
+
