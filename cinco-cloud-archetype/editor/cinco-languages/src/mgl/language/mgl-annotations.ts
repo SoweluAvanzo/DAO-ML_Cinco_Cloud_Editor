@@ -361,6 +361,24 @@ export class MglAnnotations {
                     type: AnnotationValue.STRING
                 }
             ]
+        },
+        {
+            name: 'LayoutOptionsProvider',
+            parameterLimits: [1, 1],
+            description: this.createHandlerDescription(
+                'LayoutOptionsProvider',
+                '"ExampleLayoutOptionsProvider"',
+                'This annotation sets the elk-based layouting options for the model element dynamically by using a provider-class.' +
+                    'The `ÈxampleLayoutOptionsProvider` will provide the elk layoutOptions fot the annotated model element.' +
+                    ' (Check here for further information: https://eclipse.dev/elk/documentation.html and' +
+                    ' https://rtsys.informatik.uni-kiel.de/elklive/) '
+            ),
+            valueRules: [
+                {
+                    position: [0, 0],
+                    type: AnnotationValue.STRING
+                }
+            ]
         }
     ];
     static readonly attributeAnnotationDefinitions: AnnotationDescription[] = [

@@ -1284,7 +1284,7 @@ export function hasLayoutOptionsProvider(elementTypeId: string): boolean {
     if (MetaSpecification.isCacheReady()) {
         return MetaSpecification._hasLayoutOptionsProvider(elementTypeId);
     }
-    return getLabelProvider(elementTypeId).length > 0;
+    return getLayoutOptionsProvider(elementTypeId).length > 0;
 }
 
 export function getLayoutOptionsProvider(elementTypeId: string): string[] {

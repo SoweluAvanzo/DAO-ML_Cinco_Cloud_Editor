@@ -14,10 +14,20 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
-import { getLayout, hasLayoutAnnotation, isLayoutable, isMovable, PredefinedLayouts } from '@cinco-glsp/cinco-glsp-common';
-import { AbstractLayoutConfigurator, DefaultElementFilter, LayoutOptions } from '@eclipse-glsp/layout-elk';
-import { GEdge, GGraph, GLabel, GModelElement, GNode, GPort } from '@eclipse-glsp/server';
-import { injectable } from 'inversify';
+import { CincoActionDispatcher } from '@cinco-glsp/cinco-glsp-api/lib/api/cinco-action-dispatcher';
+import {
+    getLayout,
+    hasLayoutAnnotation,
+    hasLayoutOptionsProvider,
+    isLayoutable,
+    isMovable,
+    LayoutOptionsRequestAction,
+    LayoutOptionsResponse,
+    PredefinedLayouts
+} from '@cinco-glsp/cinco-glsp-common';
+import { DefaultElementFilter, LayoutConfigurator, LayoutOptions } from '@eclipse-glsp/layout-elk';
+import { ActionDispatcher, GEdge, GGraph, GLabel, GModelElement, GNode, GPort, ModelState } from '@eclipse-glsp/server';
+import { inject, injectable } from 'inversify';
 
 @injectable()
 export class CincoElementFilter extends DefaultElementFilter {
@@ -67,23 +77,60 @@ export class CincoElementFilter extends DefaultElementFilter {
 }
 
 @injectable()
-export class CincoLayoutConfigurator extends AbstractLayoutConfigurator {
-    getLayoutOptions(id: string): LayoutOptions | undefined {
-        const modelElement = (this.modelState as GraphModelState).index.findModelElement(id);
+export class CincoLayoutConfigurator implements LayoutConfigurator {
+    @inject(ActionDispatcher)
+    protected actionDispatcher: CincoActionDispatcher;
+    @inject(ModelState)
+    protected modelState: GraphModelState;
+
+    apply(element: GModelElement): LayoutOptions | undefined {
+        throw new Error('Method not implemented.');
+    }
+
+    async applyAsync(element: GModelElement): Promise<LayoutOptions | undefined> {
+        if (element instanceof GGraph) {
+            return this.graphOptions(element);
+        } else if (element instanceof GNode) {
+            return this.nodeOptions(element);
+        } else if (element instanceof GEdge) {
+            return this.edgeOptions(element);
+        } else if (element instanceof GLabel) {
+            return this.labelOptions(element);
+        } else if (element instanceof GPort) {
+            return this.portOptions(element);
+        }
+        return undefined;
+    }
+
+    async getLayoutOptions(id: string): Promise<LayoutOptions | undefined> {
+        const modelElement = this.modelState.index.findModelElement(id);
+        let layoutValue: string | undefined = undefined;
         if (modelElement) {
             const spec = modelElement?.getSpec();
-            if (hasLayoutAnnotation(spec)) {
-                let layoutValue = getLayout(spec);
-                if (layoutValue) {
-                    if (PredefinedLayouts.is(layoutValue)) {
-                        return PredefinedLayouts.get(layoutValue);
-                    } else {
-                        try {
-                            layoutValue = layoutValue?.replace('\\.', '\\\\.');
-                            return JSON.parse(layoutValue);
-                        } catch (e) {
-                            throw Error('LayoutOptions not parsable!: ' + e);
-                        }
+            /**
+             * 1. LayoutOptionsProvider
+             * 2. Layout-Annotation
+             * 3. undefined => default
+             */
+            if (hasLayoutOptionsProvider(spec.elementTypeId)) {
+                const responses = await this.actionDispatcher.request(
+                    LayoutOptionsRequestAction.create(modelElement.getGraphModel().id, modelElement.id)
+                );
+                const response = responses.find(r => LayoutOptionsResponse.is(r)) as LayoutOptionsResponse;
+                layoutValue = response?.layoutOptions;
+            } else if (hasLayoutAnnotation(spec)) {
+                layoutValue = getLayout(spec);
+            }
+            // post-processing and returning
+            if (layoutValue) {
+                if (PredefinedLayouts.is(layoutValue)) {
+                    return PredefinedLayouts.get(layoutValue);
+                } else {
+                    try {
+                        layoutValue = layoutValue?.replace('\\.', '\\\\.');
+                        return JSON.parse(layoutValue);
+                    } catch (e) {
+                        throw Error('LayoutOptions not parsable!: ' + e);
                     }
                 }
             }
@@ -91,8 +138,8 @@ export class CincoLayoutConfigurator extends AbstractLayoutConfigurator {
         return undefined;
     }
 
-    protected override graphOptions(graph: GGraph): LayoutOptions | undefined {
-        const layoutOptions = this.getLayoutOptions(graph.id);
+    protected async graphOptions(graph: GGraph): Promise<LayoutOptions | undefined> {
+        const layoutOptions = await this.getLayoutOptions(graph.id);
         return (
             layoutOptions ?? {
                 // default layouting:
@@ -102,19 +149,19 @@ export class CincoLayoutConfigurator extends AbstractLayoutConfigurator {
         );
     }
 
-    protected override nodeOptions(node: GNode): LayoutOptions | undefined {
+    protected async nodeOptions(node: GNode): Promise<LayoutOptions | undefined> {
         return this.getLayoutOptions(node.id);
     }
 
-    protected override edgeOptions(edge: GEdge): LayoutOptions | undefined {
+    protected async edgeOptions(edge: GEdge): Promise<LayoutOptions | undefined> {
         return this.getLayoutOptions(edge.id);
     }
 
-    protected override labelOptions(label: GLabel): LayoutOptions | undefined {
+    protected async labelOptions(label: GLabel): Promise<LayoutOptions | undefined> {
         return undefined;
     }
 
-    protected override portOptions(sport: GPort): LayoutOptions | undefined {
+    protected async portOptions(sport: GPort): Promise<LayoutOptions | undefined> {
         return undefined;
     }
 }

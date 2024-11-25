@@ -15,19 +15,23 @@
  ********************************************************************************/
 import {
     ActionDispatcher,
+    findParentByClass,
     GCompartment,
+    GEdge,
     GGraph,
+    GLabel,
     GModelElement,
     GModelElementConstructor,
     GModelFactory,
     GModelRoot,
+    GNode,
+    GPort,
     LayoutEngine,
     Logger,
-    MaybePromise,
     ModelState,
     SourceModelStorage
 } from '@eclipse-glsp/server';
-import { ElkNode } from 'elkjs/lib/elk-api';
+import { ElkEdge, ElkGraphElement, ElkLabel, ElkNode, ElkPort, ElkPrimitiveEdge } from 'elkjs/lib/elk-api';
 import ElkConstructor from 'elkjs/lib/elk.bundled';
 import { ContainerModule, injectable } from 'inversify';
 import {
@@ -41,6 +45,7 @@ import {
 } from '@eclipse-glsp/layout-elk';
 import { ContextBundle, Edge, GraphModel, Node, GraphModelState, HookManager, GraphGModelFactory } from '@cinco-glsp/cinco-glsp-api';
 import { HookType, LayoutArgument } from '@cinco-glsp/cinco-glsp-common';
+import { CincoLayoutConfigurator } from './cinco-layout-configurator';
 
 export function configureELKLayoutModule(options: ElkModuleOptions): ContainerModule {
     return new ContainerModule(bind => {
@@ -99,10 +104,12 @@ export function configureELKLayoutModule(options: ElkModuleOptions): ContainerMo
  */
 @injectable()
 export class CincoGlspElkLayoutEngine extends GlspElkLayoutEngine {
+    protected override readonly configurator: CincoLayoutConfigurator;
+
     constructor(
         elkFactory: ElkFactory,
         protected override readonly filter: ElementFilter,
-        protected override readonly configurator: LayoutConfigurator,
+        configurator: LayoutConfigurator,
         protected override modelState: ModelState,
         protected logger: Logger,
         protected actionDispatcher: ActionDispatcher,
@@ -110,6 +117,7 @@ export class CincoGlspElkLayoutEngine extends GlspElkLayoutEngine {
         protected frontendModelFactory: GraphGModelFactory
     ) {
         super(elkFactory, filter, configurator, modelState);
+        this.configurator = configurator as CincoLayoutConfigurator;
     }
 
     getBundle(): ContextBundle {
@@ -119,7 +127,7 @@ export class CincoGlspElkLayoutEngine extends GlspElkLayoutEngine {
         return new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this.sourceModelStorage, this.frontendModelFactory);
     }
 
-    override layout(): MaybePromise<GModelRoot> {
+    override async layout(): Promise<GModelRoot> {
         const root = this.modelState.root;
         if (!(root instanceof GGraph)) {
             return root;
@@ -163,7 +171,7 @@ export class CincoGlspElkLayoutEngine extends GlspElkLayoutEngine {
         // Elk Layouting
         this.elkEdges = [];
         this.idToElkElement = new Map();
-        const elkGraph = this.transformToElk(root) as ElkNode;
+        const elkGraph = (await this.transformToElkAsync(root)) as ElkNode;
         const layoutedRoot = this.elk.layout(elkGraph).then(result => {
             this.applyLayout(result);
             return root;
@@ -179,6 +187,140 @@ export class CincoGlspElkLayoutEngine extends GlspElkLayoutEngine {
         );
 
         return layoutedRoot;
+    }
+
+    protected async transformToElkAsync(model: GModelElement): Promise<ElkGraphElement> {
+        if (model instanceof GGraph) {
+            const graph = await this.transformGraphAsync(model);
+            this.elkEdges.forEach(elkEdge => {
+                const parent = this.findCommonAncestor(elkEdge as ElkPrimitiveEdge);
+                if (parent) {
+                    parent.edges!.push(elkEdge);
+                }
+            });
+            return graph;
+        } else if (model instanceof GNode) {
+            return this.transformNodeAsync(model);
+        } else if (model instanceof GEdge) {
+            return this.transformEdgeAsync(model);
+        } else if (model instanceof GLabel) {
+            return this.transformPortAsync(model);
+        } else if (model instanceof GPort) {
+            return this.transformPortAsync(model);
+        }
+
+        throw new Error('Type not supported: ' + model.type);
+    }
+
+    protected async transformGraphAsync(graph: GGraph): Promise<ElkGraphElement> {
+        const elkGraph: ElkNode = {
+            id: graph.id,
+            layoutOptions: await this.configurator.applyAsync(graph)
+        };
+        if (graph.children) {
+            elkGraph.children = (await Promise.all(
+                this.findChildren(graph, GNode).map(child => this.transformToElkAsync(child))
+            )) as ElkNode[];
+            elkGraph.edges = [];
+            this.elkEdges.push(
+                ...((await Promise.all(this.findChildren(graph, GEdge).map(child => this.transformToElkAsync(child)))) as ElkEdge[])
+            );
+        }
+
+        this.idToElkElement.set(graph.id, elkGraph);
+        return elkGraph;
+    }
+
+    protected async transformNodeAsync(node: GNode): Promise<ElkNode> {
+        const elkNode: ElkNode = {
+            id: node.id,
+            layoutOptions: await this.configurator.applyAsync(node)
+        };
+
+        if (node.children) {
+            elkNode.children = (await Promise.all(
+                this.findChildren(node, GNode).map(child => this.transformToElkAsync(child))
+            )) as ElkNode[];
+            elkNode.edges = [];
+            this.elkEdges.push(
+                ...((await Promise.all(this.findChildren(node, GEdge).map(child => this.transformToElkAsync(child)))) as ElkEdge[])
+            );
+
+            elkNode.labels = (await Promise.all(
+                this.findChildren(node, GLabel).map(child => this.transformToElkAsync(child))
+            )) as ElkLabel[];
+            elkNode.ports = (await Promise.all(this.findChildren(node, GPort).map(child => this.transformToElkAsync(child)))) as ElkPort[];
+        }
+
+        this.transformShape(elkNode, node);
+        this.idToElkElement.set(node.id, elkNode);
+
+        return elkNode;
+    }
+
+    protected async transformEdgeAsync(edge: GEdge): Promise<ElkEdge> {
+        const elkEdge: ElkPrimitiveEdge = {
+            id: edge.id,
+            source: edge.sourceId,
+            target: edge.targetId,
+            layoutOptions: await this.configurator.applyAsync(edge)
+        };
+        const sourceElement = this.modelState.index.get(edge.sourceId);
+        if (sourceElement instanceof GPort) {
+            const parentNode = findParentByClass(sourceElement, GNode);
+            if (parentNode) {
+                elkEdge.source = parentNode.id;
+                elkEdge.sourcePort = sourceElement.id;
+            }
+        }
+
+        const targetElement = this.modelState.index.get(edge.targetId);
+        if (sourceElement instanceof GPort) {
+            const parentNode = findParentByClass(targetElement, GNode);
+            if (parentNode) {
+                elkEdge.target = parentNode.id;
+                elkEdge.targetPort = targetElement.id;
+            }
+        }
+
+        if (edge.children) {
+            elkEdge.labels = (await Promise.all(
+                this.findChildren(edge, GLabel).map(child => this.transformToElkAsync(child))
+            )) as ElkLabel[];
+        }
+        const points = edge.routingPoints;
+        if (points && points.length >= 2) {
+            elkEdge.sourcePoint = points[0];
+            elkEdge.bendPoints = points.slice(1, points.length - 1);
+            elkEdge.targetPoint = points[points.length - 1];
+        }
+        this.idToElkElement.set(edge.id, elkEdge);
+        return elkEdge;
+    }
+
+    protected async transformLabelAsync(label: GLabel): Promise<ElkLabel> {
+        const elkLabel: ElkLabel = {
+            id: label.id,
+            text: label.text,
+            layoutOptions: await this.configurator.applyAsync(label)
+        };
+        this.transformShape(elkLabel, label);
+        this.idToElkElement.set(label.id, elkLabel);
+        return elkLabel;
+    }
+
+    protected async transformPortAsync(port: GPort): Promise<ElkPort> {
+        const elkPort: ElkPort = {
+            id: port.id,
+            layoutOptions: await await this.configurator.applyAsync(port)
+        };
+        if (port.children) {
+            elkPort.labels = this.findChildren(port, GLabel).map(child => this.transformToElk(child)) as ElkLabel[];
+            this.elkEdges.push(...(this.findChildren(port, GEdge).map(child => this.transformToElk(child)) as ElkEdge[]));
+        }
+        this.transformShape(elkPort, port);
+        this.idToElkElement.set(port.id, elkPort);
+        return elkPort;
     }
 
     /**
