@@ -2,7 +2,7 @@ stylePath "labelTest.style"
 
 graphModel LabelTestModel {
     diagramExtension "labeltest"
-    containableElements (PrimeNode1, PrimeNode2, PrimeLabelNode)  
+    containableElements (PrimeNode1, PrimeNode2, LabelProviderTestReference1, LabelProviderTestReference2, PrimeLabelNode)  
 }
 
 node PrimeNode1 { 
@@ -17,6 +17,21 @@ node PrimeNode2 {
 
     @label("${primeLabel}") 
     prime this::PrimeLabelNode as OnlyUsePrimeLabel
+}
+
+@palette("Label Provider Test1")
+node LabelProviderTestReference1 { 
+	style typeStyle1("LabelProviderTestReference1")
+
+    @LabelProvider("ExampleLabelProvider")
+    prime this::LabelProviderTestInstance as reference
+}
+
+@palette("Label Provider Test2")
+node LabelProviderTestReference2 { 
+	style typeStyle1("LabelProviderTestReference2")
+
+    prime this::LabelProviderTestInstance as reference
 }
 
 abstract node PrimeLabelNode{
@@ -42,4 +57,9 @@ node ReferencedWithName extends PrimeLabelNode {
 @label("${id}")
 node ReferencedWithID extends PrimeLabelNode {
 	style typeStyle2("ReferencedWithID")
+}
+
+@LabelProvider("ExampleLabelProvider")
+node LabelProviderTestInstance extends PrimeLabelNode {
+	style typeStyle2("LabelProviderTestInstance")
 }

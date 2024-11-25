@@ -7,13 +7,15 @@
             "_attributes": {
                 "primeLabel": "Some Prime Label for PrimeNode2 By ReferencedWithID"
             },
+            "_position": {
+                "x": 12,
+                "y": 12
+            },
             "_size": {
                 "width": 150,
-                "height": 50
-            },
-            "_position": {
-                "x": 795.001708984375,
-                "y": 180.01041412353516
+                "widthFixed": false,
+                "height": 50,
+                "heightFixed": false
             }
         },
         {
@@ -23,13 +25,15 @@
                 "primeLabel": "Some Prime Label for PrimeNode2 By ReferencedWithLabel",
                 "label": "Some Referenced Label for PrimeNode1"
             },
+            "_position": {
+                "x": 12,
+                "y": 82
+            },
             "_size": {
                 "width": 150,
-                "height": 50
-            },
-            "_position": {
-                "x": 797.001708984375,
-                "y": 309.01041412353516
+                "widthFixed": false,
+                "height": 50,
+                "heightFixed": false
             }
         },
         {
@@ -39,28 +43,45 @@
                 "primeLabel": "Some Prime Label for PrimeNode2 By ReferencedWithName",
                 "name": "Some Referenced Name for PrimeNode1"
             },
+            "_position": {
+                "x": 12,
+                "y": 152
+            },
             "_size": {
                 "width": 150,
-                "height": 50
-            },
-            "_position": {
-                "x": 798.001708984375,
-                "y": 374.01041412353516
+                "widthFixed": false,
+                "height": 50,
+                "heightFixed": false
             }
         },
         {
-            "id": "2247fd38-9f27-4220-b92c-db3f06d73008",
-            "type": "labeltest:referencedwithunspecified",
+            "id": "aeb9b2ba-226e-4ade-9f4d-9474e7ded8b8",
+            "type": "labeltest:labelprovidertestinstance",
             "_attributes": {
-                "primeLabel": "Some Prime Label for PrimeNode2 By ReferencedWithUnspecified"
+                "primeLabel": ""
             },
             "_size": {
                 "width": 150,
                 "height": 50
             },
             "_position": {
-                "x": 797.001708984375,
-                "y": 246.01041412353516
+                "x": 12,
+                "y": 222
+            }
+        },
+        {
+            "id": "37b46d66-1d7e-4967-bcf3-af1d598e5530",
+            "type": "labeltest:referencedwithunspecified",
+            "_attributes": {
+                "primeLabel": ""
+            },
+            "_size": {
+                "width": 150,
+                "height": 50
+            },
+            "_position": {
+                "x": 12,
+                "y": 292
             }
         }
     ],
