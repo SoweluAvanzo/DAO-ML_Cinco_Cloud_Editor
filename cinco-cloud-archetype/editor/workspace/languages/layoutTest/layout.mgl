@@ -2,9 +2,11 @@ stylePath "layout.msl"
 
 /**
  * TODO: Sami
- * - LayoutOptionsProviderManager + Annotations
  * - Elk does not recognize size of container
- * - Edges need to be integrated in this test
+ */
+
+/*
+ * Layout-Annotation Test
  */
 
 @layout('{
@@ -16,8 +18,6 @@ graphModel LayoutTest {
 	diagramExtension "layout"
 	containableElements(*)
 }
-
-
 
 @layout('{
     "elk.algorithm": "random",
@@ -39,6 +39,10 @@ container ElkLayeredLayoutContainer {
     containableElements(*)
 }
 
+/*
+ * Predefined Test
+ */
+
 @layout('random')
 container Random_Layout_Container {
     style purpleTextRectangle("Random_Layout_Container")
@@ -51,11 +55,19 @@ container Layered_Layout_Container {
     containableElements(*)
 }
 
+/*
+ * Provider Test
+ */
+
 @LayoutOptionsProvider("ExampleLayoutOptionsProvider")
 container LayoutOptionsProviderTest {
     style purpleTextRectangle("LayoutOptionsProviderTest")
     containableElements(*)
 }
+
+/*
+ * Containments and disable test
+ */
 
 node SomeNode {
     style blueTextRectangle("Node")
