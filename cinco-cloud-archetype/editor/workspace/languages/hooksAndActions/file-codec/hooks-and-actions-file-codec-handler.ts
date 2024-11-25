@@ -21,11 +21,11 @@
  export class HooksAndActionsFileCodecHandler extends FileCodecHandler {
     override CHANNEL_NAME: string | undefined = 'HooksAndActions [ CODEC ]';
      decode(content: string): GraphModel {
-        this.log("Decoding model...", {show: true});
+        // this.log("Decoding model...", {show: true});
         return JSON.parse(content);
      }
      encode(model: GraphModel): string {
-        this.log("Encoding model: "+model.id, {show: true});
+        // this.log("Encoding model: "+model.id, {show: true});
         return JSON.stringify(model, undefined, 4);
      }
  }
