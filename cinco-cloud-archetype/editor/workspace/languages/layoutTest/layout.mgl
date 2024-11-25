@@ -2,7 +2,7 @@ stylePath "layout.msl"
 
 /**
  * TODO: Sami
- * - LayoutProvider + LabelProvider
+ * - LayoutOptionsProviderManager + Annotations
  * - Elk does not recognize size of container
  * - Edges need to be integrated in this test
  */
