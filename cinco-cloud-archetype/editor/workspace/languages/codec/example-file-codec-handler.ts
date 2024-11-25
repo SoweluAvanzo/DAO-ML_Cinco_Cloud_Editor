@@ -21,14 +21,14 @@
  export class ExampleFileCodecHandler extends FileCodecHandler {
     override CHANNEL_NAME: string | undefined = 'CodecTest [ CODEC ]';
      decode(content: string): GraphModel | undefined {
-        this.log("Decoding model...", {show: true});
+        this.log("Decoding model...");
         if(content == '') {
             return undefined; // triggers new creation
         }
         return JSON.parse(content);
      }
      encode(model: GraphModel): string {
-        this.log("Encoding model: "+model.id, {show: true});
+        this.log("Encoding model: "+model.id);
         return JSON.stringify(model, undefined, 4);
      }
  }
