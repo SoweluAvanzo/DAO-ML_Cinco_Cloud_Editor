@@ -44,13 +44,13 @@ import {
     AbstractEdgeHook,
     ModelFileHook,
     GraphModelElementHook
-} from '../api/hook-handler';
+} from '../api/handler/hook-handler';
 import { LanguageFilesRegistry } from './language-files-registry';
 import { ModelElement, Edge, Node, ModelElementContainer, GraphModel } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
-import { APIBaseHandler } from '../api/api-base-handler';
-import { ResizeBounds } from '../api/resize-bounds';
-import { ContextBundle } from '../api/context-bundle';
+import { APIBaseHandler } from '../api/handler/api-base-handler';
+import { ResizeBounds } from '../api/types/resize-bounds';
+import { ContextBundle } from '../api/types/context-bundle';
 
 export class HookManager {
     static executeHook(parameters: OperationArgument, type: HookType, contextBundle: ContextBundle): boolean {

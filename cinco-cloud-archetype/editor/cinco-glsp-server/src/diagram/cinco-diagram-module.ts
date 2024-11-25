@@ -68,6 +68,8 @@ import { ChoiceSelectionEdgeSourceHandler, ChoiceSelectionEdgeTargetHandler } fr
 import { ValueProviderManager } from '../tools/value-provider-manager';
 import { CincoActionDispatcher } from '@cinco-glsp/cinco-glsp-api/lib/api/cinco-action-dispatcher';
 import { GhostDecisionHandler } from '../handler/ghost-decision-handler';
+import { LabelProviderManager } from '../tools/label-provider-manager';
+import { LayoutOptionsProviderManager } from '../tools/layout-options-provider-manager';
 
 @injectable()
 export class CincoDiagramModule extends DiagramModule {
@@ -106,8 +108,10 @@ export class CincoDiagramModule extends DiagramModule {
         binding.add(AppearanceProviderManager); // @AppearanceProvier
         binding.add(ValueProviderManager); // @ValueProvider
         binding.add(ValidationManager); // @Validation
+        binding.add(LabelProviderManager); // @LabelProvider
+        binding.add(LayoutOptionsProviderManager); // @LayoutOptionsProvider
+        binding.add(GeneratorManager); // @GeneratorAction
         binding.add(PropertyViewHandler);
-        binding.add(GeneratorManager);
         binding.add(MetaSpecificationReloadHandler);
         binding.add(MetaSpecificationRequestHandler);
         binding.add(ServerArgsRequestHandler);

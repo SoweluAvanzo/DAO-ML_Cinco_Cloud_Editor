@@ -14,8 +14,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { GraphGModelFactory, GraphModelState, GraphModelStorage, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
+import { GraphGModelFactory, GraphModelState, GraphModelStorage, ModelElement, ContextBundle } from '@cinco-glsp/cinco-glsp-api';
 import { hasValueProvider, ValueUpdateRequestAction } from '@cinco-glsp/cinco-glsp-common';
 import {
     ActionDispatcher,

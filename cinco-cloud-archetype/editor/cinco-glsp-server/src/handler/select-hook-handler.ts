@@ -16,8 +16,7 @@
 import { HookType, SelectAction, Action, SelectArgument } from '@cinco-glsp/cinco-glsp-common';
 import { inject, injectable } from 'inversify';
 import { ActionDispatcher, ActionHandler, Logger, GModelFactory, MaybePromise, SourceModelStorage } from '@eclipse-glsp/server';
-import { GraphGModelFactory, GraphModelState, HookManager } from '@cinco-glsp/cinco-glsp-api';
-import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
+import { GraphGModelFactory, GraphModelState, HookManager, ContextBundle } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class SelectHookHandler implements ActionHandler {

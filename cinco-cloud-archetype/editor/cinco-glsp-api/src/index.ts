@@ -16,20 +16,22 @@
 import 'reflect-metadata';
 
 // export api
-export * from './api/api-base-handler';
-export * from './api/appearance-provider';
-export * from './api/value-provider';
-export * from './api/custom-action-handler';
-export * from './api/context-bundle';
-export * from './api/direction';
-export * from './api/double-click-handler';
-export * from './api/file-codec-handler';
-export * from './api/generator-handler';
-export * from './api/hook-handler';
-export * from './api/resize-bounds';
-export * from './api/root-path';
-export * from './api/select-handler';
-export * from './api/validation-handler';
+export * from './api/handler/api-base-handler';
+export * from './api/handler/custom-action-handler';
+export * from './api/handler/double-click-handler';
+export * from './api/handler/file-codec-handler';
+export * from './api/handler/generator-handler';
+export * from './api/handler/hook-handler';
+export * from './api/handler/select-handler';
+export * from './api/handler/validation-handler';
+export * from './api/handler/layout-options-provider';
+export * from './api/handler/label-provider';
+export * from './api/handler/appearance-provider';
+export * from './api/handler/value-provider';
+export * from './api/types/context-bundle';
+export * from './api/types/direction';
+export * from './api/types/resize-bounds';
+export * from './api/types/root-path';
 export * from './api/watcher/cinco-folder-watcher';
 export * from './api/watcher/dirty-file-watcher';
 export * from './api/watcher/graph-model-watcher';

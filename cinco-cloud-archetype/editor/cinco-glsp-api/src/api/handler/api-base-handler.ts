@@ -35,14 +35,14 @@ import {
     SaveModelAction,
     UpdateModelAction
 } from '@eclipse-glsp/server';
-import { RootPath } from './root-path';
-import { Container, GraphModel, ModelElement, Node } from '../model/graph-model';
-import { GraphModelState } from '../model/graph-model-state';
-import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
-import * as fileHelper from '../utils/file-helper';
-import { GraphModelStorage } from '../model/graph-storage';
-import { ContextBundle } from './context-bundle';
-import { GraphGModelFactory } from '../model/graph-gmodel-factory';
+import { RootPath } from '../types/root-path';
+import { Container, GraphModel, ModelElement, Node } from '../../model/graph-model';
+import { GraphModelState } from '../../model/graph-model-state';
+import { ServerResponseHandler } from '../../tools/server-dialog-response-handler';
+import * as fileHelper from '../../utils/file-helper';
+import { GraphModelStorage } from '../../model/graph-storage';
+import { ContextBundle } from '../types/context-bundle';
+import { GraphGModelFactory } from '../../model/graph-gmodel-factory';
 
 export abstract class APIBaseHandler {
     protected readonly contextBundle: ContextBundle;

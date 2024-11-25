@@ -16,8 +16,7 @@
 import { DoubleClickAction, DoubleClickArgument, HookType } from '@cinco-glsp/cinco-glsp-common';
 import { inject, injectable } from 'inversify';
 import { Action, ActionDispatcher, ActionHandler, GModelFactory, Logger, MaybePromise, SourceModelStorage } from '@eclipse-glsp/server';
-import { GraphGModelFactory, GraphModelState, HookManager } from '@cinco-glsp/cinco-glsp-api';
-import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
+import { GraphGModelFactory, GraphModelState, HookManager, ContextBundle } from '@cinco-glsp/cinco-glsp-api';
 
 @injectable()
 export class DoubleClickHookHandler implements ActionHandler {

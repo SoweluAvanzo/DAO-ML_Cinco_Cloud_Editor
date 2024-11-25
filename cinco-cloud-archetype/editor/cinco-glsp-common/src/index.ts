@@ -41,6 +41,8 @@ export * from './protocol/arg-utils';
 export * from './protocol/editor-button-protocol';
 export * from './protocol/hooks/hook-arguments';
 export * from './protocol/hooks/hook-type';
+export * from './protocol/label-provider-protocol';
+export * from './protocol/layout-options-provider-protocol';
 export * from './protocol/uri';
 export * from './protocol/predefined-layouts';
 export * from './helper/property-resolver';

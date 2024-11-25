@@ -42,9 +42,12 @@ class META_SPECIFICATION_CACHE {
     IS_EDGE_TYPE: Map<string, boolean> = new Map();
     IS_GRAPH_TYPE: Map<string, boolean> = new Map();
     IS_CUSTOM_TYPE: Map<string, boolean> = new Map();
+
+    HAS_VALIDATION: Map<string, boolean> = new Map();
     HAS_APPEARANCE_PROVIDER: Map<string, boolean> = new Map();
     HAS_VALUE_PROVIDER: Map<string, boolean> = new Map();
-    HAS_VALIDATION: Map<string, boolean> = new Map();
+    HAS_LABEL_PROVIDER: Map<string, boolean> = new Map();
+    HAS_LAYOUT_OPTIONS_PROVIDER: Map<string, boolean> = new Map();
 }
 
 export namespace MetaSpecification {
@@ -151,6 +154,8 @@ export namespace MetaSpecification {
     function computateAnnotationClassifications(): void {
         CACHE.HAS_APPEARANCE_PROVIDER.clear();
         CACHE.HAS_VALUE_PROVIDER.clear();
+        CACHE.HAS_LABEL_PROVIDER.clear();
+        CACHE.HAS_LAYOUT_OPTIONS_PROVIDER.clear();
         CACHE.HAS_VALIDATION.clear();
 
         // AppearanceProvider
@@ -163,6 +168,18 @@ export namespace MetaSpecification {
         for (const elementTypeId of getSpecMap().keys()) {
             const hasAnn = hasValueProvider(elementTypeId);
             CACHE.HAS_VALUE_PROVIDER.set(elementTypeId, hasAnn);
+        }
+
+        // Label
+        for (const elementTypeId of getSpecMap().keys()) {
+            const hasAnn = hasLabelProvider(elementTypeId);
+            CACHE.HAS_LABEL_PROVIDER.set(elementTypeId, hasAnn);
+        }
+
+        // LayoutOptions
+        for (const elementTypeId of getSpecMap().keys()) {
+            const hasAnn = hasLayoutOptionsProvider(elementTypeId);
+            CACHE.HAS_LAYOUT_OPTIONS_PROVIDER.set(elementTypeId, hasAnn);
         }
 
         // Validation
@@ -178,6 +195,14 @@ export namespace MetaSpecification {
 
     export function _hasValueProvider(elementTypeId: string): boolean {
         return CACHE.HAS_VALUE_PROVIDER.get(elementTypeId) ?? false;
+    }
+
+    export function _hasLabelProvider(elementTypeId: string): boolean {
+        return CACHE.HAS_LABEL_PROVIDER.get(elementTypeId) ?? false;
+    }
+
+    export function _hasLayoutOptionsProvider(elementTypeId: string): boolean {
+        return CACHE.HAS_LAYOUT_OPTIONS_PROVIDER.get(elementTypeId) ?? false;
     }
 
     export function _hasValidation(elementTypeId: string): boolean {
@@ -1045,7 +1070,9 @@ const handlerAnnotations = [
     'Interpreter',
     'DoubleClickAction',
     'SelectAction',
-    'FileCodec'
+    'FileCodec',
+    'LabelProvider',
+    'LayoutOptionsProvider'
 ];
 
 export function hasAppearanceProvider(elementTypeId: string): boolean {
@@ -1202,6 +1229,81 @@ export function getFileCodec(elementTypeId: string): string[][] {
         return [];
     }
     return getAnnotationValues(type, 'FileCodec');
+}
+
+export function hasLabelProvider(elementTypeId: string): boolean {
+    if (MetaSpecification.isCacheReady()) {
+        return MetaSpecification._hasLabelProvider(elementTypeId);
+    }
+    return getLabelProvider(elementTypeId).length > 0;
+}
+
+export function hasLabelProviderFor(type: Annotatable): boolean {
+    return getLabelProviderOf(type).length > 0;
+}
+
+export function hasLabelProviderOfPrime(elementTypeId: string): boolean {
+    return getLabelProviderOfPrime(elementTypeId).length > 0;
+}
+
+export function getLabelProviderOfPrime(elementTypeId: string): string[] {
+    const type = getSpecOf(elementTypeId);
+    if (!type) {
+        return [];
+    }
+    if (isPrimeReference(type)) {
+        return getLabelProviderOf((type as NodeType).primeReference!);
+    }
+    return [];
+}
+
+export function getLabelProvider(elementTypeId: string): string[] {
+    const type = getSpecOf(elementTypeId);
+    if (!type) {
+        return [];
+    }
+    return getLabelProviderOf(type);
+}
+
+function getLabelProviderOf(type: Annotatable): string[] {
+    const result: Set<string> = new Set();
+    const annotationValues = getAnnotationValues(type, 'LabelProvider');
+    for (const ann of annotationValues) {
+        if (ann && ann.length > 0) {
+            ann.forEach(a => {
+                if (!result.has(a)) {
+                    result.add(a);
+                }
+            });
+        }
+    }
+    return Array.from(result);
+}
+
+export function hasLayoutOptionsProvider(elementTypeId: string): boolean {
+    if (MetaSpecification.isCacheReady()) {
+        return MetaSpecification._hasLayoutOptionsProvider(elementTypeId);
+    }
+    return getLabelProvider(elementTypeId).length > 0;
+}
+
+export function getLayoutOptionsProvider(elementTypeId: string): string[] {
+    const type = getSpecOf(elementTypeId);
+    if (!type) {
+        return [];
+    }
+    const result: Set<string> = new Set();
+    const annotationValues = getAnnotationValues(type, 'LayoutOptionsProvider');
+    for (const ann of annotationValues) {
+        if (ann && ann.length > 0) {
+            ann.forEach(a => {
+                if (!result.has(a)) {
+                    result.add(a);
+                }
+            });
+        }
+    }
+    return Array.from(result);
 }
 
 export function getAnnotationValues(type: Annotatable, annotation: string): string[][] {

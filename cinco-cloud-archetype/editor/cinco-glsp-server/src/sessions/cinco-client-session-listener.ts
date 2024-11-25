@@ -13,8 +13,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GraphGModelFactory, GraphModelState } from '@cinco-glsp/cinco-glsp-api';
-import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
+import { ContextBundle, GraphGModelFactory, GraphModelState } from '@cinco-glsp/cinco-glsp-api';
 import { ActionDispatcher, ClientSession, ClientSessionListener, GModelFactory, Logger, SourceModelStorage } from '@eclipse-glsp/server';
 
 export class CincoClientSessionListener implements ClientSessionListener {

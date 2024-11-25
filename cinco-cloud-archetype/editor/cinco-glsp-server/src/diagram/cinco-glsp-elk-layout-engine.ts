@@ -191,7 +191,7 @@ export class CincoGlspElkLayoutEngine extends GlspElkLayoutEngine {
     protected override findChildren<G extends GModelElement>(element: GModelElement, constructor: GModelElementConstructor<G>): G[] {
         const result: G[] = [];
         element.children.forEach(child => {
-            // TODO: Sami - fix type of the GLSP-guys: this.filter.apply(element) -> this.filter.apply(child)
+            // Note: Sami - this fixes type of the GLSP-guys: this.filter.apply(element) -> this.filter.apply(child)
             if (child instanceof constructor && this.filter.apply(child)) {
                 result.push(child);
             } else if (child instanceof GCompartment) {

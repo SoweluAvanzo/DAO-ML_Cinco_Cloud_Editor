@@ -17,8 +17,8 @@
 import { hasFunctionProp, Point } from '@eclipse-glsp/server';
 import { PropertyEditOperation, AnyObject, UserDefinedType, Cell, LayoutArgument } from '@cinco-glsp/cinco-glsp-common';
 import { APIBaseHandler } from './api-base-handler';
-import { ResizeBounds } from './resize-bounds';
-import { Edge, GraphModel, ModelElement, Node, ModelElementContainer } from '../model/graph-model';
+import { ResizeBounds } from '../types/resize-bounds';
+import { Edge, GraphModel, ModelElement, Node, ModelElementContainer } from '../../model/graph-model';
 
 export abstract class AbstractHook extends APIBaseHandler {}
 

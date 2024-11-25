@@ -15,8 +15,8 @@
  ********************************************************************************/
 
 import { Logger, ActionDispatcher, SourceModelStorage, ModelSubmissionHandler } from '@eclipse-glsp/server';
-import { GraphModelState } from '../model/graph-model-state';
-import { GraphGModelFactory } from '../model/graph-gmodel-factory';
+import { GraphModelState } from '../../model/graph-model-state';
+import { GraphGModelFactory } from '../../model/graph-gmodel-factory';
 
 export class ContextBundle {
     readonly logger: Logger;

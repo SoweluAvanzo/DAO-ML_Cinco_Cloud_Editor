@@ -66,7 +66,7 @@ import { GraphModelIndex } from './graph-model-index';
 import { GraphModelStorage } from './graph-storage';
 import { getModelFilesSync, getWorkspaceRootUri } from '../utils/file-helper';
 import * as path from 'path';
-import { ContextBundle } from '../api/context-bundle';
+import { ContextBundle } from '../api/types/context-bundle';
 
 export interface IdentifiableElement {
     id: string;

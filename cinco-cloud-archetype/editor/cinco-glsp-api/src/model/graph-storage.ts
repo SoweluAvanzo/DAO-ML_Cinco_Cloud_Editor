@@ -39,7 +39,7 @@ import { GraphModelState } from './graph-model-state';
 import { HookManager } from '../semantics/hook-manager';
 import { existsFile, readFile, readFileSync, readJson, readJsonSync, toPath, toWorkspaceUri, writeFile } from '../utils/file-helper';
 import { FileCodecManager } from '../semantics/file-codec-manager';
-import { ContextBundle } from '../api/context-bundle';
+import { ContextBundle } from '../api/types/context-bundle';
 import { GraphGModelFactory } from './graph-gmodel-factory';
 
 @injectable()

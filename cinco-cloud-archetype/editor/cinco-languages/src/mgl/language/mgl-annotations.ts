@@ -77,22 +77,37 @@ export class MglAnnotations {
         'PreLayout',
         'PostLayout'
     ];
-    static readonly labelAnnotation: AnnotationDescription[] = [
-        {
-            name: 'label',
-            parameterLimits: [1, 1],
-            description:
-                'This annotation sets the label of the element for references e.g. inside the palette.' +
-                ' E.g. `label("someNode")` or `label("${name}")` with a contained reference.' +
-                ' The `label("${name}")` uses a declared attribute "name" as a label for mapping.',
-            valueRules: [
-                {
-                    position: [1, 1],
-                    type: AnnotationValue.STRING
-                }
-            ]
-        }
-    ];
+    static readonly labelProviderHandler: AnnotationDescription = {
+        name: 'LabelProvider',
+        parameterLimits: [1, 1],
+        description: this.createHandlerDescription(
+            'LabelProvider',
+            '"ExampleLabelProvider"',
+            'This annotation allows to set the label of the element for references e.g. inside the palette dynamically.' +
+                ' The class `ExampleLabelProvider`' +
+                'is executed whenever the palette is requested.'
+        ),
+        valueRules: [
+            {
+                position: [0, 0],
+                type: AnnotationValue.STRING
+            }
+        ]
+    };
+    static readonly labelAnnotation: AnnotationDescription = {
+        name: 'label',
+        parameterLimits: [1, 1],
+        description:
+            'This annotation sets the label of the element for references e.g. inside the palette.' +
+            ' E.g. `label("someNode")` or `label("${name}")` with a contained reference.' +
+            ' The `label("${name}")` uses a declared attribute "name" as a label for mapping.',
+        valueRules: [
+            {
+                position: [1, 1],
+                type: AnnotationValue.STRING
+            }
+        ]
+    };
     static readonly paletteAnnotations: AnnotationDescription[] = [
         {
             name: 'icon',
@@ -402,14 +417,17 @@ export class MglAnnotations {
         return this.modelElementAnnotations.map(a => a.name);
     }
     static get modelElementAnnotations(): AnnotationDescription[] {
-        return MglAnnotations.actionHandlerAnnotations.concat(MglAnnotations.paletteAnnotations).concat(MglAnnotations.labelAnnotation);
+        return MglAnnotations.actionHandlerAnnotations
+            .concat(MglAnnotations.paletteAnnotations)
+            .concat([MglAnnotations.labelAnnotation, MglAnnotations.labelProviderHandler])
+            .concat([]);
     }
 
     static get primeReferenceAnnotationNames(): string[] {
         return this.primeReferenceAnnotations.map(a => a.name);
     }
     static get primeReferenceAnnotations(): AnnotationDescription[] {
-        return this.labelAnnotation;
+        return [MglAnnotations.labelAnnotation, MglAnnotations.labelProviderHandler];
     }
 
     static get allAnnotationNames(): string[] {
@@ -419,7 +437,7 @@ export class MglAnnotations {
         return MglAnnotations.attributeAnnotationDefinitions
             .concat(MglAnnotations.actionHandlerAnnotations)
             .concat(MglAnnotations.paletteAnnotations)
-            .concat(MglAnnotations.labelAnnotation);
+            .concat([MglAnnotations.labelAnnotation, MglAnnotations.labelProviderHandler]);
     }
 
     static checkAnnotation(annotation: Annotation, acceptor: ValidationAcceptor): void {

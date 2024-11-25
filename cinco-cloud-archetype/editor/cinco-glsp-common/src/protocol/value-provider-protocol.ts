@@ -13,10 +13,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { Action } from './shared-protocol';
+import { Action, ManagedBaseAction } from './shared-protocol';
 import { hasStringProp } from './type-utils';
 
-export interface ValueUpdateRequestAction extends Action {
+export interface ValueUpdateRequestAction extends ManagedBaseAction {
     kind: typeof ValueUpdateRequestAction.KIND;
     modelId: string; // associated id of the model
     modelElementId: string; // associated id of the model-element
@@ -28,10 +28,15 @@ export namespace ValueUpdateRequestAction {
     export const KIND = 'valueUpdateRequest';
 
     export function is(object: any): object is ValueUpdateRequestAction {
-        return Action.hasKind(object, KIND) && hasStringProp(object, 'modelElementId');
+        return Action.hasKind(object, KIND) && hasStringProp(object, 'modelId') && hasStringProp(object, 'modelElementId');
     }
 
-    export function create(modelId: string, modelElementId: string, reason: string, options?: { args: any }): ValueUpdateRequestAction {
+    export function create(
+        modelId: string,
+        modelElementId: string,
+        reason?: string | undefined,
+        options?: { args: any }
+    ): ValueUpdateRequestAction {
         return {
             kind: KIND,
             modelId,
