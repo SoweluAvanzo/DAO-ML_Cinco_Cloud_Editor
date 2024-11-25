@@ -9,6 +9,7 @@ stylePath "layout.msl"
  * Layout-Annotation Test
  */
 
+@Hook("LayoutHooks", CanLayout, PreLayout, PostLayout)
 @layout('{
     "elk.algorithm": "layered",
     "elk.direction": "RIGHT",
