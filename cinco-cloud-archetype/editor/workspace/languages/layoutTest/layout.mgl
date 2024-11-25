@@ -17,32 +17,7 @@ graphModel LayoutTest {
 	containableElements(*)
 }
 
-node SomeNode {
-    style blueTextRectangle("Node")
-	incomingEdges ({Transition}[1,*])
-	outgoingEdges ({Transition}[1,*])
-}
 
-@disable(layout)
-node NotLayoutNode {
-    style blueTextRectangle("Node")
-	incomingEdges ({Transition}[1,*])
-	outgoingEdges ({Transition}[1,*])
-}
-
-@disable(select)
-node NotSelectableNode {
-    style blueTextRectangle("NotSelectableNode")
-	incomingEdges ({Transition}[1,*])
-	outgoingEdges ({Transition}[1,*])
-}
-
-@disable(move)
-node NotMovableNode {
-    style blueTextRectangle("NotMovableNode")
-	incomingEdges ({Transition}[1,*])
-	outgoingEdges ({Transition}[1,*])
-}
 
 @layout('{
     "elk.algorithm": "random",
@@ -76,10 +51,37 @@ container Layered_Layout_Container {
     containableElements(*)
 }
 
-// TODO: @LayoutProvider
-container ProviderContainer {
-    style purpleTextRectangle("ProviderContainer")
+@LayoutOptionsProvider("ExampleLayoutOptionsProvider")
+container LayoutOptionsProviderTest {
+    style purpleTextRectangle("LayoutOptionsProviderTest")
     containableElements(*)
+}
+
+node SomeNode {
+    style blueTextRectangle("Node")
+	incomingEdges ({Transition}[1,*])
+	outgoingEdges ({Transition}[1,*])
+}
+
+@disable(layout)
+node NotLayoutNode {
+    style blueTextRectangle("Node")
+	incomingEdges ({Transition}[1,*])
+	outgoingEdges ({Transition}[1,*])
+}
+
+@disable(select)
+node NotSelectableNode {
+    style blueTextRectangle("NotSelectableNode")
+	incomingEdges ({Transition}[1,*])
+	outgoingEdges ({Transition}[1,*])
+}
+
+@disable(move)
+node NotMovableNode {
+    style blueTextRectangle("NotMovableNode")
+	incomingEdges ({Transition}[1,*])
+	outgoingEdges ({Transition}[1,*])
 }
 
 edge Transition {
