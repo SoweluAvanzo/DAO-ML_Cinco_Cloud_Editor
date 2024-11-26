@@ -15,7 +15,8 @@
  ********************************************************************************/
 
 import { Logger, ActionDispatcher, SourceModelStorage, ModelSubmissionHandler } from '@eclipse-glsp/server';
-import { GraphModelState } from '../model/graph-model-state';
+import { GraphModelState } from '../../model/graph-model-state';
+import { GraphGModelFactory } from '../../model/graph-gmodel-factory';
 
 export class ContextBundle {
     readonly logger: Logger;
@@ -23,18 +24,19 @@ export class ContextBundle {
     readonly actionDispatcher: ActionDispatcher;
     readonly sourceModelStorage: SourceModelStorage;
     readonly submissionHandler: ModelSubmissionHandler;
+    readonly frontendModelFactory: GraphGModelFactory;
 
     constructor(
         modelState: GraphModelState,
         logger: Logger,
         actionDispatcher: ActionDispatcher,
         sourceModelStorage: SourceModelStorage,
-        submissionHandler: ModelSubmissionHandler
+        frontendModelFactory: GraphGModelFactory
     ) {
         this.logger = logger;
         this.modelState = modelState;
         this.actionDispatcher = actionDispatcher;
         this.sourceModelStorage = sourceModelStorage;
-        this.submissionHandler = submissionHandler;
+        this.frontendModelFactory = frontendModelFactory;
     }
 }

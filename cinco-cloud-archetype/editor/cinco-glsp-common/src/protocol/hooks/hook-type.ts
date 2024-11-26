@@ -41,5 +41,8 @@ export enum HookType {
     POST_CONTENT_CHANGE = 'PostContentChange',
     CAN_SAVE = 'CanSave',
     POST_SAVE = 'PostSave',
-    ON_OPEN = 'OnOpen'
+    ON_OPEN = 'OnOpen',
+    CAN_LAYOUT = 'CanLayout',
+    PRE_LAYOUT = 'PreLayout',
+    POST_LAYOUT = 'PostLayout'
 }

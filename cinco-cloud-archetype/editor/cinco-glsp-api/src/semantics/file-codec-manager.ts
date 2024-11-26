@@ -18,8 +18,8 @@ import { getFileCodec, getFileExtension, getGraphModelOfFileType, GraphType } fr
 import { ActionDispatcher, MessageAction, SeverityLevel } from '@eclipse-glsp/server';
 import { LanguageFilesRegistry } from './language-files-registry';
 import { GraphModel } from '../model/graph-model';
-import { DefaultFileCodecHandler, FileCodecHandler } from '../api/file-codec-handler';
-import { ContextBundle } from '../api/context-bundle';
+import { DefaultFileCodecHandler, FileCodecHandler } from '../api/handler/file-codec-handler';
+import { ContextBundle } from '../api/types/context-bundle';
 
 export class FileCodecManager {
     /**

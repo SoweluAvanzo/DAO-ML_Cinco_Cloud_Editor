@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2023 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,26 +14,18 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { getWorkspaceRootUri, getLanguageFolder } from '../utils/file-helper';
-import * as path from 'path';
+import { GraphModelStorage } from '../../model/graph-storage';
+import { GraphModel } from '../../model/graph-model';
+import { APIBaseHandler } from './api-base-handler';
 
-export class RootPath {
-    static readonly WORKSPACE = new RootPath('WORKSPACE', getWorkspaceRootUri);
-    static readonly LANGUAGES = new RootPath('LANGUAGES', getLanguageFolder);
-
-    readonly name: string;
-    private readonly pathFunction: () => string;
-
-    private constructor(name: string, pathFunction: () => string) {
-        this.name = name;
-        this.pathFunction = pathFunction;
+export abstract class FileCodecHandler extends APIBaseHandler {
+    decode(content: string): GraphModel | undefined {
+        return JSON.parse(content);
     }
 
-    get path(): string {
-        return path.normalize(this.pathFunction());
-    }
-
-    join(relativePath: string): string {
-        return path.join(this.path, relativePath);
+    encode(model: GraphModel): string {
+        return GraphModelStorage.stringifyGraphModel(model);
     }
 }
+
+export class DefaultFileCodecHandler extends FileCodecHandler {}

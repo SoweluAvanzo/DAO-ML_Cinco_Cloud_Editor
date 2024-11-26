@@ -29,7 +29,8 @@ import {
     getHooksOfType,
     SaveModelFileArgument,
     mapCell,
-    Cell
+    Cell,
+    LayoutArgument
 } from '@cinco-glsp/cinco-glsp-common';
 import { ActionDispatcher, hasStringProp, MessageAction, SeverityLevel } from '@eclipse-glsp/server';
 import {
@@ -43,13 +44,13 @@ import {
     AbstractEdgeHook,
     ModelFileHook,
     GraphModelElementHook
-} from '../api/hook-handler';
+} from '../api/handler/hook-handler';
 import { LanguageFilesRegistry } from './language-files-registry';
 import { ModelElement, Edge, Node, ModelElementContainer, GraphModel } from '../model/graph-model';
 import { GraphModelState } from '../model/graph-model-state';
-import { APIBaseHandler } from '../api/api-base-handler';
-import { ResizeBounds } from '../api/resize-bounds';
-import { ContextBundle } from '../api/context-bundle';
+import { APIBaseHandler } from '../api/handler/api-base-handler';
+import { ResizeBounds } from '../api/types/resize-bounds';
+import { ContextBundle } from '../api/types/context-bundle';
 
 export class HookManager {
     static executeHook(parameters: OperationArgument, type: HookType, contextBundle: ContextBundle): boolean {
@@ -412,6 +413,40 @@ export class HookManager {
                         this.postDoubleClickHook(hook, parameters as DoubleClickArgument, modelElement);
                     }
                     break;
+                case HookType.CAN_LAYOUT: {
+                    if (!GraphicalElementHook.is(hook)) {
+                        throw new Error(`Hook of type ${type} could not be executed. hook is not a GraphicalElementHook.`);
+                    }
+                    const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
+                    if (!modelElement) {
+                        throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                    }
+                    return this.canLayoutHook(hook, parameters as LayoutArgument, modelElement);
+                }
+                case HookType.PRE_LAYOUT:
+                    {
+                        if (!GraphicalElementHook.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not a GraphicalElementHook.`);
+                        }
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.preLayoutHook(hook, parameters as LayoutArgument, modelElement);
+                    }
+                    break;
+                case HookType.POST_LAYOUT:
+                    {
+                        if (!GraphicalElementHook.is(hook)) {
+                            throw new Error(`Hook of type ${type} could not be executed. hook is not a GraphicalElementHook.`);
+                        }
+                        const modelElement = contextBundle.modelState.index.findModelElement(parameters.modelElementId);
+                        if (!modelElement) {
+                            throw new Error(`Hook of type ${type} could not be executed. Modelelement is undefined.`);
+                        }
+                        this.postLayoutHook(hook, parameters as LayoutArgument, modelElement);
+                    }
+                    break;
             }
         } catch (e: any) {
             contextBundle.logger.error(e);
@@ -768,6 +803,38 @@ export class HookManager {
     ): void {
         if (hook.postDoubleClick) {
             hook.postDoubleClick(modelElement);
+        }
+    }
+
+    /**
+     * DoubleClick
+     */
+
+    private static canLayoutHook(
+        hook: GraphicalElementHook<any>,
+        parameters: LayoutArgument,
+        modelElement: ModelElement | undefined
+    ): boolean {
+        return !hook.canLayout || hook.canLayout(modelElement, parameters);
+    }
+
+    private static preLayoutHook(
+        hook: GraphicalElementHook<any>,
+        parameters: LayoutArgument,
+        modelElement: ModelElement | undefined
+    ): void {
+        if (hook.preLayout) {
+            hook.preLayout(modelElement, parameters);
+        }
+    }
+
+    private static postLayoutHook(
+        hook: GraphicalElementHook<any>,
+        parameters: LayoutArgument,
+        modelElement: ModelElement | undefined
+    ): void {
+        if (hook.postLayout) {
+            hook.postLayout(modelElement, parameters);
         }
     }
 

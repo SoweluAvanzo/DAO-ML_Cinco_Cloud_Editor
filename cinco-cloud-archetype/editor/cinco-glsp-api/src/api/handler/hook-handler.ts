@@ -15,10 +15,10 @@
  ********************************************************************************/
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { hasFunctionProp, Point } from '@eclipse-glsp/server';
-import { PropertyEditOperation, AnyObject, UserDefinedType, Cell } from '@cinco-glsp/cinco-glsp-common';
+import { PropertyEditOperation, AnyObject, UserDefinedType, Cell, LayoutArgument } from '@cinco-glsp/cinco-glsp-common';
 import { APIBaseHandler } from './api-base-handler';
-import { ResizeBounds } from './resize-bounds';
-import { Edge, GraphModel, ModelElement, Node, ModelElementContainer } from '../model/graph-model';
+import { ResizeBounds } from '../types/resize-bounds';
+import { Edge, GraphModel, ModelElement, Node, ModelElementContainer } from '../../model/graph-model';
 
 export abstract class AbstractHook extends APIBaseHandler {}
 
@@ -63,6 +63,12 @@ export abstract class AbstractNodeHook extends AbstractHook implements NodeHook 
     }
     preResize(node: Node, resizeBounds: ResizeBounds): void {}
     postResize(node: Node, resizeBounds: ResizeBounds): void {}
+    // Layout
+    canLayout(modelElement: Node, parameter: LayoutArgument): boolean {
+        return true;
+    }
+    preLayout(modelElement: Node, parameter: LayoutArgument): void {}
+    postLayout(modelElement: Node, parameter: LayoutArgument): void {}
 }
 
 export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook {
@@ -100,6 +106,12 @@ export abstract class AbstractEdgeHook extends AbstractHook implements EdgeHook 
     }
     preReconnect(edge: Edge, newSource: Cell<Node>, newTarget: Cell<Node>): void {}
     postReconnect(edge: Edge, oldSource: Cell<Node>, oldTarget: Cell<Node>): void {}
+    // Layout
+    canLayout(modelElement: Edge, parameter: LayoutArgument): boolean {
+        return true;
+    }
+    preLayout(modelElement: Edge, parameter: LayoutArgument): void {}
+    postLayout(modelElement: Edge, parameter: LayoutArgument): void {}
 }
 
 export abstract class AbstractGraphModelHook extends AbstractHook implements GraphModelHook {
@@ -141,6 +153,12 @@ export abstract class AbstractGraphModelHook extends AbstractHook implements Gra
     }
     postSave(graphModel: GraphModel, path: string): void {}
     onOpen(graphModel: GraphModel): void {}
+    // Layout
+    canLayout(modelElement: GraphModel, parameter: LayoutArgument): boolean {
+        return true;
+    }
+    preLayout(modelElement: GraphModel, parameter: LayoutArgument): void {}
+    postLayout(modelElement: GraphModel, parameter: LayoutArgument): void {}
 }
 
 // TODO-SAMI: This is not yet further implemented
@@ -269,6 +287,9 @@ export interface GraphicalElementHook<T extends ModelElement> {
     postSelect(modelElement: T, isSelected: boolean): void;
     canDoubleClick(modelElement: T): boolean;
     postDoubleClick(modelElement: T): void;
+    canLayout(modelElement: T, parameter: LayoutArgument): boolean;
+    preLayout(modelElement: T, parameter: LayoutArgument): void;
+    postLayout(modelElement: T, parameter: LayoutArgument): void;
 }
 
 export namespace GraphicalElementHook {
@@ -278,7 +299,10 @@ export namespace GraphicalElementHook {
             (hasFunctionProp(object, 'canSelect') ||
                 hasFunctionProp(object, 'postSelect') ||
                 hasFunctionProp(object, 'canDoubleClick') ||
-                hasFunctionProp(object, 'postDoubleClick'))
+                hasFunctionProp(object, 'postDoubleClick') ||
+                hasFunctionProp(object, 'canLayout') ||
+                hasFunctionProp(object, 'preLayout') ||
+                hasFunctionProp(object, 'postLayout'))
         );
     }
 }

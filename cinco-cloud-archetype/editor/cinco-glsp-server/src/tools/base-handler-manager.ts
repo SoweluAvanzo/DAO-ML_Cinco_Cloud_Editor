@@ -13,18 +13,24 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { APIBaseHandler, GraphModelState, LanguageFilesRegistry, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
+import {
+    APIBaseHandler,
+    GraphGModelFactory,
+    GraphModelState,
+    LanguageFilesRegistry,
+    ModelElement,
+    ContextBundle
+} from '@cinco-glsp/cinco-glsp-api';
 import { GLSP_TEMP_ID, ManagedBaseAction } from '@cinco-glsp/cinco-glsp-common';
 import {
     Action,
     ActionDispatcher,
     ActionHandler,
     Logger,
+    GModelFactory,
     MessageAction,
     SeverityLevel,
-    SourceModelStorage,
-    ModelSubmissionHandler
+    SourceModelStorage
 } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
 
@@ -42,8 +48,8 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     protected readonly actionDispatcher: ActionDispatcher;
     @inject(SourceModelStorage)
     protected sourceModelStorage: SourceModelStorage;
-    @inject(ModelSubmissionHandler)
-    protected submissionHandler: ModelSubmissionHandler;
+    @inject(GModelFactory)
+    protected frontendModelFactory: GraphGModelFactory;
 
     // this needs to contain KIND of the ManagedBaseAction A
     abstract actionKinds: string[];
@@ -52,10 +58,10 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
     abstract baseHandlerName: string;
 
     // this defines, if an element has any handlerClass that is associated with this manager
-    abstract hasHandlerProperty(element: ModelElement): boolean;
+    abstract hasHandlerProperty(element: ModelElement, action?: A): boolean;
 
     // this defines if a specific handlerclass, can be applied to a given element
-    abstract isApplicableHandler(element: ModelElement, handlerClassName: string): boolean;
+    abstract isApplicableHandler(element: ModelElement, handlerClassName: string, action?: A): boolean;
 
     // checks if specific handler can be executed under the given context
     abstract handlerCanBeExecuted(handler: H, element: ModelElement, action: A, args: any): Promise<boolean> | boolean;
@@ -112,7 +118,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
             return Promise.resolve([]);
         }
         try {
-            if (!this.hasHandlerProperty(element)) {
+            if (!this.hasHandlerProperty(element, action)) {
                 console.log('This element has no assigned ' + this.baseHandlerName + '!');
                 return Promise.resolve([]);
             }
@@ -122,7 +128,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
             console.log(`${e}`);
             return Promise.resolve([]);
         }
-        const applicableHandlerClasses = await this.getApplicableHandlers(element);
+        const applicableHandlerClasses = await this.getApplicableHandlers(element, action);
         return this.getExecutableHandlers(applicableHandlerClasses, element, action, args);
     }
 
@@ -135,7 +141,7 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
             this.logger,
             this.actionDispatcher,
             this.sourceModelStorage,
-            this.submissionHandler
+            this.frontendModelFactory
         );
         for (const handlerClass of applicableHandlerClasses) {
             try {
@@ -170,12 +176,12 @@ export abstract class BaseHandlerManager<A extends ManagedBaseAction, H extends 
         return actionHandlers;
     }
 
-    async getApplicableHandlers(element: ModelElement): Promise<H[]> {
+    async getApplicableHandlers(element: ModelElement, action: A): Promise<H[]> {
         const applicableHandlerClasses = await BaseHandlerManager.getHandlerClasses(
             this.baseHandlerName,
             (handlerClassName: string): boolean => {
                 try {
-                    return this.isApplicableHandler(element, handlerClassName);
+                    return this.isApplicableHandler(element, handlerClassName, action);
                 } catch (e) {
                     console.log(`Error checking applicability of: ${handlerClassName}`);
                     this.notify(`Error checking applicability of: ${handlerClassName}`, 'ERROR');

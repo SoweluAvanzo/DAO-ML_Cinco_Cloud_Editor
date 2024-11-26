@@ -14,16 +14,15 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { GraphGModelFactory, GraphModelState, GraphModelStorage, ModelElement } from '@cinco-glsp/cinco-glsp-api';
-import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
+import { GraphGModelFactory, GraphModelState, GraphModelStorage, ModelElement, ContextBundle } from '@cinco-glsp/cinco-glsp-api';
 import { hasValueProvider, ValueUpdateRequestAction } from '@cinco-glsp/cinco-glsp-common';
 import {
     ActionDispatcher,
     Command,
+    GModelFactory,
     JsonOperationHandler,
     Logger,
     MaybePromise,
-    ModelSubmissionHandler,
     Operation,
     SourceModelStorage,
     UpdateModelAction
@@ -40,8 +39,8 @@ export abstract class CincoJsonOperationHandler extends JsonOperationHandler {
     protected readonly logger: Logger;
     @inject(SourceModelStorage)
     protected sourceModelStorage: SourceModelStorage;
-    @inject(ModelSubmissionHandler)
-    protected submissionHandler: ModelSubmissionHandler;
+    @inject(GModelFactory)
+    protected frontendModelFactory: GraphGModelFactory;
 
     // Example Use-Case: async composition of changeBounds and and changeContainer
     static MODEL_ACTION_LOCK: Map<string /* ModelID */, any[] /* Resovle */> = new Map();
@@ -74,7 +73,7 @@ export abstract class CincoJsonOperationHandler extends JsonOperationHandler {
     }
 
     getBundle(): ContextBundle {
-        return new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this.sourceModelStorage, this.submissionHandler);
+        return new ContextBundle(this.modelState, this.logger, this.actionDispatcher, this.sourceModelStorage, this.frontendModelFactory);
     }
 
     createCommand(operation: Operation): MaybePromise<Command | undefined> {

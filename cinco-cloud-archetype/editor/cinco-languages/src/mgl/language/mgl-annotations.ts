@@ -14,7 +14,16 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { ValidationAcceptor } from 'langium';
-import { Annotation, isAttribute, isEdge, isGraphModel, isModelElement, isNode, isNodeContainer } from '../../generated/ast';
+import {
+    Annotation,
+    isAttribute,
+    isEdge,
+    isGraphModel,
+    isModelElement,
+    isNode,
+    isNodeContainer,
+    isReferencedModelElement
+} from '../../generated/ast';
 
 export enum AnnotationValue {
     PATH,
@@ -63,14 +72,48 @@ export class MglAnnotations {
         'PostSave',
         'PostPathChange',
         'PostContentChange',
-        'OnOpen'
+        'OnOpen',
+        'CanLayout',
+        'PreLayout',
+        'PostLayout'
     ];
+    static readonly labelProviderHandler: AnnotationDescription = {
+        name: 'LabelProvider',
+        parameterLimits: [1, 1],
+        description: this.createHandlerDescription(
+            'LabelProvider',
+            '"ExampleLabelProvider"',
+            'This annotation allows to set the label of the element for references e.g. inside the palette dynamically.' +
+                ' The class `ExampleLabelProvider`' +
+                'is executed whenever the palette is requested.'
+        ),
+        valueRules: [
+            {
+                position: [0, 0],
+                type: AnnotationValue.STRING
+            }
+        ]
+    };
+    static readonly labelAnnotation: AnnotationDescription = {
+        name: 'label',
+        parameterLimits: [1, 1],
+        description:
+            'This annotation sets the label of the element for references e.g. inside the palette.' +
+            ' E.g. `label("someNode")` or `label("${name}")` with a contained reference.' +
+            ' The `label("${name}")` uses a declared attribute "name" as a label for mapping.',
+        valueRules: [
+            {
+                position: [1, 1],
+                type: AnnotationValue.STRING
+            }
+        ]
+    };
     static readonly paletteAnnotations: AnnotationDescription[] = [
         {
             name: 'icon',
             parameterLimits: [1, 1],
             description:
-                'This annotations set the icon of the element inside the palette.' +
+                'This annotation sets the icon of the element inside the palette.' +
                 ' E.g. `icon("mylanguage/images/icon.png")`.' +
                 ' The path `mylanguage/images/icon.png` is the relative path inside the languages-folder.',
             valueRules: [
@@ -81,24 +124,10 @@ export class MglAnnotations {
             ]
         },
         {
-            name: 'label',
-            parameterLimits: [1, 1],
-            description:
-                'This annotations set the label of the element for references e.g. inside the palette.' +
-                ' E.g. `label("someNode")` or `label("${name}")` with a contained reference.' +
-                ' The `label("${name}")` uses a declared attribute "name" as a label for mapping.',
-            valueRules: [
-                {
-                    position: [0, -1],
-                    type: AnnotationValue.STRING
-                }
-            ]
-        },
-        {
             name: 'palette',
             parameterLimits: [0, -1],
             description:
-                'This annotations set the category of the palette in which the modelElement will be shown.' +
+                'This annotation sets the category of the palette in which the modelElement will be shown.' +
                 ' E.g. `palette("My Special Nodes")`. This will create a category `My Special Nodes` inside the palette.',
             extra: (annotation: Annotation, acceptor: ValidationAcceptor) => {
                 if (isGraphModel(annotation.$container.$type)) {
@@ -116,6 +145,41 @@ export class MglAnnotations {
             ]
         },
         {
+            name: 'layout',
+            parameterLimits: [1, 1],
+            description:
+                'This annotation sets the elk-based layouting options for the model element.' +
+                " E.g. `layout(\"{'elk.algorithm': 'layered'}\")`. This will set the elk layoutOptions fot the annotated model element." +
+                ' (Check here for further information: https://eclipse.dev/elk/documentation.html and' +
+                ' https://rtsys.informatik.uni-kiel.de/elklive/) ',
+            extra: (annotation: Annotation, acceptor: ValidationAcceptor) => {
+                const predefinedLayouts = ['random', 'layered'];
+                try {
+                    if (!predefinedLayouts.includes(annotation.value[0])) {
+                        JSON.parse(annotation.value[0]);
+                    }
+                } catch (e) {
+                    acceptor(
+                        'error',
+                        'The layout needs to be either a predefined layout-algorithm or have a valid JSON-value for the layoutOptions!' +
+                            '(predefined: ' +
+                            predefinedLayouts.join(', ') +
+                            ')',
+                        {
+                            node: annotation,
+                            property: 'name'
+                        }
+                    );
+                }
+            },
+            valueRules: [
+                {
+                    position: [1, 1], // from 0 to infiny this rules applies
+                    type: AnnotationValue.STRING
+                }
+            ]
+        },
+        {
             name: 'disable',
             parameterLimits: [1, 5],
             description:
@@ -125,7 +189,7 @@ export class MglAnnotations {
             valueRules: [
                 {
                     position: [0, -1],
-                    type: ['resize', 'move', 'select', 'create', 'delete']
+                    type: ['resize', 'move', 'select', 'create', 'delete', 'layout']
                 }
             ]
         }
@@ -297,6 +361,24 @@ export class MglAnnotations {
                     type: AnnotationValue.STRING
                 }
             ]
+        },
+        {
+            name: 'LayoutOptionsProvider',
+            parameterLimits: [1, 1],
+            description: this.createHandlerDescription(
+                'LayoutOptionsProvider',
+                '"ExampleLayoutOptionsProvider"',
+                'This annotation sets the elk-based layouting options for the model element dynamically by using a provider-class.' +
+                    'The `ÈxampleLayoutOptionsProvider` will provide the elk layoutOptions fot the annotated model element.' +
+                    ' (Check here for further information: https://eclipse.dev/elk/documentation.html and' +
+                    ' https://rtsys.informatik.uni-kiel.de/elklive/) '
+            ),
+            valueRules: [
+                {
+                    position: [0, 0],
+                    type: AnnotationValue.STRING
+                }
+            ]
         }
     ];
     static readonly attributeAnnotationDefinitions: AnnotationDescription[] = [
@@ -341,39 +423,56 @@ export class MglAnnotations {
             valueRules: []
         }
     ];
-    static get attributeAnnotations(): string[] {
-        return MglAnnotations.attributeAnnotationDefinitions.map(a => a.name);
+
+    static get attributeAnnotationNames(): string[] {
+        return MglAnnotations.attributeAnnotations.map(a => a.name);
     }
-    static get modelElementAnnotations(): string[] {
-        return MglAnnotations.actionHandlerAnnotations.concat(MglAnnotations.paletteAnnotations).map(a => a.name);
+    static get attributeAnnotations(): AnnotationDescription[] {
+        return MglAnnotations.attributeAnnotationDefinitions;
     }
-    static get allAnnotations(): string[] {
+
+    static get modelElementAnnotationNames(): string[] {
+        return this.modelElementAnnotations.map(a => a.name);
+    }
+    static get modelElementAnnotations(): AnnotationDescription[] {
+        return MglAnnotations.actionHandlerAnnotations
+            .concat(MglAnnotations.paletteAnnotations)
+            .concat([MglAnnotations.labelAnnotation, MglAnnotations.labelProviderHandler])
+            .concat([]);
+    }
+
+    static get primeReferenceAnnotationNames(): string[] {
+        return this.primeReferenceAnnotations.map(a => a.name);
+    }
+    static get primeReferenceAnnotations(): AnnotationDescription[] {
+        return [MglAnnotations.labelAnnotation, MglAnnotations.labelProviderHandler];
+    }
+
+    static get allAnnotationNames(): string[] {
+        return this.allAnnotationDefinitions.map(a => a.name);
+    }
+    static get allAnnotationDefinitions(): AnnotationDescription[] {
         return MglAnnotations.attributeAnnotationDefinitions
             .concat(MglAnnotations.actionHandlerAnnotations)
             .concat(MglAnnotations.paletteAnnotations)
-            .map(a => a.name);
-    }
-    static get allAnnotationDefinitions(): string[] {
-        return MglAnnotations.attributeAnnotationDefinitions
-            .concat(MglAnnotations.actionHandlerAnnotations)
-            .concat(MglAnnotations.paletteAnnotations)
-            .map(a => a.name);
+            .concat([MglAnnotations.labelAnnotation, MglAnnotations.labelProviderHandler]);
     }
 
     static checkAnnotation(annotation: Annotation, acceptor: ValidationAcceptor): void {
         if (isAttribute(annotation.$container)) {
-            const supported = MglAnnotations.annotationIsSupported(MglAnnotations.attributeAnnotations, annotation, acceptor);
+            const supported = MglAnnotations.annotationIsSupported(MglAnnotations.attributeAnnotationNames, annotation, acceptor);
             if (supported) {
-                MglAnnotations.handleAnnotationValidation(annotation, MglAnnotations.attributeAnnotationDefinitions, acceptor);
+                MglAnnotations.handleAnnotationValidation(annotation, MglAnnotations.attributeAnnotations, acceptor);
             }
         } else if (isModelElement(annotation.$container)) {
-            const supported = MglAnnotations.annotationIsSupported(MglAnnotations.modelElementAnnotations, annotation, acceptor);
+            const supported = MglAnnotations.annotationIsSupported(MglAnnotations.modelElementAnnotationNames, annotation, acceptor);
             if (supported) {
-                MglAnnotations.handleAnnotationValidation(
-                    annotation,
-                    MglAnnotations.actionHandlerAnnotations.concat(MglAnnotations.paletteAnnotations),
-                    acceptor
-                );
+                MglAnnotations.handleAnnotationValidation(annotation, MglAnnotations.modelElementAnnotations, acceptor);
+            }
+        } else if (isReferencedModelElement(annotation.$container) && annotation.$container.$containerProperty === 'primeReference') {
+            const supported = MglAnnotations.annotationIsSupported(MglAnnotations.primeReferenceAnnotationNames, annotation, acceptor);
+            if (supported) {
+                MglAnnotations.handleAnnotationValidation(annotation, MglAnnotations.primeReferenceAnnotations, acceptor);
             }
         } else {
             const message = 'Unknown Annotation "' + annotation.name + '"!';
@@ -469,7 +568,10 @@ export class MglAnnotations {
                                         'CanSelect',
                                         'PostSelect',
                                         'CanDoubleClick',
-                                        'PostDoubleClick'
+                                        'PostDoubleClick',
+                                        'CanLayout',
+                                        'PreLayout',
+                                        'PostLayout'
                                     ];
                                     if (isGraphModel(annotation.$container)) {
                                         possibleValues = possibleValues.concat([

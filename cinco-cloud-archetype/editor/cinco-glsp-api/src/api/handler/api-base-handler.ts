@@ -30,18 +30,19 @@ import {
     SeverityLevel,
     MessageAction,
     SourceModelStorage,
-    ModelSubmissionHandler,
     CreateNodeOperation,
     CreateEdgeOperation,
-    SaveModelAction
+    SaveModelAction,
+    UpdateModelAction
 } from '@eclipse-glsp/server';
-import { RootPath } from './root-path';
-import { Container, GraphModel, ModelElement, Node } from '../model/graph-model';
-import { GraphModelState } from '../model/graph-model-state';
-import { ServerResponseHandler } from '../tools/server-dialog-response-handler';
-import * as fileHelper from '../utils/file-helper';
-import { GraphModelStorage } from '../model/graph-storage';
-import { ContextBundle } from './context-bundle';
+import { RootPath } from '../types/root-path';
+import { Container, GraphModel, ModelElement, Node } from '../../model/graph-model';
+import { GraphModelState } from '../../model/graph-model-state';
+import { ServerResponseHandler } from '../../tools/server-dialog-response-handler';
+import * as fileHelper from '../../utils/file-helper';
+import { GraphModelStorage } from '../../model/graph-storage';
+import { ContextBundle } from '../types/context-bundle';
+import { GraphGModelFactory } from '../../model/graph-gmodel-factory';
 
 export abstract class APIBaseHandler {
     protected readonly contextBundle: ContextBundle;
@@ -49,7 +50,7 @@ export abstract class APIBaseHandler {
     readonly modelState: GraphModelState;
     protected readonly actionDispatcher: ActionDispatcher;
     protected sourceModelStorage: SourceModelStorage;
-    protected submissionHandler: ModelSubmissionHandler;
+    protected frontendModelFactory: GraphGModelFactory;
     CHANNEL_NAME: string | undefined;
 
     constructor(contextBundle: ContextBundle) {
@@ -57,7 +58,7 @@ export abstract class APIBaseHandler {
         this.modelState = contextBundle.modelState;
         this.actionDispatcher = contextBundle.actionDispatcher;
         this.sourceModelStorage = contextBundle.sourceModelStorage;
-        this.submissionHandler = contextBundle.submissionHandler;
+        this.frontendModelFactory = contextBundle.frontendModelFactory;
     }
 
     getElement(modelElementId: string): ModelElement {
@@ -203,15 +204,10 @@ export abstract class APIBaseHandler {
         return Promise.resolve();
     }
 
-    submitModel(): Promise<void> {
-        return new Promise<void>(resolve => {
-            const result = this.submissionHandler?.submitModel();
-            if (result instanceof Promise) {
-                result.then(_ => resolve());
-            } else {
-                resolve();
-            }
-        });
+    async submitModel(): Promise<void> {
+        this.frontendModelFactory.updateModel(this.modelState.graphModel); // update internal model root (backend and frontend model)
+        const frontendModel = this.frontendModelFactory.serializeGModel(); // create serialized frontend model (without circles)
+        await this.actionDispatcher.dispatch(UpdateModelAction.create(frontendModel, { animate: true }));
     }
 
     createNode(type: string, location: Point, container?: Container | string): Promise<void> {

@@ -14,7 +14,15 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import { Args, PaletteItem } from '@eclipse-glsp/protocol';
-import { GraphModelState, GraphModelStorage, ModelElement, getModelFiles, getWorkspaceRootUri } from '@cinco-glsp/cinco-glsp-api';
+import {
+    ContextBundle,
+    GraphGModelFactory,
+    GraphModelState,
+    GraphModelStorage,
+    ModelElement,
+    getModelFiles,
+    getWorkspaceRootUri
+} from '@cinco-glsp/cinco-glsp-api';
 import {
     ElementType,
     getEdgePalettes,
@@ -29,9 +37,14 @@ import {
     getPrimeNodePaletteCategoriesOf,
     getSpecOf,
     hasLabelAnnotation,
+    hasLabelProvider,
+    hasLabelProviderFor,
     hasPalette,
     isCreateable,
     isPrimeReference,
+    LabelAnnotationType,
+    LabelRequestAction,
+    LabelResponseAction,
     NodeType,
     resolveParameter,
     UPDATING_RACE_CONDITION_INDICATOR
@@ -39,11 +52,11 @@ import {
 import {
     ActionDispatcher,
     Logger,
-    ModelSubmissionHandler,
     OperationHandlerRegistry,
     SourceModelStorage,
     ToolPaletteItemProvider,
     TriggerEdgeCreationAction,
+    GModelFactory,
     TriggerNodeCreationAction
 } from '@eclipse-glsp/server';
 import { inject, injectable } from 'inversify';
@@ -51,7 +64,7 @@ import { SpecifiedEdgeHandler } from '../handler/specified_edge_handler';
 import { CreateOperationHandler, SpecifiedElementHandler } from '../handler/specified_element_handler';
 import { SpecifiedNodeHandler } from '../handler/specified_node_handler';
 import * as path from 'path';
-import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
+import { CincoActionDispatcher } from '@cinco-glsp/cinco-glsp-api/lib/api/cinco-action-dispatcher';
 
 @injectable()
 export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
@@ -63,8 +76,8 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
     readonly actionDispatcher: ActionDispatcher;
     @inject(SourceModelStorage)
     protected sourceModelStorage: SourceModelStorage;
-    @inject(ModelSubmissionHandler)
-    protected submissionHandler: ModelSubmissionHandler;
+    @inject(GModelFactory)
+    protected frontendModelFactory: GraphGModelFactory;
     @inject(OperationHandlerRegistry) operationHandlerRegistry: OperationHandlerRegistry;
     protected counter: number;
     protected WHITE_LIST = ['Nodes', 'Edges'];
@@ -74,7 +87,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
     }
 
     getBundle(): ContextBundle {
-        return new ContextBundle(this.state, this.logger, this.actionDispatcher, this.sourceModelStorage, this.submissionHandler);
+        return new ContextBundle(this.state, this.logger, this.actionDispatcher, this.sourceModelStorage, this.frontendModelFactory);
     }
 
     async getItems(args?: Args): Promise<PaletteItem[]> {
@@ -98,8 +111,8 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
 
         // add default categories
         const paletteItems: PaletteItem[] = [];
-        const nodeCategory = this.createDefaultItem(handlers, 'node-group', 'Nodes', 'nodes');
-        const edgeCategory = this.createDefaultItem(handlers, 'edge-group', 'Edges', 'edges');
+        const nodeCategory = await this.createDefaultItem(handlers, 'node-group', 'Nodes', 'nodes');
+        const edgeCategory = await this.createDefaultItem(handlers, 'edge-group', 'Edges', 'edges');
         if (nodeCategory !== undefined) {
             paletteItems.push(nodeCategory);
         }
@@ -107,48 +120,54 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
             paletteItems.push(edgeCategory);
         }
 
+        // TODO: SAMI - check if Promise.all/this block is deterministic
         // add custom palettes
         const customNodePaletteItems = getNodePalettes();
-        customNodePaletteItems
-            .filter((e: string) => e !== 'Edges' && e !== 'Nodes')
-            .forEach((e: string) => {
-                const p = this.createCustomItem(handlers, e, e, 'node');
-                if (p) {
-                    paletteItems.push(p);
-                }
-            });
+        await Promise.all(
+            customNodePaletteItems
+                .filter((e: string) => e !== 'Edges' && e !== 'Nodes')
+                .map(async (e: string) => {
+                    const p = await this.createCustomItem(handlers, e, e, 'node');
+                    if (p) {
+                        paletteItems.push(p);
+                    }
+                })
+        );
         const customEdgePaletteItems = getEdgePalettes();
-        customEdgePaletteItems
-            .filter((e: string) => e !== 'Edges' && e !== 'Nodes')
-            .forEach((e: string) => {
-                const p = this.createCustomItem(handlers, e, e, 'edge');
-                if (p) {
-                    paletteItems.push(p);
-                }
-            });
-
+        await Promise.all(
+            customEdgePaletteItems
+                .filter((e: string) => e !== 'Edges' && e !== 'Nodes')
+                .map(async (e: string) => {
+                    const p = await this.createCustomItem(handlers, e, e, 'edge');
+                    if (p) {
+                        paletteItems.push(p);
+                    }
+                })
+        );
         // add prime node label into palettes
         const primePalettes = await this.getPrimePalettes();
-        primePalettes.forEach(entry => {
-            const label = entry.categoryLabelId;
-            const p = this.createCustomItem(handlers, label, label, 'node', entry.referenceableElements);
-            if (p) {
-                paletteItems.push(p);
-            }
-        });
+        await Promise.all(
+            primePalettes.map(async entry => {
+                const label = entry.categoryLabelId;
+                const p = await this.createCustomItem(handlers, label, label, 'node', entry.referenceableElements);
+                if (p) {
+                    paletteItems.push(p);
+                }
+            })
+        );
 
         // return palettes
         return paletteItems;
     }
 
-    createDefaultItem(handlers: CreateOperationHandler[], id: string, label: string, type: string): PaletteItem | undefined {
+    async createDefaultItem(handlers: CreateOperationHandler[], id: string, label: string, type: string): Promise<PaletteItem | undefined> {
         let filteredHandlers: CreateOperationHandler[] = this.getSpecifiedHandlers(handlers, type);
         // add all handlers, that are neither specifiedNode- nor specifiedEdge-Handlers
         let unspecifiedHandlers = handlers.filter(h => !(h instanceof SpecifiedElementHandler));
         unspecifiedHandlers = unspecifiedHandlers.filter(h => filteredHandlers.indexOf(h) < 0);
         filteredHandlers = filteredHandlers.concat(unspecifiedHandlers);
 
-        const handlerItemsOfLabel = this.createSortedPaletteItems(filteredHandlers, label);
+        const handlerItemsOfLabel = await this.createSortedPaletteItems(filteredHandlers, label);
         if (handlerItemsOfLabel === undefined || handlerItemsOfLabel.length <= 0) {
             return undefined;
         }
@@ -206,18 +225,18 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         return specifiedHandler;
     }
 
-    createCustomItem(
+    async createCustomItem(
         handlers: CreateOperationHandler[], // the set of all handlers
         categoryId: string, // the label, specifiable via the value inside @palette-annotation or the name of the prime reference
         label: string, // readable GUI name
         type: string, // 'node' or 'edge'
         primeReferencedEntries?: PrimeReferencedEntry[]
-    ): PaletteItem | undefined {
+    ): Promise<PaletteItem | undefined> {
         let handlerItemsOfLabel: PaletteItem[] = [];
         if (type === 'node') {
-            handlerItemsOfLabel = this.createCustomNodePaletteItems(handlers, categoryId, primeReferencedEntries);
+            handlerItemsOfLabel = await this.createCustomNodePaletteItems(handlers, categoryId, primeReferencedEntries);
         } else if (type === 'edge') {
-            handlerItemsOfLabel = this.createCustomEdgePaletteItems(handlers, categoryId);
+            handlerItemsOfLabel = await this.createCustomEdgePaletteItems(handlers, categoryId);
         }
         if (handlerItemsOfLabel.length <= 0) {
             return undefined;
@@ -234,11 +253,11 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         return p;
     }
 
-    createCustomNodePaletteItems(
+    async createCustomNodePaletteItems(
         handlers: CreateOperationHandler[],
         categoryId: string,
         primeReferencedEntries?: PrimeReferencedEntry[]
-    ): PaletteItem[] {
+    ): Promise<PaletteItem[]> {
         const filteredHandlers = handlers
             .filter(h => h instanceof SpecifiedNodeHandler)
             .map(h => h as SpecifiedNodeHandler)
@@ -254,7 +273,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         return this.createSortedPaletteItems(filteredHandlers, categoryId, primeReferencedEntries);
     }
 
-    createCustomEdgePaletteItems(handlers: CreateOperationHandler[], categoryId: string): PaletteItem[] {
+    async createCustomEdgePaletteItems(handlers: CreateOperationHandler[], categoryId: string): Promise<PaletteItem[]> {
         const filteredHandlers = handlers
             .filter(h => h instanceof SpecifiedEdgeHandler)
             .map(h => h as SpecifiedEdgeHandler)
@@ -267,45 +286,55 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         return this.createSortedPaletteItems(filteredHandlers, categoryId);
     }
 
-    createSortedPaletteItems(
+    async createSortedPaletteItems(
         handlers: CreateOperationHandler[],
         categoryId: string,
         primeReferencedEntries?: PrimeReferencedEntry[]
-    ): PaletteItem[] {
+    ): Promise<PaletteItem[]> {
         const paletteItems: PaletteItem[] = [];
-        handlers.forEach(handler => {
-            if (handler instanceof SpecifiedElementHandler) {
-                const graphModel = this.state.graphModel;
-                handler.elementTypeIds
-                    .filter(e => graphModel.couldContain(e) && isCreateable(e))
-                    .forEach(elementTypeId => {
-                        const spec = getSpecOf(elementTypeId);
-                        const action = NodeType.is(spec)
-                            ? TriggerNodeCreationAction.create(elementTypeId)
-                            : TriggerEdgeCreationAction.create(elementTypeId);
-                        if (
-                            hasPalette(elementTypeId, categoryId) ||
-                            (getPalettes(spec).length <= 0 && this.WHITE_LIST.includes(categoryId))
-                        ) {
-                            if (isPrimeReference(spec)) {
-                                if (primeReferencedEntries && primeReferencedEntries.length > 0) {
-                                    primeReferencedEntries.forEach(entry => {
-                                        if (entry.primeNodeType === elementTypeId) {
-                                            paletteItems.push(this.createPaletteItem(action, handler, elementTypeId, entry, categoryId));
+        await Promise.all(
+            handlers.map(async handler => {
+                if (handler instanceof SpecifiedElementHandler) {
+                    const graphModel = this.state.graphModel;
+                    await Promise.all(
+                        handler.elementTypeIds
+                            .filter(e => graphModel.couldContain(e) && isCreateable(e))
+                            .map(async elementTypeId => {
+                                const spec = getSpecOf(elementTypeId);
+                                const action = NodeType.is(spec)
+                                    ? TriggerNodeCreationAction.create(elementTypeId)
+                                    : TriggerEdgeCreationAction.create(elementTypeId);
+                                if (
+                                    hasPalette(elementTypeId, categoryId) ||
+                                    (getPalettes(spec).length <= 0 && this.WHITE_LIST.includes(categoryId))
+                                ) {
+                                    if (isPrimeReference(spec)) {
+                                        if (primeReferencedEntries && primeReferencedEntries.length > 0) {
+                                            await Promise.all(
+                                                primeReferencedEntries.map(async entry => {
+                                                    if (entry.primeNodeType === elementTypeId) {
+                                                        paletteItems.push(
+                                                            await this.createPaletteItem(action, handler, elementTypeId, entry, categoryId)
+                                                        );
+                                                    }
+                                                })
+                                            );
                                         }
-                                    });
+                                    } else {
+                                        paletteItems.push(await this.createPaletteItem(action, handler, elementTypeId));
+                                    }
                                 }
-                            } else {
-                                paletteItems.push(this.createPaletteItem(action, handler, elementTypeId));
-                            }
-                        }
-                    });
-            } else {
-                handler.getTriggerActions().forEach(action => {
-                    paletteItems.push(this.createPaletteItem(action, handler));
-                });
-            }
-        });
+                            })
+                    );
+                } else {
+                    await Promise.all(
+                        handler.getTriggerActions().map(async action => {
+                            paletteItems.push(await this.createPaletteItem(action, handler));
+                        })
+                    );
+                }
+            })
+        );
         return paletteItems.sort((a, b) => a.sortString.localeCompare(b.sortString));
     }
 
@@ -315,7 +344,7 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         elementTypeId?: string,
         primeArgs?: PrimeReferencedEntry,
         categoryId?: string
-    ): PaletteItem {
+    ): Promise<PaletteItem> | PaletteItem {
         const spec = getSpecOf(elementTypeId);
         if (elementTypeId && spec && isPrimeReference(spec) && primeArgs) {
             return this.createPrimePaletteIten(action, handler, elementTypeId, primeArgs, categoryId);
@@ -344,40 +373,18 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         return result;
     }
 
-    createPrimePaletteIten(
+    async createPrimePaletteIten(
         action: PaletteItem.TriggerElementCreationAction,
         handler: CreateOperationHandler,
         elementTypeId: string,
         primeArgs: PrimeReferencedEntry,
         categoryId?: string
-    ): PaletteItem {
-        const primeRefSpec = getSpecOf(elementTypeId) as NodeType;
-        const elementSpecOfPrimedType = getSpecOf(primeArgs.instanceType!) as ElementType;
-
-        let label: string | undefined;
-        // Annotation on pointer
-        if (primeRefSpec.primeReference && hasLabelAnnotation(primeRefSpec.primeReference)) {
-            label = getLabel(primeRefSpec.primeReference, categoryId);
-            if (label) {
-                label = resolveParameter(primeArgs.element, label);
-            }
-        }
-        // Fallback: annotation on reference
-        if ((!label || label.length <= 0) && hasLabelAnnotation(elementSpecOfPrimedType)) {
-            label = getLabel(elementSpecOfPrimedType, categoryId);
-            if (label) {
-                label = resolveParameter(primeArgs.element, label);
-            }
-        }
-        // Last Fallback:
-        if (!label || label.length <= 0) {
-            label = elementSpecOfPrimedType.label + '\n[' + primeArgs.instanceId + ']\n' + ' (' + primeArgs.filePath + ')';
-        }
-
+    ): Promise<PaletteItem> {
         let iconClass: string | undefined = undefined;
         if (handler instanceof SpecifiedElementHandler) {
             iconClass = getIconClass(elementTypeId);
         }
+        const label: string = await this.getPaletteLabel(elementTypeId, primeArgs, categoryId);
         // add prime information to action of palette element
         const primeAction = { ...action };
         primeAction.args = {};
@@ -397,6 +404,61 @@ export class CustomToolPaletteItemProvider extends ToolPaletteItemProvider {
         };
         this.counter++;
         return result;
+    }
+
+    private async getPaletteLabel(elementTypeId: string, primeArgs: PrimeReferencedEntry, categoryId?: string): Promise<string> {
+        let label: string | undefined;
+        const primeRefSpec = getSpecOf(elementTypeId) as NodeType;
+        const elementSpecOfPrimedType = getSpecOf(primeArgs.instanceType!) as ElementType;
+        /**
+         * Label is resolved by annotations with paradigm "pointer-first"
+         */
+        // 1. Label-Provider on pointer
+        if (primeRefSpec.primeReference && hasLabelProviderFor(primeRefSpec.primeReference)) {
+            const response = await (this.actionDispatcher as CincoActionDispatcher).request(
+                LabelRequestAction.create(
+                    this.getBundle().modelState.graphModel.id,
+                    primeArgs.instanceId,
+                    elementTypeId,
+                    LabelAnnotationType.POINTER
+                )
+            );
+            const labelResponse = response.find(r => LabelResponseAction.is(r)) as LabelResponseAction | undefined;
+            const labelValue = labelResponse?.label;
+            if (labelValue) {
+                label = resolveParameter(primeArgs.element, labelValue);
+            }
+        }
+        // 2. Label-Annotation on pointer
+        if (!label && primeRefSpec.primeReference && hasLabelAnnotation(primeRefSpec.primeReference)) {
+            label = getLabel(primeRefSpec.primeReference, categoryId);
+            if (label) {
+                label = resolveParameter(primeArgs.element, label);
+            }
+        }
+        // 3. Label-Provider on reference
+        if (!label && primeRefSpec.primeReference && hasLabelProvider(primeRefSpec.primeReference.type)) {
+            const response = await (this.actionDispatcher as CincoActionDispatcher).request(
+                LabelRequestAction.create(this.getBundle().modelState.graphModel.id, primeArgs.instanceId, primeArgs.instanceType)
+            );
+            const labelResponse = response.find(r => LabelResponseAction.is(r)) as LabelResponseAction | undefined;
+            const labelValue = labelResponse?.label;
+            if (labelValue) {
+                label = resolveParameter(primeArgs.element, labelValue);
+            }
+        }
+        // 4. Label-Annotation on reference
+        if ((!label || label.length <= 0) && hasLabelAnnotation(elementSpecOfPrimedType)) {
+            label = getLabel(elementSpecOfPrimedType, categoryId);
+            if (label) {
+                label = resolveParameter(primeArgs.element, label);
+            }
+        }
+        // 5. Default-Fallback:
+        if (!label || label.length <= 0) {
+            label = elementSpecOfPrimedType.label + '\n[' + primeArgs.instanceId + ']\n' + ' (' + primeArgs.filePath + ')';
+        }
+        return label;
     }
 
     private async getPrimePalettes(): Promise<PrimePaletteCategoryEntry[]> {

@@ -22,7 +22,7 @@ import { AnyObject, hasStringProp } from './type-utils';
  * This is the base for actions that will be dispatched to the backend by the listeners of the action tool
  */
 
-export abstract class ManagedBaseAction implements Action {
+export interface ManagedBaseAction extends Action {
     kind: string;
     modelElementId: string;
 }

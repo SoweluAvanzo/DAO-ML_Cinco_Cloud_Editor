@@ -44,6 +44,7 @@ import {
     SYSTEM_ID
 } from '@cinco-glsp/cinco-glsp-common';
 import {
+    ContextBundle,
     existsFile,
     GraphGModelFactory,
     GraphModel,
@@ -56,7 +57,6 @@ import {
 } from '@cinco-glsp/cinco-glsp-api';
 import { CincoClientSessionListener } from './cinco-client-session-listener';
 import { CincoActionDispatcher } from '@cinco-glsp/cinco-glsp-api/lib/api/cinco-action-dispatcher';
-import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
 
 @injectable()
 export class CincoClientSessionInitializer implements ClientSessionInitializer {

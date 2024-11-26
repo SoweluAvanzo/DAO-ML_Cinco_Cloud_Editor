@@ -13,16 +13,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-import { GraphModelState } from '@cinco-glsp/cinco-glsp-api';
-import { ContextBundle } from '@cinco-glsp/cinco-glsp-api/lib/api/context-bundle';
-import {
-    ActionDispatcher,
-    ClientSession,
-    ClientSessionListener,
-    Logger,
-    ModelSubmissionHandler,
-    SourceModelStorage
-} from '@eclipse-glsp/server';
+import { ContextBundle, GraphGModelFactory, GraphModelState } from '@cinco-glsp/cinco-glsp-api';
+import { ActionDispatcher, ClientSession, ClientSessionListener, GModelFactory, Logger, SourceModelStorage } from '@eclipse-glsp/server';
 
 export class CincoClientSessionListener implements ClientSessionListener {
     static disposedCallback: Map<string, (() => void)[]> = new Map();
@@ -52,8 +44,8 @@ export class CincoClientSessionListener implements ClientSessionListener {
         const actionDispatcher = clientSession.container.get(ActionDispatcher) as ActionDispatcher;
         const logger = clientSession.container.get(Logger) as Logger;
         const sourceModelStorage = clientSession.container.get(SourceModelStorage) as SourceModelStorage;
-        const submissionHandler = clientSession.container.get(ModelSubmissionHandler) as ModelSubmissionHandler;
-        const contextBundle = new ContextBundle(graphModelState, logger, actionDispatcher, sourceModelStorage, submissionHandler);
+        const frontendModelFactory = clientSession.container.get(GModelFactory) as GraphGModelFactory;
+        const contextBundle = new ContextBundle(graphModelState, logger, actionDispatcher, sourceModelStorage, frontendModelFactory);
         CincoClientSessionListener.createdCallback(clientSession.id, contextBundle);
     }
 
