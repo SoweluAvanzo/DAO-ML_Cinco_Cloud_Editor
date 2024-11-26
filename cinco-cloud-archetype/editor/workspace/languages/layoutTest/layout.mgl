@@ -1,10 +1,5 @@
 stylePath "layout.msl"
 
-/**
- * TODO: Sami
- * - Elk does not recognize size of container
- */
-
 /*
  * Layout-Annotation Test
  */
@@ -13,7 +8,7 @@ stylePath "layout.msl"
 @layout('{
     "elk.algorithm": "layered",
     "elk.direction": "RIGHT",
-    "elk.layered.spacing.baseValue": 100
+    "elk.layered.spacing.baseValue": 50
 }')
 graphModel LayoutTest {
 	diagramExtension "layout"
@@ -22,16 +17,37 @@ graphModel LayoutTest {
 
 @layout('{
     "elk.algorithm": "random",
-    "elk.spacing.nodeNode": 100
+    "elk.spacing.nodeNode": 50
 }')
 container ElkRandomLayoutContainer {
     style purpleTextRectangle("ElkRandomLayoutContainer")
     containableElements(*)
 }
 
+/*
+ Note:
+ Disabling resizing can produce layout artifacts.
+ Elk does not have a default option to disable resizing, as this depends on the algorithm.
+
+ In this example, the elk-layouter resizes the element, but afterward, the size
+ of the node is reset to its original state.
+
+ If you want to completely disable resizing, you need to specify a layout algorithm 
+ that supports it and combine it with @disable(resize).
+*/
+@layout('{
+    "elk.algorithm": "random",
+    "elk.spacing.nodeNode": 50
+}')
+@disable(resize)
+container ElkRandomLayoutFixedSizeContainer {
+    style purpleTextRectangle("ElkRandomLayoutFixedSizeContainer")
+    containableElements(*)
+}
+
 @layout('{
     "elk.algorithm": "layered",
-    "elk.layered.spacing.nodeNode": 100,
+    "elk.layered.spacing.nodeNode": 50,
     "cycleBreaking.strategy": "INTERACTIVE",
     "layering.strategy": "INTERACTIVE"
 }')

@@ -26,12 +26,13 @@ import {
     GModelRoot,
     GNode,
     GPort,
+    GShapeElement,
     LayoutEngine,
     Logger,
     ModelState,
     SourceModelStorage
 } from '@eclipse-glsp/server';
-import { ElkEdge, ElkGraphElement, ElkLabel, ElkNode, ElkPort, ElkPrimitiveEdge } from 'elkjs/lib/elk-api';
+import { ElkEdge, ElkGraphElement, ElkLabel, ElkNode, ElkPort, ElkPrimitiveEdge, ElkShape } from 'elkjs/lib/elk-api';
 import ElkConstructor from 'elkjs/lib/elk.bundled';
 import { ContainerModule, injectable } from 'inversify';
 import {
@@ -44,7 +45,7 @@ import {
     LayoutConfigurator
 } from '@eclipse-glsp/layout-elk';
 import { ContextBundle, Edge, GraphModel, Node, GraphModelState, HookManager, GraphGModelFactory } from '@cinco-glsp/cinco-glsp-api';
-import { HookType, LayoutArgument } from '@cinco-glsp/cinco-glsp-common';
+import { HookType, isMovable, isResizeable, LayoutArgument } from '@cinco-glsp/cinco-glsp-common';
 import { CincoLayoutConfigurator } from './cinco-layout-configurator';
 
 export function configureELKLayoutModule(options: ElkModuleOptions): ContainerModule {
@@ -172,7 +173,7 @@ export class CincoGlspElkLayoutEngine extends GlspElkLayoutEngine {
         this.elkEdges = [];
         this.idToElkElement = new Map();
         const elkGraph = (await this.transformToElkAsync(root)) as ElkNode;
-        const layoutedRoot = this.elk.layout(elkGraph).then(result => {
+        const layoutedRoot = await this.elk.layout(elkGraph).then(result => {
             this.applyLayout(result);
             return root;
         });
@@ -342,5 +343,42 @@ export class CincoGlspElkLayoutEngine extends GlspElkLayoutEngine {
         });
 
         return result;
+    }
+
+    protected override transformShape(elkShape: ElkShape, shape: GShapeElement): void {
+        if (shape.position) {
+            elkShape.x = shape.position.x;
+            elkShape.y = shape.position.y;
+        }
+        if (shape.size) {
+            elkShape.width = shape.size.width;
+            elkShape.height = shape.size.height;
+        }
+    }
+
+    protected override applyShape(shape: GShapeElement, elkShape: ElkShape): void {
+        if (elkShape.x !== undefined && elkShape.y !== undefined) {
+            if (isMovable(shape.type)) {
+                shape.position = { x: elkShape.x, y: elkShape.y };
+            }
+        }
+        if (elkShape.width !== undefined && elkShape.height !== undefined) {
+            if (isResizeable(shape.type)) {
+                shape.size = { width: elkShape.width, height: elkShape.height };
+                shape.layoutOptions = {
+                    prefWidth: elkShape.width,
+                    prefHeight: elkShape.height
+                };
+            }
+        }
+
+        if (elkShape.labels) {
+            for (const elkLabel of elkShape.labels) {
+                const label = this.modelState.index.findByClass(elkLabel.id, GLabel);
+                if (label) {
+                    this.applyShape(label, elkLabel);
+                }
+            }
+        }
     }
 }

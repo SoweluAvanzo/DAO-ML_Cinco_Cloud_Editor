@@ -13,24 +13,21 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
- import { LanguageFilesRegistry, LayoutOptionsProvider } from '@cinco-glsp/cinco-glsp-api';
- import {
-     LayoutOptionsRequestAction
- } from '@cinco-glsp/cinco-glsp-common';
- 
- /**
-  * Language Designer defined example of a LayoutOptionsProvider
-  */
- export class ExampleLayoutOptionsProvider extends LayoutOptionsProvider {
-     override CHANNEL_NAME: string | undefined = 'LayoutOptionsProvider [' + this.modelState.graphModel.id + ']';
- 
-     provide(action: LayoutOptionsRequestAction, ...args: unknown[]): Promise<string> | string {
-         return `{
+import { LanguageFilesRegistry, LayoutOptionsProvider } from '@cinco-glsp/cinco-glsp-api';
+import { LayoutOptionsRequestAction } from '@cinco-glsp/cinco-glsp-common';
+
+/**
+ * Language Designer defined example of a LayoutOptionsProvider
+ */
+export class ExampleLayoutOptionsProvider extends LayoutOptionsProvider {
+    override CHANNEL_NAME: string | undefined = 'LayoutOptionsProvider [' + this.modelState.graphModel.id + ']';
+
+    provide(action: LayoutOptionsRequestAction, ...args: unknown[]): Promise<string> | string {
+        return `{
             "elk.algorithm": "random",
             "elk.spacing.nodeNode": 100
-        }` // alternativly predefined values like in @label: `random`;
-     }
- }
- // register into app
- LanguageFilesRegistry.register(ExampleLayoutOptionsProvider);
- 
+        }`; // alternativly predefined values like in @label: `random`;
+    }
+}
+// register into app
+LanguageFilesRegistry.register(ExampleLayoutOptionsProvider);

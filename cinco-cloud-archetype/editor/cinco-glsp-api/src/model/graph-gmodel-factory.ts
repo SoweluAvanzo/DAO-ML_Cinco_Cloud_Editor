@@ -111,6 +111,7 @@ export class GraphGModelFactory implements GModelFactory {
                 prefWidth: node.size.width,
                 prefHeight: node.size.height
             });
+            builder.size(node.size.width, node.size.height);
         }
         if (layoutOptions.length > 0) {
             layoutOptions.forEach((option: Map<string, string>) => {

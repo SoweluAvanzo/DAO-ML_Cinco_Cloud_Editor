@@ -21,7 +21,7 @@ import { LayoutArgument } from '@cinco-glsp/cinco-glsp-common';
  
     // Layout
     canLayout(modelElement: GraphModel, parameter: LayoutArgument): boolean {
-        return false;
+        return true;
     }
     preLayout(modelElement: GraphModel, parameter: LayoutArgument): void {
         this.log("Beginning layouting of: "+modelElement.id);
