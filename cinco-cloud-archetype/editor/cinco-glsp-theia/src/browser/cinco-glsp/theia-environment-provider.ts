@@ -13,7 +13,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
-
 import { inject, injectable } from 'inversify';
 import {
     CompositionSpecification,
@@ -287,7 +286,14 @@ export class TheiaEnvironmentProvider extends DefaultEnvironmentProvider {
                             return;
                         }
                         const workspacePath: string = await this.getWorkspaceRoot();
-                        const action = GeneratorAction.create(model.id, workspacePath);
+                        let localStorageInfo: string = '{}';
+                        try {
+                            localStorageInfo = JSON.stringify(localStorage);
+                        } catch (e) {
+                            console.log(e);
+                        }
+                        const action = GeneratorAction.create(model.id, workspacePath, { localStorage: localStorageInfo });
+
                         this.actionDispatcher.dispatch(action);
                     },
                     shortcut: ['AltLeft', 'KeyG']

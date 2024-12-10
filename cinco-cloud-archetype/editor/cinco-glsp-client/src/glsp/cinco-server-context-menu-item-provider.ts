@@ -16,6 +16,7 @@
 import { injectable } from 'inversify';
 import { Action, LabeledAction, SetContextActions } from '@eclipse-glsp/sprotty';
 import { ServerContextMenuItemProvider } from '@eclipse-glsp/client';
+import { CustomAction } from '@cinco-glsp/cinco-glsp-common';
 
 export namespace ServerContextMenu {
     export const CONTEXT_ID = 'context-menu';
@@ -25,15 +26,26 @@ export namespace ServerContextMenu {
 export class CincoServerContextMenuItemProvider extends ServerContextMenuItemProvider {
     override getContextActionsFromResponse(action: Action): LabeledAction[] {
         if (SetContextActions.is(action)) {
-            const actions = action.actions;
-            actions.forEach(sa => {
+            const contextActions = action.actions;
+            contextActions.forEach(sa => {
                 if ((sa as any).isDisabled) {
                     // cinco cloud workaround. isEnabled is not propagated from server, as it needs to be a function
                     (sa as any).isEnabled = () => !(sa as any).isDisabled;
                 }
+                sa.actions.map(a => {
+                    if (CustomAction.is(a)) {
+                        a.args = a.args ? a.args : {};
+                        let localStorageInfo: string = '{}';
+                        try {
+                            localStorageInfo = JSON.stringify(localStorage);
+                        } catch (e) {
+                            console.log(e);
+                        }
+                        a.args.localStorage = localStorageInfo;
+                    }
+                });
             });
-
-            return actions;
+            return contextActions;
         }
         return [];
     }

@@ -14,23 +14,29 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-import { ManagedBaseAction } from './shared-protocol';
+import { Action, ManagedBaseAction } from './shared-protocol';
 
 export interface CustomAction extends ManagedBaseAction {
     kind: typeof CustomAction.KIND;
     selectedElementIds: string[];
     modelElementId: string;
     handlerClass: string;
+    args: any;
 }
 export namespace CustomAction {
     export const KIND = 'CustomAction';
 
-    export function create(modelElementId: string, selectedElementIds: string[], handlerClass: string): CustomAction {
+    export function is(object: any): object is CustomAction {
+        return Action.hasKind(object, KIND);
+    }
+
+    export function create(modelElementId: string, selectedElementIds: string[], handlerClass: string, args?: any): CustomAction {
         return {
             kind: KIND,
             selectedElementIds,
             modelElementId,
-            handlerClass
+            handlerClass,
+            args: args ?? {}
         };
     }
 }

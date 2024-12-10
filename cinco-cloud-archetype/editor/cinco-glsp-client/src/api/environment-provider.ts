@@ -218,7 +218,13 @@ export class DefaultEnvironmentProvider implements IEnvironmentProvider {
                             return;
                         }
                         const workspacePath: string = await this.getWorkspaceRoot();
-                        const action = GeneratorAction.create(model.id, workspacePath);
+                        let localStorageInfo: string = '{}';
+                        try {
+                            localStorageInfo = JSON.stringify(localStorage);
+                        } catch (e) {
+                            console.log(e);
+                        }
+                        const action = GeneratorAction.create(model.id, workspacePath, { localStorage: localStorageInfo });
                         this.actionDispatcher.dispatch(action);
                         alert('Triggered Generator. Output behaviour not yet implemented.');
                     },

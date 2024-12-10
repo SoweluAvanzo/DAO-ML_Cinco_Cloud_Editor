@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2023 Cinco Cloud.
+ * Copyright (c) 2024 Cinco Cloud.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -20,7 +20,8 @@ import { hasStringProp } from './type-utils';
 export interface GeneratorAction extends ManagedBaseAction {
     kind: typeof GeneratorAction.KIND;
     modelElementId: string;
-    targetFolder?: string;
+    targetFolder: string;
+    args: any;
 }
 
 export namespace GeneratorAction {
@@ -30,11 +31,12 @@ export namespace GeneratorAction {
         return Action.hasKind(object, KIND) && hasStringProp(object, 'modelElementId');
     }
 
-    export function create(modelElementId: string, targetFolder?: string): GeneratorAction {
+    export function create(modelElementId: string, targetFolder: string, args?: any): GeneratorAction {
         return {
             kind: KIND,
             modelElementId,
-            targetFolder: targetFolder
+            targetFolder: targetFolder,
+            args: args ?? {}
         };
     }
 }
