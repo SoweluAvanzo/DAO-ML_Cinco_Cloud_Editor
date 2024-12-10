@@ -35,7 +35,7 @@ export class CustomActionManager extends BaseHandlerManager<CustomAction, Custom
      * @returns all executable handlers, that could be executed as a custom action for the associated element.
      */
     async getExecutableHandlerFor(elementId: string): Promise<string[]> {
-        const customActionHandler = await this.getActiveHandlers(CustomAction.create(elementId, [], '*'));
+        const customActionHandler = await this.getActiveHandlers(CustomAction.create(elementId, [elementId], '*'));
         return customActionHandler.map(c => c.constructor.name);
     }
 
