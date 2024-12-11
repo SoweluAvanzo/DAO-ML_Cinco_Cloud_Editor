@@ -227,7 +227,7 @@ deploy-testing-manual:
 
 archetype-test-build-local:
   extends:
-    - .archetype-default-job-main-or-mr
+    - .archetype-default-job-mr
     - .archetype-test-build-local-job
 
 archetype-test-build-image:
@@ -243,8 +243,6 @@ archetype-build-push-latest:
   extends:
     - .archetype-default-job-main
     - .docker-build-job
-  needs:
-    - archetype-test-build-local
   variables:
     CONTEXT: .
     DOCKERFILE: ./cinco-cloud-archetype/Dockerfile
