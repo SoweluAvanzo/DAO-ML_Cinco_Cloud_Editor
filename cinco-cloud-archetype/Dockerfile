@@ -37,9 +37,6 @@ ENV NODE_ENV="development"
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
-# make readable for root only
-RUN chmod -R 750 /var/run/
-
 # install dependencies
 RUN apt update && apt install -y libsecret-1-dev make unzip curl g++ build-essential
 
