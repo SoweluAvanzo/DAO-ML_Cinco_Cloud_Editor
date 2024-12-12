@@ -1462,18 +1462,20 @@ export function createMultiTextShape(
 }
 
 export function createForeignObject(cssShapeName: string, localSize: Size, localPosition: Point, padding = 10, content?: string): VNode {
+    const width = Math.max(localSize.width, 0) + padding * 2;
+    const height = Math.max(localSize.height, 0) + padding * 2;
     const foreignObject = createJSXElement(
         'foreignObject',
         {
             x: localPosition.x - padding,
-            y: localPosition.y - padding
+            y: localPosition.y - padding,
+            width: width,
+            height: height
         },
         content
     ) as unknown as VNode;
     foreignObject.data!.attrs!['class'] = `${cssShapeName}`;
-    foreignObject.data!.attrs!['style'] = `width: ${Math.max(localSize.width, 0) + padding * 2}; height: ${
-        Math.max(localSize.height, 0) + padding * 2
-    }; padding: ${padding}px`;
+    foreignObject.data!.attrs!['style'] = `width: ${width}; height: ${heigth}; padding: ${padding}px`;
     return foreignObject;
 }
 
