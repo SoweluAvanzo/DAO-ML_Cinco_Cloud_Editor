@@ -1461,7 +1461,7 @@ export function createMultiTextShape(
     return foreignObject;
 }
 
-export function createForeignObject(cssShapeName: string, localSize: Size, localPosition: Point, padding = 10, content?: string): VNode {
+export function createForeignObject(cssShapeName: string, localSize: Size, localPosition: Point, padding = 0, content?: string): VNode {
     const foreignObject = createJSXElement(
         'foreignObject',
         {
