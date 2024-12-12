@@ -1466,7 +1466,9 @@ export function createForeignObject(cssShapeName: string, localSize: Size, local
         'foreignObject',
         {
             x: localPosition.x - padding,
-            y: localPosition.y - padding
+            y: localPosition.y - padding,
+            width: Math.max(localSize.width, 0) + padding * 2,
+            height: Math.max(localSize.height, 0) + padding * 2
         },
         content
     ) as unknown as VNode;
