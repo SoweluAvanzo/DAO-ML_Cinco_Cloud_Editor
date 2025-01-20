@@ -15,9 +15,9 @@ This project integrates multiple components, each governed by its respective lic
 # How to Use
 To use the editor, we recommend executing locally the Cinco Cloud Archetype according to the instructions reported below from the original repository:
 
-1. to compile the docker image execute **from the root of the cinco-cloud project**:
+1. to compile the docker image execute **from the root of the project**:
 
-    `docker build -f cinco-cloud-archetype/Dockerfile -t editor .`
+    `./build.sh`
 
 2. to run the docker image execute:
 
@@ -29,6 +29,8 @@ optional:
     the `env.list` contains environment variables which will be used by the run-script.
 
 ## Related projects and Used Technologies
+
+[Cinco Cloud][cc] - This editor is based on the Cinco Cloud Archetype.
 
 [Theia][theia] - We are using Theia as a foundation for our editor.
 
@@ -43,6 +45,7 @@ optional:
 [Sprotty][sprotty] - Used to visualize and edit graphical models.
 
 [//]: # "Source definitions"
+[cc]: https://gitlab.com/scce/cinco-cloud "Cinco Cloud"
 [theia]: https://github.com/eclipse-theia/theia "Theia"
 [typescript]: https://www.typescriptlang.org/ "Typescript"
 [glsp]: https://github.com/eclipse-glsp/glsp "The Graphical Language Server Platform"
