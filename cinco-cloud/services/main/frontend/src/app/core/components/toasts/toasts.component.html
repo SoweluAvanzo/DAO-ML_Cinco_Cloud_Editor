@@ -1,9 +1,0 @@
-<ngb-toast
-  [class]="'d-block mb-2 ' + toast.type"
-  *ngFor="let toast of toastService.toasts"
-  [header]="toast.header" [autohide]="true" [delay]="toast.delay"
-  (hide)="toastService.remove(toast)"
-  (hidden)="toastService.remove(toast)"
->
-  {{toast.message}}
-</ngb-toast>

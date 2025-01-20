@@ -1,4 +1,0 @@
-target
-
-.idea
-.dart_tool
