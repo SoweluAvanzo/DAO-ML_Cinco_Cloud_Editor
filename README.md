@@ -1,4 +1,4 @@
-# DAO-ML To Solidity Editor Based on Cinco Cloud
+# DAO-ML Editor based on Cinco Cloud
 This project concerns the implementation of a proof-of-concept editor for DAO-ML using Cinco Cloud. The project folder contains all the files necessary to execute the editor, generate and edit DAO-ML files (.dao), and to automatically generate the corresponding Solidity code. As this project is the result of the integration of the DAO-ML to Solidity translator as a component of the Cinco Cloud architecture, we refer the reader to the following repositories for the original projects:
 - [Cinco Cloud] https://gitlab.com/scce/cinco-cloud for the complete Cinco Cloud documentation and licenses.
 - [DAO-ML to Solidity Translator] https://github.com/SoweluAvanzo/DAO-ML_to_Solidity.
