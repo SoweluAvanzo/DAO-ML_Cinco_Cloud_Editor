@@ -13,7 +13,10 @@ This project integrates multiple components, each governed by its respective lic
 [EPL2](https://www.eclipse.org/legal/epl-2.0/)
 
 # How to Use
-To use the editor, we recommend executing locally the Cinco Cloud Archetype according to the instructions reported below from the original repository:
+To use the editor, we recommend executing locally the Cinco Cloud Archetype according to the instructions reported below.
+Two options are provided. Users can directly execute the saved docker image without having to recompile it from scratch by downloading and executing it from the Zenodo repository at the link: https://zenodo.org/records/15188048.
+
+Alternatively, users can execute the following commands from the original repository in order to build and execute the Docker container:
 
 1. to compile the docker image execute **from the root of the project**:
 
