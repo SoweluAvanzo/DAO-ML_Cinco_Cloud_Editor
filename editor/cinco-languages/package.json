@@ -48,15 +48,15 @@
       "rimraf": "5.0.5"
     },
     "scripts": {
-      "prepare": "yarn clean && yarn langium:generate && yarn build && yarn bundle",
-      "install:only": "yarn install --ignore-scripts",
-      "clean": "rimraf tsconfig.tsbuildinfo lib bundle",
-      "build": "tsc -b tsconfig.json",
-      "bundle": "webpack",
-      "watch": "tsc -b tsconfig.json --watch",
-      "langium:generate": "langium generate",
-      "langium:watch": "langium generate --watch"
-    },
+        "prepare": "yarn clean && yarn build && yarn bundle",
+        "install:only": "yarn install --ignore-scripts",
+        "clean": "rimraf tsconfig.tsbuildinfo lib bundle",
+        "build": "tsc -b tsconfig.json",
+        "bundle": "webpack",
+        "watch": "tsc -b tsconfig.json --watch",
+        "langium:generate": "langium generate",
+        "langium:watch": "langium generate --watch"
+      },
     "publishConfig": {
       "access": "public"
     },

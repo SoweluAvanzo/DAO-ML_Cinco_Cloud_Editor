@@ -9,4 +9,3 @@ static/monaco-editor-workers/
 static/worker/
 bundle/*.js
 bundle/cinco-languages.js
-src/generated/
