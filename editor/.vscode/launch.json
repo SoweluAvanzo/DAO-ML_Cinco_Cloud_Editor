@@ -1,481 +1,481 @@
 {
-  // Use IntelliSense to learn about possible Node.js debug attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "extensionHost",
-      "request": "launch",
-      "name": "Launch Cinco Language Extension",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceRoot}/cinco-languages-extension",
-        "${workspaceRoot}/workspace"
-      ],
-      "outFiles": [
-        "${workspaceRoot}/cinco-languages-extension/out/**/*.js"
-      ]
-    },
-    {
-      "type": "extensionHost",
-      "request": "launch",
-      "name": "Launch Cinco Project Initializer Extension (Languages Editor)",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceRoot}/cinco-project-initializer",
-        "${workspaceRoot}/cinco-project-initializer/example"
-      ],
-      "outFiles": [
-        "${workspaceRoot}/cinco-project-initializer/out/**/*.js"
-      ],
-      "env": {
-        "EDITOR_TYPE": "LANGUAGE_EDITOR"
-      }
-    },
-    {
-      "type": "extensionHost",
-      "request": "launch",
-      "name": "Launch Cinco Project Initializer Extension (Model Editor)",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceRoot}/cinco-project-initializer",
-        "${workspaceRoot}/cinco-project-initializer/example"
-      ],
-      "outFiles": [
-        "${workspaceRoot}/cinco-project-initializer/out/**/*.js"
-      ],
-      "preLaunchTask": {
-        "type": "npm",
-        "script": "watch"
-      },
-      "env": {
-        "EDITOR_TYPE": "MODEL_EDITOR"
-      }
-    },
-    {
-      "name": "Attach to MGL language server",
-      "port": 6009,
-      "request": "attach",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "restart": true,
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/cinco-languages-extension/out/**/*.js",
-        "${workspaceFolder}/cinco-languages/lib/**/*.js",
-      ],
-      "type": "node"
-    },
-    {
-      "name": "Attach to MSL language server",
-      "port": 6010,
-      "request": "attach",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "restart": true,
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/cinco-languages-extension/out/**/*.js",
-        "${workspaceFolder}/cinco-languages/lib/**/*.js",
-      ],
-      "type": "node"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Cinco Theia Backend (Embedded GLSP Server)",
-      "runtimeExecutable": "yarn",
-      "cwd": "${workspaceFolder}/browser-app",
-      "runtimeArgs": [
-        "debug"
-      ],
-      "env": {
-        "NODE_ENV": "development",
-        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false"
-      },
-      "killBehavior": "forceful",
-      "args": [
-        "start",
-        "--port=3000",
-        "--WEB_SERVER_PORT=3003",
-        "--no-cluster",
-        "--loglevel=debug",
-        "--root-dir=${workspaceRoot}/workspace",
-        "--TRANSPILATION_MODE=NONE"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/node_modules/**/*.js",
-        "${workspaceRoot}/cinco-branding/lib/**/*.js",
-        "${workspaceRoot}/browser-app/lib/**/*.js",
-        "${workspaceRoot}/browser-app/src-gen/**/*.js",
-        "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
-        "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
-        "${workspaceRoot}/cinco-glsp-common/lib/**/*.js"
-      ],
-      "smartStep": true,
-      "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode)",
-      "runtimeExecutable": "yarn",
-      "cwd": "${workspaceFolder}/browser-app",
-      "runtimeArgs": [
-        "debug"
-      ],
-      "env": {
-        "NODE_ENV": "development",
-        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false"
-      },
-      "killBehavior": "forceful",
-      "args": [
-        "start",
-        "--port=3000",
-        "--CINCO_GLSP=5007",
-        "--WEB_SERVER_PORT=3003",
-        "--no-cluster",
-        "--loglevel=debug",
-        "--root-dir=${workspaceRoot}/workspace",
-        "--META_DEV_MODE",
-        "--TRANSPILATION_MODE=WATCH"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/node_modules/**/*.js",
-        "${workspaceRoot}/cinco-branding/lib/**/*.js",
-        "${workspaceRoot}/browser-app/lib/**/*.js",
-        "${workspaceRoot}/browser-app/src-gen/**/*.js",
-        "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
-        "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
-        "${workspaceRoot}/cinco-glsp-common/lib/**/*.js"
-      ],
-      "smartStep": true,
-      "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode in Workspace)",
-      "runtimeExecutable": "yarn",
-      "cwd": "${workspaceFolder}/browser-app",
-      "runtimeArgs": [
-        "debug"
-      ],
-      "env": {
-        "NODE_ENV": "development",
-        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false"
-      },
-      "killBehavior": "forceful",
-      "args": [
-        "start",
-        "--port=3000",
-        "--CINCO_GLSP=5007",
-        "--WEB_SERVER_PORT=3003",
-        "--no-cluster",
-        "--loglevel=debug",
-        "--root-dir=${workspaceRoot}/workspace",
-        "--META_DEV_MODE",
-        "--META_LANGUAGES_FOLDER=workspace/languages",
-        "--TRANSPILATION_MODE=WATCH"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/node_modules/**/*.js",
-        "${workspaceRoot}/cinco-branding/lib/**/*.js",
-        "${workspaceRoot}/browser-app/lib/**/*.js",
-        "${workspaceRoot}/browser-app/src-gen/**/*.js",
-        "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
-        "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
-        "${workspaceRoot}/cinco-glsp-common/lib/**/*.js"
-      ],
-      "smartStep": true,
-      "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Cinco Theia Backend (External GLSP Server)",
-      "runtimeExecutable": "yarn",
-      "cwd": "${workspaceFolder}/browser-app",
-      "runtimeArgs": [
-        "debug"
-      ],
-      "env": {
-        "NODE_ENV": "development",
-        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false",
-        "SERVER_EXTERNAL": "true"
-      },
-      "killBehavior": "forceful",
-      "args": [
-        "start:external",
-        "--port=3000",
-        "--CINCO_GLSP=5007",
-        "--WEB_SERVER_PORT=3003",
-        "--no-cluster",
-        "--loglevel=debug",
-        "--root-dir=${workspaceRoot}/workspace",
-        "--TRANSPILATION_MODE=NONE"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/node_modules/**/*.js",
-        "${workspaceRoot}/cinco-branding/lib/**/*.js",
-        "${workspaceRoot}/browser-app/lib/**/*.js",
-        "${workspaceRoot}/browser-app/src-gen/**/*.js",
-        "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
-        "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
-        "${workspaceRoot}/cinco-glsp-common/lib/**/*.js"
-      ],
-      "smartStep": true,
-      "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Cinco Theia Backend (External GLSP Server in Workspace)",
-      "runtimeExecutable": "yarn",
-      "cwd": "${workspaceFolder}/browser-app",
-      "runtimeArgs": [
-        "debug"
-      ],
-      "env": {
-        "NODE_ENV": "development",
-        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false",
-        "SERVER_EXTERNAL": "true"
-      },
-      "killBehavior": "forceful",
-      "args": [
-        "start:external",
-        "--port=3000",
-        "--CINCO_GLSP=5007",
-        "--WEB_SERVER_PORT=3003",
-        "--no-cluster",
-        "--loglevel=debug",
-        "--root-dir=${workspaceRoot}/workspace",
-        "--META_LANGUAGES_FOLDER=workspace/languages",
-        "--TRANSPILATION_MODE=WATCH"
-      ],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/node_modules/**/*.js",
-        "${workspaceRoot}/cinco-branding/lib/**/*.js",
-        "${workspaceRoot}/browser-app/lib/**/*.js",
-        "${workspaceRoot}/browser-app/src-gen/**/*.js",
-        "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
-        "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
-        "${workspaceRoot}/cinco-glsp-common/lib/**/*.js"
-      ],
-      "smartStep": true,
-      "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Cinco GLSP Server",
-      "program": "${workspaceFolder}/cinco-glsp-server/lib/src/index.js",
-      "env": {
-        "NODE_ENV": "development",
-        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false"
-      },
-      "killBehavior": "forceful",
-      "args": [
-        "-p",
-        "5007",
-        "--webServerPort=3003",
-        "--metaLanguagesFolder='cinco-glsp-server/languages'",
-        "--rootFolder='${workspaceRoot}'",
-        "--workspaceFolder='workspace",
-        "--webSocket",
-        "--transpilationMode=NONE"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/node_modules/**/*.js",
-        "${workspaceFolder}/cinco-glsp-server/lib/**/*.js",
-        "${workspaceFolder}/cinco-glsp-common/lib/**/*.js",
-        "${workspaceFolder}/cinco-glsp-api/lib/**/*.js",
-        "${workspaceRoot}/cinco-languages/lib/**/*.js",
-      ],
-      "smartStep": true,
-      "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Cinco GLSP Server in Workspace",
-      "program": "${workspaceFolder}/cinco-glsp-server/lib/src/index.js",
-      "env": {
-        "NODE_ENV": "development",
-        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false"
-      },
-      "killBehavior": "forceful",
-      "args": [
-        "-p",
-        "5007",
-        "--webServerPort=3003",
-        "--metaLanguagesFolder='workspace/languages'",
-        "--rootFolder='${workspaceRoot}'",
-        "--workspaceFolder='workspace",
-        "--webSocket",
-        "--transpilationMode=ONCE"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/node_modules/**/*.js",
-        "${workspaceFolder}/cinco-glsp-server/lib/**/*.js",
-        "${workspaceFolder}/cinco-glsp-common/lib/**/*.js",
-        "${workspaceFolder}/cinco-glsp-api/lib/**/*.js",
-        "${workspaceRoot}/cinco-languages/lib/**/*.js",
-      ],
-      "smartStep": true,
-      "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Cinco GLSP Server in MetaDevMode",
-      "program": "${workspaceFolder}/cinco-glsp-server/lib/src/index.js",
-      "env": {
-        "NODE_ENV": "development",
-        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false"
-      },
-      "killBehavior": "forceful",
-      "args": [
-        "-p",
-        "5007",
-        "--webServerPort=3003",
-        "--metaDevMode",
-        "--metaLanguagesFolder='cinco-glsp-server/languages'",
-        "--rootFolder='${workspaceRoot}'",
-        "--workspaceFolder='workspace",
-        "--webSocket",
-        "--transpilationMode=WATCH"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/node_modules/**/*.js",
-        "${workspaceFolder}/cinco-glsp-server/lib/**/*.js",
-        "${workspaceFolder}/cinco-glsp-common/lib/**/*.js",
-        "${workspaceFolder}/cinco-glsp-api/lib/**/*.js",
-        "${workspaceRoot}/cinco-languages/lib/**/*.js",
-      ],
-      "smartStep": true,
-      "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Cinco GLSP Server in MetaDevMode in Workspace",
-      "program": "${workspaceFolder}/cinco-glsp-server/lib/src/index.js",
-      "env": {
-        "NODE_ENV": "development",
-        "WORKSPACE_PATH": "${workspaceRoot}/workspace",
-        "EDITOR_TYPE": "LANGUAGE_EDITOR",
-        "USE_SSL": "false"
-      },
-      "killBehavior": "forceful",
-      "args": [
-        "-p",
-        "5007",
-        "--webServerPort=3003",
-        "--metaDevMode",
-        "--metaLanguagesFolder='workspace/languages'",
-        "--rootFolder='${workspaceRoot}'",
-        "--workspaceFolder='workspace",
-        "--webSocket",
-        "--transpilationMode=WATCH"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/node_modules/**/*.js",
-        "${workspaceFolder}/cinco-glsp-server/lib/**/*.js",
-        "${workspaceFolder}/cinco-glsp-common/lib/**/*.js",
-        "${workspaceFolder}/cinco-glsp-api/lib/**/*.js",
-        "${workspaceRoot}/cinco-languages/lib/**/*.js",
-      ],
-      "smartStep": true,
-      "internalConsoleOptions": "openOnSessionStart",
-      "outputCapture": "std"
-    },
-    {
-      "name": "Launch Theia Frontend",
-      "type": "chrome",
-      "request": "launch",
-      "url": "http://localhost:3000/?jwt=test&projectId=1#${workspaceRoot}/workspace",
-      "sourceMaps": true,
-      "cleanUp": "wholeBrowser",
-      "webRoot": "${workspaceRoot}/browser-app"
-    },
-    {
-      "name": "Launch Standalone Client",
-      "type": "chrome",
-      "request": "launch",
-      "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=example-models/example.mm",
-      "sourceMaps": true,
-      "cleanUp": "wholeBrowser",
-      "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
-    },
-    {
-      "name": "Launch Theia Frontend (PWA)",
-      "type": "pwa-chrome",
-      "request": "launch",
-      "url": "http://localhost:3000/?jwt=test&projectId=1#${workspaceRoot}/workspace",
-      "sourceMaps": true,
-      "cleanUp": "wholeBrowser",
-      "webRoot": "${workspaceRoot}/browser-app"
-    },
-    {
-      "name": "Launch Standalone Client (PWA)",
-      "type": "pwa-chrome",
-      "request": "launch",
-      "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=example-models/example.mm",
-      "sourceMaps": true,
-      "cleanUp": "wholeBrowser",
-      "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
-    }
-  ]
+    // Use IntelliSense to learn about possible Node.js debug attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "extensionHost",
+            "request": "launch",
+            "name": "Launch Cinco Language Extension",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}/cinco-languages-extension",
+                "${workspaceRoot}/workspace"
+            ],
+            "outFiles": [
+                "${workspaceRoot}/cinco-languages-extension/out/**/*.js"
+            ]
+        },
+        {
+            "type": "extensionHost",
+            "request": "launch",
+            "name": "Launch Cinco Project Initializer Extension (Languages Editor)",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}/cinco-project-initializer",
+                "${workspaceRoot}/cinco-project-initializer/example"
+            ],
+            "outFiles": [
+                "${workspaceRoot}/cinco-project-initializer/out/**/*.js"
+            ],
+            "env": {
+                "EDITOR_TYPE": "LANGUAGE_EDITOR"
+            }
+        },
+        {
+            "type": "extensionHost",
+            "request": "launch",
+            "name": "Launch Cinco Project Initializer Extension (Model Editor)",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}/cinco-project-initializer",
+                "${workspaceRoot}/cinco-project-initializer/example"
+            ],
+            "outFiles": [
+                "${workspaceRoot}/cinco-project-initializer/out/**/*.js"
+            ],
+            "preLaunchTask": {
+                "type": "npm",
+                "script": "watch"
+            },
+            "env": {
+                "EDITOR_TYPE": "MODEL_EDITOR"
+            }
+        },
+        {
+            "name": "Attach to MGL language server",
+            "port": 6009,
+            "request": "attach",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "restart": true,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/cinco-languages-extension/out/**/*.js",
+                "${workspaceFolder}/cinco-languages/lib/**/*.js",
+            ],
+            "type": "node"
+        },
+        {
+            "name": "Attach to MSL language server",
+            "port": 6010,
+            "request": "attach",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "restart": true,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/cinco-languages-extension/out/**/*.js",
+                "${workspaceFolder}/cinco-languages/lib/**/*.js",
+            ],
+            "type": "node"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Cinco Theia Backend (Embedded GLSP Server)",
+            "runtimeExecutable": "yarn",
+            "cwd": "${workspaceFolder}/browser-app",
+            "runtimeArgs": [
+                "debug"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+                "EDITOR_TYPE": "LANGUAGE_EDITOR",
+                "USE_SSL": "false"
+            },
+            "killBehavior": "forceful",
+            "args": [
+                "start",
+                "--port=3000",
+                "--WEB_SERVER_PORT=3003",
+                "--no-cluster",
+                "--loglevel=debug",
+                "--root-dir=${workspaceRoot}/workspace",
+                "--TRANSPILATION_MODE=NONE"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/node_modules/**/*.js",
+                "${workspaceRoot}/cinco-branding/lib/**/*.js",
+                "${workspaceRoot}/browser-app/lib/**/*.js",
+                "${workspaceRoot}/browser-app/src-gen/**/*.js",
+                "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
+                "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
+                "${workspaceRoot}/cinco-glsp-common/lib/**/*.js"
+            ],
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode)",
+            "runtimeExecutable": "yarn",
+            "cwd": "${workspaceFolder}/browser-app",
+            "runtimeArgs": [
+                "debug"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+                "EDITOR_TYPE": "LANGUAGE_EDITOR",
+                "USE_SSL": "false"
+            },
+            "killBehavior": "forceful",
+            "args": [
+                "start",
+                "--port=3000",
+                "--CINCO_GLSP=5007",
+                "--WEB_SERVER_PORT=3003",
+                "--no-cluster",
+                "--loglevel=debug",
+                "--root-dir=${workspaceRoot}/workspace",
+                "--META_DEV_MODE",
+                "--TRANSPILATION_MODE=WATCH"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/node_modules/**/*.js",
+                "${workspaceRoot}/cinco-branding/lib/**/*.js",
+                "${workspaceRoot}/browser-app/lib/**/*.js",
+                "${workspaceRoot}/browser-app/src-gen/**/*.js",
+                "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
+                "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
+                "${workspaceRoot}/cinco-glsp-common/lib/**/*.js"
+            ],
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Cinco Theia Backend (Embedded GLSP Server in MetaDevMode in Workspace)",
+            "runtimeExecutable": "yarn",
+            "cwd": "${workspaceFolder}/browser-app",
+            "runtimeArgs": [
+                "debug"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+                "EDITOR_TYPE": "LANGUAGE_EDITOR",
+                "USE_SSL": "false"
+            },
+            "killBehavior": "forceful",
+            "args": [
+                "start",
+                "--port=3000",
+                "--CINCO_GLSP=5007",
+                "--WEB_SERVER_PORT=3003",
+                "--no-cluster",
+                "--loglevel=debug",
+                "--root-dir=${workspaceRoot}/workspace",
+                "--META_DEV_MODE",
+                "--META_LANGUAGES_FOLDER=languages",
+                "--TRANSPILATION_MODE=WATCH"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/node_modules/**/*.js",
+                "${workspaceRoot}/cinco-branding/lib/**/*.js",
+                "${workspaceRoot}/browser-app/lib/**/*.js",
+                "${workspaceRoot}/browser-app/src-gen/**/*.js",
+                "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
+                "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
+                "${workspaceRoot}/cinco-glsp-common/lib/**/*.js"
+            ],
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Cinco Theia Backend (External GLSP Server)",
+            "runtimeExecutable": "yarn",
+            "cwd": "${workspaceFolder}/browser-app",
+            "runtimeArgs": [
+                "debug"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+                "EDITOR_TYPE": "LANGUAGE_EDITOR",
+                "USE_SSL": "false",
+                "SERVER_EXTERNAL": "true"
+            },
+            "killBehavior": "forceful",
+            "args": [
+                "start:external",
+                "--port=3000",
+                "--CINCO_GLSP=5007",
+                "--WEB_SERVER_PORT=3003",
+                "--no-cluster",
+                "--loglevel=debug",
+                "--root-dir=${workspaceRoot}/workspace",
+                "--TRANSPILATION_MODE=NONE"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/node_modules/**/*.js",
+                "${workspaceRoot}/cinco-branding/lib/**/*.js",
+                "${workspaceRoot}/browser-app/lib/**/*.js",
+                "${workspaceRoot}/browser-app/src-gen/**/*.js",
+                "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
+                "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
+                "${workspaceRoot}/cinco-glsp-common/lib/**/*.js"
+            ],
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Cinco Theia Backend (External GLSP Server in Workspace)",
+            "runtimeExecutable": "yarn",
+            "cwd": "${workspaceFolder}/browser-app",
+            "runtimeArgs": [
+                "debug"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+                "EDITOR_TYPE": "LANGUAGE_EDITOR",
+                "USE_SSL": "false",
+                "SERVER_EXTERNAL": "true"
+            },
+            "killBehavior": "forceful",
+            "args": [
+                "start:external",
+                "--port=3000",
+                "--CINCO_GLSP=5007",
+                "--WEB_SERVER_PORT=3003",
+                "--no-cluster",
+                "--loglevel=debug",
+                "--root-dir=${workspaceRoot}/workspace",
+                "--META_LANGUAGES_FOLDER=languages",
+                "--TRANSPILATION_MODE=WATCH"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/node_modules/**/*.js",
+                "${workspaceRoot}/cinco-branding/lib/**/*.js",
+                "${workspaceRoot}/browser-app/lib/**/*.js",
+                "${workspaceRoot}/browser-app/src-gen/**/*.js",
+                "${workspaceRoot}/cinco-glsp-theia/lib/**/*.js",
+                "${workspaceRoot}/cinco-glsp-client/lib/**/*.js",
+                "${workspaceRoot}/cinco-glsp-common/lib/**/*.js"
+            ],
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Cinco GLSP Server",
+            "program": "${workspaceFolder}/cinco-glsp-server/lib/src/index.js",
+            "env": {
+                "NODE_ENV": "development",
+                "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+                "EDITOR_TYPE": "LANGUAGE_EDITOR",
+                "USE_SSL": "false"
+            },
+            "killBehavior": "forceful",
+            "args": [
+                "-p",
+                "5007",
+                "--webServerPort=3003",
+                "--metaLanguagesFolder='cinco-glsp-server/languages'",
+                "--rootFolder='${workspaceRoot}'",
+                "--workspaceFolder='workspace",
+                "--webSocket",
+                "--transpilationMode=NONE"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/node_modules/**/*.js",
+                "${workspaceFolder}/cinco-glsp-server/lib/**/*.js",
+                "${workspaceFolder}/cinco-glsp-common/lib/**/*.js",
+                "${workspaceFolder}/cinco-glsp-api/lib/**/*.js",
+                "${workspaceRoot}/cinco-languages/lib/**/*.js",
+            ],
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Cinco GLSP Server in Workspace",
+            "program": "${workspaceFolder}/cinco-glsp-server/lib/src/index.js",
+            "env": {
+                "NODE_ENV": "development",
+                "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+                "EDITOR_TYPE": "LANGUAGE_EDITOR",
+                "USE_SSL": "false"
+            },
+            "killBehavior": "forceful",
+            "args": [
+                "-p",
+                "5007",
+                "--webServerPort=3003",
+                "--metaLanguagesFolder='languages'",
+                "--rootFolder='${workspaceRoot}'",
+                "--workspaceFolder='workspace",
+                "--webSocket",
+                "--transpilationMode=ONCE"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/node_modules/**/*.js",
+                "${workspaceFolder}/cinco-glsp-server/lib/**/*.js",
+                "${workspaceFolder}/cinco-glsp-common/lib/**/*.js",
+                "${workspaceFolder}/cinco-glsp-api/lib/**/*.js",
+                "${workspaceRoot}/cinco-languages/lib/**/*.js",
+            ],
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Cinco GLSP Server in MetaDevMode",
+            "program": "${workspaceFolder}/cinco-glsp-server/lib/src/index.js",
+            "env": {
+                "NODE_ENV": "development",
+                "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+                "EDITOR_TYPE": "LANGUAGE_EDITOR",
+                "USE_SSL": "false"
+            },
+            "killBehavior": "forceful",
+            "args": [
+                "-p",
+                "5007",
+                "--webServerPort=3003",
+                "--metaDevMode",
+                "--metaLanguagesFolder='cinco-glsp-server/languages'",
+                "--rootFolder='${workspaceRoot}'",
+                "--workspaceFolder='workspace",
+                "--webSocket",
+                "--transpilationMode=WATCH"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/node_modules/**/*.js",
+                "${workspaceFolder}/cinco-glsp-server/lib/**/*.js",
+                "${workspaceFolder}/cinco-glsp-common/lib/**/*.js",
+                "${workspaceFolder}/cinco-glsp-api/lib/**/*.js",
+                "${workspaceRoot}/cinco-languages/lib/**/*.js",
+            ],
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Cinco GLSP Server in MetaDevMode in Workspace",
+            "program": "${workspaceFolder}/cinco-glsp-server/lib/src/index.js",
+            "env": {
+                "NODE_ENV": "development",
+                "WORKSPACE_PATH": "${workspaceRoot}/workspace",
+                "EDITOR_TYPE": "LANGUAGE_EDITOR",
+                "USE_SSL": "false"
+            },
+            "killBehavior": "forceful",
+            "args": [
+                "-p",
+                "5007",
+                "--webServerPort=3003",
+                "--metaDevMode",
+                "--metaLanguagesFolder='languages'",
+                "--rootFolder='${workspaceRoot}'",
+                "--workspaceFolder='workspace",
+                "--webSocket",
+                "--transpilationMode=WATCH"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/node_modules/**/*.js",
+                "${workspaceFolder}/cinco-glsp-server/lib/**/*.js",
+                "${workspaceFolder}/cinco-glsp-common/lib/**/*.js",
+                "${workspaceFolder}/cinco-glsp-api/lib/**/*.js",
+                "${workspaceRoot}/cinco-languages/lib/**/*.js",
+            ],
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "outputCapture": "std"
+        },
+        {
+            "name": "Launch Theia Frontend",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000/?jwt=test&projectId=1#${workspaceRoot}/workspace",
+            "sourceMaps": true,
+            "cleanUp": "wholeBrowser",
+            "webRoot": "${workspaceRoot}/browser-app"
+        },
+        {
+            "name": "Launch Standalone Client",
+            "type": "chrome",
+            "request": "launch",
+            "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=example-models/example.mm",
+            "sourceMaps": true,
+            "cleanUp": "wholeBrowser",
+            "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
+        },
+        {
+            "name": "Launch Theia Frontend (PWA)",
+            "type": "pwa-chrome",
+            "request": "launch",
+            "url": "http://localhost:3000/?jwt=test&projectId=1#${workspaceRoot}/workspace",
+            "sourceMaps": true,
+            "cleanUp": "wholeBrowser",
+            "webRoot": "${workspaceRoot}/browser-app"
+        },
+        {
+            "name": "Launch Standalone Client (PWA)",
+            "type": "pwa-chrome",
+            "request": "launch",
+            "url": "file:///${workspaceRoot}/cinco-glsp-standalone/app/diagram.html?model=example-models/example.mm",
+            "sourceMaps": true,
+            "cleanUp": "wholeBrowser",
+            "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
+        }
+    ]
 }
