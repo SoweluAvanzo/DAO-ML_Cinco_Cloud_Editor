@@ -1,3 +1,7 @@
 languages/api
 languages/dist
 workspace/*
+node_modules
+coverage
+languages/dist
+languages/api

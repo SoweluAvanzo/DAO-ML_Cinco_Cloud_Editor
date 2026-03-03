@@ -1,0 +1,14 @@
+<DAO-ML_diagram name="Minimal Test DAO" uniqueID="dao_test_model_001" xsi:noNamespaceSchemaLocation="XSD_DAO_ML.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" x="0" y="0" width="0" height="0">
+	<DAO DAO_ID="dao_test_dao_001" DAO_name="Test DAO" mission_statement="A test DAO" hierarchical_inheritance="false" x="10" y="20" width="500" height="400">
+		<Role role_ID="dao_test_role_001" role_name="Admin" n_agent_min="1" n_agent_max="5" agent_type="human" aggregation_level="0" federation_level="0" x="50" y="100" width="50" height="80">
+			<is_controlled_by _id="dao_test_edge_001">dao_test_committee_001</is_controlled_by>
+			<associated_to _id="dao_test_edge_002">dao_test_perm_001</associated_to>
+		</Role>
+		<Committee committee_ID="dao_test_committee_001" committee_description="Board" decision_making_method="simple_majority" aggregation_level="0" federation_level="0" x="200" y="100" width="112" height="49">
+			<associated_to _id="dao_test_edge_003">dao_test_perm_002</associated_to>
+		</Committee>
+		<GovernanceArea gov_area_ID="dao_test_gov_001" gov_area_description="Treasury" implementation="on-chain" x="50" y="200" width="200" height="150" />
+		<Permission permission_ID="dao_test_perm_001" allowed_action="Vote" permission_type="operational" ref_gov_area="dao_test_gov_001" x="20" y="40" width="91" height="49" />
+		<Permission permission_ID="dao_test_perm_002" allowed_action="Manage Funds" permission_type="strategic" ref_gov_area="dao_test_gov_001" x="20" y="94" width="91" height="49" />
+	</DAO>
+</DAO-ML_diagram>

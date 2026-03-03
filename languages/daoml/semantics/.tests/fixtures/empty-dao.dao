@@ -1,0 +1,4 @@
+<DAO-ML_diagram name="Empty DAO" uniqueID="dao_empty_model" xsi:noNamespaceSchemaLocation="XSD_DAO_ML.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" x="0" y="0" width="0" height="0">
+	<DAO DAO_ID="dao_empty_dao" DAO_name="Empty" mission_statement="" hierarchical_inheritance="false" x="0" y="0" width="100" height="100">
+	</DAO>
+</DAO-ML_diagram>

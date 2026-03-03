@@ -1,0 +1,24 @@
+<DAO-ML_diagram name="Edge Cases Test" uniqueID="dao_test_edge_cases" xsi:noNamespaceSchemaLocation="XSD_DAO_ML.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" x="0" y="0" width="0" height="0">
+	<DAO DAO_ID="dao_test_dao_ec" DAO_name="EdgeCase DAO" mission_statement="" hierarchical_inheritance="false" x="0" y="0" width="800" height="600">
+		<Role role_ID="dao_test_role_ec1" role_name="Founder" n_agent_min="0" n_agent_max="0" agent_type="human" aggregation_level="1" federation_level="2" x="100" y="100" width="50" height="80">
+			<federates_into _id="dao_test_fed_001">dao_test_comm_ec1</federates_into>
+			<aggregates _id="dao_test_agg_001">dao_test_role_ec2</aggregates>
+		</Role>
+		<Role role_ID="dao_test_role_ec2" role_name="Member" n_agent_min="0" n_agent_max="0" agent_type="human" aggregation_level="0" federation_level="0" x="300" y="100" width="50" height="80">
+			<federates_into _id="dao_test_fed_002">dao_test_comm_ec1</federates_into>
+		</Role>
+		<Role role_ID="dao_test_role_ec3" role_name="AI Agent" n_agent_min="0" n_agent_max="0" aggregation_level="0" federation_level="0" x="500" y="100" width="50" height="80">
+		</Role>
+		<Committee committee_ID="dao_test_comm_ec1" committee_description="Main Board" decision_making_method="lazy_consensus" aggregation_level="0" federation_level="0" x="200" y="300" width="112" height="49">
+			<aggregates _id="dao_test_agg_002">dao_test_comm_ec2</aggregates>
+		</Committee>
+		<Committee committee_ID="dao_test_comm_ec2" committee_description="Sub Board" decision_making_method="quadratic_voting" aggregation_level="0" federation_level="0" x="400" y="300" width="112" height="49">
+		</Committee>
+		<GovernanceArea gov_area_ID="dao_test_gov_ec1" gov_area_description="On Chain Area" implementation="on-chain" x="50" y="400" width="200" height="150" />
+		<GovernanceArea gov_area_ID="dao_test_gov_ec2" gov_area_description="Hybrid Area" implementation="hybrid" x="300" y="400" width="200" height="150" />
+		<GovernanceArea gov_area_ID="dao_test_gov_ec3" gov_area_description="Off Chain Area" implementation="off-chain" x="550" y="400" width="200" height="150" />
+		<Permission permission_ID="dao_test_perm_ec1" allowed_action="Execute" permission_type="operational" ref_gov_area="dao_test_gov_ec1" x="20" y="40" width="91" height="49" />
+		<Permission permission_ID="dao_test_perm_ec2" allowed_action="Restructure" permission_type="structural" ref_gov_area="dao_test_gov_ec2" x="20" y="40" width="91" height="49" />
+		<Permission permission_ID="dao_test_perm_ec3" allowed_action="Govern" permission_type="strategic" ref_gov_area="dao_test_gov_ec3" x="20" y="40" width="91" height="49" />
+	</DAO>
+</DAO-ML_diagram>

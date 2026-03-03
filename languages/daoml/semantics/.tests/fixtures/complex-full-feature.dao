@@ -1,0 +1,70 @@
+<DAO-ML_diagram name="Complex Full Feature DAO Model" uniqueID="dao_complex_root_001" xsi:noNamespaceSchemaLocation="XSD_DAO_ML.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" x="0" y="0" width="0" height="0">
+	<DAO DAO_ID="dao_complex_dao_alpha" DAO_name="Alpha DAO" mission_statement="Full-featured DAO exercising every MGL construct" hierarchical_inheritance="true" x="10" y="10" width="1200" height="900">
+		<GovernanceArea gov_area_ID="dao_complex_gov_onchain" gov_area_description="Treasury Management" implementation="on-chain" x="20" y="50" width="250" height="200" />
+		<GovernanceArea gov_area_ID="dao_complex_gov_hybrid" gov_area_description="Content Moderation" implementation="hybrid" x="300" y="50" width="250" height="200" />
+		<GovernanceArea gov_area_ID="dao_complex_gov_offchain" gov_area_description="Dispute Resolution" implementation="off-chain" x="580" y="50" width="250" height="200" />
+		<Permission permission_ID="dao_complex_perm_op1" allowed_action="Transfer Funds" permission_type="operational" ref_gov_area="dao_complex_gov_onchain" x="20" y="40" width="91" height="49" />
+		<Permission permission_ID="dao_complex_perm_op2" allowed_action="Approve Expenses" permission_type="operational" ref_gov_area="dao_complex_gov_onchain" x="20" y="100" width="91" height="49" />
+		<Permission permission_ID="dao_complex_perm_str1" allowed_action="Modify Governance Rules" permission_type="structural" ref_gov_area="dao_complex_gov_hybrid" x="20" y="40" width="91" height="49" />
+		<Permission permission_ID="dao_complex_perm_str2" allowed_action="Create Sub-DAOs" permission_type="structural" ref_gov_area="dao_complex_gov_hybrid" x="20" y="100" width="91" height="49" />
+		<Permission permission_ID="dao_complex_perm_strat1" allowed_action="Set Mission Statement" permission_type="strategic" ref_gov_area="dao_complex_gov_offchain" x="20" y="40" width="91" height="49" />
+		<Permission permission_ID="dao_complex_perm_strat2" allowed_action="Dissolution Vote" permission_type="strategic" ref_gov_area="dao_complex_gov_offchain" x="20" y="100" width="91" height="49" />
+		<Role role_ID="dao_complex_role_founder" role_name="Founder" n_agent_min="1" n_agent_max="3" agent_type="human" aggregation_level="2" federation_level="1" x="100" y="400" width="50" height="80">
+			<associated_to _id="dao_complex_edge_assoc_01">dao_complex_perm_op1</associated_to>
+			<associated_to _id="dao_complex_edge_assoc_02">dao_complex_perm_strat1</associated_to>
+			<federates_into _id="dao_complex_edge_fed_01">dao_complex_comm_board</federates_into>
+			<aggregates _id="dao_complex_edge_agg_r01">dao_complex_role_member</aggregates>
+			<is_controlled_by _id="dao_complex_edge_ctrl_01">dao_complex_comm_board</is_controlled_by>
+		</Role>
+		<Role role_ID="dao_complex_role_member" role_name="Community Member" n_agent_min="0" n_agent_max="1000" agent_type="human" aggregation_level="0" federation_level="0" x="300" y="400" width="50" height="80">
+			<associated_to _id="dao_complex_edge_assoc_03">dao_complex_perm_op2</associated_to>
+			<federates_into _id="dao_complex_edge_fed_02">dao_complex_comm_board</federates_into>
+			<is_controlled_by _id="dao_complex_edge_ctrl_02">dao_complex_comm_board</is_controlled_by>
+		</Role>
+		<Role role_ID="dao_complex_role_ai_curator" role_name="AI Content Curator" n_agent_min="0" n_agent_max="10" aggregation_level="0" federation_level="0" x="500" y="400" width="50" height="80">
+			<associated_to _id="dao_complex_edge_assoc_04">dao_complex_perm_str1</associated_to>
+			<is_controlled_by _id="dao_complex_edge_ctrl_03">dao_complex_comm_moderation</is_controlled_by>
+		</Role>
+		<Role role_ID="dao_complex_role_ai_auditor" role_name="AI Auditor" n_agent_min="0" n_agent_max="5" aggregation_level="1" federation_level="0" x="700" y="400" width="50" height="80">
+			<associated_to _id="dao_complex_edge_assoc_05">dao_complex_perm_strat2</associated_to>
+			<aggregates _id="dao_complex_edge_agg_r02">dao_complex_role_ai_curator</aggregates>
+			<is_controlled_by _id="dao_complex_edge_ctrl_04">dao_complex_comm_dispute</is_controlled_by>
+		</Role>
+		<Role role_ID="dao_complex_role_delegate" role_name="Delegate" n_agent_min="5" n_agent_max="50" agent_type="human" aggregation_level="0" federation_level="2" x="900" y="400" width="50" height="80">
+			<federates_into _id="dao_complex_edge_fed_03">dao_complex_comm_dispute</federates_into>
+			<associated_to _id="dao_complex_edge_assoc_06">dao_complex_perm_str2</associated_to>
+			<is_controlled_by _id="dao_complex_edge_ctrl_05">dao_complex_comm_board</is_controlled_by>
+		</Role>
+		<Committee committee_ID="dao_complex_comm_board" committee_description="Executive Board" decision_making_method="simple_majority" aggregation_level="0" federation_level="0" voting_condition="quorum >= 51%" proposalCondition="any member" x="200" y="600" width="112" height="49">
+			<associated_to _id="dao_complex_edge_assoc_07">dao_complex_perm_op1</associated_to>
+			<associated_to _id="dao_complex_edge_assoc_08">dao_complex_perm_str1</associated_to>
+			<aggregates _id="dao_complex_edge_agg_c01">dao_complex_comm_moderation</aggregates>
+		</Committee>
+		<Committee committee_ID="dao_complex_comm_moderation" committee_description="Content Moderation Panel" decision_making_method="lazy_consensus" aggregation_level="1" federation_level="0" x="500" y="600" width="112" height="49">
+			<associated_to _id="dao_complex_edge_assoc_09">dao_complex_perm_str1</associated_to>
+			<is_controlled_by _id="dao_complex_edge_ctrl_06">dao_complex_comm_board</is_controlled_by>
+		</Committee>
+		<Committee committee_ID="dao_complex_comm_dispute" committee_description="Dispute Resolution Council" decision_making_method="quadratic_voting" aggregation_level="0" federation_level="1" voting_condition="token weighted" proposalCondition="stake >= 100" x="800" y="600" width="112" height="49">
+			<associated_to _id="dao_complex_edge_assoc_10">dao_complex_perm_strat1</associated_to>
+		</Committee>
+		<Committee committee_ID="dao_complex_comm_protocol" committee_description="Protocol Upgrade Committee" decision_making_method="" aggregation_level="0" federation_level="0" x="200" y="750" width="112" height="49">
+			<associated_to _id="dao_complex_edge_assoc_11">dao_complex_perm_strat2</associated_to>
+		</Committee>
+		<Committee committee_ID="dao_complex_comm_optimistic" committee_description="Emergency Committee" decision_making_method="optimistic_governance" aggregation_level="0" federation_level="0" x="500" y="750" width="112" height="49">
+			<is_controlled_by _id="dao_complex_edge_ctrl_07">dao_complex_comm_dispute</is_controlled_by>
+		</Committee>
+	</DAO>
+	<DAO DAO_ID="dao_complex_dao_beta" DAO_name="Beta Sub-DAO" mission_statement="Secondary DAO demonstrating multi-DAO diagrams" hierarchical_inheritance="false" x="10" y="950" width="600" height="500">
+		<GovernanceArea gov_area_ID="dao_complex_gov_beta_ops" gov_area_description="Beta Operations" implementation="hybrid" x="20" y="50" width="200" height="150" />
+		<Permission permission_ID="dao_complex_perm_beta_op" allowed_action="Beta Operate" permission_type="operational" ref_gov_area="dao_complex_gov_beta_ops" x="20" y="40" width="91" height="49" />
+		<Role role_ID="dao_complex_role_beta_admin" role_name="Beta Admin" n_agent_min="1" n_agent_max="5" agent_type="human" aggregation_level="0" federation_level="0" x="100" y="300" width="50" height="80">
+			<associated_to _id="dao_complex_edge_assoc_12">dao_complex_perm_beta_op</associated_to>
+		</Role>
+		<Role role_ID="dao_complex_role_beta_bot" role_name="Beta Bot" n_agent_min="0" n_agent_max="100" aggregation_level="0" federation_level="0" x="300" y="300" width="50" height="80">
+		</Role>
+		<Committee committee_ID="dao_complex_comm_beta_council" committee_description="Beta Council" decision_making_method="lazy_consensus" aggregation_level="0" federation_level="0" x="200" y="400" width="112" height="49">
+			<associated_to _id="dao_complex_edge_assoc_13">dao_complex_perm_beta_op</associated_to>
+			<federates_into _id="dao_complex_edge_fed_04">dao_complex_comm_beta_council</federates_into>
+		</Committee>
+	</DAO>
+</DAO-ML_diagram>

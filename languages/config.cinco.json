@@ -1,0 +1,22 @@
+{
+    "workspaceFolder": {
+        "skipHidden": true,
+        "ignorePatterns": [
+            "**/.git/**",
+            "**/.DS_Store/**",
+            "**/node_modules/**",
+            "**/build/**",
+            "**/.tests/**"
+        ]
+    },
+    "languagesFolder": {
+        "skipHidden": true,
+        "ignorePatterns": [
+            "**/.git/**",
+            "**/.DS_Store/**",
+            "**/node_modules/**",
+            "**/build/**",
+            "**/.tests/**"
+        ]
+    }
+}

@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Clean up any existing container with the same name
+docker rm -f dao_ml_editor 2>/dev/null || true
+
+# Run the editor
 exec docker run \
     --name dao_ml_editor \
     --env-file ./env.list \
