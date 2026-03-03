@@ -13,23 +13,28 @@ This project integrates multiple components, each governed by its respective lic
 [EPL2](https://www.eclipse.org/legal/epl-2.0/)
 
 # How to Use
-To use the editor, we recommend executing locally the Cinco Cloud Archetype according to the instructions reported below.
-Two options are provided. Users can directly execute the saved docker image without having to recompile it from scratch by downloading and executing it from the Zenodo repository at the link: https://zenodo.org/records/15188048.
+To use the editor, follow these simple steps to build and run the Docker container:
 
-Alternatively, users can execute the following commands from the original repository in order to build and execute the Docker container:
-
-1. to compile the docker image execute **from the root of the project**:
+1. To compile the docker image, execute **from the root of the project**:
 
     `./build.sh`
 
-2. to run the docker image execute:
+2. To run the docker image, execute:
 
     `./run.sh`
 
-    (It is important that both ports `3000` and `8000` are exposed)
+    (It is important that port `3000` is exposed)
 
-optional:
-    the `env.list` contains environment variables which will be used by the run-script.
+The `env.list` file contains environment variables that will be used by the run script and can be customized as needed.
+
+## Docker Configuration
+
+The editor is built on the Cinco Cloud base image available at:
+- `registry.gitlab.com/scce/cinco-projects/cinco-editor/cinco-editor:latest`
+
+The Docker container mounts:
+- `./workspace` at `/editor/workspace` for your workspace files
+- `./languages` at `/editor/languages` for language definitions
 
 ## Related projects and Used Technologies
 

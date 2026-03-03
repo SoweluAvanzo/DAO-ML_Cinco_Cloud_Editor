@@ -3,7 +3,8 @@ exec docker run \
     --name dao_ml_editor \
     --env-file ./env.list \
     --add-host=host.docker.internal:host-gateway \
-    --volume=./editor/workspace:/editor/workspace \
+    --volume=./workspace:/editor/workspace \
+    --volume=./languages:/editor/languages \
     -p 3000:3000 \
     -p 3003:3003 \
     -p 5007:5007 \
