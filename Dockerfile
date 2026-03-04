@@ -1,6 +1,5 @@
-# Base image for DAO-ML Editor
-# Using the Cinco Cloud editor base image
-ARG BASE_IMAGE=registry.gitlab.com/scce/cinco-projects/cinco-editor/cinco-editor:main-e0989d2dabcfa232695d503577f572e25a64b493
+# Base image for DAO-ML Editor => cinco editor:fix-docker-build-run-18d5a43276527ff2b3788bb98f280f740c29ed62
+ARG BASE_IMAGE=registry.gitlab.com/scce/cinco-projects/cinco-editor/cinco-editor:fix-docker-build-run-18d5a43276527ff2b3788bb98f280f740c29ed62@sha256:3a7ab800ebe4734401be8d204c341b79c72a73746fb45da69b829ea80b1eeafc
 FROM ${BASE_IMAGE}
 
 # Image metadata
@@ -23,6 +22,3 @@ VOLUME /editor/languages
 
 # Expose necessary ports
 EXPOSE 3000 3003 5007
-
-# Start the editor with proper client path configuration
-CMD ["/bin/bash", "-c", "cd /editor/minio-client && node bundle/cinco-minio-client.js --metaFolder /editor/languages & cd /editor/browser-app && CINCO_CLOUD_HOST=\"${CINCO_CLOUD_HOST}\" CINCO_CLOUD_PORT=\"${CINCO_CLOUD_PORT}\" MINIO_HOST=\"${MINIO_HOST}\" MINIO_PORT=\"${MINIO_PORT}\" MINIO_ACCESS_KEY=\"${MINIO_ACCESS_KEY}\" MINIO_SECRET_KEY=\"${MINIO_SECRET_KEY}\" THEIA_WEBVIEW_EXTERNAL_ENDPOINT=\"${THEIA_WEBVIEW_EXTERNAL_ENDPOINT}\" THEIA_WEBVIEW_ENDPOINT_PATTERN=\"${THEIA_WEBVIEW_ENDPOINT_PATTERN}\" THEIA_MINI_BROWSER_HOST_PATTERN=\"${THEIA_MINI_BROWSER_HOST_PATTERN}\" INTERNAL_USE_SSL=\"${INTERNAL_USE_SSL}\" EXTERNAL_USE_SSL=\"${EXTERNAL_USE_SSL}\" WORKSPACE_PATH=\"${WORKSPACE_PATH}\" TRANSPILATION_MODE=\"${TRANSPILATION_MODE}\" EDITOR_TYPE=\"${EDITOR_TYPE}\" ENVIRONMENT=\"${ENVIRONMENT}\" yarn run theia start --port=3000 --CINCO_GLSP=5007 -WEB_SERVER_PORT=3003 --remote-debugging-port=9222 --no-cluster --loglevel=debug --root-dir=/editor/workspace --plugins=local-dir:./plugins --hostname 0.0.0.0 --META_DEV_MODE --META_LANGUAGES_FOLDER=\"${META_LANGUAGES_FOLDER}\""]
