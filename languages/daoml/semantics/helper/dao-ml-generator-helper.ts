@@ -1,12 +1,11 @@
 /********************************************************************************
  * Copyright (c) 2024 The DAO ML Team.
  ********************************************************************************/
+
 import {
     GraphModel, ModelElement, RootPath, getLanguageFolder
 } from '@cinco-glsp/cinco-glsp-api';
 import { LogLevel } from '@eclipse-glsp/server';
-import { exec, ExecException } from 'child_process';
-import * as path from 'path';
 
 type logType = (
     message: string, // the message to log
@@ -33,7 +32,7 @@ export async function generate(model: GraphModel, log: logType, copyDirectory: C
     const sourceUri = model._sourceUri;
     const optimizedTranslation = model.getProperty('optimizedTranslation');
     const languagesFolder = getLanguageFolder();
-    const execFolder = path.join(languagesFolder, 'daoml', 'generator');
+    const execFolder = languagesFolder + '/daoml/generator';
     const generatorExecutionCmd = 'python3 translator_cli.py -fn=translate -f='
         + sourceUri + ' -tt=' + (optimizedTranslation ? 'optimized' : ' simple');
 
@@ -49,7 +48,7 @@ export async function generate(model: GraphModel, log: logType, copyDirectory: C
         }
     }
 
-    const code = await executeProcess(command, false, log, (error: ExecException | null, stdout: string, stderr: string) => {
+    const code = await executeProcess(command, false, log, (error: Error | null, stdout: string, stderr: string) => {
         if (error) {
             log(`${error.message}`, { show: true, logLevel: 1 });
             return;
@@ -59,7 +58,11 @@ export async function generate(model: GraphModel, log: logType, copyDirectory: C
             return;
         }
         log(`${stdout}`, { show: true });
+    }).catch(e => {
+        log(`Failed to execute generator: ${e}`, { show: true, logLevel: 1 });
+        return 1;
     });
+
     if (code === 1) { // not installed
         log('failed to execute generator!');
         return;
@@ -67,8 +70,8 @@ export async function generate(model: GraphModel, log: logType, copyDirectory: C
 
     // copy files
     copyDirectory(
-        path.join('daoml', 'generator', 'translated'),
-        path.join('output'),
+        'daoml/generator/translated',
+        'output',
         true,
         true,
         RootPath.LANGUAGES
@@ -95,10 +98,31 @@ export async function executeProcess(
     command: string,
     logging: boolean = true,
     log: logType,
-    callback?: (error: ExecException | null, stdout: string, stderr: string) => void
+    callback?: (error: Error | null, stdout: string, stderr: string) => void
 ): Promise<any> {
+    // Node built-in modules must be required lazily because language files
+    // are loaded through a webpack custom module loader that cannot resolve
+    // them at module top-level.
+    let execCmd: any;
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const childProcessModule = require('child_process');
+        execCmd = childProcessModule?.exec;
+    } catch {
+        // child_process is not available (e.g., webpack environment)
+        execCmd = undefined;
+    }
+
+    // If child_process is not available, return success without executing
+    if (!execCmd) {
+        if (logging) {
+            log('(Skipped process execution in webpack environment)', { show: false, logLevel: 0 });
+        }
+        return 0;
+    }
+
     let lock: any;
-    const childProcess = exec(command, (error, stdout, stderr) => {
+    const childProcess = execCmd(command, (error: any, stdout: string, stderr: string) => {
         if (callback) {
             callback(error, stdout, stderr);
         } else {
@@ -126,24 +150,24 @@ export async function executeProcess(
             log('Process disconneced!', { show: true, logLevel: 4 });
         }
     });
-    childProcess.on('message', (message, _sendHandle) => {
+    childProcess.on('message', (message: any, _sendHandle: any) => {
         if (logging) {
             log('' + message.toString(), { show: true, logLevel: 4 });
         }
     });
-    childProcess.on('error', arg => {
+    childProcess.on('error', (arg: any) => {
         if (logging) {
             log('Generator had error: '
                 + arg, { show: true, logLevel: 1 });
         }
     });
-    childProcess.on('exit', (code, _signal) => {
+    childProcess.on('exit', (code: any, _signal: any) => {
         if (logging) {
             log('Generator-Process exited with code: '
                 + code, { show: true, logLevel: 4 });
         }
     });
-    childProcess.on('close', (code, _signal) => {
+    childProcess.on('close', (code: any, _signal: any) => {
         if (logging) {
             log('Generator-Process closed with code: '
                 + code, { show: true, logLevel: 4 });

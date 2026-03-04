@@ -1,10 +1,7 @@
 /********************************************************************************
- * Tests for dao-ml-generator-helper.ts
- *
- * Covers: getContent(), checkInstallPackages(), executeProcess()
- * Note: generate() is not unit-testable (requires Python environment & file I/O)
- *       but the helper functions it calls are tested.
+ * Copyright (c) 2024 The DAO ML Team.
  ********************************************************************************/
+
 import {
     GraphModel,
     Node,

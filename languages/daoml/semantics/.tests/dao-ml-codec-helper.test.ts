@@ -1,9 +1,7 @@
 /********************************************************************************
- * Tests for dao-ml-codec-helper.ts
- *
- * Covers: parseXMLContent, toModelElement, decodeSwitch, encodeSwitch,
- *         findContainer, countSymbol, toDAOId, isExternalContainment
+ * Copyright (c) 2024 The DAO ML Team.
  ********************************************************************************/
+
 import {
     GraphModel,
     Node,

@@ -3,6 +3,7 @@ stylePath "DAO_ML.msl"
 // TODO: add enumm-values to modelelement representations/style
 
 @FileCodec(DaoMLFileCodecHandler)
+@Hook("DaoMLHook", PostContentChange)
 @ValueProvider("DaoMLValueProvider")
 @GeneratorAction("DaoMLGenerator")
 graphModel DAO_Model {
