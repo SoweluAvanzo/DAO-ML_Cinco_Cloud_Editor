@@ -1,0 +1,41 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Theia Frontend",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000/?jwt=test&projectId=1#${workspaceRoot}/workspace",
+            "sourceMaps": true,
+            "cleanUp": "wholeBrowser",
+            "webRoot": "${workspaceRoot}/browser-app"
+        },
+        {
+            "name": "Launch Theia Frontend (PWA)",
+            "type": "pwa-chrome",
+            "request": "launch",
+            "url": "http://localhost:3000/?jwt=test&projectId=1#${workspaceRoot}/workspace",
+            "sourceMaps": true,
+            "cleanUp": "wholeBrowser",
+            "webRoot": "${workspaceRoot}/browser-app"
+        },
+        {
+            "name": "Launch Standalone Client",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3003/client?host=localhost:3000&portMapping=true&model=example-models/example.example",
+            "sourceMaps": true,
+            "cleanUp": "wholeBrowser",
+            "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
+        },
+        {
+            "name": "Launch Standalone Client (PWA)",
+            "type": "pwa-chrome",
+            "request": "launch",
+            "url": "http://localhost:3003/client?host=localhost:3000&portMapping=true&model=example-models/example.example",
+            "sourceMaps": true,
+            "cleanUp": "wholeBrowser",
+            "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
+        }
+    ]
+}
