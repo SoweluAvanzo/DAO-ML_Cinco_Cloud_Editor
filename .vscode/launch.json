@@ -23,7 +23,7 @@
             "name": "Launch Standalone Client",
             "type": "chrome",
             "request": "launch",
-            "url": "http://localhost:3003/client?host=localhost:3000&portMapping=true&model=example-models/example.example",
+            "url": "http://localhost:3003/client?model=model=test.dao",
             "sourceMaps": true,
             "cleanUp": "wholeBrowser",
             "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
@@ -32,7 +32,7 @@
             "name": "Launch Standalone Client (PWA)",
             "type": "pwa-chrome",
             "request": "launch",
-            "url": "http://localhost:3003/client?host=localhost:3000&portMapping=true&model=example-models/example.example",
+            "url": "http://localhost:3003/client?model=model=test.dao",
             "sourceMaps": true,
             "cleanUp": "wholeBrowser",
             "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
