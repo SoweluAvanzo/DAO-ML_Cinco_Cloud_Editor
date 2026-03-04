@@ -29,6 +29,15 @@
             "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
         },
         {
+            "name": "Launch ReactFlow Client (Beta)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3003/client?model=model=test.dao&rendering=reactflow",
+            "sourceMaps": true,
+            "cleanUp": "wholeBrowser",
+            "webRoot": "${workspaceRoot}/cinco-glsp-standalone"
+        },
+        {
             "name": "Launch Standalone Client (PWA)",
             "type": "pwa-chrome",
             "request": "launch",
