@@ -1,5 +1,5 @@
 # Base image for DAO-ML Editor => cinco editor:fix-docker-build-run-18d5a43276527ff2b3788bb98f280f740c29ed62
-ARG BASE_IMAGE=registry.gitlab.com/scce/cinco-projects/cinco-editor/cinco-editor:fix-docker-build-run-18d5a43276527ff2b3788bb98f280f740c29ed62@sha256:3a7ab800ebe4734401be8d204c341b79c72a73746fb45da69b829ea80b1eeafc
+ARG BASE_IMAGE=registry.gitlab.com/scce/cinco-projects/cinco-editor/cinco-editor:main-864d27e891ce11c0a10eb39ae21de30324c39f72
 FROM ${BASE_IMAGE}
 
 # Image metadata
