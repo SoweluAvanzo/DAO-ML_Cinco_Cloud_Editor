@@ -14,6 +14,9 @@ RUN cd /editor/minio-client && yarn build && cd /editor
 # Build the GLSP client (required for the /client endpoint)
 RUN cd /editor && yarn build && cd /editor
 
+# Copy model-selection index.html so the root URL serves a landing page instead of "Cannot GET /"
+COPY patches/index.html /editor/cinco-glsp-standalone/app/index.html
+
 # Set environment variable to use the languages folder
 ENV META_LANGUAGES_FOLDER="/editor/languages"
 

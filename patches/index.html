@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DAO-ML Editor</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            color: #a6adc8;
+            margin-bottom: 2rem;
+        }
+
+        #models {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-width: 320px;
+        }
+
+        #models a {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            background: #313244;
+            color: #cdd6f4;
+            text-decoration: none;
+            border-radius: 8px;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        #models a:hover {
+            background: #45475a;
+        }
+
+        .loading {
+            color: #a6adc8;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>DAO-ML Editor</h1>
+    <p>Select a model to open the diagram editor</p>
+    <div id="models">
+        <p class="loading">Loading models…</p>
+    </div>
+    <script>
+        fetch('/models')
+            .then(r => r.json())
+            .then(models => {
+                const container = document.getElementById('models');
+                container.innerHTML = '';
+                if (models.length === 0) {
+                    container.innerHTML = '<p class="loading">No models found in workspace.</p>';
+                    return;
+                }
+                models.forEach(model => {
+                    const a = document.createElement('a');
+                    a.href = 'diagram.html?model=' + encodeURIComponent(model);
+                    a.textContent = model;
+                    container.appendChild(a);
+                });
+            })
+            .catch(() => {
+                document.getElementById('models').innerHTML =
+                    '<p class="loading">Failed to load models. Make sure the server is running.</p>';
+            });
+    </script>
+</body>
+
+</html>
