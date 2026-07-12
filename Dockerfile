@@ -17,6 +17,13 @@ RUN cd /editor && yarn build && cd /editor
 # Copy model-selection index.html so the root URL serves a landing page instead of "Cannot GET /"
 COPY patches/index.html /editor/cinco-glsp-standalone/app/index.html
 
+# Patch the websocket-url.ts to use the full URL from the environment variable
+# (this is pre-release code and will be removed once the cinco image is updated to include the fix)
+COPY patches/websocket-url.ts /editor/cinco-glsp-standalone/src/utils/websocket-url.ts
+
+# Rebuild the standalone client bundle with the patched app.ts
+RUN cd /editor/cinco-glsp-standalone && yarn build && cd /editor
+
 # Set environment variable to use the languages folder
 ENV META_LANGUAGES_FOLDER="/editor/languages"
 
